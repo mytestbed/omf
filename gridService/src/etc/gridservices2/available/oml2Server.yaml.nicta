@@ -1,0 +1,31 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the OMLServer GridService on the NICTA platform
+#
+---
+oml2:
+
+  # Max. number of active collection servers allowed
+  maxDaemons: 10
+
+  testbed:
+
+    default:
+      # Address for collection server to bind to.
+      serverAddress: '10.0.0.200'
+      # Using ports starting at ...
+      startPort: 8000
+      # Time out daemon if nobody requested it within TIMEOUT sec
+      timeout: 10000
+      serverBin: '/usr/sbin/oml2-server'
+      serverDebugLevel: 4
+
+    npc:
+      # Address for collection server to bind to.
+      serverAddress: '10.0.0.200'
+      # Using ports starting at ...
+      startPort: 8000
+      # Time out daemon if nobody requested it within TIMEOUT sec
+      timeout: 10000
+      serverBin: '/usr/sbin/oml2-server'

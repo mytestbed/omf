@@ -1,0 +1,49 @@
+SRC_NAME = nodeAgent
+APP_NAME = nodeagent4
+
+TOP = ../../../
+SRC_TOP = $(TOP)/$(SRC_NAME)
+
+OPT = $(DESTDIR)/opt
+BIN_TARGET = /usr/sbin
+BIN = $(DESTDIR)/$(BIN_TARGET)
+ETC = $(DESTDIR)/etc
+
+PROG_VERSION = $(shell grep -o -E '[0-9]+\.[0-9.-]+' -m 1 $(SRC_TOP)/changelog)
+PROG_DIR = $(APP_NAME)-$(PROG_VERSION)
+
+all: 
+
+deb:
+	echo "NOTE: If buildpackage fails due to gpg, set env MAINTAINER to yourself"
+	if [ -z "$(MAINTAINER)" ]; then dpkg-buildpackage -rfakeroot; \
+ 	else dpkg-buildpackage -m"$(MAINTAINER)" -rfakeroot; fi
+	# NICTA: to allow build for maintainers outside of winlab, use env var
+	# MAINTAINER e.g. "Jo Blo <jo@nicta.com.au>" IF set
+
+install:
+	install -d $(OPT)
+	cp -rp $(TOP)/build/$(SRC_NAME)/$(APP_NAME) $(OPT)/$(PROG_DIR)
+	sh -x $(OPT)/$(PROG_DIR)/INSTALL.sh $(BIN_TARGET) /opt/$(PROG_DIR) $(DESTDIR)
+	install -d $(ETC)
+	# this is dirty, but we want to keep existing files 
+	# and tar's -k reports error
+	if [ -d $(ETC)/$(APP_NAME) ] ; then cp -rp $(ETC)/$(APP_NAME) $(ETC)/$(APP_NAME)-x ; fi
+#	tar -C $(SRC_TOP)/src/etc --exclude=.svn --exclude='*~' -cf - $(APP_NAME) | (cd $(ETC); tar -xf -)
+	tar -C $(SRC_TOP)/src --exclude=.svn --exclude='*~' -cf - etc | (cd $(ETC)/..; tar -xf -)
+	if [ -d $(ETC)/$(APP_NAME)-x ] ; then \
+		cp -rp $(ETC)/$(APP_NAME)-x/* $(ETC)/$(APP_NAME) ; \
+		rm -rf $(ETC)/$(APP_NAME)-x ; \
+	fi
+
+
+uninstall:
+	rm -rf $(OPT)/$(PROG_DIR)
+	rm -rf $(ETC)/$(APP_NAME)
+	rm -rf $(ETC)/init.d/$(APP_NAME)
+	rm -f $(BIN)/$(APP_NAME) 
+
+clean:
+
+.PHONY: clean install uninstall
+

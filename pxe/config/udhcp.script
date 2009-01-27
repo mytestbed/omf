@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# Copyright (C) 2007 Luis R. Rodriguez <mcgrof@winlab.rutgers.edu>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# ---
+# This has been tested with busybox-1.4.1 using /bin/ip. This script can
+# be called by udhcp when run as:
+#
+# /usr/sbin/udhcpc -i eth1 -s $SCRIPT
+# 
+# udhcpc passes the retrieved results from the DHCP request through local
+# environment variables. 
+
+SCRIPT="udhcp.script"
+IP_CONFIG="/bin/ip"
+RESOLV_CONF="/etc/resolv.conf"
+bcast="+"
+
+if [ ! -n "$ip" ]; then
+	echo "$SCRIPT: No answer to our DHCP broadcast... trying again"
+	exit
+fi
+
+echo "$SCRIPT: setting /etc/hostname to $hostname"
+echo $hostname > /etc/hostname
+echo "$SCRIPT: setting system hostname to $hostname"
+hostname $hostname
+
+if [ -n "$broadcast" ]; then
+	bcast=$broadcast
+fi
+
+echo "$SCRIPT: $IP_CONFIG addr add $ip/$mask dev $interface broadcast $bcast"
+$IP_CONFIG addr add $ip/$mask dev $interface broadcast $bcast
+
+if [ -n "$router" ]; then
+#        echo "$SCRIPT: deleting default route"
+#	$IP_CONFIG route del default
+        for i in $router; do
+		echo "$SCRIPT: $IP_CONFIG route add default via $i"
+		$IP_CONFIG route add default via $i
+        done
+fi
+
+if [ -n "$dns" ]; then
+	> $RESOLV_CONF
+	if [ -n "$domain" ]; then
+		echo "$SCRIPT: Adding search $domain to $RESOLV_CONF"
+		echo domain $domain >> $RESOLV_CONF
+		echo "$SCRIPT: Adding domain $domain to $RESOLV_CONF"
+		echo search $domain >> $RESOLV_CONF
+	fi
+	for i in $dns; do
+		echo "$SCRIPT: adding dns $i to $RESOLV_CONF"
+		echo nameserver $i >> $RESOLV_CONF
+	done
+fi 

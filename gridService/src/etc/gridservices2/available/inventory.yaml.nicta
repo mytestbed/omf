@@ -1,0 +1,17 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the Inventory GridService on the NICTA platform
+#
+---
+inventory:
+
+  testbed:
+    default:
+      # Name of the Database Server
+      host: localhost
+      # Username and password to access the database server
+      user: orbit
+      password: orbit
+      # Name of the database to use
+      database: inventory

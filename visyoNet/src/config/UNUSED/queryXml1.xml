@@ -1,0 +1,14 @@
+<Visyonet>
+  <QueryManager type="xml" id="qm2xml">
+    <NodeQuery>
+    </NodeQuery>
+    <LinkQuery>
+    </LinkQuery>
+
+    <AllNodesQuery>
+    </AllNodesQuery>
+
+    <ExperimentTimeSpanQuery>
+    </ExperimentTimeSpanQuery>
+  </QueryManager>
+</Visyonet>

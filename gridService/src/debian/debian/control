@@ -1,0 +1,17 @@
+Source: gridservices2
+Section: Orbit 
+Priority: optional
+Maintainer: Max Ott [max@winlab.rutgers.edu] 
+Build-Depends:
+Standards-Version: 3.6.1
+
+Package: gridservices2
+Architecture: all
+Pre-Depends: 
+Recommends: 
+Depends: frisbee (>=1.0.3-1) , libldap-ruby1.8 (>=0.9.0-1)
+Suggests: 
+Installed-Size: 1024
+Conflicts: 
+Replaces: 
+Description: Provides various services for running experiments on Orbit

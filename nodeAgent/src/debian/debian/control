@@ -1,0 +1,17 @@
+Source: nodeagent4 
+Section: Orbit 
+Priority: optional
+Maintainer: Thierry [thierry.rakotoarivelo@nicta.com.au] 
+Build-Depends:
+Standards-Version: 3.6.1
+
+Package: nodeagent4
+Architecture: all
+Pre-Depends: ruby
+Recommends:  wget  
+Depends:
+Suggests: 
+Installed-Size: 1024
+Conflicts: 
+Replaces: 
+Description: Client application for Orbit nodeAgent.  Executes commands given by the nodeHandler. 

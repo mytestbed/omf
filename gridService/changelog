@@ -1,0 +1,57 @@
+gridservices2 (2.1.0) unstable; urgency=low
+
+  * New framework. In hindsight it may have been V3.
+
+ -- Max Ott <max@winlab.rutgers.edu>  Sat, 25 Nov 2006 12:53:00 +1000
+
+gridservices (4.1.2) testing; urgency=low
+
+  * Added code to all services to ensure backwards compatibility.
+  * Services now aware of "security".  One resource cannot manipulate services of
+    another resource.
+
+ -- Faiyaz Ahmed <faiyaz@winlab.rutgers.edu>  Thurs, 23 March 2006 21:35:00 -0400
+
+gridservices (4.1.1-3) testing; urgency=low
+
+  * New ruby based CMC, PXE services to accomodate big grid
+
+ -- Faiyaz Ahmed <faiyaz@winlab.rutgers.edu>  Tue, 28 Feb 2006 21:35:00 -0400
+
+gridservices (2.0.6_3) unstable; urgency=low
+
+  * Testing CMC service
+
+ -- Max <max@winlab.rutgers.edu>  Fri, 18 Nov 2005 21:35:00 -0400
+
+gridservices (2.0.5) unstable; urgency=low
+
+  * Added ldap service to keep calendar and ldap in synch. 
+
+ -- Faiyaz <faiyaz@winlab.rutgers.edu>  Tue, 08 Oct 2005 18:49:00 -0400
+
+gridservices (2.0.4) unstable; urgency=low
+
+  * Added nodeStatus command to CMC
+
+ -- Max <max@winlab.rutgers.edu>  Wed, 14 Sep 2005 18:49:00 -0400
+
+gridservices (2.0.3) unstable; urgency=low
+
+  * Return error message in body
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 13 Sep 2005 19:23:00 -0400
+
+gridservices (2.0.2) unstable; urgency=low
+
+  * Provides service list at '/'
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 6 Sep 2005 12:37:00 -0400
+
+gridservices (2.0.1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 6 Sep 2005 12:37:00 -0400
+	
+	

@@ -1,0 +1,8 @@
+DEFAULT boel
+
+LABEL boel
+KERNEL linux-orbit-pxe-@KERNEL_VER@
+APPEND rw init=/sbin/init initrd=initramfs-orbit-pxe-@VER@.gz console=tty0 console=ttyS0,9600
+DISPLAY message.txt
+PROMPT 1
+TIMEOUT 1

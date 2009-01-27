@@ -1,0 +1,1653 @@
+<?xml version='1.0'?>
+    <context>
+      <log/>
+      <experiment>
+        <parameters/>
+        <status>CONFIGURING</status>
+        <name>imageNode</name>
+        <project>Orbit::Admin</project>
+      </experiment>
+      <nodes>
+        <row number="1">
+          <node id='n_1_1' x='1' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:03' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:27'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:27'>Bound to port 7000</line>
+                    <line ts='18:26:27'>Using Multicast</line>
+                    <line ts='18:26:27'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:27'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:27'>Joined the team after 0 sec. ID is 1075635039. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_1_2' x='1' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:01' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:32'>ISSUED</history>
+                  <history ts='18:26:32'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:32'>Bound to port 7000</line>
+                    <line ts='18:26:32'>Using Multicast</line>
+                    <line ts='18:26:32'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:32'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:32'>Joined the team after 0 sec. ID is 510797396. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_1_3' x='1' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:23'>UNKNOWN</history>
+                  <history ts='18:26:24'>ISSUED</history>
+                  <history ts='18:26:24'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:24'>Bound to port 7000</line>
+                    <line ts='18:26:24'>Using Multicast</line>
+                    <line ts='18:26:24'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:24'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:24'>Joined the team after 0 sec. ID is 320539650. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_1_4' x='1' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:03' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:27'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:27'>Bound to port 7000</line>
+                    <line ts='18:26:27'>Using Multicast</line>
+                    <line ts='18:26:27'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:27'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:27'>Joined the team after 0 sec. ID is 1094335878. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_1_5' x='1' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:05' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:29'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:29'>Bound to port 7000</line>
+                    <line ts='18:26:29'>Using Multicast</line>
+                    <line ts='18:26:29'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:29'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:29'>Joined the team after 0 sec. ID is 1142818991. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_1_6' x='1' y='6'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+          <node id='n_1_7' x='1' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:01' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:28'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:28'>Bound to port 7000</line>
+                    <line ts='18:26:28'>Using Multicast</line>
+                    <line ts='18:26:28'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:28'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:28'>Joined the team after 0 sec. ID is 1722424755. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_1_8' x='1' y='8'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:03' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:27'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:27'>Bound to port 7000</line>
+                    <line ts='18:26:27'>Using Multicast</line>
+                    <line ts='18:26:27'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:27'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:27'>Joined the team after 0 sec. ID is 512918868. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+        </row>
+        <row number="2">
+          <node id='n_2_1' x='2' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:57' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:42'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:42'>Bound to port 7000</line>
+                    <line ts='18:26:42'>Using Multicast</line>
+                    <line ts='18:26:42'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:42'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:43'>Joined the team after 0 sec. ID is 1379288827. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_2' x='2' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:01' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:32'>UNKNOWN</history>
+                  <history ts='18:26:32'>ISSUED</history>
+                  <history ts='18:26:32'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:32'>Bound to port 7000</line>
+                    <line ts='18:26:32'>Using Multicast</line>
+                    <line ts='18:26:32'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:32'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:32'>Joined the team after 0 sec. ID is 892384038. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_3' x='2' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:05' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:47'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:47'>Bound to port 7000</line>
+                    <line ts='18:26:47'>Using Multicast</line>
+                    <line ts='18:26:47'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:48'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:48'>Joined the team after 0 sec. ID is 1898291197. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_4' x='2' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:07' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:34'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:34'>Bound to port 7000</line>
+                    <line ts='18:26:34'>Using Multicast</line>
+                    <line ts='18:26:35'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:35'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:35'>Joined the team after 0 sec. ID is 1253588581. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_5' x='2' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:04' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:37'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:37'>Bound to port 7000</line>
+                    <line ts='18:26:37'>Using Multicast</line>
+                    <line ts='18:26:37'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:37'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:37'>Joined the team after 0 sec. ID is 2110983691. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_6' x='2' y='6'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:05' receivedPackets='108'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:47'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:53'>Bound to port 7000</line>
+                    <line ts='18:26:53'>Using Multicast</line>
+                    <line ts='18:26:53'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:53'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:54'>Joined the team after 0 sec. ID is 2109568288. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_7' x='2' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='8' ts='23:27:15' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>DONE.ERROR<history ts='18:26:33'>UNKNOWN</history>
+                  <history ts='18:26:33'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                  <history ts='18:26:34'>DONE.ERROR</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:33'>Bound to port 7000</line>
+                    <line ts='18:26:33'>Using Multicast</line>
+                    <line ts='18:26:33'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:34'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>opening output file: No such device or address</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_2_8' x='2' y='8'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:04' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:37'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:37'>Bound to port 7000</line>
+                    <line ts='18:26:37'>Using Multicast</line>
+                    <line ts='18:26:37'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:37'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:38'>Joined the team after 0 sec. ID is 1753250700. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+        </row>
+        <row number="3">
+          <node id='n_3_1' x='3' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:04' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:37'>UNKNOWN</history>
+                  <history ts='18:26:37'>ISSUED</history>
+                  <history ts='18:26:37'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:37'>Bound to port 7000</line>
+                    <line ts='18:26:37'>Using Multicast</line>
+                    <line ts='18:26:37'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:37'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:37'>Joined the team after 0 sec. ID is 696547152. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_2' x='3' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:03' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:33'>Bound to port 7000</line>
+                    <line ts='18:26:33'>Using Multicast</line>
+                    <line ts='18:26:33'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:33'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>Joined the team after 0 sec. ID is 1965746767. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_3' x='3' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:57' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:33'>UNKNOWN</history>
+                  <history ts='18:26:33'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:33'>Bound to port 7000</line>
+                    <line ts='18:26:33'>Using Multicast</line>
+                    <line ts='18:26:33'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:33'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:33'>Joined the team after 0 sec. ID is 2074345477. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_4' x='3' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:02' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:28'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:28'>Bound to port 7000</line>
+                    <line ts='18:26:29'>Using Multicast</line>
+                    <line ts='18:26:29'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:29'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:29'>Joined the team after 0 sec. ID is 1680221597. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_5' x='3' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:07' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:33'>Bound to port 7000</line>
+                    <line ts='18:26:33'>Using Multicast</line>
+                    <line ts='18:26:33'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:34'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>Joined the team after 0 sec. ID is 647431160. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_6' x='3' y='6'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:04' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:27'>UNKNOWN</history>
+                  <history ts='18:26:27'>ISSUED</history>
+                  <history ts='18:26:32'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:32'>Bound to port 7000</line>
+                    <line ts='18:26:32'>Using Multicast</line>
+                    <line ts='18:26:32'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:32'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:32'>Joined the team after 0 sec. ID is 899054594. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_7' x='3' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:05' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:29'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:29'>Bound to port 7000</line>
+                    <line ts='18:26:29'>Using Multicast</line>
+                    <line ts='18:26:29'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:29'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:29'>Joined the team after 0 sec. ID is 808537208. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_3_8' x='3' y='8'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:05' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:33'>Bound to port 7000</line>
+                    <line ts='18:26:33'>Using Multicast</line>
+                    <line ts='18:26:33'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:34'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>Joined the team after 0 sec. ID is 1269299637. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+        </row>
+        <row number="4">
+          <node id='n_4_1' x='4' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:59' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:33'>Bound to port 7000</line>
+                    <line ts='18:26:33'>Using Multicast</line>
+                    <line ts='18:26:33'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:33'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>Joined the team after 0 sec. ID is 11704784. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_2' x='4' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:01' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:34'>UNKNOWN</history>
+                  <history ts='18:26:34'>ISSUED</history>
+                  <history ts='18:26:44'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:44'>Bound to port 7000</line>
+                    <line ts='18:26:44'>Using Multicast</line>
+                    <line ts='18:26:44'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:44'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:44'>Joined the team after 1 sec. ID is 655747651. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_3' x='4' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:05' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:28'>UNKNOWN</history>
+                  <history ts='18:26:28'>ISSUED</history>
+                  <history ts='18:26:29'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:29'>Bound to port 7000</line>
+                    <line ts='18:26:29'>Using Multicast</line>
+                    <line ts='18:26:29'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:29'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:29'>Joined the team after 0 sec. ID is 1172874203. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_4' x='4' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:08' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:39'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:40'>Bound to port 7000</line>
+                    <line ts='18:26:40'>Using Multicast</line>
+                    <line ts='18:26:40'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:40'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:40'>Joined the team after 0 sec. ID is 1556979860. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_5' x='4' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:02' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:34'>UNKNOWN</history>
+                  <history ts='18:26:34'>ISSUED</history>
+                  <history ts='18:26:39'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:39'>Bound to port 7000</line>
+                    <line ts='18:26:39'>Using Multicast</line>
+                    <line ts='18:26:39'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:39'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:39'>Joined the team after 0 sec. ID is 1286823580. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_6' x='4' y='6'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:24'>UNKNOWN</history>
+                  <history ts='18:26:24'>ISSUED</history>
+                  <history ts='18:26:24'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:24'>Bound to port 7000</line>
+                    <line ts='18:26:24'>Using Multicast</line>
+                    <line ts='18:26:24'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:24'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:24'>Joined the team after 0 sec. ID is 1543780406. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_7' x='4' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:01' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:34'>UNKNOWN</history>
+                  <history ts='18:26:34'>ISSUED</history>
+                  <history ts='18:26:34'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:34'>Bound to port 7000</line>
+                    <line ts='18:26:34'>Using Multicast</line>
+                    <line ts='18:26:34'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:34'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>Joined the team after 0 sec. ID is 1975316468. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_4_8' x='4' y='8'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+        </row>
+        <row number="5">
+          <node id='n_5_1' x='5' y='1'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+          <node id='n_5_2' x='5' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:29'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:29'>Bound to port 7000</line>
+                    <line ts='18:26:30'>Using Multicast</line>
+                    <line ts='18:26:30'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:30'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:30'>Joined the team after 0 sec. ID is 687116198. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_5_3' x='5' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:07' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:30'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:30'>Bound to port 7000</line>
+                    <line ts='18:26:30'>Using Multicast</line>
+                    <line ts='18:26:30'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:30'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:30'>Joined the team after 0 sec. ID is 567447625. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_5_4' x='5' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:02' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:24'>UNKNOWN</history>
+                  <history ts='18:26:24'>ISSUED</history>
+                  <history ts='18:26:24'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:24'>Bound to port 7000</line>
+                    <line ts='18:26:24'>Using Multicast</line>
+                    <line ts='18:26:24'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:24'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:24'>Joined the team after 0 sec. ID is 1881542623. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_5_5' x='5' y='5'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+          <node id='n_5_6' x='5' y='6'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+          <node id='n_5_7' x='5' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:44'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:44'>Bound to port 7000</line>
+                    <line ts='18:26:45'>Using Multicast</line>
+                    <line ts='18:26:45'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:45'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:45'>Joined the team after 0 sec. ID is 1909397685. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_5_8' x='5' y='8'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+        </row>
+        <row number="6">
+          <node id='n_6_1' x='6' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:56' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:25'>UNKNOWN</history>
+                  <history ts='18:26:25'>ISSUED</history>
+                  <history ts='18:26:25'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:25'>Bound to port 7000</line>
+                    <line ts='18:26:25'>Using Multicast</line>
+                    <line ts='18:26:25'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:25'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:25'>Joined the team after 0 sec. ID is 493969. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_2' x='6' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:03' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:25'>UNKNOWN</history>
+                  <history ts='18:26:25'>ISSUED</history>
+                  <history ts='18:26:25'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:25'>Bound to port 7000</line>
+                    <line ts='18:26:25'>Using Multicast</line>
+                    <line ts='18:26:25'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:25'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:25'>Joined the team after 0 sec. ID is 815772027. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_3' x='6' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:07' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:40'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:46'>Bound to port 7000</line>
+                    <line ts='18:26:46'>Using Multicast</line>
+                    <line ts='18:26:47'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:47'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:47'>Joined the team after 0 sec. ID is 542795605. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_4' x='6' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:09' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:31'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:31'>Bound to port 7000</line>
+                    <line ts='18:26:31'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 387364338. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_5' x='6' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:07' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:30'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:30'>Bound to port 7000</line>
+                    <line ts='18:26:30'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 1615444645. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_6' x='6' y='6'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:59' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:30'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:31'>Bound to port 7000</line>
+                    <line ts='18:26:31'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 703696478. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_7' x='6' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:06' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:34'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:35'>Bound to port 7000</line>
+                    <line ts='18:26:35'>Using Multicast</line>
+                    <line ts='18:26:35'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:35'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:35'>Joined the team after 0 sec. ID is 343992987. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_6_8' x='6' y='8'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:10' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:30'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:30'>Bound to port 7000</line>
+                    <line ts='18:26:31'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 20719465. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+        </row>
+        <row number="7">
+          <node id='n_7_1' x='7' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:07' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:31'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:31'>Bound to port 7000</line>
+                    <line ts='18:26:31'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 313295963. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_2' x='7' y='2'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:34'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:34'>Bound to port 7000</line>
+                    <line ts='18:26:34'>Using Multicast</line>
+                    <line ts='18:26:35'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:35'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:35'>Joined the team after 0 sec. ID is 1931040176. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_3' x='7' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:08' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:31'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:31'>Bound to port 7000</line>
+                    <line ts='18:26:31'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 893887272. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_4' x='7' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:58' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:36'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:36'>Bound to port 7000</line>
+                    <line ts='18:26:36'>Using Multicast</line>
+                    <line ts='18:26:36'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:36'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:36'>Joined the team after 0 sec. ID is 1428837306. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_5' x='7' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:59' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:35'>UNKNOWN</history>
+                  <history ts='18:26:35'>ISSUED</history>
+                  <history ts='18:26:35'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:35'>Bound to port 7000</line>
+                    <line ts='18:26:35'>Using Multicast</line>
+                    <line ts='18:26:35'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:35'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:35'>Joined the team after 0 sec. ID is 1756695283. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_6' x='7' y='6'>
+            <status>UP</status>
+            <heartbeat sentPackets='1' ts='23:26:44' receivedPackets='86'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:51'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:51'>Bound to port 7000</line>
+                    <line ts='18:26:51'>Using Multicast</line>
+                    <line ts='18:26:51'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:51'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:51'>Joined the team after 0 sec. ID is 756031754. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_7' x='7' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:29'>UNKNOWN</history>
+                  <history ts='18:26:29'>ISSUED</history>
+                  <history ts='18:26:39'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:40'>Bound to port 7000</line>
+                    <line ts='18:26:40'>Using Multicast</line>
+                    <line ts='18:26:40'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:40'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:40'>Joined the team after 0 sec. ID is 789738588. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_7_8' x='7' y='8'>
+            <status>UP</status>
+            <heartbeat sentPackets='8' ts='23:29:53' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>DONE.ERROR<history ts='18:26:33'>UNKNOWN</history>
+                  <history ts='18:26:33'>ISSUED</history>
+                  <history ts='18:26:33'>STARTED</history>
+                  <history ts='18:26:34'>DONE.ERROR</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:34'>Bound to port 7000</line>
+                    <line ts='18:26:34'>Using Multicast</line>
+                    <line ts='18:26:34'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:34'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:34'>opening output file: No such device or address</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+        </row>
+        <row number="8">
+          <node id='n_8_1' x='8' y='1'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:08' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:30'>UNKNOWN</history>
+                  <history ts='18:26:30'>ISSUED</history>
+                  <history ts='18:26:40'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:40'>Bound to port 7000</line>
+                    <line ts='18:26:41'>Using Multicast</line>
+                    <line ts='18:26:41'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:41'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:41'>Joined the team after 0 sec. ID is 2056937224. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_8_2' x='8' y='2'>
+            <status>DOWN</status>
+            <heartbeat/>
+          </node>
+          <node id='n_8_3' x='8' y='3'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:53' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:36'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:36'>Bound to port 7000</line>
+                    <line ts='18:26:36'>Using Multicast</line>
+                    <line ts='18:26:36'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:36'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:37'>Joined the team after 0 sec. ID is 1072664254. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_8_4' x='8' y='4'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:59' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:41'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:41'>Bound to port 7000</line>
+                    <line ts='18:26:41'>Using Multicast</line>
+                    <line ts='18:26:41'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:41'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:42'>Joined the team after 0 sec. ID is 1231305767. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_8_5' x='8' y='5'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:00' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:41'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:41'>Bound to port 7000</line>
+                    <line ts='18:26:41'>Using Multicast</line>
+                    <line ts='18:26:41'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:41'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:42'>Joined the team after 1 sec. ID is 1941076640. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_8_6' x='8' y='6'>
+            <status>UP</status>
+            <heartbeat/>
+            <procs>
+              <builtin name='load_image'>
+                <status>ISSUED<history ts='18:26:36'>UNKNOWN</history>
+                  <history ts='18:26:36'>ISSUED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_8_7' x='8' y='7'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:27:02' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:26'>UNKNOWN</history>
+                  <history ts='18:26:26'>ISSUED</history>
+                  <history ts='18:26:26'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:26'>Bound to port 7000</line>
+                    <line ts='18:26:26'>Using Multicast</line>
+                    <line ts='18:26:26'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:26'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:26'>Joined the team after 0 sec. ID is 1370373845. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+          <node id='n_8_8' x='8' y='8'>
+            <status>UP</status>
+            <heartbeat sentPackets='7' ts='23:26:54' receivedPackets='114'/>
+            <procs>
+              <builtin name='load_image'>
+                <status>STARTED<history ts='18:26:31'>UNKNOWN</history>
+                  <history ts='18:26:31'>ISSUED</history>
+                  <history ts='18:26:31'>STARTED</history>
+                </status>
+                <parameters>
+                  <disk>/dev/hda</disk>
+                  <image>baseline.ndz</image>
+                  <mcAddress>224.0.0.2</mcAddress>
+                  <mcPort>7000</mcPort>
+                </parameters>
+                <io>
+                  <out>
+                    <line ts='18:26:31'>Bound to port 7000</line>
+                    <line ts='18:26:31'>Using Multicast</line>
+                    <line ts='18:26:31'>cannot get clock resolution, assuming 100HZ</line>
+                    <line ts='18:26:31'>writer idle delay: may be up to 10000 (instead of 1000) due to clock resolution</line>
+                    <line ts='18:26:31'>Joined the team after 0 sec. ID is 235850357. File is 363 chunks (371712 blocks)</line>
+                  </out>
+                </io>
+              </builtin>
+            </procs>
+          </node>
+        </row>
+        <group name="_1">
+          <node href='n_7_1'/>
+          <node href='n_6_5'/>
+          <node href='n_6_4'/>
+          <node href='n_5_8'/>
+          <node href='n_4_6'/>
+          <node href='n_4_4'/>
+          <node href='n_2_5'/>
+          <node href='n_1_7'/>
+          <node href='n_8_8'/>
+          <node href='n_7_4'/>
+          <node href='n_6_1'/>
+          <node href='n_2_6'/>
+          <node href='n_2_2'/>
+          <node href='n_8_6'/>
+          <node href='n_8_1'/>
+          <node href='n_7_5'/>
+          <node href='n_6_8'/>
+          <node href='n_5_1'/>
+          <node href='n_3_2'/>
+          <node href='n_2_7'/>
+          <node href='n_7_6'/>
+          <node href='n_4_3'/>
+          <node href='n_1_5'/>
+          <node href='n_1_4'/>
+          <node href='n_5_2'/>
+          <node href='n_4_7'/>
+          <node href='n_3_6'/>
+          <node href='n_2_1'/>
+          <node href='n_1_8'/>
+          <node href='n_8_4'/>
+          <node href='n_5_5'/>
+          <node href='n_4_1'/>
+          <node href='n_3_1'/>
+          <node href='n_1_6'/>
+          <node href='n_1_3'/>
+          <node href='n_1_2'/>
+          <node href='n_7_8'/>
+          <node href='n_7_2'/>
+          <node href='n_6_6'/>
+          <node href='n_5_6'/>
+          <node href='n_4_5'/>
+          <node href='n_1_1'/>
+          <node href='n_7_7'/>
+          <node href='n_5_7'/>
+          <node href='n_5_3'/>
+          <node href='n_2_8'/>
+          <node href='n_7_3'/>
+          <node href='n_5_4'/>
+          <node href='n_4_8'/>
+          <node href='n_3_4'/>
+          <node href='n_8_7'/>
+          <node href='n_8_3'/>
+          <node href='n_6_7'/>
+          <node href='n_6_3'/>
+          <node href='n_6_2'/>
+          <node href='n_3_7'/>
+          <node href='n_3_5'/>
+          <node href='n_2_3'/>
+          <node href='n_8_5'/>
+          <node href='n_8_2'/>
+          <node href='n_4_2'/>
+          <node href='n_3_8'/>
+          <node href='n_3_3'/>
+          <node href='n_2_4'/>
+        </group>
+      </nodes>
+    </context>

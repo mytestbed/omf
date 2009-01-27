@@ -1,0 +1,64 @@
+<Visyonet>
+  <!-- Contains the mapping file for each of the Visualization Objects -->
+  <VisMapping id="vis1">
+    <origin x='10' y='10'/>
+    <node type="ruby">
+      <![CDATA[
+        anchor = node[:anchor] = Position.new(node[:x], node[:y], 0)
+        #create a circle for a node
+        circle = canvas[node.id] = Circle.new(); 
+        circle.radius = 0.8 #set the radius of this circle
+        circle.position = anchor
+        circle.labelText = node.id
+        #depending on this value of status set the color
+        case attr[:status]
+          when 0 
+            circle.fillColor = Color.new(255,0,0) #set this color to red
+          when 1
+            circle.fillColor = Color.new(0,255,0) #set this color to green
+          default
+            circle.fillColor = Color.new(20,20,20) #set this color to gray 
+        end
+
+        # loadIn
+        cIn = canvas["#{node.id}.loadIn"] = Cylinder.new
+        cIn.labelText = "loadIn"
+        cIn.radius = 0.5
+        cIn.height =  node[:loadIn] / 90.00 * 2.00
+        cIn.fillColor = Color.new(124,0,249)
+        cIn.position = anchor.translate(-0.25, 0, 0)
+
+        # loadOut
+        cOut = canvas["#{node.id}.loadOut"] = Cylinder.new
+        cOut.labelText = "loadOut"
+        cOut.radius = 0.5
+        cOut.height =  attr[:loadOut] / 90.00 * 2.00
+        cOut.fillColor = Color.new(255,111,40)
+        cOut.position = anchor.translate(0.25, 0, 0)
+      ]]>
+    </node>
+
+    <!-- Rate of a link as an arrow with a thickness -->
+    <link type="ruby">
+      <![CDATA[
+        #create an arrow
+        arrow = canvas[link.id] = Arrow2D.new
+        arrow.from = link.from[:anchor]
+        arrow.to = link.to[:anchor]
+        # a better solution would be aware of the shapes 
+        #arrow.from = canvas[link.from.id]
+        #arrow.to = canvas[link.to.id]
+
+        if (rate = link[:rate])
+          arrow.labelText = "rate"
+          arrow.thickness = rate / 50 * 10.0 
+          arrow.color = Color.new(0,0,0)
+        else
+          # no rate, grey arrow with thicknes 1
+          arrow.thickness = rate / 50 * 10.0 
+          arrow.color = Color.new(131,131,131) # grey
+        end
+      ]]>
+    </link>
+  </VisMapping>
+</Visyonet>

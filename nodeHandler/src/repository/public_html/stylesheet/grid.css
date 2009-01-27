@@ -1,0 +1,31 @@
+
+table.grid {
+}
+
+tr.row {
+  background: #CCCCCC;
+}
+
+td.cell {
+  width: 20px;
+  height: 20px;
+}
+
+td.cell-up {
+  background: #99BBFF;
+}
+
+td.cell-down {
+  background: #FE9F5C;
+}
+
+
+div.cell-progress {
+  height: 100%;
+  border-right: 1px solid black;
+
+}
+
+td.cell-done, div.cell-progress {
+  background: #11FF00;
+}

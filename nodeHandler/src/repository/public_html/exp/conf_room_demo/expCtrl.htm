@@ -1,0 +1,23 @@
+<html>
+<head>
+<h2 align="center"> Experiment Controller</h2>
+</head>
+<body>
+<b>ORBIT</b> is a wireless network testbed that supports evaluation of protocols/applications and reproducibility of experimentation.
+<form enctype="multipart/form-data" method="post" action="execURL.cgi">
+<table border="1">
+<tr><th rowspan="1">Packet size (bytes): </th>
+<td><INPUT TYPE=TEXT NAME="pSize"></td><td><INPUT TYPE="submit" name="pSizeSub" VALUE="Change packet size"></td></tr>
+<tr><th rowspan="1">Packet rate (bps): </th>
+<td><INPUT TYPE=TEXT NAME="pRate"></td><td><INPUT TYPE="submit" name="pRateSub" VALUE="Change application rate"></td></tr>
+<tr><th rowspan="1">No. Sender Groups: </th>
+<td><INPUT TYPE=TEXT NAME="nSen"></td><td><INPUT TYPE="submit" name="nSenSub" VALUE="Change #(sender groups)"></td></tr>
+<tr><th rowspan="1"></th>
+<td><INPUT TYPE="submit" name="startApp" VALUE="Start Application"></td><td><INPUT TYPE="submit" name="stopApp" VALUE="Stop Application"></td></tr>
+<tr><th rowspan="1"></th>
+<td><INPUT TYPE="submit" name="rtsOn" VALUE="RTS/CTS ON"></td></tr>
+</table><br>
+</form>
+</form>
+</body>
+</html>

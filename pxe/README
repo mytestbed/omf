@@ -1,0 +1,10 @@
+
+The purpose of this is to get get you a small PXE busybox frisbee image you 
+can use to then image nodes and then kexec() to the respective desired
+loaded kernel from the image(s) deployed.
+
+You get two guys from this:
+
+* Latest Linux kernel, configured to build the smallest kernel possible
+* initramfs with busybox, frisbee, nodeagent and kexec
+

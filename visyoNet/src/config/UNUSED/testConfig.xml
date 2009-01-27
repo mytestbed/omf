@@ -1,0 +1,18 @@
+<Visyonet>
+  <Server>
+    <UpdatePort>1056</UpdatePort>
+    <HTTPPort>8080</HTTPPort>
+    <HTTPDocRoot>public/visyonet</HTTPDocRoot>
+  <Server>
+  <QueryFile>../config/db.xml</QueryFile>
+  <MappingFile>../config/visMapping.xml</MappingFile>
+  <DBConnection>
+    <host>localhost</host>
+    <user>nanyanj</user>
+    <password></password>
+    <database>experimentLive</database>
+  </DBConnection>
+</Visyonet>
+
+
+

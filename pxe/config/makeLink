@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# This is a helper script to make a clean link from a file representing
+# a nodes IP address to the desired pxe menu file.
+#
+# usage: ./makeLink menuFile linkFile
+#
+cd /tftpboot/pxelinux.cfg
+ln -s $1 $2

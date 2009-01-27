@@ -1,0 +1,13 @@
+2007-03-27	Luis R. Rodriguez <mcgrof@winlab.rutgers.edu>
+
+	* Makefile: moved to busybox-1.5.0, linux-2.6.22.7, and initramfs. Moved
+	out debian package building specs. Debian package specifics have been
+	moved statically to debian/ dir. ChangeLogs are now split, this one
+	refers to changes that doesn't have to do with the debian/ dir, 
+	and debian/changelog deals with package-specific changes. Retrieve 
+	nodeAgent deb instead of building from src (using make -C ../ nodeagent)
+
+	* config/orbit-pxe-linux-2.6.20.4.config: takes advantage of
+	CONFIG_EMBEDDED effort, removes swap and sysfs
+
+	* config/enroll: use getmac, which is only ~9K, see getmac-1.0/README

@@ -1,0 +1,79 @@
+<Visyonet>
+  <QueryManager type="sql">
+    <Queries use="1">
+      <QuerySet id="1" name="The first query set">
+	<!-- returns nodeId, x, y, status, loadOut, loadIn  -->
+	<NodeQuery>
+	  SELECT  f1.src_addr as nodeID, l.pos_x, l.pos_y, 1 as status, COUNT(*)
+	  AS loadOut,
+		  (SELECT COUNT(*) FROM frames f2 WHERE f2.timestamp BETWEEN
+		  %t1% AND %t2% AND f2.dst_addr = f1.src_addr) AS loadIn
+	  FROM frames f1, loc l
+	  WHERE  f1.timestamp BETWEEN %t1% AND %t2% AND
+		 f1.src_addr = l.addr
+	  GROUP BY f1.src_addr
+	  UNION DISTINCT
+	  SELECT  f1.dst_addr as nodeID, l.pos_x, l.pos_y, 1 as status,
+		  (SELECT COUNT(*) FROM frames f2 WHERE f2.timestamp BETWEEN
+		  %t1% AND %t2% AND f2.src_addr = f1.dst_addr) AS loadOut,
+		  COUNT(*) AS loadIn
+	  FROM frames f1, loc l
+	  WHERE  f1.timestamp BETWEEN %t1% AND %t2%
+		 AND f1.dst_addr = l.addr
+	  GROUP BY f1.dst_addr
+	</NodeQuery>
+
+	<!-- returns srcId, sinkId, rate -->
+	<LinkQuery>
+	  SELECT src_addr, dst_addr, COUNT(*) AS rate FROM frames WHERE timestamp
+	  BETWEEN %t1% AND %t2% GROUP BY src_addr, dst_addr
+	</LinkQuery>
+
+	<AllNodesQuery>
+	  SELECT DISTINCT l.addr AS nodeID, l.pos_x, l.pos_y, 2 AS status FROM loc l
+	</AllNodesQuery>
+
+	<ExperimentTimeSpanQuery>
+	  SELECT min(timestamp) AS minTime, max(timestamp) AS maxTime FROM frames f
+	</ExperimentTimeSpanQuery>
+
+   </QuerySet>
+
+   <QuerySet id="2" live="true" name="The Second query set">
+	<NodeQuery>
+	  SELECT  f1.src_addr as nodeID, l.pos_x, l.pos_y, 1 as status, COUNT(*)
+	  AS loadOut,
+		  (SELECT COUNT(*) FROM frames f2 WHERE f2.id BETWEEN
+		  %t1% AND %t2% AND f2.dst_addr = f1.src_addr) AS loadIn
+	  FROM frames f1, loc l
+	  WHERE  f1.timestamp BETWEEN %t1% AND %t2% AND
+		 f1.src_addr = l.addr
+	  GROUP BY f1.src_addr
+	  UNION DISTINCT
+	  SELECT  f1.dst_addr as nodeID, l.pos_x, l.pos_y, 1 as status,
+		  (SELECT COUNT(*) FROM frames f2 WHERE f2.id BETWEEN
+		  %t1% AND %t2% AND f2.src_addr = f1.dst_addr) AS loadOut,
+		  COUNT(*) AS loadIn
+	  FROM frames f1, loc l
+	  WHERE  f1.id BETWEEN %t1% AND %t2%
+		 AND f1.dst_addr = l.addr
+	  GROUP BY f1.dst_addr
+	</NodeQuery>
+
+	<LinkQuery>
+	  SELECT src_addr, dst_addr, COUNT(*) AS rate FROM frames WHERE timestamp
+	  BETWEEN %t1% AND %t2% GROUP BY src_addr, dst_addr
+	</LinkQuery>
+
+	<AllNodesQuery>
+	  SELECT DISTINCT l.addr AS nodeID, l.pos_x, l.pos_y, 2 AS status FROM loc l
+	</AllNodesQuery>
+
+	<ExperimentTimeSpanQuery>
+	  SELECT 0 AS minTime, max(id) AS maxTime FROM frames f
+	</ExperimentTimeSpanQuery>
+
+      </QuerySet>
+    </Queries>
+  </QueryManager>
+</Visyonet>

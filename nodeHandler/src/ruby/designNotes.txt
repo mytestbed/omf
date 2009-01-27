@@ -1,0 +1,126 @@
+
+Communication
+=============
+
+We implement the following communication protocol with an emphasis on
+minimizing the need for an agent (many) to send to a handler (one).
+There is no need for agent to agent communication.
+
+We also assume that a handler is sending at least a message every N seconds
+allowing an agent to determine if it lost connection to its handler,
+or missed  a meesage.
+
+We want to minimize the number of messages from an agent. These fall
+into the following categories
+
+* Request from agent (e.g. WHOAMI at startup)
+* Error condition as result of handler command
+* Discovered missing message from handler (skip in seq#)
+* Periodic heartbeat
+
+A request from an agent is assumed to be one-way. It may result in a
+future command from the handler but we want to avoid any direct link
+as the handler may combine requests from multiple agents into a single
+command. However, we still need to ensure that the handler received
+all messages from the agent. We solve this by including a seq# into
+all messages from the client and include the highest seq# of sent as
+well received messages into a periodic heartbeat message.
+
+The heartbeat also allows the handler to keep track of what agents are
+still alive. As the heartbeat also contains the seq# of the latest
+packet received from the handler, it allows the handler to establish
+which of its commands have been received and executed successfully. If
+the handler detects a missing message from an agent it will send a
+"RETRY" message to that particular agent.
+
+A drawback of this schema is that it does not allow an agent to
+determine if a specific message was received by the handler. However,
+we assume that number of messages sent by an agent is relativelye
+handler, in turn is aware of how many packets it should have received
+and how many it did, thanks to the agent's heartbeat packet. If the
+heartbeat is being lost (does not increase the seq#) consistently, the
+handler will assume that the respective node is not working properly
+and will initiate "repair" functions.
+
+
+From handler:
+
+  sequenceNo target command arg1 arg2 ...
+
+From agent:
+
+  agentId sequenceNo command arg1 arg2 ...
+
+There is additional meaning given to sequence numbers. Active messages
+starting with seqNo "1". If a handler receives a RETRY message, it
+resends the requested message with its original sequence number turned
+negative (multiplied by -1). In addition, the handler is periodically
+sending the last message it transmitted as a retry message. This
+allows the agents to ensure that they haven't missed any.  (Note,
+re-sending messages with negative sequence number may not be necessary
+as the agents keep discard "old" messages anyway.
+
+There is special meaning given to sequence number "0". It is treated as a "best effort,
+no sequencing necessary" message. For instance, the handler is sending "RETRY"
+messages to specific nodes this way, while the agent is using it for it's heartbeat
+messages. For both types of messages there are other mechanisms to ensure correct
+behavior. The handler will learn with every received heartbeat message if it has
+missed any messages from the agent, while a "RETRY" message from the handler to a node
+should not trigger other nodes to send RETRY messages if they have missed it. In short,
+we want to avoid an avalanche of "RETRY" messages bouncing back and forth.
+
+Note, the handler is using a single sequence counter for ALL message it sends because
+agents need to process all messages, at least they need to determine for every message
+if it is addressed to them.
+
+The same is true for agent-to-handler communication. However, each agent is maintaining
+it's own sequence counter and therefore, the handler needs to keep track of it for
+every agent individually. The agent's heartbeat message carries its current counter settings
+which the handler needs to compare with it's own state for that particular node to determine
+if it has missed packets from that agent.
+
+
+Specific messages:
+
+From handler:
+
+  YOUARE agentId startSeq timeStamp [alias1 alias2 ...]
+
+    This message is sent in response to a WHOAMI message received from
+    an agent. It tells the agent its id which is used as the id in
+    future messages from the agent. The 'startSeq' tells the agent the
+    seq# of the first reliable message it should tune into. Arriving
+    messages with lower seq# should be ignored. As a side-effect, the
+    agent will report to have already received 'startSeq - 1'
+    messages.
+
+  HEARTBEAT timeStamp
+
+
+From agent:
+
+  WHOAMI protocolVersion agentVersion imageName
+
+    When the agent starts up, it will first periodically send this
+    message as an unreliable message. It will also revert to this mode
+    if it assumes tha it lost connectivity to the handler and resets
+    its internal state.
+
+      protocolVersion: Version of protocol understood by agent
+      agentVersion: Version of installed agent
+      imageName: Name of image installed on node
+
+  HEARTBEAT recSeq# sentSeq# timeStamp
+
+    This message is periodically sent by the agent to inform the
+    handler that it is still active. This message also contains
+    information about the number of reliable message sent and received
+    which allows the handler to resend messages apparently not
+    received by the agent, or request messages sent by the agent but
+    missed by the handler.
+
+      recSeq#: Highest sequence number of processed messages
+      sentSeq#: Highest sequence number of sent messages
+      timeStamp: Current time on agent
+
+

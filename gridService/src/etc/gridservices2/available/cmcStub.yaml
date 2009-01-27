@@ -1,0 +1,21 @@
+--- 
+cmc:
+  # listAll: return array of x/y coodinates of all nodes in '[x,y]' form.
+  # listStatus: return array of x/y coodinates of all nodes in '[x, y, STATUS]' form.
+  #
+  testbed:
+    
+    # These are the configuration parameters for the default testbed
+    # Currently the default testbed is the "indoor" one
+    default: 
+      listAll: |
+        (1..13).to_a.map {|i| [1, i]}
+      listStatus: |
+        (1..13).to_a.map {|i| [1, i, 'POWERON']}
+    
+    # These are the configuration parameters for the planetlab testbed
+    planetlab: 
+      listAll: |
+        (1..3).to_a.map {|i| [1, i]}
+      listStatus: |
+        (1..3).to_a.map {|i| [1, i, 'POWERON']}

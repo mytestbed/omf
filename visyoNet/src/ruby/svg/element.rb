@@ -1,0 +1,3 @@
+class Element < MObject
+  
+end

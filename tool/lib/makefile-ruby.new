@@ -1,0 +1,78 @@
+
+# --------  START OF SITE DEPENDENT VARIABLES ---------
+#  #  In order to make this work for users outside of Winlab, the site
+#  dependent variables are collected here.
+#  #  They may be definied in ENV VARS, or in an include file, if present.
+#  The default values here are for winlab.
+-include $(TOP)/site.mk
+REPOSITORY ?= $(USER)@repository1
+REPOSITORY_ROOT ?= /export/web/omf/dists
+#REPOSITORY_ROOT ?= /export/web/orbit/dists
+# --------  END OF SITE DEPENDENT VARIABLES ---------
+
+# Explanation of some variables:
+#  output binary packages are copied to a local repository using scp:
+#  scp package $REPOSITORY:$REPOSITORY_ROOT/$APP_CAT/main/binary-i386
+#  e.g. scp *deb fred@repos1:/var/www/dists/testing/main/binary-i386
+#
+#  APP_CAT is determined by grepping the changelog; it's usually "testing"
+
+APP_REP_ROOT = $(REPOSITORY_ROOT)/$(APP_CAT)/main
+APP_REP = $(REPOSITORY):$(APP_REP_ROOT)
+
+# We should create a subversion tag for every version using something like:
+# % svn cp . http://svn.orbit-lab.org/svn/orbit/nodeHandler/tags/3.2.1
+# but first check if it already exists
+# % svn ls http://svn.orbit-lab.org/svn/orbit/nodeHandler/tags/3.2.1
+
+SRC_TOP = $(TOP)/$(SRC_NAME)
+
+RUBY2EXE = ruby1.8 $(TOP)/tool/lib/packageDistribution.rb
+
+APP_VERSION = $(shell head -n 1 $(SRC_TOP)/changelog | grep -o -E '[0-9]+\.[0-9.-]+')
+APP_CAT = $(shell head -n 1 $(SRC_TOP)/changelog | grep -o -E '[a-z]+;' | grep -o -E '[a-z]*')
+
+BUILD_DIR = $(TOP)/build/$(SRC_NAME)
+APP_DEB_BUILD_DIR = $(BUILD_DIR)/$(APP_NAME)-$(APP_VERSION)
+APP_DEB_PREFIX = $(BUILD_DIR)/$(APP_NAME)_$(APP_VERSION)
+
+all: apt
+
+app: app-ruby
+
+app-ruby:
+	install -d $(BUILD_DIR)
+	$(RUBY2EXE) -n $(APP_NAME) -d $(BUILD_DIR) -V $(APP_VERSION) \
+		-b src/ruby -b $(TOP)/commons/ruby \
+		-t $(TOP)/tool/lib/dist_template \
+		src/ruby/$(RUBY_APP)
+
+apt: app
+#apt:
+	@echo Building $(APP_NAME) V$(APP_VERSION)
+	install -d $(APP_DEB_BUILD_DIR)
+	cp src/debian/Makefile.deb $(APP_DEB_BUILD_DIR)/Makefile
+	tar -C src/debian --exclude=.svn --exclude='*~' -cf - debian | (cd $(APP_DEB_BUILD_DIR); tar -xf -)
+	cp changelog $(APP_DEB_BUILD_DIR)/debian
+	cp $(TOP)/copyright $(APP_DEB_BUILD_DIR)/debian
+	$(MAKE) -C $(APP_DEB_BUILD_DIR) deb
+
+install-apt: apt
+	scp $(APP_DEB_PREFIX)*.deb $(APP_REP)/binary-i386
+	scp $(APP_DEB_PREFIX)*.gz $(APP_REP)/source
+	scp $(APP_DEB_PREFIX)*.dsc $(APP_REP)/source
+	ssh $(REPOSITORY) sudo $(APP_REP_ROOT)/rebuild.sh
+
+install: install-apt
+
+install-local: app
+	sudo $(MAKE) -f $(SRC_TOP)/src/debian/Makefile.deb TOP=$(TOP) DESTDIR=/ install
+	if [ -f $(SRC_TOP)/src/debian/debian/$(APP_NAME).postinst.debhelper ]; then \
+		sudo sh -x $(SRC_TOP)/src/debian/debian/$(APP_NAME).postinst.debhelper; \
+	fi
+
+clean:
+	rm -rf $(BUILD_DIR)
+
+uninstall:
+	rm -r $(ETC)/$(APP)

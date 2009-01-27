@@ -1,0 +1,91 @@
+<Visyonet>
+  <!-- Contains the mapping file for each of the Visualization Objects -->
+  <VisMappings default="two">
+    <VisMapping id="two">
+      <node>
+	<!-- status of a node as a circle-->
+	<attribute name="status">
+	  <posOffset x="0" y="0" z="0" />
+          <RubyCode>
+	    circle = Circle.new(); #create a circle for a node
+	    circle.radius = 0.8 #set the radius of this circle
+	    circle.labelText = "status" #create a label known as status for this circle
+	    #depending on this value of status set the color
+	    if (args[0] == 0) 
+	      circle.fillColor = Color.new(255,0,0) #set this color to red
+	    end
+	    if (args[0] == 1)
+	      circle.fillColor = Color.new(0,255,0) #set this color to green
+	    end
+	    if (args[0] == 2)
+	      circle.fillcolor = Color.new(192,192,192) #set this color to gray 
+	    end
+	    circle.position = Position.new(0,0,0)
+	    circle #the last line is returned no need of a return statement
+	  </RubyCode>
+	</attribute>
+
+	<!-- loadIn in the form of a cylinder -->
+	<attribute name="loadIn">
+	  <posOffset x="0" y="0" z="0"/>
+	  <RubyCode>
+	    cylinder = Cylinder.new
+	    cylinder.labelText = "loadIn"
+	    cylinder.radius = 0.4
+	    cylinder.height =  (args[0]) / 80.00 * 2.00
+	    # puts args[0]
+	    cylinder.fillColor = Color.new(210,147,13)
+	    cylinder.position = Position.new(-0.25,0,0) #set offsets
+	    cylinder
+          </RubyCode>
+	</attribute>
+
+	<!-- loadOut of a node in the form of a cylinder -->
+	<attribute name="loadOut">
+	  <posOffset x="0" y="0" z="0"/>
+	  <RubyCode>
+	    cylinder = Cylinder.new
+	    cylinder.labelText = "loadOut"
+	    cylinder.radius = 0.4
+	    cylinder.height =  (args[0]) / 80.00 * 2.00
+	    # puts args[0]
+	    cylinder.fillColor = Color.new(70,109,153)
+	    cylinder.position = Position.new(0.25,0,0) #set offsets
+	    cylinder       
+	  </RubyCode>
+	</attribute>
+      </node>
+
+      <link>
+	<!-- Rate of a link as an arrow with a thickness -->
+	<attribute name="rate">
+          #for an link do not set different offsets for x and y
+	  <posOffset x="0" y="0" z="0"/> 
+	  <RubyCode>
+            if(args[1] != nil) 
+	      #create an arrow
+	      arrow = Arrow2D.new
+	      arrow.labelText = "rate"
+	      arrow.thickness = args[0]/255 * 10.0 #integer which tells its thickness in terms of a normalized value
+	      arrow.color = Color.new(0,0,0)
+	      arrow.from = Position.new(0,0,0) #set offsets arrow from
+	      arrow.to = Position.new(0,0,0)   #set offsets arrow to
+	      arrow
+	    else
+	      #create a bigger circle
+	      circle = Circle.new() #create a circle for a node
+	      circle.labelText = "rate" #create a label known as Rate for this circle
+	      circle.radius = 3 #set the color and radius of this circle
+	      circle.alpha = 20  #set the color balancing
+	      circle.fillColor = Color.new(255,0,0)
+	      circle.position = Position.new(0,0,0) #set offsets for broadcast links
+	      circle
+	    end
+	   </RubyCode>
+	</attribute>
+      </link>
+    </VisMapping>
+  </VisMappings>
+</Visyonet>
+
+

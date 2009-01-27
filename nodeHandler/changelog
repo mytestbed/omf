@@ -1,0 +1,155 @@
+nodehandler4 (4.4.0) testing; urgency=low
+
+  * Lots of changes. Long overdue version upgrade.
+
+ -- Max <max@winlab.rutgers.edu>  Fri, 24 Nov 2006 23:07:00 +1000
+
+nodehandler (4.1.2) testing; urgency=low
+
+  * Old NodeHandler code compatible with CMC and PXE. 
+
+ -- Saswati <sswami@eden.rutgers.edu>  Thurs, 16 Mar 2006 15:00:00 -0400
+
+nodehandler (4.1.1-3) testing; urgency=low
+
+  * Incremented pxe version. 
+
+ -- Faiyaz Ahmed <faiyaz@winlab.rutgers.edu>  Tue, 2 Mar 2006 15:27:00 -0400
+
+nodehandler (4.1.1-2) testing; urgency=low
+
+  * Updated nodehandler for big grid 
+
+ -- Faiyaz Ahmed <faiyaz@winlab.rutgers.edu>  Tue, 28 Feb 2006 15:27:00 -0400
+
+nodehandler (3.6.5) testing; urgency=low
+
+  * Development
+  * Enter your changes here 
+
+ -- Faiyaz <faiyaz@winlab.rutgers.edu>  Thu, 19 Jan 2006 15:27:00 -0400
+
+nodehandler (3.6.3) testing; urgency=low
+
+  * Fixed imaging problems on big grid
+
+ -- Sachin <sachin@winlab.rutgers.edu>  Mon, 12 Dec 2005 11:27:00 -0400
+
+nodehandler (3.6.1_1) stable; urgency=low
+
+  * Fixed pxe link in saveNode
+
+ -- Sachin <sachin@winlab.rutgers.edu>  Thu, 10 Nov 2005 17:55:00 -0400
+
+=======
+nodehandler (3.6.2) stable; urgency=low
+
+  * Fixed bug in starting OML collection service
+
+ -- Max <max@winlab.rutgers.edu>  Sun, 13 Nov 2005 11:27:00 -0400
+
+>>>>>>> .r910
+nodehandler (3.6.1) stable; urgency=low
+
+  * Fixed support for noise
+  * Plenty of improvements to agent handler communciation
+
+ -- Max <max@winlab.rutgers.edu>  Thu, 10 Nov 2005 17:43:00 -0400
+
+nodehandler (3.5.2) unstable; urgency=low
+
+  * Improved communciation between handler and agent
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 8 Nov 2005 15:53:00 -0400
+
+nodehandler (3.5.1) unstable; urgency=low
+
+  * Aligning with Faiyaz's naming convention.
+
+ -- Max <max@winlab.rutgers.edu>  Wed, 12 Oct 2005 14:00:00 -0400
+
+nodehandler (3.2.11-2) unstable; urgency=low
+
+  * Debugging agent-handler communication
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 11 Oct 2005 19:14:00 -0400
+
+nodehandler (3.2.10) unstable; urgency=low
+
+  * Added command line option to load additional library files
+  * Load system:exp:stdlib file by default
+  * system:exp:stdlib now contains rules to ensure that nodes boot up
+
+ -- Max <max@winlab.rutgers.edu>  Wed, 14 Sep 2005 18:52:00 -0400
+
+nodehandler (3.2.9-3) unstable; urgency=low
+
+  * Moved grid config file into /etc/nodehandler
+	
+ -- Max <max@winlab.rutgers.edu>  Tue, 13 Sept 2005 12:51:00 -0400
+
+nodehandler (3.2.9) unstable; urgency=low
+
+  * Debian package did not include log4r config file.
+	
+ -- Max <max@winlab.rutgers.edu>  Tue, 13 Sept 2005 12:51:00 -0400
+
+nodehandler (3.2.8) unstable; urgency=low
+
+  * Fixed = with == in omlApp.rb, duplicate database creation fixed 
+	
+ -- Sachin <sachin@winlab.rutgers.edu>  Tue, 12 Sept 2005 14:25:00 -0400
+
+nodehandler (3.2.7) unstable; urgency=low
+
+  * Didn't pickup the right ruby libraries 
+	
+ -- Max <max@winlab.rutgers.edu>  Tue, 6 Sept 2005 18:49:00 -0400
+
+nodehandler (3.2.6) unstable; urgency=low
+
+  * There was an issue with nil images. Fixed
+	
+ -- Max <max@winlab.rutgers.edu>  Mon, 5 Sept 2005 16:22:03 -0400
+
+nodehandler (3.2.5) unstable; urgency=low
+
+  * More progress on making imaging more robust. 
+  * ImageNode has a new /progress page
+	
+ -- Max <max@winlab.rutgers.edu>  Mon, 5 Sept 2005 15:37:54 -0400
+
+nodehandler (3.2.4) unstable; urgency=low
+
+  * Executable picked up ruby binary from tool/lib/eee_template.tar
+      instead of using currently installed version 
+	
+ -- Max <max@winlab.rutgers.edu>  Fri, 2 Sept 2005 18:08:14 -0400
+
+nodehandler (3.2.3) unstable; urgency=low
+
+  * Fixed ticket #7
+  * Changed OML parameter xmit_rate to correct xmitrate
+	
+ -- Max <max@winlab.rutgers.edu>  Thu, 1 Sept 2005 18:04:04 -0400
+
+nodehandler (3.2.2) unstable; urgency=low
+
+  * Added the "every" command and made imageNode more robust (still some way togo)
+  * Fixed ticket #2
+	
+ -- Max <max@winlab.rutgers.edu>  Thu, 25 Aug 2005 18:32:01 -0400
+
+nodehandler (3.2.1) unstable; urgency=low
+
+  * Added the saveNode and imageNode binary to the apt package
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 23 Aug 2005 17:37:57 -0400
+
+nodehandler (3.2.0-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Max <max@winlab.rutgers.edu>  Tue, 23 Aug 2005 15:59:09 -0400
+
+	

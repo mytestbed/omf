@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+
+# Names of PXE images are not retrieved from the Inventory
+#PXE_VERSION=sata-2.0.1 # TR: 'sata-2.0.1' at Nicta
+#PXE_VERSION=1.2.1-omf # TR: 'orbit-1.2.1-omf' at Winlab
+TOPO_ALL=system:topo:all
+DEF_IMAGE=baseline.ndz
+DEF_TIMEOUT=800
+MY_NAME="$ROOTAPP load"
+
+function usage()
+{
+  echo -e "\nInstall a given disk image on the nodes in a testbed\n"
+  echo "Usage:"
+  echo "      $MY_NAME [-h]"
+  echo "      $MY_NAME [TOPOLOGY] [IMAGE_PATH] [TIMEOUT] [DOMAIN]"
+  echo " "
+  echo "      With: "
+  echo "      -h, --help    print this help message"
+  echo " "
+  echo "      TOPOLOGY      a valid topology description or file without the trailing '.rb'"
+  echo "                    (default is 'all', the entire set of nodes on the default testbed)"
+  echo " "
+  echo "      IMAGE_PATH    a valid path to a disk image on the image repository"
+  echo "                    (default is 'baseline.ndz', the latest stable baseline image)"
+  echo " "
+  echo "      TIMEOUT       a duration (in sec.) after which imageNodes should stop waiting for"
+  echo "                    nodes that have not finished their image installation"
+  echo "                    (default is 800 sec, i.e. 13min 20sec)"
+  echo " "
+  echo "      DOMAIN        the testbed domain for the nodes to image"
+  echo "                    (default is the testbed of the console where this command is running)"
+  echo " "
+  echo "      Some Examples: " 
+  echo "                    $MY_NAME"
+  echo "                    $MY_NAME all"
+  echo "                    $MY_NAME all baseline-2.4.ndz"
+  echo "                    $MY_NAME [1,1] wireless-2.6.ndz"
+  echo "                    $MY_NAME [[1,2],[1,4]] baseline.ndz 400"
+  echo "                    $MY_NAME [[1,1],[2..6,1..2]]"
+  echo "                    $MY_NAME system:topo:circle my_Own_Image.ndz"
+  echo "                    $MY_NAME my_Own_Topology baseline-2.2.ndz 600 grid"
+  echo " "
+}
+
+if [ $# -gt 4 ]
+then
+  echo "ERROR: Wrong number of arguments: $1"
+  usage
+  exit 1
+fi
+
+topo=$1
+image=$2
+timeout=$3
+domain=$4
+
+case "$1" in
+  -h) usage ; exit 0 ;;
+  --help) usage ; exit 0 ;;
+  all) topo=$TOPO_ALL ;;
+esac
+
+if [ -z $topo ] ; then
+  topo=$TOPO_ALL
+fi
+if [ -z $image ] ; then
+  image=$DEF_IMAGE
+fi
+if [ -z $timeout ] ; then
+  timeout=$DEF_TIMEOUT
+fi
+
+if [ -z $domain ] 
+then
+  echo "Imaging nodes: '$topo' with image '$image'"
+  echo "(Domain:  default from hostname)"
+  echo "(Timeout:  $timeout sec.)"
+  omf exec  -s true  system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout
+else
+  echo "Imaging nodes: '$topo' with image '$image'"
+  echo "(Domain:  $domain )"
+  echo "(Timeout:  $timeout sec.)"
+  omf exec  -s true -d $domain system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout --domain $domain
+fi
+exit 0

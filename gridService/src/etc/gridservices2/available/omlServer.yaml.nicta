@@ -1,0 +1,63 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the OMLServer GridService on the NICTA platform
+#
+---
+oml:
+
+  # Max. number of active collection servers allowed
+  maxDaemons: 10
+
+  testbed:
+    default:
+      database:
+        # User name and password for collection database
+        user: 'orbit'
+        password: 'orbit'
+        #host: 'norbit.in.nicta.com.au'
+        host: '127.0.0.1'
+
+      # Address for collection server to bind to.
+      serverAddress: '10.0.0.200'
+      # Interface to which the testbed is connected
+      localIf: 'eth1'
+      # Using ports starting at ...
+      startPort: 7000
+
+      # Time out daemon if nobody requested it within TIMEOUT sec
+      timeout: 10000
+
+      serverBin: '/usr/bin/oml_collection_server'
+      serverDebugLevel: 5
+      
+      # Path to the BerkeleyDB
+      #berkeleyDB: '/usr/local/BerkeleyDB.4.2/lib'
+      berkeleyDB: '/usr/lib'
+
+    indoor:
+      database:
+        user: 'orbit'
+        password: 'orbit'
+        host: '127.0.0.1'
+      serverAddress: '10.0.0.200'
+      localIf: 'eth1' # Interface to the indoor testbed
+      startPort: 7600
+      timeout: 10000
+      serverBin: '/usr/bin/oml_collection_server'
+      serverDebugLevel: 5
+      berkeleyDB: '/usr/lib'
+
+    outdoor:
+      database:
+        user: 'orbit'
+        password: 'orbit'
+        host: '127.0.0.1'
+      serverAddress: '192.168.203.1'
+      localIf: 'tap0' # Interface to the outdoor testbed
+      startPort: 7600
+      timeout: 10000
+      serverBin: '/usr/bin/oml_collection_server'
+      serverDebugLevel: 5
+      berkeleyDB: '/usr/lib'
+

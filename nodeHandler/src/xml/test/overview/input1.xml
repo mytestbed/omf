@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="table2.xsl" type="text/xsl"?>
+<context>
+  <log/>
+  <nodes>
+    <node x="1" y="1">
+      <status>UP</status>
+    </node>
+    <node x="1" y="2">
+      <status>UP</status>
+    </node>
+    <node  x="1" y="3">
+      <status>UP</status>
+    </node>
+    <node  x="2" y="1">
+      <status>UP</status>
+    </node>
+    <node  x="2" y="2">
+      <status>UP</status>
+    </node>
+    <node  x="2" y="3">
+      <status>UP</status>
+    </node>
+    <node  x="3" y="1">
+      <status>UP</status>
+    </node>
+    <node  x="3" y="2">
+      <status>UP</status>
+    </node>
+    <node x="3" y="3">
+      <status>UP</status>
+    </node>
+  </nodes>
+</context>

@@ -1,0 +1,53 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the Frisbee GridService on the NICTA platform
+#
+---
+frisbee:
+
+  # Max. number of active daemons allowed
+  maxDaemons: 10
+
+  testbed:
+    default:
+      # Directory images are stored
+      imageDir: /export/norbit/image
+      defaultImage: orbit-baseline
+
+      # max bandwidth for frisbee server
+      bandwidth: 50000000
+
+      # Multicast address to use for servicing images
+      mcAddress: 224.0.0.2
+      # Using ports starting at ...
+      startPort: 7000
+
+      # Time out frisbee server if nobody requested it within TIMEOUT sec
+      timeout: 3600
+
+      # Directory to find frisbee daemon
+      frisbeeBin: /usr/sbin/frisbeed
+
+      # Local interface to bind to for frisbee traffic
+      multicastIF: 192.168.204.1
+
+    indoor:
+      imageDir: /export/orbit/image
+      defaultImage: orbit-baseline
+      bandwidth: 50000000
+      mcAddress: 224.0.0.2
+      startPort: 7000
+      timeout: 3600
+      frisbeeBin: /opt/frisbee/bin/frisbeed
+      multicastIF: 192.168.204.1
+
+    outdoor:
+      imageDir: /export/orbit/image
+      defaultImage: orbit-baseline
+      bandwidth: 50000000
+      mcAddress: 224.0.0.2
+      startPort: 7000
+      timeout: 3600
+      frisbeeBin: /opt/frisbee/bin/frisbeed
+      multicastIF: 192.168.203.1

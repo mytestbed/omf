@@ -1,0 +1,55 @@
+SRC_NAME = nodeHandler
+APP_NAME = nodehandler4
+
+TOP = ../../../
+SRC_TOP = $(TOP)/$(SRC_NAME)
+
+
+OPT = $(DESTDIR)/opt
+BIN_TARGET = /usr/bin
+BIN = $(DESTDIR)/$(BIN_TARGET)
+ETC = $(DESTDIR)/etc
+
+PROG_VERSION = $(shell grep -o -E '[0-9]+\.[0-9.-]+' -m 1 $(SRC_TOP)/changelog)
+MAJOR_V = $(shell echo $(PROG_VERSION) | cut -d. -f1)
+
+PROG_DIR = $(APP_NAME)-$(PROG_VERSION)
+
+
+COMM_SERVER = /opt/$(PROG_DIR)/sbin/commServer --iface eth1 -l /tmp/commServer-%ID%.log
+
+all: 
+
+deb:
+	if [ -z "$(MAINTAINER)" ]; then dpkg-buildpackage -rfakeroot; \
+ 	else dpkg-buildpackage -m"$(MAINTAINER)" -rfakeroot; fi
+	# NICTA: to allow build for maintainers outside of winlab, use env var
+	# MAINTAINER e.g. "Jo Blo <jo@nicta.com.au>" IF set
+
+install:
+	rm -rf $(OPT)/$(PROG_DIR)
+	install -d $(OPT)
+	cp -rp $(TOP)/build/$(SRC_NAME)/$(APP_NAME) $(OPT)/$(PROG_DIR)
+	sh -x $(OPT)/$(PROG_DIR)/INSTALL.sh $(BIN_TARGET) /opt/$(PROG_DIR) $(DESTDIR)
+	install -d $(ETC)
+	# this is dirty, but we want to keep existing files 
+	# and tar's -k reports error
+	if [ -d $(ETC)/$(APP_NAME) ] ; then cp -rp $(ETC)/$(APP_NAME) $(ETC)/$(APP_NAME)-x ; fi
+	tar -C $(SRC_TOP)/src/etc --exclude=.svn --exclude='*~' -cf - $(APP_NAME) | (cd $(ETC); tar -xf -)
+	if [ -d $(ETC)/$(APP_NAME)-x ] ; then \
+		cp -rp $(ETC)/$(APP_NAME)-x/* $(ETC)/$(APP_NAME) ; \
+		rm -rf $(ETC)/$(APP_NAME)-x ; \
+	fi
+	cd $(TOP)/$(SRC_NAME)/src/bin; ls | grep -v '~' | xargs -I % -t install -m 755 % $(BIN)
+	cp -rp $(SRC_TOP)/src/repository $(OPT)/$(PROG_DIR)
+
+uninstall:
+	rm -rf $(OPT)/$(PROG_DIR)
+	rm -r $(ETC)/$(APP_NAME)
+	rm -f $(BIN)/$(APP_NAME) 
+	ls $(TOP)/$(SRC_NAME)/src/bin | grep -v '~' | xargs -I % -t rm -f $(BIN)/%
+
+clean:
+
+.PHONY: clean install uninstall
+

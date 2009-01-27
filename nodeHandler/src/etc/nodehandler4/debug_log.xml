@@ -1,0 +1,12 @@
+<log4r_config>
+  <pre_config>
+    <global level="DEBUG"/>
+  </pre_config>
+  <!-- outputers -->
+  <outputter type="StdoutOutputter" name="console" level="DEBUG"/>
+  <!-- loggers -->
+  <logger name="nodeHandler" outputters="console" level="DEBUG" trace="true"/>
+  <logger name="web" outputters="console" level="WARN"/>
+  <logger name="nodeHandler::comm" outputters="console" level="INFO"/>
+  <logger name="nodeHandler::commServer" outputters="console" level="INFO"/>
+</log4r_config>
