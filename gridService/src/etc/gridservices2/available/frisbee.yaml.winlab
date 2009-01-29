@@ -47,7 +47,7 @@ frisbee:
       defaultImage: orbit-baseline
       bandwidth: 50000000
       mcAddress: 224.0.0.3
-      startPort: 7300
+      startPort: 7400
       timeout: 3600
       frisbeeBin: /opt/frisbee/bin/frisbeed
       multicastIF: 10.11.0.40
@@ -57,17 +57,37 @@ frisbee:
       defaultImage: orbit-baseline
       bandwidth: 50000000
       mcAddress: 224.0.0.3
-      startPort: 7300
+      startPort: 7500
       timeout: 3600
       frisbeeBin: /opt/frisbee/bin/frisbeed
       multicastIF: 10.12.0.40
+
+    sb3:
+      imageDir: /export/orbit/image
+      defaultImage: orbit-baseline
+      bandwidth: 50000000
+      mcAddress: 224.0.0.3
+      startPort: 7500
+      timeout: 3600
+      frisbeeBin: /opt/frisbee/bin/frisbeed
+      multicastIF: 10.13.0.40
+
+    sb4:
+      imageDir: /export/orbit/image
+      defaultImage: orbit-baseline
+      bandwidth: 50000000
+      mcAddress: 224.0.0.3
+      startPort: 7500
+      timeout: 3600
+      frisbeeBin: /opt/frisbee/bin/frisbeed
+      multicastIF: 10.14.0.40
 
     sb5:
       imageDir: /export/orbit/image
       defaultImage: orbit-baseline
       bandwidth: 50000000
       mcAddress: 224.0.0.3
-      startPort: 7300
+      startPort: 7600
       timeout: 3600
       frisbeeBin: /opt/frisbee/bin/frisbeed
       multicastIF: 10.15.0.40
@@ -77,7 +97,7 @@ frisbee:
       defaultImage: orbit-baseline
       bandwidth: 50000000
       mcAddress: 224.0.0.3
-      startPort: 7300
+      startPort: 7700
       timeout: 3600
       frisbeeBin: /opt/frisbee/bin/frisbeed
       multicastIF: 10.16.0.40
@@ -87,7 +107,7 @@ frisbee:
       defaultImage: orbit-baseline
       bandwidth: 50000000
       mcAddress: 224.0.0.3
-      startPort: 7300
+      startPort: 7800
       timeout: 3600
       frisbeeBin: /opt/frisbee/bin/frisbeed
       multicastIF: 10.17.0.40
@@ -97,7 +117,28 @@ frisbee:
       defaultImage: orbit-baseline
       bandwidth: 50000000
       mcAddress: 224.0.0.3
-      startPort: 7300
+      startPort: 7900
       timeout: 3600
       frisbeeBin: /opt/frisbee/bin/frisbeed
       multicastIF: 10.18.0.40
+
+    sb9:
+      imageDir: /export/orbit/image
+      defaultImage: orbit-baseline
+      bandwidth: 50000000
+      mcAddress: 224.0.0.3
+      startPort: 7900
+      timeout: 3600
+      frisbeeBin: /opt/frisbee/bin/frisbeed
+      multicastIF: 10.19.0.40
+
+    outdoor:
+      imageDir: /export/orbit/image
+      defaultImage: orbit-baseline
+      bandwidth: 50000000
+      #bandwidth: 500000
+      mcAddress: 224.0.0.3
+      startPort: 7900
+      timeout: 3600
+      frisbeeBin: /opt/frisbee/bin/frisbeed
+      multicastIF: 10.40.0.40
