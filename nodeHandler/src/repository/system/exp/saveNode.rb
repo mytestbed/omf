@@ -63,7 +63,7 @@ everyNS('save', 10) { |ns|
     end
   }
   if (notDone == false)
-    n.pxeImage("#{prop.domain.value}", setPXE=false)
+    ns.pxeImage("#{prop.domain.value}", setPXE=false)
     Experiment.done
   end
   notDone
