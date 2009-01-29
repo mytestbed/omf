@@ -15,4 +15,4 @@ inventory:
       password: orbit
       # Name of the database to use
       #database: inventory
-      database: new_inventory
+      database: inventory

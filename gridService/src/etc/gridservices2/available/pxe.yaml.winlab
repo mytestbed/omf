@@ -3,99 +3,24 @@
 #
 # This is the Config file for the PXE GridService on the WINLAB platform
 #
+# NOTE: this file is currently not adapted to NICTA's platform  because NICTA's platform does 
+#       not currently have any working PXE functionalities.
 --- 
 pxe:
   # Name of PXE config file
   defImage: orbit-1.0.0
 
   # Directory pxe config files are stored
+  #cfgDir: /tftp/pxelinux.cfg
   cfgDir: /tftpboot/pxelinux.cfg
 
   # Maximum age of PXE symbolic link [sec]
   linkLifetime: 1800
   # linkLifetime: 5 # for testing only
 
-  # toIP: mapping from x@y to IP address
+  # inventory_url: URL to the Inventory GS, where we can get mapping [x,y] to IP@
   # listAll: return array of x/y coodinates of all nodes in '[x,y]' form.
   #
   testbed:
-
     default: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.10.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    grid: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.10.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    sb1: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.11.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    sb2: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.12.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    sb5: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.15.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    sb6: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.16.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    sb7: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.17.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-    sb8: 
-      toIP: | 
-        |x,y|
-          assertRange(x, 1..20, "unknown node #{x}@#{y}")
-          assertRange(y, 1..20, "unknown node #{x}@#{y}")    
-          "10.18.#{x}.#{y}"
-      listAll: |
-        defGrid(4,4)
-
-  #          a = []
-  #          (1..4).each {|y|
-  #            (1..4).each {|x|
-  #               a << [x,y]
-  #            }
-  #          }
-  #          a
+      inventory_url: 'http://internal1.orbit-lab.org:5022/inventory'
