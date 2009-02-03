@@ -57,14 +57,16 @@ class PxeService < GridService
   #
   # Implement 'setBootImageNS' service using the 'service' method of AbstractService
   #
-  s_info "Get PXE to boot all nodes in 'nodeSet' into their respective PXE image (as specified by the Inventory)"
+  s_info "Get PXE to boot all nodes in 'nodeSet' into their respective PXE image."
   s_param :ns, 'nodeSet', 'set definition of nodes included.'
   s_param :domain, 'domain', 'domain for request.'
+  s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
   service 'setBootImageNS' do |req, res|
     ns = getNodeSetParam(req, 'ns')
     tb = getTestbedConfig(req, @@config)
     domain = getParam(req, 'domain')
-    setImage(ns, tb, domain, res)
+    imageName = getParamDef(req, 'imgName', nil)
+    setImage(ns, tb, domain, res, imageName)
   end
   
   #
@@ -83,13 +85,15 @@ class PxeService < GridService
   #
   # Implement 'setBootImageAll' service using the 'service' method of AbstractService
   #
-  s_info "Get PXE to boot ALL nodes on this testbed into their respective PXE image (as specified by the Inventory)"
+  s_info "Get PXE to boot ALL nodes on this testbed into their respective PXE image"
   s_param :domain, 'domain', 'domain for request.'
+  s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
   service 'setBootImageAll' do |req, res|
     tb = getTestbedConfig(req, @@config)
     domain = getParam(req, 'domain')
     nodes = defAllNodes(tb, domain)
-    setImage(nodes, tb, domain, res)
+    imageName = getParamDef(req, 'imgName', nil)
+    setImage(nodes, tb, domain, res, imageName)
   end
   
   #
@@ -114,7 +118,7 @@ class PxeService < GridService
   #
   def self.getControlIP(url, x, y, domain)
     queryURL = "#{url}/getControlIP?x=#{x}&y=#{y}&domain=#{domain}"
-    info "PXE - QueryURL: #{queryURL}"
+    debug "PXE - QueryURL: #{queryURL}"
     response = nil
     response = Net::HTTP.get_response(URI.parse(queryURL))
     if (! response.kind_of? Net::HTTPSuccess)
@@ -152,7 +156,7 @@ class PxeService < GridService
   #
   def self.getPXEImageName(url, x, y, domain)
     queryURL = "#{url}/getPXEImage?x=#{x}&y=#{y}&domain=#{domain}"
-    info "PXE - QueryURL: #{queryURL}"
+    debug "PXE - QueryURL: #{queryURL}"
     response = nil
     response = Net::HTTP.get_response(URI.parse(queryURL))
     if (! response.kind_of? Net::HTTPSuccess)
@@ -189,7 +193,7 @@ class PxeService < GridService
   #
   def self.getXYMax(url, domain)
     queryURL = "#{url}/getConfig?domain=#{domain}"
-    info "PXE - QueryURL: #{queryURL}"
+    debug "PXE - QueryURL: #{queryURL}"
     response = nil
     response = Net::HTTP.get_response(URI.parse(queryURL))
     if (! response.kind_of? Net::HTTPSuccess)
@@ -229,11 +233,12 @@ class PxeService < GridService
   # Control IP address of the nodes to PXE boot.
   #
   # - nodes = an Array with the x,y coordinates of the nodes to PXE boot
-  # - img = name of the PXE image to boot
+  # - tb = config parameters of the testbed
   # - domain = name of the testbed for these nodes
   # - res = HTTP message that should be returned as a result
+  # - image = name of the PXE image to boot
   #
-  def self.setImage(nodes, tb, domain, res)
+  def self.setImage(nodes, tb, domain, res, image)
     resXml, nodesEl = createResponse('setBootImage')
     inventoryURL = tb['inventory_url']
     cfgDir = @@config['cfgDir']
@@ -242,7 +247,11 @@ class PxeService < GridService
     @@mutex.synchronize {
       nodes.each {|x, y|
         ip = getControlIP(inventoryURL, x, y, domain)
-        img = getPXEImageName(inventoryURL, x, y, domain)
+        if (image == nil)
+          img = getPXEImageName(inventoryURL, x, y, domain)
+        else
+          img = image
+        end
         imgPath = "./#{img}"
         hex = ip.split('.').map {|e| format "%02X", e} . join()
         hexPath = "#{cfgDir}/#{hex}"
@@ -284,7 +293,7 @@ class PxeService < GridService
   # previously created by setImage(...).
   #
   # - nodes = an Array with the x,y coordinates of the nodes to PXE boot
-  # - img = name of the PXE image to boot
+  # - tb = config parameters of the testbed
   # - domain = name of the testbed for these nodes
   # - res = HTTP message that should be returned as a result
   #
