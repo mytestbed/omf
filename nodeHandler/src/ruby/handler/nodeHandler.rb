@@ -84,7 +84,7 @@ class NodeHandler < MObject
   #
   # Name of tutorial experiment
   #
-  TUTORIAL = 'test:exp:tutorial-1a'
+  TUTORIAL = 'test:exp:tutorial'
 
   #
   # Pair of Mutex used to implement the NodeHandler's execution loop

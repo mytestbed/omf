@@ -23,27 +23,28 @@
 #
 #
 #
-# Create an application representation from scratch
+# Define a prototype
 #
-require 'handler/appDefinition'
 
-defApplication('test:app:otl2', 'otl2') {|a|
-  a.version(1, 1, 2)
-  a.shortDescription = "Programmable traffic passive listener"
-  a.description = <<TEXT
-OTL is a passive traffic listener. It uses libpcap to access 
-packets (and their info) going through a given interface. It is 
-equivalent to a 'tcpdump' but with support for OMLv2.
-TEXT
+defPrototype("test:proto:udp_receiver") { |p|
+  
+  p.name = "UDP_Receiver"
+  p.description = "Nodes which receive packets"
 
-  # defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-  a.defProperty('oml-server', 'Contact details for the oml collection server')
-  a.defProperty('oml-id', 'ID for this oml client')
-  a.defProperty('oml-exp-id', 'ID for this experiment')
-  a.defProperty('oml-pcap', 'File with the definition of filters to use')
-  a.defProperty('oml-pcap-if', 'When using the default filter, listen on this given interface')
-  a.defProperty('oml-pcap-ip-src', 'When using the default filter, select pkt with this Src IP')
-  #a.defProperty('oml-pcap-ip-dst', 'When using the default filter, select pkt with this Dst IP')
+  p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
+  p.defProperty('id', 'ID for this oml client', "/tmp/#{Experiment.ID}")
+  p.defProperty('expId', 'ID for this experiment', "/tmp/#{Experiment.ID}")
+  p.defProperty('localHost', 'Host that generate the packets', 'localhost')
+  p.defProperty('localPort', 'Host that generate the packets', 3000)
 
-  a.path = "sudo /bin/otl2"
+  p.addApplication(:otr2, "test:app:otr2") { |otr|
+
+    otr.bindProperty('oml-server', 'omlServer')
+    otr.bindProperty('oml-id', 'id')
+    otr.bindProperty('oml-exp-id', 'expId')
+    otr.bindProperty('udp:local_host', 'localHost')
+    otr.bindProperty('udp:local_port', 'localPort')
+
+  }
+
 }

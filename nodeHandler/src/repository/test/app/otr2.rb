@@ -44,5 +44,5 @@ TEXT
   #a.defProperty('udpmi:local_host', 'IP address of the local host ', nil, {:type => :string, :dynamic => false})
   #a.defProperty("debug-level", "debug level [integer]")
 
-  a.path = "/bin/otr2"
+  a.path = "/usr/bin/otr2"
 }

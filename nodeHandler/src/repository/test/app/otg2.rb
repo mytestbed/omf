@@ -45,9 +45,8 @@ TEXT
   a.defProperty('udp:dst_port', 'Destination Port to send to')
   a.defProperty('udp:local_host', 'IP address of this Source node')
   a.defProperty('udp:local_port', 'Local Port of this source node')
+  a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty("cbr:rate", "Data rate of the flow [bps]", nil, {:dynamic => true, :type => :integer})
 
-  #a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
-  #a.defProperty("cbr:rate", "Data rate of the flow [kbps]", nil, {:dynamic => true, :type => :integer})
-
-  a.path = "/bin/otg2"
+  a.path = "/usr/bin/otg2"
 }
