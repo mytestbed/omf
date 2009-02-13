@@ -13,13 +13,15 @@ frisbee:
     default:
       # Directory images are stored
       imageDir: /export/norbit/image
-      defaultImage: orbit-baseline
+      #defaultImage: orbit-baseline
+      defaultImage: norbix
 
       # max bandwidth for frisbee server
       bandwidth: 50000000
 
       # Multicast address to use for servicing images
-      mcAddress: 224.0.0.2
+      #mcAddress: 224.0.0.2
+      mcAddress: 224.0.0.1
       # Using ports starting at ...
       startPort: 7000
 
@@ -30,7 +32,8 @@ frisbee:
       frisbeeBin: /usr/sbin/frisbeed
 
       # Local interface to bind to for frisbee traffic
-      multicastIF: 192.168.204.1
+      #multicastIF: 192.168.204.1
+      multicastIF: 10.0.0.200
 
     indoor:
       imageDir: /export/orbit/image
