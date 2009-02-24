@@ -437,6 +437,7 @@ class NodeAgent < MObject
     end
 
     debug "Exec cmd '#{command}' with '#{argArray.join(' ')}'"
+    fullcmd = "'#{command}' with '#{argArray.join(' ')}'"
     method = nil
     begin
       method = AgentCommands.method(command)
@@ -448,8 +449,8 @@ class NodeAgent < MObject
     begin
       reply = method.call(self, argArray)
     rescue Exception => err
-      error "While executing '#{command}': #{err}"
-      send(:ERROR, :EXECUTION, command, err)
+      error "While executing #{fullcmd}: #{err}"
+      send(:ERROR, :EXECUTION, fullcmd, err)
       return
     end
     # Thierry: moved that code here 
