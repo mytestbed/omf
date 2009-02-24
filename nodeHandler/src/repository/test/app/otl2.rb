@@ -40,10 +40,11 @@ TEXT
   a.defProperty('oml-server', 'Contact details for the oml collection server')
   a.defProperty('oml-id', 'ID for this oml client')
   a.defProperty('oml-exp-id', 'ID for this experiment')
-  a.defProperty('oml-pcap', 'File with the definition of filters to use')
-  a.defProperty('oml-pcap-if', 'When using the default filter, listen on this given interface')
-  a.defProperty('oml-pcap-ip-src', 'When using the default filter, select pkt with this Src IP')
-  #a.defProperty('oml-pcap-ip-dst', 'When using the default filter, select pkt with this Dst IP')
+  a.defProperty('pcap', 'File with the definition of filters to use')
+  a.defProperty('pcap-if', 'When using the default filter, listen on this given interface')
+  a.defProperty('pcap-ip-src', 'When using the default filter, select pkt with this Src IP')
+  #a.defProperty('pcap-ip-dst', 'When using the default filter, select pkt with this Dst IP')
 
-  a.path = "sudo /bin/otl2"
+  a.path = "sudo /usr/bin/app_pcap_oml2"
+  #a.path = "sudo /bin/otl2"
 }

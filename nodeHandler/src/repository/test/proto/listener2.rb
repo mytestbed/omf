@@ -49,10 +49,10 @@ defPrototype("test:proto:listener2") { |p|
     otl.bindProperty('oml-server', 'omlServer')
     otl.bindProperty('oml-id', 'id')
     otl.bindProperty('oml-exp-id', 'expId')
-    otl.bindProperty('oml-pcap', 'filter')
-    otl.bindProperty('oml-pcap-if', 'interface')
-    otl.bindProperty('oml-pcap-ip-src', 'sourceIP')
-    #otl.bindProperty('oml-pcap-ip-dst', 'destinationIP')
+    otl.bindProperty('pcap', 'filter')
+    otl.bindProperty('pcap-if', 'interface')
+    otl.bindProperty('pcap-ip-src', 'sourceIP')
+    #otl.bindProperty('pcap-ip-dst', 'destinationIP')
   }
 }
 

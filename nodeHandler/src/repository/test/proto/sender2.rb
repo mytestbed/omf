@@ -39,8 +39,8 @@ defPrototype("test:proto:sender2") { |p|
   p.defProperty('destinationPort', 'Host to send packets to',3000)
   p.defProperty('localHost', 'Host that generate the packets', 'localhost')
   p.defProperty('localPort', 'Host that generate the packets',3000)
-  #p.defProperty('packetSize', 'Size of packets', 1000)
-  #p.defProperty('rate', 'Number of bits per second', 1000)
+  p.defProperty('packetSize', 'Size of packets [bytes]', 512)
+  p.defProperty('rate', 'Number of bits per second [bps]', 4096)
 
   # Define applications to be installed on this type of node,
   # bind the application properties to the prototype properties,
@@ -55,8 +55,8 @@ defPrototype("test:proto:sender2") { |p|
     otg.bindProperty('udp:dst_port', 'destinationPort')
     otg.bindProperty('udp:local_host', 'localHost')
     otg.bindProperty('udp:local_port', 'localPort')
-    #otg.bindProperty('cbr:size', 'packetSize')
-    #otg.bindProperty('cbr:rate', 'rate')
+    otg.bindProperty('cbr:size', 'packetSize')
+    otg.bindProperty('cbr:rate', 'rate')
   }
 }
 
