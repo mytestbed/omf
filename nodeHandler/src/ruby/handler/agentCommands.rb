@@ -123,7 +123,7 @@ module AgentCommands
         path = getArg(argArray, "Name of resource")
         reason = "Couldn't configure '#{path}'"
         message = argArray.join(' ')
-        id = handler.logError(sender, reason, {:details => message})
+        id = NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configureStatus(path, "error", {"logRef" => id})
         MObject.error("agentCmd::CONFIGURE_ERROR", "#{reason} on '#{sender}': #{message}")
       when 'LOST_HANDLER'
@@ -132,7 +132,7 @@ module AgentCommands
       else
         reason = "Unknown error caused by '#{command}'"
         message = argArray.join(' ')
-        handler.logError(sender, reason, {:details => message})
+        NodeHandler.instance.logError(sender, reason, {:details => message})
         MObject.error("agentCmd::UNKNOWN_ERROR", "#{reason} on '#{sender}': #{message}")
     end
   end
