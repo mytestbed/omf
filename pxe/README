@@ -8,3 +8,9 @@ You get two guys from this:
 * Latest Linux kernel, configured to build the smallest kernel possible
 * initramfs with busybox, frisbee, nodeagent and kexec
 
+
+PREPARATION FOR BUILD:
+To save answering all the questions about which modules to build, there
+are some standard .config files in the config subdirectory.
+Copy the most recent of these to .config is this directory, 
+before running a first time build.
