@@ -12,5 +12,5 @@ You get two guys from this:
 PREPARATION FOR BUILD:
 To save answering all the questions about which modules to build, there
 are some standard .config files in the config subdirectory.
-Copy the most recent of these to .config is this directory, 
+Copy the most recent of these to .config is src/linux-2.6.{x.y}
 before running a first time build.
