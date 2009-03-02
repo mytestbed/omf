@@ -219,7 +219,8 @@ filesystem: dirs
 	install -m 644 $(CONFIG)/group $(ROOTFS)/etc/
 	install -m 644 $(CONFIG)/services $(ROOTFS)/etc/
 	install -m 644 $(CONFIG)/inittab $(ROOTFS)/etc/
-	install -m 755 /bin/lspci $(ROOTFS)/bin/lspci
+	# ubuntu/debian compatibility: use 'which' to locate lspci:
+	install -m 755 `which lspci` $(ROOTFS)/bin/lspci
 	install -m 755 /usr/sbin/lsusb $(ROOTFS)/bin/lsusb
 	# ubuntu or debian variation in location of example files:
 	if [ -f /var/lib/misc/usb.ids ]; then \
