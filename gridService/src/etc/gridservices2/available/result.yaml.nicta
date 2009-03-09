@@ -1,0 +1,12 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the Result GridService on the NICTA platform
+#
+--- 
+result:
+  # Path to the SQLite3 client binary
+  sqlite3_path: '/usr/bin/sqlite3'  
+
+  # Path to the directory holding the experiment measurement databases
+  database_path: '/tmp'  
