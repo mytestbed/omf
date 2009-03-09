@@ -42,6 +42,31 @@ module AgentCommands
   # Version of the communication protocol between the NH and the NAs
   PROTOCOL_VERSION = "4.2"
 
+  # TODO:
+  # For GEC4 demo we use these Constant values.
+  # When we will integrate a virtualization scheme, coupled with a 
+  # Resource Manager (RM) and a Resource Controller (RC), we might want to have these
+  # config values passed as parameters (i.e. different RC in different sliver might
+  # need different configs). This will probably depend on the selected virtualization scheme 
+  #
+  # Slave Resource Controller (aka NodeAgent)
+  SLAVE_RESCTL_ID = "SLAVE-RESOURCE-CTL"
+  SLAVE_RESCTL_LISTENIF = "lo" # Slave Agent listens only on localhost interface
+  SLAVE_RESCTL_LISTENPORT = 9026
+  SLAVE_RESCTL_CMD = "sudo /usr/sbin/nodeagent4"
+  SLAVE_RESCTL_LOG = "/etc/nodeagent4/nodeagentSlave_log.xml"
+  # Slave Experimet Controller (aka NodeHandler)
+  SLAVE_EXPCTL_ID = "SLAVE-EXP-CTL"
+  SLAVE_EXPCTL_CMD = "/usr/bin/omf exec"
+  SLAVE_EXPCTL_CFG = "/etc/nodehandler4/nodehandlerSlave.yaml"
+  # Proxy OML Collection Server
+  OML_PROXY_ID = "PROXY-OML-SERVER"
+  OML_PROXY_CMD = "/usr/bin/oml2-proxy-server"
+  OML_PROXY_LISTENPORT = "8002"
+  OML_PROXY_LISTENADDR = "localhost"
+  OML_PROXY_CACHE = "/tmp/temp-proxy-cache"
+  OML_PROXY_LOG = "/tmp/temp-proxy-log"
+  
   # Mapping between OMF's device name and Linux's device name
   DEV_MAPPINGS = {
     'net/e0' => EthernetDevice.new('net/e0', 'eth0'),
@@ -54,6 +79,29 @@ module AgentCommands
 
   # File containing image name
   IMAGE_NAME_FILE = '/.orbit_image'
+
+  # 
+  # Return the Application ID for the OML Proxy Collection Server
+  # (This is only set when NA is involved in an experiment that support
+  # temporary disconnection of node/resource from the Control Network)
+  #
+  # [Return] an Application ID (String)
+  #
+  def AgentCommands.omlProxyID
+    return OML_PROXY_ID
+  end
+
+  # 
+  # Return the Application ID for the 'slave' Experiment Controller (aka 
+  # NodeHandler) running on this node/resource.
+  # (This is only set when NA is involved in an experiment that support
+  # temporary disconnection of node/resource from the Control Network)
+  #
+  # [Return] an Application ID (String)
+  #
+  def AgentCommands.slaveExpCtlID
+    return SLAVE_EXPCTL_ID
+  end
 
   #
   # Command 'SET_MACTABLE'
@@ -140,7 +188,77 @@ module AgentCommands
     argArray.each{ |name|
       agent.addAlias(name)
     }
+    # The ID of a node (for the moment [x,y]) should be taken form here, and not from the IP address of the Control Interface!
+    x = agentId.split("_")[1]
+    y = agentId.split("_")[2]
+    agent.communicator.setX(eval(x))
+    agent.communicator.setY(eval(y))
     agent.okReply(:YOUARE)
+  end
+
+  #
+  # Command 'SET_DISCONNECT'
+  # 
+  # Activate the 'Disconnection Mode' for this NA. In this mode, this NA will assume
+  # the role of a 'master' NA. It will fetch a copy of the experiment description from
+  # the main 'master' NH. Then it will execute a Proxy OML server, a 'slave' NA and
+  # a 'slave' NH. Finally, it will monitor the 'slave' NH, and upon its termination, 
+  # it will initiate the final measurement collection (OML proxy to OML server), and
+  # the end of the experiment.
+  #
+  # - agent = the instance of this NA
+  # - argArray = an array with the following parameters: the experiment ID, the URL
+  #              from where to get the experiment description, the address of the 
+  #              OML Server, the port of the OML server
+  #
+  def AgentCommands.SET_DISCONNECT(agent, argArray)
+    agent.allowDisconnection
+    
+    # Fetch the Experiment ID from the NH
+    expID = getArg(argArray, "Experiment ID")
+
+    # Fetch the Experiment Description from the NH
+    ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
+    urlED = getArg(argArray, "URL for Experiment Description")
+    fileName = "/tmp/exp_#{ts}.rb"
+    MObject.debug("Fetching Experiment Description at '#{urlED}'")
+    if (! system("wget -q -O #{fileName} #{urlED}"))
+      raise "Couldn't fetch Experiment Description at:' #{urlED}'"
+    end
+    MObject.debug("Experiment Description saved at: '#{fileName}'")
+
+    # Fetch the addr:port of the OML Collection Server from the NH
+    addrMasterOML = getArg(argArray, "Address of Master OML Server")
+    portMasterOML = getArg(argArray, "Port of Master OML Server")
+
+    # Now Start a Proxy OML Server
+    cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} \
+                            --dstport #{portMasterOML} \
+                            --dstaddress #{addrMasterOML}\
+                            --resultfile #{OML_PROXY_CACHE} \
+                            --logfile #{OML_PROXY_LOG}"
+    MObject.debug("Starting OML Proxy Server with: '#{cmd}'")
+    ExecApp.new(OML_PROXY_ID, agent, cmd)
+
+    # Now Start a Slave NodeAgent with its communication module in 'TCP Server' mode
+    # Example: sudo /usr/sbin/nodeagent4 --server-port 9026 --local-if lo --log ./nodeagentSlave_log.xml
+    cmd = "#{SLAVE_RESCTL_CMD}  --server-port #{SLAVE_RESCTL_LISTENPORT} \
+                                --local-if #{SLAVE_RESCTL_LISTENIF} \
+                                --log #{SLAVE_RESCTL_LOG}"
+    MObject.debug("Starting Slave Resouce Controller (NA) with: '#{cmd}'")
+    ExecApp.new(SLAVE_RESCTL_ID, agent, cmd)
+    
+    # Now Start a Slave NodeHandler with its communication module in 'TCP Client' mode
+    cmd = "#{SLAVE_EXPCTL_CMD} --config #{SLAVE_EXPCTL_CFG} \
+                               --slave-mode #{expID} \
+                               --slave-mode-omlport #{OML_PROXY_LISTENPORT} \
+                               --slave-mode-omladdr #{OML_PROXY_LISTENADDR} \
+                               --slave-mode-xcoord #{agent.x} \
+                               --slave-mode-ycoord #{agent.y} \
+                               #{fileName}"
+    MObject.debug("Starting Slave Experiment Controller (NH) with: '#{cmd}'")
+    ExecApp.new(SLAVE_EXPCTL_ID, agent, cmd)
+    
   end
 
   #
@@ -400,6 +518,12 @@ module AgentCommands
   # - argArray = an array with the sequence number of the commands to resend
   #
   def AgentCommands.RETRY(agent, argArray)
+    # If this NA is operating with support for temporary disconnection, 
+    # then ignore any RETRY requests from the NH.
+    if agent.allowDisconnection?
+      MObject.debug "Ignore RETRY (Disconnection Support ON)"
+      return
+    end
     first = getArg(argArray, "Id of first message to resend").to_i
     last = getArgDefault(argArray, -1).to_i
     if (last < 0)
@@ -407,7 +531,7 @@ module AgentCommands
     end
     MObject.debug "AgentCommands", "RETRY message #{first}-#{last}"
     (first..last).each {|i|
-      agent.resend(i)
+      agent.communicator.resend(i)
     }
   end
 

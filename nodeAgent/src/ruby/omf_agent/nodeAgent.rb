@@ -149,7 +149,11 @@ class NodeAgent < MObject
   # - msgArray = an array with the full received command (name, parameters,...)
   #
   def okReply(cmd, id = nil, *msgArray)
-    Communicator.instance.sendHeartbeat()
+    if allowDisconnection? 
+      Communicator.instance.sendRelaxedHeartbeat()
+    else
+      Communicator.instance.sendHeartbeat()
+    end
   end
 
   #
@@ -209,6 +213,15 @@ class NodeAgent < MObject
   #
   def onAppEvent(eventName, appId, *msg)
     debug("onAppEvent(#{eventName}:#{appId}): '#{msg}'")
+    
+    # If this NA allows disconnection, then check if the event is the Done message from 
+    # the slave Experiment Controller
+    if ( allowDisconnection? && (appId == AgentCommands.slaveExpCtlID) )
+       if ( eventName.split(".")[0] == "DONE" )
+       expirementDone 
+       debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
+       end
+    end
     send(:APP_EVENT, eventName.to_s.upcase, appId, *msg)
   end
 
@@ -248,7 +261,49 @@ class NodeAgent < MObject
     @agentName = @defAgentName || "#{Communicator.instance.localAddr}"
     @connected = false
     @names = [@agentName]
+    @allowDisconnection = false
+    @expirementDone = false
+    debug "Disconnection Support Disabled."
   end
+
+  #
+  # Set the 'Disconnection Support' flag to true
+  #
+  def allowDisconnection
+    debug "Disconnection Support Enabled."
+    @allowDisconnection = true
+  end
+
+  #
+  # Return the value of the 'Disconnection Support'
+  #
+  # [Return] true/false
+  #
+  def allowDisconnection?
+    return @allowDisconnection
+  end 
+
+  #
+  # Set the 'Experiment Done' flag to true
+  # Should be called when the 'slave' NH terminates
+  #
+  def expirementDone
+    debug "Expirement is DONE"
+    @expirementDone = true
+  end
+
+  #
+  # Return the value of the 'Experiment Done' flag
+  # This is true, when this NA has finished executing all the experiment
+  # tasks for this node, and the node is now connectect to the Control Network,
+  # and any outstanding measurments have been sent to the OML server by the OML 
+  # proxy. 
+  #
+  # [Return] true/false
+  #
+  def expirementDone?
+    return @expirementDone
+  end 
 
   #
   # Return the primary name of this NA
@@ -498,6 +553,7 @@ IO.popen("lspci | grep 'Ethernet controller: Atheros' | wc -l") {|p|
 # Execution Entry point 
 #
 begin
+ 
   NodeAgent.instance.parseOptions(ARGV)
   NodeAgent.instance.run
 rescue SystemExit

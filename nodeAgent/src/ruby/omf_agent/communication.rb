@@ -112,29 +112,47 @@ class Communicator < MObject
   end
 
   # 
-  # Return the x coordinate for this NA based on its control IP address
-  # Raises an error message if the control IP address is not set/available
+  # Return the x coordinate for this NA 
+  # Raises an error message if the coordinate is not set/available
   #
   # [Return] x coordinate
   #
   def x
     if (@@x.nil?)
-      raise "Cannot determine X coordinate - local IP address not set"
+      raise "Cannot determine X coordinate"
     end
     return @@x
   end
 
   # 
-  # Return the y coordinate for this NA based on its control IP address
-  # Raises an error message if the control IP address is not set/available
+  # Set the x coordinate for this NA 
+  #
+  # - x = value for the X coordinate
+  #
+  def setX(x)
+    @@x = x
+  end
+
+  # 
+  # Return the y coordinate for this NA 
+  # Raises an error message if the coordinate is not set/available
   #
   # [Return] y coordinate
   #
   def y
     if (@@y.nil?)
-      raise "Cannot determine X coordinate - local IP address not set"
+      raise "Cannot determine X coordinate"
     end
     return @@y
+  end
+
+  # 
+  # Set the y coordinate for this NA 
+  #
+  # - y = value for the Y coordinate
+  #
+  def setY(y)
+    @@y = y
   end
 
   #
@@ -242,7 +260,14 @@ class Communicator < MObject
     send!(0, "WHOAMI", AgentCommands::PROTOCOL_VERSION,
               addr, port,
               NodeAgent::AGENT_VERSION, NodeAgent.instance.imageName)
+  end
 
+  #
+  # Send a 'EXPERIMENT DONE' message to the NH
+  #
+  def sendEXPDONE
+    debug "Sending END_EXPERIMENT to the NH"
+    send!(0, "END_EXPERIMENT", "123 456")
   end
 
   #
@@ -660,6 +685,71 @@ class MCCommunicator < Communicator
   end
 
   #
+  # Send a "Resume and Quit" message to the stdIn of the OML Proxy Application
+  # (the message effectively sent is 'OMLPROXY-RESUME')
+  #
+  def sendResumeAndQuit
+    omlID = AgentCommands.omlProxyID
+    debug "Sending RESUME to #{omlID}"
+    ExecApp[omlID].stdin("OMLPROXY-RESUME")
+  end
+  
+  #
+  # Send a 'relaxed' heartbeat back to the handler
+  # This is only possible when NH has requested this NA to 
+  # allow disconnections to happen (e.g. experiment involving
+  # mobile nodes that can be out of range of NH)
+  # In this case, a HB message not acknowledged will not trigger a reset
+  # but instead will put the NA in a 'temporary disconnected' state, where
+  # it still sends HB (tries to reconnect), this state is left upon reconnection
+  # with the NH
+  #
+  def sendRelaxedHeartbeat()
+
+    if NodeAgent.instance.connected?
+      # Check if we still hear from handler
+      now = Time.now
+      delta = now - @handlerTimestamp
+
+      # NO - Then enter a 'temporary disconnected' state
+      if (delta  > @handlerTimeout)
+        if ((@timeoutCnt += 1) >= @timeoutCount)
+          @tmpDisconnected = true
+          debug "Heartbeat - Lost Handler - Node is now temporary Disconnected"
+        end
+
+      # YES - Then if we were previously disconnected, leave that state!
+      else 
+        if @tmpDisconnected
+          @tmpDisconnected = false
+          debug "Heartbeat - Found Handler - Node is now Reconnected"
+        end
+      end
+
+      # Regardless of connection state, we keep sending HB
+      @timeoutCnt = 0
+      inCnt = @inSeqNumber > 0 ? @inSeqNumber : 0
+      @lockSeqNumber.synchronize {
+        send!(0, :HB, @outSeqNumber, inCnt, now.to_i, delta.to_i)
+      }
+
+      # Always check if Experiment is done AND we are not temporary disconnected
+      #debug "TDEBUG - Check EXPDONE + !DISCONNECTED - #{NodeAgent.instance.expirementDone?} - #{!@tmpDisconnected}"
+      if (NodeAgent.instance.expirementDone? && !@tmpDisconnected)
+        debug "Heartbeat - Experiment Done and Node Reconnected"
+        sendResumeAndQuit
+        ### HACK - Waiting for OML Proxy to return a good 'DONE' to us
+        Kernel.sleep 10
+        sendEXPDONE
+        NodeAgent.instance.reset
+      end
+    else # ---if NodeAgent.instance.connected?---
+      # haven't heard from nodeHandler yet, resend initial message
+      sendWHOAMI
+    end
+  end
+
+  #
   # Send a heartbeat back to the handler
   #
   def sendHeartbeat()
@@ -676,17 +766,15 @@ class MCCommunicator < Communicator
           send!(0, :WARN, :ALMOST_LOST_HANDLER, @timeoutCnt, delta)
         end
       else
-        #ts =  DateTime.now.strftime("%T")
         @timeoutCnt = 0
         inCnt = @inSeqNumber > 0 ? @inSeqNumber : 0
-	@lockSeqNumber.synchronize {
+        @lockSeqNumber.synchronize {
         send!(0, :HB, @outSeqNumber, inCnt, now.to_i, delta.to_i)
-	}
+        }
       end
     else
-      # haven't heard from nodeHandler yet, resend initial message
-      #NodeAgent.instance.reset
-      sendWHOAMI
+    # haven't heard from nodeHandler yet, resend initial message
+    sendWHOAMI
     end
   end
 
@@ -741,6 +829,9 @@ class MCCommunicator < Communicator
   def initialize(params) #initCommunication(sendAddr, sendPort, recvAddr, recvPort)
 
     super
+    # TDEBUG
+    @tmpDisconnected = false
+
     @params = params
     @@localAddr = getParam(@params, 'local_addr', false)
     @sendPort = getParam(@params, 'handler_port')
@@ -825,7 +916,11 @@ class MCCommunicator < Communicator
           t = Time.now
           sleep @heartbeatInterval
           #debug "Heartbeat: Sending Heartbeat after ", Time.now - t
-          sendHeartbeat
+          if NodeAgent.instance.allowDisconnection? 
+            sendRelaxedHeartbeat
+          else
+            sendHeartbeat
+          end
         rescue Exception => err
           bt = err.backtrace.join("\n\t")
           error("While sending heartbeat. Error: '#{err}'")
