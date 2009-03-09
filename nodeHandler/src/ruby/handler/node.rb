@@ -117,6 +117,23 @@ class Node < MObject
     @@nodes.each(&block)
   end
 
+  #
+  # Check if all nodes in this experiment are now reconnected to the 
+  # Experiment Controller (aka 'Node Handler'). This is only useful, when 
+  # running an experiment which allow nodes/resources to be temporary 
+  # disconnected
+  #
+  # [Return] true/false
+  #
+  def Node.allReconnected?
+    @@nodes.each { |n|
+      if !n.isReconnected?
+        return false
+      end
+    }
+    return true
+  end
+
   attr_reader :x, :y, :MAC
 
   # True if node is up, false otherwise
@@ -145,6 +162,13 @@ class Node < MObject
   # [Return] a String holding the IP address
   #
   def getControlIP()
+    
+    # Check if NH is running in 'Slave Mode'
+    if NodeHandler.SLAVE_MODE()
+      # Yes - Then there can only be 1 NA to talk to, it's the 'Slave' NA on localhost
+      return "127.0.0.1"
+    end
+
     # Query the Inventory GridService for the Control IP address of this node
     url = "#{OConfig.INVENTORY_SERVICE}/getControlIP?x=#{x}&y=#{y}&domain=#{OConfig.GRID_NAME}"
     response = NodeHandler.service_call(url, "Can't get Control IP for x: #{x} y: #{y} on '#{OConfig.GRID_NAME}' from INVENTORY")
@@ -394,7 +418,7 @@ class Node < MObject
       send('SET_MACTABLE', toolToUse, mac)
     }
   end
-
+  
   #
   # Inform the node that somebody (most likely NodeSet) has issued
   # a request to load an image onto this node's disk.
@@ -608,6 +632,25 @@ class Node < MObject
     return m
   end
 
+  #
+  # Set the 'Reconnected' flag for this node. This flag is 'false' when this
+  # node is in a temporary disconnected (from the Contorl Network) state, and
+  # is 'true' when this node reconnects to the Control Network
+  #
+  def setReconnected
+    @reconnected = true
+  end
+
+  #
+  # Return the value of the 'Reconnected' flag for this node. 
+  # This flag is 'false' when this node is in a temporary disconnected (from 
+  # the Contorl Network) state, and is 'true' when this node reconnects to 
+  # the Control Network
+  #
+  def isReconnected?
+    return @reconnected
+  end
+
   private
 
   #
@@ -638,6 +681,11 @@ class Node < MObject
     Communicator.instance.enrollNode(self, @nodeId, ipAddress)
     TraceState.nodeAdd(self, @nodeId, x, y)
     debug "Created node #{x}@#{y}"
+     
+    # This flag is 'false' when this node is in a temporary disconnected (from 
+    # the Contorl Network) state, and is 'true' when this node reconnects to 
+    # the Control Network
+    @reconnected = false
   end
 
   #

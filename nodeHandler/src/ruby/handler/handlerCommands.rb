@@ -247,15 +247,15 @@ def whenAll(nodesSelector, nodeTest, interval = 5, &block)
           MObject.info("whenAll", nodesSelector, ": '", nodeTest, "' fires")
           begin
             RootNodeSetPath.new(ns, nil, nil, block)
-    rescue ServiceException => sex
-      begin
-        if (sex.response)
-    MObject.error('run', "ServiceException: #{sex.message}\n\t#{sex.response.body}")
-        else
-    MObject.error('run', "ServiceException: #{sex.message}")
-        end
-      rescue Exception
-      end
+          rescue ServiceException => sex
+            begin
+              if (sex.response)
+                MObject.error('run', "ServiceException: #{sex.message}\n\t#{sex.response.body}")
+              else
+                MObject.error('run', "ServiceException: #{sex.message}")
+              end
+            rescue Exception
+            end
           rescue Exception => ex
             bt = ex.backtrace.join("\n\t")
             MObject.error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
@@ -274,19 +274,39 @@ end
 
 #
 # Execute 'block' when all nodes report to be up.
+# When the Node Handler (aka Experiment Controller) is invoked for an experiement that 
+# supports some temporary disconnection, it ignores any 'whenAllUp' command. Instead
+# the 'whenAllUp' commands will be interpreted by the 'slave' Node Handler, which will
+# be executed directly on the potentially disconnected node/resource.
 #
 # - &block = the code-block to execute/evaluate against the nodes in 'up' state 
 #
 def whenAllUp(&block)
+  # Check if this NH instance is set to run in Disconnection Mode
+  # If yes, then returned now because whatever is asked from this whenAll should be
+  # executed by the whenAll of the slave NH on the disconnected mode
+  if NodeHandler.disconnectionMode?
+    return
+  end
   whenAll("*", "status[@value='UP']", &block)
 end
 
 #
 # Execute 'block' when all nodes report all applications installed.
+# When the Node Handler (aka Experiment Controller) is invoked for an experiement that 
+# supports some temporary disconnection, it ignores any 'whenAllInstalled' command. Instead
+# the 'whenAllInstalled' commands will be interpreted by the 'slave' Node Handler, which will
+# be executed directly on the potentially disconnected node/resource.
 #
 # - &block = the code-block to execute/evaluate against the 'installed' nodes 
 #
 def whenAllInstalled(&block)
+  # Check if this NH instance is set to run in Disconnection Mode
+  # If yes, then returned now because whatever is asked from this whenAll should be
+  # executed by the whenAll of the slave NH on the disconnected mode
+  if NodeHandler.disconnectionMode?
+    return
+  end
   whenAll("*", "apps/app/status[@value='INSTALLED.OK']", &block)
 end
 

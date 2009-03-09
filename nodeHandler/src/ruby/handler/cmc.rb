@@ -170,7 +170,9 @@ module CMC
   # [Return] true/false
   #  
   def CMC.nodeActive?(x, y)
-    if NodeHandler.JUST_PRINT
+    # Check if NH is running in 'Just Print' or 'Slave mode'
+    if ( NodeHandler.JUST_PRINT || NodeHandler.SLAVE_MODE )
+      # Yes - Then always say that a node is active!
       return true
     end
     if (@@activeNodes == nil)

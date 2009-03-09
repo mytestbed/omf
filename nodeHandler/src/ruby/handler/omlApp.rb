@@ -117,6 +117,26 @@ class OmlApp < MObject
   #
   def OmlApp.startCollectionServer()
 
+    # Check if NH is running in 'slave' mode. If so, then this means this NH is 
+    # being invoked directly on a specific node/resource which can be temporary 
+    # disconnected from the Control Network. Thus, this NH has been invoked by
+    # a 'master' Node Agent, which is then in charge of launching a Proxy OML
+    # Collection Server. This NH then only retrieves the info for that Proxy 
+    # Server from the 'master' NA.
+    if NodeHandler.SLAVE_MODE
+      # YES - then the OML server has already been launched by the Master NA
+      # We just fetch its config setting from the 'slave' NH
+      @@collectionServerStarted = true
+      @@oml2ServerPort = NodeHandler.instance.omlProxyPort
+      @@oml2ServerAddr = NodeHandler.instance.omlProxyAddr
+      if ((@@oml2ServerPort == nil) || (@@oml2ServerAddr == nil))
+        error("OmlApp", "Slave Mode - OML Proxy addr:port not set !")
+      else
+        info("OmlApp", "Slave Mode - OML Proxy at: #{@@oml2ServerAddr}:#{@@oml2ServerPort}")
+      end
+      return
+    end
+
     # Check if an OMLv2 server for this experiment is not already running
     if @@collectionServerStarted
       # already running
@@ -204,6 +224,13 @@ class OmlApp < MObject
   # Stop the OML collection server
   #
   def OmlApp.stopCollectionServer
+
+    # Check if NH is running in 'slave' mode. 
+    # If so then do nothing then the OML Proxy server is managed by the Master NA, do nothing
+    if NodeHandler.SLAVE_MODE
+      return
+    end
+
     # Check if the server is really running
     if ! @@collectionServerStarted
       # not running

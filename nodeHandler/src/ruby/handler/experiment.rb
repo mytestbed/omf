@@ -62,6 +62,13 @@ class Experiment
   end
 
   #
+  # Set the ID for this Experiment
+  #
+  def Experiment.ID=(id)
+    @@expID = "#{id}"
+  end
+
+  #
   # Load an Experiment definition
   #
   # - uri =  URI of the experiment to load
@@ -69,7 +76,6 @@ class Experiment
   def Experiment.load(uri)
     MObject.info("Experiment", "load ", uri)
     TraceState.experiment(:load, uri)
-
     obj, type = OConfig.load(uri, true)
     if type == "text/xml"
       raise "Loading XML file '#{uri}' not implemented."

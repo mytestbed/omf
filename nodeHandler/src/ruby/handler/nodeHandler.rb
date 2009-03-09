@@ -28,6 +28,12 @@
 #
 # This is the main source file for the Node Handler. It defines the NodeHandler class.
 #
+# NOTE: Originally 'Node Handler' (NH) was the name of this OMF entity. As of end of 2008
+# we are adopting a new naming scheme closer to the GENI specifications. In this new scheme,
+# the term 'Experiment Controller' (EC) replaces 'Node Handler'. This code will gradually
+# be changed to reflect this. However, this is change is a low priority task, therefore the
+# reader will see both terms 'EC' and 'NH' used in the code.
+#
 
 NH_REVISION = "$Revision: 1921 $".split(":")[1].chomp("$").strip
 NH_VERSION_STRING = "NodeHandler Version #{$NH_VERSION} (#{NH_REVISION})"
@@ -97,6 +103,30 @@ class NodeHandler < MObject
   # If true, don't send commands to node, just log actions   
   #
   @@justPrint = false
+
+  # 
+  # Flag indicating if this Experiment Controller (NH) is invoked for an Experiment
+  # that support temporary disconnections
+  #
+  @@disconnectionMode = false
+
+  #
+  # Constant - Mount point where the Experiment Description should be served by the
+  # EC's webserver
+  #
+  EXPFILE_MOUNT = "/ExperimentDescription"
+
+  # 
+  # Return the value of the 'runningSlaveMode' flag
+  # The EC runs in 'slave mode' when it is invoked on a node/resource, which
+  # can be potentially disconnected from the Control Network. The EC's operations in 
+  # this mode are substantially different from its normal execution.
+  #
+  # [Return] true/false
+  #
+  def NodeHandler.SLAVE_MODE()
+    return @@runningSlaveMode
+  end 
   
   #
   # Return the value of the 'justPrint' attribut
@@ -168,7 +198,7 @@ class NodeHandler < MObject
   end
 
   # Attribut readers
-  attr_reader :communicator
+  attr_reader :communicator, :expFile, :expFileURL, :omlProxyPort, :omlProxyAddr, :slaveNodeX, :slaveNodeY
 
   #
   # NodeHandler's methods...
@@ -232,6 +262,25 @@ class NodeHandler < MObject
     @interactive
   end
 
+  # 
+  # Set the Flag indicating that this Experiment Controller (NH) is invoked for an 
+  # Experiment that support temporary disconnections
+  #
+  def NodeHandler.setDisconnectionMode()
+    info "Disconnection support enabled for this Experiment"
+    @@disconnectionMode = true
+  end
+
+  # 
+  # Return the value of the Flag indicating that this Experiment Controller (NH) is 
+  # invoked for an Experiment that support temporary disconnections
+  #
+  # [Return] true/false
+  #
+  def NodeHandler.disconnectionMode?()
+    return @@disconnectionMode
+  end
+
   #
   # Return the running state of the Node Handler
   # [Return] true/false
@@ -275,10 +324,29 @@ class NodeHandler < MObject
       }
     end
     if @expFile
+      # Expose the Experiment File through the Web Server of NH
+      @expFileURL = "#{NodeHandlerServer.url()}#{EXPFILE_MOUNT}"
+      NodeHandlerServer.mapFile(EXPFILE_MOUNT, @expFile)
+
+      # Then Load the Experiment File 
       Experiment.load(@expFile)
     end
 
     Experiment.start()
+
+    # If EC is in 'Disconnection Mode' print a message for user on console
+    if NodeHandler.disconnectionMode?
+      whenAll("*", "status[@value='UP']") {
+        info("", "Disconnection Mode - Waiting for all nodes to declare End of Experiment...")
+        everyNS('*', 15) { |n|
+          if !Node.allReconnected?
+            info("still waiting...")
+          else
+            true
+          end
+        }
+      }
+    end
 
     if (! interactive?)
       @@mutex.synchronize {
@@ -376,6 +444,27 @@ class NodeHandler < MObject
       exit
     }
 
+    opts.on("--slave-mode EXPID", "Run NH in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
+      @@runningSlaveMode = true
+      Experiment.ID = "#{id}"
+    }
+
+    opts.on("--slave-mode-omlport PORT", "When NH in 'Slave' mode, this is the PORT to the local proxy OML collection server") { |port|
+      @omlProxyPort = port.to_i
+    }
+
+    opts.on("--slave-mode-omladdr ADDR", "When NH in 'Slave' mode, this is the Address to the local proxy OML collection server") { |addr|
+      @omlProxyAddr = addr
+    }
+
+    opts.on("--slave-mode-xcoord X", "When NH in 'Slave' mode, this is the X coordinate of the node where this slave NH is running") { |x|
+      @slaveNodeX = eval(x)
+    }
+
+    opts.on("--slave-mode-ycoord Y", "When NH in 'Slave' mode, this is the Y coordinate of the node where this slave NH is running") { |y|
+      @slaveNodeY = eval(y)
+    }
+
     #opts.on_tail("-p", "--profile", "Profile node handler") {
     #  require 'profiler'
     #  Thread.new() {
@@ -400,6 +489,10 @@ class NodeHandler < MObject
 
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
     MObject.info('init', NH_VERSION_STRING)
+    
+    if @@runningSlaveMode
+      info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
+    end
 
     @expFile = nil
     if runTutorial
@@ -460,6 +553,9 @@ class NodeHandler < MObject
   #
   def initialize
     initialize_oml
+    @@runningSlaveMode = false
+    @omlProxyPort = nil
+    @omlProxyAddr = nil
   end
 
   #
@@ -525,7 +621,7 @@ class NodeHandler < MObject
     end
 
     @processCommands = false
-    #Communicator.instance.sendReset
+    Communicator.instance.sendReset
     if Communicator.instantiated?
       Communicator.instance.quit
     end

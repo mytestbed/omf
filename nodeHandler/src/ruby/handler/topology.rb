@@ -486,6 +486,13 @@ class Topology < MObject
   #
   def addNodeByCoordinate(x, y)
     begin
+      # Check if NH is in 'Slave Mode' - If so, only add the node on which this NH is running as slave
+      if NodeHandler.SLAVE_MODE() 
+        if (x != NodeHandler.instance.slaveNodeX) || (y != NodeHandler.instance.slaveNodeY) 
+          info "Slave Mode on [#{NodeHandler.instance.slaveNodeX},#{NodeHandler.instance.slaveNodeY}], thus ignoring node [#{x},#{y}]"
+          return 
+        end
+      end
       # When Topology is not used with a NodeHandler, do not use the Node class
       n = (@@useNodeClass) ? Node.at!(x, y) :[x,y] 
       @nodes.add(n)

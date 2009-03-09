@@ -47,6 +47,9 @@ class NodeHandler
   def NodeHandler.JUST_PRINT()
     return false
   end
+  def NodeHandler.SLAVE_MODE()
+    return false
+  end
   def NodeHandler.getTS()
     return DateTime.now.strftime("%T")
   end
@@ -136,6 +139,7 @@ begin
   loadGridConfigFile()
   Topology.useNodeClass = false
   TraceState.init()
+  puts "tellnode - TDEBUG - topo: '#{topo}'"
   theTopo = getTopo(topo)
   tellNode(cmd, theTopo, domain)
 end

@@ -123,7 +123,7 @@ module AgentCommands
         path = getArg(argArray, "Name of resource")
         reason = "Couldn't configure '#{path}'"
         message = argArray.join(' ')
-        id = NodeHandler.instance.logError(sender, reason, {:details => message})
+        id = handler.logError(sender, reason, {:details => message})
         sender.configureStatus(path, "error", {"logRef" => id})
         MObject.error("agentCmd::CONFIGURE_ERROR", "#{reason} on '#{sender}': #{message}")
       when 'LOST_HANDLER'
@@ -132,9 +132,40 @@ module AgentCommands
       else
         reason = "Unknown error caused by '#{command}'"
         message = argArray.join(' ')
-        NodeHandler.instance.logError(sender, reason, {:details => message})
+        handler.logError(sender, reason, {:details => message})
         MObject.error("agentCmd::UNKNOWN_ERROR", "#{reason} on '#{sender}': #{message}")
     end
+  end
+
+  #
+  # Process 'END_EXPERIMENT' message from a Node Agent. 
+  # The NH receives such a message only when it is invoked with an experiment that
+  # support temporary disconnection of node/resource from the Control Network.
+  # In such case, after distributing the experiment description directly to the NA(s),
+  # the NH enters a waiting state, where it waits for the NA(s) to report the end of 
+  # the experiment.
+  # Thus a given NA sends this message to the NH when it has finished executing the 
+  # tasks describes in the experiment script for its particular nodes, AND when this
+  # node is reconnected to the Control Network after a temporary disconnection. 
+  # The NH will wait for an 'END_EXPERIMENT' from all the nodes involved in an experiment
+  # before declaring that the experiment is indeed completed.
+  #
+  # - handler = the 'Communicator' instance that called this method
+  # - sender = the object that issued this command (i.e. usually a 'Node' object)
+  # - senderId = the sender ID 
+  # - argArray = an array holding the arguments for this command
+  #
+  def AgentCommands.END_EXPERIMENT(handler, sender, senderId, argArray)
+    if NodeHandler.disconnectionMode?
+      sender.setReconnected()
+      info "Received End of Experiment from node '#{sender}' (reconnected)." 
+      if Node.allReconnected?
+        info "All nodes are now reconnected."
+        Experiment.done
+      else
+        info "Still some nodes not reconnected"
+      end
+    end 
   end
 
   #

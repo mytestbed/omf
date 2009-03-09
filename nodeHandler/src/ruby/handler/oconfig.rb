@@ -69,6 +69,14 @@ module OConfig
   # [Return] the value of that parameter, raise an error if unknown parameter
   #
   def self.getConfigFromInventoryByKey(configKey)
+
+    # Check if NH is running in 'Slave' mode. If so, then this NH is actually running
+    # directly on a node/resource and will only be responsible for orchestrating the part
+    # of the experiment which is specific to this node/resource. Thus config parameters
+    # are also specific (most would be turned to 'localhost' and local node ID)
+    if NodeHandler.SLAVE_MODE
+      return nil 
+    end
     # Test if the XML configuration blurb is empty
     if (@@configFromInventory == nil)
       # Yes, then retrieve all the testbed-specific configuration parameters from the Inventory

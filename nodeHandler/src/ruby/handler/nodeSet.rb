@@ -391,6 +391,17 @@ class NodeSet < MObject
     Topology[theTopo].buildMACBlackList(theInterface, theTool)
   end
 
+  # 
+  # Send a 'SET_DISCONNECT' message to the Node Agent(s) running on the 
+  # nodes/resources involved in this experiment.
+  # This message will also inform the NA of: the experiment ID, the URL
+  # where they can retrieve the experiment description (served by the NH
+  # webserver), iand the contact info for the OML collection server.
+  #
+  def switchDisconnectionON
+    send(:SET_DISCONNECT, "#{Experiment.ID}", "#{NodeHandler.instance.expFileURL}", "#{OmlApp.getServerAddr}", "#{OmlApp.getServerPort}")
+  end
+
   #
   # This method sets the boot image of the nodes in this nodeSet
   # If the 'setPXE' flag is 'true' (default), then the nodes in this set
@@ -652,7 +663,10 @@ class BasicNodeSet < NodeSet
   #
   def powerOn()
     ns = @topo.nodeSetDecl
-    CMC.nodeSetOn(ns)
+    # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
+    if !NodeHandler.SLAVE_MODE()
+      CMC.nodeSetOn(ns)
+    end
     eachNode { |n|
       n.powerOn()
       if NodeHandler.JUST_PRINT
@@ -1010,7 +1024,10 @@ class NodeSetPath < MObject
     if @value != nil
       if (@path.last.to_s == "enforce_link")
         @nodeSet.setMACFilteringTable(@path, @value)
-      else
+      # If this NH is invoked with support for temporary disconnected node/resource, then 
+      # do not execute any node/resource configuration commands (this will be done by the
+      # slave NH running on the node/resource).
+      elsif (NodeHandler.disconnectionMode? == false)
         @nodeSet.configure(@path, @value)
       end
     end
@@ -1082,6 +1099,20 @@ class NodeSetPath < MObject
     end
     #debug("Creating new nodeSetPath '#{name}'")
     return NodeSetPath.new(self, name_s, args[0], block)
+  end
+
+  # 
+  #  Set the Flag indicating that this Experiment Controller (NH) is invoked for an 
+  #  Experiment that support temporary disconnections
+  #       
+  def allowDisconnection
+    # Check if NH is NOT in 'Slave Mode'
+    # When is 'Slave Mode' this mean there is already a Master NH which has its 'disconnection mode' set
+    # so we do nothing here
+    if !NodeHandler.SLAVE_MODE()
+      NodeHandler.setDisconnectionMode()
+      @nodeSet.switchDisconnectionON
+    end 
   end
 
 end

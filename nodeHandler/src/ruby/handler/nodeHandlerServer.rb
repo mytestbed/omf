@@ -83,7 +83,13 @@ module NodeHandlerServer
   #
   def NodeHandlerServer.url()
     addr = @@server.listeners[0].addr
-    return "http://#{OConfig.NODE_HANDLER_HOST}:#{addr[1]}"
+    # Check if NH is running in 'Slave' Mode
+    if NodeHandler.SLAVE_MODE()
+       # Yes - then other entities should access NH's web server on localhost
+      return "http://127.0.0.1:#{addr[1]}"
+    else
+      return "http://#{OConfig.NODE_HANDLER_HOST}:#{addr[1]}"
+    end
   end
 
   #
