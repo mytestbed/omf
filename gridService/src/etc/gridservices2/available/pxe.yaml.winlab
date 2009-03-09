@@ -3,8 +3,6 @@
 #
 # This is the Config file for the PXE GridService on the WINLAB platform
 #
-# NOTE: this file is currently not adapted to NICTA's platform  because NICTA's platform does 
-#       not currently have any working PXE functionalities.
 --- 
 pxe:
   # Name of PXE config file
