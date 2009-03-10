@@ -65,6 +65,7 @@ require 'ogs_pxe/pxe'
 require 'ogs_omlServer/omlServer'
 require 'ogs_oml2Server/oml2Server'
 require 'ogs_inventory/inventory'
+require 'ogs_result/result'
 # Two CMC alternatives:
 # - 'cmc', which is the full CMC implementation (currently under dev/debug)
 # - 'cmcStub', which is just a stub to temporary make the NH happy on the NICTA 
