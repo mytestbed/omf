@@ -34,23 +34,3 @@ frisbee:
       # Local interface to bind to for frisbee traffic
       #multicastIF: 192.168.204.1
       multicastIF: 10.0.0.200
-
-    indoor:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.2
-      startPort: 7000
-      timeout: 3600
-      frisbeeBin: /opt/frisbee/bin/frisbeed
-      multicastIF: 192.168.204.1
-
-    outdoor:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.2
-      startPort: 7000
-      timeout: 3600
-      frisbeeBin: /opt/frisbee/bin/frisbeed
-      multicastIF: 192.168.203.1
