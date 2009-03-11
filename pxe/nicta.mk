@@ -21,5 +21,5 @@ REPOSITORY_ROOT = /var/www/dists
 # with the PXE image size, need to support SATA disks, PATA disks,
 # & USB flash drives):
 BBOX_VERSION = 1.5.0
-KERNEL_CONFIG_FILE = linux-nicta.config
+KERNEL_CONFIG_FILE = linux-orbit-pxe-2.6.25.1.config
 BBOX_CONFIG_FILE = busybox-nicta.config

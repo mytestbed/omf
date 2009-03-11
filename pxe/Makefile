@@ -247,7 +247,7 @@ initramfs: dirs bbox filesystem frisbee nodeagent enroll syslinux kexec \
 	getmac get_init_cpio
 	rm -f $(BUILD)/$(INITRAMFS) $(BUILD)/$(INITRAMFSGZ)
 	rm -rf $(ROOTFS)/usr/share/doc/ $(ROOTFS)/usr/share/man/
-	/bin/sh $(SOURCE)/$(KERNEL_DIR)/scripts/gen_initramfs_list.sh \
+	/bin/bash $(SOURCE)/$(KERNEL_DIR)/scripts/gen_initramfs_list.sh \
 		-u `id -u` -g `id -g` $(ROOTFS) > $(TEMP)/$(INITRAMFS_LIST)
 	$(SOURCE)/$(KERNEL_DIR)/usr/gen_init_cpio \
 		$(TEMP)/$(INITRAMFS_LIST) > $(BUILD)/$(INITRAMFS)
