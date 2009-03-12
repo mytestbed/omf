@@ -49,6 +49,9 @@ class NodeHandler
   def NodeHandler.JUST_PRINT()
     return false
   end
+  def NodeHandler.SLAVE_MODE()
+    return false
+  end
   def NodeHandler.getTS()
     return DateTime.now.strftime("%T")
   end
