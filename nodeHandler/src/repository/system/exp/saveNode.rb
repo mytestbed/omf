@@ -43,9 +43,9 @@ defProperty('started', 'false', "internal flag")
 #
 defGroup('save', Experiment.property('node')) {|n|
   n.pxeImage("#{prop.domain.value}", setPXE=true)
-  n.onNodeUp {|n|
-    n.saveImage
-  }
+  #n.onNodeUp {|n|
+  #  n.saveImage
+  #}
 }
 
 everyNS('save', 10) { |ns|
@@ -81,3 +81,10 @@ everyNS('save', 10) { |ns|
     end
   }
 }
+
+whenAllUp() {|ns|
+  ns.eachNode { |n|
+   n.saveImage
+  }
+}
+
