@@ -1,3 +1,9 @@
+nodehandler4 (4.4.0ubuntu1) hardy; urgency=low
+
+  * package converted to Ubuntu hardy    
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 18 Mar 2009 18:05:56 +1100
+
 nodehandler4 (4.4.0) testing; urgency=low
 
   * Lots of changes. Long overdue version upgrade.

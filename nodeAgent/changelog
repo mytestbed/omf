@@ -1,3 +1,9 @@
+nodeagent4 (4.4.0ubuntu1) hardy; urgency=low
+
+  * package converted to Ubuntu hardy 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 18 Mar 2009 17:00:57 +1100
+
 nodeagent4 (4.4.0) testing; urgency=low
 
   * Lots of changes. Long overdue version upgrade.

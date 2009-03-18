@@ -1,7 +1,7 @@
 Source: nodehandler4
 Section: Orbit 
 Priority: optional
-Maintainer: Max Ott [max@winlab.rutgers.edu] 
+Maintainer: Max Ott <max@winlab.rutgers.edu>
 Build-Depends:
 Standards-Version: 3.6.1
 

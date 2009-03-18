@@ -52,8 +52,8 @@ apt: app
 	@echo Building $(APP_NAME) V$(APP_VERSION)
 	install -d $(APP_DEB_BUILD_DIR)
 	cp src/debian/Makefile.deb $(APP_DEB_BUILD_DIR)/Makefile
-	tar -C src/debian --exclude=.svn --exclude='*~' -cf - debian | (cd $(APP_DEB_BUILD_DIR); tar -xf -)
-	cp changelog $(APP_DEB_BUILD_DIR)/debian
+	tar -h -C src/debian --exclude=.svn --exclude='*~' -cf - debian | (cd $(APP_DEB_BUILD_DIR); tar -xf -)
+	#cp changelog $(APP_DEB_BUILD_DIR)/debian
 	cp $(TOP)/copyright $(APP_DEB_BUILD_DIR)/debian
 	$(MAKE) -C $(APP_DEB_BUILD_DIR) deb
 

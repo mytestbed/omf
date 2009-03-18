@@ -1,3 +1,9 @@
+gridservices2 (2.2.0ubuntu1) hardy; urgency=low
+
+  * package converted to Ubuntu hardy 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 18 Mar 2009 17:23:36 +1100
+
 gridservices2 (2.2.0) unstable; urgency=low
 
   * New framework. In hindsight it may have been V3.

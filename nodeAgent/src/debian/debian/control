@@ -1,7 +1,7 @@
 Source: nodeagent4 
 Section: Orbit 
 Priority: optional
-Maintainer: Thierry [thierry.rakotoarivelo@nicta.com.au] 
+Maintainer: Thierry <thierry.rakotoarivelo@nicta.com.au> 
 Build-Depends:
 Standards-Version: 3.6.1
 

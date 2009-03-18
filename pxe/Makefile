@@ -2,7 +2,7 @@
 # Build the Orbit PXE kernel image and initramfs
 #
 NAME = orbit-pxe
-VER = 2.0.3
+VER = 2.0.4
 
 DEB_REP=debian
 KORG_URL = http://www.kernel.org/pub/linux/kernel/v
@@ -22,6 +22,11 @@ BBOX_DIR = busybox-$(BBOX_VERSION)
 BBOX_TAR = busybox-$(BBOX_VERSION).tar.gz
 BBOX_URL = http://busybox.net/downloads
 BBOX_TAR_URL = $(BBOX_URL)/$(BBOX_TAR)
+CURL_VERSION = 7.19.4
+CURL_DIR = curl-$(CURL_VERSION)
+CURL_TAR = curl-$(CURL_VERSION).tar.gz
+CURL_URL = http://curl.haxx.se/download/
+CURL_TAR_URL = $(CURL_URL)/$(CURL_TAR)
 
 # --------  START OF SITE DEPENDENT VARIABLES ---------
 #  In order to make this work for users outside of Winlab, the site
@@ -126,6 +131,8 @@ LIB +=	/lib/libnss_dns.so.2 /lib/libresolv.so.2
 LIB += /usr/lib/libz.so.1
 # as well as lsusb
 LIB +=  /lib/libusb-0.1.so.4
+# for curl
+LIB +=  /lib/librt.so.1
 UCLIBC = /lib/ld-uClibc.so.0 /lib/libc.so.0 /lib/libm.so.0
 
 #all: apt-get-update kernel initramfs
@@ -145,6 +152,18 @@ bbox: 	get_bbox
 	sed 's|CONFIG_PREFIX=.*|CONFIG_PREFIX=\"../../$(ROOTFS)/\"|'  \
 	  $(CONFIG)/$(BBOX_CONFIG_FILE) > $(SOURCE)/$(BBOX_DIR)/.config
 	$(MAKE) -C $(SOURCE)/$(BBOX_DIR) install
+
+curl: 	get_curl
+	if [ ! -r $(SOURCE)/$(CURL_DIR) ] ; then \
+	  tar -xzf $(SOURCE)/$(CURL_TAR) -C $(SOURCE); \
+	fi
+	(cd $(SOURCE)/$(CURL_DIR); ./configure --without-ssl)
+	mkdir -p $(SOURCE)/$(CURL_DIR)/install
+	$(MAKE) -C $(SOURCE)/$(CURL_DIR) install DESTDIR=`pwd`/$(SOURCE)/$(CURL_DIR)/install
+	install -d $(ROOTFS)/usr/bin
+	install -d $(ROOTFS)/usr/lib
+	install -m 755 `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/bin/curl $(ROOTFS)/usr/bin/
+	cp -d `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/lib/lib* $(ROOTFS)/usr/lib
 
 frisbee: get_frisbee
 	dpkg -x $(SOURCE)/$(FRISBEE_DEB) $(TEMP)
@@ -243,7 +262,7 @@ kernel: dirs get_kernel
 	fi
 
 # Note: current kernel expects init on initramfs on /init, not /sbin/init
-initramfs: dirs bbox filesystem frisbee nodeagent enroll syslinux kexec \
+initramfs: dirs bbox curl filesystem frisbee nodeagent enroll syslinux kexec \
 	getmac get_init_cpio
 	rm -f $(BUILD)/$(INITRAMFS) $(BUILD)/$(INITRAMFSGZ)
 	rm -rf $(ROOTFS)/usr/share/doc/ $(ROOTFS)/usr/share/man/
@@ -271,6 +290,11 @@ get_kernel:
 get_bbox: 
 	if [ ! -r $(SOURCE)/$(BBOX_TAR) ] ; then \
 	wget -P $(SOURCE) $(BBOX_TAR_URL); \
+	fi
+
+get_curl:
+	if [ ! -r $(SOURCE)/$(CURL_TAR) ] ; then \
+	wget -P $(SOURCE) $(CURL_TAR_URL); \
 	fi
 
 get_frisbee:
@@ -327,12 +351,15 @@ clean:
 	if [ -d $(SOURCE)/$(BBOX_DIR) ] ; then \
 	  $(MAKE) -C $(SOURCE)/$(BBOX_DIR) clean ; \
 	fi
+	if [ -d $(SOURCE)/$(CURL_DIR) ] ; then \
+	  $(MAKE) -C $(SOURCE)/$(CURL_DIR) clean ; \
+	fi
 	$(MAKE) -C $(GETMAC_DIR)/ clean
 
 mrproper:
 	rm -rf $(BUILD) $(ROOTFS) $(SOURCE) $(TEMP)
 
-.PHONY: all apt-get-update dirsbbox frisbee nodeagent syslinux getmac enroll \
+.PHONY: all apt-get-update dirs bbox curl frisbee nodeagent syslinux getmac enroll \
 	kexec filesystem kernel initramfs get_init_cpio get_kernelget_bbox \
 	get_frisbee get_nodeagent get_tzdata get_syslinux get_kexec install \
 	deb apt-install clean mrproper
