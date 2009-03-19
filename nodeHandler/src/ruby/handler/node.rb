@@ -386,11 +386,11 @@ class Node < MObject
   # 'ts' is a time stamp of the form 'YYYY-MM-DD-hh:mm:ss'.
   #
   # imgName = Name of file which will contain the saved image
-  # nsfDir = NSF mountable directory to store image ( e.g. 'frisbee:/orbit/image/tmp')
+  # imgHost = Name or IP address of host which will contain the saved image
   # disk = Disk containing the image to save (e.g. '/dev/hda')
   #
   def saveImage(imgName = nil,
-                nsfDir = 'frisbee:/export/orbit/image/tmp',
+                imgHost = OConfig.IMG_HOST,
                 disk = OConfig.DEFAULT_DISK)
 
     if imgName == nil
@@ -398,14 +398,15 @@ class Node < MObject
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
       imgName = "node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
-    TraceState.nodeSaveImage(self, imgName, nsfDir, disk)
+    TraceState.nodeSaveImage(self, imgName, imgHost, disk)
     #procEl = getConfigNode(['apps'])
     #info("Saving #{disk} from #{@nodeId} as \"tmp/#{imgName}\"")
     #params = {:imgName => imgName, :nsfDir => nsfDir, :disk => disk}
     #@apps['builtin:save_image'] = NodeBuiltin.new('save_image', params, self, procEl, 'ISSUED')
     info("- Saving disk image from node #{@nodeId} in the file '#{imgName}'")
-    info("  (disk images are located at: '#{nsfDir}')")
-    send('SAVE_IMAGE', nsfDir, imgName)
+    info("  (disk images are located at: '#{imgHost}')")
+    info("  (disk '#{disk}') will be imaged")    
+    send('SAVE_IMAGE', imgName, imgHost, disk)
   end
 
   #

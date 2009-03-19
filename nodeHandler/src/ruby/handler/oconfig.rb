@@ -202,6 +202,14 @@ module OConfig
     return self.getConfigFromInventoryByKey('frisbee_default_disk')
   end
 
+  # Return the default host that should be used to load/save images
+  #
+  # [Return] a hostname or IP address (e.g. '10.0.1.200')
+  #
+  def self.IMG_HOST()
+    return self.getConfigFromInventoryByKey('image_host')
+  end
+
   #
   # Return the name of the testbed on which this experiment will run
   #

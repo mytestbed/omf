@@ -476,35 +476,14 @@ module AgentCommands
   # it to the image server.
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the path to the file server, the image name, and the name of the disk device to save
+  # - argArray = an array with the host of the file server, the image name, and the name of the disk device to save
   #
   def AgentCommands.SAVE_IMAGE(agent, argArray)
-    nsfDir = getArg(argArray, "NSF path for saved image")
-    imgName = getArg(argArray, "Name of saved image")
+    imgName = getArg(argArray, "Name of saved image") 
+    imgHost = getArg(argArray, "Image Host")
     disk = getArgDefault(argArray, "/dev/hda")
-
-    MObject.info "AgentCommands", "Image zip #{disk} to #{nsfDir}/#{imgName}"
-    if ! system("mkdir /mnt")
-      MObject.info("WARNING - While creating directory /mnt - '#{$?}'")
-    end
-    # Dir.mkdir("/mnt")
-    #check the disk.  Assuming that the system disk is hda1
-    # cmd = "fsck -py #{disk}1"
-    # if ! system(cmd)
-    # raise "While fscking #{$?}"
-    # end
-    if ! system("mkdir /mount")
-      MObject.info("WARNING - While creating directory /mount - '#{$?}'")
-    end
-    system("mount #{disk}1 /mount")
-    File.open("/mount/#{IMAGE_NAME_FILE}", 'w') {|f| f.puts(imgName)}
-    system("umount /mount")
-    cmd = "mount -o nolock #{nsfDir} /mnt"
-    if ! system(cmd)
-      raise "While mounting #{nsfDir}: #{$?}"
-    end
-
-    cmd = "imagezip #{disk} /mnt/#{imgName}"
+    
+    cmd = "imagezip #{disk} - | curl -nsT - ftp://#{imgHost}/upload/#{imgName}"
     MObject.debug "AgentCommands", "Image save command: #{cmd}"
     ExecApp.new('builtin:save_image', agent, cmd, true)
   end
