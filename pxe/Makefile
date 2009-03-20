@@ -157,13 +157,15 @@ curl: 	get_curl
 	if [ ! -r $(SOURCE)/$(CURL_DIR) ] ; then \
 	  tar -xzf $(SOURCE)/$(CURL_TAR) -C $(SOURCE); \
 	fi
-	(cd $(SOURCE)/$(CURL_DIR); ./configure --without-ssl)
-	mkdir -p $(SOURCE)/$(CURL_DIR)/install
-	$(MAKE) -C $(SOURCE)/$(CURL_DIR) install DESTDIR=`pwd`/$(SOURCE)/$(CURL_DIR)/install
-	install -d $(ROOTFS)/usr/bin
-	install -d $(ROOTFS)/usr/lib
-	install -m 755 `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/bin/curl $(ROOTFS)/usr/bin/
-	cp -d `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/lib/lib* $(ROOTFS)/usr/lib
+	if [ ! -r $(ROOTFS)/usr/bin/curl ] ; then \
+       	  (cd $(SOURCE)/$(CURL_DIR); ./configure --without-ssl); \
+	  mkdir -p $(SOURCE)/$(CURL_DIR)/install; \
+	  $(MAKE) -C $(SOURCE)/$(CURL_DIR) install DESTDIR=`pwd`/$(SOURCE)/$(CURL_DIR)/install; \
+	  install -d $(ROOTFS)/usr/bin; \
+	  install -d $(ROOTFS)/usr/lib; \
+	  install -m 755 `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/bin/curl $(ROOTFS)/usr/bin/; \
+	  cp -d `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/lib/lib* $(ROOTFS)/usr/lib; \
+	fi
 
 frisbee: get_frisbee
 	dpkg -x $(SOURCE)/$(FRISBEE_DEB) $(TEMP)
