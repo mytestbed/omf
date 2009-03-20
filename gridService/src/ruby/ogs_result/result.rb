@@ -181,7 +181,7 @@ class ResultService < GridService
       cmd = "#{@@config['sqlite3_path']} #{path} .schema"
       result =  `#{cmd}`
     rescue Exception => ex
-      error "Result - Error retrieving Schema for the experiment measurement database --- ID: #{id}) --- '#{ex}'"
+      error "Result - Error retrieving Schema for the experiment measurement database --- ID: #{id} --- '#{ex}'"
     end
     # Build and Set the XML response
     msgEmpty = "No Schema info from this experiment measurement database --- ID: #{id} --- #{ex} "
@@ -207,6 +207,7 @@ class ResultService < GridService
     begin
       database = getDatabase(id)
       resultColumns, *resultRows = database.execute2(sqlQuery)
+      database.close()
     rescue Exception => ex
       error "Result - Error executing Query for the experiment measurement database --- ID: #{id} --- QUERY: '#{sqlQuery}' --- '#{ex}'"
     end
