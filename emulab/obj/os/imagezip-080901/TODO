@@ -1,0 +1,129 @@
+Things to do for image*:
+
+1. Checksum chunks or the entire image file?
+   Maybe just as a debug option to check for bugs in the zipper itself.
+   In general use, we will be using TCP as the transport for image files
+   or we will be using frisbee and the UDP checksum in conjunction with
+   frisbee itself tracking blocks should be sufficient.  Anyway, doing
+   an entire image checksum would be complicated by frisbee's out of order
+   receipt of chunks.
+
+2. Imagezip could be multithread so that we can be reading ahead on the
+   input device and overlapping IO with compression.  Maybe a third thread
+   for doing output.  Input is a little tricky since imagezip shortens up
+   its reads as it gets near the end of a chunk, so the buffer mechanism
+   will have to handle having blocks only partially consumed.
+
+3. In imagezip, split out the FS-specific code into subdirectories.
+   [DONE]
+
+4. Write an imageconvert so that we can convert old version images into
+   new ones and maybe change the compression level used in an image.
+
+5. Imageunzip could be triple-threaded like frisbee, i.e., split the
+   file reading and decompression that are currently one in imageunzip.
+
+6. Create a "signature" file for an image using a collision-resistant hash
+   like MD5 or SHA-1.  See TODO.hash for more. [DONE -- as a separate
+   program, imagehash.  It would be more efficient to have imagezip create
+   the signature as it does. ]
+
+7. Add an option to exclude (skip) disk blocks outside of any DOS partition.
+   By default, we want to include these blocks in the image since some
+   systems stash magic info this way (IBM laptops for instance).  But in
+   some cases we want to ignore it.  Since the MBR often falls in the
+   outside-of-any-partition category (e.g., DOS partition 1 starting at
+   sector 63, aka cylinder 1), we may need to further break this down into
+   "before first part", "between parts", "after last part".  Also need an
+   option to exclude space outside a filesystem but inside a DOS partition
+   (e.g., when creating a small filesystem in a large partition).  This is
+   highly dependent on the filesystem type, but presumably we can easily
+   detect space beyond the end of the FS.  "Before the start" probably
+   doesn't make sense for most filesystems.  Hmm...for FFS we can detect
+   space outside a BSD partition in addition to space beyond the end of
+   a filesystem but inside the BSD partition.  Yuk!  Maybe we keep it
+   simple and have a single option and just treat things like the MBR
+   special.
+
+8. Encrypted images or encrypted transfer of images.
+   Depends on what we want.  By encrypting the image itself, we protect
+   confidentiality while on disk and lessen the CPU usage of the frisbee
+   server.  A possible concern is that, once a user has received an image,
+   they know the key.  If we were to use symmetric crypto, they would be
+   able, at some future time, to spoof the contents of the image as it
+   is being sent to others.  But that is not the point of encrypting the
+   contents, the point is to prevent unauthorized people from seeing the
+   contents, and if you have already received the image, you are clearly
+   authorized.  Even so, we could prevent the problem by using asymmetric
+   crypto.
+
+   If we instead say that we are mostly concerned about secure transfer
+   of images (with confidentiality of images in the filesystem done with
+   filesystem mechanisms) then we could encrypt images as they are sent
+   on a per session basis.  This could be hideously expensive for the
+   frisbee server.
+
+   Either way, the frisbee protocol will need some block-by-block
+   authentication mechanism to ensure integrity.  It has to be per-block
+   and not per-chunk since it is the block header which contains the info
+   on what chunk a block belongs to and in what order the blocks should
+   be reassembled in to reform the chunk.
+
+   Imagezip would take as an argument a key (or a file from which to read
+   the key?).  We can perform the encryption either before or after
+   compression.  I'm not sure of the impact on image size, but I suspect
+   that encrypting first might make compression less effective.  Doing
+   it before would also result in an image in which each chunk's meta-data
+   (header info: disk ranges contained, any relocations) is not encrypted.
+   Is this a problem?  The block ranges and relocations could give some
+   hint as to what the image contains (e.g., if block 16 is not in the
+   list, it isn't a BSD filesystem since that is where the superblock is).
+   We can independently encrypt the header if necessary.  But it would
+   probably be better to just wait til a chunk has been fully assembled,
+   including the meta-data, and then encrypt it all before we write it
+   to the image file (ugh, but will this change the size of the chunk?)
+
+   Imageunzip (and frisbee) will likewise take a new argument for the key
+   to be used.  For frisbee this will be transferred "out-of-band" with
+   TMCD.  While decryption could take place in a separate thread, I'm
+   inclined not to worry about it right now given that we are mostly working
+   with uniprocessor machines where there would be no advantage.  Anyway,
+   imageunzip would receive blocks, verify them, and assemble them into
+   chunks, decompress and decrypt (or visa-versa) the chunks, and feed
+   them to the disk writer.
+
+9. Recognize unused filesystem metadata blocks.
+   Right now we pretty much leave FS metadata structures alone and thus
+   consider them allocated, we might be able to improve on that.  In
+   particular, free UNIX-like inode data structures consume a lot of space.
+   However, free inodes still need to have some initialized fields, at
+   the very least, the mode field needs to be zero.  But we could create
+   a relocation-type for inode blocks, telling imageunzip that a particular
+   block range consists of unused inodes and that it should zero those
+   blocks rather than just skip them.  The downside is that there are a lot
+   of different inode layouts, and that is a lot of specific knowledge for
+   imageunzip.  We could get away with a generic relocation that just says
+   zero this block range.  Some BSDs like to randomize the initial generation
+   number on an inode though, so this would not work for that.  But I could
+   imagine a relocation type that says "place X-bytes of random data every
+   Y bytes starting at offset Z in this range".  I can imagine it, but I
+   just cannot bring myself to do it!  At any rate, I'm not sure the saving
+   vs. complexity trade-off is in our favor here.
+
+   A quick check: our FreeBSD image consists of 3 filesystems.  Let's just
+   consider /usr (a 2GB filesystem) which has 23552 inodes per cylinder group
+   with 12 cylinder groups.  Each inode is 128 bytes so that is 36 (decimal)
+   megabytes of which about 80% are free.  Allowing for scattering of the
+   allocated inodes, we could still have upwards of 20MB of free blocks of
+   inodes.
+
+10. Treat zero blocks special.
+   This is prompted by the zero-this-range relocation postulated in #9.
+   There might be value is distinguishing block ranges that must be zero
+   (e.g., allocated data blocks that contain all zeros, or free inode blocks
+   that require certain fields to be zero) and just note them in the image
+   header range data.  Maybe save as a relocation type as above or just as
+   a distinguished allocated range type.  The question is whether we can
+   efficiently recognize such blocks and whether we ultimately save space
+   over just allowing zlib to compress the data (presumably blocks of zeros
+   compress really well!)

@@ -1,0 +1,414 @@
+diff -ru ntfsprogs-1.7.1/include/disk_io.h ntfsprogs-linux/include/disk_io.h
+--- ntfsprogs-1.7.1/include/disk_io.h	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/include/disk_io.h	2005-03-17 16:16:58.000000000 -0700
+@@ -24,8 +24,10 @@
+ 
+ #include "volume.h"
+ 
+-extern s64 ntfs_pread(const int fd, const s64 pos, s64 count, const void *b);
+-extern s64 ntfs_pwrite(const int fd, const s64 pos, s64 count, const void *b);
++extern void ntfs_setiobase(const int fd, const s64 base);
++
++extern s64 ntfs_pread(const int fd, s64 pos, s64 count, const void *b);
++extern s64 ntfs_pwrite(const int fd, s64 pos, s64 count, const void *b);
+ 
+ extern s64 ntfs_mst_pread(const int fd, const s64 pos, s64 count,
+ 		const u32 bksize, const void *b);
+diff -ru ntfsprogs-1.7.1/include/layout.h ntfsprogs-linux/include/layout.h
+--- ntfsprogs-1.7.1/include/layout.h	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/include/layout.h	2005-03-17 16:14:29.000000000 -0700
+@@ -292,7 +292,11 @@
+  */
+ typedef struct {
+ /*Ofs*/
+-/*  0*/	NTFS_RECORD;		/* Usually the magic is "FILE". */
++/*  0	NTFS_RECORD; -- Unfolded here as gcc doesn't like unnamed structs. */
++	NTFS_RECORD_TYPES magic;/* Usually the magic is "FILE". */
++	u16 usa_ofs;		/* See NTFS_RECORD definition above. */
++	u16 usa_count;		/* See NTFS_RECORD definition above. */
++
+ /*  8*/	u64 lsn;		/* $LogFile sequence number for this record.
+ 				   Changed every time the record is modified. */
+ /* 16*/	u16 sequence_number;	/* Number of times this mft record has been
+@@ -475,8 +479,8 @@
+ 					   FIXME: What does it mean? (AIA) */
+ /* 88*/ COLLATION_RULES collation_rule;	/* Default collation rule. */
+ /* 8c*/	ATTR_DEF_FLAGS flags;		/* Flags describing the attribute. */
+-/* 90*/	u64 min_size;			/* Optional minimum attribute size. */
+-/* 98*/	u64 max_size;			/* Maximum size of attribute. */
++/* 90*/	s64 min_size;			/* Optional minimum attribute size. */
++/* 98*/	s64 max_size;			/* Maximum size of attribute. */
+ /* sizeof() = 0xa0 or 160 bytes */
+ } __attribute__ ((__packed__)) ATTR_DEF;
+ 
+@@ -593,8 +597,8 @@
+ /* 12*/	ATTR_FLAGS flags;	/* Flags describing the attribute. */
+ /* 14*/	u16 instance;		/* The instance of this attribute record. This
+ 				   number is unique within this mft record (see
+-				   MFT_RECORD/next_attribute_instance notes in
+-				   in mft.h for more details). */
++				   MFT_RECORD/next_attribute_instance notes
++				   above for more details). */
+ /* 16*/	union {
+ 		/* Resident attributes. */
+ 		struct {
+@@ -1428,9 +1432,13 @@
+  * ACCESS_ALLOWED_ACE, ACCESS_DENIED_ACE, SYSTEM_AUDIT_ACE, SYSTEM_ALARM_ACE
+  */
+ typedef struct {
+-	ACE_HEADER;		/* The ACE header. */
+-	ACCESS_MASK mask;	/* Access mask associated with the ACE. */
+-	SID sid;		/* The SID associated with the ACE. */
++/*  0	ACE_HEADER; -- Unfolded here as gcc doesn't like unnamed structs. */
++	ACE_TYPES type;		/* Type of the ACE. */
++	ACE_FLAGS flags;	/* Flags describing the ACE. */
++	u16 size;		/* Size in bytes of the ACE. */
++
++/*  4*/	ACCESS_MASK mask;	/* Access mask associated with the ACE. */
++/*  8*/	SID sid;		/* The SID associated with the ACE. */
+ } __attribute__ ((__packed__)) ACCESS_ALLOWED_ACE, ACCESS_DENIED_ACE,
+ 			       SYSTEM_AUDIT_ACE, SYSTEM_ALARM_ACE;
+ 
+@@ -1443,12 +1451,16 @@
+ } OBJECT_ACE_FLAGS;
+ 
+ typedef struct {
+-	ACE_HEADER;		/* The ACE_HEADER. */
+-	ACCESS_MASK mask;	/* Access mask associated with the ACE. */
+-	OBJECT_ACE_FLAGS flags;	/* Flags describing the object ACE. */
+-	GUID object_type;
+-	GUID inherited_object_type;
+-	SID sid;		/* The SID associated with the ACE. */
++/*  0	ACE_HEADER; -- Unfolded here as gcc doesn't like unnamed structs. */
++	ACE_TYPES type;		/* Type of the ACE. */
++	ACE_FLAGS flags;	/* Flags describing the ACE. */
++	u16 size;		/* Size in bytes of the ACE. */
++
++/*  4*/	ACCESS_MASK mask;	/* Access mask associated with the ACE. */
++/*  8*/	OBJECT_ACE_FLAGS object_flags;	/* Flags describing the object ACE. */
++/* 12*/	GUID object_type;
++/* 28*/	GUID inherited_object_type;
++/* 44*/	SID sid;		/* The SID associated with the ACE. */
+ } __attribute__ ((__packed__)) ACCESS_ALLOWED_OBJECT_ACE,
+ 			       ACCESS_DENIED_OBJECT_ACE,
+ 			       SYSTEM_AUDIT_OBJECT_ACE,
+@@ -1692,8 +1704,13 @@
+  * $SDS data stream and the second copy will be at offset 0x451d0.
+  */
+ typedef struct {
+-	SECURITY_DESCRIPTOR_HEADER;	  /* The security descriptor header. */
+-	SECURITY_DESCRIPTOR_RELATIVE sid; /* The self-relative security
++/*  0	SECURITY_DESCRIPTOR_HEADER; -- Unfolded here as gcc doesn't like
++				       unnamed structs. */
++	u32 hash;	   /* Hash of the security descriptor. */
++	u32 security_id;   /* The security_id assigned to the descriptor. */
++	u64 offset;	   /* Byte offset of this entry in the $SDS stream. */
++	u32 length;	   /* Size in bytes of this entry in $SDS stream. */
++/* 20*/	SECURITY_DESCRIPTOR_RELATIVE sid; /* The self-relative security
+ 					     descriptor. */
+ } __attribute__ ((__packed__)) SDS_ENTRY;
+ 
+@@ -1867,7 +1884,11 @@
+  * index entries (INDEX_ENTRY structures), as described by the INDEX_HEADER.
+  */
+ typedef struct {
+-/*  0*/	NTFS_RECORD;		/* Magic is "INDX". */
++/*  0	NTFS_RECORD; -- Unfolded here as gcc doesn't like unnamed structs. */
++	NTFS_RECORD_TYPES magic;/* Magic is "INDX". */
++	u16 usa_ofs;		/* See NTFS_RECORD definition. */
++	u16 usa_count;		/* See NTFS_RECORD definition. */
++
+ /*  8*/	s64 lsn;		/* $LogFile sequence number of the last
+ 				   modification of this index block. */
+ /* 16*/	VCN index_block_vcn;	/* Virtual cluster number of the index block. */
+@@ -2018,7 +2039,30 @@
+  * NOTE: Before NTFS 3.0 only filename attributes were indexed.
+  */
+ typedef struct {
+-/*  0*/ INDEX_ENTRY_HEADER;	/* The index entry header (see above). */
++/*  0	INDEX_ENTRY_HEADER; -- Unfolded here as gcc dislikes unnamed structs. */
++	union {
++		struct { /* Only valid when INDEX_ENTRY_END is not set. */
++			MFT_REF indexed_file;	/* The mft reference of the file
++						   described by this index
++						   entry. Used for directory
++						   indexes. */
++		} __attribute__ ((__packed__));
++		struct { /* Used for views/indexes to find the entry's data. */
++			u16 data_offset;	/* Data byte offset from this
++						   INDEX_ENTRY. Follows the
++						   index key. */
++			u16 data_length;	/* Data length in bytes. */
++			u32 reservedV;		/* Reserved (zero). */
++		} __attribute__ ((__packed__));
++	} __attribute__ ((__packed__));
++	u16 length;		 /* Byte size of this index entry, multiple of
++				    8-bytes. */
++	u16 key_length;		 /* Byte size of the key value, which is in the
++				    index entry. It follows field reserved. Not
++				    multiple of 8-bytes. */
++	INDEX_ENTRY_FLAGS flags; /* Bit field of INDEX_ENTRY_* flags. */
++	u16 reserved;		 /* Reserved/align to 8-byte boundary. */
++
+ /* 16*/	union {		/* The key of the indexed attribute. NOTE: Only present
+ 			   if INDEX_ENTRY_END bit in flags is not set. NOTE: On
+ 			   NTFS versions before 3.0 the only valid key is the
+@@ -2030,7 +2074,8 @@
+ 		GUID object_id;		/* $O index in FILE_Extend/$ObjId: The
+ 					   object_id of the mft record found in
+ 					   the data part of the index. */
+-		REPARSE_INDEX_KEY;	/* $R index in FILE_Extend/$Reparse. */
++		REPARSE_INDEX_KEY reparse;	/* $R index in
++						   FILE_Extend/$Reparse. */
+ 		SID sid;		/* $O index in FILE_Extend/$Quota:
+ 					   SID of the owner of the user_id. */
+ 		u32 owner_id;		/* $Q index in FILE_Extend/$Quota:
+diff -ru ntfsprogs-1.7.1/include/volume.h ntfsprogs-linux/include/volume.h
+--- ntfsprogs-1.7.1/include/volume.h	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/include/volume.h	2005-03-17 16:20:29.000000000 -0700
+@@ -156,6 +156,7 @@
+ 
+ extern ntfs_volume *ntfs_volume_startup(const char *name, unsigned long rwflag);
+ extern ntfs_volume *ntfs_mount(const char *name, unsigned long rwflag);
++extern ntfs_volume *ntfs_mount_with_offset(const char *name, unsigned long rwflag, const s64 doffset);
+ 
+ extern int ntfs_umount(ntfs_volume *vol, const BOOL force);
+ 
+diff -ru ntfsprogs-1.7.1/libntfs/attrib.c ntfsprogs-linux/libntfs/attrib.c
+--- ntfsprogs-1.7.1/libntfs/attrib.c	2003-02-13 03:25:30.000000000 -0700
++++ ntfsprogs-linux/libntfs/attrib.c	2005-03-17 16:26:14.000000000 -0700
+@@ -383,8 +383,8 @@
+ {
+ 	if (NAttrNonResident(na) && na->rl)
+ 		free(na->rl);
+-	if (na->name != AT_UNNAMED)
+-		free(na->name);
++	/* if (na->name != AT_UNNAMED) */
++	/*	free(na->name); */
+ 	free(na);
+ 	return;
+ }
+diff -ru ntfsprogs-1.7.1/libntfs/dir.c ntfsprogs-linux/libntfs/dir.c
+--- ntfsprogs-1.7.1/libntfs/dir.c	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/libntfs/dir.c	2005-03-17 16:14:29.000000000 -0700
+@@ -22,6 +22,7 @@
+ #include <stdlib.h>
+ #include <errno.h>
+ #include <string.h>
++#include <assert.h>
+ 
+ #include "types.h"
+ #include "debug.h"
+@@ -78,6 +79,10 @@
+ 	int eo, rc;
+ 	u32 index_block_size, index_vcn_size;
+ 	u8 index_vcn_size_bits;
++	assert(sizeof(u8) == 1);
++	assert(sizeof(u32) == 4);
++	assert(sizeof(s64) == 8);
++	assert(sizeof(u64) == 8);
+ 
+ 	if (!dir_ni || !dir_ni->mrec || !uname || uname_len <= 0) {
+ 		errno = EINVAL;
+@@ -89,7 +94,7 @@
+ 		return -1;
+ 
+ 	/* Find the index root attribute in the mft record. */
+-	if (!ntfs_attr_lookup(AT_INDEX_ROOT, I30, 4, CASE_SENSITIVE, 0, NULL,
++	if (ntfs_attr_lookup(AT_INDEX_ROOT, I30, 4, CASE_SENSITIVE, 0, NULL, /*Russ FreeBSD change.  I changed a not because I thought it was wrong*/
+ 			0, ctx)) {
+ 		Dprintf("Index root attribute missing in directory inode "
+ 				"0x%Lx: %s\n",
+@@ -103,7 +108,7 @@
+ 	index_block_size = le32_to_cpu(ir->index_block_size);
+ 	if (index_block_size < NTFS_SECTOR_SIZE ||
+ 			index_block_size & (index_block_size - 1)) {
+-		Dprintf("Index block size %u is invalid.\n", index_block_size);
++		Dprintf("Index block size 0x%08x is invalid.\n", index_block_size);
+ 		goto put_err_out;
+ 	}
+ 	index_end = (u8*)&ir->index + le32_to_cpu(ir->index.index_length);
+diff -ru ntfsprogs-1.7.1/libntfs/disk_io.c ntfsprogs-linux/libntfs/disk_io.c
+--- ntfsprogs-1.7.1/libntfs/disk_io.c	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/libntfs/disk_io.c	2005-03-17 16:30:28.000000000 -0700
+@@ -40,6 +40,15 @@
+ #	define BLKGETSIZE _IO(0x12,96) /* Get device size in 512byte blocks. */
+ #endif
+ 
++static int iofd = -1;
++static s64 iobase = 0LL;
++
++void ntfs_setiobase(const int fd, const s64 base)
++{
++	iofd = fd;
++	iobase = base;
++}
++
+ /**
+  * ntfs_pread - positioned read from disk
+  * @fd:		file descriptor to read from
+@@ -59,7 +68,7 @@
+  * to the return code of either lseek, read, or set to EINVAL in case of
+  * invalid arguments.
+  */
+-s64 ntfs_pread(const int fd, const s64 pos, s64 count, const void *b)
++s64 ntfs_pread(const int fd, s64 pos, s64 count, const void *b)
+ {
+ 	s64 br, total;
+ 
+@@ -71,6 +80,11 @@
+ 	}
+ 	if (!count)
+ 		return 0;
++
++	/* Account for static offset. */
++	if (fd == iofd)
++		pos += iobase;
++
+ 	/* Locate to position. */
+ 	if (lseek(fd, pos, SEEK_SET) == (off_t)-1) {
+ 		Dprintf("ntfs_pread: lseek to 0x%Lx returned error: %s\n", pos,
+@@ -112,7 +126,7 @@
+  * appropriately to the return code of either lseek, write, or set
+  * to EINVAL in case of invalid arguments.
+  */
+-s64 ntfs_pwrite(const int fd, const s64 pos, s64 count, const void *b)
++s64 ntfs_pwrite(const int fd, s64 pos, s64 count, const void *b)
+ {
+ 	s64 written, total;
+ 
+@@ -124,6 +138,11 @@
+ 	}
+ 	if (!count)
+ 		return 0;
++
++	/* Account for static offset. */
++	if (fd == iofd)
++		pos += iobase;
++
+ 	/* Locate to position. */
+ 	if (lseek(fd, pos, SEEK_SET) == (off_t)-1) {
+ 		Dprintf("ntfs_pwrite: lseek to 0x%Lx returned error: %s\n",
+@@ -353,6 +372,10 @@
+ {
+ 	char ch;
+ 
++	/* Account for static offset. */
++	if (f == iofd)
++		ofs += iobase;
++
+ 	if (lseek(f, ofs, SEEK_SET) >= 0 && read(f, &ch, 1) == 1)
+ 		return 0;
+ 	return -1;
+@@ -371,6 +394,11 @@
+ s64 ntfs_device_size_get(int f, int block_size)
+ {
+ 	s64 high, low;
++
++	/* Account for static offset. */
++	if (f == iofd)
++		Dprintf("WARNING: cannot correctly determine device size\n");
++
+ #ifdef BLKGETSIZE
+ 	long size;
+ 
+diff -ru ntfsprogs-1.7.1/libntfs/lcnalloc.c ntfsprogs-linux/libntfs/lcnalloc.c
+--- ntfsprogs-1.7.1/libntfs/lcnalloc.c	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/libntfs/lcnalloc.c	2005-03-17 16:14:29.000000000 -0700
+@@ -101,8 +101,8 @@
+ 	int err = 0, rlpos, rlsize, buf_size;
+ 	u8 pass, done_zones, search_zone, need_writeback, bit;
+ 
+-	Dprintf("%s(): Entering with count = 0x%Lx, start_lcn = 0x%Lx,
+-			zone = %s_ZONE.\n", (long long)count,
++	Dprintf("%s(): Entering with count = 0x%Lx, start_lcn = 0x%Lx,"
++			"zone = %s_ZONE.\n", (long long)count,
+ 			(long long)start_lcn,
+ 			zone == MFT_ZONE ? "MFT" : "DATA");
+ 	if (!vol || count < 0 || start_lcn < -1 || !vol->lcnbmp_na ||
+diff -ru ntfsprogs-1.7.1/libntfs/mft.c ntfsprogs-linux/libntfs/mft.c
+--- ntfsprogs-1.7.1/libntfs/mft.c	2003-02-13 03:02:28.000000000 -0700
++++ ntfsprogs-linux/libntfs/mft.c	2005-03-17 16:31:50.000000000 -0700
+@@ -59,7 +59,8 @@
+ 	s64 br;
+ 	VCN m;
+ 
+-	Dprintf("%s(): Entering for inode 0x%Lx.\n", __FUNCTION__, MREF(mref));
++  	Dprintf("%s(): Entering for inode 0x%Lx.\n", __FUNCTION__, MREF(mref));
++
+ 	if (!vol || !vol->mft_na || !b || count < 0) {
+ 		errno = EINVAL;
+ 		return -1;
+diff -ru ntfsprogs-1.7.1/libntfs/volume.c ntfsprogs-linux/libntfs/volume.c
+--- ntfsprogs-1.7.1/libntfs/volume.c	2003-02-06 08:24:56.000000000 -0700
++++ ntfsprogs-linux/libntfs/volume.c	2005-03-17 16:32:57.000000000 -0700
+@@ -71,6 +71,7 @@
+ 		ntfs_inode_close(v->mftmirr_ni);
+ 	if (v->fd) {
+ 		fdatasync(v->fd);
++		ntfs_setiobase(-1, 0LL);
+ 		close(v->fd);
+ 	}
+ 	if (v->dev_name)
+@@ -361,6 +362,9 @@
+ 	return -1;
+ }
+ 
++/* Internal */
++static ntfs_volume *ntfs_volume_startup_internal(const char *name, unsigned long rwflag, const s64 doffset);
++
+ /**
+  * ntfs_volume_startup - allocate and setup an ntfs volume
+  * @name:	name of device/file to open
+@@ -375,6 +379,11 @@
+  */
+ ntfs_volume *ntfs_volume_startup(const char *name, unsigned long rwflag)
+ {
++	return ntfs_volume_startup_internal(name, rwflag, 0LL);
++}
++
++static ntfs_volume *ntfs_volume_startup_internal(const char *name, unsigned long rwflag, const s64 doffset)
++{
+ 	LCN mft_zone_size, mft_lcn;
+ 	s64 br;
+ 	const char *OK = "OK";
+@@ -389,6 +398,8 @@
+ #endif
+ 
+ 	/* Allocate the volume structure. */
++
++
+ 	vol = __ntfs_volume_allocate();
+ 	if (!vol)
+ 		return NULL;
+@@ -406,6 +417,9 @@
+ 		Dperror("Error opening partition file");
+ 		goto error_exit;
+ 	}
++	/* XXX set the disk offset if there is one. */
++	if (doffset)
++		ntfs_setiobase(vol->fd, doffset);
+ 	/* Now read the bootsector. */
+ 	br = ntfs_pread(vol->fd, 0, sizeof(NTFS_BOOT_SECTOR), bs);
+ 	if (br != sizeof(NTFS_BOOT_SECTOR)) {
+@@ -563,6 +577,11 @@
+  */
+ ntfs_volume *ntfs_mount(const char *name, unsigned long rwflag)
+ {
++	return ntfs_mount_with_offset(name, rwflag, 0LL);
++}
++
++ntfs_volume *ntfs_mount_with_offset(const char *name, unsigned long rwflag, const s64 doffset)
++{
+ 	s64 l;
+ 	const char *OK = "OK";
+ 	const char *FAILED = "FAILED";
+@@ -582,7 +601,7 @@
+ 		return NULL;
+ 	}
+ 
+-	vol = ntfs_volume_startup(name, rwflag);
++	vol = ntfs_volume_startup_internal(name, rwflag, doffset);
+ 	if (!vol) {
+ 		Dperror("Failed to startup volume");
+ 		return NULL;

@@ -1,0 +1,357 @@
+Thoughts and initial work on using digest/hashing techniques to improve
+frisbee performance.
+
+Last updated 10/7/05 with pc3000 numbers.
+
+Create a "signature" file for an image using a collision-resistant hash
+like MD5 or SHA-1.  When imageunzip (or frisbee) run, they first load
+in the signature file and use that information to check the current
+contents of the disk/partition.  It then fetches/decompresses/writes
+only data that are not already correct.  For this to be at all practical,
+we must meet two criteria:
+
+1. The current contents of the disk must be largely similar to what we
+   want to load.  In the common case in Emulab, this is true: people load
+   a disk with the standard image (both BSD and Linux), use one of BSD or
+   Linux for awhile, and then quit.  Most of the OS they used, and all of
+   the one they didn't use, will be unchanged.
+
+2. It must also be the case that reading/hashing are significantly
+   faster than decompression/writing.  This of course depends on the
+   processor, memory and disk speeds but is in general true.  For our
+   machines, here are some numbers (all MB/sec):
+
+      type	read(1/6)	write(1/6)	md5	inflate	sha1
+      pc600	22.1/18.4	19.6/19.6 	71.6	32.5
+      pc850	26.7/28.0	21.4/21.4 	86.4	45.1
+      pc2000	43.4/43.4	38.9/38.8	242.1	63.2
+
+      pc3000	80.0/75.5	76.3/73.6 (WCE)	360.7	90.1	125.5
+
+   The two numbers for read/write are numbers for reading/writing 1GB of data
+   starting at the beginning of the disk (i.e., the first GB) and starting
+   at 5GB (i.e., the 6th GB).  They show a little of the slowdown as we
+   get out further on the disk (We mostly live in the first 6GB).
+   MD5 and inflate numbers are from the then standard FBSD+RHL image.
+   So we can see that there is some margin.  Contrary to my gut feeling,
+   MD5 hashing is way faster than decompression, likely because the
+   latter involves not only a memory read for every byte, but multiple
+   writes as well.
+
+   Note that pc3000 reflects resonably current state of the art:
+   3Ghz processor, 2GB of 800MHz memory, 10000K RPM SCSI disk with the
+   write-cache enabled.  Note also the relative rate of hashing vs.
+   decompression gets considerably less favorable when using SHA-1 hash
+   instead of MD5.  Since MD5 has been "compromised" this may be a concern
+   at some point in the future.
+
+I have already written an "imagehash" utility, that can create the
+signature files (MD5 or SHA-1) and can be run to check the signature
+vs. a disk.  Currently it creates a 16 (or 20) byte hash for every 64KB
+of allocated data in every region of every chunk.  Thus it is finer-
+grained than chunks or regions in chunks.  Imagehash overlaps disk reads
+with hashing, so it is a good indication of the best we can do.  Running
+this on a node, sitting in the frisbee MFS we get, compared to frisbee
+time to load the disk (in seconds):
+
+   type		frisbee		imagehash	save	imagehash serial (R+H)
+   pc600	93.6		81.1		13.4%	85.1 (62.4 + 21.9)
+   pc850	82.3		65.4		20.5%	87.3 (68.5 + 18.1)
+   pc2000	68.0		44.9		34.0%	55.8 (48.7 + 6.5)
+
+   pc3000	94.9		37.4		60.6%	37.5 (31.3 + 5.6)
+
+"imagehash serial" shows a run without overlapping reading with hashing
+along with the broken out time for those two phases.  Note that there are
+some bizarre effects here that I don't yet understand: 1) pc850s are slower
+than pc600s to read the disk when serially imagehashing, yet the disks
+are faster, 2) pc850s and pc2000s show extremely good overlap of IO with
+hashing, which pc600s show almost no improvement (85.1s to 81.1).  Note
+that you cannot compare the pc3000 times with other node types since it
+was run with a much different image.  The 60% savings is probably exaggerated
+since it appears our server cannot keep frisbee fed and it goes idle:
+
+  net thread idle/blocked:        0/0
+  decompress thread idle/blocked: 34810/0
+  disk thread idle:        738
+
+Note that the net thread is never idle, so data is coming in, just not
+fast enough.  But that is another issue...
+
+Anyway, we do see that imagehash is faster than frisbee by 13-34+%.
+However, in that saved time, we need to be able to transfer over, decompress,
+and write any actual changes.  How much of this standard frisbee action
+we can overlap with the hashing is important.  If we have to do the
+hashing and then do the frisbee, we aren't going to win to any meaningful
+degree (I contend that we have to gain at least 10% to make the complexity
+worthwhile).
+
+Here are the logical steps involved:
+
+	1. transfer signature file to node
+	2. read data from disk
+	3. hash data and compare to sig
+	4. download chunks for data we need
+	5. decompress chunks
+	6. write data we need to disk
+
+2-3 are what imagehash does, 4-6 are basically frisbee but requesting
+only specific chunks and possibly writing only select data from the chunks.
+
+1. Transfer signature file.
+
+   A signature file could be anywhere from around 1KB to multiple megabytes
+   depending on the granularity of data that we hash and how big the image is.
+   We could just embed this info in the image file itself, but that at least
+   partially defeats the purpose of doing this which is to not download data
+   we don't need.  We could transfer the info down in advance, possibly
+   using frisbee, but we might want to transfer it "out of band" for at
+   least one other reason.  If we transfer the .sig over in a secure transfer,
+   we can also use the .sig to ensure integrity of the frisbee distributed
+   data by adding a step 5.5: compare hash of expected data vs. what we
+   actually received.
+
+   As for hashing granularity, there are three possibilities.  At the
+   coarsest granularity, we could compute a hash for every chunk.  This
+   produces the smallest signature and simplifies things, but decreases
+   the effectiveness: a chunk can represent a huge amount of decompressed
+   data, and we would have to make a hashing pass over all that data before
+   we could make a decision about whether we need to request the data or not.
+   The next level is to hash each region within a chunk, but it isn't clear
+   that this provides enough additional granularity.  In the case of a raw
+   image or a densely populated filesystem, there will only be a single
+   region per chunk and we gain nothing over chunk granularity.  Finally,
+   we can break every region into fixed-sized pieces and hash those pieces.
+   This is what imagehash currently does, for every region there are some
+   number of 64KB pieces and possibly one final smaller piece which are
+   individually hashed.  This allows a much quicker decision about whether
+   a chunk (or part of it) is needed, at the expense of a larger signature
+   (825KB for our 460MB combined BSD/Linux image).  I haven't played with
+   making the hash-unit larger or smaller.
+
+2 (read) and 6 (write).  Disk IO.
+
+   Do we want to structure these as separate threads?  My gut says no,
+   that we would wind up thrashing the disk as the reader and writer
+   compete for distinct areas of the disk.  Do we really gain anything by
+   combining them?  After all, they are still using distinct areas of the
+   disk.  Well, we can directly prioritize reads vs. writes (not that I know
+   what that policy should be...) and maybe we can sort the requests to cluster
+   disk contention.
+
+3 (hash) and 5 (decompress).  CPU intensive activity.
+
+   On a uniprocessor, there is no advantage in parallelizing the two,
+   but on a multi-processor we would want to.  Again, an issue here is
+   prioritizing them w.r.t. each other.  Possibly, this is more easily
+   done with a single thread or at least a common work queue.
+
+4. Download data from the net.
+
+   This is still an independent thread, but it has interesting dependencies
+   on the hashing process in frisbee where we receive "unsolicited" data
+   blocks.  Clearly, if we have hashed everything in one chunk and determined
+   that we don't need that data, we won't request that chunk and we won't
+   allocate any resources to collecting that chunk if someone else requests
+   it.  But what if the hasher thread comes to a new chunk to work on, and
+   the data for that chunk has already been partially received?  Do we not
+   bother to hash data for that chunk and just let the normal frisbee process
+   blindly overwrite the data?  Do we continue to collect the data and do the
+   hash in parallel, hoping to at least avoid at least some decompression or
+   writing?  Or do we not collect unsolicited chunks at all?  Conversely,
+   what if we start to receive data for a chunk that we are in the process
+   of hashing?
+
+
+3/5/05
+
+Thinking about using hashes and signature files to enable creation of
+"incremental" or "delta" image.  The idea is that a user loads the disk
+with a standard image and then at swapout time, or when the user requests
+a custom disk image be saved, we use the signature of the original image
+compared with the disk contents to create a minimal delta.
+
+So imagezip will have an option where it takes an "incremental" option
+and a signature file as created by imagehash, and creates the delta.
+This is a little more complicated than using hashes to update a disk
+as above.  Imagehash only hashes allocated blocks on the disk, since it
+works from the imagezip image.  But what if the user then allocates addtional
+blocks in a filesystem on the disk?  When it comes time to compute the delta
+image from the signature, those blocks will not be even looked at since they
+were free in the original image.  And, blocks that were freed by the user
+might well wind up in the delta.  So the process becomes:
+
+	1. transfer signature file to node
+	2. compute allocated block list for the disk
+	3. compare the two lists:
+	   - blocks allocated on the disk, but not in the sig are saved
+	   - blocks allocated in the sig, but not on the disk are NOT saved
+	   - for all others, we compare hashes
+
+Note that #3 is a simplification.  Since hashes in the signature file are
+computed over groups of blocks (up to 64KB, 128 blocks, currently), the
+overlap between a hashed range from the original image and allocated blocks
+on the current disk may not be exact.  That is, for every block in the
+original hash range, some of the corresponding blocks on the disk may no
+longer be allocated.  If fact, there could be as little as a single block
+left allocated on the disk for the original 128 block hash range.  So do
+we calculate and use the hash anyway, or do we ignore the hash and just
+save the currently allocated blocks in that range?  The latter is obviously
+faster, but may make the delta image larger than it needs to be.  The
+former takes longer (must compute the hash on the disk contents) but may
+enable us skip saving some blocks.  So what do we do?  It depends on how
+likely it is that computing/using the hash will pay off.  To pay off, it
+must be the case that blocks that were deallocated in the range in question
+must not have changed contents since the original image was loaded.  My
+gut feeling is that this will be the case quite often.  Neither FreeBSD
+or Linux zero blocks that get freed nor do they chain free blocks together
+using part of the block as a link field.  So I think still hashing the
+blocks might pay off, but we'll have to do some tests.
+
+Another issue is how does imagezip know how much of the disk it should look
+at when creating a delta.  If a user only loads FreeBSD in partition 1,
+but then puts data in the other partitions, how do we know that we should
+save that in the delta?  In a sense, the mechanism will just work.  If the
+signature used for comparison only covers partition 1, and imagezip is
+told to look at all partitions on the disk, then any allocated blocks
+discovered on other partitions would not be in the signature and thus would
+be saved.  But how does the user tell imagezip that it should be looking
+at the whole disk rather than just partition 1?
+
+I suppose the user will have to specify in the "create an image" form,
+which partitions should be included in the custom image computation.
+They will also need to be able to specify that imagezip look at certain
+paritions in "raw" mode, in case for example, they use partition 4 on the
+disk to store data without creating a filesystem.  Without being explicitly
+told that that partition is in use, imagezip would ignore it.
+
+On the flip side, even though a user has loaded the default, full disk
+image at experiment creation time, they probably will only use the single
+BSD or RHL partition and customize that.  But the delta creation process
+would look at the entire disk, since a full disk image was originally loaded.
+The resulting delta won't be any bigger since the remaining contents of the
+disk are unchanged, but it will take longer than necessary to perform the
+scan and create the image.  Again, if the user is made to specify what
+partitions should be examined when creating the delta image, this won't
+happen.
+
+3/7/05
+
+So here are some specifics on how the "merge" of the signature file hash
+ranges ("hrange") and the on-node computed disk ranges ("drange") works.
+hranges consist of a start block, end block (actually a size), and a hash
+value for that range.  dranges consist of a start block and end block
+(again, actually a size).
+
+    /*
+     * Nothing on the disk
+     */
+    if (no dranges)
+	quit;
+    /*
+     * We have no signature info to use, so just treat this like a normal
+     * imagezip.
+     */
+    if (no hranges)
+	use drange info;
+
+    drange = first element of dranges;
+    for (all hranges) {
+	/*
+	 * Any allocated ranges on disk that are before the current
+	 * hash range are newly allocated, and must be put in the image.
+	 */
+	while (drange && drange.end <= hrange.start) {
+	    add drange to merged list;
+	    next drange;
+	}
+	if (!drange)
+	    break;
+
+	/*
+	 * Any allocated range in the original disk that is below our
+	 * current allocated range on the current disk can be ignored.
+	 * (The blocks must have been deallocated.)
+	 */
+	if (hrange.end <= drange.start)
+	    continue;
+
+	/*
+	 * Otherwise there is some overlap between the current drange
+	 * and hrange.  To simplfy things, we split dranges so they
+	 * align with hrange boundaries, and then treat the portion
+	 * outside the hrange accordingly.  First we split off the head.
+	 */
+	if (drange.start < hrange.start) {
+	    split drange at hrange.start value;
+	    add leading drange to merged list;
+	    trailing drange becomes current drange;
+	}
+
+	/*
+	 * The crux of the biscuit: we have now isolated one or more
+	 * dranges that are "covered" by the current hrange.  Here we
+	 * might use the hash value associated with the hrange to
+	 * determine whether the corresponding disk contents have
+	 * changed.  If there is a single drange that exactly matches
+	 * the hrange, then we obviously do this.  But what if there
+	 * are gaps in the coverage, i.e., multiple non-adjacent
+	 * dranges covered by the hrange?  This implies that not all
+	 * blocks described by the original hash are still important
+	 * in the current image.  In fact there could be as little as
+	 * a single disk block still valid for a very large hrange.
+	 *
+	 * In this case we can either blindly include the dranges
+	 * in the merged list, or we can go ahead and do the hash
+	 * over the entire range on the chance that the blocks that
+	 * are no longer allocated (the "gaps" between dranges) have
+	 * not changed content and the hash will still match and thus
+	 * we can avoid including the dranges in the merged list.
+	 * The latter is valid, but is it likely to pay off?  We will
+	 * have to see.
+	 */
+	if (doinghash || drange == hrange) {
+	    hash disk contents indicated by hrange;
+	    if (hash == hrange.hash)
+		keepit = 0;
+	    else
+		keepit = 1;
+	} else
+	    keepit = 1;
+
+	while (drange && drange.start < hrange.end) {
+	    /*
+	     * Split off the tail if necessary, it will be processed
+	     * in the next iteration of the outer loop.
+	     */
+	    if (drange.end > hrange.end) {
+		split drange at hrange.end value;
+		leading drange becomes current drange;
+	    }
+	    if (keepit)
+		add drange to merged list;
+	}
+	if (!drange)
+	    break;
+    }
+
+    /*
+     * Any remaining hranges can be ignored
+     */
+    while (hrange)
+        next hrange;
+    /*
+     * and any remaining dranges must be included
+     */
+    while (drange) {
+	add drange to merged list;
+	next drange;
+    }
+
+    /*
+     * Since we may have (unnecessarily) split entries in the drange
+     * list from which we are derived, we try to squeeze things back
+     * together.  Or maybe this is done automatically in the "add to
+     * merged list" function.
+     */
+    coalesce merged list;

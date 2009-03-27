@@ -1,0 +1,85 @@
+.\"
+.\" Copyright (c) 2000-2003 University of Utah and the Flux Group.
+.\" All rights reserved.
+.\" This file is part of the Emulab network testbed software.
+.\" 
+.\" Emulab is free software, also known as "open source;" you can
+.\" redistribute it and/or modify it under the terms of the GNU Affero
+.\" General Public License as published by the Free Software Foundation,
+.\" either version 3 of the License, or (at your option) any later version.
+.\" 
+.\" Emulab is distributed in the hope that it will be useful, but WITHOUT ANY
+.\" WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+.\" FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+.\" more details, which can be found in the file AGPL-COPYING at the root of
+.\" the source tree.
+.\" 
+.\" You should have received a copy of the GNU Affero General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.Dd January 9, 2003
+.Dt IMAGEDUMP 8
+.Os
+.Sh NAME
+.Nm imagedump
+.Nd dump information about an imagezip compressed image file
+.Sh SYNOPSIS
+.Nm
+.Op Fl div
+.Ar imagefile ...
+.Sh DESCRIPTION
+The
+.Nm
+utility can be used to view information about
+.Xr imagezip
+created image files.
+With no options,
+.Nm
+prints a summary for each image file specified.  This summary includes:
+the size of the image file, the size of the resulting decompressed data,
+the compression factor achieved on allocated data (due to
+.Xr zlib Ns
+),
+the overall compression factor (due to smart filesystem aware compression and
+.Xr zlib Ns
+),
+and the amount of overhead and wasted space in the image file
+(due to the way in which compressed data is chunked in the image file).
+.Pp
+One or more
+.Fl d
+options can be specified to dump various levels of structure within the
+image file.
+.Pp
+The
+.Fl i
+option tells
+.Nm
+to ignore the deprecated blockindex field in chunk headers.
+You need this option when running
+.Nm
+on pieces of a split image.
+.Pp
+The
+.Fl v
+option prints version information about
+.Nm
+itself.
+.Sh DIAGNOSTICS
+The
+.Nm
+utility will exit with a status of zero if it successfully parses and
+dumps all the listed image files.
+It will exit non-zero if there is any error.
+.Sh SEE ALSO
+.Xr imagezip 8 ,
+.Xr imageunzip 8 ,
+.Xr zlib 3
+.Sh HISTORY
+The
+.Nm
+utility is part of the Netbed software (www.netbed.org).
+.Sh BUGS
+The
+.Xr imagedump
+image format needs to be documented.

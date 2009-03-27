@@ -1,0 +1,103 @@
+#
+# Copyright (c) 2000-2007 University of Utah and the Flux Group.
+# All rights reserved.
+# This file is part of the Emulab network testbed software.
+# 
+# Emulab is free software, also known as "open source;" you can
+# redistribute it and/or modify it under the terms of the GNU Affero
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+# 
+# Emulab is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+# more details, which can be found in the file AGPL-COPYING at the root of
+# the source tree.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# 
+# Most of the configure-substitution magic is done here.
+# All the other makefiles in the NodeOS include
+# this fragment
+#
+
+# Need the PATH because the older autoconf does not support
+# AC_PATH_TOOL which is needed for cross-compilation to work.
+export PATH	= /usr/local/jdk*/bin:/usr/local/arm/3.4.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+
+export CC       = gcc
+export CXX	= g++
+export LD	= gcc ${CFLAGS}
+export STRIP    = strip
+export RANLIB	= ranlib
+export AR	= ar
+
+export ELVIN_CONFIG = 
+
+export JAVAC	= 
+export JAR	= 
+
+prefix		= /usr
+exec_prefix	= ${prefix}
+
+TBROOT		= /usr/testbed
+TBDEFS		= ../defs-default
+TBDBNAME	= tbdb
+TBADMINGROUP	= flux
+TBOPSEMAIL	= testbed-ops\@flux.utah.edu
+TBROBOCOPSEMAIL = testbed-robocops\@flux.utah.edu
+TBLOGSEMAIL	= testbed-logs\@flux.utah.edu
+TBAUDITEMAIL	= testbed-audit\@flux.utah.edu
+TBACTIVEARCHIVE = testbed-active-users-archive\@flux.utah.edu
+TBUSERSARCHIVE  = testbed-users-archive\@flux.utah.edu
+TBERRORSEMAIL	= testbed-errors\@flux.utah.edu
+TBAPPROVALEMAIL	= testbed-approval\@flux.utah.edu
+BOSSNODE        = boss.emulab.net
+USERNODE        = users.emulab.net
+FSNODE          = fs.emulab.net
+WWW		= www.emulab.net
+OURDOMAIN       = emulab.net
+FSDIR_PROJ	= /q/proj
+FSDIR_GROUPS	= /q/groups
+FSDIR_USERS	= /users
+CPPFLAGS	= -I/usr/local/include -I/usr/include/python2.5
+CFLAGS	       += 
+CXXFLAGS       += 
+LDFLAGS		= 
+OPT_CFLAGS	= -g -O
+
+INSTALL_TOPDIR	= ${prefix}
+INSTALL_DIR     = ${prefix}
+INSTALL_LIBDIR  = ${exec_prefix}/lib
+INSTALL_BINDIR	= ${exec_prefix}/bin
+INSTALL_SBINDIR	= ${exec_prefix}/sbin
+INSTALL_LIBEXECDIR = ${exec_prefix}/libexec
+INSTALL_ETCDIR  = ${prefix}/etc
+INSTALL_INCDIR  = ${prefix}/include
+INSTALL_WWWDIR	= ${prefix}/www
+INSTALL_RCDIR	= /usr/local/etc/rc.d
+INSTALL_APACHE_CONFIG = /usr/local/etc/apache
+
+INSTALL		= /usr/bin/install -c
+INSTALL_PROGRAM	= /usr/bin/install -c -m 755
+EXE = 
+INSTALL_DATA	= /usr/bin/install -c -m 444
+SUDO		= /usr/bin/sudo
+
+CLIENT_ETCDIR	= /etc/emulab
+CLIENT_BINDIR	= /usr/local/etc/emulab
+CLIENT_VARDIR	= /var/emulab
+CLIENT_MANDIR	= /usr/local/man
+
+LOG_TESTBED	= LOG_LOCAL5
+
+EVENTSYS	= 1
+ELVIN_COMPAT    = 1
+HAVE_MEZZANINE	= no
+GTK_CONFIG	= 
+BRAINSTEM_DIR	= 
+
+host_cpu	= i686
+
+HAVE_ULXMLRPCPP	= 

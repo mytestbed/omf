@@ -1,0 +1,13 @@
+Source: frisbee
+Section: omf
+Priority: extra
+Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: frisbee
+Architecture: i386
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: multicast file distribution tool
+ multicast file distribution tool from EMULAB
+

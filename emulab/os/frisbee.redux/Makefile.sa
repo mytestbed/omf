@@ -1,0 +1,107 @@
+#
+# Copyright (c) 2000-2004 University of Utah and the Flux Group.
+# All rights reserved.
+# This file is part of the Emulab network testbed software.
+# 
+# Emulab is free software, also known as "open source;" you can
+# redistribute it and/or modify it under the terms of the GNU Affero
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+# 
+# Emulab is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+# more details, which can be found in the file AGPL-COPYING at the root of
+# the source tree.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# 
+# Makefile for the standalone version of frisbee.
+# (Standalone meaning not part of the Netbed build environment.)
+#
+SBINDIR=/usr/local/sbin
+BINDIR=	/usr/local/bin
+
+IMAGEZIPDIR	= ../imagezip
+
+SHAREDOBJS	= log.o network.o trace.o utils.o
+
+PTHREADCFLAGS	= -D_THREAD_SAFE \
+		  -I/usr/local/include/pthread/linuxthreads
+PTHREADLIBS	= -L/usr/local/lib -llthread -llgcc_r
+
+CLIENTFLAGS	= $(CFLAGS)
+CLIENTLIBS	= -lz $(PTHREADLIBS)
+CLIENTOBJS	= client.o frisbee.o $(SHAREDOBJS)
+
+SERVERFLAGS	= $(CFLAGS)
+SERVERLIBS	= $(PTHREADLIBS)
+SERVEROBJS	= server.o $(SHAREDOBJS)
+
+CFLAGS		= -O2 -g -Wall -fno-builtin-log -static \
+		  $(PTHREADCFLAGS) -DSTATS
+LDFLAGS		= -static
+
+#
+# Define this if your implementation of cond_vars works well
+# ("works well" in this case means doesn't hang forever or burn up
+# the CPU while in condwait).
+#
+# Best to leave this commented out.
+#
+#CFLAGS		+= -DCONDVARS_WORK
+
+#
+# Define this to a non-zero value to enable recording of trace data
+#
+#CFLAGS		+= -DNEVENTS=25000
+
+#
+# Turn on client event handling
+#
+# Leave these commented out!
+#
+#CFLAGS		+= -DDOEVENTS
+#CLIENTOBJS	+= event.o $(OBJDIR)/event/lib/event.o $(OBJDIR)/event/lib/util.o
+#CLIENTLIBS	+= `elvin-config --libs vin4c`
+#EVENTFLAGS	= $(CFLAGS) `elvin-config --cflags vin4c` -I$(TESTBED_SRCDIR)
+
+all: frisbee frisbeed
+
+frisbee: $(CLIENTOBJS)
+	$(CC) $(LDFLAGS) $(CLIENTFLAGS) $(CLIENTOBJS) $(CLIENTLIBS) -o frisbee
+	cp frisbee frisbee.debug
+	strip frisbee
+
+frisbeed: $(SERVEROBJS)
+	$(CC) $(LDFLAGS) $(SERVERFLAGS) $(SERVEROBJS) $(SERVERLIBS) -o frisbeed
+	cp frisbeed frisbeed.debug
+	strip frisbeed
+
+
+event.o:	$(SRCDIR)/event.c decls.h log.h event.h
+	$(CC) $(EVENTFLAGS) -c event.c
+
+$(IMAGEZIPDIR)/imageunzip.c: $(IMAGEZIPDIR)/imagehdr.h $(IMAGEZIPDIR)/queue.h
+
+frisbee.o:	$(IMAGEZIPDIR)/imageunzip.c
+	$(CC) -c $(CFLAGS) -DFRISBEE -I$(IMAGEZIPDIR) -o frisbee.o \
+		$(IMAGEZIPDIR)/imageunzip.c
+
+client.o:	decls.h log.h utils.h trace.h
+server.o:	decls.h log.h utils.h trace.h
+log.o:		decls.h log.h
+network.o:	decls.h utils.h
+trace.o:	decls.h trace.h log.h
+
+install:
+	$(INSTALL) frisbee $(DESTDIR)$(BINDIR)/frisbee
+	$(INSTALL) frisbeed $(DESTDIR)$(SBINDIR)/frisbeed
+
+clean:
+	rm -f *.o *.a frisbee frisbeed frisbee.debug frisbeed.debug
+
+.include <bsd.prog.mk>

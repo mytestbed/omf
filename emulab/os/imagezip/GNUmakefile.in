@@ -1,0 +1,237 @@
+#
+# Copyright (c) 2000-2007 University of Utah and the Flux Group.
+# All rights reserved.
+# This file is part of the Emulab network testbed software.
+# 
+# Emulab is free software, also known as "open source;" you can
+# redistribute it and/or modify it under the terms of the GNU Affero
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+# 
+# Emulab is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+# more details, which can be found in the file AGPL-COPYING at the root of
+# the source tree.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+SRCDIR		= @srcdir@
+TESTBED_SRCDIR	= @top_srcdir@
+OBJDIR		= ../..
+SUBDIR		= os/imagezip
+DISTFILES	= global.h imagehdr.h queue.h sliceinfo.h \
+		  imagedump.c imagedump.8 imagezip.c imagezip.8 \
+		  imageunzip.c crc.c disksize.c imageunzip.8 \
+		  extfs/*.[hc] fat/*.[hc] ffs/*.[hc] ntfs/*.[hc] shd/*.[hc] \
+		  hashmap/*.[hc]
+
+EXPANDCOPYRIGHT	= /usr/site/lib/copyright/expand-copyr
+
+SYSTEM	:= $(shell uname -s)
+
+# FreeBSD specific goop
+ifeq ($(SYSTEM),FreeBSD)
+FBSDREL	:= $(shell uname -r | sed -e 's/\([^-][^-]*\)-.*/\1/')
+FBSDMAJ := $(basename $(FBSDREL))
+
+# FreeBSD 5 has GCC3 and LOCALE
+# XXX this should be done with configure
+ifneq ($(FBSDMAJ),4)
+export HAVE_GCC3 = 1
+export HAVE_LOCALE = 1
+endif
+
+# XXX 5.3 and linuxthreads don't see to get along
+ifeq ($(FBSDREL),5.3)
+WITH_LTHREADS	= 0
+else
+WITH_LTHREADS	= 1
+endif
+
+# XXX special checkpoint/shadow device support
+WITH_SHD	= 0
+
+endif
+
+# Linux specific goop
+ifeq ($(SYSTEM),Linux)
+
+# XXX this should be done with configure
+export LINUX = 1
+export HAVE_GCC3 = 1
+export HAVE_LOCALE = 1
+
+endif
+
+WITH_FFS	= 1
+WITH_EXTFS	= 1
+WITH_NTFS	= @WINSUPPORT@
+WITH_FAT	= @WINSUPPORT@
+WITH_HASH	= 1
+
+include $(OBJDIR)/Makeconf
+
+SUBDIRCFLAGS	= -Wall -O2 -g # -ansi -pedantic
+ifeq ($(SYSTEM),Linux)
+SUBDIRCFLAGS	+= -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -D_THREAD_SAFE -pthread
+else
+ifeq ($(WITH_LTHREADS),1)
+PTHREADCFLAGS	= -D_THREAD_SAFE -I/usr/local/include/pthread/linuxthreads
+PTHREADLIBS	= -L/usr/local/lib -llthread -llgcc_r
+else
+PTHREADCFLAGS	= -DCONDVARS_WORK
+PTHREADLIBS	= -lpthread
+endif
+SUBDIRCFLAGS	+= 
+endif
+
+# Define this if you implementation of cond_vars works well
+# They don't with linuxthreads under FreeBSD: wakeups take longer than
+# Necessary sometimes.
+#PTHREADCFLAGS	+= -DCONDVARS_WORK
+
+CFLAGS		= $(SUBDIRCFLAGS) -I$(SRCDIR) $(LDSTATIC)
+LIBS 		= -lz
+ZIPCFLAGS	= $(CFLAGS) -Wall
+ZIPLIBS		= 
+UNZIPCFLAGS	= $(CFLAGS) $(PTHREADCFLAGS) -Wall
+UNZIPLIBS	= $(LIBS) $(PTHREADLIBS)
+HASHCFLAGS	= $(CFLAGS) $(PTHREADCFLAGS) -Wall
+HASHLIBS	= $(LIBS) -lcrypto $(PTHREADLIBS)
+
+# UFS/UFS2
+ifeq ($(WITH_FFS),1)
+CFLAGS		+= -DWITH_FFS
+SUBDIRS		+= ffs
+ZIPLIBS		+= ffs/libffs.a
+endif
+
+# EXT2/EXT3
+ifeq ($(WITH_EXTFS),1)
+CFLAGS		+= -DWITH_EXTFS
+SUBDIRS		+= extfs
+ZIPLIBS		+= extfs/libextfs.a
+endif
+
+# with NTFS
+ifeq ($(WITH_NTFS),1)
+ifndef HAVE_GCC3
+CC		= gcc30
+endif
+CFLAGS		+= -DWITH_NTFS
+SUBDIRS		+= ntfs
+ZIPLIBS		+= ntfs/libntfs.a
+ifndef HAVE_LOCALE
+ZIPLIBS		+= ntfs/liblocale.a
+endif
+endif
+
+# with FAT
+ifeq ($(WITH_FAT),1)
+CFLAGS		+= -DWITH_FAT
+SUBDIRS		+= fat
+ZIPLIBS		+= fat/libfat.a
+endif
+
+# with SHD
+ifeq ($(WITH_SHD),1)
+CFLAGS		+= -DWITH_SHD
+SUBDIRS		+= shd
+ZIPLIBS		+= shd/libshd.a
+SHDLIBS		+= shd/libshd.a
+endif
+
+# with HASH
+ifeq ($(WITH_HASH),1)
+CFLAGS		+= -DWITH_HASH -DHASHSTATS
+SUBDIRCFLAGS	+= -DHASHSTATS
+SUBDIRS		+= hashmap
+ZIPLIBS		+= hashmap/libhashmap.a
+LIBS		+= -lcrypto $(PTHREADLIBS)
+endif
+
+all:	$(SUBDIRS) imagezip imageunzip imagedump imagehash
+
+whoami:
+	@echo "SYSTEM is $(SYSTEM)"
+ifeq ($(SYSTEM),FreeBSD)
+	@echo "FBSDREL is $(FBSDREL)"
+	@echo "FBSDMAJ is $(FBSDMAJ)"
+endif
+
+include $(TESTBED_SRCDIR)/GNUmakerules
+
+imagezip: imagezip.o disksize.o version.o $(ZIPLIBS)
+	$(CC) $(CFLAGS) imagezip.o disksize.o version.o $(ZIPLIBS) $(LIBS) -o imagezip
+
+imagezip.o:	imagezip.c
+	$(CC) -c $(ZIPCFLAGS) -o imagezip.o $<
+
+imageunzip: imageunzip.o disksize.o crc.o version.o 
+	$(CC) $(CFLAGS) imageunzip.o disksize.o crc.o version.o $(UNZIPLIBS) -o imageunzip
+
+imageunzip.o:	imageunzip.c
+	$(CC) -c $(UNZIPCFLAGS) -o imageunzip.o $<
+
+imagedump: imagedump.o version.o $(SHDLIBS)
+	$(CC) $(CFLAGS) imagedump.o version.o $(LIBS) $(SHDLIBS) -o imagedump
+
+imagehash: imagehash.o version.o
+	$(CC) $(CFLAGS) imagehash.o version.o $(HASHLIBS) -o imagehash
+
+imagehash.o:	imagehash.c
+	$(CC) -c $(HASHCFLAGS) -o imagehash.o $<
+
+ffs extfs ntfs fat shd hashmap:
+	@$(MAKE) SUBDIRCFLAGS="$(SUBDIRCFLAGS)" -C $@ all
+
+imagezip.o: sliceinfo.h imagehdr.h global.h
+imageunzip.o: imagehdr.h
+imagehash.o: imagehdr.h imagehash.h
+
+version.c: imagezip.c imageunzip.c imagedump.c
+	echo >$@ "char build_info[] = \"Built `date +%d-%b-%Y` by `id -nu`@`hostname | sed 's/\..*//'`:`pwd`\";"
+
+install: $(INSTALL_BINDIR)/imagezip $(INSTALL_BINDIR)/imageunzip $(INSTALL_BINDIR)/imagedump $(INSTALL_BINDIR)/imagehash
+
+client: all
+client-install: client
+	$(INSTALL) -m 755 -o root -d $(DESTDIR)/usr/local/bin
+	$(INSTALL_PROGRAM) -s imagezip$(EXE) $(DESTDIR)/usr/local/bin/imagezip$(EXE)
+	$(INSTALL_PROGRAM) -s imageunzip$(EXE) $(DESTDIR)/usr/local/bin/imageunzip$(EXE)
+	$(INSTALL_PROGRAM) -s imagedump$(EXE) $(DESTDIR)/usr/local/bin/imagedump$(EXE)
+
+clean: subdir-clean
+	rm -f *.o imagezip imageunzip imagedump imagehash version.c
+	rm -f imagezip.tar imagezip.tar.gz
+
+subdir-clean:
+	@list='$(SUBDIRS)'; for dir in $$list; do \
+		$(MAKE) -C $$dir clean; \
+	done;
+
+distclean: subdir-distclean
+
+subdir-distclean:
+	@list='$(SUBDIRS)'; for dir in $$list; do \
+		$(MAKE) -C $$dir distclean; \
+	done;
+
+imagezip.tar.gz: imagezip.tar
+	gzip -c imagezip.tar > imagezip.tar.gz
+
+imagezip.tar: Makefile.sa Makefile-linux.sa
+	rm -rf imagezip-dist; mkdir imagezip-dist
+	(cd $(SRCDIR); tar cf - Makefile.sa Makefile-linux.sa $(DISTFILES)) | \
+		(cd imagezip-dist; tar xf -)
+	mv imagezip-dist/Makefile.sa imagezip-dist/Makefile
+	mv imagezip-dist/Makefile-linux.sa imagezip-dist/Makefile-linux
+	(cd imagezip-dist; \
+		$(EXPANDCOPYRIGHT) Makefile Makefile-linux $(DISTFILES))
+	tar cf imagezip.tar imagezip-dist
+	rm -rf imagezip-dist
+
+.PHONY:	$(SUBDIRS)

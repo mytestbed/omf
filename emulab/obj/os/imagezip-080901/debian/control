@@ -1,0 +1,13 @@
+Source: imagezip
+Section: omf
+Priority: extra
+Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: imagezip
+Architecture: i386
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: filesystem image compression tool
+ filesystem image compression tool from EMULAB
+
