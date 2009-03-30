@@ -73,7 +73,9 @@ def send_graph(sock)
 end
 
 require 'webrick'
+require 'uri'
 require 'stringio'
+
 def start_web_server(port = 2000)
   s = WEBrick::HTTPServer.new(:Port => port)
   trap("INT") do s.shutdown end
@@ -123,17 +125,24 @@ def start_web_server(port = 2000)
     }
     
     url = "file:/Users/max/src/prefuse.flare-alpha-20080808/homicides.tab.txt"
+    format = "tab"
+    
+    expID = "outdoor_2009_03_27_18_33_57"
+    q = "select seq_no, oml_ts_client from otr2_udp_in;"
+    url = "http://console.outdoor.orbit-lab.org:5012/result/queryDatabase?expID=#{expID}&query=#{q}&format=json"
+    format = "json"
+    
     resp.body = %{
 {"omf_vis": {
   "type": "timeline",
   "data" : {
-    "format": "tab",
-    "url": "#{url}"
+    "format": "#{format}",
+    "url": "#{URI.escape(url)}"
   },
   "config": { 
     "axis": {
-      "x": {"field": "date", "flush": true},
-      "y": {"field" : "age"}
+      "x": {"field": "oml_ts_client", "flush": false},
+      "y": {"field" : "seq_no"}
     },
     "encoders": [
       {"type": "color", 

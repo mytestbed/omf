@@ -285,7 +285,10 @@ package omf.vis
 					data.addNode({
 						series: int(j),
 						date: new Date(x),
-						count:int((j*MAX/M) + MAX/M * (1+Maths.noise(13*f,j)))
+						count:int((j*MAX/M) + MAX/M * (1+Maths.noise(13*f,j))),
+						
+						oml_ts_client : int(j),
+            seq_no : new Date(x)
 					});
 				}
 			}

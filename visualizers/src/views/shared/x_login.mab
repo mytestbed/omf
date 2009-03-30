@@ -1,0 +1,37 @@
+
+body.login :onLoad => "document.forms[0].elements[0].focus();" do
+  div.container do
+    div.dialog! do
+      # flash
+      if flash[:login_header]
+        div.flash_login_header! flash[:login_header] + '. '
+      end
+      if flash[:login_message]
+        div.flash_alert.flash! flash[:login_message]
+      end
+      
+      form_tag :action => 'show', :controller => 'dashboard' do
+        dl do
+          dt "Username:"
+          dd do
+            text_field 'user', 'login'
+          end
+          
+          dt "Password:"
+          dd do 
+            password_field 'user', 'password'
+            #<span>(<a href="/login/forgot_password">I forgot my password/username</a>)</span>
+          end
+
+          dd do
+            input :type => "checkbox", :name => "remember_me"
+            text "Remember me on this computer"
+          end
+          dd do
+            submit_tag "Sign in"
+          end
+        end
+      end
+    end
+  end
+end

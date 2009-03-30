@@ -1,0 +1,30 @@
+#
+# Describes the main tabs
+
+div.tabs! do
+  ul.mainTabs! do
+    
+    li.adminTab do 
+      klass = '' # 'current'
+      a "Help/FAQ", :href => "/faq", :class => klass, :title => "Frequently asked questions"
+    end
+
+    li.adminTab do
+      klass = ''
+      a "Search", :href => "/search", :class => klass, :title => "Search published publications"
+    end
+
+		     
+
+    li do 
+      klass = 'current'
+      a "Dashboard", :href => "/dashboard/show", :class => klass, :title => "A list of all outstanding tasks and various statistics"
+    end
+
+    li do 
+      klass = ''
+      a "My Records", :href => "/publication/my_records", :class => klass, :title => "Publication records I maintain"
+    end
+    
+  end
+end
