@@ -83,9 +83,5 @@ if [ -z $topo ] || [ "$topo" == "all" ] ; then
   topo=$TOPO_ALL
 fi
 
-if [ -z $domain ] ; then
-  domain="default"
-fi
-
 exec $PDIR/sbin/ruby1.8 $PDIR/app/$APP $cmd "[$topo]" $domain
 exit 0

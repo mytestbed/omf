@@ -101,7 +101,7 @@ end
 #
 def tellNode(cmd, topo, domain)
   puts "---------------------------------------------------"
-  d = (domain == "default") ?  OConfig.GRID_NAME : domain
+  d = (domain == nil) ?  OConfig.GRID_NAME : domain
   command = nil
   if (cmd == "on" || cmd == "-on" || cmd == "--turn-on")
     command = "on"
@@ -118,7 +118,7 @@ def tellNode(cmd, topo, domain)
   end
   puts " Testbed : #{d} - Command: #{command}"
   topo.eachNode { |n|
-    url = "#{OConfig.CMC_URL}/#{command}?x=#{n[0]}&y=#{n[1]}"
+    url = "#{OConfig.CMC_URL}/#{command}?x=#{n[0]}&y=#{n[1]}&domain=#{d}"
     response = NodeHandler.service_call(url, "Can't send command to CMC")
     if (response.kind_of? Net::HTTPOK)
       puts " Node n_#{n[0]}_#{n[1]} - Ok"

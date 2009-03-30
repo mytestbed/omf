@@ -104,21 +104,26 @@ class CmcStubService < GridService
   s_info 'Switch off a node SOFT (execute halt) at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |req, res|
     x = getParam(req, 'x')
     y = getParam(req, 'y')
     MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
+    tb = getTestbedConfig(req, @@config)
+    inventoryURL = tb['inventory_url']
+    domain = getParam(req, 'domain')
+    ip = getControlIP(inventoryURL, x, y, domain)
     begin
       # Connect to the NA running on the Node
-      theNodeAgent = Net::Telnet::new('Host' => "10.0.0.#{y}",
+      theNodeAgent = Net::Telnet::new('Host' => ip,
                                       'Port' => 9026,
                                       'Timeout' => 0.01,
                                       'Telnetmode' => false)
       # Send a REBOOT message to this NA
-      theNodeAgent.write("0 10.0.0.#{y} REBOOT")
+      theNodeAgent.write("0 #{ip} REBOOT")
       #theNodeAgent.close()
     rescue Exception => ex
-      MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] - Exception: #{ex}")
+      MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
     end
     self.responseOK(res)
   end
@@ -142,22 +147,25 @@ class CmcStubService < GridService
   s_info 'Switch off ALL nodes SOFT (execute halt)'
   service 'allOffSoft' do |req, res|
     tb = getTestbedConfig(req, @@config)
+    inventoryURL = tb['inventory_url']
+    domain = getParam(req, 'domain')
     nodes = eval(tb['listAll'])
     nodes.each { |n|
       x = n[0]; y = n[1]
       #x = 1; y = 2
       MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
+      ip = getControlIP(inventoryURL, x, y, domain)
       begin
         # Connect to the NA running on the Node
-        theNodeAgent = Net::Telnet::new('Host' => "10.0.0.#{y}",
+        theNodeAgent = Net::Telnet::new('Host' => ip,
                                       'Port' => 9026,
                                       'Timeout' => 0.01,
                                       'Telnetmode' => false)
         # Send a REBOOT message to this NA
-        theNodeAgent.write("0 10.0.0.#{y} REBOOT")
+        theNodeAgent.write("0 #{ip} REBOOT")
         #theNodeAgent.close()
       rescue Exception => ex
-        MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}]")
+        MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
       end
     }
     self.responseOK(res)

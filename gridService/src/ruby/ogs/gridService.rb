@@ -237,6 +237,45 @@ class GridService < AbstractService
   def self.assertRange(value, range, errMessage)
     range === value || raise(HTTPStatus::BadRequest, errMessage)
   end
+  
+  #
+  # Return the Control IP address of a specific node on a given testbed. This 
+  # method makes use of the Inventory GridService
+  #
+  # - url = URL to the Inventory GridService
+  # - x,y = coordinate of the node to query
+  # - domain = name of the testbed to query
+  #
+  def self.getControlIP(url, x, y, domain)
+    queryURL = "#{url}/getControlIP?x=#{x}&y=#{y}&domain=#{domain}"
+    debug "GridService - QueryURL: #{queryURL}"
+    response = nil
+    response = Net::HTTP.get_response(URI.parse(queryURL))
+    if (! response.kind_of? Net::HTTPSuccess)
+          error "GridService - No Control IP found for x: #{x} y: #{y} - Bad Response from Inventory"
+          error "GridService - QueryURL: #{queryURL}"
+          raise Exception.new()
+    end
+    if (response == nil)
+      error "GridService - No Control IP found for x: #{x} y: #{y} - Response from Inventory is NIL"
+      error "GridService - QueryURL: #{queryURL}"
+      raise Exception.new()
+    end 
+    doc = REXML::Document.new(response.body)
+    # Parse the Reply to retrieve the control IP address
+    ip = nil
+    doc.root.elements.each("/CONTROL_IP") { |v|
+      ip = v.get_text.value
+    }
+    # If no IP found in the reply... raise an error
+    if (ip == nil)
+      doc.root.elements.each('/ERROR') { |e|
+        error "GridService - No Control IP found for x: #{x} y: #{y} - val: #{e.get_text.value}"
+      }
+    end
+    return ip
+  end
+
 end # class
 
 #

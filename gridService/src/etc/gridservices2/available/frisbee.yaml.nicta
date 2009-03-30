@@ -12,7 +12,7 @@ frisbee:
   testbed:
     default:
       # Directory images are stored
-      imageDir: /export/norbit/image
+      imageDir: /home/ftp/upload
       #defaultImage: orbit-baseline
       defaultImage: norbix
 
