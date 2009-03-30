@@ -58,6 +58,7 @@ module NodeHandlerServer
     mimeTable.update({ "xsl" => "text/xml" })
     args[:MimeTypes] = mimeTable
 
+    MObject.debug(:web, "Configuring internal web server: #{args.inspect}")
     @@server = HTTPServer.new(args)
     @@server.mount("/xml", XMLServlet)
     @@server.mount("/xpath", XPathServlet)
@@ -72,7 +73,12 @@ module NodeHandlerServer
       end
     }
     Thread.new {
-      @@server.start
+      begin
+        MObject.debug(:web, "Starting web server")
+        @@server.start
+      rescue => ex
+        MObject.error(:web, "Internal web server died. #{ex}")
+      end
     }
   end
 

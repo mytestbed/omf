@@ -24,4 +24,5 @@
 #
 $NH_VERSION = "@VERSION@"
 
+require 'rubygems'
 require 'handler/nodeHandler'
