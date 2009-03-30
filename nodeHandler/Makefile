@@ -31,8 +31,8 @@ app: app-ruby app-c
 	cp src/ruby/statnode.rb $(BUILD_DIR)/$(APP_NAME)/app
 	cp src/ruby/tellnode.rb $(BUILD_DIR)/$(APP_NAME)/app
 	cp src/ruby/omf_exec $(BUILD_DIR)/$(APP_NAME)/app
-	cp src/ruby/omf_load $(BUILD_DIR)/$(APP_NAME)/app
-	cp src/ruby/omf_save $(BUILD_DIR)/$(APP_NAME)/app
+	cp src/ruby/omf_load* $(BUILD_DIR)/$(APP_NAME)/app
+	cp src/ruby/omf_save* $(BUILD_DIR)/$(APP_NAME)/app
 	cp src/ruby/omf_tell $(BUILD_DIR)/$(APP_NAME)/app
 	cp src/ruby/omf_stat $(BUILD_DIR)/$(APP_NAME)/app
 
