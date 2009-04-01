@@ -396,7 +396,7 @@ class Node < MObject
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
-      imgName = "node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
+      imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
     TraceState.nodeSaveImage(self, imgName, imgHost, disk)
     #procEl = getConfigNode(['apps'])
