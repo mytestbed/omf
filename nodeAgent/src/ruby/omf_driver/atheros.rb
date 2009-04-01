@@ -94,30 +94,30 @@ class AtherosDevice < WirelessDevice
           else
             raise "Unknown device name '#{@deviceName}'."
         end
-        test = `/usr/local/bin/wlanconfig --version`
+        test = `wlanconfig --version`
         if $?.success?
-          return "/usr/local/bin/wlanconfig #{@deviceName} destroy ; /usr/local/bin/wlanconfig #{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
+          return "wlanconfig #{@deviceName} destroy ; wlanconfig #{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
         else
           # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
-          return "/sbin/iwconfig #{@deviceName} mode #{value}"
+          return "iwconfig #{@deviceName} mode #{value}"
         end
 
 
       when "essid"
         @essid = value
-        return "/sbin/iwconfig #{@deviceName} essid #{value}"
+        return "iwconfig #{@deviceName} essid #{value}"
 
       when "rts"
-        return "/sbin/iwconfig #{@deviceName} rts #{value}"
+        return "iwconfig #{@deviceName} rts #{value}"
 
      when "rate"
-        return "/sbin/iwconfig #{@deviceName} rate #{value}"
+        return "iwconfig #{@deviceName} rate #{value}"
 
       when "frequency"
-        return "/sbin/iwconfig #{@deviceName} freq #{value}"
+        return "iwconfig #{@deviceName} freq #{value}"
 
      when "channel"
-        return "/sbin/iwconfig #{@deviceName} channel #{value}"
+        return "iwconfig #{@deviceName} channel #{value}"
 
      when "tx_power"
         return "echo #{value} > /proc/sys/dev/#{@deviceName}/txpowlimit"

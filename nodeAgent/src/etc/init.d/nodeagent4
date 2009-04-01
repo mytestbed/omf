@@ -1,30 +1,9 @@
 #! /bin/sh
 #
-# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
-
-# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# NodeAgent init script to start nodeagent daemon
+# nodeagent init script to start nodeagent daemon
 #
 #     Written by Maximilian Ott <max@winlab.rutgers.edu>.
+#     Modified by Christoph Dwertmann
 #
 # Version: $Id:$
 #
@@ -41,39 +20,35 @@ if [ -f /etc/default/$NAME ]; then
     . /etc/default/$NAME
 fi
 
-
 export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
 
-case "$1" in
-  start)
+start(){
         echo -n "Starting Orbit Nodeagent: $NAME"
 	start-stop-daemon --start --quiet --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
         echo "."
-	;;
-  stop)
+}
+
+stop(){
         echo -n "Stopping Orbit Nodeagent: $NAME"
 	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/$NAME.pid
         echo "."
-	;;
+}
 
-  reload|force-reload)
-	check_for_no_start
-	check_config
-        echo -n "Reloading Orbit Nodeagent's configuration"
-	start-stop-daemon --stop --signal 1 --quiet --oknodo --pidfile /var/run/$NAME.pid --exec /usr/sbin/$NAME
-	echo "."
+case "$1" in
+  start)
+        start
+	;;
+  stop)
+        stop
 	;;
 
   restart)
-	check_config
-        echo -n "Restarting Orbit Nodeagent: $NAME"
-	start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile /var/run/$NAME.pid
-	start-stop-daemon --start --quiet --pidfile /var/run/$NAME.pid --exec /usr/sbin/$NAME -- $OPTS
-	echo "."
+        stop
+	start
 	;;
 
   *)
-	echo "Usage: /etc/init.d/$NAME {start|stop|reload|force-reload|restart}"
+	echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
 	exit 1
 esac
 
