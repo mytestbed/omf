@@ -25,14 +25,19 @@ export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
 
 start(){
         echo -n "Starting Orbit Gridservice: $NAME"
+	PORT=`echo $OPTS | sed 's/[^0-9]*//g'`
+	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
+	   echo -n "\nWaiting for release of port $PORT..."
+	   sleep 3
+	done
 	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
-        echo "."
+        echo "..done."
 }
 
 stop(){
         echo -n "Stopping Orbit Gridservice: $NAME"
 	start-stop-daemon --stop --signal 2 --oknodo --pidfile /var/run/$NAME.pid
-        echo "."
+        echo "..done."
 }
 
 
