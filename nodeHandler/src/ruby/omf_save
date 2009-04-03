@@ -27,6 +27,7 @@
 # Names of PXE images are not retrieved from the Inventory
 #PXE_VERSION=sata-2.0.1 # TR: 'sata-2.0.1' at Nicta
 #PXE_VERSION=1.2.1-omf # TR: 'orbit-1.2.1-omf' at Winlab
+TOPO_ALL=system:topo:all
 MY_NAME="$ROOTAPP save"
 
 function usage()
@@ -67,5 +68,6 @@ function saveimage()
 
 case "$1" in
   "-h" | "--help" )  usage ; exit 1 ;;
+  all) saveimage $TOPO_ALL $2 ;;  
   * ) saveimage $1 $2 ;;
 esac

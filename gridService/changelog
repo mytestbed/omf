@@ -1,3 +1,9 @@
+gridservices2 (2.2.0ubuntu2) testing; urgency=low
+
+  * updated to SVN rev. 52 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 02 Apr 2009 16:10:45 +1100
+
 gridservices2 (2.2.0ubuntu1) testing; urgency=low
 
   * package converted to Ubuntu

@@ -52,10 +52,10 @@ everyNS('save', 10) { |ns|
     if status =~ /DONE/
       notDone = false
       if status =~ /DONE.ERR/
-        info("- Saving process finished with ERRORS! at: #{Time.now}")
+        info("- Saving process of node n_#{n.x}_#{n.y} finished with ERRORS! at: #{Time.now}")
 	info("  Check the log file (probably disk read error on the node...)")
       else
-        info("- Saving process finished correctly at: #{Time.now}")
+        info("- Saving process of node n_#{n.x}_#{n.y} finished correctly at: #{Time.now}")
       end
     end
   }

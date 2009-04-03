@@ -1,3 +1,9 @@
+nodehandler4 (4.4.0ubuntu2) testing; urgency=low
+
+  * updated to SVN rev. 52 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 02 Apr 2009 16:19:12 +1100
+
 nodehandler4 (4.4.0ubuntu1) testing; urgency=low
 
   * package converted to Ubuntu    

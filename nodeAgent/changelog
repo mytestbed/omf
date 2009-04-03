@@ -1,3 +1,9 @@
+nodeagent4 (4.4.0ubuntu2) testing; urgency=low
+
+  * updated to SVN rev. 52
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 02 Apr 2009 16:17:48 +1100
+
 nodeagent4 (4.4.0ubuntu1) testing; urgency=low
 
   * package converted to Ubuntu hardy testing 

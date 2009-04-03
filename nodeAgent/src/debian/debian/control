@@ -9,9 +9,9 @@ Package: nodeagent4
 Architecture: all
 Pre-Depends: ruby
 Recommends:  wget  
-Depends:
+Depends: frisbee, imagezip
 Suggests: 
 Installed-Size: 1024
 Conflicts: 
 Replaces: 
-Description: Client application for Orbit nodeAgent.  Executes commands given by the nodeHandler. 
+Description: Client application for OMF nodeAgent.  Executes commands given by the nodeHandler. 
