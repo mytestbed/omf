@@ -315,7 +315,10 @@ class NodeHandler < MObject
 
     startWebServer()
 
-    # with OMLv2 we do not need to wait for application(s) setup to start the collection server
+    # With OMLv2 we do not need to wait for application(s) setup to start the collection server
+    # Also, now we use only one instance of OML2 server to serve multiple experiment, however
+    # we still need to call a start on it, i.e. if none is running then the 'start' will run one,
+    # if one is already running, then this 'start' will just return the its address:port
     OmlApp.startCollectionServer
 
     if (@extraLibs)
@@ -626,7 +629,9 @@ class NodeHandler < MObject
       Communicator.instance.quit
     end
 
-    OmlApp.stopCollectionServer
+    # Now we don't stop the OML2 Collection Server, as we will use the same to 
+    # serve multiple experiment. 
+    #OmlApp.stopCollectionServer
 
     Antenna.each { |a|
       a.signal.off

@@ -144,7 +144,9 @@ class OmlApp < MObject
     end
     # Start a new OMLv2 server
     @@collectionServerStarted = true
-    url = "#{OConfig.OML_SERVICE}/start?id=#{Experiment.ID}&domain=#{OConfig.GRID_NAME}"
+    #url = "#{OConfig.OML_SERVICE}/start?id=#{Experiment.ID}&domain=#{OConfig.GRID_NAME}"
+    # Now we always use the same ID for the OML2 server, the new OML2 server will serve multiple experiment.
+    url = "#{OConfig.OML_SERVICE}/start?id=#{OConfig.GRID_NAME}&domain=#{OConfig.GRID_NAME}"
     response = NodeHandler.service_call(url, "Can't start OML collection service")
     if response.kind_of?(Net::HTTPOK)
       # The server started correctly, retrieve its contact info from the HTTPresponse
