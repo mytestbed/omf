@@ -1,0 +1,103 @@
+
+h1.welcome {
+	margin-top: 1em;
+	font-size: large;
+}
+
+/******** LOGIN ********/
+
+div.login {
+/*	
+	margin: 20px auto 20px auto;
+*/
+	margin: 20px auto 20px 30px;	
+	width: 22em;
+	
+  border: 10px solid #ccc;
+  border: 1px solid blue;
+    padding: 15px 20px 10px 20px;
+    text-align: left;
+    background: #fff;
+		
+	
+}
+
+.login #Flash {
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.login div.Container {
+	width: 500px;
+	margin: 60px auto 20px auto;
+	min-width: inherit;
+}
+
+.login h1 {
+	margin-bottom: 20px;
+}
+
+
+.login dl {
+	margin: 10px 0 0 0;
+}
+
+.login p {
+	margin: 10px 0 0 0;
+}
+
+.login dt {
+	float: left;
+	width: 6em;
+	font-size: 14px;
+	line-height: 24px;
+}
+
+.login dd {
+	margin: 0 0 5px 8em;
+	font-size: 11px;
+	line-height: 24px;
+	color: #666;
+/*
+	margin-left: 80px;
+	*/
+}
+
+.login input {
+	font-size: 14px;
+}
+
+.login dd span {
+    color: #ccc;
+}
+
+.login input#username {
+    width: 300px;
+}
+
+.login input#password {
+    width: 140px;
+    margin-right: 5px;
+}
+
+.login input#emailpassword {
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.login div.AlertGood,
+.login div.AlertBad {
+    margin: 10px 0 20px 0;
+}
+
+.login div#Dialog {
+    border: 10px solid #ccc;
+    padding: 15px 20px 10px 20px;
+    text-align: left;
+    background: #fff;
+}
+
+body.login div#Dialog h2 {
+    margin: 0;
+    padding: 0;
+}

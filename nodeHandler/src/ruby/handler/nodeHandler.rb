@@ -52,11 +52,14 @@ require 'handler/nodeSet'
 require 'handler/handlerCommands'
 require 'rexml/document'
 require 'rexml/element'
-require 'handler/nodeHandlerServer'
+require 'handler/web/webServer'
 require 'handler/cmc'
 require 'handler/antenna'
 require 'handler/communicator'
 require 'handler/topology'
+
+require 'handler/web/tab/log/logServlet'
+
 
 Project = nil
 
@@ -261,6 +264,18 @@ class NodeHandler < MObject
   def interactive?
     @interactive
   end
+  
+  #
+  # Return the interactive state of the Node Handler
+  #
+  # [Return] true/false
+  #
+  def self.debug?
+    self.instance.debug?
+  end
+  def debug?
+    @debug
+  end
 
   # 
   # Set the Flag indicating that this Experiment Controller (NH) is invoked for an 
@@ -326,16 +341,17 @@ class NodeHandler < MObject
         Experiment.load(f)
       }
     end
+    
     if @expFile
       # Expose the Experiment File through the Web Server of NH
       @expFileURL = "#{NodeHandlerServer.url()}#{EXPFILE_MOUNT}"
-      NodeHandlerServer.mapFile(EXPFILE_MOUNT, @expFile)
+      OMF::ExperimentController::Web.mapFile(EXPFILE_MOUNT, @expFile)
 
       # Then Load the Experiment File 
       Experiment.load(@expFile)
     end
 
-    Experiment.start()
+    Experiment.start() if @expfile
 
     # If EC is in 'Disconnection Mode' print a message for user on console
     if NodeHandler.disconnectionMode?
@@ -390,6 +406,11 @@ class NodeHandler < MObject
     opts.on("-d", "--domain NAME", "Resource domain. Usually the name of the testbed") {|name|
       Experiment.domain = name
     }
+    
+    opts.on("-D", "--debug", "Operate in debug mode") {|name|
+      @debug = true
+    }
+
 
     opts.on("-i", "--interactive", "Run the nodehandler in interactive mode") {
       @interactive = true
@@ -439,6 +460,10 @@ class NodeHandler < MObject
 
     opts.on("-t", "--tags TAGS", "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
+    }
+
+    opts.on_tail("-w", "--web-ui", "Control experiment through web interface") {
+      @web_ui = true
     }
 
     opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
@@ -514,7 +539,7 @@ class NodeHandler < MObject
       @expFile = s
     }
 
-    if (@expFile.nil? && ! @interactive)
+    if (@expFile.nil? && ! (@interactive || @web_ui))
       MObject.fatal('init', "Missing experiment file")
       puts opts
       exit -1
@@ -559,6 +584,7 @@ class NodeHandler < MObject
     @@runningSlaveMode = false
     @omlProxyPort = nil
     @omlProxyAddr = nil
+    @web_ui = false
   end
 
   #
@@ -655,7 +681,7 @@ class NodeHandler < MObject
     end
 
     begin
-      NodeHandlerServer::stop
+      OMF::ExperimentController::Web::stop
     rescue Exception
       #ignore
     end
@@ -721,7 +747,7 @@ class NodeHandler < MObject
       end
     }
     begin
-        NodeHandlerServer::start(@webPort, {:Logger => Logger.new("w_internal"),
+        OMF::ExperimentController::Web::start(@webPort, {:Logger => Logger.new("w_internal"),
              :DocumentRoot => NodeHandler.WEB_ROOT(),
              :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
     rescue Exception => except

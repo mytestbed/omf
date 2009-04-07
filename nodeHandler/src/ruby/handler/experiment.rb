@@ -295,12 +295,29 @@ class ExperimentProperty < MObject
 
   # Contains all the experiment properties
   @@properties = Hash.new
+  
+  # Holds all observers on property creation and modifications
+  @@observers = []
 
-  def ExperimentProperty.[] (name)
+  def self.[] (name)
     return @@properties[name.to_s]
   end
+  
+  # Iterate over all experiment properties. The block
+  # will be called with the respective property as single
+  # argument
+  #
+  def self.each(sortNames = true, &block)
+    names = @@properties.keys
+    if (sortNames)
+      names = names.sort
+    end
+    names.each {|n|
+      block.call(@@properties[n])
+    }
+  end
 
-  def ExperimentProperty.create(name, value = nil, description = nil)
+  def self.create(name, value = nil, description = nil)
     name = name.to_s
     p = nil
     if (p = @@properties[name]) != nil
@@ -309,21 +326,29 @@ class ExperimentProperty < MObject
     else
       p = ExperimentProperty.new(name, value, description)
       @@properties[name] = p
+      @@observers.each { |proc|
+        proc.call(:create, p)
+      }
     end
     return p
   end
 
-  def ExperimentProperty.names()
+  def self.names()
     return @@properties.keys
   end
 
-  def ExperimentProperty.propertyRootEl= (el)
+  def self.propertyRootEl= (el)
     @@expProps = el
   end
 
-  def ExperimentProperty.propertyRootEl()
+  def self.propertyRootEl()
     @@expProps
   end
+  
+  def self.add_observer(&proc)
+    @@observers << proc
+  end
+
 
   attr_reader :name, :value, :description, :id
 

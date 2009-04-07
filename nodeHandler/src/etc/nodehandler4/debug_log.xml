@@ -4,9 +4,11 @@
   </pre_config>
   <!-- outputers -->
   <outputter type="StdoutOutputter" name="console" level="DEBUG"/>
+  <outputter type="OMF::ExperimentController::Web::Log::LogOutputter" name="web" level="DEBUG"/>
+	
   <!-- loggers -->
-  <logger name="nodeHandler" outputters="console" level="DEBUG" trace="true"/>
-  <logger name="web" outputters="console" level="WARN"/>
-  <logger name="nodeHandler::comm" outputters="console" level="INFO"/>
-  <logger name="nodeHandler::commServer" outputters="console" level="INFO"/>
+  <logger name="nodeHandler" outputters="console, web" level="DEBUG" trace="true"/>
+  <logger name="web" outputters="console, web" level="DEBUG"/>
+  <logger name="nodeHandler::comm" outputters="console, web" level="INFO"/>
+  <logger name="nodeHandler::commServer" outputters="console, web" level="INFO"/>
 </log4r_config>

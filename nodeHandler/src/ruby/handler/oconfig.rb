@@ -29,12 +29,15 @@
 # This file defines the OConfig module
 #
 #
+require 'observer'
 
 #
 # This module implements the methods used by NH to acces both its own configuration 
 # parameters, and the parameters which are specific to a given testbed
 #
 module OConfig
+  
+  @@observers = []
 
   #
   # Return the value of a given configuration parameter
@@ -74,7 +77,7 @@ module OConfig
     # directly on a node/resource and will only be responsible for orchestrating the part
     # of the experiment which is specific to this node/resource. Thus config parameters
     # are also specific (most would be turned to 'localhost' and local node ID)
-    if NodeHandler.SLAVE_MODE
+    if NodeHandler.SLAVE_MODE || NodeHandler.debug?
       return nil 
     end
     # Test if the XML configuration blurb is empty
@@ -271,6 +274,11 @@ module OConfig
     if evalRuby
       require file
     end
+    
+    @@observers.each { |proc|
+      proc.call(:load, uri, str, '/text/ruby')
+    }
+
     [str, 'text/ruby']
   end
 
@@ -339,5 +347,9 @@ module OConfig
     end
     # Init the config info from Inventory... this will be loaded later.
     @@configFromInventory = nil
+  end
+  
+  def self.add_observer(&proc)
+    @@observers << proc
   end
 end
