@@ -257,8 +257,8 @@ class ResultService < GridService
 {"oml_res" : {
   "expID" : "#{id}",
   "query" : #{sqlQuery.inspect},
-  "columns" : #{resultColumns.inspect},
-  "rows" : #{resultRows.inspect}
+  "columns" : #{(resultColumns || []).inspect},
+  "rows" : #{(resultRows || []).inspect}
 }}
 }
     reply
