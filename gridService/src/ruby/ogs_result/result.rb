@@ -198,14 +198,18 @@ class ResultService < GridService
   s_info "Get the Schema of a given experiment measurement database"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'
   s_param :query, 'SQLquery', 'An SQLite query to run against the database'
+  s_param :format, 'xml | json', 'Format to return result in.', "xml"
   service 'queryDatabase' do |req, res|
     # Retrieve the request parameter
     id = getParam(req, 'expID')
     sqlQuery = getParam(req, 'query')
+    format = getParamDef(req, 'format', 'xml')
+    
     # Access and Query the experiment database
     result = nil
     begin
       database = getDatabase(id)
+      database.type_translation = true if format == "json"
       resultColumns, *resultRows = database.execute2(sqlQuery)
       database.close()
     rescue Exception => ex
@@ -213,6 +217,21 @@ class ResultService < GridService
     end
     # Build and Set the XML response
     msgEmpty = "No Result from Query against this experiment measurement database --- ID: #{id} --- QUERY: #{sqlQuery} --- #{ex} "
+    case format
+      when 'xml'
+        reply = formatResultXML(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+        setResponse(res, reply)
+      when 'json'
+        reply = formatResultJSON(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+        res.body = reply
+        res['Content-Type'] = "text/json"
+      else
+        error "Unknown reply format '#{format}'"
+    end
+  end
+  
+  
+  def self.formatResultXML(id, sqlQuery, resultColumns, resultRows, msgEmpty)
     # XMLRoot is 'DATABASE'
     replyXML = buildXMLReply("DATABASE", resultRows, msgEmpty) { |root,rows|
       # Add Element 'DATABASE - QUERY'     
@@ -229,8 +248,23 @@ class ResultService < GridService
       }
     }
     replyXML.add_attribute("ExperimentID", "#{id}")
-    setResponse(res, replyXML)
+    replyXML    
   end
+  
+  require 'stringio'
+  def self.formatResultJSON(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+    reply = %{
+{"oml_res" : {
+  "expID" : "#{id}",
+  "query" : #{sqlQuery.inspect},
+  "columns" : #{resultColumns.inspect},
+  "rows" : #{resultRows.inspect}
+}}
+}
+    reply
+  end
+
+  
   
   #
   # Configure the service through a hash of options
@@ -241,6 +275,22 @@ class ResultService < GridService
     @@config = config
     error("Missing configuration 'sqlite3_path'") if @@config['sqlite3_path'] == nil
     error("Missing configuration 'database_path'") if @@config['database_path'] == nil
+  end
+  
+  # Overide the 'mont' call when installing the service to install the 
+  # flash security handler.
+  #
+  def self.mount(server, prefix = "/#{self.serviceName}")
+    #warn "MOUNT: #{server.inspect}"
+    server.mount_proc('/crossdomain.xml') do |req, resp|
+      resp.body = %{
+<cross-domain-policy>
+  <allow-access-from domain="*"/>
+</cross-domain-policy>
+}
+      resp['content-type'] = 'text/xml'
+    end
+    super
   end
   
 end
