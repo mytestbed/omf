@@ -117,6 +117,7 @@ class NodeSet < MObject
     if self.frozen?
       raise "Can't define any more nodes after 'allNodes' has been called"
     end
+    @mutex = Mutex.new
     @applications = Hash.new
     @deferred = [] # store any messages if nodes aren't up yet
     @onUpBlock = nil # Block to execute for every node checking in
@@ -549,11 +550,14 @@ class NodeSet < MObject
   #
   def send(command, *args)
     debug("#send: args(#{args.length})'#{args.join('#')}")
+    @mutex.synchronize do
+      if (!up?)
+        debug "Deferred message: #{command} #{@nodeSelector} #{args.join(' ')}"
+        @deferred << [command, args]
+      end
+    end
     if (up?)
       Communicator.instance.send(@nodeSelector, command, args)
-    else
-      debug "Deferred message: #{command} #{@nodeSelector} #{args.join(' ')}"
-      @deferred << [command, args]
     end
   end
 
@@ -590,13 +594,17 @@ class NodeSet < MObject
   # all the nodes in this nodeSet are up
   #
   def send_deferred()
-    if (@deferred.size > 0 && up?)
+    thesize = 0
+    @mutex.synchronize do
+     thesize = @deferred.size
+    end # synchronize
+    if (thesize > 0 && up?)
       da = @deferred
       @deferred = []
       da.each { |e|
         command = e[0]
         args = e[1]
-        #debug "send_deferred(#{args.class}:#{args.length}):#{args.join('#')}"
+        debug "send_deferred(#{args.class}:#{args.length}):#{args.join('#')}"
         send(command, *args)
       }
     end
