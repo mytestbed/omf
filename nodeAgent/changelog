@@ -1,3 +1,10 @@
+nodeagent4 (4.4.0ubuntu3) testing; urgency=low
+
+  * does not depend on ruby, frisbee and imagezip anymore, but does depend on
+    wget. Added more debugging output. Wget now overwrites files.
+
+ -- root <root@norbit.npc.nicta.com.au>  Wed, 08 Apr 2009 18:50:45 +1000
+
 nodeagent4 (4.4.0ubuntu2) testing; urgency=low
 
   * updated to SVN rev. 52

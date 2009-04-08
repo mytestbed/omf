@@ -222,7 +222,7 @@ module AgentCommands
     urlED = getArg(argArray, "URL for Experiment Description")
     fileName = "/tmp/exp_#{ts}.rb"
     MObject.debug("Fetching Experiment Description at '#{urlED}'")
-    if (! system("wget -q -O #{fileName} #{urlED}"))
+    if (! system("wget -m -nd -q -O #{fileName} #{urlED}"))
       raise "Couldn't fetch Experiment Description at:' #{urlED}'"
     end
     MObject.debug("Experiment Description saved at: '#{fileName}'")
@@ -288,7 +288,7 @@ module AgentCommands
         require 'digest/md5'
         fileName = "/tmp/#{Digest::MD5.hexdigest(url)}.xml"
         MObject.debug("Fetching oml definition file ", url)
-        if (! system("wget -q -O #{fileName} #{url}"))
+        if (! system("wget -m -nd -q -O #{fileName} #{url}"))
           raise "Couldn't fetch OML config file #{url}"
         end
         arg = "OML_CONFIG=#{fileName}"
@@ -343,7 +343,7 @@ module AgentCommands
     installRoot = getArgDefault(argArray, "/")
 
     MObject.debug "Installing #{url} into #{installRoot}"
-    cmd = "cd /tmp;wget -q #{url};"
+    cmd = "cd /tmp;wget -m -nd -q #{url};"
     file = url.split('/')[-1]
     cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
     ExecApp.new(id, agent, cmd)

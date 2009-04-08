@@ -7,9 +7,9 @@ Standards-Version: 3.6.1
 
 Package: nodeagent4
 Architecture: all
-Pre-Depends: ruby
-Recommends:  wget  
-Depends: frisbee, imagezip
+Pre-Depends:
+Recommends:
+Depends: wget
 Suggests: 
 Installed-Size: 1024
 Conflicts: 
