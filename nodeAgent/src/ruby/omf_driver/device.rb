@@ -92,6 +92,7 @@ class Device < MObject
       if $?.success?
         agent.okReply(:CONFIGURE, path, reply)
       else
+        error("While configuring #{prop} with #{value} - CMD reply is: '#{reply}'")
         agent.errorReply(:CONFIGURE, path, reply)
       end
     rescue => err

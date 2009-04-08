@@ -244,7 +244,7 @@ class NodeAgent < MObject
   # started so far, and remove all loaded network modules
   #
   def reset
-    info "RESET"
+    info "\n------------ RESET ------------\n"
     ExecApp.killAll
     Device.unload
     #### ONLY FOR WINDOWS TESTING

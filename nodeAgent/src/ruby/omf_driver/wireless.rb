@@ -125,6 +125,7 @@ class WirelessDevice < EthernetDevice
     if (! loaded?)
       reply = `/sbin/modprobe #{driver}`
       if ! $?.success?
+        error "Problems loading module '#{driver}' -- '#{reply}'"
         raise "Problems loading module #{driver} -- #{reply}"
       end
       info("Loaded #{driver} driver")
