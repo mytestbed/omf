@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -f
 #
 # Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
@@ -43,8 +43,8 @@ function usage()
   echo "                    (no default here, you have to enter a node!)"
   echo " "
   echo "      Some Examples: " 
-  echo "                    $MY_NAME [5,10]"
-  echo "                    $MY_NAME [11,2] grid"
+  echo "                    $MY_NAME \"[5,10]\""
+  echo "                    $MY_NAME \"[11,2]\" grid"
   echo " "
 }
 

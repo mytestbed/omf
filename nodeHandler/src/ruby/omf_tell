@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -f
 #
 # Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
@@ -38,7 +38,7 @@ function usage()
 	echo -e "\nSwitch ON/OFF the nodes in a testbed\n"
 	echo "Usage:"
 	echo "      $MY_NAME [-h]"
-	echo "      $MY_NAME [COMMAND] [TOPOLOGY] [DOMAIN]"
+	echo "      $MY_NAME [COMMAND] \"[TOPOLOGY]\" [DOMAIN]"
 	echo " "
 	echo "      With: "
 	echo "      -h, --help    print this help message"
@@ -53,9 +53,9 @@ function usage()
 	echo " "
 	echo "      Some Examples: " 
 	echo "                    $MY_NAME on all grid"
-	echo "                    $MY_NAME on 1,1..2"
-	echo "                    $MY_NAME offs [[1,2],[1,1]] sb1 "
-	echo "                    $MY_NAME offs [[1,1],[2..6,1..2]] "
+	echo "                    $MY_NAME on \"1,1..2\""
+	echo "                    $MY_NAME offs \"[[1,2],[1,1]]\" sb1 "
+	echo "                    $MY_NAME offs \"[[1,1],[2..6,1..2]]\" "
 	echo "                    $MY_NAME offh system:topo:all"
 	echo "                    $MY_NAME offh topo_grid_active"
 	echo " "

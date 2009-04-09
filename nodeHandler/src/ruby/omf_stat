@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -f
 #
 # Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
@@ -39,7 +39,7 @@ function usage()
 	echo "Usage:"
 	echo "      $MY_NAME [-h]"
 	echo "      $MY_NAME [-c] [DOMAIN]"
-	echo "      $MY_NAME [TOPOLOGY] [DOMAIN]"
+	echo "      $MY_NAME \"[TOPOLOGY]\" [DOMAIN]"
 	echo " "
 	echo "      With: "
 	echo "      -h, --help    print this help message"
@@ -50,9 +50,8 @@ function usage()
 	echo " "
 	echo "      Some Examples: " 
 	echo "                    $MY_NAME all grid"
-	echo "                    $MY_NAME 1,1..2"
-	echo "                    $MY_NAME [[1,2],[1,1]] sb1 "
-	echo "                    $MY_NAME [[1,1],[2..6,1..2]] "
+	echo "                    $MY_NAME \"[[1,2],[1,1]]\" sb1 "
+	echo "                    $MY_NAME \"[[1,1],[2..6,1..2]]\" "
 	echo "                    $MY_NAME system:topo:all"
 	echo "                    $MY_NAME system:topo:circle"
 	echo "                    $MY_NAME topo_grid_active"

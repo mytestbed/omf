@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -f
 #
 # Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
@@ -37,7 +37,7 @@ function usage()
   echo -e "\nInstall a given disk image on the nodes in a testbed\n"
   echo "Usage:"
   echo "      $MY_NAME [-h]"
-  echo "      $MY_NAME [TOPOLOGY] [IMAGE_PATH] [TIMEOUT] [DOMAIN]"
+  echo "      $MY_NAME \"[TOPOLOGY]\" [IMAGE_PATH] [TIMEOUT] [DOMAIN]"
   echo " "
   echo "      With: "
   echo "      -h, --help    print this help message"
@@ -59,9 +59,9 @@ function usage()
   echo "                    $MY_NAME"
   echo "                    $MY_NAME all"
   echo "                    $MY_NAME all baseline-2.4.ndz"
-  echo "                    $MY_NAME [1,1] wireless-2.6.ndz"
-  echo "                    $MY_NAME [[1,2],[1,4]] baseline.ndz 400"
-  echo "                    $MY_NAME [[1,1],[2..6,1..2]]"
+  echo "                    $MY_NAME \"[1,1]\" wireless-2.6.ndz"
+  echo "                    $MY_NAME \"[[1,2],[1,4]]\" baseline.ndz 400"
+  echo "                    $MY_NAME \"[[1,1],[2..6,1..2]]\""
   echo "                    $MY_NAME system:topo:circle my_Own_Image.ndz"
   echo "                    $MY_NAME my_Own_Topology baseline-2.2.ndz 600 grid"
   echo " "
