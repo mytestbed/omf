@@ -550,15 +550,17 @@ class NodeSet < MObject
   #
   def send(command, *args)
     debug("#send: args(#{args.length})'#{args.join('#')}")
-    if (up?)
-      Communicator.instance.send(@nodeSelector, command, args)
-      return
-    end
+    notQueued = true
     @mutex.synchronize do
       if (!up?)
         debug "Deferred message: #{command} #{@nodeSelector} #{args.join(' ')}"
         @deferred << [command, args]
+        notQueued = false
       end
+    end
+    if (up? && notQueued)
+      Communicator.instance.send(@nodeSelector, command, args)
+      return
     end
   end
 
