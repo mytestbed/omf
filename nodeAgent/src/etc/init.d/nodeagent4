@@ -24,6 +24,9 @@ export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
 
 start(){
         echo -n "Starting Orbit Nodeagent: $NAME"
+	if [ -f /var/log/nodeAgent4.log ]; then
+	    mv /var/log/nodeAgent4.log /var/log/nodeAgent4.log.1
+	fi
 	start-stop-daemon --start --quiet --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
         echo "."
 }
