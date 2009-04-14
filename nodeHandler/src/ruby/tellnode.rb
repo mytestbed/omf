@@ -64,6 +64,8 @@ class NodeHandler
       #puts "service_call - Exception: #{ex} (#{ex.class})"
     end
   end
+  def self.debug?
+  end
 end
 
 # Load the NodeHandler config file
