@@ -9,7 +9,7 @@ Package: nodehandler4
 Architecture: all
 Pre-Depends: 
 Recommends:    
-Depends:
+Depends: libmarkaby-ruby rubygems
 Suggests: 
 Installed-Size: 1024
 Conflicts: 

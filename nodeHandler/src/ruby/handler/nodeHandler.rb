@@ -344,15 +344,14 @@ class NodeHandler < MObject
     
     if @expFile
       # Expose the Experiment File through the Web Server of NH
-      @expFileURL = "#{NodeHandlerServer.url()}#{EXPFILE_MOUNT}"
+      @expFileURL = "#{OMF::ExperimentController::Web.url()}#{EXPFILE_MOUNT}"
       OMF::ExperimentController::Web.mapFile(EXPFILE_MOUNT, @expFile)
 
       # Then Load the Experiment File 
       Experiment.load(@expFile)
+      Experiment.start()
     end
-
-    Experiment.start() if @expfile
-
+    
     # If EC is in 'Disconnection Mode' print a message for user on console
     if NodeHandler.disconnectionMode?
       whenAll("*", "status[@value='UP']") {

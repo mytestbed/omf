@@ -200,7 +200,7 @@ whenAllUp() {|ns|
 
 
 #defURL('/progress') {|req, res|
-NodeHandlerServer.mapProc('/progress') {|req, res|
+OMF::ExperimentController::Web.mapProc('/progress') {|req, res|
   body = []
   body << %q{
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
