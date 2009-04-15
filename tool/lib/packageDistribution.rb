@@ -38,7 +38,7 @@ Outstanding = []
 
 def checkoutFile(file)
   puts "Checking #{file}" if $verbose
-  IO.popen("grep -h -E '^[[:space:]]*require' #{file}").each_line { |l|
+  IO.popen("grep -h -E '^[[:space:]]*require ' #{file}").each_line { |l|
     n = l.chomp.strip.split(/[ \t()]/)[1]
     #puts "Looking for =#{n}="
     if ! (n[0] == ?" || n[0] == ?')
