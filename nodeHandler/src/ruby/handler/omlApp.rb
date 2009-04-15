@@ -66,8 +66,8 @@ class OmlApp < MObject
 
     if ! @@initialized
       @@initialized = true
-      NodeHandlerServer.map("/omls", OMLServerServlet)
-      NodeHandlerServer.map("/omlc", OMLClientServlet)
+      OMF::ExperimentController::Web.map("/omls", OMLServerServlet)
+      OMF::ExperimentController::Web.map("/omlc", OMLClientServlet)
       NodeHandler::OML_EL.add_element('database-name').text = OmlApp.getDbName
       @@mpointsEl = NodeHandler::OML_EL.add_element('measurement-points')
     end
@@ -93,7 +93,7 @@ class OmlApp < MObject
         el.add_element(metric.to_xml)
       }
     }
-    return "#{NodeHandlerServer.url()}/omlc?id=#{id}"
+    return "#{OMF::ExperimentController::Web.url()}/omlc?id=#{id}"
   end
 
   #

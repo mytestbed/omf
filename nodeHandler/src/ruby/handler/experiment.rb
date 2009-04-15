@@ -196,7 +196,7 @@ class Experiment
   # Set the Root Document for this Experiment
   #
   def Experiment.documentRoot=(path)
-    NodeHandlerServer::documentRoot(path)
+    OMF::ExperimentController::Web::documentRoot(path)
   end
 
   # 

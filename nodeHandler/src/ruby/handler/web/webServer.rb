@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-# = nodeHandlerServer.rb
+# = webServer.rb
 #
 # == Description
 #

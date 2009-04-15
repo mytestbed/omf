@@ -1,3 +1,9 @@
+nodehandler4 (4.4.0ubuntu3) testing; urgency=low
+
+  * fixed issue with "default" domain 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 14 Apr 2009 11:22:42 +1000
+
 nodehandler4 (4.4.0ubuntu2) testing; urgency=low
 
   * updated to SVN rev. 52 
