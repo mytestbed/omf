@@ -8,10 +8,6 @@ cmc:
     # These are the configuration parameters for the default testbed
     # Currently the default testbed is the "indoor" one
     default: 
-      listAll: |
-        (1..4).to_a.map {|i| [1, i]}
-      listStatus: |
-        (1..4).to_a.map {|i| [1, i, 'POWERON']}
 
       # inventory_url: URL to the Inventory GS, where we can get mapping [x,y] to IP@
       inventory_url: 'http://localhost:5022/inventory'

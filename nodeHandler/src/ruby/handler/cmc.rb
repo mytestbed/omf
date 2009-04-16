@@ -144,8 +144,7 @@ module CMC
       puts "CMC: Get All Active Nodes For a Domain"
     else
       # NOTE: We should really use 'allStatus' and parse it properly
-      url = "#{OConfig.CMC_URL}/getActiveNodes?format=ruby"
-      url = "#{OConfig.CMC_URL}/allStatus?domain=#{Experiment.domain}"
+      url = "#{OConfig.CMC_URL}/allStatus?domain=#{OConfig.GRID_NAME}"
       response = NodeHandler.service_call(url, "Can't get All Active nodes")
       doc = REXML::Document.new(response.body)
       @@activeNodes = {}

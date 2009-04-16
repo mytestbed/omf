@@ -90,8 +90,9 @@ class PxeService < GridService
   s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
   service 'setBootImageAll' do |req, res|
     tb = getTestbedConfig(req, @@config)
+    inventoryURL = tb['inventory_url']
     domain = getParam(req, 'domain')
-    nodes = defAllNodes(tb, domain)
+    nodes = listAllNodes(inventoryURL, domain)
     imageName = getParamDef(req, 'imgName', nil)
     setImage(nodes, tb, domain, res, imageName)
   end
@@ -103,8 +104,9 @@ class PxeService < GridService
   s_param :domain, 'domain', 'domain for request.'
   service 'clearBootImageAll' do |req, res|
     tb = getTestbedConfig(req, @@config)
+    inventoryURL = tb['inventory_url']
     domain = getParam(req, 'domain')
-    nodes = defAllNodes(tb, domain)
+    nodes = listAllNodes(inventoryURL, domain)
     clearImage(nodes, tb, domain, res)
   end
 
@@ -144,47 +146,6 @@ class PxeService < GridService
       }
     end
     return imageName
-  end
-  
-  #
-  # Return the XMax and YMax values for all the nodes on a given testbed. This 
-  # method makes use of the Inventory GridService
-  #
-  # - url = URL to the Inventory GridService
-  # - domain = name of the testbed to query
-  #
-  def self.getXYMax(url, domain)
-    queryURL = "#{url}/getConfig?domain=#{domain}"
-    debug "PXE - QueryURL: #{queryURL}"
-    response = nil
-    response = Net::HTTP.get_response(URI.parse(queryURL))
-    if (! response.kind_of? Net::HTTPSuccess)
-          error "PXE - No XMax/YMax info found for t: #{domain} - Bad Response from Inventory"
-          error "PXE - QueryURL: #{queryURL}"
-          raise Exception.new()
-    end
-    if (response == nil)
-      error "PXE - No XMax/YMax info found for t: #{domain} - Response from Inventory is NIL"
-      error "PXE - QueryURL: #{queryURL}"
-      raise Exception.new()
-    end 
-    doc = REXML::Document.new(response.body)
-    # Parse the Reply to retrieve the PXE Image name
-    xmax = nil
-    ymax = nil
-    doc.root.elements.each("/CONFIG/x_max") { |v|
-      xmax = v.get_text.value
-    }
-    doc.root.elements.each("/CONFIG/y_max") { |v|
-      ymax = v.get_text.value
-    }
-    # If no name found in the reply... raise an error
-    if (xmax == nil || ymax == nil)
-      doc.root.elements.each('/ERROR') { |e|
-        error "PXE - No XMax/YMax info found for t: #{domain} - val: #{e.get_text.value}"
-      }
-    end
-    return xmax.to_i, ymax.to_i
   end
   
   #
@@ -300,26 +261,6 @@ class PxeService < GridService
     action.add_attribute('name', actionName)
     nodes = action.add_element('nodes')
     [root, nodes]
-  end
-
-  #
-  # Return an Array of node coordinates for a a given tesbed [(1..xMax),(1..yMax)]
-  #
-  # - tb = the config Hash for this PXE GridService
-  # - domain = the name of the testbed to considere
-  #
-  # [Return] an Array of node coordinates [x,y]
-  #
-  def self.defAllNodes(tb, domain)
-    allNodes = []
-    inventoryURL = tb['inventory_url']
-    xMax, yMax = getXYMax(inventoryURL, domain)
-    (1..yMax).each {|y|
-      (1..xMax).each {|x|
-        allNodes << [x,y]
-      }
-    }
-    allNodes
   end
 
   #

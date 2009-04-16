@@ -276,6 +276,67 @@ class GridService < AbstractService
     return ip
   end
 
+  #
+  # Return an Array of node coordinates for a a given tesbed [(1..xMax),(1..yMax)]
+  #
+  # - url = URL to the Inventory GridService
+  # - domain = the name of the testbed to considere
+  #
+  # [Return] an Array of node coordinates [x,y]
+  #
+  def self.listAllNodes(url, domain)
+    allNodes = []
+    xMax, yMax = getXYMax(url, domain)
+    (1..yMax).each {|y|
+      (1..xMax).each {|x|
+        allNodes << [x,y]
+      }
+    }
+    allNodes
+  end
+
+  #
+  # Return the XMax and YMax values for all the nodes on a given testbed. This 
+  # method makes use of the Inventory GridService
+  #
+  # - url = URL to the Inventory GridService
+  # - domain = name of the testbed to query
+  #
+  #
+  def self.getXYMax(url, domain)
+    queryURL = "#{url}/getConfig?domain=#{domain}"
+    debug "QueryURL: #{queryURL}"
+    response = nil
+    response = Net::HTTP.get_response(URI.parse(queryURL))
+    if (! response.kind_of? Net::HTTPSuccess)
+          error "No XMax/YMax info found for t: #{domain} - Bad Response from Inventory"
+          error "QueryURL: #{queryURL}"
+          raise Exception.new()
+    end
+    if (response == nil)
+      error "No XMax/YMax info found for t: #{domain} - Response from Inventory is NIL"
+      error "QueryURL: #{queryURL}"
+      raise Exception.new()
+    end
+    doc = REXML::Document.new(response.body)
+    # Parse the Reply to retrieve the PXE Image name
+    xmax = nil
+    ymax = nil
+    doc.root.elements.each("/CONFIG/x_max") { |v|
+      xmax = v.get_text.value
+    }
+    doc.root.elements.each("/CONFIG/y_max") { |v|
+      ymax = v.get_text.value
+    }
+    # If no name found in the reply... raise an error
+    if (xmax == nil || ymax == nil)
+      doc.root.elements.each('/ERROR') { |e|
+        error "No XMax/YMax info found for t: #{domain} - val: #{e.get_text.value}"
+      }
+    end
+    return xmax.to_i, ymax.to_i
+  end
+
 end # class
 
 #

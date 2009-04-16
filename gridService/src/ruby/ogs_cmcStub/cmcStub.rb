@@ -145,11 +145,12 @@ class CmcStubService < GridService
   # We use the NA's 'REBOOT' command to implement a 'allOffSoft'
   #
   s_info 'Switch off ALL nodes SOFT (execute halt)'
+  s_param :domain, '[domain]', 'domain for request.'
   service 'allOffSoft' do |req, res|
     tb = getTestbedConfig(req, @@config)
     inventoryURL = tb['inventory_url']
     domain = getParam(req, 'domain')
-    nodes = eval(tb['listAll'])
+    nodes = listAllNodes(inventoryURL, domain)
     nodes.each { |n|
       x = n[0]; y = n[1]
       #x = 1; y = 2
@@ -182,10 +183,12 @@ class CmcStubService < GridService
   # really use information from the Inventory instead
   #
   s_info 'Returns a list of all nodes in the testbed'
+  s_param :domain, '[domain]', 'domain for request.'
   service 'getAllNodes' do |req, res|
     tb = getTestbedConfig(req, @@config)
-
-    nodes = eval(tb['listAll'])
+    inventoryURL = tb['inventory_url']
+    domain = getParam(req, 'domain')
+    nodes = listAllNodes(inventoryURL, domain)
     res.body = nodes.inspect
     res['Content-Type'] = "text"
   end
@@ -204,9 +207,11 @@ class CmcStubService < GridService
   s_param :domain, '[domain]', 'domain for request.'
   service 'allStatus' do |req, res|
     tb = getTestbedConfig(req, @@config)
+    inventoryURL = tb['inventory_url']
+    domain = getParam(req, 'domain')
     root = REXML::Element.new('TESTBED_STATUS')
     detail = root.add_element('detail')
-    nodes = eval(tb['listStatus'])
+    nodes = listAllNodes(inventoryURL, domain)
     nodes.each { |n|
       x = n[0]; y = n[1]
       attr = {'name' => "n_#{x}_#{y}", 'x' => x.to_s, 'y' => y.to_s, 'state' => 'POWERON' }
