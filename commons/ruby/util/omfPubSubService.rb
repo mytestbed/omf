@@ -78,7 +78,7 @@ end
 # using OpenFire v3.6 as the 'XMPP Server'.
 # This Service Helper will handle all messages to and from the XMPP Server.
 #
-class omfPubSubService < MObject
+class OmfPubSubService < MObject
         
   #
   # Create a new instance of PubSub Service Helper

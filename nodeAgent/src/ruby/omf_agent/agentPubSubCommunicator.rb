@@ -33,7 +33,7 @@
 # NOTE: Extensive modification by TR from the original code from Javid
 # TODO: Remove or Comment debug messages marked as 'TDEBUG'
 #
-require "omf_agent/omfPubSubService"
+require "util/omfPubSubService"
 require 'util/lineSerializer'
 
 #
@@ -42,7 +42,7 @@ require 'util/lineSerializer'
 # send/receive messages to/from the Node Handler (NH) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
-class agentPubSubCommunicator < MObject
+class AgentPubSubCommunicator < MObject
 
   DOMAIN = "Domain"
   SYSTEM = "System"
@@ -56,7 +56,7 @@ class agentPubSubCommunicator < MObject
   #
   # [Return] true/false
   #
-  def NodeAgentPubSubCommunicator.instantiated?
+  def AgentPubSubCommunicator.instantiated?
     return @@instantiated
   end   
       
@@ -89,6 +89,7 @@ class agentPubSubCommunicator < MObject
   #
   def start(jid_suffix, password, control_interface)
     
+    info "TDEBUG - START PUBSUB - #{jid_suffix} - #{password} - #{control_interface}"
     # Set some internal attributes...
     @@controlIF = control_interface
     @@macID = getControlAddr()
@@ -97,7 +98,7 @@ class agentPubSubCommunicator < MObject
     
     # Create a Service Helper to interact with the PubSub Server
     begin
-      @@service = omfPubSubService.new(userjid, password, pubsubjid)
+      @@service = OmfPubSubService.new(userjid, password, pubsubjid)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       #debug "TDEBUG - start 1"

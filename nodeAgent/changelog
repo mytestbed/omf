@@ -1,3 +1,9 @@
+nodeagent4 (4.4.0ubuntu4) jaunty; urgency=low
+
+  * D testing
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Thu, 16 Apr 2009 14:03:20 +1000
+
 nodeagent4 (4.4.0ubuntu3) testing; urgency=low
 
   * does not depend on ruby, frisbee and imagezip anymore, but does depend on
