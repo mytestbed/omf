@@ -35,6 +35,7 @@
 #
 
 require 'omf_agent/communication'
+require 'omf_agent/agentPubSubCommunicator'
 require 'omf_agent/agentCommands'
 require 'date'
 require 'util/hash-ext'
@@ -99,7 +100,7 @@ class NodeAgent < MObject
   # [Return] x coordinate of this NA
   #
   def x
-    return @x = Communicator.instance.x
+    return @x = communicator.x
   end
   #
   # Return the y coordinate for this NA
@@ -107,7 +108,7 @@ class NodeAgent < MObject
   # [Return] x coordinate of this NA
   #
   def y
-    return @y = Communicator.instance.y
+    return @y = communicator.y
   end
   #
   # Return the Control IP address of this NA
@@ -115,7 +116,7 @@ class NodeAgent < MObject
   # [Return] Control IP address of this NA
   #
   def localAddr
-    return @localAddr = Communicator.instance.localAddr
+    return @localAddr = communicator.localAddr
   end
 
   #
@@ -150,9 +151,9 @@ class NodeAgent < MObject
   #
   def okReply(cmd, id = nil, *msgArray)
     if allowDisconnection? 
-      Communicator.instance.sendRelaxedHeartbeat()
+      communicator.sendRelaxedHeartbeat()
     else
-      Communicator.instance.sendHeartbeat()
+      communicator.sendHeartbeat()
     end
   end
 
@@ -176,7 +177,7 @@ class NodeAgent < MObject
   #
   def send(*msgArray)
     if connected?
-      Communicator.instance.send(*msgArray)
+      communicator.send(*msgArray)
     else
       warn("Not sending message because not connected: ", msgArray.join(' '))
     end
@@ -251,14 +252,14 @@ class NodeAgent < MObject
     #    controlIP = localAddr || "10.10.2.3"
     #### END OF HACK
     resetState
-    Communicator.instance.reset
+    communicator.reset
   end
 
   # 
   # Reset all the internat states of this NA
   #
   def resetState
-    @agentName = @defAgentName || "#{Communicator.instance.localAddr}"
+    @agentName = @defAgentName || "#{communicator.localAddr}"
     @connected = false
     @names = [@agentName]
     @allowDisconnection = false
@@ -311,7 +312,7 @@ class NodeAgent < MObject
   # [Return] a String with the primary name of this NA
   #
   def agentName
-    @agentName || @defAgentName || "#{Communicator.instance.localAddr}"
+    @agentName || @defAgentName || "#{communicator.localAddr}"
   end
 
   #
