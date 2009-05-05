@@ -8,8 +8,8 @@ DEB_REP=debian
 KORG_URL = http://www.kernel.org/pub/linux/kernel/v
 KERNEL_VERSION = 2
 KERNEL_PATCHLEVEL = 6
-KERNEL_SUBLEVEL = 25
-KERNEL_EXTRAVERSION = .1
+KERNEL_SUBLEVEL = 29
+KERNEL_EXTRAVERSION = .2
 KERNEL_MAIN_VER=$(KERNEL_VERSION).$(KERNEL_PATCHLEVEL).$(KERNEL_SUBLEVEL)
 KVER = $(KERNEL_MAIN_VER)$(KERNEL_EXTRAVERSION)
 KERNEL_DIR = linux-$(KVER)
@@ -78,7 +78,9 @@ else
   #NODEAGENT_DEB=nodeagent_4.1.2_all.deb
   NODEAGENT_ETC=/etc/nodeagent
 endif
-NODEAGENT_DEB_URL= $(APT_HOST)/$(MAIN_REP)/$(NODEAGENT_DEB)
+#NODEAGENT_DEB_URL= $(APT_HOST)/$(MAIN_REP)/$(NODEAGENT_DEB)
+NODEAGENT_DEB_URL=http://pkg.mytestbed.net/ubuntu/hardy/nodeagent4_4.4.0ubuntu1_all.deb
+NODEAGENT_DEB=nodeagent4_4.4.0ubuntu1_all.deb
 NODEAGENT_CONF=nodeagent.yaml
 
 # This will go away with buildroot
@@ -91,8 +93,9 @@ KEXEC_DEB_URL = $(APT_HOST)/$(DEB_REP)/$(KEXEC_PATH)/$(KEXEC_DEB)
 # nodeagent looks for this, but not necessary, nuke
 TZDATA_PATH=$(shell sudo apt-cache show tzdata | grep -m 1 "Filename:" | \
 	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\1|g')
-TZDATA_DEB=$(shell sudo apt-cache show tzdata | grep -m 1  "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
+#TZDATA_DEB=$(shell sudo apt-cache show tzdata | grep -m 1  "Filename:" | \
+#cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
+TZDATA_DEB=tzdata_2008b-1ubuntu1_all.deb
 TZDATA_DEB_URL=$(APT_HOST)/$(DEB_REP)/$(TZDATA_PATH)/$(TZDATA_DEB)
 TZDIR=/usr/share/zoneinfo/US/
 TZFILE=$(TZDIR)/Eastern
