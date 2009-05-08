@@ -79,8 +79,8 @@ else
   NODEAGENT_ETC=/etc/nodeagent
 endif
 #NODEAGENT_DEB_URL= $(APT_HOST)/$(MAIN_REP)/$(NODEAGENT_DEB)
-NODEAGENT_DEB_URL=http://pkg.mytestbed.net/ubuntu/hardy/nodeagent4_4.4.0ubuntu1_all.deb
-NODEAGENT_DEB=nodeagent4_4.4.0ubuntu1_all.deb
+NODEAGENT_DEB_URL=http://pkg.mytestbed.net/ubuntu/testing/nodeagent4_4.4.0ubuntu2_all.deb
+NODEAGENT_DEB=nodeagent4_4.4.0ubuntu2_all.deb
 NODEAGENT_CONF=nodeagent.yaml
 
 # This will go away with buildroot
