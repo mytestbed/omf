@@ -1,0 +1,23 @@
+How to build OMF debian packages
+--------------------------------
+
+- make sure you have the "devscripts" package installed ("sudo apt-get install devscripts")
+- enter the omf-... directory of the package you want to build
+- if you've made any changes here and want to build a new version of the package, update the 
+  changelog by running "dch -i -D hardy" where "hardy" is the release name you want to build for
+- build the debian package by running "debuild -i -us -uc -b"
+- the package can now be found in the parent directory
+- use "dput packagename.changes" to upload it to your repository
+
+How to build debian packages for the external dependencies
+----------------------------------------------------------
+
+The OMF debian packages depend on customised version of some external software. To build
+these, follow this guide:
+
+- enter the "external" directory
+- run "debuild -i -us -uc -b" in the coderay, log4r and xmpp4r directories
+- enter "emulab/oj/os/frisbee-080901" and run "debuild -i -us -uc -b" to build frisbee
+- enter "emulab/oj/os/imagezip-080901" and run "debuild -i -us -uc -b" to build imagezip
+- each debian package can be found in the parent directory of where it was built
+- use "dput packagename.changes" to upload it to your repository
