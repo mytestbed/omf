@@ -1,0 +1,33 @@
+Source: libxmpp4r-ruby
+Section: net
+Priority: optional
+Maintainer: Lucas Nussbaum <lucas@lucas-nussbaum.net>
+Uploaders: Debian Ruby Extras Maintainers <pkg-ruby-extras-maintainers@lists.alioth.debian.org>
+Build-Depends-Indep: ruby1.8, ruby-pkg-tools, rdoc, graphviz
+Build-Depends: debhelper (>= 5), cdbs
+Standards-Version: 3.8.0
+Homepage: http://home.gna.org/xmpp4r/
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-ruby-extras/packages/libxmpp4r-ruby/trunk/
+Vcs-Svn: svn://svn.debian.org/pkg-ruby-extras/packages/libxmpp4r-ruby/trunk/
+
+Package: libxmpp4r-ruby1.8
+Depends: ruby1.8, libopenssl-ruby1.8
+Suggests: libxmpp4r-ruby-doc
+Architecture: all
+Description: XMPP/Jabber library for Ruby
+ XMPP4R is an library allowing Ruby developers to write software using
+ XMPP or Jabber. It provides all the necessary backend to write scripts
+ or applications acting as Jabber clients or components.
+
+Package: libxmpp4r-ruby
+Architecture: all
+Depends: libxmpp4r-ruby1.8
+Suggests: libxmpp4r-ruby-doc
+Description: XMPP/Jabber library for Ruby (dummy package)
+ XMPP4R is an library allowing Ruby developers to write software using
+ XMPP or Jabber. It provides all the necessary backend to write scripts
+ or applications acting as Jabber clients or components.
+ .
+ This package is a dependency package, which depends on Debian's default Ruby
+ version (currently 1.8.x).
+

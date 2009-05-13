@@ -1,0 +1,3 @@
+patching file src/log4r/outputter/emailoutputter.rb
+Hunk #1 succeeded at 25 (offset 1 line).
+Hunk #2 succeeded at 113 (offset 4 lines).

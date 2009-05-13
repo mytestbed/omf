@@ -1,0 +1,27 @@
+--- src/log4r/outputter/emailoutputter.rb.orig	2006-04-08 14:18:47.000000000 +0200
++++ src/log4r/outputter/emailoutputter.rb	2006-04-08 14:21:06.000000000 +0200
+@@ -14,10 +14,11 @@
+       validate(hash)
+       @buff = []
+       begin 
+-        @smtp = Net::SMTP.start(*@params)
++        smtp = Net::SMTP.start(*@params)
+         Logger.log_internal {
+           "EmailOutputter '#{@name}' running SMTP client on #{@server}:#{@port}"
+         }
++	smtp.finish
+       rescue Exception => e
+         Logger.log_internal(-2) {
+           "EmailOutputter '#{@name}' failed to start SMTP client!"
+@@ -101,7 +102,10 @@
+         "#{msg}"
+ 
+       ### send email
+-      begin @smtp.sendmail(rfc822msg, @from, @to)
++      begin
++      	smtp = Net::SMTP.start(*@params)
++      	smtp.sendmail(rfc822msg, @from, @to)
++	smtp.finish
+       rescue Exception => e
+         Logger.log_internal(-2) {
+           "EmailOutputter '#{@name}' couldn't send email!"

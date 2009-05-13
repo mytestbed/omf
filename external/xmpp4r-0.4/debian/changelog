@@ -1,0 +1,111 @@
+libxmpp4r-ruby (1.0-bugfix1) testing; urgency=low
+
+  * fixed nodebrowser bug https://gna.org/bugs/?12247
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 17 Apr 2009 19:52:35 +1000
+
+libxmpp4r-ruby (0.4-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Sat, 09 Aug 2008 12:54:51 -0300
+
+libxmpp4r-ruby (0.3.2.99+git20080724-1) unstable; urgency=low
+
+  * New upstream release. Git snapshot 
+    5150edf1e39456effb92fdd835051570da3a8f90
+  * Allows to connect to Google Talk (Closes: #483974).
+  * Updated to Standards-Version: 3.8.0. No changes needed.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Thu, 24 Jul 2008 13:40:01 +0200
+
+libxmpp4r-ruby (0.3.2-2) unstable; urgency=low
+
+  * Use new Homepage dpkg header.
+  * Added Vcs-Svn and Vcs-Browser
+  * fixed Vcs-*: point to dir containing debian/, not dir containing
+    trunk/
+  * Dropped libxmpp4r-ruby1.8-dev (replaced by libxmpp4r-ruby-doc)
+  * Upgraded to policy 3.7.3. No changes needed.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Mon, 24 Dec 2007 17:13:19 +0100
+
+libxmpp4r-ruby (0.3.2-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Tue, 16 Oct 2007 11:30:58 +0200
+
+libxmpp4r-ruby (0.3.1+svn405-1) unstable; urgency=low
+
+  * Imported from upstream's SVN to fix serious issues with threading.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Fri, 07 Sep 2007 21:10:19 +0200
+
+libxmpp4r-ruby (0.3.1-1) unstable; urgency=low
+
+  * New upstream version. 
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Mon, 23 Apr 2007 09:16:55 +0200
+
+libxmpp4r-ruby (0.3-3) unstable; urgency=low
+
+  * Stopped using the "Uploaders rule".
+  * Made the example scripts not executable and removed a temp file. (fixes
+    some lintian/linda warnings)
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Sat, 14 Apr 2007 23:37:40 +0200
+
+libxmpp4r-ruby (0.3-2) unstable; urgency=low
+
+  * Backported two important bug fixes from the svn tree, after
+    discussion with the upstream developer.
+
+    + lib/xmpp4r/sasl.rb: Fixes parsing of the SASL challenge. This caused
+      connection to servers using Wildfire to fail.
+
+    + lib/xmpp4r/rexmladdons.rb: Strange stuff happened when building
+      Jabber messages containing XML entities (&amp;, for example). This
+      change fixes this, and test/tc_rexml.rb adds tests for that.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Fri, 23 Feb 2007 15:54:15 +0100
+
+libxmpp4r-ruby (0.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * Upgraded to policy 3.7.2 (no changes required).
+  * Introduced a new binary package: libxmpp4r-ruby-doc, to match
+    other packages from the pkg-ruby-extras team.
+  * A hack was needed because the distclean target of setup.rb wasn't
+    working when a 'data' dir was used.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Thu, 20 Jul 2006 09:50:51 +0200
+
+libxmpp4r-ruby (0.2-3) unstable; urgency=low
+
+  [ Lucas Nussbaum ]
+  * Set the Maintainer field to me. I will be mainly responsible for
+    this package.
+
+  [ Paul van Tilburg ]
+  * Updated the team substvar to @RUBY_EXTRAS_TEAM@ in control, update
+    the Build-Depend-Indep on ruby-pkg-tools.
+
+ -- Paul van Tilburg <paulvt@debian.org>  Thu, 30 Mar 2006 14:21:52 +0200
+
+libxmpp4r-ruby (0.2-2) unstable; urgency=low
+
+  [ Lucas Nussbaum ]
+  * Added build-deps for cdbs and ruby-pkg-tools.
+
+  [ Paul van Tilburg ]
+  * Set the Maintainer field of debian/control.in to the team.
+  * This package is now Debian/Ruby Extras team-maintained.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Wed, 11 Jan 2006 15:16:34 +0100
+
+libxmpp4r-ruby (0.2-1) unstable; urgency=low
+
+  * First Debian package.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Wed, 16 Nov 2005 23:40:19 +0200

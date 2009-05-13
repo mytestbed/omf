@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+
+# Retrieve command line
+MY_NAME=`echo $0 | awk 'BEGIN {FS="/"};{print $NF}'`
+FULL_ARG_LINE=$@
+CMD_NAME=$1
+shift
+CMD_ARG_LINE=$@
+
+# Help message
+function usage()
+{
+  echo -e "\nRun a command on the testbed(s)\n"
+  echo -e "Usage: $MY_NAME [COMMAND] [ARGUMENT]...\n" >&2
+  echo -e "  Available COMMANDs:\n" >&2
+  echo -e "    help   Print this help message or a specif command usage" >&2
+  echo -e "    exec   Execute an experiment script" >&2
+  echo -e "    load   Load a disk image on a given set of nodes" >&2
+  echo -e "    save   Save a disk image from a given node into a file" >&2
+  echo -e "    tell   Switch a given set of nodes ON/OFF" >&2
+  echo -e "    stat   Returns the status of a given set of nodes\n" >&2
+  echo -e "  To get more help on individual commands: 'omf help [COMMAND]'" >&2
+  echo -e "  Examples:" >&2
+  echo -e "            $MY_NAME help exec   Return usage/help for the 'exec' command" >&2
+  echo -e "            $MY_NAME help load   Return usage/help for the 'load' command\n" >&2
+}
+
+# Parse command line
+case "$CMD_NAME" in
+  "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_NAME" ;;
+  "help" ) case "$CMD_ARG_LINE" in
+             "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_ARG_LINE" ; CMD_ARG_LINE="--help";;
+	     * ) usage ; exit 0 ;;
+	   esac ;;
+  * ) usage ; exit 0 ;;
+esac
+
+if [ -e ./$CMD_TO_RUN ]; then
+	./$CMD_TO_RUN $CMD_ARG_LINE
+else 
+	$CMD_TO_RUN $CMD_ARG_LINE
+fi

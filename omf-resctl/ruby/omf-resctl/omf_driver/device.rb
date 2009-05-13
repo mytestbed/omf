@@ -1,0 +1,141 @@
+#
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+# = device.rb
+#
+# == Description
+#
+# This file defines the super class Device.
+#
+
+require 'omf-common/mobject'
+
+#
+# This class is the base class for all configurable devices, which are supported by the NA
+#
+class Device < MObject
+
+  @@driverLoaded = Hash.new
+
+  #
+  # Unload device driver (i.e. kernel module)
+  #
+  def self.unload
+    @@driverLoaded.each_key { |driver|
+      reply = `/sbin/modprobe -r #{driver}`
+      if ! $?.success?
+        raise "Problems unloading module #{driver} -- #{reply}"
+      end
+      MObject.info(:Device, "Unloaded #{driver} driver")
+    }
+    @@driverLoaded = Hash.new
+  end
+
+  attr_reader :deviceName, :logicalName
+
+  #
+  # Create and setup a new Device instance
+  #
+  # - logicalName = logical name for this device
+  # - deviceName = name for this device
+  #
+  def initialize(logicalName, deviceName)
+    @deviceName = deviceName
+    @logicalName = logicalName
+    @isActive = false
+  end
+
+  #
+  # Configure a property of this device
+  #
+  # - agent = Agent to inform about result
+  # - prop = Property to configure
+  # - value = Value to set property to
+  #
+  def configure(agent, prop, value)
+    info "configure #{@logicalName}/#{prop} = #{value}"
+    activate() # make sure that the device is actually loaded
+
+    if (value[0] == '%'[0])
+      # if value starts with "%" perform certain substitutions
+      value = value[1..-1]  # strip off leading '%'
+      value.sub!(/%x/, agent.x.to_s)
+      value.sub!(/%y/, agent.y.to_s)
+    end
+
+    path = "#{logicalName}/#{prop}"
+    begin
+      cmd = getConfigCmd(prop, value)
+      debug "configure cmd: #{cmd}"
+      reply = `#{cmd}`
+      if $?.success?
+        agent.okReply(:CONFIGURE, path, reply)
+      else
+        error("While configuring #{prop} with #{value} - CMD reply is: '#{reply}'")
+        agent.errorReply(:CONFIGURE, path, reply)
+      end
+    rescue => err
+      error("While configuring #{prop} with #{value} \n\t#{err}")
+      agent.errorReply(:CONFIGURE, path, err)
+  end
+  end
+
+  #
+  # Return the specific command required to configure a given property of this device.
+  # Raise an excepion ('Unknown property') if the property does not exist for this device.
+  # This method does nothing in this Device super-class, it is meant to be overwritten by its sub-classes
+  #
+  # - prop = the property to configure
+  # - value = the value to configure that property to
+  #
+  def getConfigCmd(prop, value)
+    raise "Unknown property '#{prop}'"
+  end
+
+  #
+  # Return true if device has been activated
+  #
+  # [Return] true/false
+  #
+  def active?
+    return @isActive
+  end
+
+  #
+  # Called multiple times to ensure that device is UP
+  #
+  def activate()
+    @isActive = true
+  end
+
+  #
+  # Called to clean up resources allocated so far. May reset all
+  # configurations.
+  #
+  def deactivate()
+    @isActive = false
+  end
+
+end
+

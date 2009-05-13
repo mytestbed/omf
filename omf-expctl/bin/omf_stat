@@ -1,0 +1,92 @@
+#!/bin/bash -f
+#
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+
+APP=omf-expctl/statnode.rb
+TOPO_ALL=system:topo:all
+MY_NAME="$ROOTAPP stat"
+
+function usage()
+{
+	echo -e "\nReturns the status of the nodes in a testbed\n"
+	echo "Usage:"
+	echo "      $MY_NAME [-h]"
+	echo "      $MY_NAME [-c] [DOMAIN]"
+	echo "      $MY_NAME \"[TOPOLOGY]\" [DOMAIN]"
+	echo " "
+	echo "      With: "
+	echo "      -h, --help    print this help message"
+	echo "      -c, --count   print a summary of the node status for the testbed DOMAIN"
+	echo "                    (default is the testbed where this command is executed)"
+	echo "      TOPOLOGY      a valid topology description or file without the trailing '.rb'"
+	echo "                    (default is the entire set of nodes on the default testbed)"
+	echo " "
+	echo "      Some Examples: " 
+	echo "                    $MY_NAME all grid"
+	echo "                    $MY_NAME \"[[1,2],[1,1]]\" sb1 "
+	echo "                    $MY_NAME \"[[1,1],[2..6,1..2]]\" "
+	echo "                    $MY_NAME system:topo:all"
+	echo "                    $MY_NAME system:topo:circle"
+	echo "                    $MY_NAME topo_grid_active"
+	echo " "
+}
+
+if [ $# -gt 2 ]
+then
+  echo "ERROR: Wrong number of arguments: $1"
+  usage
+  exit 1
+fi
+
+topo_or_cmd=$1
+domain=$2
+
+case "$1" in
+  -h) usage ; exit 0 ;;
+  --help) usage ; exit 0 ;;
+  h) usage ; exit 0 ;;
+  help) usage ; exit 0 ;;
+  all) topo_or_cmd=$TOPO_ALL ;;
+esac
+
+if [ -z $topo_or_cmd ] ; then
+  topo_or_cmd=$TOPO_ALL
+fi
+
+if [ -z $domain ] ; then
+  domain="default"
+fi
+
+if [ -e ../$APP ]; then
+   PDIR=..
+else 
+   if [ -e /usr/lib/ruby/1.8/$APP ]; then
+      PDIR=/usr/lib/ruby/1.8
+   else
+      echo "Cannot find the ruby module location ($APP)."
+      exit 1;
+   fi
+fi
+exec ruby1.8 -I$PDIR $PDIR/$APP "[$topo_or_cmd]" $domain
