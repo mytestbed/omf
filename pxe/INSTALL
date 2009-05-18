@@ -1,0 +1,69 @@
+Building outside of Winlab
+--------------------------
+orbit-lab software is primarily intended to be built at Winlab. However, it has 
+been ported to the environment at National ICT Australia (NICTA), and in so 
+doing, the build has been made more portable. 
+
+To enable building at NICTA as well as Winlab, the strategy is to use some 
+make variables for the site specific information. If the site variables are
+not given, the default setting is for Winlab.
+
+One variable is setup as an environment variable, because it is unique to the 
+person running the make:
+
+$MAINTAINER    e.g. "Jo Blo <jo@nicta.com.au>" for NICTA (not needed at Winlab)
+Run gpg to create your own key to match the supplied email address exactly.
+
+The Makefiles were modified to pass the local maintainer, if supplied, to the 
+dpkg-buildpackage tool. This is necessary, because the Winlab maintainer's 
+signatures are not available outside Winlab.
+
+The remaining variables are setup in an included makefile "omf/site.mk". 
+The appropriate file for NICTA is "omf/nicta.mk", which is checked in 
+to the SVN repository.
+
+To build at Winlab, just run the usual make commands.
+
+To build at NICTA, symlink, copy or rename "omf/nicta.mk" as "omf/site.mk",
+and then run the usual make commands.
+
+To build at another site, setup an apt repository on a server, and
+specify the various paths to that server in site.mk following the 
+example of nicta.mk
+
+nicta.mk contains the following variables:
+
+#   The first group of variables defines the apt-get or wget URL
+#    to fetch locally cached deb packages:
+#   URL = $APT_HOST/$WINLAB_REP  (or MAIN_REP for main section)
+APT_HOST = http://203.143.174.94
+WINLAB_REP = dists/testing/winlab/binary-i386
+MAIN_REP = dists/testing/main/binary-i386
+KEXEC_REP = dists/testing/main/binary-i386
+
+#   The next group of variables defines the scp target to copy
+#    files into the local repository.
+#   scp target = $REPOSITORY:$REPOSITORY_ROOT/$APP_PATH
+#    APP_PATH is determined in the Makefile, by examining the changelog
+REPOSITORY = $(USER)@norbit.npc.nicta.com.au
+REPOSITORY_ROOT = /var/www/dists
+
+
+Modifications made for NICTA support
+------------------------------------
+    * Patch applied to kernel module net/via-rhine.c, which fixes a bug 
+preventing consecutive PXE boots on any board using VT6103 ethernet chip 
+e.g. VIA MB720 mini-ITX
+    * Add several kernel drivers, e.g.
+          o R8169 realtek gigabit ethernet, and VIA Velocity gigabit ethernet
+          o Replace UB driver with a number of USB and generic SCSI modules needed for USB support and flash memory support
+          o Extra filesystems msdos, fat, vfat for flash memory support 
+    * Mods to /etc/rcS:
+          o bring up eth0 and eth1 (not just eth1)
+          o "MAKEDEV" sda for flash memory support
+          o mount sysfs and usbfs 
+    * Add more applets in the busybox build:
+          o head, who, crontab, wc, id, adduser, addgroup, ifup/down, traceroute, install, top, watchdog 
+    * Modify /etc/udhcp.script to set the hostname based on the first name received from the DHCP server (previously set IP as name)
+    * Change the gridservices2 port to 5022, to permit concurrent use of gridservices on 5012 (until OML is ported to gridservices2).
+    * Create local stubs for CMC (chassis management service) as appropriate to the NICTA testbed 

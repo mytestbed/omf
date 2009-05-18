@@ -79,8 +79,8 @@ else
   NODEAGENT_ETC=/etc/nodeagent
 endif
 #NODEAGENT_DEB_URL= $(APT_HOST)/$(MAIN_REP)/$(NODEAGENT_DEB)
-NODEAGENT_DEB_URL=http://pkg.mytestbed.net/ubuntu/testing/nodeagent4_4.4.0ubuntu2_all.deb
-NODEAGENT_DEB=nodeagent4_4.4.0ubuntu2_all.deb
+NODEAGENT_DEB=nodeagent4_4.4.0ubuntu6_all.deb
+NODEAGENT_DEB_URL=http://pkg.mytestbed.net/ubuntu/hardy/$(NODEAGENT_DEB)
 NODEAGENT_CONF=nodeagent.yaml
 
 # This will go away with buildroot
@@ -238,6 +238,7 @@ filesystem: dirs
 	sudo chown `id -u`:`id -g` $(ROOTFS)/dev/*
 	cd $(ROOTFS) && ln -sf sbin/init init
 	install -m 755 $(CONFIG)/rcS $(ROOTFS)/etc/init.d/
+	install -m 755 $(CONFIG)/rcS.actual $(ROOTFS)/etc/init.d/	
 	install -m 755 $(CONFIG)/udhcp* $(ROOTFS)/etc/
 	install -m 644 $(CONFIG)/passwd $(ROOTFS)/etc/
 	install -m 644 $(CONFIG)/group $(ROOTFS)/etc/
