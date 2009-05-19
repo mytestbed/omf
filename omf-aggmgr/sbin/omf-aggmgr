@@ -24,7 +24,7 @@
 #
 #
 
-APP=nodehandler/handler.rb
+APP=omf-aggmgr/ogs.rb
 if [ -e ../$APP ]; then
    PDIR=..
 else 
