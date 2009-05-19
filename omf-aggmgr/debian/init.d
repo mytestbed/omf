@@ -27,13 +27,13 @@ if [ -f /etc/default/$NAME ]; then
     . /etc/default/$NAME
 fi
 
+PORT=`echo $OPTS | sed 's/[^0-9]*//g'`
 start(){
         echo -n "Starting OMF Aggregate Manager: $NAME"
-	PORT=`echo $OPTS | sed 's/[^0-9]*//g'`
-	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
-	   echo -n "\nWaiting for release of port $PORT..."
-	   sleep 3
-	done
+	if [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; then
+	   echo "\nPort $PORT is in use. There might already be an AM running on this port."
+	   exit 1
+	fi
 	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
         echo "..done."
 }
@@ -41,9 +41,12 @@ start(){
 stop(){
         echo -n "Stopping OMF Aggregate Manager: $NAME"
 	start-stop-daemon --stop --signal 2 --oknodo --pidfile /var/run/$NAME.pid
+	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
+	   echo -n "\nWaiting for release of port $PORT..."
+	   sleep 3
+	done	
         echo "..done."
 }
-
 
 case "$1" in
   start)
@@ -64,4 +67,3 @@ case "$1" in
 esac
 
 exit 0
-
