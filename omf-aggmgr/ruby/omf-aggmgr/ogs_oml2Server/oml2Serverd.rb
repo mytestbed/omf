@@ -28,7 +28,7 @@
 #
 # This file defines the Oml2ServerDaemon class.
 #
-require 'ogs/abstractDaemon'
+require 'omf-aggmgr/ogs/abstractDaemon'
 
 #
 # This class implements an interface between the OML2 Service of OMF and the 

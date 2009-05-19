@@ -33,7 +33,7 @@ require 'rexml/document'
 require 'rexml/element'
 require 'stringio'
 require 'base64'
-require 'util/mobject'
+require 'omf-common/mobject'
 
 #
 # This class defines the general Service class. A Service implements the set of 

@@ -44,7 +44,7 @@
 #       
 require 'socket'
 require 'monitor'
-require 'util/mobject'
+require 'omf-common/mobject'
 
 module CMC
 

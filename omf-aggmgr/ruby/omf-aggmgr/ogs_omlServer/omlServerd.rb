@@ -32,7 +32,7 @@
 # 
 #
 
-require 'ogs/abstractDaemon'
+require 'omf-aggmgr/ogs/abstractDaemon'
 require 'mysql'
 
 #

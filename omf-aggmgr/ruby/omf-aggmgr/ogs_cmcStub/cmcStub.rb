@@ -29,7 +29,7 @@
 #
 
 require 'net/telnet'
-require 'ogs/gridService'
+require 'omf-aggmgr/ogs/gridService'
 
 #
 # This class defines the CMC (Chassis Manager Controller) Stub Service.

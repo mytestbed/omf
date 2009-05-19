@@ -2,7 +2,7 @@
 # Implements a service to manage the resources on multiple heterogenous testbeds
 #
 
-require 'ogs/gridService'
+require 'omf-aggmgr/ogs/gridService'
 
 class MasterService < GridService
   

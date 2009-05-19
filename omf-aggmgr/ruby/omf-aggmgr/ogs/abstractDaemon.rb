@@ -28,7 +28,7 @@
 #
 # This file defines the AbstractDaemon class.
 #
-require 'ogs/timer'
+require 'omf-aggmgr/ogs/timer'
 
 #
 # This class defines the general Daemon class. This class is used by all the 

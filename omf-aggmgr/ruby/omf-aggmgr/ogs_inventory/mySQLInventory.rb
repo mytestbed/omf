@@ -487,7 +487,7 @@ END_QS1
       p err_str
       MObject.debug err_str
     end
-    MObject.debug ("Got result")
+    MObject.debug("Got result")
     result
   end
 

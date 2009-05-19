@@ -29,9 +29,9 @@
 # This file defines the ResultService class.
 #
 
-require 'ogs/gridService'
+require 'omf-aggmgr/ogs/gridService'
 require 'sqlite3'
-#require 'ogs_result/resultSQLite3'
+#require 'omf-aggmgr/ogs_result/resultSQLite3'
 
 #
 # This class defines a Service to access the measurement results for a given 

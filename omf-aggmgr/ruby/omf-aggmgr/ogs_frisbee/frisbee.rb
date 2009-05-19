@@ -29,8 +29,8 @@
 # This file defines the FrisbeeService class.
 #
 
-require 'ogs/gridService'
-require 'ogs_frisbee/frisbeed'
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs_frisbee/frisbeed'
 
 #
 # This class defines a Service to control a Frisbee server. A Frisbee server

@@ -32,8 +32,8 @@
 # 
 #
 
-require 'ogs/gridService'
-require 'ogs_omlServer/omlServerd'
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs_omlServer/omlServerd'
 
 #
 # NOTE: OmlServerService is deprecated, please use Oml2ServerService instead

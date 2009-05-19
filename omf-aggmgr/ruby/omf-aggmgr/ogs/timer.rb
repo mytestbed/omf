@@ -29,7 +29,7 @@
 # This file defines the Timer class.
 #
 
-require 'util/mobject'
+require 'omf-common/mobject'
 
 #
 # This class defines a Timer which can be associated with a given Grid Service.

@@ -28,7 +28,7 @@
 #
 # This file defines the FrisbeeDaemon class.
 #
-require 'ogs/abstractDaemon'
+require 'omf-aggmgr/ogs/abstractDaemon'
 
 #
 # This class implements an interface between the Frisbee Service of OMF and the 

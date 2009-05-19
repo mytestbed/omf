@@ -36,14 +36,14 @@
 
 require 'webrick'
 require 'log4r'
-require 'util/mobject'
+require 'omf-common/mobject'
 
 # We need to find a better way of adding the dependencies of the
 # individual services.
 require 'stringio'
-#require 'util/websupp'
-#require 'util/arrayMD'
-#require 'util/parseNodeSet'
+#require 'omf-common/websupp'
+#require 'omf-common/arrayMD'
+#require 'omf-common/parseNodeSet'
 #require 'net/http'
 require 'date'
 require 'rexml/document'
@@ -53,19 +53,19 @@ require 'rexml/document'
 require 'yaml'
 require 'optparse'
 #####
-require 'ogs/gridService'
+require 'omf-aggmgr/ogs/gridService'
 
 # PACKAGING HACK -
 # Hack to force services to be included in the distribution - need to remove that
 # - When packaging, set the following to 'true'
 # - When running GS2, set the following to 'false'
 if true then
-require 'ogs_frisbee/frisbee'
-require 'ogs_pxe/pxe'
-require 'ogs_omlServer/omlServer'
-require 'ogs_oml2Server/oml2Server'
-require 'ogs_inventory/inventory'
-require 'ogs_result/result'
+require 'omf-aggmgr/ogs_frisbee/frisbee'
+require 'omf-aggmgr/ogs_pxe/pxe'
+require 'omf-aggmgr/ogs_omlServer/omlServer'
+require 'omf-aggmgr/ogs_oml2Server/oml2Server'
+require 'omf-aggmgr/ogs_inventory/inventory'
+require 'omf-aggmgr/ogs_result/result'
 # Two CMC alternatives:
 # - 'cmc', which is the full CMC implementation (currently under dev/debug)
 # - 'cmcStub', which is just a stub to temporary make the NH happy on the NICTA 
@@ -73,8 +73,8 @@ require 'ogs_result/result'
 #
 # Both will be installed with the package.
 # BUT only ONE should be ENABLED at any given time! (using symlinks in '/etc/enabled')
-require 'ogs_cmcStub/cmcStub' # use the stub 
-require 'ogs_cmc/cmc' # use real cmc
+require 'omf-aggmgr/ogs_cmcStub/cmcStub' # use the stub 
+require 'omf-aggmgr/ogs_cmc/cmc' # use real cmc
 end
 
 include WEBrick

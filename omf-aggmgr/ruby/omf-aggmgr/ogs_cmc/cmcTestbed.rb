@@ -35,11 +35,11 @@
 require 'socket'
 require 'observer'
 require 'yaml'
-require 'util/mobject'
-require 'util/arrayMD'
-require 'ogs_cmc/cmcCommunicator'
-require 'ogs_cmc/cmcNode'
-require 'util/parseNodeSet'
+require 'omf-common/mobject'
+require 'omf-common/arrayMD'
+require 'omf-aggmgr/ogs_cmc/cmcCommunicator'
+require 'omf-aggmgr/ogs_cmc/cmcNode'
+require 'omf-common/parseNodeSet'
 
 module CMC
 

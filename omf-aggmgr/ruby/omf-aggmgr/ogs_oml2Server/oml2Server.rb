@@ -30,8 +30,8 @@
 #
 #
 
-require 'ogs/gridService'
-require 'ogs_oml2Server/oml2Serverd'
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs_oml2Server/oml2Serverd'
 
 #
 # This class defines a Service to control (start/stop) an OML2 Collection server

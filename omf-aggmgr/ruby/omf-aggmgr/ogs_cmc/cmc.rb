@@ -27,10 +27,10 @@
 # functionality to switch them on and off.
 #
 
-require 'util/websupp'
-require 'ogs/gridService'
-require 'ogs_cmc/cmcTestbed'
-require 'ogs_cmc/cmcNode'
+require 'omf-common/websupp'
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs_cmc/cmcTestbed'
+require 'omf-aggmgr/ogs_cmc/cmcNode'
 
 
 class CmcService < GridService

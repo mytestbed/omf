@@ -29,7 +29,7 @@
 # This file defines GridService and HTTPResponse classes.
 #
 
-require 'ogs/abstractService'
+require 'omf-aggmgr/ogs/abstractService'
 
 #
 # This class defines the GridService class a sub-class of AbstractService.

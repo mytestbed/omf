@@ -29,8 +29,8 @@
 # This file defines the InventoryService class.
 #
 
-require 'ogs/gridService'
-require 'ogs_inventory/mySQLInventory'
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 
 #
 # This class defines a Service to access inventory information about available

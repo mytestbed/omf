@@ -25,7 +25,7 @@
 # This file implements the Node class. The Node class stores all information
 # about a node. 
 #
-require 'util/mobject'
+require 'omf-common/mobject'
 require 'monitor'
 module CMC
 

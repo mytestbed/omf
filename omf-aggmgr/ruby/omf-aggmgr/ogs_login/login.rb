@@ -1,8 +1,8 @@
 # $Id: $
 
-require 'ogs/gridService'
+require 'omf-aggmgr/ogs/gridService'
 require 'openwfe/util/scheduler'
-require 'ogs_login/logind'
+require 'omf-aggmgr/ogs_login/logind'
 
 include OpenWFE
 

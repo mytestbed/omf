@@ -30,8 +30,8 @@
 #
 
 require 'net/http'
-require 'ogs/gridService'
-require 'ogs/timer'
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/timer'
 
 #
 # This class defines a Service to enable/disable one or many node(s) of a 
