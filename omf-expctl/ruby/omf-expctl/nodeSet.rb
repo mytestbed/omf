@@ -559,7 +559,7 @@ class NodeSet < MObject
       end
     end
     if (up? && notQueued)
-      HandlerPubSubCommunicator.instance.send(@nodeSelector, command, args)
+      communicator.send(@nodeSelector, command, args)
       return
     end
   end

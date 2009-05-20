@@ -22,43 +22,44 @@
 # THE SOFTWARE.
 #
 #
-# = communicator.rb
+# = tcpCommunicator.rb
 #
 # == Description
 #
 # This class provides a communication layer between
-# the handler and all agents.
+# the handler and all agents using TCP.
 #
 
 require 'omf-expctl/agentCommands'
 require 'omf-common/execApp'
 require 'singleton'
 require 'omf-common/lineSerializer'
+require 'omf-common/mobject'
 
 #
 # This class provides a communication layer between
 # the handler and all agents.
-# Only one Communicator instance can be created during the 
+# Only one tcpCommunicator instance can be created during the 
 # execution of the NodeHandler (Singleton pattern)
 #
-class Communicator < MObject
+class tcpCommunicator < MObject
   
   include Singleton
   @@instantiated = false
 
   #
-  # Return true if a Communicator instance has already been created
+  # Return true if a tcpCommunicator instance has already been created
   #
   # [Return] true/false
   #
-  def Communicator.instantiated?
+  def tcpCommunicator.instantiated?
     return @@instantiated
   end
 
   private_class_method :new
 
   #
-  # Create a new Communicator instance
+  # Create a new tcpCommunicator instance
   #
   def initialize()
     @name2node = Hash.new
@@ -119,15 +120,15 @@ class Communicator < MObject
   # - name = name to give to the node once enrolled
   # - ipAddress = IP address of the node to enroll 
   #
-  def enrollNode(node, name, ipAddress)
+  def enrolNode(node, name, ipAddress)
     @name2node[name] = node
     write("a #{ipAddress} #{name}")
   end
 
   #
-  # This method removes a node from the Communicator's list of 'alive' nodes.
+  # This method removes a node from the tcpCommunicator's list of 'alive' nodes.
   # When a given 'Node' object is being removed from all the existing 
-  # topologies, it calls this method to notify the Communicator, so 
+  # topologies, it calls this method to notify the tcpCommunicator, so 
   # subsequent messages received from the real physical node will be 
   # discarded by the Commnunicator in the processCommand() call.
   # Furthermore, 'X' command is sent to the commServer to remove all

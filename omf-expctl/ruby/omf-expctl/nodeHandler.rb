@@ -39,7 +39,7 @@ NH_REVISION = "$Revision: 1921 $".split(":")[1].chomp("$").strip
 NH_VERSION_STRING = "NodeHandler Version #{$NH_VERSION} (#{NH_REVISION})"
 
 ### THIS require HAS TO COME FIRST! See http://omf.mytestbed.net/issues/show/19
-require 'omf-expctl/handlerPubSubCommunicator'
+require 'omf-expctl/xmppCommunicator'
 ###
 require 'set'
 require 'benchmark'
@@ -310,7 +310,7 @@ class NodeHandler < MObject
   # [Return] a Communicator object 
   #
   def communicator()
-    HandlerPubSubCommunicator.instance
+    XmppCommunicator.instance
   end
 
   #
@@ -331,9 +331,10 @@ class NodeHandler < MObject
       info "Shutdown Flag Set - Switching all nodes Off..."
       Kernel.sleep 5
     end
-    # Placeholder when XMPP-based Pub/Sub HandlerPubSubCommunicator will be ready for integration
-    # HandlerPubSubCommunicator.instance.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub HandlerPubSubCommunicator
-    communicator.start("cluster3.dynhost.nicta.com.au", "123", Experiment.domain, "Session", "SessionID", Experiment.ID, "n_1_1")
+    
+    # Placeholder when XMPP-based Pub/Sub xmppCommunicator will be ready for integration
+    # communicator.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub xmppCommunicator
+    communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain(), "SessionID", Experiment.ID)
     communicator.sendReset  # if the nodes are already up, reset the agent now
 
     Profiler__::start_profile if @doProfiling
@@ -659,9 +660,9 @@ class NodeHandler < MObject
     end
 
     @processCommands = false
-    HandlerPubSubCommunicator.instance.sendReset
-    if HandlerPubSubCommunicator.instantiated?
-      HandlerPubSubCommunicator.instance.quit
+    communicator.sendReset
+    if XmppCommunicator.instantiated?
+      communicator.quit
     end
 
     # Now we don't stop the OML2 Collection Server, as we will use the same to 

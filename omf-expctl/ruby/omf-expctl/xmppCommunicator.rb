@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-# = handlerPubsubCommunicator.rb
+# = xmppCommunicator.rb
 #
 # == Description
 #
@@ -33,6 +33,7 @@
 
 require "omf-common/omfPubSubService"
 require 'omf-common/lineSerializer'
+require 'omf-common/mobject'
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
@@ -40,7 +41,7 @@ require 'omf-common/lineSerializer'
 # send/receive messages to/from the Node Handler (NH) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
-class HandlerPubSubCommunicator < MObject
+class XmppCommunicator < MObject
 
   DOMAIN = "Domain"
   SYSTEM = "System"
@@ -54,7 +55,7 @@ class HandlerPubSubCommunicator < MObject
   #
   # [Return] true/false
   #
-  def HandlerPubSubCommunicator.instantiated?
+  def XmppCommunicator.instantiated?
     return @@instantiated
   end   
       
@@ -62,11 +63,13 @@ class HandlerPubSubCommunicator < MObject
   # Create a new Communicator 
   #
   def initialize ()
+    @name2node = Hash.new
     @@myName = nil
     @@service = nil
     @@IPaddr = nil
     @@controlIF = nil
     @@systemNode = nil
+    @@domain = nil
     @@expID = nil
     @@sessionID = nil
     @@pubsubNodePrefix = nil
@@ -128,12 +131,15 @@ class HandlerPubSubCommunicator < MObject
   # - password = [String], password to use for this PubSud client
   # - control_interface = [String], the interface connected to Control Network
   #
-  def start(jid_suffix, password, domain, session, sessionID, expID, nodes)
+  def start(jid_suffix, password, domain, sessionID, expID)
     
     info "TDEBUG - START PUBSUB - #{jid_suffix} - #{password}"
     # Set some internal attributes...
     userjid = "expctl@#{jid_suffix}"
     pubsubjid = "pubsub.#{jid_suffix}"
+    @@domain = domain
+    @@sessionID = sessionID
+    @@expID = expID
     
     # Create a Service Helper to interact with the PubSub Server
     begin
@@ -154,11 +160,10 @@ class HandlerPubSubCommunicator < MObject
     debug "Connected to PubSub Server: '#{pubsubjid}'"
 
     @@service.create_pubsub_node("#{domain}")
-    @@service.create_pubsub_node("#{domain}/#{session}")
-    @@service.create_pubsub_node("#{domain}/#{session}/system")
-    @@service.create_pubsub_node("#{domain}/#{session}/#{sessionID}")
-    @@service.create_pubsub_node("#{domain}/#{session}/#{sessionID}/#{expID}")
-    @@service.create_pubsub_node("#{domain}/#{session}/#{sessionID}/#{expID}/#{nodes}")
+    @@service.create_pubsub_node("#{domain}/session")
+    @@service.create_pubsub_node("#{domain}/system")
+    @@service.create_pubsub_node("#{domain}/session/#{sessionID}")
+    @@service.create_pubsub_node("#{domain}/session/#{sessionID}/#{expID}")
 
   end
 
@@ -195,7 +200,7 @@ class HandlerPubSubCommunicator < MObject
     end
   
     # If we are on a Linux Box, we parse the output of 'ifconfig' 
-    if HandlerPubSubCommunicator.isPlatformLinux?
+    if XmppCommunicator.isPlatformLinux?
       lines = IO.popen("ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
       if (lines.length > 0)
           @@IPaddr = lines[0].chomp
@@ -226,55 +231,116 @@ class HandlerPubSubCommunicator < MObject
     @@service.leave_all_pubsub_node()
   end
   
+  #############################################################################################################  
+  #############################################################################################################  
+  #############################################################################################################
   #
-  # Send a message to the NH
+  # This method sends a message to one or multiple nodes
+  # Format: <sequenceNo target command arg1 arg2 ...>
   #
-  # -  msgArray = the array of text to send
+  # - target =  a String with the name of the group of node(s) that should process this message
+  # - command = the NodeAgent command that should be executed
+  # - msgArray = an Array with the arguments for this NodeAgent command
   #
-  def send(*msgArray)
-    send!(0, *msgArray)
-  end
+  def send(target, command, msgArray = [])
+    msg = "S #{target} #{command} #{LineSerializer.to_s(msgArray)}"
+    debug("Send message: ", msg)
+    write(msg)
+   end
 
   #
-  # Send a heartbeat back to the NH
+  # This method sends a message unreliably. 
+  # This means sending a message with a sequence number of 0.
+  # Format: <0 target command arg1 arg2 ...>
   #
-  def sendHeartbeat()
-    send!(0, :HB, -1, -1, -1, -1)
+  # - target =  a String with the name of the group of node(s) that should process this message
+  # - command = the NodeAgent command that should be executed
+  # - msgArray = an Array with the arguments for this NodeAgent command
+  #
+  def sendUnreliably(target, command, msgArray = [])
+    msg = "s #{target} #{command} #{LineSerializer.to_s(msgArray)}"
+    debug("Send unreliable message: ", msg)
+    write(msg)
   end
-
-  #
-  # This method is just here for backward compatibility with the original TCP Server 
-  # communicator.Previously (TCP Server Comm), each message had a sequence number, 
-  # and the comms had to ignore duplicate messages already received. Using a PubSub 
-  # communication scheme, this is no longer required. However, since we don't want 
-  # to modify the NA's code yet (will do in the future!), we need this here to keep 
-  # it happy.
-  #
-  def ignoreUpTo(number)
-    # do nothing...
-  end
-
-  ## NH methods start here
 
   #
   # This method sends a reset message to all connected nodes
   #
   def sendReset()
-#    write("R")
+    write("R")
   end
-  
+
+  #
+  # This method enrolls 'node' with 'ipAddress' and 'name'
+  # When this node checks in, it will automatically
+  # get 'name' assigned.
+  #
+  # - node =  id of the node to enroll
+  # - name = name to give to the node once enrolled
+  # - ipAddress = IP address of the node to enroll 
+  #
+  def enrolNode(node, name, ipAddress)
+    @name2node[name] = node
+    write("a #{ipAddress} #{name}")
+    psNode = "#{@@domain}/system/#{ipAddress}"
+    @@service.create_pubsub_node(psNode)
+    send!("IDS #{@@sessionID} #{@@expID}",psNode)
+    send!("YOUARE #{name}",psNode)
+  end
+
+  #
+  # This method removes a node from the tcpCommunicator's list of 'alive' nodes.
+  # When a given 'Node' object is being removed from all the existing 
+  # topologies, it calls this method to notify the tcpCommunicator, so 
+  # subsequent messages received from the real physical node will be 
+  # discarded by the Commnunicator in the processCommand() call.
+  # Furthermore, 'X' command is sent to the commServer to remove all
+  # group associated to this node at the commServer level. Finally, a
+  # 'RESET' command is sent to the real node.
+  #
+  # - name = name of the node to remove
+  #
+  def removeNode(name)
+    @name2node[name] = nil
+    write("X #{name}")
+    write("s #{name} RESET")
+  end
+
+  #
+  # This method adds a node to an existing/new group
+  # (a node can belong to multiple group)
+  #
+  # - nodeName = name of the node 
+  # - groupName =  name of the group to add the node to
+  #
+  def addToGroup(nodeName, groupName)
+    write("A #{nodeName} #{groupName}")
+    psNode = "#{@@domain}/session/#{@@sessionID}/#{@@expID}/#{nodeName}"
+    @@service.create_pubsub_node(psNode)
+    @@service.join_pubsub_node(psNode)
+    @@service.create_pubsub_node("#{@@domain}/session/#{@@sessionID}/#{@@expID}/#{groupName}")
+    send!("ALIAS #{groupName}", psNode)
+  end
+
   #
   # This methods sends a 'quit' message to all the nodes
   #
   def quit()
-#    begin
-#      write('q')
-#      sleep 2
-#    rescue
-#      #ignore
-#    end
+    begin
+      write('q')
+      sleep 2
+    rescue
+      #ignore
+    end
+    @@service.remove_pubsub_node("#{@@domain}/session/#{@@sessionID}")
+    @@service.remove_pubsub_node("#{@@domain}/session/#{@@sessionID}/#{@@expID}")
+#    @@service.leave_pubsub_node(node)
+#    @@service.remove_pubsub_node("#{domain}/session/#{sessionID}/#{expID}") # remove each node TODO
   end
 
+  #############################################################################################################  
+  #############################################################################################################  
+  #############################################################################################################
       
   private
      
@@ -310,21 +376,35 @@ class HandlerPubSubCommunicator < MObject
   # - seqNo = sequence number of the message to send
   # - msgArray = the array of text to send
   #
-  def send!(seqNo, *msgArray)
-
-    # Build Message  
-    message = "#{@@myName} 0 #{LineSerializer.to_s(msgArray)}"
+  # def send!(seqNo, *msgArray)
+  # 
+  #   # Build Message  
+  #   message = "#{@@myName} 0 #{LineSerializer.to_s(msgArray)}"
+  #   item = Jabber::PubSub::Item.new
+  #   msg = Jabber::Message.new(nil, message)
+  #   item.add(msg)
+  # 
+  #   # Send it
+  #   dst = "#{@@pubsubNodePrefix}/#{@@myName}"
+  #   debug("Send to: #{dst} - message: '#{message}'")
+  #   begin
+  #     debug "send! - A"
+  #     @@service.publish_to_node("#{dst}", item)        
+  #     debug "send! - B"
+  #   rescue Exeption => ex
+  #     error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
+  #   end
+  # end
+  
+  def send!(message, dst)
     item = Jabber::PubSub::Item.new
     msg = Jabber::Message.new(nil, message)
     item.add(msg)
-
+  
     # Send it
-    dst = "#{@@pubsubNodePrefix}/#{@@myName}"
     debug("Send to: #{dst} - message: '#{message}'")
     begin
-      debug "send! - A"
       @@service.publish_to_node("#{dst}", item)        
-      debug "send! - B"
     rescue Exeption => ex
       error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
     end
@@ -352,14 +432,13 @@ class HandlerPubSubCommunicator < MObject
   def execute_command (event)
 
     # Extract the Message from the PubSub Event
-    debug "TDEBUG - execute_command - A"
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
     rescue Exception => ex
       error "ERROR - execute_command() - Cannot parse Event '#{event}'"
       return
     end
-    debug "TDEBUG - execute_command - B - message: '#{message}'"
+    debug "message received: '#{message}'"
         
     # Parse the Message to extract the Command
     # (when parsing, keep the full message to send it up to NA later)
@@ -390,53 +469,49 @@ class HandlerPubSubCommunicator < MObject
       when "LIST"
       when "SET_MACTABLE"
       when "JOIN"
-        join_groups(argArray[1, (argArray.length-1)])
-        
       when "ALIAS"
-        join_groups(argArray[1, (argArray.length-1)])
-    
       when "YOUARE"
-        # YOUARE format (see AgentCommands): YOUARE <name> <aliases>
-        # <name> becomes the Agent Name for this Session/Experiment.
-        # <aliases> optional aliases for this NA
-        @@myName = argArray[1]
-        list = Array.[](argArray[1])
-        # If there are some optional aliases, add them to the list of groups to join
-        if (argArray.length > 1)
-          argArray[1,(argArray.length-1)].each { |name|
-            list.push(name)
-          }
-        end
-        join_groups(list)
-    
       when "IDS"
-        # Store the Session and Experiment IDs given by the NH's communicator
-        @@sessionID = argArray[1]
-        @@expID = argArray[2]
-        debug "TDEBUG - execute_command() - Set SessionID / ExpID: '#{@@sessionID}' / '#{@@expID}'"
-        # Join the global PubSub nodes for this session / experiment
-        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
-        @@service.join_pubsub_node(n)
-        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
-        @@service.join_pubsub_node(n)
-        # Store the full PubSub path for this session / experiment
-        @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
-        # Return Now, this cmd is only used between NH and NA communicators
+      when "HB"
+        debug "Heartbeat received"
         return
-    
+      when "WHOAMI"
+        debug "WHOAMI received"
+        return
+  
       # When nothing else match - We don't know this command, log that and discard it.
       else
-        NodeHandler.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NA" 
+        NodeHandler.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NH" 
         return
       end
     rescue Exception => ex
-      error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NA"
+      error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NH"
     end
     
     # Second - Now that we can pass the full message up to the NodeAgent
-    debug "execute_command - PASSING CMD to NA - 1"
-    NodeHandler.instance.execCommand(argArray)
-    debug "execute_command - PASSING CMD to NA - 2"
+    #debug "execute_command - PASSING CMD to NA - 1"
+    #NodeHandler.instance.execCommand(argArray)
+    #debug "execute_command - PASSING CMD to NA - 2"
+  end
+  
+  #
+  # This method writes a message to the commServer
+  #
+  # - msg =  message to write (String)
+  #
+  def write(msg)
+    if NodeHandler.JUST_PRINT
+      puts ">> MSG: #{msg}"
+    else
+      # just print it for now
+      puts ">> MSG: #{msg}"
+      
+      #if @server
+      #  @server.stdin(msg)
+      #else
+      #  error("Dropped message to node: ", msg)
+      #end
+    end
   end
   
 end #class

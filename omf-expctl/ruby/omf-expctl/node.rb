@@ -59,6 +59,15 @@ class Node < MObject
   @@nodes = ArrayMD.new
 
   #
+  # Return the instance of the Communicator module associated to this NA
+  #
+  # [Return] a Communicator object 
+  #
+  def communicator()
+    XmppCommunicator.instance
+  end
+
+  #
   # Return the node at location 'x'@'y'. If no node exists, return nil.
   # - x = x coordinate of the node to return
   # - y = y coordinate of the node to return
@@ -342,7 +351,7 @@ class Node < MObject
     #@@nodeAliases[name] = self
 
     TraceState.nodeAddGroup(self, group)
-    HandlerPubSubCommunicator.instance.addToGroup(@nodeId, group)
+    communicator.addToGroup(@nodeId, group)
   end
 
   #
@@ -611,11 +620,11 @@ class Node < MObject
   #
   # When a node is being removed from all topologies, the Topology
   # class calls this method to notify it. The removed node propagates
-  # this notification to the HandlerPubSubCommunicator and also to the NodeSets which
+  # this notification to the communicator and also to the NodeSets which
   # it belongs to.
   #
   def notifyRemoved()
-    HandlerPubSubCommunicator.instance.removeNode(@nodeId)
+    communicator.removeNode(@nodeId)
     setStatus(STATUS_DOWN)
     changed
     notify_observers(self, :node_is_removed)
@@ -679,7 +688,7 @@ class Node < MObject
 
     @properties = Hash.new
     ipAddress = getControlIP()
-    HandlerPubSubCommunicator.instance.enrollNode(self, @nodeId, ipAddress)
+    communicator.enrolNode(self, @nodeId, ipAddress)
     TraceState.nodeAdd(self, @nodeId, x, y)
     debug "Created node #{x}@#{y}"
      
@@ -709,7 +718,7 @@ class Node < MObject
   def send(command, *args)
     #debug("node#send: args(#{args.length})'#{args.join('#')}")
     if (@isUp)
-      HandlerPubSubCommunicator.instance.send(nodeId, command, args)
+      communicator.send(nodeId, command, args)
     else
       #raise "Node not up. Embed command in 'onNodeUp' block"
       debug "Deferred message: #{command} #{@nodeId} #{args.join(' ')}"

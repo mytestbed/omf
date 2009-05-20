@@ -38,7 +38,7 @@ module AgentCommands
   # The NH receives such a message when a NA has enrolled for the experiment.
   # The NH sends a 'heartbeat' message back.
   #
-  # - handler = the 'HandlerPubSubCommunicator' instance that called this method
+  # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
@@ -52,7 +52,7 @@ module AgentCommands
   # Process 'WARN' message from a Node Agent. 
   # The NH receives such a message when a NA sends a warning text.
   #
-  # - handler = the 'HandlerPubSubCommunicator' instance that called this method
+  # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
@@ -66,7 +66,7 @@ module AgentCommands
   # The NH receives such a message when a NA reports an application-specific 
   # event that happened on the node.
   #
-  # - handler = the 'HandlerPubSubCommunicator' instance that called this method
+  # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
@@ -86,7 +86,7 @@ module AgentCommands
   # The NH receives such a message when a NA reports a device-specific
   # event that happened on the node.
   #
-  # - handler = the 'HandlerPubSubCommunicator' instance that called this method
+  # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
@@ -106,7 +106,7 @@ module AgentCommands
   # The NH receives such a message when a NA reports a error 
   # event that happened on the node.
   #
-  # - handler = the 'HandlerPubSubCommunicator' instance that called this method
+  # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
@@ -150,7 +150,7 @@ module AgentCommands
   # The NH will wait for an 'END_EXPERIMENT' from all the nodes involved in an experiment
   # before declaring that the experiment is indeed completed.
   #
-  # - handler = the 'HandlerPubSubCommunicator' instance that called this method
+  # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
