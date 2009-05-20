@@ -169,7 +169,7 @@ def run(params)
       if (filename =~ /\.yaml$/) then
         name = filename.split('.')[0]
         MObject.info(:gridservices, "Loading #{name} service module")
-        file = "ogs_#{name}/#{name}"
+        file = "omf-aggmgr/ogs_#{name}/#{name}"
         begin
           require(file)
           # Building the class name out of the config file name
