@@ -39,7 +39,9 @@ require 'util/mobject'
 
 require 'omf_ext/renderer'
 require 'omf_ext/helpers'
-require 'omf_ext/graph_server'
+require 'omf_ext/graph_servlet'
+require 'omf_ext/code_servlet'
+require 'omf_ext/log_servlet'
 
 include WEBrick
 
@@ -70,16 +72,39 @@ module NodeHandlerServer
 #    @@server.mount("/xml", XMLServlet)
 #    @@server.mount("/xpath", XPathServlet)
 #    @@server.mount("/set", SetExpPropertyServlet)
+
+    general_options = {:params => {}, :flash => {}}
     
-    @@server.mount_proc('/') do |req, resp|
-      include OMF::ExperimentController::Web
-      opts = {:params => {}, :flash => {}, :file_name => "fooo", :exp_id => "outdoor_23004_4343_43434"}
-      #resp.body = MabRenderer.render('graph/show', opts, ViewHelper)
-      resp.body = MabRenderer.render('code/show', opts, ViewHelper)
-    end
+    options = general_options.dup
+    options[:files] = [
+      ['MAIN', 'experiment.rb'],
+      ['omf:proto:udp_sender', 'udp_sender.rb'], 
+      ['omf:proto:udp_receiver', 'receiver.rb'], 
+      ['omf:app:otr', 'otr.rb'],
+      ['omf:app:otg', 'otg2.rb']
+    ]
+    @@server.mount('/code/show', OMF::ExperimentController::Web::CodeServlet, options)
+
+    options = general_options.dup
+    options[:graphs] = [
+      {:name => 'pkts_received', :path => 'udp_sender.rb'}
+    ]    
+    @@server.mount('/graph/show', OMF::ExperimentController::Web::GraphServlet, options)
+
+#    @@server.mount_proc('/') do |req, resp|
+#      include OMF::ExperimentController::Web
+#      opts = {:params => {}, :flash => {}, :file_name => "fooo", :exp_id => "outdoor_23004_4343_43434"}
+#      resp.body = MabRenderer.render('graph/show', opts, ViewHelper)
+#      #resp.body = MabRenderer.render('code/show', opts, ViewHelper)
+#    end
     
     @@server.mount('/graph/config', OMF::ExperimentController::Graph::ConfigServlet)
     @@server.mount('/graph/result', OMF::ExperimentController::Graph::TestDataServlet)
+
+    @@server.mount('/log/show', OMF::ExperimentController::Web::LogServlet, options)
+#    @@server.mount('/log/update', OMF::ExperimentController::Web::LogUpdateServlet, options)
+    @@server.mount('/log/update', OMF::ExperimentController::Web::LogUpdateProxyServlet, options)
+    
     
     @@server.mount_proc('/crossdomain.xml') do |req, res|
       res.body = %{
@@ -177,6 +202,9 @@ module NodeHandlerServer
 end # End of Module
 
 if __FILE__ == $0
+  
+  MObject.initLog('omfExp')
+  MObject.logger().add(OMF::ExperimentController::Web::LogOutputter.new)
   NodeHandlerServer.start
   if true 
     mutex = Mutex.new
