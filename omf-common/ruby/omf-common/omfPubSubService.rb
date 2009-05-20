@@ -153,6 +153,27 @@ class OmfPubSubService < MObject
     end
     flag
   end
+
+  #
+  # Remove a PubSub node (aka group, or discussion board)
+  # Do nothing if the PubSub node doesn't exist
+  #
+  # - node = [String] name of the node to remove
+  #
+  # [Return] True/False
+  #
+  def remove_pubsub_node(node)
+    if !node_exist?(node)
+      puts "UNSUCCESSFUL - Node #{node} doesn't exist"
+      flag=false
+    else
+
+      @service.delete_node(node)
+      puts "SUCCESSFUL - Node #{node} was removed"
+      flag=true
+    end
+    flag
+  end
         
   #
   # Publish a new message (item) to a PubSub node
@@ -259,7 +280,7 @@ class OmfPubSubService < MObject
   def subscribed_to?(node)
     listAllSubscription = get_all_pubsub_subscriptions
     listAllSubscription.each { |sub|
-      debug "TESTING - #{node} - AGAINST - #{sub.node}"
+      #debug "TESTING - #{node} - AGAINST - #{sub.node}"
       if (sub.node == node)
         return true
       end
