@@ -71,53 +71,11 @@ class XmppCommunicator < MObject
     @@systemNode = nil
     @@domain = nil
     @@expID = nil
+    @@expNode = nil
     @@sessionID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
-  end
-
-  # 
-  # Return the x coordinate for this NA 
-  # Raises an error message if the coordinate is not set/available
-  #
-  # [Return] x coordinate
-  #
-  def x
-    if (@@x.nil?)
-      raise "Cannot determine X coordinate"
-    end
-    return @@x
-  end
-
-  # 
-  # Set the x coordinate for this NA 
-  #
-  # - x = value for the X coordinate
-  #
-  def setX(x)
-    @@x = x
-  end
-  # 
-  # Return the y coordinate for this NA 
-  # Raises an error message if the coordinate is not set/available
-  #
-  # [Return] y coordinate
-  #
-  def y
-    if (@@y.nil?)
-      raise "Cannot determine X coordinate"
-    end
-    return @@y
-  end
-
-  # 
-  # Set the y coordinate for this NA 
-  #
-  # - y = value for the Y coordinate
-  #
-  def setY(y)
-    @@y = y
-  end      
+  end  
       
   #
   # Configure and start the Communicator.
@@ -159,12 +117,18 @@ class XmppCommunicator < MObject
     #debug "TDEBUG - start 2"
     debug "Connected to PubSub Server: '#{pubsubjid}'"
 
-    @@service.create_pubsub_node("#{domain}")
-    @@service.create_pubsub_node("#{domain}/session")
-    @@service.create_pubsub_node("#{domain}/system")
-    @@service.create_pubsub_node("#{domain}/session/#{sessionID}")
-    @@service.create_pubsub_node("#{domain}/session/#{sessionID}/#{expID}")
+    @@service.remove_all_pubsub_node
 
+    # let the gridservice do this:
+    @@service.create_pubsub_node("/#{domain}")
+    @@service.create_pubsub_node("/#{domain}/#{SYSTEM}")    
+    @@service.create_pubsub_node("/#{domain}/#{SESSION}")
+    
+    @@service.create_pubsub_node("/#{domain}/#{SESSION}/#{sessionID}")
+    
+    @@expNode = "/#{domain}/#{SESSION}/#{sessionID}/#{expID}"
+    @@service.create_pubsub_node("#{@@expNode}")
+    
   end
 
   #
@@ -223,51 +187,33 @@ class XmppCommunicator < MObject
 
   alias localAddr getControlAddr
   
-  #
-  # Unsubscribe from all nodes
-  # This will be called when the node shuts down
-  #
-  def unsubscribe
-    @@service.leave_all_pubsub_node()
-  end
-  
   #############################################################################################################  
   #############################################################################################################  
   #############################################################################################################
   #
   # This method sends a message to one or multiple nodes
-  # Format: <sequenceNo target command arg1 arg2 ...>
+  # Format: <command arg1 arg2 ...>
   #
   # - target =  a String with the name of the group of node(s) that should process this message
   # - command = the NodeAgent command that should be executed
   # - msgArray = an Array with the arguments for this NodeAgent command
   #
   def send(target, command, msgArray = [])
-    msg = "S #{target} #{command} #{LineSerializer.to_s(msgArray)}"
-    debug("Send message: ", msg)
-    write(msg)
+    msg = "#{command} #{LineSerializer.to_s(msgArray)}"
+    if (target = "*")
+      tgt="#{@@expNode}"
+    else
+      tgt="#{@@expNode}/#{target}"
+    end
+    debug("Sending message ", msg, "to node ", tgt)
+    send!(msg, tgt)
    end
-
-  #
-  # This method sends a message unreliably. 
-  # This means sending a message with a sequence number of 0.
-  # Format: <0 target command arg1 arg2 ...>
-  #
-  # - target =  a String with the name of the group of node(s) that should process this message
-  # - command = the NodeAgent command that should be executed
-  # - msgArray = an Array with the arguments for this NodeAgent command
-  #
-  def sendUnreliably(target, command, msgArray = [])
-    msg = "s #{target} #{command} #{LineSerializer.to_s(msgArray)}"
-    debug("Send unreliable message: ", msg)
-    write(msg)
-  end
 
   #
   # This method sends a reset message to all connected nodes
   #
   def sendReset()
-    write("R")
+    send!("RESET", "#{@@expNode}")
   end
 
   #
@@ -281,9 +227,10 @@ class XmppCommunicator < MObject
   #
   def enrolNode(node, name, ipAddress)
     @name2node[name] = node
-    write("a #{ipAddress} #{name}")
-    psNode = "#{@@domain}/system/#{ipAddress}"
+    # move this to the gridservice later
+    psNode = "/#{@@domain}/#{SYSTEM}/#{ipAddress}"
     @@service.create_pubsub_node(psNode)
+    
     send!("IDS #{@@sessionID} #{@@expID}",psNode)
     send!("YOUARE #{name}",psNode)
   end
@@ -293,7 +240,7 @@ class XmppCommunicator < MObject
   # When a given 'Node' object is being removed from all the existing 
   # topologies, it calls this method to notify the tcpCommunicator, so 
   # subsequent messages received from the real physical node will be 
-  # discarded by the Commnunicator in the processCommand() call.
+  # discarded by the Communicator in the processCommand() call.
   # Furthermore, 'X' command is sent to the commServer to remove all
   # group associated to this node at the commServer level. Finally, a
   # 'RESET' command is sent to the real node.
@@ -302,40 +249,65 @@ class XmppCommunicator < MObject
   #
   def removeNode(name)
     @name2node[name] = nil
-    write("X #{name}")
-    write("s #{name} RESET")
+    send!("RESET", "#{@@expNode}/#{name}")
+    @@service.remove_pubsub_node("#{@@expNode}/#{name}")
   end
 
   #
   # This method adds a node to an existing/new group
-  # (a node can belong to multiple group)
+  # (a node can belong to multiple groups)
   #
   # - nodeName = name of the node 
   # - groupName =  name of the group to add the node to
   #
   def addToGroup(nodeName, groupName)
-    write("A #{nodeName} #{groupName}")
-    psNode = "#{@@domain}/session/#{@@sessionID}/#{@@expID}/#{nodeName}"
+    psNode = "#{@@expNode}/#{nodeName}"
     @@service.create_pubsub_node(psNode)
-    @@service.join_pubsub_node(psNode)
-    @@service.create_pubsub_node("#{@@domain}/session/#{@@sessionID}/#{@@expID}/#{groupName}")
+    @@service.create_pubsub_node("#{@@expNode}/#{groupName}")
     send!("ALIAS #{groupName}", psNode)
   end
 
   #
-  # This methods sends a 'quit' message to all the nodes
+  # This method is called when the experiment is finished or cancelled
   #
   def quit()
-    begin
-      write('q')
-      sleep 2
-    rescue
-      #ignore
+    @@service.remove_all_pubsub_node
+  end
+  
+  #
+  # Process an Event coming from an application running on 
+  # one of the nodes.
+  # (this method is called by ExecApp which is monitoring
+  # the 'commServer' process.) 
+  #
+  # - eventName = name of the received Event
+  # - appId = Id of the monitored application 
+  # - msg = Optional message
+  #
+  def onAppEvent(eventName, appId, msg = nil)
+    eventName = eventName.to_s.upcase
+    if (msg != nil && eventName == "STDOUT" && msg[0] == ?#)
+      ma = msg.slice(1..-1).strip.split
+      cmd = ma.shift
+      msg = ma.join(' ')
+      if cmd == 'WARN'
+        MObject.warn('commServer', msg)
+      elsif cmd == 'ERROR'
+        MObject.error('commServer', msg)
+      else
+        MObject.debug('commServer', msg)
+      end
+      return
     end
-    @@service.remove_pubsub_node("#{@@domain}/session/#{@@sessionID}")
-    @@service.remove_pubsub_node("#{@@domain}/session/#{@@sessionID}/#{@@expID}")
-#    @@service.leave_pubsub_node(node)
-#    @@service.remove_pubsub_node("#{domain}/session/#{sessionID}/#{expID}") # remove each node TODO
+
+    debug("commServer(#{eventName}): '#{msg}'")
+    if (eventName == "STDOUT")
+      a = LineSerializer.to_a(msg)
+      processCommand(a)
+    elsif (eventName == "DONE.ERROR")
+      error("ComServer failed: ", msg)
+      @server = nil
+    end
   end
 
   #############################################################################################################  
@@ -402,7 +374,7 @@ class XmppCommunicator < MObject
     item.add(msg)
   
     # Send it
-    debug("Send to: #{dst} - message: '#{message}'")
+    debug("*** Sending '#{message}' to #{dst} ***")
     begin
       @@service.publish_to_node("#{dst}", item)        
     rescue Exeption => ex
@@ -435,7 +407,9 @@ class XmppCommunicator < MObject
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
     rescue Exception => ex
-      error "ERROR - execute_command() - Cannot parse Event '#{event}'"
+      # received a XMPP fragment that is not a text message, such as an (un)subscribe notification
+      # we're ignoring those
+      # error "ERROR - execute_command() - Cannot parse Event '#{event}'"
       return
     end
     debug "message received: '#{message}'"
@@ -493,6 +467,44 @@ class XmppCommunicator < MObject
     #NodeHandler.instance.execCommand(argArray)
     #debug "execute_command - PASSING CMD to NA - 2"
   end
+
+  #
+   # This method processes the command comming from an agent
+   #
+   #  - argArray = command line parsed into an array
+   #
+   def processCommand(argArray)
+     debug "Process message '#{argArray.join(' ')}'"
+     if argArray.size < 2
+       raise "Command is too short '#{argArray.join(' ')}'"
+     end
+     senderId = argArray.delete_at(0)
+     sender = @name2node[senderId]
+
+     if (sender == nil)
+       debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
+       return
+     end
+     command = argArray.delete_at(0)
+     # First lookup this comand within the list of handler's Commands
+     method = @handlerCommands[command]
+     # Then, if it's not a handler's command, lookup it up in the list of agent's commands
+     if (method == nil)
+       begin
+         method = @handlerCommands[command] = AgentCommands.method(command)
+       rescue Exception
+         warn "Unknown command '#{command}' received from '#{senderId}'"
+         return
+       end
+     end
+     begin
+       # Execute the command
+       reply = method.call(self, sender, senderId, argArray)
+     rescue Exception => ex
+       #error("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
+       debug("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
+     end
+   end
   
   #
   # This method writes a message to the commServer

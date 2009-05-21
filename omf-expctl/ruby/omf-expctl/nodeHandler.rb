@@ -334,7 +334,10 @@ class NodeHandler < MObject
     
     # Placeholder when XMPP-based Pub/Sub xmppCommunicator will be ready for integration
     # communicator.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub xmppCommunicator
-    communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain(), "SessionID", Experiment.ID)
+    
+    # Static domain for testing
+    # communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain, "SessionID", Experiment.ID)
+    communicator.start("sandbox1.dynhost.nicta.com.au", "123", "Domain", "SessionID", Experiment.ID)
     communicator.sendReset  # if the nodes are already up, reset the agent now
 
     Profiler__::start_profile if @doProfiling
