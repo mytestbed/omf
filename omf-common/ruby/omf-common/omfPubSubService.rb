@@ -131,6 +131,9 @@ class OmfPubSubService < MObject
   #
   # Create a PubSub node (aka group, or discussion board)
   # Do nothing if the PubSub node already exists
+  # Openfire automatically adds the creator of the node
+  # to the subscriber list and does not allow it to
+  # unsubscribe.
   #
   # - node = [String] name of the node to create
   #
@@ -138,17 +141,16 @@ class OmfPubSubService < MObject
   #
   def create_pubsub_node(node)
     if node_exist?(node)
-      puts "UNSUCCESSFUL - Node #{node} already exists"
+      info "Node #{node} already exists"
       flag=false
     else
-      puts "SUCCESSFUL - Node #{node} is created"
       @service.create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
                            "pubsub#title" => "#{node}",
                            "pubsub#node_type" => "leaf",
                            "pubsub#send_last_published_item" => "never",
-                           "pubsub#send_item_subscribe" => "0",
+                           "pubsub#send_item_subscribe" => "1",
                            "pubsub#publish_model" => "open"}))
-  
+      info "Node #{node} was created"  
       flag=true
     end
     flag
@@ -164,12 +166,12 @@ class OmfPubSubService < MObject
   #
   def remove_pubsub_node(node)
     if !node_exist?(node)
-      puts "UNSUCCESSFUL - Node #{node} doesn't exist"
+      info "Node #{node} doesn't exist"
       flag=false
     else
 
       @service.delete_node(node)
-      puts "SUCCESSFUL - Node #{node} was removed"
+      info "Node #{node} was removed"
       flag=true
     end
     flag
@@ -185,9 +187,9 @@ class OmfPubSubService < MObject
     if !node_exist?(node)
       debug "publish_to_node - Node does not exist!  '#{node}'"
     else
-      debug "publish_to_node - A"
+      #debug "publish_to_node - A"
       @service.publish_item_to(node,item)
-      debug "publish_to_node - A"
+      #debug "publish_to_node - B"
     end
   end
 
@@ -201,6 +203,18 @@ class OmfPubSubService < MObject
       leave_pubsub_node(sub.node, sub.subid)
     }
       debug "TDEBUG - LIST AFTER Leaving - #{get_all_pubsub_subscriptions}"
+  end
+  
+  #
+  # Remove all PubSub nodes currently subscribed to
+  #
+  def remove_all_pubsub_node()
+    listAllSubscription = get_all_pubsub_subscriptions
+    #debug "CDEBUG - List BEFORE Removing All: #{listAllSubscription}"
+    listAllSubscription.each { |sub|
+      @service.delete_node(sub.node)
+    }
+    #debug "CDEBUG - LIST AFTER Removing - #{get_all_pubsub_subscriptions}"
   end
   
   #
@@ -258,14 +272,14 @@ class OmfPubSubService < MObject
     begin
       info = @browser.get_info(@pubsubjid,node)  
     rescue
-      error "TDEBUG - node_exist - rescue - false"
+      #error "TDEBUG - node_exist - rescue - false"
       return false
     end
     if (info == nil)
-      debug "TDEBUG - node_exist - nil/empty - false"
+      #debug "TDEBUG - node_exist - nil/empty - false"
       return false
     else
-      debug "TDEBUG - node_exist - exist - true" # - #{info.to_s}"
+      #debug "TDEBUG - node_exist - exist - true" # - #{info.to_s}"
       return true
     end
   end
@@ -297,7 +311,6 @@ class OmfPubSubService < MObject
   def get_all_pubsub_subscriptions
     list = nil
     begin
-      debug "--------------------"
       cl = Jabber::Client.new(@userJID)
       cl.connect
       cl.auth(@password)
