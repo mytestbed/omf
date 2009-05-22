@@ -5,34 +5,25 @@ mount -t proc proc /proc
 mkdir /dev/pts
 mount -t devpts devpts /dev/pts
 
-# Get network up
+# loopback interface
 ifconfig lo 127.0.0.1
 
-# default interface names
-EXPERIMENT=eth0
+# default control interface
 CONTROL=eth1
+
 UDHCPC_SCRIPT="/etc/udhcp.script"
 UDHCPC="/sbin/udhcpc"
 IP_CONFIG="/bin/ip"
 
-# get interface names from kernel command line
-if grep -i -q "experiment=[a-zA-Z0-9]" /proc/cmdline 
-then
-  EXPERIMENT=`cat /proc/cmdline | sed 's/.*experiment=\([^ ]*\).*/\1/'` 
-fi 
+# get control interface name from kernel command line
 if grep -i -q "control=[a-zA-Z0-9]" /proc/cmdline
 then
   CONTROL=`cat /proc/cmdline | sed 's/.*control=\([^ ]*\).*/\1/'` 
   sed -i "s/local_if: eth1/local_if: $CONTROL/g" /etc/nodeagent4/nodeagent.yaml
 fi 
 
-$IP_CONFIG link set $EXPERIMENT up
 $IP_CONFIG link set $CONTROL up
 $UDHCPC -i $CONTROL -s $UDHCPC_SCRIPT
-# No need to request an IP via DHCP on NETDEV_0
-# If you do add it make sure you'll get an answer or
-# be sure to background the job
-$UDHCPC -i $EXPERIMENT -s $UDHCPC_SCRIPT &
 
 # enable logging (if the feature is built into busybox):
 # Note that nodeagent4 doesn't use syslog anyway so you don't
@@ -51,4 +42,4 @@ else
 fi
 cat /.orbit_image
 # Start nodeagent
-nodeagent4&
+/usr/sbin/nodeagent4&
