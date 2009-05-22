@@ -9,8 +9,8 @@ module OMF
       def self.create_tb_map()
         ml = self.new
         ml.add_schema 'name', 'node'
-        ml.add_schema 'x', 'node', 'x', 'integer', 100
-        ml.add_schema 'y', 'node', 'y', 'integer', 100
+        ml.add_schema 'x', 'node', {:type => 'integer', :default => 100}
+        ml.add_schema 'y', 'node', :type => 'integer', :default => 100
     
     	require 'inventory'
         Inventory.add_nodes_to_graphml ml
@@ -23,10 +23,22 @@ module OMF
         @g = @doc.root.add_element "graph", 'edgedefault' => 'undirected'
       end
     
-      def add_schema(id, target, name = id, type = 'string', default = nil)
+      # Add schema information for either a node or edge property.
+      #
+      # - id = A unique id for this attribute
+      # - target = either 'node' or 'edge'
+      # - opts = option hash:
+      #    - :name = name of attribute [id]
+      #    - :type = type of property value [string]
+      #    - :default = default value of property
+      #
+      def add_schema(id, target, opts = {})
+        name = opts[:name] || id
+        type = opts[:type] || 'string'
         attrs = {'id' => id, 'for' => target, 'attr.name' => name, 'attr.type' => type}
         k = @g.add_element "key", attrs
-        if default
+
+        if default = opts[:default]
           dn = k.add_element 'default'
           dn.text = default
         end

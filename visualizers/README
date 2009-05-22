@@ -1,0 +1,21 @@
+This directory contains a flash based visualization widget to visualize
+OML results.
+
+It currently supports a timeline based visualization as well as one for graphs.
+
+TODO:
+
+Makefile based compilation of the swf files.
+For the moment, the repository contains the compiled files in 'html-cache'
+
+USAGE:
+
+The widgets will ultimately move into the experiment controller, but the
+graph widget can be tested with the '???' experiment as follows:
+
+% cd src/ruby/omf_visualize
+% ruby fetchMap.rb expId
+
+On the SAME machine, point a web browser to:
+
+file:///$OMF_SRC_DIR/visualizers/html-cache/vis/NetworkGraph.html
