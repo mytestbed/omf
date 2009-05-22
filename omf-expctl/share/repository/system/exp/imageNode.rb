@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -132,7 +132,7 @@ everyNS('image', 10) { |ns|
       if nodesWithErrorList.length > 0
          topoName = "system_topo_failed_#{Experiment.getDomain}"
          topoNameS = "system:topo:failed:#{Experiment.getDomain}"
-         File.open("/tmp/#{topoName}.rb","w") do |f|
+         File.open("/tmp/#{Experiment.ID}#-{topoName}.rb","w") do |f|
             f.puts("# Topology name: #{topoNameS}", "# ")
             f.puts("# The following command creates a Topology wih the nodes that have failed the imaging process.")
             f.puts("# On these nodes, the 'frisbee' client did not manage to start the imaging process.")
@@ -142,12 +142,12 @@ everyNS('image', 10) { |ns|
             nset = "[#{nsArray.join(",")}]"
             f.puts(" ","defTopology('#{topoNameS}', #{nset})")
          end
-         info " - #{nodesWithErrorList.length} node(s) failed - See the topology file: '/tmp/#{topoName}.rb'"
+         info " - #{nodesWithErrorList.length} node(s) failed - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
       end
       if nodesPendingList.length > 0
          topoName = "system_topo_timedout_#{Experiment.getDomain}"
          topoNameS = "system:topo:timedout:#{Experiment.getDomain}"
-         File.open("/tmp/#{topoName}.rb","w") do |f|
+         File.open("/tmp/#{Experiment.ID}-#{topoName}.rb","w") do |f|
             f.puts("# Topology name: #{topoNameS}", "# ")
             f.puts("# The following command creates a Topology wih the nodes that have timed-out the imaging process.")
             f.puts("# These nodes did not finish imaging before the timeout limit of #{prop.timeout.value}.")
@@ -157,12 +157,12 @@ everyNS('image', 10) { |ns|
             nset = "[#{nsArray.join(",")}]"
             f.puts(" ","defTopology('#{topoNameS}', #{nset})")
          end
-         info " - #{nodesPendingList.length} node(s) timed-out - See the topology file: '/tmp/#{topoName}.rb'"
+         info " - #{nodesPendingList.length} node(s) timed-out - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
       end
       if nodesWithSuccessList.length > 0
          topoName = "system_topo_active_#{Experiment.getDomain}"
          topoNameS = "system:topo:active:#{Experiment.getDomain}"
-         File.open("/tmp/#{topoName}.rb","w") do |f|
+         File.open("/tmp/#{Experiment.ID}-#{topoName}.rb","w") do |f|
             f.puts("# Topology name: #{topoNameS}", "# ")
             f.puts("# The following command creates a Topology wih the nodes that have successfully been imaged.","# ")
             nsArray = []
@@ -170,7 +170,7 @@ everyNS('image', 10) { |ns|
             nset = "[#{nsArray.join(",")}]"
             f.puts(" ","defTopology('#{topoNameS}', #{nset})")
          end
-         info " - #{nodesWithSuccessList.length} node(s) succesfully imaged - See the topology file: '/tmp/#{topoName}.rb'"
+         info " - #{nodesWithSuccessList.length} node(s) succesfully imaged - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
       end
       info " ----------------------------- "
       ns.pxeImage("#{prop.domain.value}", setPXE=false)
