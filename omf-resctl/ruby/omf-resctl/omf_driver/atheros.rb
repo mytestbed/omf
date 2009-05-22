@@ -43,6 +43,32 @@ class AtherosDevice < WirelessDevice
     @driver = 'ath_pci'
   end
 
+  # 
+  # Execute some tasks after the 'activation' of this device
+  # In this particular case of MADWIFI, the previous versions had a default
+  # interface created after the kernel module was loaded, but the recent versions
+  # dont do this anymore. Thus, we do it manually here.
+  # This is in case some experimenter only want to run applications without any
+  # particular wireless setting (thus we dont want to force them to create it 
+  # themselves)
+  #
+  def postActivate()
+    test = `wlanconfig --version`
+    if $?.success?
+      cmd = "wlanconfig  ath0 destroy ; wlanconfig ath0 create wlandev wifi0  wlanmode adhoc"
+    else
+      # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
+      cmd = "iwconfig ath0 mode adhoc"
+    end
+    debug "Post-Activation cmd: #{cmd}"
+    reply = `#{cmd}`
+    if $?.success?
+      debug "Post-Activation OK"
+    else
+      error("While doing driver post-activation - CMD reply is: '#{reply}'")
+    end
+  end
+
   #
   # Return the specific command required to configure a given property of this device.
   # When a property does not exist for this device, check if it does for its super-class.

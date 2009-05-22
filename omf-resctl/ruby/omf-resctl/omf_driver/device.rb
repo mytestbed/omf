@@ -123,10 +123,22 @@ class Device < MObject
   end
 
   #
-  # Called multiple times to ensure that device is UP
+  # Activate this device
+  # This method just set our internal Activate state to true.
+  # The real 'activation' tasks (e.g. loading a kernel module) will be done in the
+  # subclasses, which will override this method.
+  # This method may be called multiple times to ensure that device is UP
   #
   def activate()
     @isActive = true
+  end
+
+  # 
+  # Execute some tasks after the 'activation' of this device
+  # This method does nothing here, but may be overriden by the subclasses of Device.
+  #
+  def postActivate()
+    return true
   end
 
   #

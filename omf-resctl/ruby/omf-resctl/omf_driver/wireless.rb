@@ -117,7 +117,9 @@ class WirelessDevice < EthernetDevice
   end
 
   #
-  # Called multiple times to ensure that device is up
+  # Activate this device
+  # In this case, this will loading the kernel module to handle this type of device
+  # This method may be called multiple times to ensure that device is UP
   #
   def activate()
     debug "activate: #{deviceName} #{driver} #{loaded?}"
@@ -130,6 +132,7 @@ class WirelessDevice < EthernetDevice
       end
       info("Loaded #{driver} driver")
       @@driverLoaded[driver] = true
+      postActivate()
     end
   end
 
