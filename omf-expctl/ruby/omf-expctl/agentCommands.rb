@@ -43,7 +43,7 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.ENROLLED(handler, sender, senderId, argArray)
+  def AgentCommands.HB(handler, sender, senderId, argArray)
     MObject.debug("agentCmd::enrolled", sender, ": ", sender, " senderId: ", senderId, ":" , argArray.join(','))
     sender.heartbeat(0, 0, "00:00")
   end

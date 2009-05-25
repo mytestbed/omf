@@ -338,7 +338,6 @@ class NodeHandler < MObject
     # Static domain for testing
     # communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain, "SessionID", Experiment.ID)
     communicator.start("sandbox1.dynhost.nicta.com.au", "123", "Domain", "SessionID", Experiment.ID)
-    communicator.sendReset  # if the nodes are already up, reset the agent now
 
     Profiler__::start_profile if @doProfiling
 

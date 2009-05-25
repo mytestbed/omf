@@ -34,6 +34,7 @@
 require "omf-common/omfPubSubService"
 require 'omf-common/lineSerializer'
 require 'omf-common/mobject'
+require 'omf-expctl/agentCommands'
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
@@ -64,6 +65,7 @@ class XmppCommunicator < MObject
   #
   def initialize ()
     @name2node = Hash.new
+    @handlerCommands = Hash.new
     @@myName = nil
     @@service = nil
     @@IPaddr = nil
@@ -117,7 +119,7 @@ class XmppCommunicator < MObject
     #debug "TDEBUG - start 2"
     debug "Connected to PubSub Server: '#{pubsubjid}'"
 
-    @@service.remove_all_pubsub_node
+    @@service.remove_all_pubsub_nodes
 
     # let the gridservice do this:
     @@service.create_pubsub_node("/#{domain}")
@@ -200,7 +202,7 @@ class XmppCommunicator < MObject
   #
   def send(target, command, msgArray = [])
     msg = "#{command} #{LineSerializer.to_s(msgArray)}"
-    if (target = "*")
+    if (target == "*")
       tgt="#{@@expNode}"
     else
       tgt="#{@@expNode}/#{target}"
@@ -230,9 +232,8 @@ class XmppCommunicator < MObject
     # move this to the gridservice later
     psNode = "/#{@@domain}/#{SYSTEM}/#{ipAddress}"
     @@service.create_pubsub_node(psNode)
-    
-    send!("IDS #{@@sessionID} #{@@expID}",psNode)
-    send!("YOUARE #{name}",psNode)
+
+    send!("YOUARE #{@@sessionID} #{@@expID} #{name}",psNode)
   end
 
   #
@@ -271,7 +272,7 @@ class XmppCommunicator < MObject
   # This method is called when the experiment is finished or cancelled
   #
   def quit()
-    @@service.remove_all_pubsub_node
+    @@service.remove_all_pubsub_nodes
   end
   
   #
@@ -418,57 +419,58 @@ class XmppCommunicator < MObject
     # (when parsing, keep the full message to send it up to NA later)
     argArray = message.split(' ')
     if (argArray.length < 1)
-      error "ERROR - execute_command() - Message too short! '#{message}'"
+      error "ERROR - execute_command() - Message too short, ignoring: '#{message}'"
       return
     end
     cmd = argArray[0].upcase
         
     # First - Here we check if this Command should trigger any specific task within this Communicator
-    begin
+    case cmd
+    when "EXEC"
+    when "HB"
+    when "KILL"
+    when "STDIN"
+    when "PM_INSTALL"
+    when "APT_INSTALL"
+    when "RESET"
+    when "RESTART"
+    when "REBOOT"
+    when "MODPROBE"
+    when "CONFIGURE"
+    when "LOAD_IMAGE"
+    when "SAVE_IMAGE"
+    when "RETRY"
+    when "RALLO"
+    when "LIST"
+    when "SET_MACTABLE"
+    when "JOIN"
+    when "ALIAS"
+    when "YOUARE"
+    # we've sent this command ourselves, so we can safely ignore it
+    else
+      begin
+      cmd = argArray[2].upcase
       case cmd
-      when "EXEC"
-      when "KILL"
-      when "STDIN"
-      when "PM_INSTALL"
-      when "APT_INSTALL"
-      when "RESET"
-      when "RESTART"
-      when "REBOOT"
-      when "MODPROBE"
-      when "CONFIGURE"
-      when "LOAD_IMAGE"
-      when "SAVE_IMAGE"
-      when "RETRY"
-      when "RALLO"
-      when "LIST"
-      when "SET_MACTABLE"
-      when "JOIN"
-      when "ALIAS"
-      when "YOUARE"
-      when "IDS"
       when "HB"
-        debug "Heartbeat received"
-        return
+      when "APP_EVENT"
+      when "DEV_EVENT"
+      when "ERROR"                
       when "WHOAMI"
         debug "WHOAMI received"
-        return
-  
-      # When nothing else match - We don't know this command, log that and discard it.
+
+        # When nothing else matches - We don't know this command, log that and discard it.
       else
         NodeHandler.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NH" 
         return
       end
-    rescue Exception => ex
-      error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NH"
+      rescue Exception => ex
+        error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NH"
+      end
+      processCommand(argArray)
     end
-    
-    # Second - Now that we can pass the full message up to the NodeAgent
-    #debug "execute_command - PASSING CMD to NA - 1"
-    #NodeHandler.instance.execCommand(argArray)
-    #debug "execute_command - PASSING CMD to NA - 2"
   end
 
-  #
+   #
    # This method processes the command comming from an agent
    #
    #  - argArray = command line parsed into an array
@@ -480,11 +482,13 @@ class XmppCommunicator < MObject
      end
      senderId = argArray.delete_at(0)
      sender = @name2node[senderId]
-
+     
      if (sender == nil)
        debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
        return
      end
+     # get rid of the sequence number
+     argArray.delete_at(0)
      command = argArray.delete_at(0)
      # First lookup this comand within the list of handler's Commands
      method = @handlerCommands[command]
@@ -505,25 +509,5 @@ class XmppCommunicator < MObject
        debug("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
      end
    end
-  
-  #
-  # This method writes a message to the commServer
-  #
-  # - msg =  message to write (String)
-  #
-  def write(msg)
-    if NodeHandler.JUST_PRINT
-      puts ">> MSG: #{msg}"
-    else
-      # just print it for now
-      puts ">> MSG: #{msg}"
-      
-      #if @server
-      #  @server.stdin(msg)
-      #else
-      #  error("Dropped message to node: ", msg)
-      #end
-    end
-  end
-  
+    
 end #class

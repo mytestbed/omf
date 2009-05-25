@@ -592,7 +592,7 @@ class Node < MObject
   end
 
   #
-  # Process a received a timestamp/heartbeadt from this Node
+  # Process a received a timestamp/heartbeat from this Node
   #
   # - sendSeqNo = sender sequence number
   # - recvSeqNo = receiver sequence number
