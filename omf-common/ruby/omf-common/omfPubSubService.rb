@@ -196,9 +196,9 @@ class OmfPubSubService < MObject
   #
   # Unsubscribe from all PubSub nodes
   #
-  def leave_all_pubsub_node()
+  def leave_all_pubsub_nodes()
     listAllSubscription = get_all_pubsub_subscriptions
-    debug "TDEBUG - List BEFORE Leaving All: #{listAllSubscription}"
+    debug "TDEBUG - List BEFORE Leaving all: #{listAllSubscription}"
     listAllSubscription.each { |sub|
       leave_pubsub_node(sub.node, sub.subid)
     }
@@ -206,9 +206,23 @@ class OmfPubSubService < MObject
   end
   
   #
+  # Unsubscribe from all PubSub nodes except the ones containing the substring 'prefix'
+  #
+  def leave_all_pubsub_nodes_except(prefix)
+    listAllSubscription = get_all_pubsub_subscriptions
+    debug "TDEBUG - List BEFORE Leaving all except the ones containing '#{prefix}: #{listAllSubscription}'"
+    listAllSubscription.each { |sub|
+      if (!sub.node.include? prefix) 
+        then leave_pubsub_node(sub.node, sub.subid)
+     end
+    }
+    debug "TDEBUG - LIST AFTER Leaving - #{get_all_pubsub_subscriptions}"
+  end
+  
+  #
   # Remove all PubSub nodes currently subscribed to
   #
-  def remove_all_pubsub_node()
+  def remove_all_pubsub_nodes()
     listAllSubscription = get_all_pubsub_subscriptions
     #debug "CDEBUG - List BEFORE Removing All: #{listAllSubscription}"
     listAllSubscription.each { |sub|
