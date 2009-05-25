@@ -73,7 +73,9 @@ class AgentPubSubCommunicator < MObject
     @@sessionID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
-    start("cluster3.dynhost.nicta.com.au", "123", "eth1")
+    # TODO: fetch the pubsub hostname via kernel command line
+    # password is static, fetch the interface from config file
+    start("sandbox1.dynhost.nicta.com.au", "123", "eth1")
   end
 
   # 
@@ -157,6 +159,8 @@ class AgentPubSubCommunicator < MObject
 
     #debug "TDEBUG - start 2"
     debug "Connected to PubSub Server: '#{pubsubjid}'"
+    # remove possible lingering subscriptions from previous experiments
+    unsubscribe
   end
 
   #
@@ -210,7 +214,9 @@ class AgentPubSubCommunicator < MObject
     
     # All good
     debug("Local control IP address: #{@@IPaddr}")
-    return @@IPaddr
+    # quick hack for testing
+    #return @@IPaddr
+    return "10.0.1.4"
   end
 
   alias localAddr getControlAddr
@@ -221,14 +227,10 @@ class AgentPubSubCommunicator < MObject
   def reset
     debug "TDEBUG - reset - 1"
     # Leave all Pubsub nodes that we might have joined previously 
-    @@service.leave_all_pubsub_node()
+    @@service.leave_all_pubsub_nodes_except("/#{DOMAIN}/#{SYSTEM}")
     # Subscribe to the default 'system' pubsub node
     @@systemNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
-    begin
-      @@service.join_pubsub_node(@@systemNode)
-    rescue Exception => ex
-      error "ERROR - reset - Joining PubSub node '#{@@systemNode}' - Error: '#{ex}'"
-    end
+    @@service.join_pubsub_node(@@systemNode)
     #debug "TDEBUG - reset - Joined PubSub node '#{@@systemNode}'" 
     debug "TDEBUG - reset - 2"
   end
@@ -238,7 +240,7 @@ class AgentPubSubCommunicator < MObject
   # This will be called when the node shuts down
   #
   def unsubscribe
-    @@service.leave_all_pubsub_node()
+    @@service.leave_all_pubsub_nodes()
   end
   
   #
@@ -255,6 +257,8 @@ class AgentPubSubCommunicator < MObject
   #
   def sendHeartbeat()
     send!(0, :HB, -1, -1, -1, -1)
+    sleep 10
+    send!(0, :WHOAMI)
   end
 
   #
@@ -305,7 +309,6 @@ class AgentPubSubCommunicator < MObject
   # - msgArray = the array of text to send
   #
   def send!(seqNo, *msgArray)
-
     # Build Message  
     message = "#{@@myName} 0 #{LineSerializer.to_s(msgArray)}"
     item = Jabber::PubSub::Item.new
@@ -350,7 +353,7 @@ class AgentPubSubCommunicator < MObject
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
     rescue Exception => ex
-      error "ERROR - execute_command() - Cannot parse Event '#{event}'"
+      debug "CDEBUG - execute_command() - Not a message event, ignoring: '#{event}'"
       return
     end
     debug "TDEBUG - execute_command - B - message: '#{message}'"
@@ -368,6 +371,7 @@ class AgentPubSubCommunicator < MObject
     begin
       case cmd
       when "EXEC"
+      when "HB"
       when "KILL"
       when "STDIN"
       when "PM_INSTALL"
@@ -390,20 +394,12 @@ class AgentPubSubCommunicator < MObject
         join_groups(argArray[1, (argArray.length-1)])
     
       when "YOUARE"
-        # YOUARE format (see AgentCommands): YOUARE <name> <aliases>
+        # YOUARE format (see AgentCommands): YOUARE <sessionID> <expID> <name> <aliases>
+        # <sessionID> Session ID
+        # <expID> Experiment ID
         # <name> becomes the Agent Name for this Session/Experiment.
         # <aliases> optional aliases for this NA
-        @@myName = argArray[1]
-        list = Array.[](argArray[1])
-        # If there are some optional aliases, add them to the list of groups to join
-        if (argArray.length > 1)
-          argArray[1,(argArray.length-1)].each { |name|
-            list.push(name)
-          }
-        end
-        join_groups(list)
-    
-      when "IDS"
+        
         # Store the Session and Experiment IDs given by the NH's communicator
         @@sessionID = argArray[1]
         @@expID = argArray[2]
@@ -414,10 +410,21 @@ class AgentPubSubCommunicator < MObject
         n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
         @@service.join_pubsub_node(n)
         # Store the full PubSub path for this session / experiment
-        @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
-        # Return Now, this cmd is only used between NH and NA communicators
-        return
-    
+        @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
+        
+        @@myName = argArray[3]
+        list = Array.[](argArray[3])
+        # If there are some optional aliases, add them to the list of groups to join
+        if (argArray.length > 1)
+          argArray[3,(argArray.length-1)].each { |name|
+            list.push(name)
+          }
+        end
+        join_groups(list)    
+      
+      # if we sent this message to the NH ourselves, do nothing
+      when @@myName.upcase
+        return  
       # When nothing else match - We don't know this command, log that and discard it.
       else
         NodeAgent.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NA" 

@@ -180,11 +180,11 @@ module AgentCommands
   # - argArray = an array with the optional enroll parameters
   #
   def AgentCommands.YOUARE(agent, argArray)
+    # delete session and experiment IDs
+    argArray.delete_at(0)
+    argArray.delete_at(0)    
     agentId = getArg(argArray, "Name of agent")
-    ignoreMsg = getIntArg(argArray, "Highest seq# to ignore")
-
     agent.addAlias(agentId, true)
-    agent.communicator.ignoreUpTo(ignoreMsg)
     argArray.each{ |name|
       agent.addAlias(name)
     }
@@ -562,27 +562,6 @@ module AgentCommands
     arg = argArray.delete_at(0)
     if (arg == nil)
       arg = default
-    end
-    return arg
-  end
-
-  #
-  # Remove the first element from 'argArray' and
-  # return it. If it is not an Integer, raise exception
-  # with 'exepString' providing MObject.information about the
-  # missing argument
-  #
-  # - argArray = Array of arguments
-  # - exepString = MObject.information about argument, used for exception
-  #
-  # [Return] First element in 'argArray' as integer
-  # [Raise] Exception if arg is not an integer
-  #
-  def AgentCommands.getIntArg(argArray, exepString)
-    sarg = getArg(argArray, exepString)
-    arg = sarg.to_i
-    if (arg.to_s != sarg)
-      raise exepString
     end
     return arg
   end

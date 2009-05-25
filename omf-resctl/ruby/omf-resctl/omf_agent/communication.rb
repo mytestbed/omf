@@ -376,11 +376,11 @@ class TcpServerCommunicator < Communicator
   # Send a heartbeat back to the handler
   #
   def sendHeartbeat()
-    send!(0, :HB, -1, -1, -1, -1)
+    send!(:HB, -1, -1, -1, -1)
     # Comment the following code:
     # TcpServerCommunicator only sends HB to acknowledge succesfully executed commands
     #if NodeAgent.instance.connected?
-    #  send!(0, :HB, -1, -1, -1, -1)
+    #  send!(:HB, -1, -1, -1, -1)
     #else
     #  # haven't heard from nodeHandler yet, resend initial message
     #  sendWHOAMI
@@ -506,7 +506,7 @@ class TcpCommunicator < Communicator
   #
   def sendHeartbeat()
     if NodeAgent.instance.connected?
-      send!(0, :HB, -1, -1, -1, -1)
+      send!(:HB, -1, -1, -1, -1)
     else
       # haven't heard from nodeHandler yet, resend initial message
       sendWHOAMI
@@ -731,7 +731,7 @@ class MCCommunicator < Communicator
       @timeoutCnt = 0
       inCnt = @inSeqNumber > 0 ? @inSeqNumber : 0
       @lockSeqNumber.synchronize {
-        send!(0, :HB, @outSeqNumber, inCnt, now.to_i, delta.to_i)
+        send!(:HB, @outSeqNumber, inCnt, now.to_i, delta.to_i)
       }
 
       # Always check if Experiment is done AND we are not temporary disconnected
@@ -770,7 +770,7 @@ class MCCommunicator < Communicator
         @timeoutCnt = 0
         inCnt = @inSeqNumber > 0 ? @inSeqNumber : 0
         @lockSeqNumber.synchronize {
-        send!(0, :HB, @outSeqNumber, inCnt, now.to_i, delta.to_i)
+        send!(:HB, @outSeqNumber, inCnt, now.to_i, delta.to_i)
         }
       end
     else
