@@ -75,7 +75,7 @@ class AgentPubSubCommunicator < MObject
     @@instantiated = true
     # TODO: fetch the pubsub hostname via kernel command line
     # password is static, fetch the interface from config file
-    start("sandbox1.dynhost.nicta.com.au", "123", "eth1")
+    start("sandbox1.dynhost.nicta.com.au", "eth1")
   end
 
   # 
@@ -133,14 +133,15 @@ class AgentPubSubCommunicator < MObject
   # - password = [String], password to use for this PubSud client
   # - control_interface = [String], the interface connected to Control Network
   #
-  def start(jid_suffix, password, control_interface)
+  def start(jid_suffix, control_interface)
     
-    info "TDEBUG - START PUBSUB - #{jid_suffix} - #{password} - #{control_interface}"
+    info "TDEBUG - START PUBSUB - #{jid_suffix} - #{control_interface}"
     # Set some internal attributes...
     @@controlIF = control_interface
     @@IPaddr = getControlAddr()
-    userjid = "#{@@IPaddr}@#{jid_suffix}"
+    userjid = "user@#{jid_suffix}"
     pubsubjid = "pubsub.#{jid_suffix}"
+    password = "user"
     
     # Create a Service Helper to interact with the PubSub Server
     begin
@@ -228,6 +229,14 @@ class AgentPubSubCommunicator < MObject
     debug "TDEBUG - reset - 1"
     # Leave all Pubsub nodes that we might have joined previously 
     @@service.leave_all_pubsub_nodes_except("/#{DOMAIN}/#{SYSTEM}")
+    
+    sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
+    
+    while (!@@service.node_exist?(sysNode))
+      debug "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
+      sleep 10
+    end
+    
     # Subscribe to the default 'system' pubsub node
     @@systemNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
     @@service.join_pubsub_node(@@systemNode)
@@ -257,8 +266,6 @@ class AgentPubSubCommunicator < MObject
   #
   def sendHeartbeat()
     send!(0, :HB, -1, -1, -1, -1)
-    sleep 10
-    send!(0, :WHOAMI)
   end
 
   #
@@ -371,7 +378,6 @@ class AgentPubSubCommunicator < MObject
     begin
       case cmd
       when "EXEC"
-      when "HB"
       when "KILL"
       when "STDIN"
       when "PM_INSTALL"
@@ -387,6 +393,8 @@ class AgentPubSubCommunicator < MObject
       when "RALLO"
       when "LIST"
       when "SET_MACTABLE"
+      when "NOOP"
+        return
       when "JOIN"
         join_groups(argArray[1, (argArray.length-1)])
         
