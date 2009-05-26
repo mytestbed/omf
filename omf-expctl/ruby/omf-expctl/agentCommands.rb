@@ -36,7 +36,6 @@ module AgentCommands
   #
   # Process 'ENROLLED' message from a Node Agent. 
   # The NH receives such a message when a NA has enrolled for the experiment.
-  # The NH sends a 'heartbeat' message back.
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)

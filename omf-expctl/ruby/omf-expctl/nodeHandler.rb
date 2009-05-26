@@ -336,8 +336,7 @@ class NodeHandler < MObject
     # communicator.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub xmppCommunicator
     
     # Static domain for testing
-    # communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain, "SessionID", Experiment.ID)
-    communicator.start("sandbox1.dynhost.nicta.com.au", "123", "Domain", "SessionID", Experiment.ID)
+    communicator.start("sandbox1.dynhost.nicta.com.au", "SessionID", Experiment.ID)
 
     Profiler__::start_profile if @doProfiling
 

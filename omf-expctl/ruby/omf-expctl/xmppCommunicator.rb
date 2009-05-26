@@ -71,7 +71,6 @@ class XmppCommunicator < MObject
     @@IPaddr = nil
     @@controlIF = nil
     @@systemNode = nil
-    @@domain = nil
     @@expID = nil
     @@expNode = nil
     @@sessionID = nil
@@ -91,13 +90,13 @@ class XmppCommunicator < MObject
   # - password = [String], password to use for this PubSud client
   # - control_interface = [String], the interface connected to Control Network
   #
-  def start(jid_suffix, password, domain, sessionID, expID)
+  def start(jid_suffix, sessionID, expID)
     
-    info "TDEBUG - START PUBSUB - #{jid_suffix} - #{password}"
+    info "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
-    userjid = "expctl@#{jid_suffix}"
+    userjid = "user@#{jid_suffix}"
     pubsubjid = "pubsub.#{jid_suffix}"
-    @@domain = domain
+    password = "user"
     @@sessionID = sessionID
     @@expID = expID
     
@@ -122,13 +121,13 @@ class XmppCommunicator < MObject
     @@service.remove_all_pubsub_nodes
 
     # let the gridservice do this:
-    @@service.create_pubsub_node("/#{domain}")
-    @@service.create_pubsub_node("/#{domain}/#{SYSTEM}")    
-    @@service.create_pubsub_node("/#{domain}/#{SESSION}")
+    @@service.create_pubsub_node("/#{DOMAIN}")
+    @@service.create_pubsub_node("/#{DOMAIN}/#{SYSTEM}")    
+    @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}")
     
-    @@service.create_pubsub_node("/#{domain}/#{SESSION}/#{sessionID}")
+    @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}/#{sessionID}")
     
-    @@expNode = "/#{domain}/#{SESSION}/#{sessionID}/#{expID}"
+    @@expNode = "/#{DOMAIN}/#{SESSION}/#{sessionID}/#{expID}"
     @@service.create_pubsub_node("#{@@expNode}")
     
   end
@@ -230,21 +229,16 @@ class XmppCommunicator < MObject
   def enrolNode(node, name, ipAddress)
     @name2node[name] = node
     # move this to the gridservice later
-    psNode = "/#{@@domain}/#{SYSTEM}/#{ipAddress}"
+    psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
     @@service.create_pubsub_node(psNode)
-
     send!("YOUARE #{@@sessionID} #{@@expID} #{name}",psNode)
   end
 
   #
-  # This method removes a node from the tcpCommunicator's list of 'alive' nodes.
-  # When a given 'Node' object is being removed from all the existing 
-  # topologies, it calls this method to notify the tcpCommunicator, so 
-  # subsequent messages received from the real physical node will be 
-  # discarded by the Communicator in the processCommand() call.
-  # Furthermore, 'X' command is sent to the commServer to remove all
-  # group associated to this node at the commServer level. Finally, a
-  # 'RESET' command is sent to the real node.
+  # This method is called when a node is removed from
+  # an experiment. First, it resets the node to
+  # unsubscribe it from the experiment-related
+  # PubSub nodes, and then removes its PubSub node.
   #
   # - name = name of the node to remove
   #
@@ -376,11 +370,7 @@ class XmppCommunicator < MObject
   
     # Send it
     debug("*** Sending '#{message}' to #{dst} ***")
-    begin
-      @@service.publish_to_node("#{dst}", item)        
-    rescue Exeption => ex
-      error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
-    end
+    @@service.publish_to_node("#{dst}", item)        
   end
       
   #
@@ -446,17 +436,24 @@ class XmppCommunicator < MObject
     when "JOIN"
     when "ALIAS"
     when "YOUARE"
+    when "NOOP"
     # we've sent this command ourselves, so we can safely ignore it
     else
       begin
       cmd = argArray[2].upcase
       case cmd
       when "HB"
+        # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
+        # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
+        # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
+        # from the PubSub server (at least openfire works this way). It would then potentially
+        # try to subscribe to nodes from a past experiment.
+        sender = @name2node[argArray[0]]
+        psNode = "/#{DOMAIN}/#{SYSTEM}/#{sender.getControlIP()}"
+        send!("NOOP", psNode)
       when "APP_EVENT"
       when "DEV_EVENT"
       when "ERROR"                
-      when "WHOAMI"
-        debug "WHOAMI received"
 
         # When nothing else matches - We don't know this command, log that and discard it.
       else

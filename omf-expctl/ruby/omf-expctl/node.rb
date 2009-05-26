@@ -214,7 +214,7 @@ class Node < MObject
   end
 
   #
-  # Set a MAC address attribut for this node
+  # Set a MAC address attribute for this node
   #
   # - mac = mac address to set
   #
