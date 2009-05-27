@@ -19,8 +19,8 @@ NAME=omf-resctl
 
 test -x /usr/sbin/$NAME || exit 0
 
-if [ -f /etc/$NAME/nodeagent.cfg ]; then
-   . /etc/$NAME/nodeagent.cfg
+if [ -f /etc/$NAME/$NAME.cfg ]; then
+   . /etc/$NAME/$NAME.cfg
 fi
 
 if [ -f /etc/default/$NAME ]; then
@@ -29,8 +29,8 @@ fi
 
 start(){
     echo -n "Starting OMF Resource Controller: $NAME"
-	if [ -f /var/log/nodeAgent4.log ]; then
-	    mv /var/log/nodeAgent4.log /var/log/nodeAgent4.log.1
+	if [ -f /var/log/$NAME.log ]; then
+	    mv /var/log/$NAME.log /var/log/$NAME.log.1
 	fi
 	start-stop-daemon --start --quiet --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
     echo "."

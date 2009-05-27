@@ -1,10 +1,10 @@
 <log4r_config>
   <pre_config>
     <global level="DEBUG"/>
-    <parameter name="serverlog" value="/tmp/nodeHandler.log"/>
+    <parameter name="serverlog" value="/tmp/omf-expctl.log"/>
     <parameter name="logDir" value="/tmp"/>
   </pre_config>
-  <!-- outputers -->
+  <!-- outputters -->
   <outputter type="FileOutputter" name="log" level="DEBUG">
     <filename>#{logDir}/#{appInstance}.log</filename>
     <trunc>false</trunc>

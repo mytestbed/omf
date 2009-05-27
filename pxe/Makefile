@@ -1,8 +1,8 @@
 #
 # Build the Orbit PXE kernel image and initramfs
 #
-NAME = orbit-pxe
-VER = 2.0.4
+NAME = omf-pxe
+VER = 2.0.5
 
 DEB_REP=debian
 KORG_URL = http://www.kernel.org/pub/linux/kernel/v
@@ -65,23 +65,8 @@ FRISBEE_DEB_URL = $(APT_HOST)/$(WINLAB_REP)/$(FRISBEE_DEB)
 IMAGEZIP_DEB=imagezip_1.0.0-1_i386.deb
 IMAGEZIP_DEB_URL = $(APT_HOST)/$(WINLAB_REP)/$(IMAGEZIP_DEB)
 
-# Set here for nodeagent4, or set using 'make NEW_NODEAGENT=1'
-NEW_NODEAGENT=1
-ifeq ($(NEW_NODEAGENT), 1)
-  #NODEAGENT_DEB=nodeagent4_4.3.0_all.deb
-  NODEAGENT_DEB=$(shell sudo apt-cache show nodeagent4 |  \
-	grep -m 1  "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
-  NODEAGENT_ETC=/etc/nodeagent4
-else
-  NODEAGENT_DEB=nodeagent_3.4.3_1_all.deb
-  #NODEAGENT_DEB=nodeagent_4.1.2_all.deb
-  NODEAGENT_ETC=/etc/nodeagent
-endif
-#NODEAGENT_DEB_URL= $(APT_HOST)/$(MAIN_REP)/$(NODEAGENT_DEB)
-NODEAGENT_DEB=nodeagent4_4.4.0ubuntu6_all.deb
-NODEAGENT_DEB_URL=http://pkg.mytestbed.net/ubuntu/hardy/$(NODEAGENT_DEB)
 NODEAGENT_CONF=nodeagent.yaml
+NODEAGENT_ETC=/etc/omf-resctl
 
 # This will go away with buildroot
 KEXEC_PATH=$(shell sudo apt-cache show kexec-tools | grep -m 1  "Filename:" | \
@@ -89,16 +74,6 @@ KEXEC_PATH=$(shell sudo apt-cache show kexec-tools | grep -m 1  "Filename:" | \
 KEXEC_DEB=$(shell sudo apt-cache show kexec-tools | grep -m 1  "Filename:" | \
 	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
 KEXEC_DEB_URL = $(APT_HOST)/$(DEB_REP)/$(KEXEC_PATH)/$(KEXEC_DEB)
-
-# nodeagent looks for this, but not necessary, nuke
-TZDATA_PATH=$(shell sudo apt-cache show tzdata | grep -m 1 "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\1|g')
-#TZDATA_DEB=$(shell sudo apt-cache show tzdata | grep -m 1  "Filename:" | \
-#cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
-TZDATA_DEB=tzdata_2008b-1ubuntu1_all.deb
-TZDATA_DEB_URL=$(APT_HOST)/$(DEB_REP)/$(TZDATA_PATH)/$(TZDATA_DEB)
-TZDIR=/usr/share/zoneinfo/US/
-TZFILE=$(TZDIR)/Eastern
 
 SYSLINUX_PATH=$(shell sudo apt-cache show syslinux | grep -m 1 "Filename:" | \
 	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\1|g')
@@ -178,14 +153,10 @@ frisbee: get_frisbee
 	install -m 755 $(TEMP)/usr/sbin/frisbee $(ROOTFS)/usr/sbin/
 	install -m 755 $(TEMP)/usr/bin/imagezip $(ROOTFS)/usr/bin/
 
-nodeagent: get_nodeagent get_tzdata
-	dpkg -x $(SOURCE)/$(NODEAGENT_DEB) $(ROOTFS)
+omf:
+	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; wget -nc -i ../../omf-packages
+	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	install -m 644 $(CONFIG)/$(NODEAGENT_CONF)  $(ROOTFS)/$(NODEAGENT_ETC)/
-	if [ "$(TZDATA_DEB)" != "" ] ; then \
-	  dpkg -x $(SOURCE)/$(TZDATA_DEB) $(TEMP);\
-		install -d $(ROOTFS)/$(TZDIR);\
-		install $(TEMP)/$(TZFILE) $(ROOTFS)/$(TZFILE);\
-	fi
 
 syslinux: get_syslinux
 	dpkg -x $(SOURCE)/$(SYSLINUX_DEB) $(TEMP)
@@ -268,7 +239,7 @@ kernel: dirs get_kernel
 	fi
 
 # Note: current kernel expects init on initramfs on /init, not /sbin/init
-initramfs: dirs bbox curl filesystem frisbee nodeagent enroll syslinux kexec \
+initramfs: dirs bbox curl filesystem frisbee omf enroll syslinux kexec \
 	getmac get_init_cpio
 	rm -f $(BUILD)/$(INITRAMFS) $(BUILD)/$(INITRAMFSGZ)
 	rm -rf $(ROOTFS)/usr/share/doc/ $(ROOTFS)/usr/share/man/
@@ -307,16 +278,6 @@ get_frisbee:
 	if [ ! -r $(SOURCE)/$(FRISBEE_DEB) ] ; then \
 	wget -P $(SOURCE) $(FRISBEE_DEB_URL); \
 	wget -P $(SOURCE) $(IMAGEZIP_DEB_URL); \
-	fi
-
-get_nodeagent:
-	if [ ! -r $(SOURCE)/$(NODEAGENT_DEB) ] ; then \
-	wget -P $(SOURCE) $(NODEAGENT_DEB_URL); \
-	fi
-
-get_tzdata:
-	if [ ! -r $(SOURCE)/$(TZDATA_DEB) ] ; then \
-	wget -P $(SOURCE) $(TZDATA_DEB_URL); \
 	fi
 
 get_syslinux:
@@ -365,7 +326,7 @@ clean:
 mrproper:
 	rm -rf $(BUILD) $(ROOTFS) $(SOURCE) $(TEMP)
 
-.PHONY: all apt-get-update dirs bbox curl frisbee nodeagent syslinux getmac enroll \
+.PHONY: all apt-get-update dirs bbox curl frisbee omf syslinux getmac enroll \
 	kexec filesystem kernel initramfs get_init_cpio get_kernelget_bbox \
-	get_frisbee get_nodeagent get_tzdata get_syslinux get_kexec install \
+	get_frisbee get_syslinux get_kexec install \
 	deb apt-install clean mrproper

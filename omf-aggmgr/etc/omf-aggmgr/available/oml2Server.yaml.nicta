@@ -28,4 +28,4 @@ oml2:
       startPort: 8000
       # Time out daemon if nobody requested it within TIMEOUT sec
       timeout: 10000
-      serverBin: '/usr/sbin/oml2-server'
+      serverBin: '/usr/bin/oml2-server'

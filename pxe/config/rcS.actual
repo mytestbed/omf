@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# rcS.actual is a separate file now
+# this is necessary, as the inittab file processing is 
+# blocked if rcS blocks (DHCP client)
+# in this case the getty and ttys might not get started
+
 mount -t proc proc /proc
 # pts requires a directory for multiple pts's:
 mkdir /dev/pts
@@ -42,4 +47,4 @@ else
 fi
 cat /.orbit_image
 # Start nodeagent
-/usr/sbin/nodeagent4&
+/bin/sh /usr/sbin/omf-resctl &

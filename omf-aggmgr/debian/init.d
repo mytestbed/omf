@@ -41,6 +41,7 @@ start(){
 stop(){
         echo -n "Stopping OMF Aggregate Manager: $NAME"
 	start-stop-daemon --stop --signal 2 --oknodo --pidfile /var/run/$NAME.pid
+	killall oml2-server
 	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
 	   echo -n "\nWaiting for release of port $PORT..."
 	   sleep 3
