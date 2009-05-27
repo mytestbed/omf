@@ -96,6 +96,11 @@ class NodeHandler < MObject
   TUTORIAL = 'test:exp:tutorial'
 
   #
+  # Maximum Number of port to try for the builtin Web Server
+  #
+  MAXWEBTRY = 1000
+
+  #
   # Pair of Mutex used to implement the NodeHandler's execution loop
   #
   @@mutex = Mutex.new
@@ -750,7 +755,7 @@ class NodeHandler < MObject
   # This method starts the NH's WebServer which will be used by nodes to retrieve
   # configuration info, e.g. OML configs  
   #
-  def startWebServer()
+  def startWebServer(port = @webPort)
     accLog = Logger.new("w_access")
     accLog.instance_eval {
       def << (msg)
@@ -758,13 +763,20 @@ class NodeHandler < MObject
       end
     }
     begin
-        OMF::ExperimentController::Web::start(@webPort, {:Logger => Logger.new("w_internal"),
+        OMF::ExperimentController::Web::start(port, {:Logger => Logger.new("w_internal"),
              :DocumentRoot => NodeHandler.WEB_ROOT(),
              :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
     rescue Exception => except
-        error("\nERROR '#{except}' when starting NH webserver !")
-        error("Possible source of this Error: another NH is already running on the same tesbed...\n")
-        exit
+        warn("Received '#{except}' when starting NH webserver (port: '#{port}')")
+        warn("There may be another NH already running on the same tesbed...")
+        newPort = port + 1;
+        if (newPort >= (@webPort + MAXWEBTRY))
+          error("Already tried '#{MAXWEBTRY}' times to start NH webserver. Giving up!")
+          exit
+        else
+          warn("Trying again with another port (port: '#{newPort}')...")
+          return startWebServer(newPort)
+        end
     end
   end
 
