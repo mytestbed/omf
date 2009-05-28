@@ -388,7 +388,7 @@ module AgentCommands
   # - argArray = an empty array 
   #
   def AgentCommands.RESTART(agent, argArray)
-    agent.communicator.unsubscribe
+    agent.communicator.quit
     ExecApp.killAll
     system('/etc/init.d/omf-resctl restart')
     # will be killed by now :(
@@ -404,7 +404,7 @@ module AgentCommands
   #
   def AgentCommands.REBOOT(agent, argArray)
     agent.send(:STATUS, SYSTEM_ID, "REBOOTING")
-    agent.communicator.unsubscribe
+    agent.communicator.quit
     cmd = `sudo /sbin/reboot`
     if !$?.success?
       # In case 'sudo' is not installed but we do have root rights (e.g. PXE image)

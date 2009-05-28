@@ -73,9 +73,9 @@ class AgentPubSubCommunicator < MObject
     @@sessionID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
-    # TODO: fetch the pubsub hostname via kernel command line
-    # password is static, fetch the interface from config file
-    start("sandbox1.dynhost.nicta.com.au", "eth1")
+    # TODO: fetch the pubsub hostname via inventory
+    # fetch the interface from config file
+    start("10.0.1.200", "eth1")
   end
 
   # 
@@ -139,9 +139,9 @@ class AgentPubSubCommunicator < MObject
     # Set some internal attributes...
     @@controlIF = control_interface
     @@IPaddr = getControlAddr()
-    userjid = "user@#{jid_suffix}"
+    userjid = "#{@@IPaddr}@#{jid_suffix}"
     pubsubjid = "pubsub.#{jid_suffix}"
-    password = "user"
+    password = "123"
     
     # Create a Service Helper to interact with the PubSub Server
     begin
@@ -160,8 +160,6 @@ class AgentPubSubCommunicator < MObject
 
     #debug "TDEBUG - start 2"
     debug "Connected to PubSub Server: '#{pubsubjid}'"
-    # remove possible lingering subscriptions from previous experiments
-    unsubscribe
   end
 
   #
@@ -216,7 +214,8 @@ class AgentPubSubCommunicator < MObject
     # All good
     debug("Local control IP address: #{@@IPaddr}")
     # quick hack for testing
-    return @@IPaddr
+    return "10.0.1.1"
+    #return @@IPaddr
   end
 
   alias localAddr getControlAddr
@@ -227,7 +226,8 @@ class AgentPubSubCommunicator < MObject
   def reset
     debug "TDEBUG - reset - 1"
     # Leave all Pubsub nodes that we might have joined previously 
-    @@service.leave_all_pubsub_nodes_except("/#{DOMAIN}/#{SYSTEM}")
+    #@@service.leave_all_pubsub_nodes_except("/#{DOMAIN}/#{SYSTEM}")
+    @@service.leave_all_pubsub_nodes
     
     sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
     
@@ -237,18 +237,19 @@ class AgentPubSubCommunicator < MObject
     end
     
     # Subscribe to the default 'system' pubsub node
-    @@systemNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
-    @@service.join_pubsub_node(@@systemNode)
-    #debug "TDEBUG - reset - Joined PubSub node '#{@@systemNode}'" 
+    @@service.join_pubsub_node(sysNode)
+    #debug "TDEBUG - reset - Joined PubSub node '#{@@sysNode}'" 
     debug "TDEBUG - reset - 2"
   end
   
   #
   # Unsubscribe from all nodes
+  # Delete the PubSub user
+  # Disconnect from the PubSub server
   # This will be called when the node shuts down
   #
-  def unsubscribe
-    @@service.leave_all_pubsub_nodes()
+  def quit
+    @@service.quit
   end
   
   #
@@ -407,14 +408,24 @@ class AgentPubSubCommunicator < MObject
         # <name> becomes the Agent Name for this Session/Experiment.
         # <aliases> optional aliases for this NA
         
+        if (argArray.length < 4)
+          error "ERROR - execute_command() - YOUARE - message too short: '#{message}'"
+          return
+        end
+        
         # Store the Session and Experiment IDs given by the NH's communicator
         @@sessionID = argArray[1]
         @@expID = argArray[2]
         debug "TDEBUG - execute_command() - Set SessionID / ExpID: '#{@@sessionID}' / '#{@@expID}'"
         # Join the global PubSub nodes for this session / experiment
-        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
-        @@service.join_pubsub_node(n)
         n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
+        if (!@@service.node_exist?(n)) then
+          error "ERROR - execute_command() - YOUARE - node does not exist: '#{n}'"
+          error "ERROR - possibly received a lingering YOUARE message from a previous experiment - discarding"
+          return
+        end
+        @@service.join_pubsub_node(n)
+        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
         @@service.join_pubsub_node(n)
         # Store the full PubSub path for this session / experiment
         @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
@@ -428,12 +439,15 @@ class AgentPubSubCommunicator < MObject
           }
         end
         join_groups(list)    
-      
-      # if we sent this message to the NH ourselves, do nothing
-      when @@myName.upcase
-        return  
-      # When nothing else match - We don't know this command, log that and discard it.
+          
       else
+        # if we sent this message to the NH ourselves, do nothing  
+        if (@@myName!=nil) then
+          if (cmd==@@myName.upcase) then 
+            return
+          end
+        end
+        # When nothing else matches - We don't know this command, log that and discard it.        
         NodeAgent.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NA" 
         return
       end

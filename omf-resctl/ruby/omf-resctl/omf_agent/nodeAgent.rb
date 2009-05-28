@@ -94,7 +94,7 @@ class NodeAgent < MObject
       trap("TERM") { interrupted = true }
       loop do
         if interrupted
-          communicator.unsubscribe
+          communicator.quit
           ExecApp.killAll
           exit
         end
