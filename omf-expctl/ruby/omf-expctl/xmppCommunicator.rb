@@ -92,11 +92,12 @@ class XmppCommunicator < MObject
   #
   def start(jid_suffix, sessionID, expID)
     
+    getControlAddr()
     info "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
-    userjid = "user@#{jid_suffix}"
+    userjid = "#{expID}@#{jid_suffix}"
     pubsubjid = "pubsub.#{jid_suffix}"
-    password = "user"
+    password = "123"
     @@sessionID = sessionID
     @@expID = expID
     
@@ -115,18 +116,24 @@ class XmppCommunicator < MObject
       error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{pubsubjid}' - Error: '#{ex}'"
     end
 
+    begin
+      @@service.remove_all_pubsub_nodes
+    rescue Exception => ex
+      error "ERROR - Removing old PubSub nodes - Error: '#{ex}'"
+      error "ERROR - Most likely reason: Cannot connect to PubSubServer: '#{pubsubjid}'"
+      error "ERROR - bailing out."
+      exit!
+    end
+
     #debug "TDEBUG - start 2"
     debug "Connected to PubSub Server: '#{pubsubjid}'"
-
-    @@service.remove_all_pubsub_nodes
-
+        
     # let the gridservice do this:
-    @@service.create_pubsub_node("/#{DOMAIN}")
-    @@service.create_pubsub_node("/#{DOMAIN}/#{SYSTEM}")    
+    #@@service.create_pubsub_node("/#{DOMAIN}")
+    #@@service.create_pubsub_node("/#{DOMAIN}/#{SYSTEM}")
+        
     @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}")
-    
-    @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}/#{sessionID}")
-    
+    @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}/#{sessionID}")    
     @@expNode = "/#{DOMAIN}/#{SESSION}/#{sessionID}/#{expID}"
     @@service.create_pubsub_node("#{@@expNode}")
     
@@ -206,7 +213,6 @@ class XmppCommunicator < MObject
     else
       tgt="#{@@expNode}/#{target}"
     end
-    debug("Sending message ", msg, "to node ", tgt)
     send!(msg, tgt)
    end
 
@@ -228,9 +234,7 @@ class XmppCommunicator < MObject
   #
   def enrolNode(node, name, ipAddress)
     @name2node[name] = node
-    # move this to the gridservice later
     psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
-    @@service.create_pubsub_node(psNode)
     send!("YOUARE #{@@sessionID} #{@@expID} #{name}",psNode)
   end
 
@@ -243,9 +247,21 @@ class XmppCommunicator < MObject
   # - name = name of the node to remove
   #
   def removeNode(name)
+    sendDOMAIN(name)
     @name2node[name] = nil
     send!("RESET", "#{@@expNode}/#{name}")
     @@service.remove_pubsub_node("#{@@expNode}/#{name}")
+  end
+
+  #
+  # This method sends a DOMAIN message
+  #
+  # -name = name of the node to receive the DOMAIN
+  #
+  def sendDOMAIN(name)
+    node = @name2node[name]
+    psNode = "/#{DOMAIN}/#{SYSTEM}/#{node.getControlIP()}"
+    send!("DOMAIN", psNode)
   end
 
   #
@@ -267,6 +283,7 @@ class XmppCommunicator < MObject
   #
   def quit()
     @@service.remove_all_pubsub_nodes
+    @@service.quit
   end
   
   #
@@ -436,21 +453,19 @@ class XmppCommunicator < MObject
     when "JOIN"
     when "ALIAS"
     when "YOUARE"
-    when "NOOP"
+    when "DOMAIN"
     # we've sent this command ourselves, so we can safely ignore it
     else
       begin
       cmd = argArray[2].upcase
       case cmd
       when "HB"
-        # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
+        # when we receive a heartbeat, send a DOMAIN message to the NA. This is necessary
         # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
-        # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
+        # would receive the last command sent via this node (which is YOUARE if we don't send DOMAIN)
         # from the PubSub server (at least openfire works this way). It would then potentially
         # try to subscribe to nodes from a past experiment.
-        sender = @name2node[argArray[0]]
-        psNode = "/#{DOMAIN}/#{SYSTEM}/#{sender.getControlIP()}"
-        send!("NOOP", psNode)
+        sendNoop(argArray[0])
       when "APP_EVENT"
       when "DEV_EVENT"
       when "ERROR"                
