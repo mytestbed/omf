@@ -98,10 +98,19 @@ class OmfPubSubService < MObject
     # Any exception raised here will be caught by the Communicator
     @clientHelper = Jabber::Client.new(userjid)
     @clientHelper.connect
+    begin
+      @clientHelper.register(password)
+    # if the user already exists, we receive an error 409 ("conflict: ") and ignore it
+    # otherwise we report it
+    rescue Exception => ex
+      if ("#{ex}" != "conflict: ")
+        then debug "CDEBUG - Failed to register user #{@userJID} - Error: '#{ex}'"
+      end
+    end
     @clientHelper.auth(password)
     @clientHelper.send(Jabber::Presence.new)
   
-    # Second open another connection for the Browser to interact with the PubSub Server
+    # Then open another connection for the Browser to interact with the PubSub Server
     # Any exception raised here will be caught by the Communicator
     # Note: as of XMPP4R v0.4 and OpenFire 3.6, two separate connections are needed
     # for the Helper and the Browser.
@@ -147,7 +156,6 @@ class OmfPubSubService < MObject
       @service.create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
                            "pubsub#title" => "#{node}",
                            "pubsub#node_type" => "leaf",
-                           "pubsub#send_last_published_item" => "never",
                            "pubsub#send_item_subscribe" => "1",
                            "pubsub#publish_model" => "open"}))
       info "Node #{node} was created"  
@@ -169,8 +177,10 @@ class OmfPubSubService < MObject
       info "Node #{node} doesn't exist"
       flag=false
     else
-
-      @service.delete_node(node)
+      begin
+        @service.delete_node(node)
+      rescue
+      end
       info "Node #{node} was removed"
       flag=true
     end
@@ -226,9 +236,25 @@ class OmfPubSubService < MObject
     listAllSubscription = get_all_pubsub_subscriptions
     #debug "CDEBUG - List BEFORE Removing All: #{listAllSubscription}"
     listAllSubscription.each { |sub|
-      @service.delete_node(sub.node)
+      begin
+        @service.delete_node(sub.node)
+      rescue
+      end
     }
     #debug "CDEBUG - LIST AFTER Removing - #{get_all_pubsub_subscriptions}"
+  end
+  
+  #
+  # Remove all PubSub nodes currently subscribed to
+  # Delete the PubSub user
+  # Close the connection to the PubSub server
+  #
+  def quit()
+    leave_all_pubsub_nodes
+    debug "CDEBUG - quit - removing user from PubSub server and closing connection"
+    @clientHelper.remove_registration
+    @clientHelper.close
+    @clientBrowser.close
   end
   
   #
@@ -277,7 +303,7 @@ class OmfPubSubService < MObject
   end
         
   #
-  # Return 'true' if a PubSub node exist
+  # Return 'true' if a PubSub node exists
   # 
   # [Return] true/false
   #
