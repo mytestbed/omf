@@ -183,19 +183,13 @@ class Node < MObject
     response = NodeHandler.service_call(url, "Can't get Control IP for x: #{x} y: #{y} on '#{OConfig.GRID_NAME}' from INVENTORY")
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the control IP address
-    ip = nil
-    doc.root.elements.each("/CONTROL_IP") { |v|
-      ip = v.get_text.value
+    doc.root.elements.each("ERROR") { |e|
+      error "OConfig - No Control IP found for x: #{x} y: #{y} - val: #{e.get_text.value}"
+      raise "OConfig - #{e.get_text.value}"
     }
-    # If no IP found in the reply... raise an error
-    if (ip == nil)
-      doc.root.elements.each('/ERROR') { |e|
-        error "OConfig - No Control IP found for x: #{x} y: #{y} - val: #{e.get_text.value}"
-        raise "OConfig - #{e.get_text.value}"
-      }
-    else
-      return ip
-    end
+    doc.root.elements.each("/CONTROL_IP") { |v|
+       return v.get_text.value
+    }
   end
 
   #

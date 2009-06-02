@@ -353,33 +353,7 @@ class XmppCommunicator < MObject
       debug "TDEBUG - join_groups - Subcribed to PubSub node: '#{fullNodeName}'"
     }
   end
-      
-  #
-  # Send a message to the NH
-  #
-  # - seqNo = sequence number of the message to send
-  # - msgArray = the array of text to send
-  #
-  # def send!(seqNo, *msgArray)
-  # 
-  #   # Build Message  
-  #   message = "#{@@myName} 0 #{LineSerializer.to_s(msgArray)}"
-  #   item = Jabber::PubSub::Item.new
-  #   msg = Jabber::Message.new(nil, message)
-  #   item.add(msg)
-  # 
-  #   # Send it
-  #   dst = "#{@@pubsubNodePrefix}/#{@@myName}"
-  #   debug("Send to: #{dst} - message: '#{message}'")
-  #   begin
-  #     debug "send! - A"
-  #     @@service.publish_to_node("#{dst}", item)        
-  #     debug "send! - B"
-  #   rescue Exeption => ex
-  #     error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
-  #   end
-  # end
-  
+        
   def send!(message, dst)
     item = Jabber::PubSub::Item.new
     msg = Jabber::Message.new(nil, message)
