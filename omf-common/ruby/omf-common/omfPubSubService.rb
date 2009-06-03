@@ -254,7 +254,8 @@ class OmfPubSubService < MObject
     debug "CDEBUG - quit - removing user from PubSub server and closing connection"
     @clientHelper.remove_registration
     @clientHelper.close
-    @clientBrowser.close
+    # we'll get a broken pipe error if we close this one as well:
+    # @clientBrowser.close
   end
   
   #
