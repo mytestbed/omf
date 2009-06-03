@@ -465,7 +465,6 @@ class NodeAgent < MObject
   # - argArray = an array holding the full command to execute (name, parameters,...)
   #
   def execCommand(argArray)
-
     command = argArray.delete_at(0).upcase
     if (command == 'REBOOT')
       debug "Exec REBOOT cmd!"

@@ -67,7 +67,6 @@ class AgentPubSubCommunicator < MObject
     @@myName = nil
     @@service = nil
     @@IPaddr = nil
-    @@controlIF = nil
     @@systemNode = nil
     @@expID = nil
     @@sessionID = nil
@@ -75,7 +74,7 @@ class AgentPubSubCommunicator < MObject
     @@instantiated = true
     # TODO: fetch the pubsub hostname via inventory
     # fetch the interface from config file
-    start("10.0.1.200", "eth1")
+    start("10.0.1.200")
   end
 
   # 
@@ -130,14 +129,11 @@ class AgentPubSubCommunicator < MObject
   #
   # - jid_suffix = [String], JabberID suffix, this is the full host/domain name of 
   #                the PubSub server, e.g. 'norbit.npc.nicta.com.au'. 
-  # - password = [String], password to use for this PubSud client
-  # - control_interface = [String], the interface connected to Control Network
   #
-  def start(jid_suffix, control_interface)
+  def start(jid_suffix)
     
-    info "TDEBUG - START PUBSUB - #{jid_suffix} - #{control_interface}"
+    info "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
-    @@controlIF = control_interface
     @@IPaddr = getControlAddr()
     userjid = "#{@@IPaddr}@#{jid_suffix}"
     pubsubjid = "pubsub.#{jid_suffix}"
@@ -155,11 +151,11 @@ class AgentPubSubCommunicator < MObject
         debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex
-      error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{pubsubjid}' - Error: '#{ex}'"
+      error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
     end
 
     #debug "TDEBUG - start 2"
-    debug "Connected to PubSub Server: '#{pubsubjid}'"
+    debug "Connected to PubSub Server: '#{jid_suffix}'"
   end
 
   #
@@ -189,14 +185,15 @@ class AgentPubSubCommunicator < MObject
   #
   def getControlAddr()
   
-    # If we already know our Mac Address, no need to proceed
+    # If we already know our IP Address, no need to proceed
     if @@IPaddr != nil
       return @@IPaddr
     end
-  
+
     # If we are on a Linux Box, we parse the output of 'ifconfig' 
     if AgentPubSubCommunicator.isPlatformLinux?
-      lines = IO.popen("ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
+      interface = NodeAgent.instance.config('comm')['local_if']
+      lines = IO.popen("ifconfig #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
       if (lines.length > 0)
           @@IPaddr = lines[0].chomp
       end
@@ -207,7 +204,7 @@ class AgentPubSubCommunicator < MObject
 
     # Couldnt get the Mac Address, terminate this NA
     if (@@IPaddr.nil?)
-      error "Cannot determine IP address of Control Interface"
+      error "Cannot determine IP address of the Control Interface"
       exit
     end
     
@@ -217,7 +214,7 @@ class AgentPubSubCommunicator < MObject
     # return "10.0.1.1"
     return @@IPaddr
   end
-
+  
   alias localAddr getControlAddr
 
   #
