@@ -250,11 +250,12 @@ class OmfPubSubService < MObject
   # Close the connection to the PubSub server
   #
   def quit()
-    leave_all_pubsub_nodes
     debug "CDEBUG - quit - removing user from PubSub server and closing connection"
+    leave_all_pubsub_nodes
     @clientHelper.remove_registration
-    @clientHelper.close
-    # we'll get a broken pipe error if we close this one as well:
+    # unfortunately, closing the PubSub connection sometimes hangs or produces
+    # 'broken pipe' errors
+    # @clientHelper.close
     # @clientBrowser.close
   end
   
