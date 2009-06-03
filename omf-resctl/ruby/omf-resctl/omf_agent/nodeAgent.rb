@@ -98,6 +98,7 @@ class NodeAgent < MObject
           ExecApp.killAll
           exit
         end
+	      sleep 1
       end
     end
   end

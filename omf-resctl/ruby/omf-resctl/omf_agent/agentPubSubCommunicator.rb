@@ -214,8 +214,8 @@ class AgentPubSubCommunicator < MObject
     # All good
     debug("Local control IP address: #{@@IPaddr}")
     # quick hack for testing
-    return "10.0.1.1"
-    #return @@IPaddr
+    # return "10.0.1.1"
+    return @@IPaddr
   end
 
   alias localAddr getControlAddr
