@@ -35,13 +35,17 @@ start(){
 	   exit 1
 	fi
 	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
+	while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
+	   echo -n "\nWaiting for all services to start..."
+	   sleep 3
+	done	
         echo "..done."
 }
 
 stop(){
         echo -n "Stopping OMF Aggregate Manager: $NAME"
 	start-stop-daemon --stop --signal 2 --oknodo --pidfile /var/run/$NAME.pid
-	killall oml2-server
+	killall oml2-server 2>/dev/null
 	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
 	   echo -n "\nWaiting for release of port $PORT..."
 	   sleep 3
