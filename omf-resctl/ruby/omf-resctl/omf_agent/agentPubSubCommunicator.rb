@@ -135,13 +135,10 @@ class AgentPubSubCommunicator < MObject
     info "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
     @@IPaddr = getControlAddr()
-    userjid = "#{@@IPaddr}@#{jid_suffix}"
-    pubsubjid = "pubsub.#{jid_suffix}"
-    password = "123"
     
     # Create a Service Helper to interact with the PubSub Server
     begin
-      @@service = OmfPubSubService.new(userjid, password, pubsubjid)
+      @@service = OmfPubSubService.new(@@IPaddr, "123", jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       #debug "TDEBUG - start 1"
