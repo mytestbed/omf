@@ -84,20 +84,23 @@ class OmfPubSubService < MObject
   # Create a new instance of PubSub Service Helper
   # (JID = Jabber ID)
   # 
-  # - userjid = [String] or [Jabber::JID], JID to use to connect to the PubSub Server
-  # - password = [String], password to use for this PubSud client
-  # - pubsubjid = [String] or [Jabber::JID], JID of the PubSub Server 
+  # - user = [String] username to use to connect to the PubSub Server  
+  # - password = [String], password to use for this PubSub client
+  # - host = [String] hostname (or IP address) of the PubSub Server   
   #
-  def initialize(userjid, password, pubsubjid)
+  def initialize(user, password, host)
     # Set internal attributes
-    @userJID = userjid
+    @userJID = "#{user}@#{host}"
     @password = password
-    @pubsubjid = pubsubjid
+    @host = host
+    @pubsubjid = "pubsub.#{host}"
   
     # First open a connection for this Helper to interact with the PubSub Server
     # Any exception raised here will be caught by the Communicator
-    @clientHelper = Jabber::Client.new(userjid)
-    @clientHelper.connect
+    @clientHelper = Jabber::Client.new(@userJID)
+    # we are passing the hostname here to prevent xmpp4r from trying to resolve
+    # the DNS SRV record
+    @clientHelper.connect(host)
     begin
       @clientHelper.register(password)
     # if the user already exists, we receive an error 409 ("conflict: ") and ignore it
@@ -114,8 +117,8 @@ class OmfPubSubService < MObject
     # Any exception raised here will be caught by the Communicator
     # Note: as of XMPP4R v0.4 and OpenFire 3.6, two separate connections are needed
     # for the Helper and the Browser.
-    @clientBrowser = Jabber::Client.new(userjid)
-    @clientBrowser.connect
+    @clientBrowser = Jabber::Client.new(@userJID)
+    @clientBrowser.connect(host)
     @clientBrowser.auth(password)
     @clientBrowser.send(Jabber::Presence.new)
   
@@ -354,7 +357,7 @@ class OmfPubSubService < MObject
     list = nil
     begin
       cl = Jabber::Client.new(@userJID)
-      cl.connect
+      cl.connect(@host)
       cl.auth(@password)
       tmpservice = Jabber::PubSub::ServiceHelper.new(cl,@pubsubjid)
       list = tmpservice.get_subscriptions_from_all_nodes
