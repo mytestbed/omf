@@ -28,7 +28,6 @@
 # This file defines CmcStubService class.
 #
 
-require 'net/telnet'
 require 'omf-aggmgr/ogs/gridService'
 
 #
@@ -50,6 +49,9 @@ class CmcStubService < GridService
   name 'cmc' 
   info 'Information on available testbed resources and simple control functionality'
   @@config = nil
+  @@service = nil
+  DOMAIN = "Domain"
+  SYSTEM = "System"
 
   #
   # Implement 'on' service using the 'service' method of AbstractService
@@ -114,15 +116,8 @@ class CmcStubService < GridService
     domain = getParam(req, 'domain')
     ip = getControlIP(inventoryURL, x, y, domain)
     begin
-      # try SSH first. For this to work, your root user must have the correct ssh keys installed
-      # to allow for passwordless login
-      cmd = `ssh #{ip} reboot`
-      if !$?.success?
-        # if ssh fails, try telnet (we might be in PXE)
-        tn = Net::Telnet::new('Host' => ip)
-        tn.login "root"
-        tn.cmd "reboot"
-      end
+      send!("REBOOT","/#{DOMAIN}/#{SYSTEM}/#{ip}")
+      send!("NOOP","/#{DOMAIN}/#{SYSTEM}/#{ip}")
     rescue Exception => ex
       MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
     end
@@ -158,15 +153,8 @@ class CmcStubService < GridService
       MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
       ip = getControlIP(inventoryURL, x, y, domain)
       begin
-        # try SSH first. For this to work, your root user must have the correct ssh keys installed
-        # to allow for passwordless login
-        cmd = `ssh #{ip} reboot`
-        if !$?.success?
-          # if ssh fails, try telnet (we might be in PXE)
-          tn = Net::Telnet::new('Host' => ip)
-          tn.login "root"
-          tn.cmd "reboot"
-        end
+        send!("REBOOT","/#{DOMAIN}/#{SYSTEM}/#{ip}")
+        send!("NOOP","/#{DOMAIN}/#{SYSTEM}/#{ip}")
       rescue Exception => ex
         MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
       end
@@ -229,5 +217,27 @@ class CmcStubService < GridService
   #
   def self.configure(config)
     @@config = config
+        
+    host = "10.0.0.200"
+    # Create a Service Helper to interact with the PubSub Server
+    begin
+      @@service = OmfPubSubService.new("aggmgr", "123", host)
+    rescue Exception => ex
+      MObject.debug("ERROR - start - Creating ServiceHelper - PubSubServer: '#{host}' - Error: '#{ex}'")
+    end
   end
+  
+  #
+  # Send a command via PubSub
+  #
+  # - message = the command
+  # - dst = the destination node
+  #
+  def self.send!(message, dst)                                                                           
+    item = Jabber::PubSub::Item.new                                                                 
+    msg = Jabber::Message.new(nil, message)                                                         
+    item.add(msg)                                                                                   
+    @@service.publish_to_node("#{dst}", item)                                                       
+  end
+  
 end
