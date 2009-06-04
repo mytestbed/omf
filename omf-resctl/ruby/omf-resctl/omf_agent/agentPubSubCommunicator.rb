@@ -74,7 +74,7 @@ class AgentPubSubCommunicator < MObject
     @@instantiated = true
     # TODO: fetch the pubsub hostname via inventory
     # fetch the interface from config file
-    start("10.0.1.200")
+    start("10.0.0.200")
   end
 
   # 
@@ -228,6 +228,7 @@ class AgentPubSubCommunicator < MObject
     while (!@@service.node_exist?(sysNode))
       debug "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
       sleep 10
+      start("10.0.0.200")
     end
     
     # Subscribe to the default 'system' pubsub node
