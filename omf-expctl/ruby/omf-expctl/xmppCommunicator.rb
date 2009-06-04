@@ -95,38 +95,35 @@ class XmppCommunicator < MObject
     getControlAddr()
     info "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
-    userjid = "#{expID}@#{jid_suffix}"
-    pubsubjid = "pubsub.#{jid_suffix}"
-    password = "123"
     @@sessionID = sessionID
     @@expID = expID
     
     # Create a Service Helper to interact with the PubSub Server
     begin
-      @@service = OmfPubSubService.new(userjid, password, pubsubjid)
+      @@service = OmfPubSubService.new(expID, "123", jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       #debug "TDEBUG - start 1"
       @@service.add_event_callback { |event|
-        debug "TDEBUG - New Event - '#{event}'" 
+        #debug "TDEBUG - New Event - '#{event}'" 
         execute_command(event)
-        debug "TDEBUG - Finished Processing Event" 
+        #debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex
-      error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{pubsubjid}' - Error: '#{ex}'"
+      error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
     end
 
     begin
       @@service.remove_all_pubsub_nodes
     rescue Exception => ex
       error "ERROR - Removing old PubSub nodes - Error: '#{ex}'"
-      error "ERROR - Most likely reason: Cannot connect to PubSubServer: '#{pubsubjid}'"
+      error "ERROR - Most likely reason: Cannot connect to PubSubServer: '#{jid_suffix}'"
       error "ERROR - bailing out."
       exit!
     end
 
     #debug "TDEBUG - start 2"
-    debug "Connected to PubSub Server: '#{pubsubjid}'"
+    debug "Connected to PubSub Server: '#{jid_suffix}'"
         
     # let the gridservice do this:
     #@@service.create_pubsub_node("/#{DOMAIN}")
@@ -209,11 +206,13 @@ class XmppCommunicator < MObject
   def send(target, command, msgArray = [])
     msg = "#{command} #{LineSerializer.to_s(msgArray)}"
     if (target == "*")
-      tgt="#{@@expNode}"
+      send!(msg, "#{@@expNode}")
     else
-      tgt="#{@@expNode}/#{target}"
+      targets = LineSerializer.to_a(target)
+      targets.each {|tgt|
+        send!(msg, "#{@@expNode}/#{tgt}")
+      }
     end
-    send!(msg, tgt)
    end
 
   #
@@ -239,6 +238,19 @@ class XmppCommunicator < MObject
   end
 
   #
+  # This sends a NOOP to the /Domain/System/IPaddress
+  # node to overwrite the last buffered YOUARE
+  #
+  # - name = name of the node to receive the NOOP
+  #
+  def sendNoop(name)
+    node = @name2node[name]
+    ipAddress = node.getControlIP()
+    psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
+    send!("NOOP", psNode)
+  end
+
+  #
   # This method is called when a node is removed from
   # an experiment. First, it resets the node to
   # unsubscribe it from the experiment-related
@@ -247,21 +259,9 @@ class XmppCommunicator < MObject
   # - name = name of the node to remove
   #
   def removeNode(name)
-    sendDOMAIN(name)
     @name2node[name] = nil
     send!("RESET", "#{@@expNode}/#{name}")
     @@service.remove_pubsub_node("#{@@expNode}/#{name}")
-  end
-
-  #
-  # This method sends a DOMAIN message
-  #
-  # -name = name of the node to receive the DOMAIN
-  #
-  def sendDOMAIN(name)
-    node = @name2node[name]
-    psNode = "/#{DOMAIN}/#{SYSTEM}/#{node.getControlIP()}"
-    send!("DOMAIN", psNode)
   end
 
   #
@@ -355,12 +355,20 @@ class XmppCommunicator < MObject
   end
         
   def send!(message, dst)
+    if (message.length == 0) then
+      error "send! - detected attempt to send an empty message"
+      return
+    end
+    if (dst.length == 0 ) then
+      error "send! - empty destination"
+      return
+    end
     item = Jabber::PubSub::Item.new
     msg = Jabber::Message.new(nil, message)
     item.add(msg)
   
     # Send it
-    debug("*** Sending '#{message}' to #{dst} ***")
+    debug("*** Sending '#{message}' to '#{dst}' ***")
     @@service.publish_to_node("#{dst}", item)        
   end
       
@@ -394,7 +402,7 @@ class XmppCommunicator < MObject
       # error "ERROR - execute_command() - Cannot parse Event '#{event}'"
       return
     end
-    debug "message received: '#{message}'"
+    #debug "message received: '#{message}'"
         
     # Parse the Message to extract the Command
     # (when parsing, keep the full message to send it up to NA later)
@@ -434,12 +442,7 @@ class XmppCommunicator < MObject
       cmd = argArray[2].upcase
       case cmd
       when "HB"
-        # when we receive a heartbeat, send a DOMAIN message to the NA. This is necessary
-        # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
-        # would receive the last command sent via this node (which is YOUARE if we don't send DOMAIN)
-        # from the PubSub server (at least openfire works this way). It would then potentially
-        # try to subscribe to nodes from a past experiment.
-        sendNoop(argArray[0])
+        # we do not send the NOOP here, we do that only for the first HB in node.rb:heartbeat()
       when "APP_EVENT"
       when "DEV_EVENT"
       when "ERROR"                

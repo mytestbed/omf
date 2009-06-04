@@ -171,9 +171,9 @@ class NodeSet < MObject
         send(:APT_INSTALL, "app:#{vName}/install", aptName)
       elsif (rep = appDef.binaryRepository) != nil
         # Install App from TAR archive using wget + tar 
-	# We first have to mount the local TAR file to a URL on our webserver
+	      # We first have to mount the local TAR file to a URL on our webserver
         url_dir="/install"
-	url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
+	      url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
         OMF::ExperimentController::Web.mapFile(url_dir, rep)
         send(:PM_INSTALL, "app:#{vName}/install", url, '/')
       end
@@ -559,7 +559,7 @@ class NodeSet < MObject
       end
     end
     if (up? && notQueued)
-      communicator.send(@nodeSelector, command, args)
+      NodeHandler.instance.communicator.send(@nodeSelector, command, args)
       return
     end
   end
@@ -961,7 +961,7 @@ class DefinedGroupNodeSet < RootGroupNodeSet
     super()
     sel = ""
     eachGroup {|g| sel = sel + "#{g.to_s} " }
-    @nodeSelector = "\"#{sel}\""
+    @nodeSelector = "#{sel}"
   end
 end
 

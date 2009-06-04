@@ -575,17 +575,6 @@ class Node < MObject
   end
 
   #
-  # Send a command to node. This is for Experts/Debug ONLY
-  # and should be used with care.
-  #
-  # - command = Command to send
-  # - args = Array of parameters for that command
-  #
-  def send!(command, *args)
-    send(command, *args)
-  end
-
-  #
   # Process a received a timestamp/heartbeat from this Node
   #
   # - sendSeqNo = sender sequence number
@@ -604,6 +593,12 @@ class Node < MObject
       changed
       notify_observers(self, :node_is_up)
       send_deferred
+      # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
+      # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
+      # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
+      # from the PubSub server (at least openfire works this way). It would then potentially
+      # try to subscribe to nodes from a past experiment.
+      communicator.sendNoop(@nodeId)
     end
     TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
     #@heartbeat.add_attribute('ts', timestamp)

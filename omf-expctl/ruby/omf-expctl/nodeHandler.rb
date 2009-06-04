@@ -337,11 +337,8 @@ class NodeHandler < MObject
       Kernel.sleep 5
     end
     
-    # Placeholder when XMPP-based Pub/Sub xmppCommunicator will be ready for integration
-    # communicator.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub xmppCommunicator
-    
     # Static domain for testing
-    communicator.start("10.0.1.200", "SessionID", Experiment.ID)
+    communicator.start("10.0.0.200", "SessionID", Experiment.ID)
 
     Profiler__::start_profile if @doProfiling
 

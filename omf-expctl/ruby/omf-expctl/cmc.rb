@@ -98,7 +98,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{x}@#{y}"
     else
-      url = "#{OConfig.CMC_URL}/offSoft?x=#{x}&y=#{y}"
+      url = "#{OConfig.CMC_URL}/offSoft?x=#{x}&y=#{y}&domain=#{OConfig.GRID_NAME}"
       MObject.debug("CMC", "down ", url)
       NodeHandler.service_call(url, "Can't switch off node #{x}:#{y}")
     end
@@ -202,7 +202,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off soft node"
     else
-      url = "#{OConfig.CMC_URL}/allOffSoft?"
+      url = "#{OConfig.CMC_URL}/allOffSoft?domain=#{OConfig.GRID_NAME}"
       MObject.debug("CMC", "up ", url)
       NodeHandler.service_call(url, "Can't switch off soft nodes")
     end
