@@ -143,9 +143,9 @@ class AgentPubSubCommunicator < MObject
       # the nodes we will subscribe to
       #debug "TDEBUG - start 1"
       @@service.add_event_callback { |event|
-        debug "TDEBUG - New Event - '#{event}'" 
+        #debug "TDEBUG - New Event - '#{event}'" 
         execute_command(event)
-        debug "TDEBUG - Finished Processing Event" 
+        #debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex
       error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
@@ -351,14 +351,14 @@ class AgentPubSubCommunicator < MObject
   def execute_command (event)
 
     # Extract the Message from the PubSub Event
-    debug "TDEBUG - execute_command - A"
+    #debug "TDEBUG - execute_command - A"
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
     rescue Exception => ex
       debug "CDEBUG - execute_command() - Not a message event, ignoring: '#{event}'"
       return
     end
-    debug "TDEBUG - execute_command - B - message: '#{message}'"
+    #debug "TDEBUG - execute_command - B - message: '#{message}'"
         
     # Parse the Message to extract the Command
     # (when parsing, keep the full message to send it up to NA later)
