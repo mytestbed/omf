@@ -105,8 +105,7 @@ LIB +=	/lib/libdl.so.2 /lib/libcrypt.so.1
 LIB +=	/lib/libnss_dns.so.2 /lib/libresolv.so.2
 # Currently nodeagent requires lspci, which requires libpci. Remove this 
 # if not needed.
-#LIB += /usr/lib/libpci.so.2 /usr/lib/libz.so.1
-LIB += /usr/lib/libz.so.1
+LIB += /usr/lib/libpci.so.3 /usr/lib/libz.so
 # as well as lsusb
 LIB +=  /lib/libusb-0.1.so.4
 # for curl
@@ -154,7 +153,7 @@ frisbee: get_frisbee
 	install -m 755 $(TEMP)/usr/bin/imagezip $(ROOTFS)/usr/bin/
 
 omf:
-	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; wget -nc -i ../../omf-packages
+	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; wget -N -i ../../omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	install -m 644 $(CONFIG)/$(NODEAGENT_CONF)  $(ROOTFS)/$(NODEAGENT_ETC)/
 

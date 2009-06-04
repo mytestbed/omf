@@ -24,14 +24,14 @@ IP_CONFIG="/bin/ip"
 if grep -i -q "control=[a-zA-Z0-9]" /proc/cmdline
 then
   CONTROL=`cat /proc/cmdline | sed 's/.*control=\([^ ]*\).*/\1/'` 
-  sed -i "s/local_if: eth1/local_if: $CONTROL/g" /etc/nodeagent4/nodeagent.yaml
+  sed -i "s/local_if: eth1/local_if: $CONTROL/g" /etc/omf-resctl/nodeagent.yaml
 fi 
 
 $IP_CONFIG link set $CONTROL up
 $UDHCPC -i $CONTROL -s $UDHCPC_SCRIPT
 
 # enable logging (if the feature is built into busybox):
-# Note that nodeagent4 doesn't use syslog anyway so you don't
+# Note that nodeagent doesn't use syslog anyway so you don't
 # really need it unless you want to monitor some other daemons
 if [ -f /sbin/syslogd ]; then
 	/sbin/syslogd
@@ -47,4 +47,4 @@ else
 fi
 cat /.orbit_image
 # Start nodeagent
-/bin/sh /usr/sbin/omf-resctl &
+/etc/init.d/omf-resctl start
