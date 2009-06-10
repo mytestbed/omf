@@ -109,11 +109,7 @@ if [ -z $timeout ] ; then
   timeout=$DEF_TIMEOUT
 fi
 
-if [ -e ./omf ]; then
-   OMF=./omf
-else
-   OMF=omf
-fi
+OMF=./omf
 
 if [ -z $domain ] 
 then

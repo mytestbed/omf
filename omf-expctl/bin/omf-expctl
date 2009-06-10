@@ -25,14 +25,10 @@
 #
 
 APP=omf-expctl/handler.rb
-if [ -e ../$APP ]; then
-   PDIR=..
-else 
-   if [ -e /usr/lib/ruby/1.8/$APP ]; then
-      PDIR=/usr/lib/ruby/1.8
-   else
-      echo "Cannot find the ruby module location ($APP)."
-      exit 1;
-   fi
+if [ -e /usr/lib/ruby/1.8/$APP ]; then
+   PDIR=/usr/lib/ruby/1.8
+else
+   echo "Cannot find the ruby module $APP"
+   exit 1;
 fi
 exec ruby1.8 -I$PDIR $PDIR/$APP $*
