@@ -82,7 +82,8 @@ class GridService < AbstractService
   #
   def self.setResponse(res, resXml)
     s = StringIO.new
-    resXml.write(s)
+    formatter = REXML::Formatters::Default.new
+    formatter.write(resXml,s)
     res.body = s.string
     res['Content-Type'] = "text/xml"
   end
