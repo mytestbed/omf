@@ -222,7 +222,8 @@ class AbstractService < MObject
       root = doc.add(REXML::Element.new("services"))
       el = to_xml(root)
       el.attributes['prefix'] = prefix
-      doc.write(ss, 2)
+      formatter = REXML::Formatters::Default.new
+      formatter.write(doc,ss)
       res.body = ss.string
     }
   end
@@ -360,8 +361,9 @@ if $0 == __FILE__
     doc = REXML::Document.new
     services = doc.add(REXML::Element.new("services"))
     Service1.to_xml(services)
-    Service2.to_xml(services)
-    doc.write($stdout, 2)
+    Service2.to_xml(services)    
+    formatter = REXML::Formatters::Default.new
+    formatter.write(doc,$stdout)
   end
 
   def start_server()

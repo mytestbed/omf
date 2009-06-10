@@ -129,8 +129,8 @@ class OmlServerDaemon < AbstractDaemon
 
     cfgFile = "/tmp/#{@daemon_id}.xml"
     f = File.open(cfgFile, "w")
-    #doc.write(f)
-    @root.write(f)
+    formatter = REXML::Formatters::Default.new
+    formatter.write(@root,f)
     f.close
     info("Wrote config to #{cfgFile}")
     cfgFile
