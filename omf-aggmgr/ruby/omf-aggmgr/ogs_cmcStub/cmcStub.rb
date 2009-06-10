@@ -114,15 +114,14 @@ class CmcStubService < GridService
     domain = getParam(req, 'domain')
     ip = getControlIP(inventoryURL, x, y, domain)
     begin
-      # try SSH first. For this to work, your root user must have the correct ssh keys installed
-      # to allow for passwordless login
-      cmd = `ssh #{ip} reboot`
-      if !$?.success?
-        # if ssh fails, try telnet (we might be in PXE)
+      cmd = `nmap #{ip} -p22-23`
+      if cmd.include? "22/tcp open"
+        ssh = `ssh #{ip} reboot`
+      elsif cmd.include? "23/tcp open"
         tn = Net::Telnet::new('Host' => ip)
         tn.login "root"
         tn.cmd "reboot"
-      end
+      end      
     rescue Exception => ex
       MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
     end
@@ -158,11 +157,10 @@ class CmcStubService < GridService
       MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
       ip = getControlIP(inventoryURL, x, y, domain)
       begin
-        # try SSH first. For this to work, your root user must have the correct ssh keys installed
-        # to allow for passwordless login
-        cmd = `ssh #{ip} reboot`
-        if !$?.success?
-          # if ssh fails, try telnet (we might be in PXE)
+        cmd = `nmap #{ip} -p22-23`
+        if cmd.include? "22/tcp open"
+          ssh = `ssh #{ip} reboot`
+        elsif cmd.include? "23/tcp open"
           tn = Net::Telnet::new('Host' => ip)
           tn.login "root"
           tn.cmd "reboot"
