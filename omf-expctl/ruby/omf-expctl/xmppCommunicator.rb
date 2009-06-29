@@ -233,6 +233,11 @@ class XmppCommunicator < MObject
   #
   def enrolNode(node, name, ipAddress)
     @name2node[name] = node
+    # create the experiment pubsub node so the node can subscribe to it
+    # after receiving the YOUARE message
+    psNode = "#{@@expNode}/#{name}"
+    @@service.create_pubsub_node(psNode)
+    # send the YOUARE to the system pubsub node
     psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
     send!("YOUARE #{@@sessionID} #{@@expID} #{name}",psNode)
   end
@@ -272,10 +277,8 @@ class XmppCommunicator < MObject
   # - groupName =  name of the group to add the node to
   #
   def addToGroup(nodeName, groupName)
-    psNode = "#{@@expNode}/#{nodeName}"
-    @@service.create_pubsub_node(psNode)
     @@service.create_pubsub_node("#{@@expNode}/#{groupName}")
-    send!("ALIAS #{groupName}", psNode)
+    send!("ALIAS #{groupName}", "#{@@expNode}/#{nodeName}")
   end
 
   #

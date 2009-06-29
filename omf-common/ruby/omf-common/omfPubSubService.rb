@@ -42,7 +42,7 @@
 require "xmpp4r"
 require "xmpp4r/pubsub"
 require "xmpp4r/pubsub/helper/servicehelper"
-require "xmpp4r/pubsub/helper/nodebrowser"
+#require "xmpp4r/pubsub/helper/nodebrowser"
 require 'omf-common/mobject'
 
 #
@@ -113,17 +113,19 @@ class OmfPubSubService < MObject
     @clientHelper.auth(password)
     @clientHelper.send(Jabber::Presence.new)
   
+    # commented out since xmpp4r is buggy:
+  
     # Then open another connection for the Browser to interact with the PubSub Server
     # Any exception raised here will be caught by the Communicator
     # Note: as of XMPP4R v0.4 and OpenFire 3.6, two separate connections are needed
     # for the Helper and the Browser.
-    @clientBrowser = Jabber::Client.new(@userJID)
-    @clientBrowser.connect(host)
-    @clientBrowser.auth(password)
-    @clientBrowser.send(Jabber::Presence.new)
+    #@clientBrowser = Jabber::Client.new(@userJID)
+    #@clientBrowser.connect(host)
+    #@clientBrowser.auth(password)
+    #@clientBrowser.send(Jabber::Presence.new)
   
     # Finally create this Helper and its Browser    
-    @browser = Jabber::PubSub::NodeBrowser.new(@clientBrowser)
+    #@browser = Jabber::PubSub::NodeBrowser.new(@clientBrowser)
     @service = MyServiceHelper.new(@clientHelper, @pubsubjid)
   end
   
@@ -306,29 +308,7 @@ class OmfPubSubService < MObject
     end
     #debug "TDEBUG - LIST AFTER JOIN - #{get_all_pubsub_subscriptions}"
   end
-        
-  #
-  # Return 'true' if a PubSub node exists
-  # 
-  # [Return] true/false
-  #
-  def node_exist?(node)
-    info = nil
-    begin
-      info = @browser.get_info(@pubsubjid,node)  
-    rescue
-      #error "TDEBUG - node_exist - rescue - false"
-      return false
-    end
-    if (info == nil)
-      #debug "TDEBUG - node_exist - nil/empty - false"
-      return false
-    else
-      #debug "TDEBUG - node_exist - exist - true" # - #{info.to_s}"
-      return true
-    end
-  end
-        
+
   #
   # Check if this PubSub Service Helper is already subscribed to a PubSub node
   #
@@ -368,5 +348,33 @@ class OmfPubSubService < MObject
     end
     return list
   end
+  
+  #
+  # Return 'true' if a PubSub node exists
+  # Unfortunately we need a separate connection here as well.
+  # This was using the nodebrowser before, but using that sometimes caused
+  # the event callback for the servicehelper to cease firing.
+  #
+  # [Return] true/false
+  #
+  def node_exist?(node)
+  list = nil
+   begin
+      cl = Jabber::Client.new(@userJID)
+      cl.connect(@host)
+      cl.auth(@password)
+      tmpservice = Jabber::PubSub::ServiceHelper.new(cl,@pubsubjid)
+      list = tmpservice.get_config_from(node)
+      cl.close
+    rescue Exception => ex
+      return false if "#{ex}"=="item-not-found: "
+      return true if "#{ex}"=="forbidden: "
+      debug "CDEBUG - node_exist? - ERROR - '#{ex}'"
+      # unhandled error, return false
+      return false
+    end
+    # no exception was raised since we've successfully retrieved the config
+    return true
+  end  
         
 end #class
