@@ -70,6 +70,7 @@ module AgentCommands
   # Mapping between OMF's device name and Linux's device name
   DEV_MAPPINGS = {
     'net/e0' => EthernetDevice.new('net/e0', 'eth0'),
+    'net/e1' => EthernetDevice.new('net/e1', 'eth1'),
     #'net/w2' => AironetDevice.new('net/w2', 'eth2')
   }
 

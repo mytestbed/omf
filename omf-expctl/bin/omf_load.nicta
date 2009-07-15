@@ -130,7 +130,7 @@ then
   echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
 else
   echo " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 10sec..."
-  $OMF tell offs "$topo"
+  $OMF tell offs "$topo" "$domain"
   sleep 10
   echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
   echo " NICTA -- normal imaging process starts now..."
@@ -141,7 +141,7 @@ else
   $OMF exec -d $domain system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout --domain $domain
   echo " "
   echo " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 5sec..."
-  $OMF tell offs "$topo"
+  $OMF tell offs "$topo" "$domain"  
   sleep 5
   echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
 fi
