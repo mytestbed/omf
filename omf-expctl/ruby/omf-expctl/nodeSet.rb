@@ -989,6 +989,7 @@ class NodeSetPath < MObject
     "down=" => %r{net/[ew][01]},
     "up=" => %r{net/[ew][01]},
     "enforce_link=" => %r{net/[ew][01]},
+    "route=" => %r{net/[ew][01]},
     "net" => //
   }
   VALID_PATHS_RE = {

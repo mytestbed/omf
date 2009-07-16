@@ -67,6 +67,24 @@ class EthernetDevice < Device
       when 'forwarding'
         flag = (value == 'true') ? '1' : '0'
         return "echo #{flag} > /proc/sys/net/ipv4/conf/#{@deviceName}/forwarding"
+      when 'route'
+        param = eval(value)
+        operation = param[:op]
+        if operation == 'add' || operation == 'del'
+          routeCMD = "route #{operation} -net #{param[:net]} "
+          param.each_pair { |k,v|
+            case k
+              when :gw
+                routeCMD << "gw #{v} "
+              when :mask
+                routeCMD << "netmask #{v} "
+            end
+          }
+          routeCMD << "dev #{@deviceName}"
+        else
+          MObject.error "Route configuration - unknown operation: '#{operation}'"
+        end
+        return routeCMD
       when 'gateway'
               return "route del default dev eth1; route add default gw #{value}; route add 224.10.10.6 dev eth1"
     end
