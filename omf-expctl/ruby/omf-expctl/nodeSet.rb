@@ -171,9 +171,9 @@ class NodeSet < MObject
         send(:APT_INSTALL, "app:#{vName}/install", aptName)
       elsif (rep = appDef.binaryRepository) != nil
         # Install App from TAR archive using wget + tar 
-	      # We first have to mount the local TAR file to a URL on our webserver
-        url_dir="/install"
-	      url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
+        # We first have to mount the local TAR file to a URL on our webserver
+	url_dir="/install/#{rep.gsub('/', '_')}"
+        url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
         OMF::ExperimentController::Web.mapFile(url_dir, rep)
         send(:PM_INSTALL, "app:#{vName}/install", url, '/')
       end
