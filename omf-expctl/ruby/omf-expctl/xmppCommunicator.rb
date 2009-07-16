@@ -103,10 +103,9 @@ class XmppCommunicator < MObject
       @@service = OmfPubSubService.new(expID, "123", jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
-      #debug "TDEBUG - start 1"
       @@service.add_event_callback { |event|
         #debug "TDEBUG - New Event - '#{event}'" 
-        execute_command(event)
+        Thread.new { execute_command(event) }
         #debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex

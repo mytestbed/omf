@@ -29,5 +29,6 @@ puts "Connected to PubSub Server: '#{jid_suffix}'"
 @@service.create_pubsub_node("/Domain/System/10.0.0.2")
 @@service.create_pubsub_node("/Domain/System/10.0.0.3")
 @@service.create_pubsub_node("/Domain/System/10.0.0.4")
+@@service.create_pubsub_node("/Domain/System/10.0.0.5")
 
 

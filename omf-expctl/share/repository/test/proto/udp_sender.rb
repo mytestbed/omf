@@ -41,6 +41,7 @@ defPrototype("test:proto:udp_sender") { |p|
   p.defProperty('localPort', 'Host that generate the packets',3000)
   p.defProperty('packetSize', 'Size of packets [bytes]', 512)
   p.defProperty('rate', 'Number of bits per second [bps]', 4096)
+  p.defProperty('broadcast', 'Allow broadcast', 0)
 
   # Define applications to be installed on this type of node,
   # bind the application properties to the prototype properties,
@@ -51,6 +52,7 @@ defPrototype("test:proto:udp_sender") { |p|
     otg.bindProperty('oml-server', 'omlServer')
     otg.bindProperty('oml-id', 'id')
     otg.bindProperty('oml-exp-id', 'expId')
+    otg.bindProperty('udp:broadcast', 'broadcast')	
     otg.bindProperty('udp:dst_host', 'destinationHost')
     otg.bindProperty('udp:dst_port', 'destinationPort')
     otg.bindProperty('udp:local_host', 'localHost')

@@ -28,13 +28,10 @@ puts "Connected to PubSub Server: '#{pubsubjid}'"
 
 sysNode = "/Domain/System/10.0.1.1"
 
-while (!@@service.node_exist?(sysNode))
+while (!@@service.join_pubsub_node(sysNode))
   puts "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
   sleep 10
 end
-
-# Subscribe to the default 'system' pubsub node
-@@service.join_pubsub_node(sysNode)
 
 sleep 100
 

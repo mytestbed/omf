@@ -41,6 +41,7 @@ TEXT
   a.defProperty('oml-server', 'Contact details for the oml collection server')
   a.defProperty('oml-id', 'ID for this oml client')
   a.defProperty('oml-exp-id', 'ID for this experiment')
+  a.defProperty('udp:broadcast', 'Broadcast')
   a.defProperty('udp:dst_host', 'IP address of the Destination')
   a.defProperty('udp:dst_port', 'Destination Port to send to')
   a.defProperty('udp:local_host', 'IP address of this Source node')

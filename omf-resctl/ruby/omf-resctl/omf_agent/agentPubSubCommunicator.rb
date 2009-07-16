@@ -143,8 +143,8 @@ class AgentPubSubCommunicator < MObject
       # the nodes we will subscribe to
       #debug "TDEBUG - start 1"
       @@service.add_event_callback { |event|
-        #debug "TDEBUG - New Event - '#{event}'" 
-        execute_command(event)
+        #debug "TDEBUG - New Event - '#{event}'"
+        Thread.new { execute_command(event) }
         #debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex
@@ -208,7 +208,7 @@ class AgentPubSubCommunicator < MObject
     # All good
     debug("Local control IP address: #{@@IPaddr}")
     # quick hack for testing
-    # return "10.0.1.1"
+    # return "10.0.0.5"
     return @@IPaddr
   end
   
@@ -225,14 +225,14 @@ class AgentPubSubCommunicator < MObject
     
     sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
     
-    while (!@@service.node_exist?(sysNode))
-      debug "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
-      sleep 10
-      start("10.0.0.200")
+    while (!@@service.join_pubsub_node(sysNode))
+       debug "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
+       sleep 10
+       start("10.0.0.200")
     end
     
     # Subscribe to the default 'system' pubsub node
-    @@service.join_pubsub_node(sysNode)
+    
     #debug "TDEBUG - reset - Joined PubSub node '#{@@sysNode}'" 
     debug "TDEBUG - reset - 2"
   end
@@ -298,9 +298,11 @@ class AgentPubSubCommunicator < MObject
     #debug "TDEBUG - join_groups - Groups to join: #{groups.to_s}"
     groups.each { |group|
       fullNodeName = "#{@@pubsubNodePrefix}/#{group.to_s}"
-      debug "TDEBUG - join_groups - a group: #{fullNodeName}"
-      @@service.join_pubsub_node(fullNodeName)
-      debug "TDEBUG - join_groups - Subcribed to PubSub node: '#{fullNodeName}'"
+      if @@service.join_pubsub_node(fullNodeName)
+        debug "TDEBUG - join_groups - Subscribed to PubSub node: '#{fullNodeName}'"
+      else
+        debug "TDEBUG - join_groups - Failed to subscribe to PubSub node: '#{fullNodeName}'"
+      end
     }
   end
       
@@ -324,7 +326,7 @@ class AgentPubSubCommunicator < MObject
       debug "send! - A"
       @@service.publish_to_node("#{dst}", item)        
       debug "send! - B"
-    rescue Exeption => ex
+    rescue Exception => ex
       error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
     end
   end
@@ -349,7 +351,6 @@ class AgentPubSubCommunicator < MObject
   #       TODO: in the future, we will phase out the <target> field.
   #
   def execute_command (event)
-
     # Extract the Message from the PubSub Event
     #debug "TDEBUG - execute_command - A"
     begin
@@ -392,39 +393,36 @@ class AgentPubSubCommunicator < MObject
         return
       when "JOIN"
         join_groups(argArray[1, (argArray.length-1)])
-        
       when "ALIAS"
         join_groups(argArray[1, (argArray.length-1)])
-    
       when "YOUARE"
         # YOUARE format (see AgentCommands): YOUARE <sessionID> <expID> <name> <aliases>
         # <sessionID> Session ID
         # <expID> Experiment ID
         # <name> becomes the Agent Name for this Session/Experiment.
         # <aliases> optional aliases for this NA
-        
+
         if (argArray.length < 4)
-          error "ERROR - execute_command() - YOUARE - message too short: '#{message}'"
-          return
+         error "ERROR - execute_command() - YOUARE - message too short: '#{message}'"
+         return
         end
-        
+
         # Store the Session and Experiment IDs given by the NH's communicator
         @@sessionID = argArray[1]
         @@expID = argArray[2]
         debug "TDEBUG - execute_command() - Set SessionID / ExpID: '#{@@sessionID}' / '#{@@expID}'"
         # Join the global PubSub nodes for this session / experiment
         n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
-        if (!@@service.node_exist?(n)) then
+        m = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
+        if (!@@service.join_pubsub_node(n) || !@@service.join_pubsub_node(m)) then
           error "ERROR - execute_command() - YOUARE - node does not exist: '#{n}'"
           error "ERROR - possibly received a lingering YOUARE message from a previous experiment - discarding"
           return
         end
-        @@service.join_pubsub_node(n)
-        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
-        @@service.join_pubsub_node(n)
+        
         # Store the full PubSub path for this session / experiment
         @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
-        
+
         @@myName = argArray[3]
         list = Array.[](argArray[3])
         # If there are some optional aliases, add them to the list of groups to join
@@ -433,8 +431,7 @@ class AgentPubSubCommunicator < MObject
             list.push(name)
           }
         end
-        join_groups(list)    
-          
+        join_groups(list)
       else
         # if we sent this message to the NH ourselves, do nothing  
         if (@@myName!=nil) then
