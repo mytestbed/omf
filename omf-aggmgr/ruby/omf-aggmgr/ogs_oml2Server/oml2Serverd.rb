@@ -70,6 +70,30 @@ class Oml2ServerDaemon < AbstractDaemon
   end
 
   #
+  # Start a new Oml2ServerDaemon
+  # As opposed to other OMF Aggregate Manager Services, the OML2 Service
+  # can only start 1 daemon (i.e. Frisbee Service can start multiple...)
+  # This single daemon will then live as long as the AM lives.
+  # All the experiments will use this single daemon.
+  # This is different from the previous behaviour where each experiment
+  # would starts its own OML2 server.
+  #
+  # - req = the HTTP Request used to request the dameon creation
+  #
+  # [Return] the instance of the currently running OML2 daemon
+  #
+  def self.start(req)
+    # 1st time being called, start a new daemon
+    if @@inst.size == 0
+      super(req)
+    # A daemon has already been started before, return it
+    else
+      d = self.all[0]
+      return d
+    end
+  end
+
+  #
   # Override the default configuration parameter of this Oml2ServerDaemon with 
   # some specific parameters
   #
