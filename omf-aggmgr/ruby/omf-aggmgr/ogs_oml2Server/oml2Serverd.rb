@@ -115,7 +115,8 @@ class Oml2ServerDaemon < AbstractDaemon
   #
   def getCommand()
     @logFile = "/tmp/#{@daemon_id}.oml2.log"
-    cmd = "#{@config['serverBin']} -l #{@port} --logfile=#{@logFile} -d #{@config['serverDebugLevel']}"    
+    data_dir = @config['databaseDataDir'] || "/tmp"
+    cmd = "#{@config['serverBin']} -l #{@port} --logfile=#{@logFile} -d #{@config['serverDebugLevel']} --data-dir #{data_dir}"
     debug("Exec '#{cmd}'")
     cmd
   end
