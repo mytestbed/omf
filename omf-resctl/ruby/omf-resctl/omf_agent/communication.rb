@@ -377,14 +377,6 @@ class TcpServerCommunicator < Communicator
   #
   def sendHeartbeat()
     send!(:HB, -1, -1, -1, -1)
-    # Comment the following code:
-    # TcpServerCommunicator only sends HB to acknowledge succesfully executed commands
-    #if NodeAgent.instance.connected?
-    #  send!(:HB, -1, -1, -1, -1)
-    #else
-    #  # haven't heard from nodeHandler yet, resend initial message
-    #  sendWHOAMI
-    #end
   end
 
   private
@@ -396,9 +388,13 @@ class TcpServerCommunicator < Communicator
   # - msgArray = the array of text to send
   #
   def send!(seqNo, *msgArray)
-    message = "#{NodeAgent.instance.agentName} 0 #{LineSerializer.to_s(msgArray)}"
-    debug("Send message: '#{message}'")
-    @sock.write(message)
+    if msgArray.empty?
+      debug("ERROR - send! - not sending empty message!")
+    else
+      message = "#{NodeAgent.instance.agentName} 0 #{LineSerializer.to_s(msgArray)}"
+      debug("Send message: '#{message}'")
+      @sock.write(message)
+    end
   end
 
   #

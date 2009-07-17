@@ -72,6 +72,12 @@ class AgentPubSubCommunicator < MObject
     @@sessionID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
+    @queue = Queue.new
+    Thread.new {
+      while event = @queue.pop
+        execute_command(event)
+      end
+    }
     # TODO: fetch the pubsub hostname via inventory
     # fetch the interface from config file
     start("10.0.0.200")
@@ -144,9 +150,9 @@ class AgentPubSubCommunicator < MObject
       #debug "TDEBUG - start 1"
       @@service.add_event_callback { |event|
         #debug "TDEBUG - New Event - '#{event}'"
-        Thread.new { execute_command(event) }
+        @queue << event
         #debug "TDEBUG - Finished Processing Event" 
-      }         
+      }
     rescue Exception => ex
       error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
     end

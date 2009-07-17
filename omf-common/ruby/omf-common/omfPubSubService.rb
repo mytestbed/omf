@@ -113,6 +113,7 @@ class OmfPubSubService < MObject
     @clientHelper.auth(password)
     @clientHelper.send(Jabber::Presence.new)
     @service = MyServiceHelper.new(@clientHelper, @pubsubjid)
+    debug "CDEBUG - initialize - connection opened to '#{host}'"
   end
 
   #

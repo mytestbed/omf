@@ -76,6 +76,12 @@ class XmppCommunicator < MObject
     @@sessionID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
+    @queue = Queue.new
+    Thread.new {
+      while event = @queue.pop
+        execute_command(event)
+      end
+    }
   end  
       
   #
@@ -105,7 +111,7 @@ class XmppCommunicator < MObject
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
         #debug "TDEBUG - New Event - '#{event}'" 
-        Thread.new { execute_command(event) }
+        @queue << event
         #debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex
@@ -497,7 +503,7 @@ class XmppCommunicator < MObject
        reply = method.call(self, sender, senderId, argArray)
      rescue Exception => ex
        #error("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
-       debug("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
+       debug("Error ('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'")
      end
    end
     
