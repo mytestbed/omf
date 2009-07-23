@@ -77,7 +77,7 @@ class Device < MObject
     info "configure #{@logicalName}/#{prop} = #{value}"
     activate() # make sure that the device is actually loaded
 
-    if (value[0] == '%'[0])
+    if (value != nil) && (value[0] == '%'[0])
       # if value starts with "%" perform certain substitutions
       value = value[1..-1]  # strip off leading '%'
       value.sub!(/%x/, agent.x.to_s)

@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,10 @@ class EthernetDevice < Device
        return "/sbin/ifconfig #{@deviceName} down"
       when 'netmask'
         return "/sbin/ifconfig #{@deviceName} netmask #{value}"
+      when 'mtu'
+        return "/sbin/ifconfig #{@deviceName} mtu #{value}"
+      when 'mac'
+        return "/sbin/ifconfig #{@deviceName} hw ether #{value}"
       when 'arp'
         dash = (value == 'true') ? '' : '-'
         return "/sbin/ifconfig #{@deviceName} #{dash}arp"
@@ -68,27 +72,86 @@ class EthernetDevice < Device
         flag = (value == 'true') ? '1' : '0'
         return "echo #{flag} > /proc/sys/net/ipv4/conf/#{@deviceName}/forwarding"
       when 'route'
-        param = eval(value)
-        operation = param[:op]
-        if operation == 'add' || operation == 'del'
-          routeCMD = "route #{operation} -net #{param[:net]} "
-          param.each_pair { |k,v|
-            case k
-              when :gw
-                routeCMD << "gw #{v} "
-              when :mask
-                routeCMD << "netmask #{v} "
-            end
-          }
-          routeCMD << "dev #{@deviceName}"
-        else
-          MObject.error "Route configuration - unknown operation: '#{operation}'"
-        end
-        return routeCMD
+        return getCmdForRoute(value)
+      when 'filter'
+        return getCmdForFilter(value)
       when 'gateway'
               return "route del default dev eth1; route add default gw #{value}; route add 224.10.10.6 dev eth1"
     end
     super
+  end
+
+  #
+  # Return the specific command required to configure a 'route' property of this device.
+  # This command is based on the Linux 'route' command
+  #
+  # - value = the value to configure the 'route' property to
+  #
+  def getCmdForRoute(value)
+    param = eval(value)
+    operation = param[:op]
+    if operation == 'add' || operation == 'del'
+      routeCMD = "route #{operation} -net #{param[:net]} "
+      param.each_pair { |k,v|
+        case k
+          when :gw
+            routeCMD << "gw #{v} "
+          when :mask
+            routeCMD << "netmask #{v} "
+        end
+      }
+      routeCMD << "dev #{@deviceName}"
+    else
+      MObject.error "Route configuration - unknown operation: '#{operation}'" 
+      routeCMD = "route xxx" # This will raise an error in the calling method
+    end
+    return routeCMD
+  end
+
+  #
+  # Return the specific command required to configure a 'filter' property of this device.
+  # This command is based on the Linux 'iptables' command
+  #
+  # - value = the value to configure the 'filter' property to
+  #
+  def getCmdForFilter(value)
+    param = eval(value)
+    operation = param[:op]
+    filterCMD = "iptables "
+    param.each {|k,v|
+    }
+    case operation
+      when 'add' 
+        filterCMD << "-A "
+      when 'del'
+        filterCMD << "-D "
+      when 'clear'
+        return filterCMD << "-F"
+      else
+        MObject.error "Filter configuration - unknown operation: '#{operation}'" 
+        return filterCMD
+    end
+    filterCMD << "#{param[:chain].upcase} -i #{@deviceName} "
+    case param[:proto]
+      when 'tcp', 'udp'
+        filterCMD << "-p #{param[:proto]} "
+        param.each { |k,v|
+          case k
+            when :src
+              filterCMD << "-s #{v} "
+            when :dst
+              filterCMD << "-d #{v} "
+            when :sport
+              filterCMD << "--sport #{v} "
+            when :dport
+              filterCMD << "--dport #{v} "
+          end
+        }
+      when 'mac'
+        filterCMD << "-m mac --mac-source #{param[:src]} "
+    end
+    filterCMD << "-j #{param[:target].upcase}"
+    return filterCMD
   end
 
 end

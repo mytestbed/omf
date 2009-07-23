@@ -172,7 +172,7 @@ class NodeSet < MObject
       elsif (rep = appDef.binaryRepository) != nil
         # Install App from TAR archive using wget + tar 
         # We first have to mount the local TAR file to a URL on our webserver
-	url_dir="/install/#{rep.gsub('/', '_')}"
+        url_dir="/install/#{rep.gsub('/', '_')}"
         url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
         OMF::ExperimentController::Web.mapFile(url_dir, rep)
         send(:PM_INSTALL, "app:#{vName}/install", url, '/')
@@ -344,19 +344,31 @@ class NodeSet < MObject
   # set to 'value'
   #
   # - path = Path to resource
-  # - value = New value
+  # - value = New value (Nil or a String or a Hash) 
   #
   def configure(path, value)
-    if value.kind_of?(ExperimentProperty)
-      value.onChange { |v|
-        configure(path, v)
-      }
-      value = value.value
+    case value.class.to_s
+      when "ExperimentProperty"
+        value.onChange { |v|
+          configure(path, v)
+        }
+        valueToSend = value.value
+      when "String" 
+        valueToSend = value.to_s
+      when "Hash"
+        valueToSend = "{"
+        value.each {|k,v|
+          valueToSend << ":#{k} => '#{v}', " 
+        }
+        valueToSend << "}"
+      else
+        valueToSend = ""
     end
+    # Notify each node to update their state trace with this Configure command
     eachNode {|n|
       n.configure(path, value)
     }
-    send(:CONFIGURE, path.join('/'), value.to_s)
+    send(:CONFIGURE, path.join('/'), valueToSend.to_s)
   end
 
   #
@@ -961,7 +973,7 @@ class DefinedGroupNodeSet < RootGroupNodeSet
     super()
     sel = ""
     eachGroup {|g| sel = sel + "#{g.to_s} " }
-    @nodeSelector = "#{sel}"
+    @nodeSelector = "\"#{sel}\""
   end
 end
 
@@ -976,7 +988,7 @@ class NodeSetPath < MObject
   attr_reader :nodeSet, :path
 
   # List of valid 'PATHS' for a NodeSet
-  VALID_PATHS = {
+  VALID_PATHS_WITH_VALUES = {
     "mode=" => %r{net/[ew][01]},
     "type=" => %r{net/[ew][01]},
     "rts=" => %r{net/[ew][01]},
@@ -986,12 +998,19 @@ class NodeSetPath < MObject
     "channel=" => %r{net/[ew][01]},
     "tx_power=" => %r{net/[ew][01]},
     "netmask=" => %r{net/[ew][01]},
-    "down=" => %r{net/[ew][01]},
-    "up=" => %r{net/[ew][01]},
+    "mac=" => %r{net/[ew][01]},
+    "mtu=" => %r{net/[ew][01]},
+    "arp=" => %r{net/[ew][01]},
     "enforce_link=" => %r{net/[ew][01]},
-    "route=" => %r{net/[ew][01]},
+    "route" => %r{net/[ew][01]},
+    "filter" => %r{net/[ew][01]},
     "net" => //
   }
+  VALID_PATHS_WITHOUT_VALUES = {
+    "down" => %r{net/[ew][01]},
+    "up" => %r{net/[ew][01]},
+  }
+  VALID_PATHS = VALID_PATHS_WITH_VALUES.merge(VALID_PATHS_WITHOUT_VALUES)
   VALID_PATHS_RE = {
     /[ew][01]/ => /net/
   }
@@ -1016,10 +1035,18 @@ class NodeSetPath < MObject
     end
 
     if value != nil
-      if newLeaf == nil || newLeaf[-1] != ?=
-        raise "Missing assignment operator for path '#{pathString}'."
+      #if newLeaf == nil || newLeaf[-1] != ?= 
+      if newLeaf == nil 
+        path = ""
+        @path.each {|p| path = path + '/' +p.to_s}
+        raise "Missing assignment operator or argument for path '#{path}/#{newLeaf}'."
+        # NOTE: cannot call 'pathString' here cause @pathSubString has not been set yet!
       end
-      newLeaf = newLeaf[0 .. -2]
+      if newLeaf[-1] != ?=
+        newLeaf = newLeaf[0 .. -1]
+      else
+        newLeaf = newLeaf[0 .. -2]
+      end
       @value = value
     end
     if newLeaf != nil
@@ -1033,15 +1060,19 @@ class NodeSetPath < MObject
     if block != nil
       call &block
     end
-    if @value != nil
+    if value != nil
       if (@path.last.to_s == "enforce_link")
         @nodeSet.setMACFilteringTable(@path, @value)
-      # If this NH is invoked with support for temporary disconnected node/resource, then 
-      # do not execute any node/resource configuration commands (this will be done by the
-      # slave NH running on the node/resource).
-      elsif (NodeHandler.disconnectionMode? == false)
+        # If this NH is invoked with support for temporary disconnected node/resource, then 
+        # do not execute any node/resource configuration commands (this will be done by the
+        # slave NH running on the node/resource).
+      elsif (NodeHandler.disconnectionMode? == false) 
         @nodeSet.configure(@path, @value)
       end
+    # If the path is one that does not require a value (e.g. ip.down or ip.up)
+    # then we send a configure command to the nodes
+    elsif VALID_PATHS_WITHOUT_VALUES.has_key?(@path.last.to_s)
+        @nodeSet.configure(@path, @value)
     end
   end
 

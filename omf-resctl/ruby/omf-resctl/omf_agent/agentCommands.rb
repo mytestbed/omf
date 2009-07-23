@@ -437,7 +437,7 @@ module AgentCommands
   #
   def AgentCommands.CONFIGURE(agent, argArray)
     path = getArg(argArray, "Name of parameter as path")
-    value = getArg(argArray, "Value to set parameter to")
+    value = getArgDefault(argArray)
 
    if (type, id, prop = path.split("/")).length != 3
      raise "Expected path '#{path}' to contain three levels"
