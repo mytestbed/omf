@@ -127,7 +127,9 @@ module AgentCommands
         MObject.error("agentCmd::CONFIGURE_ERROR", "#{reason} on '#{sender}': #{message}")
       when 'LOST_HANDLER'
         MObject.error("agentCmd::LOST_HANDLER_ERROR", "'#{sender}' lost us")
-
+      when 'EXECUTION'
+        message = argArray.join(' ')
+        MObject.error("agentCmd::EXECUTION_ERROR", "Execution Error on node: '#{sender}' - Error Message: #{message}")
       else
         reason = "Unknown error caused by '#{command}'"
         message = argArray.join(' ')

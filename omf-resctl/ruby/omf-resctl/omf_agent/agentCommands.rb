@@ -323,9 +323,14 @@ module AgentCommands
   # - argArray = an array with the ID of the process and the texxt to send
   #
   def AgentCommands.STDIN(agent, argArray)
-    id = getArg(argArray, "ID of process")
-    line = argArray.join(' ')
-    ExecApp[id].stdin(line)
+    begin
+      id = getArg(argArray, "ID of process")
+      line = argArray.join(' ')
+      ExecApp[id].stdin(line)
+    rescue Exception => err
+      raise Exception.new("- Error while writing to standard-IN of application '#{id}' \
+(likely caused by a a call to 'sendMessage' or an update to a dynamic property)") 
+    end
   end
 
 

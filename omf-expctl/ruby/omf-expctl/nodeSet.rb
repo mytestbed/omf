@@ -1313,6 +1313,18 @@ class RootNodeSetPath < NodeSetPath
   def stopApplication(name)
     @nodeSet.stopApplication(name)
   end
+
+  #
+  # This method sends a message on the STDIN of a given application, which is 
+  # running on the nodes in the NodeSet of this Root Path.
+  #
+  # - name = the name of the application to send the message to 
+  # - *args = a sequence of arguments to send as a messages to this application
+  #
+  # TDEBUG
+  def sendMessage(name, *args)
+    @nodeSet.send(:STDIN, "app:#{name}", *args)
+  end
   
   #
   # This method powers ON all nodes in the NodeSet of this Root Path.
