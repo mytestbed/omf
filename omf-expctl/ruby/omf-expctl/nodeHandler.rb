@@ -135,6 +135,17 @@ class NodeHandler < MObject
   def NodeHandler.SLAVE_MODE()
     return @@runningSlaveMode
   end 
+
+  #
+  # Return the value of the 'showAppOutput' flag
+  # When this flag is 'true', the NH will display on its standard-out any outputs 
+  # coming from the standard-out of the applications running on the nodes.
+  #
+  # [Return] true/false (default 'false')
+  #
+  def NodeHandler.SHOW_APP_OUTPUT()
+    return @@showAppOutput
+  end
   
   #
   # Return the value of the 'justPrint' attribut
@@ -506,6 +517,10 @@ class NodeHandler < MObject
       @slaveNodeY = eval(y)
     }
 
+    opts.on("-A", "--show-app-output", "Display on standard-out the outputs from the applications running on the nodes") {
+      @@showAppOutput = true
+    }
+
     #opts.on_tail("-p", "--profile", "Profile node handler") {
     #  require 'profiler'
     #  Thread.new() {
@@ -595,6 +610,7 @@ class NodeHandler < MObject
   def initialize
     initialize_oml
     @@runningSlaveMode = false
+    @@showAppOutput = false
     @omlProxyPort = nil
     @omlProxyAddr = nil
     @web_ui = false

@@ -310,6 +310,10 @@ class Node < MObject
       end
       return
     end
+    if (eventName.upcase == "STDOUT") && NodeHandler.SHOW_APP_OUTPUT()
+       # When requested by user, print SDOUT events on our own standard-out
+       info("From app '#{appId}' - '#{message}'")
+    end
     TraceState.nodeOnAppEvent(self, eventName, appName, op, message)
   end
 
