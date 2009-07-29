@@ -819,9 +819,9 @@ class GroupNodeSet < AbstractGroupNodeSet
   #
   def addApplication(app, vName, bindings, env, install = true)
     super(app, vName, bindings, env, install)
-    eachGroup { |g|
-      # inform all enclosed groups, but do not request another install
-      g.addApplication(app, vName, bindings, env, false)
+    # inform all nodes of enclosed groups, so they will add this app to their state
+    eachNode { |n|
+      n.addApplication(app, vName, bindings, env)
     }
   end
 
@@ -1321,7 +1321,6 @@ class RootNodeSetPath < NodeSetPath
   # - name = the name of the application to send the message to 
   # - *args = a sequence of arguments to send as a messages to this application
   #
-  # TDEBUG
   def sendMessage(name, *args)
     @nodeSet.send(:STDIN, "app:#{name}", *args)
   end

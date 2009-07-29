@@ -211,16 +211,33 @@ def allNodes!(&block)
 end
 
 #
-# Periodically perform 'nodeTest' on all nodes in 'nodesSelector'
-# and execute block ONCE if all tests evaluate to true.
+# Periodically perform a given test on all nodes in 'nodesSelector'
+# and execute block ONCE if all tests on all nodes evaluate to true.
 # The interval between checks is given by 'interval' in seconds.
+# During any experiment each node maintains a trace of its state in 
+# an XML tree. The test to perform is made on the that XML state tree
+# for each node. 
+#
+# This method has 2 behaviours:
+# 
+# * if 'triggerValue' is nil, then 'nodeTest' should contain an XPath to 
+#   match in the XML state tree of the nodes. The test for a given node 
+#   will then return 'true' when a match is found for that node.
+#
+# * if 'triggerValue' is set, then 'nodeTest' should contain an XPath to 
+#   match in the XML state tree of the nodes. The test for a given node 
+#   will then return 'true' if no match is found OR if a match is found
+#   and its value is equal to 'triggerValue'. Thus the test will return
+#   'false' if a match is found but its value is different from 
+#   'triggerValue'.
 #
 # - nodesSelector = the name of the group of nodes to test
-# - nodeTest = the test to perform on the nodes
+# - nodeTest = the test to perform on the nodes (i.e. an XPath to match against the node's state)
 # - interval = the interval at which to perform the test (in sec, default=5)
+# - triggerValue = a value to compare any 'nodeTest' match with, see above description (default=nil)
 # - &block = the code-block to execute/evaluate against the nodes when the test returns 'true'
 #
-def whenAll(nodesSelector, nodeTest, interval = 5, &block)
+def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
   ns = NodeSet[nodesSelector]
   if ns == nil
     raise "WhenAll: Unknown node set '#{nodesSelector}"
@@ -236,7 +253,15 @@ def whenAll(nodesSelector, nodeTest, interval = 5, &block)
             if flag
               match = node.match(nodeTest)
               #match.each{|e| e.write($stdout, 2)}
-              flag = (match != nil && match.length > 0)
+	      if triggerValue == nil
+                flag = (match != nil && match.length > 0)
+              else
+                 match.each{ |e|
+                   if (e.to_s != triggerValue.to_s) 
+		     flag = false
+		   end
+	         }
+	      end
               MObject.debug("whenAll::internal", "Not true for ", node) if !flag
               #p "FLAG: #{flag}"
             end
@@ -270,6 +295,33 @@ def whenAll(nodesSelector, nodeTest, interval = 5, &block)
       end
     end
   }
+end
+
+#
+# This method is a 'syntactic sugar' around 'whenAll' when it is used if a
+# 'triggerValue' different of nil. See 'whenAll' method desrciption above.
+#
+# This method periodically perform a given test on all nodes in 'nodesSelector'
+# and execute block ONCE if all tests on all nodes evaluate to true.
+# The interval between checks is given by 'interval' in seconds.
+# During any experiment each node maintains a trace of its state in 
+# an XML tree. The test to perform is made on the that XML state tree
+# for each node. 
+#
+# The 'nodeTest' argument should contain an XPath to match in the XML state 
+# tree of the nodes. The test for a given node will then return 'true' if no 
+# match is found OR if a match is found and its value is equal to 'triggerValue'. 
+# Thus the test will return 'false' if a match is found but its value is different 
+# from 'triggerValue'.
+#
+# - nodesSelector = the name of the group of nodes to test
+# - nodeTest = the test to perform on the nodes (i.e. an XPath to match against the node's state)
+# - triggerValue = a value to compare any 'nodeTest' match with, see above description 
+# - interval = the interval at which to perform the test (in sec, default=5)
+# - &block = the code-block to execute/evaluate against the nodes when the test returns 'true'
+#
+def whenAllEqual(nodesSelector, nodeTest, triggerValue, interval = 5, &block)
+  whenAll(nodesSelector, nodeTest, interval, triggerValue, &block)
 end
 
 #
@@ -307,7 +359,7 @@ def whenAllInstalled(&block)
   if NodeHandler.disconnectionMode?
     return
   end
-  whenAll("*", "apps/app/status[@value='INSTALLED.OK']", &block)
+  whenAllEqual("*", "apps/app/status/@value", "INSTALLED.OK", &block)
 end
 
 #
