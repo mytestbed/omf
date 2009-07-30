@@ -213,7 +213,8 @@ class XmppCommunicator < MObject
     if (target == "*")
       send!(msg, "#{@@expNode}")
     else
-      targets = LineSerializer.to_a(target)
+      target.gsub!(/^"(.*?)"$/,'\1')
+      targets = target.split(' ')
       targets.each {|tgt|
         send!(msg, "#{@@expNode}/#{tgt}")
       }

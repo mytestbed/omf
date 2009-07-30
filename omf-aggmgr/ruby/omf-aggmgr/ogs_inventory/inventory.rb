@@ -59,8 +59,7 @@ class InventoryService < GridService
   @@inventory = nil
   # These are the current configuration parameters available for testbeds running OMF
   CONST_CONFIG_KEYS = [ 'x_max', 'y_max', 'pxe_url', 'cmc_url', 
-                        'oml_url', 'oml_port', 'oml_host', 'oml_localhost', 
-                        'frisbee_url', 'frisbee_default_disk', 'image_host']
+                        'frisbee_url', 'frisbee_default_disk', 'image_host', 'oml_server_host', 'oml_server_port']
  
   # From Winlab, please fix/clean 
   #

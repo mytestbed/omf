@@ -212,6 +212,22 @@ module OConfig
   def self.IMG_HOST()
     return self.getConfigFromInventoryByKey('image_host')
   end
+  
+  # Return the OML server hostname
+  #
+  # [Return] a hostname or IP address (e.g. '10.0.1.200')
+  #
+  def self.OML_SERVER_HOST()
+    return self.getConfigFromInventoryByKey('oml_server_host')
+  end
+  
+  # Return the OML server port
+  #
+  # [Return] a port number (e.g. '3003')
+  #
+  def self.OML_SERVER_PORT()
+    return self.getConfigFromInventoryByKey('oml_server_port')
+  end
 
   #
   # Return the name of the testbed on which this experiment will run

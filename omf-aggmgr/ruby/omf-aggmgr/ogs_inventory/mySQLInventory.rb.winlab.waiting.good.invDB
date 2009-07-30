@@ -497,26 +497,6 @@ END_QS2
         value = 'http://pxe:5022/pxe'
       when "cmc_url" 
         value = "http://cmc:5012/cmc"
-      when "oml_url" 
-        value = "http://oml:5022/oml2"
-	# TODO
-	# FIXME
-	# When all tested ok, put OML2 server and GS on the 'oml' machine!
-        #value = "http://oml:5022/oml"
-      when "oml_port" 
-        value = '5022'
-      when "oml_host" 
-        value = "oml"
-      when "oml_localhost" 
-        value = case
-	  when domain == 'grid' : '10.10.0.50'
-	  when domain == 'sb1'  : '10.11.0.50'
-	  when domain == 'sb2'  : '10.12.0.50'
-	  when domain == 'sb5'  : '10.15.0.50'
-	  when domain == 'sb6'  : '10.16.0.50'
-	  when domain == 'sb7'  : '10.17.0.50'
-	  when domain == 'sb8'  : '10.18.0.50'
-	end
       when "frisbee_url" 
         value = 'http://frisbee:5022/frisbee'
       when "frisbee_default_disk" 

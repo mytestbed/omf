@@ -47,7 +47,6 @@ class OmlApp < MObject
   @@mpCnt = 0
   @@dbName = nil
   @@initialized = false
-  @@collectionServerStarted = false
   @@mpointsEl = nil
 
   #
@@ -126,7 +125,6 @@ class OmlApp < MObject
     if NodeHandler.SLAVE_MODE
       # YES - then the OML server has already been launched by the Master NA
       # We just fetch its config setting from the 'slave' NH
-      @@collectionServerStarted = true
       @@oml2ServerPort = NodeHandler.instance.omlProxyPort
       @@oml2ServerAddr = NodeHandler.instance.omlProxyAddr
       if ((@@oml2ServerPort == nil) || (@@oml2ServerAddr == nil))
@@ -134,120 +132,12 @@ class OmlApp < MObject
       else
         info("OmlApp", "Slave Mode - OML Proxy at: #{@@oml2ServerAddr}:#{@@oml2ServerPort}")
       end
-      return
-    end
-
-    # Check if an OMLv2 server for this experiment is not already running
-    if @@collectionServerStarted
-      # already running
-      return
-    end
-    # Start a new OMLv2 server
-    @@collectionServerStarted = true
-    unless (omlService = OConfig.OML_SERVICE)
-      return
-    end
-    url = "#{omlService}/start?id=#{Experiment.ID}&domain=#{OConfig.GRID_NAME}"
-    #url = "#{OConfig.OML_SERVICE}/start?id=#{Experiment.ID}&domain=#{OConfig.GRID_NAME}"
-    # Now we always use the same ID for the OML2 server, the new OML2 server will serve multiple experiment.
-    url = "#{omlService}/start?id=#{OConfig.GRID_NAME}&domain=#{OConfig.GRID_NAME}"
-    response = NodeHandler.service_call(url, "Can't start OML collection service")
-    if response.kind_of?(Net::HTTPOK)
-      # The server started correctly, retrieve its contact info from the HTTPresponse
-      doc = REXML::Document.new(response.body)
-      doc.root.elements.each() { |e|
-        @@oml2ServerPort = e.attributes.get_attribute("port").value
-        @@oml2ServerAddr = e.attributes.get_attribute("addr").value
-      }
-      @@collectionServerStarted = true
     else
-      error "Failed to start OML server!"
+      @@oml2ServerAddr = OConfig.OML_SERVER_HOST
+      @@oml2ServerPort = OConfig.OML_SERVER_PORT
+      #info("OmlApp", "Master Mode - OML Server at: #{@@oml2ServerAddr}:#{@@oml2ServerPort}")
     end
-  end
-
-  #
-  # Start the OML (v1) Collection Server
-  #
-  # FIXME: What about if no application is using OML?
-  #
-  def OmlApp.startCollectionServerV1()
-
-    if @@mpointsEl == nil
-      # no measurements used
-      return
-    end
-
-    if @@collectionServerStarted
-      # already running
-      return
-    end
-
-    @@collectionServerStarted = true
-
-    ss = StringIO.new()
-    ss.write("<?xml version='1.0'?>\n")
-    ss.write("<experiment id=\"#{OmlApp.getDbName}\" domain=\"#{OConfig.GRID_NAME}\">\n")
-
-    # WARNING: This may not work for multiple measurment points
-    el = NodeHandler::OML_EL.elements["measurement-points"]
-    #el.write(ss, 2) # Deprecated, replaced by next 2 lines
-    f = REXML::Formatters::Pretty.new() 
-    f.write(el, ss)
-    ss.write("\n")
-
-    ss.write("</experiment>\n")
-
-    MObject.debug("OmlApp::startCollectionServer post on #{OConfig.OML_HOST}:#{OConfig.OML_PORT}\n",
-    ss.string)
-    if NodeHandler.JUST_PRINT
-      puts "HTTP/POST #{OConfig.OML_HOST}:#{OConfig.OML_PORT}/oml/start\n#{ss.string}"
-    else
-      Net::HTTP.start(OConfig.OML_HOST, OConfig.OML_PORT) {|http|
-        response = http.post('/oml/start', ss.string)
-        if response.kind_of?(Net::HTTPOK)
-          str = response.body
-          MObject.debug("OmlApp::startCollectionServer response",str)
-
-          doc = REXML::Document.new(str)
-          mc = doc.root.elements['multicast-channel'].attributes
-
-          attr = {'addr' => "#{mc['addr']}",
-      'iface' => "#{mc['iface']}",
-      'port' => "#{mc['port']}" }
-          MObject.info("OML", "Started: ", attr.inspect)
-          NodeHandler::OML_EL.add_element('multicast-channel', attr)
-        else
-          @@collectionServerStarted = false
-          raise ServiceException.new(response,
-        "OML collection server did not start properly. Check gridservices for details")
-        end
-      }
-    end
-    @@collectionServerStarted = true
-  end
-
-  #
-  # Stop the OML collection server
-  #
-  def OmlApp.stopCollectionServer
-
-    # Check if NH is running in 'slave' mode. 
-    # If so then do nothing then the OML Proxy server is managed by the Master NA, do nothing
-    if NodeHandler.SLAVE_MODE
-      return
-    end
-
-    # Check if the server is really running
-    if ! @@collectionServerStarted
-      # not running
-      return
-    end
-    # Yes, send a request to stop it to the GService
-    unless (omlService = OConfig.OML_SERVICE)
-      return
-    end
-    url = "#{omlService}/stop?id=#{OmlApp.getDbName}"
-    NodeHandler.service_call(url, "Can't stop OML collection service")
+    
   end
 
   #

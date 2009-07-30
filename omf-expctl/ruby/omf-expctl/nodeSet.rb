@@ -198,10 +198,6 @@ class NodeSet < MObject
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
 
-    # With OMLv2 the collection server can be started as soon as NH is running
-    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
-    #OmlApp.startCollectionServer
-
     app = ctxt[:app]
     bindings = ctxt[:bindings]
     env = ctxt[:env]
@@ -409,7 +405,7 @@ class NodeSet < MObject
   # nodes/resources involved in this experiment.
   # This message will also inform the NA of: the experiment ID, the URL
   # where they can retrieve the experiment description (served by the NH
-  # webserver), iand the contact info for the OML collection server.
+  # webserver), and the contact info for the OML collection server.
   #
   def switchDisconnectionON
     send(:SET_DISCONNECT, "#{Experiment.ID}", "#{NodeHandler.instance.expFileURL}", "#{OmlApp.getServerAddr}", "#{OmlApp.getServerPort}")

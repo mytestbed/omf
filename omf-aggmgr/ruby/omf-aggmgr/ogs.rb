@@ -62,8 +62,6 @@ require 'omf-aggmgr/ogs/gridService'
 if true then
 require 'omf-aggmgr/ogs_frisbee/frisbee'
 require 'omf-aggmgr/ogs_pxe/pxe'
-require 'omf-aggmgr/ogs_omlServer/omlServer'
-require 'omf-aggmgr/ogs_oml2Server/oml2Server'
 require 'omf-aggmgr/ogs_inventory/inventory'
 require 'omf-aggmgr/ogs_result/result'
 # Two CMC alternatives:
