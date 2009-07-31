@@ -35,12 +35,29 @@ require 'omf-resctl/omf_driver/wireless'
 #
 class AtherosDevice < WirelessDevice
 
+  # Version number of older madwifi driver for which some commands are different
+  OLD_MADWIFI_VERSION = 27
+
   #
   # Create and set up a new AtherosDevice instance
   #
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
     @driver = 'ath_pci'
+  end
+
+  #
+  # Return the version of the madwifi tools
+  # 
+  # [Return] the versions of the madwifi tools
+  #
+  def getToolVersion()
+    version = `wlanconfig --version | head -n 1 | awk '{print $4}'`
+    if !($?.success?) || (version.to_i == 0)
+      return OLD_MADWIFI_VERSION
+    else
+      return version.to_i
+    end
   end
 
   # 
@@ -53,21 +70,22 @@ class AtherosDevice < WirelessDevice
   # themselves)
   #
   def postActivate()
-    test = `wlanconfig --version`
-    if $?.success?
-      cmd = "wlanconfig  ath0 destroy ; wlanconfig ath0 create wlandev wifi0  wlanmode adhoc"
-    else
-      # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
-      cmd = "iwconfig ath0 mode adhoc"
-    end
+    cmd = "wlanconfig  ath0 destroy ; wlanconfig ath0 create wlandev wifi0  wlanmode adhoc"
     debug "Post-Activation cmd: #{cmd}"
     reply = `#{cmd}`
-    if $?.success?
-      debug "Post-Activation OK"
-    else
-      error("While doing driver post-activation - CMD reply is: '#{reply}'")
+    if !$?.success?
+      # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
+      cmd = "iwconfig ath0 mode adhoc"
+      debug "Post-Activation cmd: #{cmd}"
+      reply = `#{cmd}`
+      if !$?.success?
+        error("While doing wifi driver post-activation - CMD reply is: '#{reply}'")
+        return
+      end
     end
+    debug "Wifi driver Post-Activation OK"
   end
+
 
   #
   # Return the specific command required to configure a given property of this device.
@@ -120,8 +138,8 @@ class AtherosDevice < WirelessDevice
           else
             raise "Unknown device name '#{@deviceName}'."
         end
-        test = `wlanconfig --version`
-        if $?.success?
+        debug "TDEBUG - #{getToolVersion()}"
+        if (getToolVersion() > OLD_MADWIFI_VERSION)
           return "wlanconfig #{@deviceName} destroy ; wlanconfig #{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
         else
           # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
