@@ -278,7 +278,7 @@ class GridService < AbstractService
   end
 
   #
-  # Return an Array of node coordinates for a a given tesbed [(1..xMax),(1..yMax)]
+  # Return an Array of node coordinates for a a given testbed [(1..xMax),(1..yMax)]
   #
   # - url = URL to the Inventory GridService
   # - domain = the name of the testbed to considere

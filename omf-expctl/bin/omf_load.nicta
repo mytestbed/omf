@@ -109,7 +109,7 @@ if [ -z $timeout ] ; then
   timeout=$DEF_TIMEOUT
 fi
 
-OMF=./omf
+OMF=/usr/bin/omf
 
 if [ -z $domain ] 
 then
@@ -122,7 +122,7 @@ then
   echo "Imaging nodes: '$topo' with image '$image'"
   echo "(Domain:  default from hostname)"
   echo "(Timeout:  $timeout sec.)"
-  omf exec system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout
+  $OMF exec system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout
   echo " "
   echo " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 5sec..."
   $OMF tell offs "$topo"

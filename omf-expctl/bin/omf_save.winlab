@@ -54,7 +54,7 @@ fi
 
 function saveimage()
 {
-  OMF=omf
+  OMF=/usr/bin/omf
   DOMAIN=$2
   if [ -z $DOMAIN ] ;then
     echo -n "Saving image from node '$1' from default domain..."

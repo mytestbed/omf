@@ -776,7 +776,7 @@ class NodeHandler < MObject
              :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
     rescue Exception => except
         warn("Received '#{except}' when starting NH webserver (port: '#{port}')")
-        warn("There may be another NH already running on the same tesbed...")
+        warn("There may be another NH already running on the same testbed...")
         newPort = port + 1;
         if (newPort >= (@webPort + MAXWEBTRY))
           error("Already tried '#{MAXWEBTRY}' times to start NH webserver. Giving up!")

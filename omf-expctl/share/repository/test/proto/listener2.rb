@@ -33,8 +33,8 @@ defPrototype("test:proto:listener2") { |p|
   p.description = "A node which listen for packets through a given interface"
   # List properties of prototype
   p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
-  p.defProperty('id', 'ID for this oml client', "/tmp/#{Experiment.ID}")
-  p.defProperty('expId', 'ID for this experiment', "/tmp/#{Experiment.ID}")
+  p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
+  p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
   p.defProperty('filter', 'The file with the filter definitions', "default")
   p.defProperty('interface', 'When using the default filter, listen on this given interface')
   p.defProperty('sourceIP', 'When using the default filter, select pkt with this Src IP')
