@@ -1,0 +1,9 @@
+/var/log/omf-resctl.log {
+	weekly
+	rotate 4
+	missingok
+	notifempty
+	compress
+	nocreate
+}
+
