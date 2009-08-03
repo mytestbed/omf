@@ -1,3 +1,9 @@
+omf-common (5.0-1ubuntu1) hardy; urgency=low
+
+  * various XMPP improvements
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 03 Aug 2009 14:25:12 +1000
+
 omf-common (5.0-1) testing; urgency=low
 
   * Initial release

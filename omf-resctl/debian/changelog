@@ -1,3 +1,9 @@
+omf-resctl (5.0-1ubuntu1) hardy; urgency=low
+
+  * XMPP improvements
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 03 Aug 2009 14:26:30 +1000
+
 omf-resctl (5.0-1) testing; urgency=low
 
   * Initial release

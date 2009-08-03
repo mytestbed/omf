@@ -1,3 +1,9 @@
+omf-expctl (5.0-1ubuntu1) hardy; urgency=low
+
+  * XMPP improvements
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 03 Aug 2009 14:25:58 +1000
+
 omf-expctl (5.0-1) testing; urgency=low
 
   * Initial release

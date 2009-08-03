@@ -1,3 +1,9 @@
+omf-aggmgr (5.0-1ubuntu2) hardy; urgency=low
+
+  * removed oml2-server gridservice, now using SSH/Telnet only to reboot nodes
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 03 Aug 2009 14:24:06 +1000
+
 omf-aggmgr (5.0-1ubuntu1) hardy; urgency=low
 
   * improved startup script, fixed module locations, renamed logfile

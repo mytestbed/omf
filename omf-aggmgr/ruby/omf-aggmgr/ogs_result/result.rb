@@ -225,6 +225,14 @@ class ResultService < GridService
         reply = formatResultJSON(id, sqlQuery, resultColumns, resultRows, msgEmpty)
         res.body = reply
         res['Content-Type'] = "text/json"
+      when 'csv'
+        reply = formatResultCSV(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+        res.body = reply
+        res['Content-Type'] = "text/csv"
+      when 'merged'
+        reply = formatResultCSVMerged(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+        res.body = reply
+        res['Content-Type'] = "text/csv"
       else
         error "Unknown reply format '#{format}'"
     end
@@ -264,6 +272,63 @@ class ResultService < GridService
     reply
   end
 
+  def self.formatResultCSV(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+    reply = StringIO.new
+    (resultRows || []).each do |cols|
+      reply << cols.join(';') << "\n"
+    end
+    reply.string
+  end
+
+  # This method treats the result in the following manner:
+  #  * It expects three colums: oml_ts_server (sorted by), oml_sender_id, anyValue
+  #  * It groups the results by oml_sender_id and creates a vector <ts, value1, value2, ..
+  #
+  def self.formatResultCSVMerged(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+    reply = StringIO.new
+    h = {}
+    names = []
+    names_h = {}
+    start_ts = nil
+    prev_ts = 0
+    (resultRows || []).each do |cols|
+      ts = (cols.shift || 0).to_i
+      start_ts ||= ts
+      node = cols.shift
+      value = cols.shift
+      unless names_h.key?(node)
+        # keep track of node names
+        names << node
+        names_h[node] = true
+      end
+      #reply << "SINGLE: #{node}:#{h.inspect}"      
+      if h.key?(node)
+        # got another value for +node+, output graph row
+        va = names.collect do |n| h[n] end
+        #reply << "EMPTY <#{va.inspect}><#{va.join(';')}:#{h.inspect}"
+        unless (vas = va.join(';')).empty?
+          
+          if (ts_d = start_ts - prev_ts) > 0
+            i = 0
+            while ts_d < 1.0 
+              i += 1; ts_d *= 10
+            end
+            ts_s = sprintf("%.#{i}f", start_ts)
+          else
+            ts_s = 0
+          end
+          reply << ts_s << ';' << vas << "\n"
+        end
+        h = {}
+        prev_ts = start_ts
+        start_ts = nil
+      end
+      h[node] = value
+    end
+    # prepand empty record of size names
+    (';' * names.size) + "\n" + reply.string
+  end
+  
   
   
   #
