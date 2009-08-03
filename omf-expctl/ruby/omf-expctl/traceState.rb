@@ -475,8 +475,7 @@ class NodeBuiltin < MObject
       addLine(getStdoutEl, message)
     when 'STDERR'
       addLine(getStderrEl, message)
-      error(message)
-
+      error("Application #{@name} on #{node.getNodeName()} reported '#{message}'")
     else
       setStatus "UNKNOWN.EVENT: #{eventName} #{message}"
     end
