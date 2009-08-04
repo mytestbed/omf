@@ -298,8 +298,6 @@ class XmppCommunicator < MObject
   #
   # Process an Event coming from an application running on 
   # one of the nodes.
-  # (this method is called by ExecApp which is monitoring
-  # the 'commServer' process.) 
   #
   # - eventName = name of the received Event
   # - appId = Id of the monitored application 
@@ -312,21 +310,21 @@ class XmppCommunicator < MObject
       cmd = ma.shift
       msg = ma.join(' ')
       if cmd == 'WARN'
-        MObject.warn('commServer', msg)
+        MObject.warn('xmppCommunicator', msg)
       elsif cmd == 'ERROR'
-        MObject.error('commServer', msg)
+        MObject.error('xmppCommunicator', msg)
       else
-        MObject.debug('commServer', msg)
+        MObject.debug('xmppCommunicator', msg)
       end
       return
     end
 
-    debug("commServer(#{eventName}): '#{msg}'")
+    debug("xmppCommunicator(#{eventName}): '#{msg}'")
     if (eventName == "STDOUT")
       a = LineSerializer.to_a(msg)
       processCommand(a)
     elsif (eventName == "DONE.ERROR")
-      error("ComServer failed: ", msg)
+      error("xmppCommunicator failed: ", msg)
       @server = nil
     end
   end

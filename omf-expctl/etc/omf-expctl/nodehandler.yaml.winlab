@@ -31,12 +31,8 @@ nodehandler:
       inventory:
         url: 'http://cmc:5022/inventory'
 
-      # This is the command used to launch the communication module
-      # The type of comm module to launch depends on the cmd line params
-      # '-c PORT' runs a TCP comm. module that will connect to the node Agent's TCP server on PORT
-      # '-l PORT' runs a TCP comm. Server module that will listen for node Agent's connection on PORT
-      # default: runs a Multicast comm. module
-      #commServer: /opt/omf-expctl-4.4.0/sbin/commServer --logfile /tmp/commServer-%ID%.log -d 4 --iface eth1
+      xmpp-server:
+        host: '10.0.0.200'
 
     # Config Parameter for the "debug" Testbed
     #

@@ -349,7 +349,7 @@ class NodeHandler < MObject
     end
     
     # Static domain for testing
-    communicator.start("10.0.0.200", "SessionID", Experiment.ID)
+    communicator.start("#{OConfig.XMPP_HOST}", "SessionID", Experiment.ID)
 
     Profiler__::start_profile if @doProfiling
 

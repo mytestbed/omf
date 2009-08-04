@@ -130,6 +130,15 @@ module OConfig
   end
 
   #
+  # Return the XMPP server hostname / IP address 
+  #
+  # [Return] hostname / IP address
+  #
+  def self.XMPP_HOST()
+    self['xmpp-server']['host']
+  end
+
+  #
   # Return the URL of the PXE service
   #
   # [Return] an URL string
@@ -207,7 +216,7 @@ module OConfig
 
   # Return the default host that should be used to load/save images
   #
-  # [Return] a hostname or IP address (e.g. '10.0.1.200')
+  # [Return] a hostname or IP address
   #
   def self.IMG_HOST()
     return self.getConfigFromInventoryByKey('image_host')
@@ -215,7 +224,7 @@ module OConfig
   
   # Return the OML server hostname
   #
-  # [Return] a hostname or IP address (e.g. '10.0.1.200')
+  # [Return] a hostname or IP address
   #
   def self.OML_SERVER_HOST()
     return self.getConfigFromInventoryByKey('oml_server_host')

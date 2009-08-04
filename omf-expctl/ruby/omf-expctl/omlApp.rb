@@ -133,6 +133,7 @@ class OmlApp < MObject
         info("OmlApp", "Slave Mode - OML Proxy at: #{@@oml2ServerAddr}:#{@@oml2ServerPort}")
       end
     else
+      # No, so the OML server should be running as a local daemon. We are not touching it here.
       @@oml2ServerAddr = OConfig.OML_SERVER_HOST
       @@oml2ServerPort = OConfig.OML_SERVER_PORT
       #info("OmlApp", "Master Mode - OML Server at: #{@@oml2ServerAddr}:#{@@oml2ServerPort}")

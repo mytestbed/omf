@@ -56,19 +56,8 @@ nodehandler:
       inventory:
         url: 'http://localhost:5022/inventory'
 
-      # This is the command used to launch the communication module
-      # The type of comm module to launch depends on the cmd line params
-      # '-c PORT' runs a TCP comm. module that will connect to the node Agent's TCP server on PORT
-      # '-l PORT' runs a TCP comm. Server module that will listen for node Agent's connection on PORT
-      #
-      # runs a TCP client module
-      #commServer: /opt//etc/omf-expctl-4.4.0/sbin/commServer --logfile /tmp/commServer-%ID%.log -d 4 --iface eth1 -c 9026
-      #
-      # TCP Client - IMPORTANT: in 'Slave Mode' the NH communication will only operate on the localhost interface!
-      #commServer: /opt/omf-expctl-4.4.0/sbin/commServer --logfile /tmp/commServer-%ID%.log -d 4 --iface lo -c 9026
-      #
-      # runs a Multicast comm. module
-      #commServer: /opt//etc/omf-expctl-4.4.0/sbin/commServer --logfile /tmp/commServer-%ID%.log -d 4 --iface eth1 
+      xmpp-server:
+        host: '10.0.0.200'
 
     # Config Parameter for the "debug" Testbed
     #
