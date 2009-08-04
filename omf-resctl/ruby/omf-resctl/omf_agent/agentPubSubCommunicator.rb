@@ -80,7 +80,7 @@ class AgentPubSubCommunicator < MObject
     }
     # TODO: fetch the pubsub hostname via inventory
     # fetch the interface from config file
-    start("10.0.0.200")
+    start(NodeAgent.instance.config('comm')['xmpp_server'])
   end
 
   # 
@@ -234,7 +234,7 @@ class AgentPubSubCommunicator < MObject
     while (!@@service.join_pubsub_node(sysNode))
        debug "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
        sleep 10
-       start("10.0.0.200")
+       start(NodeAgent.instance.config('comm')['xmpp_server'])
     end
     
     # Subscribe to the default 'system' pubsub node

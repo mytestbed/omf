@@ -385,6 +385,11 @@ class NodeAgent < MObject
     }
 
     # General options
+    opts.on("--xmpp-server HOST",
+      "Hostname or IP address of the XMPP server to connect to") {|name|
+      @config['comm']['xmpp_server'] = name
+    }
+    
     opts.on("-i", "--interactive",
       "Run the agent in interactive mode") {
       @interactive = true
