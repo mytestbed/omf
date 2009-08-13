@@ -193,7 +193,7 @@ class NodeHandler < MObject
 
   #
   # ShutDown Flag: 
-  # When 'true', shutdown nodes before and after the experiment
+  # When 'true', shutdown after the experiment
   # Default is 'false'
   #
   @@shutdown = false  
@@ -214,6 +214,31 @@ class NodeHandler < MObject
   #
   def NodeHandler.SHUTDOWN=(flag)
     @@shutdown= flag
+  end
+  
+  #
+  # Reset Flag: 
+  # When 'true', reset nodes before the experiment
+  # Default is 'false'
+  #
+  @@reset = false
+  
+  #
+  # Return the value of the 'reset' flag
+  #
+  # [Return] true/false (default 'false')
+  #
+  def NodeHandler.RESET()
+    return @@reset
+  end
+
+  #
+  # Set the value of the 'reset' flag
+  #
+  # - flag = true/false
+  #
+  def NodeHandler.RESET=(flag)
+    @@reset= flag
   end
 
   # Attribut readers
@@ -340,14 +365,7 @@ class NodeHandler < MObject
       raise "Already running"
     end
     @running = true
-
-    if NodeHandler.SHUTDOWN
-      # make sure, everything is switched off before starting
-      CMC::nodeAllOffSoft()
-      info "Shutdown Flag Set - Switching all nodes Off..."
-      Kernel.sleep 5
-    end
-    
+        
     # Static domain for testing
     communicator.start("#{OConfig.XMPP_HOST}", "SessionID", Experiment.ID)
 
@@ -355,9 +373,9 @@ class NodeHandler < MObject
 
     startWebServer()
 
-    # With OMLv2 we do not need to wait for application(s) setup to start the collection server
-    # Also, now we use only one instance of OML2 server to serve multiple experiment, however
-    # we still need to call a start on it, in case 
+    # With OMLv2 we do not need to wait for application(s) setup to start the collection server.
+    # Also, now we use only one instance of OML2 server to serve multiple experiments, however
+    # we still need to call a start on it
     OmlApp.startCollectionServer
 
     if (@extraLibs)
@@ -475,6 +493,10 @@ class NodeHandler < MObject
 
     opts.on("-s", "--shutdown flag", "If true, shut down grid at the end of an experiment [#{NodeHandler.SHUTDOWN}]") {|flag|
       NodeHandler.SHUTDOWN = (flag == 'true') || (flag == 'yes')
+    }
+
+    opts.on("-R", "--reset flag", "NOT IMPLEMENTED: If true, reset (reboot) the nodes before the experiment [#{NodeHandler.RESET}]") {|flag|
+      NodeHandler.RESET = (flag == 'true') || (flag == 'yes')
     }
 
     opts.on("--tutorial", "Run tutorial [#{TUTORIAL}]") {
@@ -667,7 +689,7 @@ class NodeHandler < MObject
   #
   # This method is called to shutdown the Node Handler.
   # This will immediately stop the processing of incoming, or pending message.
-  # A reset message will be sent to all nodes, OML will be shut down and this
+  # A reset message will be sent to all nodes and this
   # instance will be retired.
   #
   public
@@ -710,7 +732,8 @@ class NodeHandler < MObject
       #ignore
     end
     if NodeHandler.SHUTDOWN
-      CMC::nodeAllOffSoft()
+      # TODO: only shut down nodes from this experiment
+      #CMC::nodeAllOffSoft()
     end
     @running = nil
   end

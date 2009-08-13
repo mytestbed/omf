@@ -79,7 +79,12 @@ class CmcStubService < GridService
   s_info 'Reset a node at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :domain, 'domain', 'domain for request.'
   service 'reset' do |req, res|
+    x = getParam(req, 'x')
+    y = getParam(req, 'y')
+    domain = getParam(req, 'domain')
+    reboot(x,y,domain,req)
     self.responseOK(res)
   end
 
@@ -108,26 +113,8 @@ class CmcStubService < GridService
   service 'offSoft' do |req, res|
     x = getParam(req, 'x')
     y = getParam(req, 'y')
-    MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
-    tb = getTestbedConfig(req, @@config)
-    inventoryURL = tb['inventory_url']
     domain = getParam(req, 'domain')
-    ip = getControlIP(inventoryURL, x, y, domain)
-    begin
-      cmd = `nmap #{ip} -p22-23`
-      #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
-      if cmd.include? "22/tcp open"
-        ssh = `ssh #{ip} reboot`
-      #MObject.debug("TDEBUG - SSH - '#{ssh}'")
-      elsif cmd.include? "23/tcp open"
-        tn = Net::Telnet::new('Host' => ip)
-        tn.login "root"
-        tn.cmd "reboot"
-        #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
-      end      
-    rescue Exception => ex
-      MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
-    end
+    reboot(x,y,domain,req)
     self.responseOK(res)
   end
 
@@ -150,27 +137,13 @@ class CmcStubService < GridService
   s_info 'Switch off ALL nodes SOFT (execute halt)'
   s_param :domain, '[domain]', 'domain for request.'
   service 'allOffSoft' do |req, res|
+    domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
     inventoryURL = tb['inventory_url']
-    domain = getParam(req, 'domain')
     nodes = listAllNodes(inventoryURL, domain)
     nodes.each { |n|
       x = n[0]; y = n[1]
-      #x = 1; y = 2
-      MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
-      ip = getControlIP(inventoryURL, x, y, domain)
-      begin
-        cmd = `nmap #{ip} -p22-23`
-        if cmd.include? "22/tcp open"
-          ssh = `ssh #{ip} reboot`
-        elsif cmd.include? "23/tcp open"
-          tn = Net::Telnet::new('Host' => ip)
-          tn.login "root"
-          tn.cmd "reboot"
-        end
-      rescue Exception => ex
-        MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
-      end
+      reboot(x,y,domain,req)
     }
     self.responseOK(res)
   end
@@ -230,5 +203,27 @@ class CmcStubService < GridService
   #
   def self.configure(config)
     @@config = config
+  end
+  
+  def self.reboot(x,y,domain,req)
+    MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
+    tb = getTestbedConfig(req, @@config)
+    inventoryURL = tb['inventory_url']
+    ip = getControlIP(inventoryURL, x, y, domain)
+    begin
+      cmd = `nmap #{ip} -p22-23`
+      #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
+      if cmd.include? "22/tcp open"
+        ssh = `ssh #{ip} reboot`
+      #MObject.debug("TDEBUG - SSH - '#{ssh}'")
+      elsif cmd.include? "23/tcp open"
+        tn = Net::Telnet::new('Host' => ip)
+        tn.login "root"
+        tn.cmd "reboot"
+        #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
+      end      
+    rescue Exception => ex
+      MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
+    end
   end
 end

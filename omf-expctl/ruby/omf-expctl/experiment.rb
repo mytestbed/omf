@@ -39,8 +39,6 @@ require 'optparse'
 #
 class Experiment
 
-  REBOOT = "reboot"
-
   @@name = "UNKNOWN"  # name of experiment
   @@expRoot = nil
   @@expPropsOverride = Hash.new  # from command line options

@@ -219,7 +219,7 @@ module CMC
       puts "CMC: Reset node #{x}@#{y} (#{response})"
     else
       CMC.nodeOn(x,y)
-      url = "#{OConfig.CMC_URL}/reset?x=#{x}&y=#{y}"
+      url = "#{OConfig.CMC_URL}/reset?x=#{x}&y=#{y}&domain=#{OConfig.GRID_NAME}"
       begin
         response = NodeHandler.service_call(url, "Can't reset node #{x}:#{y}")
       rescue Exception => ex

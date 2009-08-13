@@ -297,7 +297,7 @@ class Node < MObject
   # - message = Explanatory message
   #
   def onAppEvent(eventName, appId, message)
-    debug("Message for app '#{appId}' - '#{message}'")
+    #debug("Message for app '#{appId}' - '#{message}'")
     appName, op = appId.split('/')
     if (appName =~ /^exec:/)
       if ! @execs.key?(appName)
@@ -597,6 +597,7 @@ class Node < MObject
       changed
       notify_observers(self, :node_is_up)
       send_deferred
+      MObject.debug("enrolled node #{self}")
       # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
       # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
       # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)

@@ -132,7 +132,7 @@ everyNS('image', 10) { |ns|
       if nodesWithErrorList.length > 0
          topoName = "system_topo_failed_#{Experiment.getDomain}"
          topoNameS = "system:topo:failed:#{Experiment.getDomain}"
-         File.open("/tmp/#{Experiment.ID}#-{topoName}.rb","w") do |f|
+         File.open("/tmp/#{Experiment.ID}-#{topoName}.rb","w") do |f|
             f.puts("# Topology name: #{topoNameS}", "# ")
             f.puts("# The following command creates a Topology wih the nodes that have failed the imaging process.")
             f.puts("# On these nodes, the 'frisbee' client did not manage to start the imaging process.")

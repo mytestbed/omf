@@ -138,7 +138,7 @@ class AgentPubSubCommunicator < MObject
   #
   def start(jid_suffix)
     
-    info "TDEBUG - START PUBSUB - #{jid_suffix}"
+    debug "START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
     @@IPaddr = getControlAddr()
     
@@ -147,7 +147,6 @@ class AgentPubSubCommunicator < MObject
       @@service = OmfPubSubService.new(@@IPaddr, "123", jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
-      #debug "TDEBUG - start 1"
       @@service.add_event_callback { |event|
         #debug "TDEBUG - New Event - '#{event}'"
         @queue << event
@@ -156,8 +155,6 @@ class AgentPubSubCommunicator < MObject
     rescue Exception => ex
       error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
     end
-
-    #debug "TDEBUG - start 2"
     debug "Connected to PubSub Server: '#{jid_suffix}'"
   end
 
@@ -224,7 +221,6 @@ class AgentPubSubCommunicator < MObject
   # Reset this Communicator
   #
   def reset
-    debug "TDEBUG - reset - 1"
     # Leave all Pubsub nodes that we might have joined previously 
     #@@service.leave_all_pubsub_nodes_except("/#{DOMAIN}/#{SYSTEM}")
     @@service.leave_all_pubsub_nodes
@@ -240,7 +236,6 @@ class AgentPubSubCommunicator < MObject
     # Subscribe to the default 'system' pubsub node
     
     #debug "TDEBUG - reset - Joined PubSub node '#{@@sysNode}'" 
-    debug "TDEBUG - reset - 2"
   end
   
   #
@@ -329,9 +324,9 @@ class AgentPubSubCommunicator < MObject
     dst = "#{@@pubsubNodePrefix}/#{@@myName}"
     debug("Send to: #{dst} - message: '#{message}'")
     begin
-      debug "send! - A"
+      #debug "send! - A"
       @@service.publish_to_node("#{dst}", item)        
-      debug "send! - B"
+      #debug "send! - B"
     rescue Exception => ex
       error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
     end
@@ -362,7 +357,7 @@ class AgentPubSubCommunicator < MObject
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
     rescue Exception => ex
-      debug "CDEBUG - execute_command() - Not a message event, ignoring: '#{event}'"
+      #debug "CDEBUG - execute_command() - Not a message event, ignoring: '#{event}'"
       return
     end
     #debug "TDEBUG - execute_command - B - message: '#{message}'"
@@ -454,9 +449,9 @@ class AgentPubSubCommunicator < MObject
     end
     
     # Second - Now that we can pass the full message up to the NodeAgent
-    debug "execute_command - PASSING CMD to NA - 1"
+    #debug "execute_command - PASSING CMD to NA - 1"
     NodeAgent.instance.execCommand(argArray)
-    debug "execute_command - PASSING CMD to NA - 2"
+    #debug "execute_command - PASSING CMD to NA - 2"
   end
 
 end #class

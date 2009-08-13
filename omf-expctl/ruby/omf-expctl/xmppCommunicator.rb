@@ -375,7 +375,7 @@ class XmppCommunicator < MObject
     item.add(msg)
   
     # Send it
-    debug("*** Sending '#{message}' to '#{dst}' ***")
+    #debug("*** Sending '#{message}' to '#{dst}' ***")
     @@service.publish_to_node("#{dst}", item)        
   end
       
@@ -472,7 +472,7 @@ class XmppCommunicator < MObject
    #  - argArray = command line parsed into an array
    #
    def processCommand(argArray)
-     debug "Process message '#{argArray.join(' ')}'"
+     #debug "Process message '#{argArray.join(' ')}'"
      if argArray.size < 2
        raise "Command is too short '#{argArray.join(' ')}'"
      end

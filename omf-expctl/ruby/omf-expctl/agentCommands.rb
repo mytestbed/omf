@@ -34,7 +34,7 @@
 module AgentCommands
 
   #
-  # Process 'ENROLLED' message from a Node Agent. 
+  # Process 'HB' message from a Node Agent. 
   # The NH receives such a message when a NA has enrolled for the experiment.
   #
   # - handler = the communicator that called this method
@@ -43,7 +43,6 @@ module AgentCommands
   # - argArray = an array holding the arguments for this command
   #
   def AgentCommands.HB(handler, sender, senderId, argArray)
-    MObject.debug("agentCmd::enrolled", sender, ": ", sender, " senderId: ", senderId, ":" , argArray.join(','))
     sender.heartbeat(0, 0, "00:00")
   end
 
