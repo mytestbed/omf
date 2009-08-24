@@ -31,7 +31,7 @@
 require "omf-expctl/version.rb"
 require "omf-expctl/parameter.rb"
 require "omf-expctl/application.rb"
-require "omf-expctl/measurement.rb"
+#require "omf-expctl/oml/oml_mpoint.rb"
 require "rexml/document"
 
 #
@@ -39,10 +39,7 @@ require "rexml/document"
 #
 class Prototype
 
-  private_class_method :new
-
   @@prototypes = Hash.new
-
   @@bindStruct = Struct.new(:name)
 
   #
@@ -50,7 +47,7 @@ class Prototype
   #
   # [Return] the uri 'URI' identifying the Prototype
   #
-  def Prototype.[](uri)
+  def self.[](uri)
     proto = @@prototypes[uri]
     if proto == nil
       MObject.debug('Prototype: ', 'Loading prototype "', uri, '".')
@@ -75,21 +72,30 @@ class Prototype
   # - uri = an URI identifying the new Prototype
   # - name = an optional name for this Prototype (default = 'uri')
   #
-  def Prototype.create(uri, name = uri)
-    return MutablePrototype.new(uri, name)
+  def self.create(uri, name = uri)
+    return Prototype.new(uri, name)
+  end
+  
+  #
+  # Reset all class state. Specifically forget all prototype declarations.
+  # This is primarily used by the test suite.
+  #
+  def self.reset()
+    @@prototypes = Hash.new
+    @@bindStruct = Struct.new(:name)
   end
 
   # Global reference
-  attr_reader :uri
+  attr_writer :uri
 
   # Name of prototype
-  attr_reader :name
+  attr_writer :name
 
   # Version of prototype
   attr_reader :version
 
   # Description of the prototype
-  attr_reader :description
+  attr_writer :description
 
   # Parameters of the prototype
   attr_reader :parameters
@@ -149,7 +155,7 @@ class Prototype
     }
 
     @applications.each {|name, app|
-      app.instantiate(nodeSet, name, context)
+      app.instantiate(nodeSet, context)
     }
   end
 
@@ -214,27 +220,6 @@ class Prototype
     return a
   end
 
-end
-
-#
-# This class defines a Prototype that can be edited
-#
-class MutablePrototype < Prototype
-
-  public_class_method :new
-
-  attr_writer :uri, :name, :description
-
-  #
-  # Create a new Prototype instance.
-  #
-  # - uri = an URI identifying the new Prototype
-  # - name = an optional name for this Prototype (default = 'uri')
-  #
-  def initialize(uri, name = uri)
-    super(uri)
-  end
-
   #
   # Define a property for this prototype
   #
@@ -290,20 +275,17 @@ class MutablePrototype < Prototype
   #
   # Add an Application which should be installed on this prototype.
   #
-  # - name = Name used for reference
-  # - idRef = Reference to application
+  # - idRef = URI of application to add
+  # - opts = Optional options, see +Application#initialize+
   #
   # [Return] The newly create application object
   #
-  def addApplication(name, idRef, &block)
+  def addApplication(idRef, opts = {}, &block)
 
     if @applications.has_key? name
       raise "Prototype already has an application '" + name + "'."
     end
-    app = Application.new(idRef, name)
-    if (block != nil)
-      block.call(app)
-    end
+    app = Application.new(idRef, opts, block)
     @applications[name] = app
     return app
   end

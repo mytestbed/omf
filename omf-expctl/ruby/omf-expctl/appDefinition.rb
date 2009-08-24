@@ -30,9 +30,13 @@
 # for an experiment using OMF
 #
 
-require "omf-expctl/version.rb"
-require "omf-expctl/appMeasurement.rb"
+require 'omf-common/syncVariables.rb'
+#require "omf-expctl/version.rb"
+require "omf-expctl/experiment.rb"
+require "omf-expctl/handlerCommands.rb"
+#require "omf-expctl/appMeasurement.rb"
 require "omf-expctl/appProperty.rb"
+require "omf-expctl/oml/oml_mpoint.rb"
 
 require "rexml/document"
 
@@ -48,7 +52,7 @@ require "rexml/document"
 def defApplication(uri, name = nil, &block)
   p = AppDefinition.create(uri)
   p.name = name
-  block.call(p)
+  block.call(p) if block
 end
 
 #
@@ -60,7 +64,6 @@ class AppDefinition
   VERSION = "$Revision: 873 $".split(":")[1].chomp("$").strip
   VERSION_STRING = "AppDefinition V#{$NH_VERSION}"
 
-  protected :initialize
 
   @@apps = Hash.new
 
@@ -69,7 +72,7 @@ class AppDefinition
   #
   # - uri = URI identifying the AppDefinition
   #
-  def AppDefinition.[](uri)
+  def self.[](uri)
     app = @@apps[uri]
     if app == nil
       MObject.debug('AppDefinition: ', 'Loading app definition "', uri, '".')
@@ -89,12 +92,15 @@ class AppDefinition
   end
 
   #
-  # Return a new mutable AppDefinition instance.
+  # Return a new instance.
   #
-  # - uri = the URI identifying this new mutable AppDefinition
+  # - uri = the URI identifying this new AppDefinition
   #
-  def AppDefinition.create(uri)
-    return MutableAppDefinition.new(uri)
+  def self.create(uri)
+    if @@apps.key?(uri)
+      raise "Duplicate definition of application '#{uri}'"
+    end
+    return self.new(uri)
   end
 
   #
@@ -102,7 +108,7 @@ class AppDefinition
   #
   # appDefRoot = root of the XML tree holding the application definition
   #
-  def AppDefinition.from_xml(appDefRoot)
+  def self.from_xml(appDefRoot)
     if (appDefRoot.name != "application")
       raise "Application definition needs to start with an 'application' element"
     end
@@ -110,10 +116,18 @@ class AppDefinition
     if @@apps[id] != nil
       raise "Application definition '#{id}' already loaded."
     end
-    a = AppDefinition.new(id)
+    a = AppDefinition.create(id)
     a.from_xml(appDefRoot)
-    @@apps[a.id] = a
     return a
+  end
+  
+  #
+  # Forget all app definitions. This does not remove any applications already
+  # instantiated using exisiting app definitions. This is primarily used by
+  # the test harness
+  #
+  def self.reset()
+    @@apps = {}
   end
 
   # Local id
@@ -123,7 +137,7 @@ class AppDefinition
   attr_reader :uri
 
   # Name of AppDefinition
-  attr_reader :name
+  attr_accessor :name
 
   # Version of AppDefinition
   attr_reader :version
@@ -132,7 +146,7 @@ class AppDefinition
   attr_reader :copyright
 
   # Short and longer description of the AppDefinition
-  attr_reader :shortDescription, :description
+  attr_accessor :shortDescription, :description
 
   # Properties of the AppDefinition itself
   attr_reader :properties
@@ -141,24 +155,22 @@ class AppDefinition
   attr_reader :measurements
 
   # Location of binary install package
-  attr_reader :binaryRepository
+  attr_accessor :binaryRepository
 
   # Location of development/source install package
   attr_reader :developmentRepository
 
   # Name to use for apt-get install (nil if packet is not in apt)
-  attr_reader :aptName
+  attr_accessor :aptName
 
   # Location of binary on installed machine
-  attr_reader :path
+  attr_accessor :path
 
   # Environment settings required for running this application
-  attr_reader :environment
+  attr_accessor :environment
 
+  protected :initialize
   def initialize(uri)
-    if @@apps.has_key? uri
-      raise "application definition with name '" + uri + "' already exists."
-    end
     @@apps[uri] = self
 
     @id = uri
@@ -166,6 +178,15 @@ class AppDefinition
     @properties = Hash.new
     @measurements = Hash.new
     @environment = Hash.new
+    @instCounter = SynchronizedInteger.new
+  end
+  
+  def getUniqueID()
+    id = @id.gsub(':', '_')
+    if ((cnt = @instCounter.incr()) > 1)
+      id = "#{id}_#{cnt}"
+    end
+    id
   end
 
   #
@@ -197,38 +218,90 @@ class AppDefinition
             next # continue with the next property
           end
         end
-	# This Property is a Static Initialization Property 
-	# First, check if it has the correct type
+      	# This Property is a Static Initialization Property 
+      	# First, check if it has the correct type
         case type
-          when :integer
-	    if !value.kind_of?(Integer)
-	      raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
-	    end
-	  when :string
-	    if !value.kind_of?(String)
-	      raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
-	    end
-	  when :boolean
-	    if ((value != false) && (value != true)) 
-	      raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
-	    end
-	  when nil
-	  when ExperimentProperty
-	    #do nothing...
-	  else
-	    raise "Unknown type '#{type}' for Property '#{name}'" 
+        when :integer, :int
+          if !value.kind_of?(Integer)
+            raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
+        	end
+    	  when :string
+    	    if !value.kind_of?(String)
+    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
+    	    end
+    	  when :boolean
+    	    if ((value != false) && (value != true)) 
+    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
+    	    end
+    	  when nil
+    	  when ExperimentProperty
+    	    #do nothing...
+    	  else
+    	    raise "Unknown type '#{type}' for Property '#{name}'" 
         end
-	# Second, add the corresponding flag+value to command line, if required
-	if (((type == :boolean) && (value == true)) || (type != :boolean))
+      	# Second, add the corresponding flag+value to command line, if required
+      	if (((type == :boolean) && (value == true)) || (type != :boolean))
           cmd << prop.commandLineFlag
-	  if ((type != :boolean) && (value != nil))
+       	  if ((type != :boolean) && (value != nil))
             cmd << value
           end
-	end
+    	  end
       end
     }
     return cmd
   end
+  
+  def getCommandLineArgs2(bindings, appId, nodeSet)
+
+    cmd = []
+    @properties.sort.each {|a|
+      name = a[0]
+      prop = a[1]
+      type = prop.type
+      if ((value = bindings[name]) != nil)
+        # This Property is a Dynamic Experiment Property...
+        if value.kind_of?(ExperimentProperty)
+          value.onChange { |v|
+            nodeSet.send(:STDIN, appId, prop.name, v)
+          }
+          if (value = value.value) == nil
+            next # continue with the next property
+          end
+        end
+        # This Property is a Static Initialization Property 
+        # First, check if it has the correct type
+        case type
+        when :integer, :int
+          if !value.kind_of?(Integer)
+            raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
+          end
+        when :string
+          if !value.kind_of?(String)
+            raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
+          end
+        when :boolean
+          if ((value != false) && (value != true)) 
+            raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
+          end
+        when nil
+        when ExperimentProperty
+          #do nothing...
+        else
+          raise "Unknown type '#{type}' for Property '#{name}'" 
+        end
+        # Second, add the corresponding flag+value to command line, if required
+        if (((type == :boolean) && (value == true)) || (type != :boolean))
+          acmd = [prop.commandLineFlag]
+          if ((type != :boolean) && (value != nil))
+            acmd << value
+          end
+          cmd << acmd
+        end
+      end
+    }
+    return cmd
+  end
+  
 
   #
   # Return the AppDefinition definition as XML element
@@ -295,35 +368,25 @@ class AppDefinition
       when 'description' : @description = el.text;
 
       when 'properties'
-  el.elements.each { |el|
-    p = AppProperty.from_xml(el)
-    @properties[p.name] = p
-  }
+        el.elements.each { |el|
+          p = AppProperty.from_xml(el)
+          @properties[p.name] = p
+        }
 
       when 'measurements'
-  el.elements.each { |el|
-    m = AppMeasurement.from_xml(el)
-    @measurements[m.id] = m
-  }
+        el.elements.each { |el|
+          m = AppMeasurement.from_xml(el)
+          @measurements[m.id] = m
+        }
 
       when 'path' : @path = el.text;
       else
-  warn "Ignoring element '#{el.name}'"
+        warn "Ignoring element '#{el.name}'"
       end
     }
   end
 
-end
 
-#
-# Sub-class of Application definition for which the instances can be edited
-#
-class MutableAppDefinition < AppDefinition
-
-  public_class_method :new
-
-  attr_writer :name, :copyright, :shortDescription, :description
-  attr_writer :aptName, :path, :environment, :binaryRepository
 
   #
   # _Deprecated_ - Use defProperty(...) instead
@@ -353,7 +416,22 @@ class MutableAppDefinition < AppDefinition
   #                        command line
   #   :use_name => true|false -- If false only use value, not name or mnemonic
   #
-  def defProperty(name, description, mnemonic = nil, options = nil)
+  def defProperty(name = :mandatory, description = :mandatory, mnemonic = nil, options = nil)
+    raise OEDLMissingArgumentException.new(:defProperty, :name) if name == :mandatory
+    raise OEDLMissingArgumentException.new(:defProperty, :description) if description == :mandatory
+    
+    mnemonic ||= options[:mnemonic]
+    if mnemonic
+      if mnemonic.kind_of?(String) 
+        if mnemonic.size != 1
+          raise OEDLIllegalArgumentException.new(:defProperty, :mnemonic, "Should be single character string")
+        end
+      elsif mnemonic.kind_of?(Integer)
+        mnemonic = mnemonic.chr
+      else
+        raise OEDLIllegalArgumentException.new(:defProperty, :mnemonic, "Should be single character string")        
+      end
+    end
 
     if @properties[name] != nil
       raise "Property '" + name + "' already defined."
@@ -385,10 +463,8 @@ class MutableAppDefinition < AppDefinition
   #
   def defMeasurement(id, description = nil, metrics = nil, &block)
 
-    m = MutableAppMeasurement.new(id, description, metrics)
-    if (block != nil)
-      block.call(m)
-    end
+    m = ::OMF::ExperimentController::OML::MPoint.new(id, description, metrics)
+    block.call(m) if block
     @measurements[id] = m
     return m
   end
@@ -397,7 +473,7 @@ class MutableAppDefinition < AppDefinition
   # _Deprecated_ - Use defMeasurement(...) instead
   #
   def addMeasurement(id, description, metrics)
-    warn("'addMeasurement' is depreciated! Use 'addMeasurement' instead")
+    warn("'addMeasurement' is depreciated! Use 'defMeasurement' instead")
     defMeasurement(id, description, metrics)
   end
 
@@ -412,76 +488,110 @@ class MutableAppDefinition < AppDefinition
     @developmentRepository = development
   end
 
-  private
-
-  def initialize(uri)
-    super(uri)
-  end
 end
 
-if $0 == __FILE__
-  require 'optparse'
+#
+# This class holds application versions
+#
+class Version
 
-  xFile = nil
-  rFile = nil
-  outFile = $stdout
+  VERSION_EL_NAME = "version"
 
-  logConfigFile = 'log/default.xml'
+  attr_reader :major, :minor, :revision
 
-
-  opts = OptionParser.new
-  opts.banner = "Usage: appDefinition [-h] [options]"
-
-  opts.on("-x", "--xml FILE", "App definition in XML format") {|file|
-    xFile = file
-  }
-
-  opts.on("-r", "--ruby FILE", "App definition in ruby format") {|file|
-    rFile = file
-  }
-
-  opts.on("-o", "--output FILE", "File to write xml result to") {|file|
-    outFile = File.new(file, "w")
-  }
-
-  opts.on("-l", "--log FILE", "File containing logging configuration information") {|file|
-    logConfigFile = file
-  }
-
-  opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
-  opts.on_tail("-v", "--version", "Show the version") {
-    puts AppDefinition::VERSION_STRING
-    exit
-  }
-
-  begin
-    rest = opts.parse(ARGV)
-
-    # create the loggers.
-    MObject.initLog('appDef', logConfigFile)
-    MObject.info('init', AppDefinition::VERSION_STRING)
-    MObject.info('init', "Experiment ID: #{Experiment.ID}")
-
-    appDef = nil
-    if (xFile != nil)
-      f = File.new(xFile)
-      doc = REXML::Document.new(f)
-      appDef = AppDefinition.from_xml(doc.root)
-    elsif (rFile != nil)
-      require rFile
-    end
-
-  rescue SystemExit => err
-    exit
-  rescue Exception => ex
-    begin
-      bt = ex.backtrace.join("\n\t")
-      puts "Exception: #{ex} (#{ex.class})\n\t#{bt}"
-    rescue Exception
-    end
-    exit(-1)
+  #
+  # Create a new Version object
+  # 
+  # - major = major number for this version
+  # - mino = minor number for this version
+  # - revision = revision number for this version
+  #
+  def initialize(major = 0, minor = 0, revision = 0)
+    @major = major
+    @minor = minor
+    @revision = revision
   end
 
+  #
+  # Return the version definition as an XML element
+  #
+  # [Return] an XML element with the value of this Version object
+  #
+  def to_xml
+    e = REXML::Element.new("version")
+    e.add_element("major").text = major
+    e.add_element("minor").text = minor
+    e.add_element("revision").text = revision
+    return e
+  end
 
 end
+
+
+
+#if $0 == __FILE__
+#  require 'optparse'
+#
+#  xFile = nil
+#  rFile = nil
+#  outFile = $stdout
+#
+#  logConfigFile = 'log/default.xml'
+#
+#
+#  opts = OptionParser.new
+#  opts.banner = "Usage: appDefinition [-h] [options]"
+#
+#  opts.on("-x", "--xml FILE", "App definition in XML format") {|file|
+#    xFile = file
+#  }
+#
+#  opts.on("-r", "--ruby FILE", "App definition in ruby format") {|file|
+#    rFile = file
+#  }
+#
+#  opts.on("-o", "--output FILE", "File to write xml result to") {|file|
+#    outFile = File.new(file, "w")
+#  }
+#
+#  opts.on("-l", "--log FILE", "File containing logging configuration information") {|file|
+#    logConfigFile = file
+#  }
+#
+#  opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
+#  opts.on_tail("-v", "--version", "Show the version") {
+#    puts AppDefinition::VERSION_STRING
+#    exit
+#  }
+#
+#  begin
+#    rest = opts.parse(ARGV)
+#
+#    # create the loggers.
+#    MObject.initLog('appDef', logConfigFile)
+#    MObject.info('init', AppDefinition::VERSION_STRING)
+#    MObject.info('init', "Experiment ID: #{Experiment.ID}")
+#
+#    appDef = nil
+#    if (xFile != nil)
+#      f = File.new(xFile)
+#      doc = REXML::Document.new(f)
+#      appDef = AppDefinition.from_xml(doc.root)
+#    elsif (rFile != nil)
+#      require rFile
+#    end
+#
+#  rescue SystemExit => err
+#    exit
+#  rescue Exception => ex
+#    begin
+#      bt = ex.backtrace.join("\n\t")
+#      puts "Exception: #{ex} (#{ex.class})\n\t#{bt}"
+#    rescue Exception
+#    end
+#    exit(-1)
+#  end
+#
+#
+#end
 

@@ -34,11 +34,12 @@
 #
 
 require "omf-expctl/version"
-require "omf-expctl/measurement"
+#require "omf-expctl/measurement"
 require "omf-expctl/appProperty"
 require "omf-expctl/appDefinition"
 require "omf-expctl/property"
-require "omf-expctl/omlApp"
+require "omf-expctl/oml/oml_mstream"
+#require "omf-expctl/omlApp"
 require "rexml/document"
 
 #
@@ -69,12 +70,14 @@ class Application < MObject
   #
   # @param appRef Reference to appliciation definition
   #
-  def initialize(appRef, name = idRef)
+  def initialize(appRef, opts = {}, &block)
     super("app:#{appRef}")
     @appRef = appRef
     @appDefinition = AppDefinition[appRef]
     @properties = Array.new
     @measurements = Array.new
+
+    block.call(self) if block
   end
 
   #
@@ -82,35 +85,13 @@ class Application < MObject
   # set of nodes (NodeSet).
   #
   # - nodeSet = the NodeSet instance to configure according to this prototype
-  # - vName = Virtual name used for this app (used for state name)
-  # - context = array with the values of the bindings for local parameters
+  # - context = hash with the values of the bindings for local parameters
   #
-  def instantiate(nodeSet, vName, context)
-    # Create property list
-    bindings = Hash.new
-    @properties.each {|p|
-      # property :idref, :value, :unit, :bindingRef, :isBound
-      name = p.idref
-      if p.isBound
-        value = context[p.bindingRef]
-      else
-        value = p.value
-      end
-      bindings[name] = value
-    }
-    omlUrl = OmlApp.create(self, "#{nodeSet.groupName}_#{vName}")
-    # env = appDefinition.environment # bug: appDefinition.environment is shared by same type of apps in a nodeSet
-    env = Hash.new
-    if omlUrl != nil
-      env['OML_CONFIG'] = omlUrl
-      env['%OML_NAME'] = 'node%x-%y'
-      if env.has_key?('LD_LIBRARY_PATH')
-        env['LD_LIBRARY_PATH'] += ':/usr/lib/'
-      else
-        env['LD_LIBRARY_PATH'] = '/usr/lib/'
-      end
-    end
-    nodeSet.addApplication(self, vName, bindings, env)
+  def instantiate(nodeSet, context = {})
+    install(nodeSet)
+    appCtxt = ApplicationContext.new(self, context)    
+    nodeSet.addApplication(appCtxt)
+    appCtxt
   end
 
   #
@@ -129,16 +110,79 @@ class Application < MObject
   # Install the application on a given set of nodes (NodeSet)
   #
   # - nodeSet = the NodeSet object on which to install the application
-  # - vName = the virtual name of the application
   #
-  def install(nodeSet, vName)
-    if (rep = appDefinition.binaryRepository) == nil
-      raise "Missing binary repository for '#{appDefinition.name}"
+  def install(nodeSet)
+    if (aptName = @appDefinition.aptName) != nil
+      # Install App from DEB package using apt-get 
+      nodeSet.send(:APT_INSTALL, "app:#{vName}/install", aptName)
+    elsif (rep = @appDefinition.binaryRepository) != nil
+      # Install App from TAR archive using wget + tar 
+      # We first have to mount the local TAR file to a URL on our webserver
+      # ALERT: Should check if +rep+ actually exists
+      url_dir="/install/#{rep.gsub('/', '_')}"
+      url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
+      OMF::ExperimentController::Web.mapFile(url_dir, rep)
+      nodeSet.send(:PM_INSTALL, "app:#{name}/install", url, '/')
     end
-    # TODO: Need to differentiate among different install methods (apt, tar)
-    nodeSet.send(:INSTALL, ["proc/#{vName}", rep])
   end
 
+
+  #
+  # Install the application on a given set of nodes (NodeSet)
+  #
+  # - nodeSet = the NodeSet object on which to install the application
+  # - vName = the virtual name of the application
+  #
+#  def install(nodeSet, vName)
+#    if (rep = appDefinition.binaryRepository) == nil
+#      raise "Missing binary repository for '#{appDefinition.name}"
+#    end
+#    # TODO: Need to differentiate among different install methods (apt, tar)
+#    nodeSet.send(:INSTALL, ["proc/#{vName}", rep])
+#  end
+  
+  
+
+
+
+  #
+  # Add a measurement point to this application
+  #
+  # - idRef  = Reference to a measurement point
+  # - filterMode = Type of OML filter - time or sample
+  # - metrics = Metrics to use from measurement point
+  #
+  def addMeasurement(idRef, filterMode, properties = nil, metrics = nil)
+
+    error("'addMeasurement' is no longer working! Use 'measure' inside 'addApplication' block instead")
+#    mDef = appDefinition.measurements[idRef]
+#    if (mDef == nil)
+#      raise "Unknown measurement point '#{idRef}'"
+#    end
+#    m = Measurement.new(mDef, filterMode, properties, metrics)
+#    @measurements += [m]
+#    return m
+  end
+
+
+  #
+  # Return a measure from a given measurement point, and execute 
+  # a block of command on it
+  #
+  # - idRef = Reference to a measurement point
+  # - block = block of code to execute
+  #
+  def measure(idRef, &block)
+
+    mDef = appDefinition.measurements[idRef]
+    if (mDef == nil)
+      raise "Unknown measurement point '#{idRef}'"
+    end
+
+    m = OMF::ExperimentController::OML::MStream.new(mDef, self, &block)
+    @measurements << m
+    return m
+  end
 
   #
   # Return the application definition as XML element
@@ -147,7 +191,7 @@ class Application < MObject
   #
   def to_xml
     a = REXML::Element.new("application")
-  a.add_attribute("refid", appDefinition.uri)
+    a.add_attribute("refid", appDefinition.uri)
 #    a.add_element("description").text = description
 
     if @properties.length > 0
@@ -167,44 +211,6 @@ class Application < MObject
   end
 
   #
-  # Add a measurement point to this application
-  #
-  # - idRef  = Reference to a measurement point
-  # - filterMode = Type of OML filter - time or sample
-  # - metrics = Metrics to use from measurement point
-  #
-  def addMeasurement(idRef, filterMode, properties = nil, metrics = nil)
-
-    mDef = appDefinition.measurements[idRef]
-    if (mDef == nil)
-      raise "Unknown measurement point '#{idRef}'"
-    end
-    m = Measurement.new(mDef, filterMode, properties, metrics)
-    @measurements += [m]
-    return m
-  end
-
-
-  #
-  # Return a measure from a given measurement point, and execute 
-  # a block of command on it
-  #
-  # - idRef = Reference to a measurement point
-  # - block = block of code to execute
-  #
-  def measure(idRef, &block)
-
-    mDef = appDefinition.measurements[idRef]
-    if (mDef == nil)
-      raise "Unknown measurement point '#{idRef}'"
-    end
-    m = MutableMeasurement.new(mDef)
-    block.call(m)
-    @measurements += [m]
-    return m
-  end
-
-  #
   # Return this application's reference in a String
   #
   # [Return] String
@@ -212,8 +218,94 @@ class Application < MObject
   def to_s()
     @appRef
   end
+  
 
 end
+
+class ApplicationContext < MObject
+  attr_reader :app, :id
+  
+  def initialize(app, context)
+    super()
+    @id = app.appDefinition.getUniqueID
+    @bindings = Hash.new
+    @app = app
+    
+    # Create property list
+    app.properties.each {|p|
+      # property :idref, :value, :unit, :bindingRef, :isBound
+      name = p.idref
+      if p.isBound
+        value = context[p.bindingRef]
+      else
+        value = p.value
+      end
+      @bindings[name] = value
+    }
+    @env = Hash.new
+    
+    # NOTE: Thta should really go into OmlApp
+#    omlUrl = OmlApp.register(self)
+#    if omlUrl != nil
+#      @env['OML_CONFIG'] = omlUrl
+#      @env['%OML_NAME'] = 'node%x-%y'
+#      if @env.has_key?('LD_LIBRARY_PATH')
+#        @env['LD_LIBRARY_PATH'] += ':/usr/lib/'
+#      else
+#        @env['LD_LIBRARY_PATH'] = '/usr/lib/'
+#      end
+#    end
+  end
+
+  def startApplication(nodeSet)
+    debug("Starting application '#@id'")
+
+    # With OMLv2 the collection server can be started as soon as NH is running
+    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
+    #OmlApp.startCollectionServer
+    unless @app.measurements.empty?
+      # add OML environment
+      @env['OML_SERVER'] = OConfig.OML_SERVER_URL
+      @env['OML_ID'] = Experiment.ID
+      @env['OML_NODE_ID'] = '%node_id'
+      
+      @app.measurements.each do |m|
+        # add mstream configurations
+      end
+    end
+    
+    acmd = Communicator.instance.getAppCmd()
+    acmd.group = nodeSet
+    acmd.procID = @id
+    acmd.env = @env
+    
+    cmd = [@id, 'env', '-i']
+    @env.each {|name, value|
+      cmd << "#{name}=#{value}"
+    }
+    
+
+    appDefinition = @app.appDefinition
+    cmd << appDefinition.path
+    acmd.path = appDefinition.path
+    
+    pdef = appDefinition.properties
+    # check if bindings contain unknown parameters
+    if (diff = @bindings.keys - pdef.keys) != []
+      raise "Unknown parameters '#{diff.join(', ')}'" \
+            + " not in '#{pdef.keys.join(', ')}'."
+    end
+    
+    cmd = appDefinition.getCommandLineArgs(@id, @bindings, nodeSet, cmd)
+    acmd.cmdLine = appDefinition.getCommandLineArgs2(@bindings, @id, nodeSet)
+    
+    acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
+    
+    nodeSet.send(:exec, *cmd)
+    Communicator.instance.sendAppCmd(acmd)
+  end
+  
+end # ApplicationContext
 
 # a = Application['foo']
 #

@@ -54,7 +54,7 @@ class NodeSet < MObject
   #
   # [Return] an instance of an existing NodeSet
   #
-  def NodeSet.[](groupName)
+  def self.[](groupName)
     if (groupName == "*")
       return NodeSet.ROOT
     end
@@ -66,7 +66,7 @@ class NodeSet < MObject
   #
   # [Return] an instance of the NodeSet, which holds all the existing NodeSets
   #
-  def NodeSet.ROOT
+  def self.ROOT
     return RootGroupNodeSet.instance
   end
 
@@ -75,7 +75,7 @@ class NodeSet < MObject
   #
   # [Return] true or false
   #
-  def NodeSet.frozen?
+  def self.frozen?
     @@is_frozen
   end
 
@@ -86,9 +86,21 @@ class NodeSet < MObject
   # to modify the set of resources (e.g. nodes) allocated to an experiment, once its execution is
   # being staged.
   #
-  def NodeSet.freeze
+  def self.freeze
     @@is_frozen = true
   end
+
+  #
+  # Reset all class state. Specifically forget all node set declarations.
+  # This is primarily used by the test suite.
+  #
+  def self.reset()
+    @@groupCnt = 0
+    @@groups = Hash.new
+    @@execsCount = 0
+    @@is_frozen = false
+  end
+
 
   # Counter of anonymous groups
   @@groupCnt = 0
@@ -145,6 +157,14 @@ class NodeSet < MObject
     }
   end
 
+#  # Return the application context labeled +appId+
+#  #
+#  # - appId = Application context label
+#  #
+#  def application(id)
+#    return @applications[id]
+#  end
+  
   #
   # This method adds an application which is associated with this node set
   # These applications will be started when 'startApplications'
@@ -156,28 +176,8 @@ class NodeSet < MObject
   # - env = Environment to set before starting application
   # - install = Request installation immediately
   #
-  def addApplication(app, vName, bindings, env, install = true)
-    vName = vName.to_s
-    @applications[vName] = {
-      :app => app,
-      :bindings => bindings,
-      :env => env
-    }
-    if install
-      # Immediately request installation
-      appDef = app.appDefinition
-      if (aptName = appDef.aptName) != nil
-        # Install App from DEB package using apt-get 
-        send(:APT_INSTALL, "app:#{vName}/install", aptName)
-      elsif (rep = appDef.binaryRepository) != nil
-        # Install App from TAR archive using wget + tar 
-        # We first have to mount the local TAR file to a URL on our webserver
-        url_dir="/install/#{rep.gsub('/', '_')}"
-        url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
-        OMF::ExperimentController::Web.mapFile(url_dir, rep)
-        send(:PM_INSTALL, "app:#{vName}/install", url, '/')
-      end
-    end
+  def addApplication(appCtxt)
+    @applications[appCtxt.id] = appCtxt
   end
 
   #
@@ -192,35 +192,43 @@ class NodeSet < MObject
   # - name = Virtual name of application
   #
   def startApplication(name)
-    debug("Starting application '", name, "'")
     ctxt = @applications[name]
-    if (ctxt == nil)
-      raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
-    end
-
-    app = ctxt[:app]
-    bindings = ctxt[:bindings]
-    env = ctxt[:env]
-    appDef = app.appDefinition
-    procName = "app:#{name}"
-    cmd = [procName, 'env', '-i']
-    if (env != nil)
-      env.each {|name, value|
-        cmd << "#{name}=#{value}"
-      }
-    end
-
-    cmd << appDef.path
-    pdef = appDef.properties
-    # check if bindings contain unknown parameters
-    if (bindings != nil)
-      if (diff = bindings.keys - pdef.keys) != []
-        raise "Unknown parameters '#{diff.join(', ')}'" \
-          + " not in '#{pdef.keys.join(', ')}'."
-      end
-      cmd = appDef.getCommandLineArgs(procName, bindings, self, cmd)
-    end
-    send(:exec, *cmd)
+    raise OEDLIllegalArgumentException.new(:group, :name) unless ctxt
+    ctxt.startApplication(self)
+    
+#    raise "SHOULDN'T #{ctxt}"
+#    debug("Starting application '", name, "'")
+#    if (ctxt == nil)
+#      raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
+#    end
+#
+#    # With OMLv2 the collection server can be started as soon as NH is running
+#    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
+#    #OmlApp.startCollectionServer
+#
+#    app = ctxt[:app]
+#    bindings = ctxt[:bindings]
+#    env = ctxt[:env]
+#    appDef = app.appDefinition
+#    procName = "app:#{name}"
+#    cmd = [procName, 'env', '-i']
+#    if (env != nil)
+#      env.each {|name, value|
+#        cmd << "#{name}=#{value}"
+#      }
+#    end
+#
+#    cmd << appDef.path
+#    pdef = appDef.properties
+#    # check if bindings contain unknown parameters
+#    if (bindings != nil)
+#      if (diff = bindings.keys - pdef.keys) != []
+#        raise "Unknown parameters '#{diff.join(', ')}'" \
+#          + " not in '#{pdef.keys.join(', ')}'."
+#      end
+#      cmd = appDef.getCommandLineArgs(procName, bindings, self, cmd)
+#    end
+#    send(:exec, *cmd)
   end
 
   #
@@ -568,7 +576,7 @@ class NodeSet < MObject
       end
     end
     if (up? && notQueued)
-      NodeHandler.instance.communicator.send(@nodeSelector, command, args)
+      Communicator.instance.send(@nodeSelector, command, args)
       return
     end
   end
@@ -652,10 +660,10 @@ class BasicNodeSet < NodeSet
   # These applications will be started when 'startApplications'
   # is called. See NodeSet::addApplication for argument details
   #
-  def addApplication(app, vName, bindings, env, install = true)
-    super(app, vName, bindings, env, install)
+  def addApplication(app)
+    super(app)
     self.eachNode { |n|
-      n.addApplication(app, vName, bindings, env)
+      n.addApplication(app)
     }
   end
 
@@ -675,7 +683,7 @@ class BasicNodeSet < NodeSet
   # - &block = the block of command to inject
   #
   def inject(seed = nil, &block)
-    @topo.inject(seed, &block) if !@topo.nil?
+    @topo ? @topo.inject(seed, &block) : seed
   end
 
   #
@@ -814,11 +822,11 @@ class GroupNodeSet < AbstractGroupNodeSet
   # This application will be started when 'startApplications'
   # is called. See NodeSet::addApplication for argument details
   #
-  def addApplication(app, vName, bindings, env, install = true)
-    super(app, vName, bindings, env, install)
-    # inform all nodes of enclosed groups, so they will add this app to their state
-    eachNode { |n|
-      n.addApplication(app, vName, bindings, env)
+  def addApplication(app)
+    super(app)
+    eachGroup { |g|
+      # inform all enclosed groups, but do not request another install
+      g.addApplication(app)
     }
   end
 
@@ -1184,22 +1192,18 @@ class RootNodeSetPath < NodeSetPath
   # Add a new Application to the NodeSet associated with this Root Path
   #
   # - app = Application to register
-  # - vName = Virtual name used for this app (used for state name)
-  # - bindings = Bindings for local parameters
-  # - env = Environment to set before starting application
-  # - install = Request installation immediately
   #
-  def addApplication(app, vName, bindings, env, install = true)
+  def addApplication(app, &block)
     if app.kind_of? String
       # if this is a one-off command line application
       # then create a default Application object to hold it
       debug "Implicit creation of an app instance from: #{app}"
-      appInstance =  Application.new(app,vName)
+      appInstance =  Application.new(app, &block)
     else
       # real NH-compatible application (i.e. ruby wrapper)
       appInstance = app
     end
-    @nodeSet.addApplication(appInstance, vName, bindings, env, install)
+    appInstance.instantiate(@nodeSet)
   end
 
   #
@@ -1290,7 +1294,8 @@ class RootNodeSetPath < NodeSetPath
   #
   # - name = name of the Application to start
   #
-  def startApplication(name)
+  def startApplication(name = nil)
+    raise OEDLMissingArgumentException.new(:group, :name) unless name
     @nodeSet.startApplication(name)
   end
 

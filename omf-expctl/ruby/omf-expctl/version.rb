@@ -26,51 +26,18 @@
 #
 # == Description
 #
-# This file defines a class that holds application versions
+# This file defines the version of this application
 #
 
-#
-# This class holds application versions
-#
-class Version
-
-  VERSION_EL_NAME = "version"
-
-  attr_reader :major, :minor, :revision
-
-  #
-  # Create a new Version object
-  # 
-  # - major = major number for this version
-  # - mino = minor number for this version
-  # - revision = revision number for this version
-  #
-  def initialize(major = 0, minor = 0, revision = 0)
-    @major = major
-    @minor = minor
-    @revision = revision
+module OMF
+  module ExperimentController
+    VERSION_MAJOR = 4
+    VERSION_MINOR = 4
+    VERSION_REVISION = "$Revision: 1921 $".split(":")[1].chomp("$").to_i
+    
+    VERSION = "#{VERSION_MAJOR}.#{VERSION_MINOR}.#{VERSION_REVISION}"
+    VERSION_STRING = "OMF Experiment Controller V #{VERSION}"
   end
-
-  #
-  # Return the version definition as an XML element
-  #
-  # [Return] an XML element with the value of this Version object
-  #
-  def to_xml
-    e = REXML::Element.new("version")
-    e.add_element("major").text = major
-    e.add_element("minor").text = minor
-    e.add_element("revision").text = revision
-    return e
-  end
-
 end
 
-#
-# This class is the mutable class for Version 
-#
-class MutableVersion < Version
 
-  attr_writer :major, :minor, :revision
-
-end

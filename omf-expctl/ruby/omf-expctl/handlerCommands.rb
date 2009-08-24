@@ -32,6 +32,36 @@
 # stage the experiments
 #
 
+#module OMF
+#  module ExperimentController
+#    module Commands
+
+# The base exception for all errors related 
+class OEDLException < Exception; end
+  
+# Raised for all missing argument exception on OEDL commands.
+#
+class OEDLMissingArgumentException < OEDLException
+  attr_reader :cmdName, :argName
+  
+  def initialize(cmdName, argName, message = nil)
+    @cmdName = cmdName
+    @argName = argName
+    super(message || "Missing '#{argName}' argument for command '#{cmdName}")
+  end
+end
+
+class OEDLIllegalArgumentException < OEDLException
+  attr_reader :cmdName, :argName
+  
+  def initialize(cmdName, argName, legalValues = [], message = nil)
+    @cmdName = cmdName
+    @argName = argName
+    message ||= "Illegal argument values for '#{argName}' in '#{cmdName}'"
+    super(message)
+  end
+end
+
 
 #
 # Define an experiment property which can be used to bind
@@ -436,6 +466,21 @@ def antenna(x, y, precision = nil)
   return a
 end
 
+def defGraph(uri = nil, &block)
+  require 'omf-expctl/graph/graph'
+  OMF::ExperimentController::Graph::Graph.new(uri, &block)
+end
+
+def mstream(uri = nil)
+  require 'omf-expctl/oml/mstream'
+  if uri
+    OMF::ExperimentController::OML::MStream[uri]
+  else
+    OMF::ExperimentController::OML::MStream
+  end
+end
+alias :mStream :mstream
+
 #
 # Wait for some time before issuing more commands
 #
@@ -521,3 +566,11 @@ def ls2(xpath = nil)
   end
   '' # supress additional output from IRB
 end
+
+#def _load(file)
+#  eval "require('#{file}')", self.binding
+#end
+#    end # Commands
+#  end # ExperimentController
+#end # OMF
+

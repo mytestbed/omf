@@ -35,11 +35,13 @@
 # reader will see both terms 'EC' and 'NH' used in the code.
 #
 
-NH_REVISION = "$Revision: 1921 $".split(":")[1].chomp("$").strip
-NH_VERSION_STRING = "NodeHandler Version #{$NH_VERSION} (#{NH_REVISION})"
 
 ### THIS require HAS TO COME FIRST! See http://omf.mytestbed.net/issues/show/19
-require 'omf-expctl/xmppCommunicator'
+#require 'omf-expctl/xmppCommunicator'
+
+require 'omf-common/mobject'
+require 'omf-expctl/version'
+
 ###
 require 'set'
 require 'benchmark'
@@ -52,7 +54,7 @@ require 'omf-expctl/traceState'
 require 'omf-expctl/experiment'
 require 'omf-expctl/oconfig'
 require 'omf-expctl/nodeSet'
-require 'omf-expctl/handlerCommands'
+
 require 'rexml/document'
 require 'rexml/element'
 require 'omf-expctl/web/webServer'
@@ -60,6 +62,7 @@ require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/web/tab/log/logServlet'
+
 
 Project = nil
 
@@ -77,8 +80,8 @@ class NodeHandler < MObject
   #
   # Version Info
   #
-  VERSION = "$Revision: 1272 $".split(":")[1].chomp("$").strip
-  MAJOR_V = $NH_VERSION.split('.')[0]
+#  VERSION = "$Revision: 1272 $".split(":")[1].chomp("$").strip
+#  MAJOR_V = $NH_VERSION ? $NH_VERSION.split('.')[0] : '0'
 
   #
   # XML Doc to hold all the experiment states
@@ -302,6 +305,7 @@ class NodeHandler < MObject
   def self.interactive?
     self.instance.interactive?
   end
+  
   def interactive?
     @interactive
   end
@@ -314,6 +318,7 @@ class NodeHandler < MObject
   def self.debug?
     self.instance.debug?
   end
+  
   def debug?
     @debug
   end
@@ -351,7 +356,7 @@ class NodeHandler < MObject
   # [Return] a Communicator object 
   #
   def communicator()
-    XmppCommunicator.instance
+    Communicator.instance
   end
 
   #
@@ -360,14 +365,23 @@ class NodeHandler < MObject
   # After loading and starting the experiment, it will block waiting for a mutex.
   # When the experiment is done, a signal will be sent to release the mutex and unblock this method.
   #
-  def run()
+  def run(main)
     if (@running != nil)
       raise "Already running"
     end
     @running = true
         
-    # Static domain for testing
-    communicator.start("#{OConfig.XMPP_HOST}", "SessionID", Experiment.ID)
+    # Placeholder when XMPP-based Pub/Sub xmppCommunicator will be ready for integration
+    # communicator.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub xmppCommunicator
+    # Should all happen through OConfig
+
+#    if !debug?
+#      communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain(), "SessionID", Experiment.ID)
+#      communicator.sendReset  # if the nodes are already up, reset the agent now
+#    end
+#    
+#    # Static domain for testing
+#    communicator.start("#{OConfig.XMPP_HOST}", "SessionID", Experiment.ID)
 
     Profiler__::start_profile if @doProfiling
 
@@ -376,18 +390,24 @@ class NodeHandler < MObject
     # With OMLv2 we do not need to wait for application(s) setup to start the collection server.
     # Also, now we use only one instance of OML2 server to serve multiple experiments, however
     # we still need to call a start on it
-    OmlApp.startCollectionServer
+    #OmlApp.startCollectionServer
+    
+    begin 
+      baseCmds = Object.methods
+      require 'omf-expctl/handlerCommands'      
 
-    if (@extraLibs)
-      @extraLibs.split(',').each { |f|
-        Experiment.load(f)
-      }
+      if (@extraLibs)
+        @extraLibs.split(',').each { |f|
+          Experiment.load(f)
+        }
+      end
+#      puts "COMMANDS: #{Object.methods - baseCmds}"
     end
     
     if @expFile
       # Expose the Experiment File through the Web Server of NH
-      @expFileURL = "#{OMF::ExperimentController::Web.url()}#{EXPFILE_MOUNT}"
-      OMF::ExperimentController::Web.mapFile(EXPFILE_MOUNT, @expFile)
+      #@expFileURL = "#{OMF::ExperimentController::Web.url()}#{EXPFILE_MOUNT}"
+      #OMF::ExperimentController::Web.mapFile(EXPFILE_MOUNT, @expFile)
 
       # Then Load the Experiment File 
       Experiment.load(@expFile)
@@ -407,12 +427,17 @@ class NodeHandler < MObject
         }
       }
     end
-
-    if (! interactive?)
-      @@mutex.synchronize {
-        @@blocker.wait(@@mutex)
-      }
+  
+    if interactive?
+      require 'omf-expctl/console'
+  
+      OMF::ExperimentController::Console.instance.run
     end
+
+    @@mutex.synchronize do
+      @@blocker.wait(@@mutex)
+    end
+
   end
 
   #
@@ -513,7 +538,7 @@ class NodeHandler < MObject
 
     opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
     opts.on_tail("-v", "--version", "Show the version\n") {
-      puts NH_VERSION_STRING
+      puts OMF::ExperiemtController::VERSION_STRING
       exit
     }
 
@@ -561,11 +586,11 @@ class NodeHandler < MObject
     if (@logConfigFile == nil)
       @logConfigFile = findDefaultLogConfigFile
     end
-    #MObject.info('init', "Using LogFile: #{@logConfigFile}")
     loadGridConfigFile()
+    MObject.info('init', "Using LogFile: #{@logConfigFile}")
 
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
-    MObject.info('init', NH_VERSION_STRING)
+    MObject.info('init', OMF::ExperimentController::VERSION_STRING)
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
@@ -608,15 +633,17 @@ class NodeHandler < MObject
       if ! File.exists?(cfg)
         raise "Can't find cfg file '#{cfg}'"
       end
-      OConfig.init(cfg)
+      OConfig.init_from_yaml(cfg)
       return
     end
     cfgFile = "nodehandler.yaml"
 
-    path = ["../etc/omf-expctl/#{cfgFile}", "/etc/nodehandler#{MAJOR_V}/#{cfgFile}", "/etc/omf-expctl/#{cfgFile}"]
+    path = ["../etc/omf-expctl/#{cfgFile}", 
+            "/etc/nodehandler#{OMF::ExperimentController::VERSION_MAJOR}/#{cfgFile}", 
+            "/etc/omf-expctl/#{cfgFile}"]
     path.each {|f|
       if File.exists?(f)
-        OConfig.init(f)
+        OConfig.init_from_yaml(f)
         return
       end
     }
@@ -628,8 +655,8 @@ class NodeHandler < MObject
   #
   # Create a new NodeHandler
   #
-  def initialize
-    initialize_oml
+  def initialize()
+    #initialize_oml
     @@runningSlaveMode = false
     @@showAppOutput = false
     @omlProxyPort = nil
@@ -641,12 +668,12 @@ class NodeHandler < MObject
   # Initialise the OML collection scheme
   # (Note: on the verge of being Deprecated... OMLv2 should be out anytime soon)
   #
-  def initialize_oml()
-    #dbp = OConfig.getOmlDBSettings()
-    #dbp['id'] = OmlApp.getDbName()
-    #OML_EL.add_element('db', dbp)
-    #mcp = OConfig.getOmlMCSettings()
-  end
+#  def initialize_oml()
+#    #dbp = OConfig.getOmlDBSettings()
+#    #dbp['id'] = OmlApp.getDbName()
+#    #OML_EL.add_element('db', dbp)
+#    #mcp = OConfig.getOmlMCSettings()
+#  end
 
   #
   # This method locate the Log config file for this Node Handler
@@ -662,7 +689,7 @@ class NodeHandler < MObject
       return log
     end
     logFile = "nodehandler_log.xml"
-    [".#{logFile}", "~/.#{logFile}", "/etc/nodehandler#{MAJOR_V}/#{logFile}", "log/default.xml"].each {|f|
+    [".#{logFile}", "~/.#{logFile}", "/etc/nodehandler#{OMF::ExperimentController::VERSION_MAJOR}/#{logFile}", "log/default.xml"].each {|f|
       if File.exists?(f)
         return f
       end
@@ -700,9 +727,13 @@ class NodeHandler < MObject
     end
 
     @processCommands = false
-    communicator.sendReset
-    if XmppCommunicator.instantiated?
-      communicator.quit
+    begin
+      communicator.sendReset
+      if XmppCommunicator.instantiated?
+        communicator.quit
+      end
+    rescue Exception
+      #ignore
     end
 
     Antenna.each { |a|
@@ -816,53 +847,3 @@ end
 # END of the NodeHandler Class Declaration
 
 
-##############################################
-#
-# Main execution loop of the Node Handler
-#
-##############################################
-
-startTime = Time.now
-cleanExit = false
-
-# Initialize the state tracking, Parse the command line options, and Run the NH
-begin
-  TraceState.init()
-  NodeHandler.instance.parseOptions(ARGV)
-  NodeHandler.instance.run
-  cleanExit = true
-
-# Process the various Exceptions...
-rescue SystemExit
-rescue Interrupt
-  # ignore
-rescue IOError => iex
-  MObject.fatal('run', iex)
-rescue ServiceException => sex
-  begin
-    MObject.fatal('run', "ServiceException: #{sex.message} : #{sex.response.body}")
-  rescue Exception
-  end
-rescue Exception => ex
-  begin
-    bt = ex.backtrace.join("\n\t")
-    MObject.fatal('run', "Exception: #{ex} (#{ex.class})\n\t#{bt}")
-  rescue Exception
-  end
-end
-
-# If NH is called in 'interactive' mode, then start a Ruby interpreter
-if NodeHandler.instance.interactive?
-  require 'irb'
-  ARGV.clear
-  ARGV << "--simple-prompt"
-  ARGV << "--noinspect"
-  IRB.start()
-end
-
-# End of the experimentation, Shutdown the NH
-if (NodeHandler.instance.running?)
-  NodeHandler.instance.shutdown
-  duration = (Time.now - startTime).to_i
-  MObject.info('run', "Experiment #{Experiment.ID} finished after #{duration / 60}:#{duration % 60}")
-end

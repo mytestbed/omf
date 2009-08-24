@@ -30,6 +30,8 @@
 # and NodeApp classes
 #
 
+require 'omf-expctl/nodeHandler'
+
 #
 # This class will log any changes in the internal state of the experiment 
 #

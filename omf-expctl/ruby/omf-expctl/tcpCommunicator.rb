@@ -42,7 +42,7 @@ require 'omf-common/mobject'
 # Only one tcpCommunicator instance can be created during the 
 # execution of the NodeHandler (Singleton pattern)
 #
-class tcpCommunicator < MObject
+class TcpCommunicator < MObject
   
   include Singleton
   @@instantiated = false
@@ -52,7 +52,7 @@ class tcpCommunicator < MObject
   #
   # [Return] true/false
   #
-  def tcpCommunicator.instantiated?
+  def self.instantiated?
     return @@instantiated
   end
 

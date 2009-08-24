@@ -48,8 +48,8 @@ class XmppCommunicator < MObject
   SYSTEM = "System"
   SESSION = "Session"
 
-  include Singleton
-  @@instantiated = false
+
+  @@instance = nil
     
   #
   # Return the Instantiation state for this Singleton
@@ -59,11 +59,24 @@ class XmppCommunicator < MObject
   def XmppCommunicator.instantiated?
     return @@instantiated
   end   
+  
+  def self.init(opts)
+    raise "XMPPCommunicator already started" if @@instance
+
+    server = opts['server']
+    raise "XMPPCommunicator: Missing 'server'" unless server
+    password = opts['password'] || "123"
+    
+    @@instance = self.new()
+    @@instance.start(server, server, password)
+    @@instance
+  end
       
   #
   # Create a new Communicator 
   #
   def initialize ()
+    super('xmppCommunicator')
     @name2node = Hash.new
     @handlerCommands = Hash.new
     @@myName = nil
@@ -96,7 +109,7 @@ class XmppCommunicator < MObject
   # - password = [String], password to use for this PubSud client
   # - control_interface = [String], the interface connected to Control Network
   #
-  def start(jid_suffix, sessionID, expID)
+  def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
     
     getControlAddr()
     info "TDEBUG - START PUBSUB - #{jid_suffix}"

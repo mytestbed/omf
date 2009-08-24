@@ -30,6 +30,7 @@
 #
 #
 require 'observer'
+require 'omf-expctl/communicator.rb'
 
 #
 # This module implements the methods used by NH to acces both its own configuration 
@@ -134,9 +135,9 @@ module OConfig
   #
   # [Return] hostname / IP address
   #
-  def self.XMPP_HOST()
-    self['xmpp-server']['host']
-  end
+#  def self.XMPP_HOST()
+#    self['xmpp-server']['host']
+#  end
 
   #
   # Return the URL of the PXE service
@@ -156,32 +157,43 @@ module OConfig
     return self.getConfigFromInventoryByKey('cmc_url')
   end
 
+  
+  #
+  # Return the URL of the OML server used for this experiment
+  #
+  # [Return] an URL string
+  #
+  def self.OML_SERVER_URL()
+    "tcp://acme.com:5012"
+    #return self.getConfigFromInventoryByKey('oml_url')
+  end
+
   #
   # Return the URL of the OML service
   #
   # [Return] an URL string
   #
-  def self.OML_SERVICE()
-    return self.getConfigFromInventoryByKey('oml_url')
-  end
-
-  #
-  # Return the host address for the host running the OML server
-  #
-  # [Return] an host address
-  #
-  def self.OML_HOST()
-    return self.getConfigFromInventoryByKey('oml_host')
-  end
-
-  #
-  # Return the Port of the host running the OML server
-  #
-  # [Return] port number
-  #
-  def self.OML_PORT()
-    return self.getConfigFromInventoryByKey('oml_port')
-  end
+#  def self.OML_SERVICE()
+#    return self.getConfigFromInventoryByKey('oml_url')
+#  end
+#
+#  #
+#  # Return the host address for the host running the OML server
+#  #
+#  # [Return] an host address
+#  #
+#  def self.OML_HOST()
+#    return self.getConfigFromInventoryByKey('oml_host')
+#  end
+#
+#  #
+#  # Return the Port of the host running the OML server
+#  #
+#  # [Return] port number
+#  #
+#  def self.OML_PORT()
+#    return self.getConfigFromInventoryByKey('oml_port')
+#  end
 
   #
   # Return the host address for the host running the Node Handler.
@@ -236,6 +248,15 @@ module OConfig
   #
   def self.OML_SERVER_PORT()
     return self.getConfigFromInventoryByKey('oml_server_port')
+  end
+
+  #
+  # Return the URL of the RESULT service
+  #
+  # [Return] an URL string
+  #
+  def self.RESULT_SERVICE()
+    return self.getConfigFromInventoryByKey('result_url')
   end
 
   #
@@ -297,6 +318,7 @@ module OConfig
     # Found the file, read it and optionally evaluate the ruby code inside
     str = File.new(file).read()
     if evalRuby
+      #OMF::ExperimentController::Commands._load(file)
       require file
     end
     
@@ -345,7 +367,7 @@ module OConfig
   #
   # - configFile = path to the configuration file
   #
-  def self.init(configFile)
+  def self.init_from_yaml(configFile)
     @@procs = {}
     require 'yaml'
     # Check that config file exists and has correct format
@@ -356,25 +378,38 @@ module OConfig
     if ((c = h['nodehandler']) == nil)
       raise "Missing 'nodehandler' root in '#{configFile}'"
     end
+    self.init(c['testbed'])
+  end
+  
+  def self.init(opts, gridName = Experiment.domain)
     # First set the testbed name or try to 'guess' it
-    if ((@@gridName = Experiment.domain).nil?)
+    if ((@@gridName = gridName).nil?)
       n = nil
-      if ((n = c['testbed']['default']['name']) == nil)
+      if ((n = opts['default']['name']) == nil)
         IO.popen('hostname -d') {|f| n = f.gets.split('.')[0] }
       end
       @@gridName = n
     end
     # Then load the 'default' configuration parameters
-    @@config = c['testbed']['default']
+    @@config = opts['default']
     # Finally load testbed-specific override parameters, if any
-    if ((override = c['testbed'][@@gridName]) != nil)
+    if ((override = opts[@@gridName]) != nil)
       @@config.merge!(override)
     end
     # Init the config info from Inventory... this will be loaded later.
     @@configFromInventory = nil
+    Communicator.init(@@config['communicator'])
   end
   
   def self.add_observer(&proc)
     @@observers << proc
+  end
+  
+  def self.reset()
+    @@gridName = nil
+    @@config = nil
+    @@configFromInventory = nil
+    @@observers = nil
+    Communicator.reset()
   end
 end

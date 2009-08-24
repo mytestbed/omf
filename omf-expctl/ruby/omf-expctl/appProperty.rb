@@ -30,6 +30,8 @@
 #
 
 class AppProperty
+  
+  DEF_TYPE = :string
 
   #
   # Unmarshall an AppProperty instance from an XML tree.
@@ -103,11 +105,7 @@ class AppProperty
   # [Return] the type of this property, 'nil' if no value was assigned to the ':type' option
   #
   def type
-    if @options != nil
-      return @options[:type] || nil
-    else 
-      return nil
-    end
+    return @options[:type] || DEF_TYPE
   end
 
   #
@@ -119,7 +117,7 @@ class AppProperty
   #
   def commandLineFlag
     if (m = mnemonic) != nil
-      return "-#{m.chr}"
+      return "-#{m}"
     elsif (@options != nil)
       if @options[:use_name] == false
          return ""

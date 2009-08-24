@@ -31,6 +31,7 @@
 #
 
 require 'omf-common/mobject'
+require 'omf-expctl/traceState'
 require 'optparse'
 
 #
@@ -40,7 +41,7 @@ require 'optparse'
 class Experiment
 
   @@name = "UNKNOWN"  # name of experiment
-  @@expRoot = nil
+#  @@expRoot = nil
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
   @@domain = nil
