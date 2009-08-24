@@ -1,0 +1,61 @@
+
+This package deals with the integration of OML (the measurment library) into OMF.
+
+We distinguish two concepts. Measurment points are instrumentation points inside an application. 
+They are defined and coded by the application developer. In the OMF context, they are defined
+inside a +defApplication+ block through the +defMeasurment+ construct.
+
+The second concept is that of a measurment stream. A experimenter defines what sub-set of
+available measurments s/he is interested and what additional pre-processing (filter) should
+be applied to the tuple stream originiating from a measurement point.
+
+Measurment streams are threfore defined inside the +application+ commands of a node set of prototype
+definition.
+
+All the defined measurment streams and their associated filter definitions need to be combined into
+a single configuration file for each application.
+
+IMPLEMENTATION
+
+AppDefinition Class
+-------------------
+
+  defMeasurement(id, description = nil, metrics = nil, &block)
+  
+   - id = identification of measurement point
+   - description = some text describing this measurement point 
+   - metrix = the metric to use 
+   - block = an optional block to execute with this measurement point
+
+This method creates an OML::MPoint and adds it to its set of avaialble measurment points. The
+block will be executed in the context of the newly created MPoint to define the elements
+of the measurement tuple offered by the application.
+
+
+Application Class
+-----------------
+
+  measure(idRef, &block)
+
+   - idRef = Reference to a measurement point
+   - block = block of code to execute
+   
+ This indicates that the experimenter wants to collect measurements offered by the
+ application's MPoint +idRef+ (identical to the +id+ in the above +defMeasurement+ declaration).
+ This method creates a new OML::MStream and the block is executed in the context of this newly
+ created object to further define what elements of the MPoint's tuple should be collected and what
+ additional client side filtering should be performed. Please note that the resulting tuple can be
+ very different than the one defined by the MPoint. This is important for the associated +defGraph+
+ construct.
+ 
+ NodeSet Class
+ -------------
+ 
+ In the process of declaring and configuring node sets, +Application+ instances are added to node sets
+ either directly or via prototypes. Because of the prototype indirection, a specific +Application+ instance
+ can be associated with multipe +NodeSet+ instances. However, the final configuration, it's command line arguments,
+ environment, and OML settings depend on the context of the specific node set. Therefore, when adding 
+ an +Application+ instance to a node set through a call to +Application#instantiate+ the application
+ instance is creating an +ApplicationContext+ instance and adds that to the specified node set.
+ 
+ 
