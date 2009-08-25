@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Value between [] brackets, for example [#FFFFFF] shows default value which is used if this parameter is not set -->
+<!-- This means, that if you are happy with this value, you can delete this line at all and reduce file size -->
+<!-- value or explanation between () brackets shows the range or type of values you should use for this parameter -->
+<!-- the top left corner has coordinates x = 0, y = 0                                                                -->
+<!-- "!" before x or y position (for example: <x>!20</x>) means that the coordinate will be calculated from the right side or the bottom -->
+
+<settings> 
+  <data_type>csv</data_type>                                     <!-- [xml] (xml / csv) -->
+
+  
+  
+  
+  
+  
+  <labels>                                                    <!-- LABELS -->                                                      <!-- you can add as many labels as you want. Some html tags supported: <b>, <i>, <u>, <font>, <a href=""> -->
+                                                              <!-- labels can also be added in data xml file, using exactly the same structure like it is here -->
+    <label lid="0">
+      <x></x>                                                 <!-- [0] (Number / Number% / !Number) -->
+      <y>20</y>                                               <!-- [0] (Number / Number% / !Number) -->
+      <align>center</align>                                   <!-- [left] (left / center / right) -->  
+      <text>                                                  <!-- [] (text) html tags may be used (supports <b>, <i>, <u>, <font>, <a href="">, <br/>. Enter text between []: <![CDATA[your <b>bold</b> and <i>italic</i> text]]>-->
+        <![CDATA[<b>Historical Crude Oil Prices</b>]]>
+      </text>        
+    </label>    
+  
+  </labels>
+  
+  
+  <graphs>                                                    <!-- GRAPHS SETTINGS. These settings can also be specified in data file, as attributes of <graph>, in this case you can delete everything from <graphs> to </graphs> (including) -->
+                                                              <!-- It is recommended to have graph settings here if you don't want to mix data with other params -->
+                                                              <!-- copy <graph>...</graph> (including) as many times as many graphs you have and edit settings individually -->
+                                                              <!-- if graph settings are defined both here and in data file, the ones from data file are used -->
+    <graph gid="1">                                           <!-- if you are using XML data file, graph "gid" must match graph "gid" in data file -->
+      <title>Nominal</title>                                  <!-- [] (graph title) -->
+      <balloon_text>
+        <![CDATA[${value}]]>                                          <!-- [<b>{value}</b><br>{description}] ({title} {value} {series} {description} {percents}) You can format any balloon text: {title} will be replaced with real title, {value} - with value and so on. You can add your own text or html code too. -->
+      </balloon_text>
+    </graph>
+    <graph gid="2">                                           <!-- if you are using XML data file, graph "gid" must match graph "gid" in data file -->
+      <title>Foo</title>                                  <!-- [] (graph title) -->
+      <balloon_text>
+        <![CDATA[${value}]]>                                          <!-- [<b>{value}</b><br>{description}] ({title} {value} {series} {description} {percents}) You can format any balloon text: {title} will be replaced with real title, {value} - with value and so on. You can add your own text or html code too. -->
+      </balloon_text>
+    </graph>
+  </graphs>  
+  	<data>
+;;;
+5;1.0
+14;1.0;0.0;0.0
+19;1.0;0.0;0.0
+24;1.0;0.0;0.0
+29;1.0;0.0;0.0
+34;1.0;0.0;0.0016
+39;1.0;0.0032;0.0032
+45;1.0;0.0032;0.0048
+50;1.0;;0.016
+0;1.0;0.0112;
+56;1.0;0.0224;0.0272
+61;1.0;0.0432;0.0416
+67;1.0;0.0464;0.0496
+73;1.0;0.0704;0.0672
+79;1.0;0.0736;0.0848
+84;1.0;0.096;
+87;1.0;0.112;0.096
+92;1.0;0.1248;0.1136
+98;1.0;0.136;0.1264
+103;1.0;0.1488;0.1392
+109;1.0;;0.1568
+113;1.0;0.1712;0.1696
+119;1.0;0.1824;0.1824
+124;1.0;0.1984;
+127;1.0;0.2096;0.2032
+133;1.0;0.224;0.2128
+139;1.0;0.2384;0.2288
+144;1.0;;0.2416
+148;1.0;0.256;0.256
+153;1.0;0.272;0.2752
+159;1.0;0.2832;0.2912
+165;1.0;0.3072;0.3152
+171;1.0;0.3184;
+173;1.0;0.3456;0.3312
+179;1.0;0.352;0.3424
+184;1.0;0.368;0.352
+189;1.0;;0.368
+194;1.0;0.376;0.3776
+200;1.0;0.3888;0.3888
+205;1.0;0.4016;0.3984
+211;1.0;0.416;0.4144
+216;1.0;0.4336;0.4256
+221;1.0;0.4352;0.44
+227;1.0;0.4592;0.4512
+232;1.0;0.464;0.4608
+237;1.0;;0.4752
+240;1.0;0.48;0.4832
+246;1.0;0.4896;0.4992
+251;1.0;0.5104;0.5136
+257;1.0;0.5248;0.52
+263;1.0;0.5344;0.5344
+269;1.0;0.5472;0.5472
+274;1.0;0.5616;0.5648
+280;1.0;0.584;0.5808
+286;1.0;0.608;
+287;1.0;;0.6064
+291;1.0;0.6336;0.6336
+297;1.0;0.6432;0.648
+303;1.0;0.6576;0.6592
+309;1.0;0.6688;0.6768
+314;1.0;0.6912;0.6912
+320;1.0;0.7056;0.7088
+326;1.0;0.7248;0.7216
+332;1.0;0.7376;0.7392
+338;1.0;0.7584;0.7536
+343;1.0;0.7776;0.7712
+349;1.0;0.7792;0.776
+354;1.0;0.7984;0.7936
+359;1.0;0.8096;0.8016
+365;1.0;;0.8224
+0;1.0;0.8288;0.8336
+371;1.0;0.8352;0.8512
+376;1.0;0.856;0.8624
+381;1.0;0.8656;0.8816
+387;1.0;0.8864;0.8976
+392;1.0;0.8944;0.912
+
+  </data>	
+</settings>

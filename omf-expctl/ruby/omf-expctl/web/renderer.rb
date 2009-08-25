@@ -1,6 +1,6 @@
 
 require 'rubygems'
-require 'omf-common/mobject'
+#require 'util/mobject'
 require 'markaby'
 
 module OMF

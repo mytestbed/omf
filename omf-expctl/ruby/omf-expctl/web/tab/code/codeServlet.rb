@@ -1,0 +1,47 @@
+
+
+#
+# A servlet to display scripts
+#
+module OMF
+  module ExperimentController
+    module Web
+      module Code
+        VIEW = :code
+        
+        @@scripts = []
+        
+        def self.configure(server, options = {})
+          opts = options.dup
+          opts[:scripts] = @@scripts
+          server.mount('/code/show', CodeServlet, opts)
+          server.addTab(VIEW, "/code/show", :name => 'Scripts', 
+              :title => "Browse all scripts involved in this experiment")
+
+          OConfig.add_observer() { |action, url, content, mimeType| 
+            @@scripts << {:url => url, :content => content, :mime => mimeType}
+          }
+        end
+
+        class CodeServlet < WEBrick::HTTPServlet::AbstractServlet
+
+          def do_GET(req, res)
+            opts = @options[0].dup
+            opts[:flash].clear
+            opts[:view] = VIEW
+            opts[:show_file] = nil
+            if i = req.query['id'] || 0
+              opts[:show_file_id] = i.to_i
+            else
+              opts[:flash][:alert] = "Missing 'id'"
+            end
+  
+            #MObject.debug :web_code_servlet, "OPTS: #{opts.inspect}"
+            #opts[:flash][:notice] = opts.inspect
+            res.body = MabRenderer.render('code/show', opts, ViewHelper)
+          end
+        end
+      end
+    end
+  end
+end
