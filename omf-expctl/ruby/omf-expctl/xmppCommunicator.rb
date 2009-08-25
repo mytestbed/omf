@@ -308,40 +308,6 @@ class XmppCommunicator < MObject
     @@service.quit
   end
   
-  #
-  # Process an Event coming from an application running on 
-  # one of the nodes.
-  #
-  # - eventName = name of the received Event
-  # - appId = Id of the monitored application 
-  # - msg = Optional message
-  #
-  def onAppEvent(eventName, appId, msg = nil)
-    eventName = eventName.to_s.upcase
-    if (msg != nil && eventName == "STDOUT" && msg[0] == ?#)
-      ma = msg.slice(1..-1).strip.split
-      cmd = ma.shift
-      msg = ma.join(' ')
-      if cmd == 'WARN'
-        MObject.warn('xmppCommunicator', msg)
-      elsif cmd == 'ERROR'
-        MObject.error('xmppCommunicator', msg)
-      else
-        MObject.debug('xmppCommunicator', msg)
-      end
-      return
-    end
-
-    debug("xmppCommunicator(#{eventName}): '#{msg}'")
-    if (eventName == "STDOUT")
-      a = LineSerializer.to_a(msg)
-      processCommand(a)
-    elsif (eventName == "DONE.ERROR")
-      error("xmppCommunicator failed: ", msg)
-      @server = nil
-    end
-  end
-
   #############################################################################################################  
   #############################################################################################################  
   #############################################################################################################

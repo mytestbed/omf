@@ -72,7 +72,7 @@ module AgentCommands
   def AgentCommands.APP_EVENT(handler, sender, senderId, argArray)
     eventName = getArg(argArray, "Name of event")
     appId = getArg(argArray, "Application ID")
-    message = getArgDefault(argArray, nil)
+    message = argArray.join(' ')
     MObject.debug("agentCmd::APP_EVENT", eventName, "' from '", appId, \
         "' executing on ", sender, ": '", message, "'")
     sender.onAppEvent(eventName, appId, message)
