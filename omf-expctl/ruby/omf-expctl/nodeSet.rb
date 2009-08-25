@@ -794,11 +794,12 @@ class GroupNodeSet < AbstractGroupNodeSet
   # array of names of existing node sets.
   #
   # - groupName = optional name for this group of NodeSet 
-  # - selector = expression that identifies the nodes in this group of NodeSets
+  # - selector = expression that identifies the node sets to include in 
+  #   this group of NodeSets (e.g. ["group1","group2"])
   #
   def initialize(groupName, selector)
     if (selector == nil)
-      raise "Need to specifiy array of nodes"
+      raise "Need to specifiy array of names of existing NodeSets"
     end
     @nodeSets = Set.new
     add(selector)
@@ -858,19 +859,19 @@ class GroupNodeSet < AbstractGroupNodeSet
   private
 
   #
-  # This method adds the nodes described by 'selector' as a new NodeSet in this group of NodeSets
+  # This method adds the NodeSets described by 'selector' as a new NodeSet in this group of NodeSets
   #
-  # - selector = an Array describing the new NodeSet to add to this group, it should be of the
-  #              form [[a, b], [c..d, f]]
+  # - selector = an Array describing the new NodeSets to add to this group, 
+  #              (e.g. ["group1", "group2"]
   # 
   def add(selector)
     if selector.kind_of?(Array)
-      # now lets check if the array just describes a single
-      # node [x, y] a set of nodes [[a, b], [c..d, f]]
+      # Check if each name in the 'selector' refer to a valid NodeSet
+      # If so, then add this NodeSet to this new group of NodeSet
       selector.each { |name|
         s = NodeSet[name]
         if s == nil
-          raise "Unknown set name '#{name}'"
+          raise "Unknown NodeSet (name '#{name}')"
         end
         s.add_observer(self)
         @nodeSets.add(s)

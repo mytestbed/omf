@@ -139,7 +139,8 @@ end
 # use, or a set combining other sets.
 #
 # - groupName = name of this group of nodes
-# - selector = optional, either a String refering to the name of an existing Topology, 
+# - selector = optional, this can be: a String refering to the name of an existing Topology, 
+#              or an Array with the name of existing Groups to add to this group, 
 #              or an Array explicitly describing the nodes to include in this group 
 # - &block = a code-block with commands, which will be executed on the nodes in this group
 #
@@ -156,14 +157,18 @@ def defGroup(groupName, selector = nil, &block)
   end
 
   if (selector != nil)
+    # Selector is a name of an existing Topology (e.g. "myTopo")
     if selector.kind_of?(String)
       if ((topo = Topology[selector]) == nil)
         raise "Unknown topology '#{selector}' in node set '#{groupName}'"
       end
       ns = BasicNodeSet.new(groupName, topo)
+    # Selector is an Array of...
     elsif selector.kind_of?(Array)
+      # Selector is an Array of names of existing groups (e.g. ["group1","group2"])
       if selector[0].kind_of?(String)
         ns = GroupNodeSet.new(groupName, selector)
+      # Selector is an Array of node descriptions (e.g. [2, 9, 5])
       else
         tname = "-:topo:#{groupName}"
         topo = Topology.create(tname, selector)

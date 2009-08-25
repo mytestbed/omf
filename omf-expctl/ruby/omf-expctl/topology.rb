@@ -647,7 +647,7 @@ attr_reader :nodesArr
   #
   def add(selector)
     if (selector.kind_of?(String))
-      error "Unexpected node set declaration '#{selector}'. Please report as bug"
+      error "Unexpected selector declaration '#{selector}'. Please report as bug"
     elsif selector.kind_of?(Array)
       # now lets check if the array just describes a single
       # node [x, y] a set of nodes [[a, b], [[c..d], f]]
