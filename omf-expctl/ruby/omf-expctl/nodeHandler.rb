@@ -82,6 +82,13 @@ class NodeHandler < MObject
   #
 #  VERSION = "$Revision: 1272 $".split(":")[1].chomp("$").strip
 #  MAJOR_V = $NH_VERSION ? $NH_VERSION.split('.')[0] : '0'
+  
+  #
+  # Where to find the default config files
+  #
+  DEFAULT_CONFIG_PATH = "/etc/omf-expctl"
+  DEFAULT_CONFIG_FILE = "nodehandler.yaml"
+  DEFAULT_CONFIG_LOG = "nodehandler_log.xml"
 
   #
   # XML Doc to hold all the experiment states
@@ -636,11 +643,11 @@ class NodeHandler < MObject
       OConfig.init_from_yaml(cfg)
       return
     end
-    cfgFile = "nodehandler.yaml"
 
-    path = ["../etc/omf-expctl/#{cfgFile}", 
-            "/etc/nodehandler#{OMF::ExperimentController::VERSION_MAJOR}/#{cfgFile}", 
-            "/etc/omf-expctl/#{cfgFile}"]
+    path = ["../#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}",
+            "#{DEFAULT_CONFIG_PATH}#{MAJOR_V}/#{DEFAULT_CONFIG_FILE}",
+            "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}"]
+
     path.each {|f|
       if File.exists?(f)
         OConfig.init_from_yaml(f)
@@ -688,8 +695,13 @@ class NodeHandler < MObject
       end
       return log
     end
-    logFile = "nodehandler_log.xml"
-    [".#{logFile}", "~/.#{logFile}", "/etc/nodehandler#{OMF::ExperimentController::VERSION_MAJOR}/#{logFile}", "log/default.xml"].each {|f|
+
+    path =[".#{DEFAULT_CONFIG_LOG}",
+           "~/.#{DEFAULT_CONFIG_LOG}",
+           "#{DEFAULT_CONFIG_PATH}#{MAJOR_V}/#{DEFAULT_CONFIG_LOG}",
+           "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_LOG}"]
+
+    path.each {|f|
       if File.exists?(f)
         return f
       end
