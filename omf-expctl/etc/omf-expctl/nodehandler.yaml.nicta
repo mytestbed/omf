@@ -49,6 +49,7 @@ nodehandler:
       # This is the Path where NH should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)
       repository:
+        #path: ["./omf-expctl/repository", "/usr/lib/ruby/1.8/omf-expctl/repository"]
         path: ["../repository", "/usr/share/omf-expctl/repository"]
 
       # This is the Url where NH can contact the Inventory Service
@@ -58,6 +59,12 @@ nodehandler:
       xmpp-server:
         host: '10.0.0.200'
 
+      communicator:
+        type: 'xmpp'
+        xmpp:
+          server: 'sandbox1.dynhost.nicta.com.au'
+          password: '123'
+        
     # Config Parameter for the "planetlab" Testbed
     #
     # Optional here, since all the above config  
@@ -77,4 +84,5 @@ nodehandler:
     debug:
       repository:
         path: ['../repository']
-      commServer: ../c/commServer/commServer -d 4 --iface eth1
+      communicator:
+        type: 'mock'
