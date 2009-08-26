@@ -63,26 +63,59 @@ class TestOML < Test::Unit::TestCase
     group('g1').startApplications()
     assert_equal "g1|exec|oml#env#-i#", Communicator.instance.cmds[-1]
   end
-
-  def test_start_app_metric
+  
+  def def_app_with_single_metric
     init_communicator()
     TraceState.init()
     
     AppDefinition.reset()
+    NodeSet.reset()
     defApplication('oml') do |a|
       a.defMeasurement('mp') do |m|
         m.defMetric('foo', :int)
       end
     end
+  end
+  
+  def app_cmd_for_single_metric
+    ca = Communicator.instance.getAppCmd()
+    ca.env['OML_SERVER'] = OConfig.OML_SERVER_URL
+    ca.env['OML_ID'] = Experiment.ID
+    ca.env['OML_NODE_ID'] = '%node_id'
+    ca.group = 'g2'
+    ca.procID = 'oml'
+    ca.cmdLine = []
+    ca
+  end
+  
+  def test_start_app_measure_all
+    def_app_with_single_metric
     defGroup('g2') do |g|
       g.addApplication('oml') do |a|
         a.measure('mp')
       end
     end
     group('g2').startApplications()
-    assert_equal "g2|exec|oml#env#-i#", Communicator.instance.cmds[-1]
+
+    ca = app_cmd_for_single_metric
+    assert_equal ca, Communicator.instance.cmdActions[-1]
   end
-  
+ 
+  def test_start_app_measure_single_metric
+    def_app_with_single_metric    
+    defGroup('g2') do |g|
+      g.addApplication('oml') do |a|
+        a.measure('mp') do |m|
+          m.metric 'foo'
+        end
+      end
+    end
+    group('g2').startApplications()
+
+    ca = app_cmd_for_single_metric
+    assert_equal ca, Communicator.instance.cmdActions[-1]
+  end
+
   def init_communicator()
     OConfig.reset()
     opts = {'default' => {'repository' => {'path' => ['.']}, 'communicator' => {'type' => 'mock' }}}

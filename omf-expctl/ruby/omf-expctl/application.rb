@@ -275,7 +275,7 @@ class ApplicationContext < MObject
     end
     
     acmd = Communicator.instance.getAppCmd()
-    acmd.group = nodeSet
+    acmd.group = nodeSet.groupName
     acmd.procID = @id
     acmd.env = @env
     
@@ -299,7 +299,7 @@ class ApplicationContext < MObject
     cmd = appDefinition.getCommandLineArgs(@id, @bindings, nodeSet, cmd)
     acmd.cmdLine = appDefinition.getCommandLineArgs2(@bindings, @id, nodeSet)
     
-    acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
+    #acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
     
     nodeSet.send(:exec, *cmd)
     Communicator.instance.sendAppCmd(acmd)
