@@ -1,6 +1,5 @@
 #
 # Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
-#
 # Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
