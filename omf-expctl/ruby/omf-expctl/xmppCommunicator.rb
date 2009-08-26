@@ -111,7 +111,6 @@ class XmppCommunicator < MObject
   #
   def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
     
-    getControlAddr()
     MObject.debug "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
     @@sessionID = sessionID
@@ -163,53 +162,6 @@ class XmppCommunicator < MObject
     return RUBY_PLATFORM.include?('linux')
   end
 
-  #
-  # Return the MAC address of the control interface
-  #
-  # This method assumes that the 'ifconfig' command returns something like:
-  #
-  # eth1      Link encap:Ethernet  HWaddr 00:0D:61:46:1E:E1
-  #           inet addr:10.10.101.101  Bcast:10.10.255.255  Mask:255.255.0.0
-  #           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-  #           RX packets:118965 errors:0 dropped:0 overruns:0 frame:0
-  #           TX packets:10291 errors:0 dropped:0 overruns:0 carrier:0
-  #           collisions:0 txqueuelen:1000
-  #           RX bytes:17394487 (16.5 MiB)  TX bytes:1073233 (1.0 MiB)
-  #           Interrupt:11 Memory:eb024000-0
-  #
-  #  [Return] a String holding a MAC Address
-  #
-  def getControlAddr()
-  
-    # If we already know our Mac Address, no need to proceed
-    if @@IPaddr != nil
-      return @@IPaddr
-    end
-  
-    # If we are on a Linux Box, we parse the output of 'ifconfig' 
-    if XmppCommunicator.isPlatformLinux?
-      lines = IO.popen("ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
-      if (lines.length > 0)
-          @@IPaddr = lines[0].chomp
-      end
-    else
-    # not implemented for other OS
-      @@IPaddr = "0.0.0.0"
-    end
-
-    # Couldnt get the Mac Address, terminate this NA
-    if (@@IPaddr.nil?)
-      error "Cannot determine IP address of Control Interface"
-      exit
-    end
-    
-    # All good
-    MObject.info("Local control IP address: #{@@IPaddr}")
-    return @@IPaddr
-  end
-
-  alias localAddr getControlAddr
-  
   #############################################################################################################  
   #############################################################################################################  
   #############################################################################################################

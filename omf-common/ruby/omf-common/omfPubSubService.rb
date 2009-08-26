@@ -107,7 +107,7 @@ class OmfPubSubService < MObject
       # otherwise we report it
     rescue Exception => ex
       if ("#{ex}" != "conflict: ")
-        then debug "CDEBUG - Failed to register user #{@userJID} - Error: '#{ex}'"
+        then raise "OmfPubSubService - Failed to register user #{@userJID} - Error: '#{ex}'"
       end
     end
     @clientHelper.auth(password)
@@ -125,7 +125,7 @@ class OmfPubSubService < MObject
     begin
       @service.add_event_callback(&block)
     rescue Exception => ex
-      error "add_event_callback - Error registering callback - '#{ex}'"
+      raise "OmfPubSubService - add_event_callback - Error registering callback - '#{ex}'"
     end
   end
 
@@ -149,11 +149,11 @@ class OmfPubSubService < MObject
         "pubsub#publish_model" => "open"}))
       rescue Exception => ex
         if ("#{ex}"=="conflict: ")
-          debug "CDEBUG - create_pubsub_node - Node '#{node}' already exists!"
+          #debug "CDEBUG - create_pubsub_node - Node '#{node}' already exists!"
+          # PubSub node already exists, do nothing
           return true
         end
-        debug "CDEBUG - create_pubsub_node - Unhandled Exception - '#{ex}'"
-        return false
+        raise "OmfPubSubService - create_pubsub_node - Unhandled Exception - '#{ex}'"
       end
       return true
     end
@@ -171,11 +171,11 @@ class OmfPubSubService < MObject
         @service.delete_node(node)
       rescue Exception => ex
         if ("#{ex}"=="item-not-found: ")
-          debug "CDEBUG - remove_pubsub_node - Node '#{node}' does not exist!"
+          #debug "CDEBUG - remove_pubsub_node - Node '#{node}' does not exist!"
+          # PubSub node does not exist, do nothing
           return true
         end
-        debug "CDEBUG - remove_pubsub_node - Unhandled Exception - '#{ex}'"
-        return false
+        raise "OmfPubSubService - remove_pubsub_node - Unhandled Exception - '#{ex}'"
       end
       return true
     end
@@ -194,8 +194,7 @@ class OmfPubSubService < MObject
           debug "CDEBUG - publish_to_node - Node '#{node}' does not exist!"
           return false
         end
-        debug "CDEBUG - publish_to_node - Unhandled Exception - '#{ex}'"
-        return false
+        raise "OmfPubSubService - publish_to_node - Unhandled Exception - '#{ex}'"
       end
       return true
     end
@@ -264,8 +263,7 @@ class OmfPubSubService < MObject
           debug "CDEBUG - leave_pubsub_node - Node '#{node}' does not exist!"
           return true
         end
-        debug "CDEBUG - leave_pubsub_node - Unhandled Exception - '#{ex}'"
-        return false
+        raise "OmfPubSubService - leave_pubsub_node - Unhandled Exception - '#{ex}'"
       end
       return true
     end
@@ -285,8 +283,7 @@ class OmfPubSubService < MObject
           debug "CDEBUG - join_pubsub_node - Node '#{node}' does not exist!"
           return false
         end
-        debug "CDEBUG - join_pubsub_node - Unhandled Exception - '#{ex}'"
-        return false
+        raise "OmfPubSubService - join_pubsub_node - Unhandled Exception - '#{ex}'"
       end
       return true
     end
@@ -306,7 +303,7 @@ class OmfPubSubService < MObject
         list = @service.get_subscriptions_from_all_nodes
         # cl.close
       rescue Exception => ex
-        debug "TDEBUG - get_all_pubsub_subscriptions - ERROR - '#{ex}'"
+        raise "OmfPubSubService - get_all_pubsub_subscriptions - ERROR - '#{ex}'"
       end
       list
     end
