@@ -469,10 +469,17 @@ class NodeBuiltin < MObject
       setStatus "STARTED"
     when 'DONE.OK'
       setStatus "DONE.OK"
-      debug("Application #{@name} on #{@node} finished successfully")
+      message.delete!("\"")
+      if message == "status: 0"
+        debug("Application #{@name} on #{node} finished successfully (end of application)")
+      elsif message == "status: 9"
+        debug("Application #{@name} on #{node} finished successfully (closed by Resource Controller)")
+      else
+        debug("Application #{@name} on #{node} finished successfully (#{message})")
+      end
     when 'DONE.ERROR'
       setStatus "DONE.ERROR"
-      debug(" Imaging error for node: #{node.getNodeName()} - (msg from node: '#{message}')")
+      debug("Application #{@name} on #{node} finished with error (msg from node: '#{message}')")
     when 'STDOUT'
       addLine(getStdoutEl, message)
     when 'STDERR'

@@ -14,6 +14,12 @@ class ExecApp < MObject
   # Holds the pids for all active apps
   @@apps = Hash.new
 
+  # True if this active app is being killed by a proper
+  # call to ExecApp.killAll() or kill()
+  # (i.e. when the caller of ExecApp decided to stop the application,
+  # as far as we are concerned, this is a 'clean' exit)
+  @cleanExit = false
+
   def ExecApp.[](id)
     app = @@apps[id]
     if (app == nil)
@@ -35,6 +41,7 @@ class ExecApp < MObject
   end
 
   def kill(id, signal = 'KILL')
+    @cleanExit = true
     Process.kill(signal, @pid)
   end
 
@@ -97,7 +104,7 @@ class ExecApp < MObject
       status = $?
       @@apps.delete(@id)
       # app finished
-      if status == 0
+      if (status == 0) || @cleanExit
         s = "OK"
         info "Application '#{id}' finished"
       else
