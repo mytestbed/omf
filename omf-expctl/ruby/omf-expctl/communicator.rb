@@ -25,9 +25,15 @@
 # == Description
 #
 # This file abstracts the communicator used 
-#
 
-class Communicator < MObject
+# IMPORTANT 
+# This require has to be done here!
+# This is because xmpp4r uses ruby's default 'logger' while mobject uses 'log4r'
+# When the order is not right, logging would broke, and other things with it
+# Really know what you are doing if you want to change this!
+require 'omf-expctl/xmppCommunicator.rb'
+
+class Communicator 
   
   def self.instance()
     @@instance
@@ -38,7 +44,6 @@ class Communicator < MObject
 
     case type = opts['type']
     when 'xmpp'
-      require 'omf-expctl/xmppCommunicator.rb'
       @@instance = XmppCommunicator.init(opts['xmpp'])
     when 'mock'
       @@instance = MockCommunicator.new()

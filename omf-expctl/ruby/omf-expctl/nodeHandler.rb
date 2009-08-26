@@ -39,7 +39,6 @@
 ### THIS require HAS TO COME FIRST! See http://omf.mytestbed.net/issues/show/19
 #require 'omf-expctl/xmppCommunicator'
 
-require 'omf-common/mobject'
 require 'omf-expctl/version'
 
 ###
@@ -48,11 +47,18 @@ require 'benchmark'
 require 'thread'  # Queue class
 require 'net/http'
 require 'omf-expctl/exceptions'
+# IMPORTANT 
+# The mobject needs to be required after xmpp4r (required via oconfig)
+# This is because xmpp4r uses ruby's default 'logger' while mobject uses 'log4r'
+# When the order is not right, logging would broke, and other things with it
+# Really know what you are doing if you want to change this order!
+require 'omf-expctl/oconfig'
 require 'omf-common/mobject'
+#
 require 'singleton'
+require 'omf-expctl/version'
 require 'omf-expctl/traceState'
 require 'omf-expctl/experiment'
-require 'omf-expctl/oconfig'
 require 'omf-expctl/nodeSet'
 
 require 'rexml/document'
@@ -77,12 +83,6 @@ class NodeHandler < MObject
   #
   include Singleton
 
-  #
-  # Version Info
-  #
-#  VERSION = "$Revision: 1272 $".split(":")[1].chomp("$").strip
-#  MAJOR_V = $NH_VERSION ? $NH_VERSION.split('.')[0] : '0'
-  
   #
   # Where to find the default config files
   #
@@ -543,11 +543,8 @@ class NodeHandler < MObject
       @web_ui = true
     }
 
-    opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
-    opts.on_tail("-v", "--version", "Show the version\n") {
-      puts OMF::ExperiemtController::VERSION_STRING
-      exit
-    }
+    opts.on_tail("-h", "--help", "Show this message") { puts OMF::ExperimentController::VERSION_STRING; puts opts; exit }
+    opts.on_tail("-v", "--version", "Show the version\n") { puts OMF::ExperimentController::VERSION_STRING; exit }
 
     opts.on("--slave-mode EXPID", "Run NH in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
       @@runningSlaveMode = true
@@ -589,13 +586,12 @@ class NodeHandler < MObject
     #}
 
     rest = opts.parse(args)
+    loadGridConfigFile()
     # create the loggers.
     if (@logConfigFile == nil)
       @logConfigFile = findDefaultLogConfigFile
     end
-    loadGridConfigFile()
     MObject.info('init', "Using LogFile: #{@logConfigFile}")
-
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
     MObject.info('init', OMF::ExperimentController::VERSION_STRING)
     
@@ -645,7 +641,7 @@ class NodeHandler < MObject
     end
 
     path = ["../#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}",
-            "#{DEFAULT_CONFIG_PATH}#{MAJOR_V}/#{DEFAULT_CONFIG_FILE}",
+            "#{DEFAULT_CONFIG_PATH}#{OMF::ExperimentController::VERSION}/#{DEFAULT_CONFIG_FILE}",
             "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}"]
 
     path.each {|f|
@@ -695,10 +691,10 @@ class NodeHandler < MObject
       end
       return log
     end
-
+  
     path =[".#{DEFAULT_CONFIG_LOG}",
            "~/.#{DEFAULT_CONFIG_LOG}",
-           "#{DEFAULT_CONFIG_PATH}#{MAJOR_V}/#{DEFAULT_CONFIG_LOG}",
+           "#{DEFAULT_CONFIG_PATH}#{OMF::ExperimentController::VERSION}/#{DEFAULT_CONFIG_LOG}",
            "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_LOG}"]
 
     path.each {|f|

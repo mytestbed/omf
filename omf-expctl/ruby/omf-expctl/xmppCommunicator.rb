@@ -112,7 +112,7 @@ class XmppCommunicator < MObject
   def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
     
     getControlAddr()
-    info "TDEBUG - START PUBSUB - #{jid_suffix}"
+    MObject.debug "TDEBUG - START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
     @@sessionID = sessionID
     @@expID = expID
@@ -141,7 +141,7 @@ class XmppCommunicator < MObject
     end
 
     #debug "TDEBUG - start 2"
-    debug "Connected to PubSub Server: '#{jid_suffix}'"
+    MObject.debug "Connected to PubSub Server: '#{jid_suffix}'"
         
     # let the gridservice do this:
     #@@service.create_pubsub_node("/#{DOMAIN}")
@@ -204,7 +204,7 @@ class XmppCommunicator < MObject
     end
     
     # All good
-    debug("Local control IP address: #{@@IPaddr}")
+    MObject.info("Local control IP address: #{@@IPaddr}")
     return @@IPaddr
   end
 
@@ -324,7 +324,7 @@ class XmppCommunicator < MObject
     # First check if we already have received the session and experiment IDs
     # If not something went wrong!
     if (@@pubsubNodePrefix == nil)
-      debug "join_groups - ERROR - Session / Exp IDs are NIL"
+      MObject.debug "join_groups - ERROR - Session / Exp IDs are NIL"
       # TODO: Shall we return some error message back to the controller?
       raise "ERROR - Session / Exp IDs are NIL"
       return 
@@ -334,9 +334,9 @@ class XmppCommunicator < MObject
     #debug "TDEBUG - join_groups - Groups to join: #{groups.to_s}"
     groups.each { |group|
       fullNodeName = "#{@@pubsubNodePrefix}/#{group.to_s}"
-      debug "TDEBUG - join_groups - a group: #{fullNodeName}"
+      MObject.debug "TDEBUG - join_groups - a group: #{fullNodeName}"
       @@service.join_pubsub_node(fullNodeName)
-      debug "TDEBUG - join_groups - Subcribed to PubSub node: '#{fullNodeName}'"
+      MObject.debug "TDEBUG - join_groups - Subcribed to PubSub node: '#{fullNodeName}'"
     }
   end
         
@@ -459,7 +459,7 @@ class XmppCommunicator < MObject
      sender = @name2node[senderId]
      
      if (sender == nil)
-       debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
+       MObject.debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
        return
      end
      # get rid of the sequence number
@@ -481,7 +481,7 @@ class XmppCommunicator < MObject
        reply = method.call(self, sender, senderId, argArray)
      rescue Exception => ex
        #error("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
-       debug("Error ('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'")
+       MObject.debug("Error ('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'")
      end
    end
     

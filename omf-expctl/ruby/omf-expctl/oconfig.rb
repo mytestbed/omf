@@ -131,15 +131,6 @@ module OConfig
   end
 
   #
-  # Return the XMPP server hostname / IP address 
-  #
-  # [Return] hostname / IP address
-  #
-#  def self.XMPP_HOST()
-#    self['xmpp-server']['host']
-#  end
-
-  #
   # Return the URL of the PXE service
   #
   # [Return] an URL string

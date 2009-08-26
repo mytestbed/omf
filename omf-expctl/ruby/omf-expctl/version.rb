@@ -31,9 +31,21 @@
 
 module OMF
   module ExperimentController
-    VERSION_MAJOR = 4
+
+    # Find the absolute path of this file
+    myPath = __FILE__.split("/")
+    myPath.delete_at(myPath.size - 1)
+    EC_PATH = myPath.join("/")
+
+    VERSION_MAJOR = 1
     VERSION_MINOR = 4
-    VERSION_REVISION = "$Revision: 1921 $".split(":")[1].chomp("$").to_i
+    # Revision number is taken from the Source Repository
+    # Following de-facto convention, revision number is set by 
+    # the packaging scripts. 
+    # (Pkg script will create the REVISION file with the info from the
+    # source repository, thus REVISION only exists in software installed
+    # from a package. We use 'testing' when REVISION is not found)
+    VERSION_REVISION = File.readable?("#{EC_PATH}/REVISION") ? File.new("#{EC_PATH}/REVISION").read().chomp("$").to_i : "testing"
     
     VERSION = "#{VERSION_MAJOR}.#{VERSION_MINOR}.#{VERSION_REVISION}"
     VERSION_STRING = "OMF Experiment Controller V #{VERSION}"

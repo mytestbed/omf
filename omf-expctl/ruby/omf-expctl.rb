@@ -23,10 +23,9 @@
 #
 #
 
-
+$NH_VERSION = "4.4.0"
 require 'rubygems'
 require 'omf-expctl/nodeHandler'
-
 
 startTime = Time.now
 cleanExit = false

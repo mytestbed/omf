@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 #
 #
-APP=omf-expctl/handler.rb
+APP=omf-expctl.rb
 if [ -e /usr/lib/ruby/1.8/$APP ]; then
    PDIR=/usr/lib/ruby/1.8
 else
