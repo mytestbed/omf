@@ -17,6 +17,11 @@ class MockNodeSet
   def send(*args)
     @send_str = args.join('#')
   end
+  
+  def groupName()
+    'mock'
+  end
+
 end
 
 class TestApplication < Test::Unit::TestCase

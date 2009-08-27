@@ -172,7 +172,8 @@ class Application < MObject
   # - idRef = Reference to a measurement point
   # - block = block of code to execute
   #
-  def measure(idRef, &block)
+  def measure(idRef = :mandatory, opts = {}, &block)
+    raise OEDLMissingArgumentException.new(:measure, :idRef) if idRef == :mandatory
 
     mDef = appDefinition.measurements[idRef]
     if (mDef == nil)

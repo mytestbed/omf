@@ -59,10 +59,11 @@ end
 # This class describes an application which can be used
 # for an experiment using OMF
 #
-class AppDefinition
+class AppDefinition < MObject
 
-  VERSION = "$Revision: 873 $".split(":")[1].chomp("$").strip
-  VERSION_STRING = "AppDefinition V#{$NH_VERSION}"
+# Note: Do we really need that?
+#  VERSION = "$Revision: 873 $".split(":")[1].chomp("$").strip
+#  VERSION_STRING = "AppDefinition V#{$NH_VERSION}"
 
 
   @@apps = Hash.new
@@ -447,7 +448,7 @@ class AppDefinition
     if (major == nil)
       return @version
     end
-    @version = MutableVersion.new(major, minor, revision)
+    @version = AppVersion.new(major, minor, revision)
   end
 
 
@@ -493,7 +494,7 @@ end
 #
 # This class holds application versions
 #
-class Version
+class AppVersion
 
   VERSION_EL_NAME = "version"
 

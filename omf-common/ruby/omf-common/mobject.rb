@@ -25,7 +25,7 @@
 #
 require 'log4r'
 require 'log4r/configurator'
-include Log4r
+#include Log4r
 
 #
 # An extended object class with support for logging
@@ -72,10 +72,10 @@ class MObject
       if (appInstance == nil)
         appInstance = DateTime.now.strftime("%F-%T").split(':').join('-')
       end
-      Configurator['appInstance'] = appInstance
-      Configurator['appName'] = appName
+      Log4r::Configurator['appInstance'] = appInstance
+      Log4r::Configurator['appName'] = appName
       begin
-        Configurator.load_xml_file(configFile)
+        Log4r::Configurator.load_xml_file(configFile)
       rescue Log4r::ConfigError => ex
         @@logger.outputters = Outputter.stdout
         MObject.error("Log::Config", ex)

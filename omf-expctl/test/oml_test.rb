@@ -19,6 +19,10 @@ class MockNodeSet
   def send(*args)
     @send_str = args.join('::')
   end
+  
+  def groupName()
+    'mock'
+  end
 end
 
 class TestOML < Test::Unit::TestCase
@@ -105,8 +109,9 @@ class TestOML < Test::Unit::TestCase
     def_app_with_single_metric    
     defGroup('g2') do |g|
       g.addApplication('oml') do |a|
-        a.measure('mp') do |m|
-          m.metric 'foo'
+        a.measure('mp', :samples => 10) do |m|  # :interval => 1.sec
+          m.metric 'foo', :filter => 'first', :fopts => {}
+#          m.filter :histogram, :key => 'source'
         end
       end
     end

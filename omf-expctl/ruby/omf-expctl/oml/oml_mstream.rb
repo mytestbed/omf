@@ -52,11 +52,21 @@ module OMF
         end
         
         def initialize(mDef, application, &block)
+          super()
           @mdef = mDef
           @application = application
           
           block.call(self) if block
         end
+        
+        def metric(name = :mandatory, opts = {})
+          raise OEDLMissingArgumentException.new(:metric, :name) if name == :mandatory
+        end
+      
+        def filter(name = :mandatory, opts = {})
+          raise OEDLMissingArgumentException.new(:filter, :name) if name == :mandatory
+        end
+
         
         def omlConfig()
           puts @mdef
