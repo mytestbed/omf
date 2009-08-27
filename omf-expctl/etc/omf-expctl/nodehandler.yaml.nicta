@@ -55,6 +55,14 @@
       :inventory:
         :url: 'http://localhost:5022/inventory'
 
+      # This is the host address/name where NH serves its webserver interface
+      # This needs to be explicitely specified. For example the machine running NH can 
+      # have multiple IP addresses, but only one would be accessible from outside a 
+      # firewall
+      :web:
+        :host: '10.0.0.200'
+        #:host: 'norbit.npc.nicta.com.au' # Norbit external IP 
+
       :communicator:
         :type: 'xmpp'
         :xmpp:

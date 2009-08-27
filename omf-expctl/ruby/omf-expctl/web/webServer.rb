@@ -119,7 +119,7 @@ module OMF
           res['content-type'] = 'text/xml'
         end    
         
-        OConfig.REPOSITORY_DEFAULT.each { |rep|
+        OConfig[:ec_config][:repository][:path].each { |rep|
           public = "#{rep}/public_html"
           if File.directory?(public)
             MObject.debug(:web, "Mounting /resource to #{public}")
@@ -161,12 +161,13 @@ module OMF
       #
       def self.url()
         addr = @@server.listeners[0].addr
-        # Check if NH is running in 'Slave' Mode
-        if NodeHandler.SLAVE_MODE()
+	host = OConfig[:ec_config][:web][:host]
+        # Check if NH is running in 'Slave' Mode or has no Host set in its config file
+        if NodeHandler.SLAVE_MODE() || host == nil
            # Yes - then other entities should access NH's web server on localhost
           return "http://127.0.0.1:#{addr[1]}"
         else
-          return "http://#{OConfig.NODE_HANDLER_HOST}:#{addr[1]}"
+          return "http://#{host}:#{addr[1]}"
         end
       end
     

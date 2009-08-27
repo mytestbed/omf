@@ -55,6 +55,7 @@ require 'omf-expctl/exceptions'
 #require 'omf-expctl/oconfig'
 #require 'omf-common/mobject'
 require 'omf-common/mobject'
+require 'omf-expctl/communicator.rb'
 require 'omf-expctl/oconfig'
 #
 require 'singleton'
@@ -586,7 +587,8 @@ class NodeHandler < MObject
     #  }
     #  doProfiling = true
     #}
-
+   
+    # Parse the command line
     rest = opts.parse(args)
 
     # Load the Configuration parameters for this EC
@@ -596,10 +598,14 @@ class NodeHandler < MObject
     startLogger()
 
     # Load the Configuration parameters for the default testbed of this EC
-    # WARNING: No federation support yet, so for now the EC domain is 
-    # essentially the same as the testbed name. In the future, we will have
-    # other testbed configs to add... and this should not be there
+    # WARNING: No federation support yet, so for now the EC gets any 
+    # testbed-specific information by assuming its domain is the same as 
+    # the testbed name. In the future, we will have multiple testbed configs... 
+    # And this will not be there, but rather provided by the resource provisioning
     OConfig.loadTestbedConfiguration()
+
+    # Now start the Communiator
+    Communicator.init(OConfig[:ec_config][:communicator])
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"

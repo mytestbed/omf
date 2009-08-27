@@ -128,7 +128,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Get All Nodes For a Domain"
     else
-      url = "#{OConfig.CMC_URL}/getAllNodes"
+      url = "#{OConfig[:tb_config][:default][:cmc_url]}/getAllNodes"
       MObject.debug("CMC", "up ", url)
       response = NodeHandler.service_call(url, "Can't get All nodes")
       response.body
@@ -144,7 +144,7 @@ module CMC
       puts "CMC: Get All Active Nodes For a Domain"
     else
       # NOTE: We should really use 'allStatus' and parse it properly
-      url = "#{OConfig.CMC_URL}/allStatus?domain=#{OConfig.GRID_NAME}"
+      url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{OConfig.GRID_NAME}"
       response = NodeHandler.service_call(url, "Can't get All Active nodes")
       doc = REXML::Document.new(response.body)
       @@activeNodes = {}
