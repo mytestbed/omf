@@ -47,6 +47,7 @@ class MObject
   #  * :searchPath - Array of directories to look for 'fileName'
   #
   def MObject.initLog(appName, appInstance = nil, params = {})
+	  
     @@rootLoggerName = appName
     @@logger = Log4r::Logger.new(appName)
 

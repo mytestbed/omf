@@ -28,13 +28,13 @@
 # This is the Config file for the NodeHandler4 on the NICTA platform
 #
 ---
-nodehandler:
+:econtroller:
   
-  testbed:
+  :domain:
   
     # Config Parameter for the "default" Testbed
     #
-    default:
+    :default:
     
       # This is the default name for the default testbed
       # NH will use this name if NO domain has been given on the command lide ( -d option)
@@ -44,22 +44,22 @@ nodehandler:
       # IMPORTANT: 
       #   Your Inventory database *must* hold information about the testbed you name 
       #   (e.g. the 'testbeds' table must have an entry corresponding to this name)
-      name: 'npc'
+      :name: 'npc'
 
       # This is the Path where NH should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)
-      repository:
-        path: ["../repository", "/usr/share/omf-expctl/repository"]
+      :repository:
+        :path: ["../repository", "/usr/share/omf-expctl/repository"]
 
       # This is the Url where NH can contact the Inventory Service
-      inventory:
-        url: 'http://localhost:5022/inventory'
+      :inventory:
+        :url: 'http://localhost:5022/inventory'
 
-      communicator:
-        type: 'xmpp'
-        xmpp:
-          server: '10.0.0.200'
-          password: '123'
+      :communicator:
+        :type: 'xmpp'
+        :xmpp:
+          :server: '10.0.0.200'
+          :password: '123'
         
     # Config Parameter for the "planetlab" Testbed
     #
@@ -67,8 +67,8 @@ nodehandler:
     # Just put it to remember that this NH can run experiments on some PL nodes.
     # (this is possible because our Inventory Service has information about a 'planelab' testbed...)
     #
-    planetlab:
-      name: 'planetlab' # Optional.... 
+    :planetlab:
+      :name: 'planetlab' # Optional.... 
 
     # Config Parameter for the "debug" Testbed
     #
@@ -77,8 +77,8 @@ nodehandler:
     # done in the "default" section. The nodeHandler fisrt load the "default"
     # settings, then it uses the "domain" specific settings to override the 
     # relevant parameters
-    debug:
-      repository:
-        path: ['../repository']
-      communicator:
-        type: 'mock'
+    :debug:
+      :repository:
+        :path: ['../repository']
+      :communicator:
+        :type: 'mock'

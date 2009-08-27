@@ -54,7 +54,7 @@ class Experiment
   def Experiment.ID
     if (@@expID == nil)
       ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
-      @@expID = "#{OConfig.GRID_NAME}_#{ts}"
+      @@expID = "#{OConfig.domain}_#{ts}"
       TraceState.experiment(:id, @@expID)
     end
     return @@expID
@@ -162,7 +162,7 @@ class Experiment
     if @@domain != nil 
        return @@domain
     else
-       return OConfig.GRID_NAME
+       return OConfig.domain
     end
   end
 

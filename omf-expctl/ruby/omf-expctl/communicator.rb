@@ -36,10 +36,10 @@ class Communicator < MObject
   def self.init(opts)
     raise "Communicator already started" if @@instance
 
-    case type = opts['type']
+    case type = opts[:type]
     when 'xmpp'
       require 'omf-expctl/xmppCommunicator.rb'
-      @@instance = XmppCommunicator.init(opts['xmpp'])
+      @@instance = XmppCommunicator.init(opts[:xmpp])
     when 'mock'
       @@instance = MockCommunicator.new()
     else

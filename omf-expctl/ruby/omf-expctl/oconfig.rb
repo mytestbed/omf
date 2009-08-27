@@ -33,11 +33,17 @@ require 'observer'
 require 'omf-expctl/communicator.rb'
 
 #
-# This module implements the methods used by NH to acces both its own configuration 
-# parameters, and the parameters which are specific to a given testbed
+# This module implements the methods used by the Experiment Controller
+# to acces both its own configuration parameters, and the parameters 
+# which are specific to the testbed(s)
 #
 module OConfig
   
+  TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
+                         :pxe_url, :cmc_url, 
+                         :frisbee_url, :frisbee_default_disk, 
+                         :image_host, :oml_server_url]
+
   @@observers = []
 
   #
@@ -65,6 +71,44 @@ module OConfig
   end
 
   #
+  # Query the Inventory service for the configuration parameters related to 
+  # a given testbed
+  #
+  # - testbedName = name of the testbed for which to query (optional), default 
+  #                 is the name of the domain where this EC is running 
+  #
+  def self.loadTestbedConfiguration(testbedName = @@domainName)
+    # Check if NH is running in 'Slave' mode. If so, then this EC is actually running
+    # directly on a node/resource and will only be responsible for orchestrating the part
+    # of the experiment which is specific to this node/resource. Thus config parameters
+    # are also specific (most would be turned to 'localhost' and local node ID)
+    if NodeHandler.SLAVE_MODE || NodeHandler.debug?
+      return nil 
+    end
+    # Initialize the config hash if first time called
+    if  @@config[:tb_config] == nil
+      @@config[:tb_config] = Hash.new 
+    end
+    # Retrieve the testbed-specific configuration parameters from the Inventory
+    url = "#{@@config[:ec_config][:inventory][:url]}/getConfig?&domain=#{testbedName}"
+    response = NodeHandler.service_call(url, "Can't get config for testbed '#{testbedName}' from INVENTORY")
+    configFromInventory = REXML::Document.new(response.body)
+    # Extract the information from the REXML, and store them in a Hash 
+    tb_hash = Hash.new
+    TESTBED_CONFIG_KEYS.each{ |key|
+      configValue = nil
+      configFromInventory.root.elements.each("/CONFIG/#{key}") { |e|
+        if (e.get_text != nil)
+          tb_hash[key] = e.get_text.value
+	else
+          raise "OConfig - Missing value for configuration parameter '#{key}' for '#{testbedName}' testbed."
+        end
+      }
+    }
+    @@config[:tb_config][:default] = tb_hash
+  end
+
+  #
   # Query the Inventory service for the value of a configuration parameter 
   # related to a given testbed
   #
@@ -74,13 +118,6 @@ module OConfig
   #
   def self.getConfigFromInventoryByKey(configKey)
 
-    # Check if NH is running in 'Slave' mode. If so, then this NH is actually running
-    # directly on a node/resource and will only be responsible for orchestrating the part
-    # of the experiment which is specific to this node/resource. Thus config parameters
-    # are also specific (most would be turned to 'localhost' and local node ID)
-    if NodeHandler.SLAVE_MODE || NodeHandler.debug?
-      return nil 
-    end
     # Test if the XML configuration blurb is empty
     if (@@configFromInventory == nil)
       # Yes, then retrieve all the testbed-specific configuration parameters from the Inventory
@@ -265,7 +302,7 @@ module OConfig
   # [Return] a testbed name (string)
   #
   def self.GRID_NAME()
-    @@gridName
+    @@domainName
   end
 
   #
@@ -361,9 +398,26 @@ module OConfig
     @@procs[name]
   end
 
+  #
+  # Set the domain for this Experiment Controller
+  #
+  # - domain =  Name of the domain where this EC is running
+  #
+  def self.domain=(domain)
+    @@domainName = domain
+  end
+
+  
+  #
+  # Return the domain of this Experiment
+  #
+  def self.domain()
+    @@domainName
+  end
 
   #
-  # Load the NH configuration file. 
+  # Initialize this new OConfig using the information in an
+  # YAML configuration file. 
   #
   # - configFile = path to the configuration file
   #
@@ -375,30 +429,38 @@ module OConfig
       raise "Can't find configuration file '#{configFile}'"
     end
     h = YAML::load_file(configFile)
-    if ((c = h['nodehandler']) == nil)
-      raise "Missing 'nodehandler' root in '#{configFile}'"
+    if ((c = h[:econtroller]) == nil)
+      raise "Missing ':econtroller' root in '#{configFile}'"
     end
-    self.init(c['testbed'])
+    # Now initialize this new OConfig
+    self.init(c[:domain])
   end
   
-  def self.init(opts, gridName = Experiment.domain)
-    # First set the testbed name or try to 'guess' it
-    if ((@@gridName = gridName).nil?)
+  #
+  # Initialize this new OConfig using the information in an
+  # existing YAML hash. 
+  #
+  # - opts = a YAML hash
+  # - domainName = (optional) the name of the domain where this EC is running
+  #
+  def self.init(opts, domainName = @@domainName)
+    @@config = Hash.new
+    # First set the domain name or try to 'guess' it
+    if (domainName == nil)
       n = nil
-      if ((n = opts['default']['name']) == nil)
+      if ((n = opts[:default][:name]) == nil)
         IO.popen('hostname -d') {|f| n = f.gets.split('.')[0] }
+	opts[:default][:name] = n
       end
-      @@gridName = n
+      @@domainName = n
     end
-    # Then load the 'default' configuration parameters
-    @@config = opts['default']
-    # Finally load testbed-specific override parameters, if any
-    if ((override = opts[@@gridName]) != nil)
-      @@config.merge!(override)
+    # Then load the 'default' EC configuration parameters from the YAML hash
+    @@config[:ec_config] = opts[:default]
+    # Finally load domain-specific override parameters, if any
+    if ((override = opts[@@domainName]) != nil)
+      @@config[:ec_config].merge!(override)
     end
-    # Init the config info from Inventory... this will be loaded later.
-    @@configFromInventory = nil
-    Communicator.init(@@config['communicator'])
+    Communicator.init(@@config[:ec_config][:communicator])
   end
   
   def self.add_observer(&proc)
@@ -406,7 +468,7 @@ module OConfig
   end
   
   def self.reset()
-    @@gridName = nil
+    @@domainName = nil
     @@config = nil
     @@configFromInventory = nil
     @@observers = nil

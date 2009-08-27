@@ -114,11 +114,11 @@ module OMF
   
         class WebFormatter < Log4r::BasicFormatter
           def format(event)
-            lname = LNAMES[event.level]
+            lname = Log4r::LNAMES[event.level]
             fs = "<tr><td class='%s'>%s</td><td class='name'>%s"
             buff = sprintf(fs, lname.downcase, lname, event.name)
             buff += (event.tracer.nil? ? "" : "(#{event.tracer[0]})") + ":</td>"
-            buff += sprintf("<td class='data'>%*s</td></tr>", MaxLevelLength, format_object(event.data))
+            buff += sprintf("<td class='data'>%*s</td></tr>", Log4r::MaxLevelLength, format_object(event.data))
             buff
           end
         end

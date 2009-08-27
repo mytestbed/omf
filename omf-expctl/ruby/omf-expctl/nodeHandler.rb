@@ -39,7 +39,6 @@
 ### THIS require HAS TO COME FIRST! See http://omf.mytestbed.net/issues/show/19
 #require 'omf-expctl/xmppCommunicator'
 
-require 'omf-common/mobject'
 require 'omf-expctl/version'
 
 ###
@@ -48,11 +47,20 @@ require 'benchmark'
 require 'thread'  # Queue class
 require 'net/http'
 require 'omf-expctl/exceptions'
+# IMPORTANT 
+# The mobject needs to be required after xmpp4r (required via oconfig)
+# This is because xmpp4r uses ruby's default 'logger' while mobject uses 'log4r'
+# When the order is not right, logging would broke, and other things with it
+# Really know what you are doing if you want to change this order!
+#require 'omf-expctl/oconfig'
+#require 'omf-common/mobject'
 require 'omf-common/mobject'
+require 'omf-expctl/oconfig'
+#
 require 'singleton'
+require 'omf-expctl/version'
 require 'omf-expctl/traceState'
 require 'omf-expctl/experiment'
-require 'omf-expctl/oconfig'
 require 'omf-expctl/nodeSet'
 
 require 'rexml/document'
@@ -78,10 +86,11 @@ class NodeHandler < MObject
   include Singleton
 
   #
-  # Version Info
+  # Where to find the default config files
   #
-#  VERSION = "$Revision: 1272 $".split(":")[1].chomp("$").strip
-#  MAJOR_V = $NH_VERSION ? $NH_VERSION.split('.')[0] : '0'
+  DEFAULT_CONFIG_PATH = "/etc/omf-expctl"
+  DEFAULT_CONFIG_FILE = "nodehandler.yaml"
+  DEFAULT_CONFIG_LOG = "nodehandler_log.xml"
 
   #
   # XML Doc to hold all the experiment states
@@ -470,7 +479,7 @@ class NodeHandler < MObject
     }
 
     opts.on("-d", "--domain NAME", "Resource domain. Usually the name of the testbed") {|name|
-      Experiment.domain = name
+      OConfig.domain = name
     }
     
     opts.on("-D", "--debug", "Operate in debug mode") {|name|
@@ -536,11 +545,8 @@ class NodeHandler < MObject
       @web_ui = true
     }
 
-    opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
-    opts.on_tail("-v", "--version", "Show the version\n") {
-      puts OMF::ExperiemtController::VERSION_STRING
-      exit
-    }
+    opts.on_tail("-h", "--help", "Show this message") { puts OMF::ExperimentController::VERSION_STRING; puts opts; exit }
+    opts.on_tail("-v", "--version", "Show the version\n") { puts OMF::ExperimentController::VERSION_STRING; exit }
 
     opts.on("--slave-mode EXPID", "Run NH in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
       @@runningSlaveMode = true
@@ -582,15 +588,18 @@ class NodeHandler < MObject
     #}
 
     rest = opts.parse(args)
-    # create the loggers.
-    if (@logConfigFile == nil)
-      @logConfigFile = findDefaultLogConfigFile
-    end
-    loadGridConfigFile()
-    MObject.info('init', "Using LogFile: #{@logConfigFile}")
 
-    MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
-    MObject.info('init', OMF::ExperimentController::VERSION_STRING)
+    # Load the Configuration parameters for this EC
+    loadControllerConfiguration()
+
+    # Start the Logger for this EC
+    startLogger()
+
+    # Load the Configuration parameters for the default testbed of this EC
+    # WARNING: No federation support yet, so for now the EC domain is 
+    # essentially the same as the testbed name. In the future, we will have
+    # other testbed configs to add... and this should not be there
+    OConfig.loadTestbedConfiguration()
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
@@ -623,32 +632,7 @@ class NodeHandler < MObject
     Experiment.expArgs = rest - [@expFile]
   end
 
-  #
-  # This method loads the Node Handler config file
-  # This config file contains the relevant configuration for the current testbed
-  #
-  def loadGridConfigFile()
-    cfg = @configFile || ENV['NODEHANDLER_CFG']
-    if cfg != nil
-      if ! File.exists?(cfg)
-        raise "Can't find cfg file '#{cfg}'"
-      end
-      OConfig.init_from_yaml(cfg)
-      return
-    end
-    cfgFile = "nodehandler.yaml"
 
-    path = ["../etc/omf-expctl/#{cfgFile}", 
-            "/etc/nodehandler#{OMF::ExperimentController::VERSION_MAJOR}/#{cfgFile}", 
-            "/etc/omf-expctl/#{cfgFile}"]
-    path.each {|f|
-      if File.exists?(f)
-        OConfig.init_from_yaml(f)
-        return
-      end
-    }
-    raise "Can't find #{cfgFile} in #{path.join(':')}"
-  end
 
   private
 
@@ -665,36 +649,67 @@ class NodeHandler < MObject
   end
 
   #
-  # Initialise the OML collection scheme
-  # (Note: on the verge of being Deprecated... OMLv2 should be out anytime soon)
+  # This method loads the Experiment Controller config file
+  # This config file contains the configuration for the EC
   #
-#  def initialize_oml()
-#    #dbp = OConfig.getOmlDBSettings()
-#    #dbp['id'] = OmlApp.getDbName()
-#    #OML_EL.add_element('db', dbp)
-#    #mcp = OConfig.getOmlMCSettings()
-#  end
+  def loadControllerConfiguration()
+    # First look for config file from the command line or the environment 
+    cfg = @configFile || ENV['NODEHANDLER_CFG']
+    if cfg != nil
+      if ! File.exists?(cfg)
+        raise "Can't find cfg file '#{cfg}'"
+      end
+    else
+      # No luck, then look at our default paths...
+      path = ["../#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}",
+              "#{DEFAULT_CONFIG_PATH}#{OMF::ExperimentController::VERSION}/#{DEFAULT_CONFIG_FILE}",
+              "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}"]
+      path.each {|f|
+        if File.exists?(f)
+          cfg = f
+        end
+      }
+      # Still no luck... we cannot continue without a config file
+      if cfg == nil
+        raise "Can't find #{DEFAULT_CONFIG_FILE} in #{path.join(':')}"
+      end
+    end
+    # Now load the config file
+    @configFile = cfg
+    OConfig.init_from_yaml(@configFile)
+  end
 
   #
-  # This method locate the Log config file for this Node Handler
+  # This method starts the Logger for this Experiment Controller
   #
-  # [Return] a String with the full path to the NH config file
-  #
-  def findDefaultLogConfigFile()
-    log = ENV['NODEHANDLER_LOG']
+  def startLogger()
+    # First look for log config file from the command line or the environment 
+    log = @logConfigFile || ENV['NODEHANDLER_LOG']
     if log != nil
       if ! File.exists?(log)
-        raise "Can't find log file '#{log}'"
+        raise "Can't find cfg file '#{log}' (for the EC logs)"
       end
-      return log
+    else
+      # No luck, then look at our default paths...
+      path =[".#{DEFAULT_CONFIG_LOG}",
+             "~/.#{DEFAULT_CONFIG_LOG}",
+             "#{DEFAULT_CONFIG_PATH}#{OMF::ExperimentController::VERSION}/#{DEFAULT_CONFIG_LOG}",
+             "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_LOG}"]
+      path.each {|f|
+        if File.exists?(f)
+          log = f
+        end
+      }
+      # Still no luck... warn the user that all logs will be sent to stdout
+      if log == nil
+        warn "Can't find #{DEFAULT_CONFIG_LOG} in #{path.join(':')}"
+      end
     end
-    logFile = "nodehandler_log.xml"
-    [".#{logFile}", "~/.#{logFile}", "/etc/nodehandler#{OMF::ExperimentController::VERSION_MAJOR}/#{logFile}", "log/default.xml"].each {|f|
-      if File.exists?(f)
-        return f
-      end
-    }
-    return nil
+    # Now start the logger
+    @logConfigFile = log
+    info('init', "Using Log config file: #{@logConfigFile}")
+    MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
+    info('init', "#{OMF::ExperimentController::VERSION_STRING}")
   end
 
   #
@@ -704,7 +719,7 @@ class NodeHandler < MObject
   # - uri = the URI referencing the experiment resources 
   #
   def printResource(uri)
-    loadGridConfigFile()
+    loadConfiguration()
     res = OConfig.load(uri, false)
     if (res.nil?)
       puts "ERROR: Unknown uri '#{uri}'"

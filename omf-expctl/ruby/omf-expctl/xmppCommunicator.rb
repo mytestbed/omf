@@ -63,9 +63,9 @@ class XmppCommunicator < MObject
   def self.init(opts)
     raise "XMPPCommunicator already started" if @@instance
 
-    server = opts['server']
+    server = opts[:server]
     raise "XMPPCommunicator: Missing 'server'" unless server
-    password = opts['password'] || "123"
+    password = opts[:password] || "123"
     
     @@instance = self.new()
     @@instance.start(server, server, password)
