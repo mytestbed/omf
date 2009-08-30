@@ -34,12 +34,11 @@
 #
 
 require "omf-expctl/version"
-#require "omf-expctl/measurement"
-require "omf-expctl/appProperty"
-require "omf-expctl/appDefinition"
+require "omf-expctl/application/appProperty"
+require "omf-expctl/application/appDefinition"
+require "omf-expctl/application/appContext"
 require "omf-expctl/property"
 require "omf-expctl/oml/oml_mstream"
-#require "omf-expctl/omlApp"
 require "rexml/document"
 
 #
@@ -89,7 +88,7 @@ class Application < MObject
   #
   def instantiate(nodeSet, context = {})
     install(nodeSet)
-    appCtxt = ApplicationContext.new(self, context)    
+    appCtxt = AppContext.new(self, context)    
     nodeSet.addApplication(appCtxt)
     appCtxt
   end
@@ -222,97 +221,3 @@ class Application < MObject
   
 
 end
-
-class ApplicationContext < MObject
-  attr_reader :app, :id
-  
-  def initialize(app, context)
-    super()
-    @id = app.appDefinition.getUniqueID
-    @bindings = Hash.new
-    @app = app
-    
-    # Create property list
-    app.properties.each {|p|
-      # property :idref, :value, :unit, :bindingRef, :isBound
-      name = p.idref
-      if p.isBound
-        value = context[p.bindingRef]
-      else
-        value = p.value
-      end
-      @bindings[name] = value
-    }
-    @env = Hash.new
-    
-    # NOTE: Thta should really go into OmlApp
-#    omlUrl = OmlApp.register(self)
-#    if omlUrl != nil
-#      @env['OML_CONFIG'] = omlUrl
-#      @env['%OML_NAME'] = 'node%x-%y'
-#      if @env.has_key?('LD_LIBRARY_PATH')
-#        @env['LD_LIBRARY_PATH'] += ':/usr/lib/'
-#      else
-#        @env['LD_LIBRARY_PATH'] = '/usr/lib/'
-#      end
-#    end
-  end
-
-  def startApplication(nodeSet)
-    debug("Starting application '#@id'")
-
-    # With OMLv2 the collection server can be started as soon as NH is running
-    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
-    #OmlApp.startCollectionServer
-    unless @app.measurements.empty?
-      # add OML environment
-      @env['OML_SERVER'] = OConfig.OML_SERVER_URL
-      @env['OML_ID'] = Experiment.ID
-      @env['OML_NODE_ID'] = '%node_id'
-      
-      @app.measurements.each do |m|
-        # add mstream configurations
-      end
-    end
-    
-    acmd = Communicator.instance.getAppCmd()
-    acmd.group = nodeSet.groupName
-    acmd.procID = @id
-    acmd.env = @env
-    
-    cmd = [@id, 'env', '-i']
-    @env.each {|name, value|
-      cmd << "#{name}=#{value}"
-    }
-    
-
-    appDefinition = @app.appDefinition
-    cmd << appDefinition.path
-    acmd.path = appDefinition.path
-    
-    pdef = appDefinition.properties
-    # check if bindings contain unknown parameters
-    if (diff = @bindings.keys - pdef.keys) != []
-      raise "Unknown parameters '#{diff.join(', ')}'" \
-            + " not in '#{pdef.keys.join(', ')}'."
-    end
-    
-    cmd = appDefinition.getCommandLineArgs(@id, @bindings, nodeSet, cmd)
-    acmd.cmdLine = appDefinition.getCommandLineArgs2(@bindings, @id, nodeSet)
-    
-    #acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
-    
-    nodeSet.send(:exec, *cmd)
-    Communicator.instance.sendAppCmd(acmd)
-  end
-  
-end # ApplicationContext
-
-# a = Application['foo']
-#
-# mu = MutableApplication.new('#goo')
-# mu.uri = "change"
-# a.uri = "fail"
-#
-# a2 = Application['#goo']
-

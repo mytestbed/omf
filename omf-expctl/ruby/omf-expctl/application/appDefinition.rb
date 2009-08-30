@@ -31,13 +31,10 @@
 #
 
 require 'omf-common/syncVariables.rb'
-#require "omf-expctl/version.rb"
 require "omf-expctl/experiment.rb"
 require "omf-expctl/handlerCommands.rb"
-#require "omf-expctl/appMeasurement.rb"
-require "omf-expctl/appProperty.rb"
+require "omf-expctl/application/appProperty.rb"
 require "omf-expctl/oml/oml_mpoint.rb"
-
 require "rexml/document"
 
 #
@@ -182,6 +179,8 @@ class AppDefinition < MObject
     @instCounter = SynchronizedInteger.new
   end
   
+  # This is not Thread safe
+  # (@instCounter is a shared resource)
   def getUniqueID()
     id = @id.gsub(':', '_')
     if ((cnt = @instCounter.incr()) > 1)
@@ -417,7 +416,7 @@ class AppDefinition < MObject
   #                        command line
   #   :use_name => true|false -- If false only use value, not name or mnemonic
   #
-  def defProperty(name = :mandatory, description = :mandatory, mnemonic = nil, options = nil)
+  def defProperty(name = :mandatory, description = :mandatory, mnemonic = nil, options = {})
     raise OEDLMissingArgumentException.new(:defProperty, :name) if name == :mandatory
     raise OEDLMissingArgumentException.new(:defProperty, :description) if description == :mandatory
     

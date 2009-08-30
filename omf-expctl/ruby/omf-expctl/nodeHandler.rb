@@ -713,9 +713,9 @@ class NodeHandler < MObject
     end
     # Now start the logger
     @logConfigFile = log
-    info('init', "Using Log config file: #{@logConfigFile}")
+    #info('init', "Using Log config file: #{@logConfigFile}")
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
-    info('init', "#{OMF::ExperimentController::VERSION_STRING}")
+    info('init', " #{OMF::ExperimentController::VERSION_STRING}")
   end
 
   #

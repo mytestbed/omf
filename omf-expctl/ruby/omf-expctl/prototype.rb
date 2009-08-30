@@ -30,7 +30,7 @@
 #
 require "omf-expctl/version.rb"
 require "omf-expctl/parameter.rb"
-require "omf-expctl/application.rb"
+require "omf-expctl/application/application.rb"
 #require "omf-expctl/oml/oml_mpoint.rb"
 require "rexml/document"
 
@@ -119,7 +119,7 @@ class Prototype
     @name = name
     @properties = Hash.new
     @incPrototypes = Hash.new
-    @applications = Hash.new
+    @applications = Array.new
   end
 
   #
@@ -154,7 +154,7 @@ class Prototype
       proto.instantiate(nodeSet, p)
     }
 
-    @applications.each {|name, app|
+    @applications.each {|app|
       app.instantiate(nodeSet, context)
     }
   end
@@ -213,7 +213,7 @@ class Prototype
 
     if @applications.length > 0
       ae = a.add_element("applications")
-      @applications.each_value {|app|
+      @applications.each {|app|
         ae.add_element(app.to_xml)
       }
     end
@@ -282,11 +282,11 @@ class Prototype
   #
   def addApplication(idRef, opts = {}, &block)
 
-    if @applications.has_key? name
-      raise "Prototype already has an application '" + name + "'."
-    end
-    app = Application.new(idRef, opts, block)
-    @applications[name] = app
+    #if @applications.has_key? idRef
+    #  raise "Prototype already has an application '" + name + "'."
+    #end
+    app = Application.new(idRef, opts, &block)
+    @applications << app
     return app
   end
 

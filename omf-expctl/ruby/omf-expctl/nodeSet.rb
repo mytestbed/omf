@@ -661,6 +661,7 @@ class BasicNodeSet < NodeSet
   # is called. See NodeSet::addApplication for argument details
   #
   def addApplication(app)
+    info "TDEBUG - APP - #{app.class}"
     super(app)
     self.eachNode { |n|
       n.addApplication(app)
