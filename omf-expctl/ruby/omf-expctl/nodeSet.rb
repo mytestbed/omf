@@ -167,14 +167,11 @@ class NodeSet < MObject
   
   #
   # This method adds an application which is associated with this node set
-  # These applications will be started when 'startApplications'
+  # This application will be started when 'startApplications'
   # is called
   #
-  # - app = Application to register
-  # - vName = Virtual name used for this app (used for state name)
-  # - bindings = Bindings for local parameters
-  # - env = Environment to set before starting application
-  # - install = Request installation immediately
+  # - appCtxt = the Application Context to add (AppContext). This context
+  #                holds the Application name, its binding, environments,...
   #
   def addApplication(appCtxt)
     @applications[appCtxt.id] = appCtxt
@@ -657,14 +654,16 @@ class BasicNodeSet < NodeSet
 
   #
   # This method adds an application which is associated with this NodeSet
-  # These applications will be started when 'startApplications'
+  # This applications will be started when 'startApplications'
   # is called. See NodeSet::addApplication for argument details
   #
-  def addApplication(app)
-    info "TDEBUG - APP - #{app.class}"
-    super(app)
+  # - appContext = the Application Context to add (AppContext). This context
+  #                holds the Application name, its binding, environments,...
+  #
+  def addApplication(appContext)
+    super(appContext)
     self.eachNode { |n|
-      n.addApplication(app)
+      n.addApplication(appContext)
     }
   end
 

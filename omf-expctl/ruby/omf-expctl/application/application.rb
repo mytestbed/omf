@@ -26,10 +26,10 @@
 #
 # == Description
 #
-# This class defines the bindings and configurations
-# of an application to be run on a node
-# during an experiment. It will refer to an
-# AppDefinition for information on the
+#
+# This class defines an Application that can be used within an
+# OMF Experiment Description (ED).
+# It will refer to an AppDefinition for information on the
 # available parameters and measurment points
 #
 
@@ -42,13 +42,11 @@ require "omf-expctl/oml/oml_mstream"
 require "rexml/document"
 
 #
-# This class defines the bindings and configurations
-# of an application to be run on a node
-# during an experiment. It will refer to an
-# AppDefinition for information on the
+# This class defines an Application that can be used within an
+# OMF Experiment Description (ED).
+# It will refer to an AppDefinition for information on the
 # available parameters and measurment points
 #
-
 class Application < MObject
 
   include CreatePropertiesModule
@@ -64,7 +62,6 @@ class Application < MObject
 
   # Measurement points used and their configurations/filter
   attr_reader :measurements
-
 
   #
   # @param appRef Reference to appliciation definition

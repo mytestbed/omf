@@ -26,24 +26,22 @@
 #
 # == Description
 #
-# This class defines the bindings and configurations
-# of an application to be run on a node
-# during an experiment. It will refer to an
-# AppDefinition for information on the
-# available parameters and measurment points
+#
+# This class defines an Application Context.
+# An Application Context holds the name, definition, bindings 
+# and configurations of an application to be run on a node
+# during an experiment. 
 #
 
 #
-# This class defines the bindings and configurations
-# of an application to be run on a node
-# during an experiment. It will refer to an
-# AppDefinition for information on the
-# available parameters and measurment points
+# This class defines an Application Context.
+# An Application Context holds the name, definition, bindings 
+# and configurations of an application to be run on a node
+# during an experiment. 
 #
-
 class AppContext < MObject
-  attr_reader :app, :id
-  
+  attr_reader :app, :id, :bindings, :env
+
   def initialize(app, context)
     super()
     @id = app.appDefinition.getUniqueID

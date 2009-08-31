@@ -201,15 +201,12 @@ class TraceState < MObject
   # Log a new Application to a Node 
   # 
   # - node = the node running this application
-  # - app = the application to log
-  # - vName =  the name for the application to log
-  # - paramBindings = the parameter bindings for this application
-  # - env = the environment values for this application
+  # - appCtxt = the Application Context (AppContext) to log
   #
-  def self.nodeAddApplication(node, app, vName, paramBindings, env)
+  def self.nodeAddApplication(node, appCtxt)
     procEl = self.instance.getNodeComponent(node, 'apps', 'apps')
-    appEl = NodeApp.new(app, vName, paramBindings, env, self, procEl)
-    self.instance.setNodeComponent(node, "app:#{vName.to_s}", appEl)
+    appEl = NodeApp.new(appCtxt, self, procEl)
+    self.instance.setNodeComponent(node, "#{appCtxt.id}", appEl)
   end
 
   #
@@ -546,18 +543,19 @@ class NodeApp < NodeBuiltin
   # @param node Node this application belongs to
   # @param procEl 'apps' element in state tree
   #
-  def initialize(app, vName, paramBindings, env, node, procEl)
-    super(vName, paramBindings, node, procEl,
-            app.installable? ? "INSTALL_PENDING" : "INSTALLED.OK")
-    @env = env
+  #  appEl = NodeApp.new(appCtxt.app.appDefinition, appCtxt.id, appCtxt.bindings, appCtxt.env, self, procEl)
+  def initialize(appCtxt, node, procEl)
+    super(appCtxt.id, appCtxt.bindings, node, procEl,
+            appCtxt.app.installable? ? "INSTALL_PENDING" : "INSTALLED.OK")
+    @env = appCtxt.env
 
     @el.name = 'app'
-    @isReady = ! app.installable?
-    @el.add_element('appDef', {'href' => app.appDefinition.uri})
+    @isReady = ! appCtxt.app.installable?
+    @el.add_element('appDef', {'href' => appCtxt.app.appDefinition.uri})
 
-    if env != nil
+    if appCtxt.env != nil
       envEl = @el.add_element('envList')
-      env.each {|k, v|
+      appCtxt.env.each {|k, v|
         envEl.add_element('env', {'name' => k.to_s}).text = v.to_s
       }
     end

@@ -251,16 +251,12 @@ class Node < MObject
   #
   # Add an application to this Node
   #
-  # - app = Application definition
-  # - vName = Virtual name given to this app
-  # - paramBindings = Parameter bindings for this application
-  # - env = Envioronment to set before starting application
+  # - appCtxt = the Application Context to add (AppContext). This context
+  #                holds the Application name, its binding, environments,...
   #
-  def addApplication(app, vName, paramBindings, env)
-    #procEl = getConfigNode(['apps'])
-    #@apps["app:#{vName.to_s}"] = NodeApp.new(app, vName, paramBindings, env, self, procEl)
-    debug("Add application #{vName}:#{app} to #{self}")
-    TraceState.nodeAddApplication(self, app, vName, paramBindings, env)
+  def addApplication(appCtxt)
+    debug("Add application #{appCtxt.id} to #{self}")
+    TraceState.nodeAddApplication(self, appCtxt)
   end
 
   #

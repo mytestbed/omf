@@ -33,7 +33,7 @@
 require 'omf-common/syncVariables.rb'
 require "omf-expctl/experiment.rb"
 require "omf-expctl/handlerCommands.rb"
-require "omf-expctl/application/appProperty.rb"
+require "omf-expctl/application/appVersion.rb"
 require "omf-expctl/oml/oml_mpoint.rb"
 require "rexml/document"
 
@@ -489,109 +489,3 @@ class AppDefinition < MObject
   end
 
 end
-
-#
-# This class holds application versions
-#
-class AppVersion
-
-  VERSION_EL_NAME = "version"
-
-  attr_reader :major, :minor, :revision
-
-  #
-  # Create a new Version object
-  # 
-  # - major = major number for this version
-  # - mino = minor number for this version
-  # - revision = revision number for this version
-  #
-  def initialize(major = 0, minor = 0, revision = 0)
-    @major = major
-    @minor = minor
-    @revision = revision
-  end
-
-  #
-  # Return the version definition as an XML element
-  #
-  # [Return] an XML element with the value of this Version object
-  #
-  def to_xml
-    e = REXML::Element.new("version")
-    e.add_element("major").text = major
-    e.add_element("minor").text = minor
-    e.add_element("revision").text = revision
-    return e
-  end
-
-end
-
-
-
-#if $0 == __FILE__
-#  require 'optparse'
-#
-#  xFile = nil
-#  rFile = nil
-#  outFile = $stdout
-#
-#  logConfigFile = 'log/default.xml'
-#
-#
-#  opts = OptionParser.new
-#  opts.banner = "Usage: appDefinition [-h] [options]"
-#
-#  opts.on("-x", "--xml FILE", "App definition in XML format") {|file|
-#    xFile = file
-#  }
-#
-#  opts.on("-r", "--ruby FILE", "App definition in ruby format") {|file|
-#    rFile = file
-#  }
-#
-#  opts.on("-o", "--output FILE", "File to write xml result to") {|file|
-#    outFile = File.new(file, "w")
-#  }
-#
-#  opts.on("-l", "--log FILE", "File containing logging configuration information") {|file|
-#    logConfigFile = file
-#  }
-#
-#  opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
-#  opts.on_tail("-v", "--version", "Show the version") {
-#    puts AppDefinition::VERSION_STRING
-#    exit
-#  }
-#
-#  begin
-#    rest = opts.parse(ARGV)
-#
-#    # create the loggers.
-#    MObject.initLog('appDef', logConfigFile)
-#    MObject.info('init', AppDefinition::VERSION_STRING)
-#    MObject.info('init', "Experiment ID: #{Experiment.ID}")
-#
-#    appDef = nil
-#    if (xFile != nil)
-#      f = File.new(xFile)
-#      doc = REXML::Document.new(f)
-#      appDef = AppDefinition.from_xml(doc.root)
-#    elsif (rFile != nil)
-#      require rFile
-#    end
-#
-#  rescue SystemExit => err
-#    exit
-#  rescue Exception => ex
-#    begin
-#      bt = ex.backtrace.join("\n\t")
-#      puts "Exception: #{ex} (#{ex.class})\n\t#{bt}"
-#    rescue Exception
-#    end
-#    exit(-1)
-#  end
-#
-#
-#end
-
