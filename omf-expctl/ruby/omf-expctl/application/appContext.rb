@@ -119,7 +119,13 @@ class AppContext < MObject
     #acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
     
     nodeSet.send(:exec, *cmd)
-    Communicator.instance.sendAppCmd(acmd)
+    # FIXME:
+    # Here we should send an XML document to the NA.
+    # This would have the context and also later the 
+    # XML config for the OML client on the NA side
+    #
+    #Communicator.instance.sendAppCmd(acmd)
+    #
   end
   
 end # ApplicationContext

@@ -26,8 +26,7 @@
 #
 # == Description
 #
-# This file defines the NodeSet class and its sub-classes: BasicNodeSet, AbstractGroupNodeSet,
-# GroupNodeSet, and RootGroupNodeSet.
+# This file defines the NodeSet class 
 #
 require 'set'
 require 'omf-common/mobject'

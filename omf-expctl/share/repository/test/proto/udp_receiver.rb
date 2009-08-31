@@ -31,17 +31,17 @@ defPrototype("test:proto:udp_receiver") { |p|
   p.name = "UDP_Receiver"
   p.description = "Nodes which receive packets"
 
-  p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
-  p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
-  p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
+  #p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
+  #p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
+  #p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
   p.defProperty('localHost', 'Host that generate the packets', 'localhost')
   p.defProperty('localPort', 'Host that generate the packets', 3000)
 
-  p.addApplication(:otr2, "test:app:otr2") { |otr|
+  p.addApplication("test:app:otr2") { |otr|
 
-    otr.bindProperty('oml-server', 'omlServer')
-    otr.bindProperty('oml-id', 'id')
-    otr.bindProperty('oml-exp-id', 'expId')
+    #otr.bindProperty('oml-server', 'omlServer')
+    #otr.bindProperty('oml-id', 'id')
+    #otr.bindProperty('oml-exp-id', 'expId')
     otr.bindProperty('udp:local_host', 'localHost')
     otr.bindProperty('udp:local_port', 'localPort')
 

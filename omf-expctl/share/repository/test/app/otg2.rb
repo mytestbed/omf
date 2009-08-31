@@ -25,7 +25,7 @@
 #
 # Create an application representation from scratch
 #
-require 'omf-expctl/appDefinition'
+require 'omf-expctl/application/appDefinition'
 
 defApplication('test:app:otg2', 'otg2') {|a|
   a.version(1, 1, 2)
@@ -38,14 +38,16 @@ This version 2 is compatible with OMLv2
 TEXT
 
   # defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-  a.defProperty('oml-server', 'Contact details for the oml collection server')
-  a.defProperty('oml-id', 'ID for this oml client')
-  a.defProperty('oml-exp-id', 'ID for this experiment')
-  a.defProperty('udp:broadcast', 'Broadcast')
-  a.defProperty('udp:dst_host', 'IP address of the Destination')
-  a.defProperty('udp:dst_port', 'Destination Port to send to')
-  a.defProperty('udp:local_host', 'IP address of this Source node')
-  a.defProperty('udp:local_port', 'Local Port of this source node')
+  #a.defProperty('oml-server', 'Contact details for the oml collection server')
+  #a.defProperty('oml-id', 'ID for this oml client')
+  #a.defProperty('oml-exp-id', 'ID for this experiment')
+#
+#
+  a.defProperty('udp:broadcast', 'Broadcast', nil, {:type => :integer, :dynamic => false})
+  a.defProperty('udp:dst_host', 'IP address of the Destination', nil, {:type => :string, :dynamic => false})
+  a.defProperty('udp:dst_port', 'Destination Port to send to', nil, {:type => :integer, :dynamic => false})
+  a.defProperty('udp:local_host', 'IP address of this Source node', nil, {:type => :string, :dynamic => false})
+  a.defProperty('udp:local_port', 'Local Port of this source node', nil, {:type => :integer, :dynamic => false})
   a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
   a.defProperty("cbr:rate", "Data rate of the flow [bps]", nil, {:dynamic => true, :type => :integer})
 

@@ -25,7 +25,7 @@
 #
 # Create an application representation from scratch
 #
-require 'omf-expctl/appDefinition'
+require 'omf-expctl/application/appDefinition'
 
 a = AppDefinition.create('test:app:athstats')
 a.name = "athstats"

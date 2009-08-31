@@ -32,9 +32,9 @@ defPrototype("test:proto:udp_sender") { |p|
   p.name = "UDP_Sender"
   p.description = "A node which transmit a stream of packets over multiple paths"
   # List properties of prototype
-  p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
-  p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
-  p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
+  #p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
+  #p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
+  #p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
   p.defProperty('destinationHost', 'Host to send packets to')
   p.defProperty('destinationPort', 'Host to send packets to',3000)
   p.defProperty('localHost', 'Host that generate the packets', 'localhost')
@@ -48,10 +48,10 @@ defPrototype("test:proto:udp_sender") { |p|
   # and finally, define what measurements should be collected
   # for each application.
   #
-  p.addApplication(:otg2, "test:app:otg2") {|otg|
-    otg.bindProperty('oml-server', 'omlServer')
-    otg.bindProperty('oml-id', 'id')
-    otg.bindProperty('oml-exp-id', 'expId')
+  p.addApplication("test:app:otg2") {|otg|
+    #otg.bindProperty('oml-server', 'omlServer')
+    #otg.bindProperty('oml-id', 'id')
+    #otg.bindProperty('oml-exp-id', 'expId')
     otg.bindProperty('udp:broadcast', 'broadcast')	
     otg.bindProperty('udp:dst_host', 'destinationHost')
     otg.bindProperty('udp:dst_port', 'destinationPort')

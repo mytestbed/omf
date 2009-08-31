@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-require 'omf-expctl/appDefinition'
+require 'omf-expctl/application/appDefinition'
 
 defApplication('test:app:otr2_mp', 'otr2_mp') { |a|
 

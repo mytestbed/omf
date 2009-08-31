@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-require 'handler/appDefinition'
+require 'handler/application/appDefinition'
 
 defApplication('test:app:wlanconfig_oml2', 'wlanconfig_oml2') { |a|
 

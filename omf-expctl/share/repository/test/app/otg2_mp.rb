@@ -25,7 +25,7 @@
 #
 # Create an application representation from scratch
 #
-require 'omf-expctl/appDefinition'
+require 'omf-expctl/application/appDefinition'
 
 defApplication('test:app:otg2_mp', 'otg2_mp') {|a|
   a.version(1, 1, 2)

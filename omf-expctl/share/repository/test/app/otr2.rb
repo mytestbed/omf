@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-require 'omf-expctl/appDefinition'
+require 'omf-expctl/application/appDefinition'
 
 defApplication('test:app:otr2', 'otr2') { |a|
 
@@ -35,11 +35,11 @@ This version 2 is compatible with OMLv2.
 TEXT
 
   #defProperty(name, description, mnemonic = nil, options = nil)
-  a.defProperty('oml-server', 'Contact details for the oml collection server')
-  a.defProperty('oml-id', 'ID for this oml client')
-  a.defProperty('oml-exp-id', 'ID for this experiment')
-  a.defProperty('udp:local_host', 'IP address of this Destination node')
-  a.defProperty('udp:local_port', 'Receiving Port of this Destination node')
+  #a.defProperty('oml-server', 'Contact details for the oml collection server')
+  #a.defProperty('oml-id', 'ID for this oml client')
+  #a.defProperty('oml-exp-id', 'ID for this experiment')
+  a.defProperty('udp:local_host', 'IP address of this Destination node', nil, {:type => :string, :dynamic => false})
+  a.defProperty('udp:local_port', 'Receiving Port of this Destination node', nil, {:type => :integer, :dynamic => false})
   #a.defProperty('sink', 'Processing to do with received packets [udpi|udpmi]', nil, {:type => :string, :dynamic => false})
   #a.defProperty('udpmi:local_host', 'IP address of the local host ', nil, {:type => :string, :dynamic => false})
   #a.defProperty("debug-level", "debug level [integer]")
