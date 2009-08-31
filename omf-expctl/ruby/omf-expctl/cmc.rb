@@ -35,6 +35,11 @@ module CMC
   # Holds the list of active nodes for this experiment
   @@activeNodes = nil
 
+  # Syntactic sugar...
+  # Return the URL of the CMC service from OConfig
+  #
+  def CMC.URL() return OConfig[:tb_config][:default][:cmc_url] end
+
   #
   # Switch a given node ON
   #
@@ -45,7 +50,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts ">> CMC: Switch on node #{x}@#{y}"
     else
-      url = "#{OConfig.CMC_URL}/on?x=#{x}&y=#{y}"
+      url = "#{CMC.URL}/on?x=#{x}&y=#{y}"
       MObject.debug("CMC", "up ", url)
       begin
         NodeHandler.service_call(url, "Can't switch on node #{x}:#{y}")
@@ -64,7 +69,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts ">> CMC: Switch on nodes #{set}"
     else
-      url = "#{OConfig.CMC_URL}/nodeSetOn?nodes=#{set}"
+      url = "#{CMC.URL}/nodeSetOn?nodes=#{set}"
       MObject.debug("CMC", "up ", url)
       NodeHandler.service_call(url, "Can't switch on nodes #{set}")
     end
@@ -81,7 +86,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{x}@#{y}"
     else
-      url = "#{OConfig.CMC_URL}/offHard?x=#{x}&y=#{y}"
+      url = "#{CMC.URL}/offHard?x=#{x}&y=#{y}"
       MObject.debug("CMC", "down ", url)
       NodeHandler.service_call(url, "Can't switch off node #{x}:#{y}")
     end
@@ -98,7 +103,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{x}@#{y}"
     else
-      url = "#{OConfig.CMC_URL}/offSoft?x=#{x}&y=#{y}&domain=#{OConfig.GRID_NAME}"
+      url = "#{CMC.URL}/offSoft?x=#{x}&y=#{y}&domain=#{OConfig.domain}"
       MObject.debug("CMC", "down ", url)
       NodeHandler.service_call(url, "Can't switch off node #{x}:#{y}")
     end
@@ -112,7 +117,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Get Specified Nodes For a Domain"
     else
-      url = "#{OConfig.CMC_URL}/getNodes?nodes=#{set}"
+      url = "#{CMC.URL}/getNodes?nodes=#{set}"
       MObject.debug("CMC", "up ", url)
       response = NodeHandler.service_call(url, "Can't get specified nodes")
       response.body
@@ -128,7 +133,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Get All Nodes For a Domain"
     else
-      url = "#{OConfig[:tb_config][:default][:cmc_url]}/getAllNodes"
+      url = "#{CMC.URL}/getAllNodes"
       MObject.debug("CMC", "up ", url)
       response = NodeHandler.service_call(url, "Can't get All nodes")
       response.body
@@ -144,7 +149,7 @@ module CMC
       puts "CMC: Get All Active Nodes For a Domain"
     else
       # NOTE: We should really use 'allStatus' and parse it properly
-      url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{OConfig.GRID_NAME}"
+      url = "#{CMC.URL}/allStatus?domain=#{OConfig.domain}"
       response = NodeHandler.service_call(url, "Can't get All Active nodes")
       doc = REXML::Document.new(response.body)
       @@activeNodes = {}
@@ -188,7 +193,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off hard node"
     else
-      url = "#{OConfig.CMC_URL}/allOffHard?"
+      url = "#{CMC.URL}/allOffHard?"
       MObject.debug("CMC", "all off HARD")
       NodeHandler.service_call(url, "Can't switch off hard nodes")
     end
@@ -202,7 +207,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off soft node"
     else
-      url = "#{OConfig.CMC_URL}/allOffSoft?domain=#{OConfig.GRID_NAME}"
+      url = "#{CMC.URL}/allOffSoft?domain=#{OConfig.domain}"
       MObject.debug("CMC", "up ", url)
       NodeHandler.service_call(url, "Can't switch off soft nodes")
     end
@@ -219,7 +224,7 @@ module CMC
       puts "CMC: Reset node #{x}@#{y} (#{response})"
     else
       CMC.nodeOn(x,y)
-      url = "#{OConfig.CMC_URL}/reset?x=#{x}&y=#{y}&domain=#{OConfig.GRID_NAME}"
+      url = "#{CMC.URL}/reset?x=#{x}&y=#{y}&domain=#{OConfig.domain}"
       begin
         response = NodeHandler.service_call(url, "Can't reset node #{x}:#{y}")
       rescue Exception => ex

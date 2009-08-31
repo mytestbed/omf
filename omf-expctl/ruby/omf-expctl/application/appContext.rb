@@ -77,12 +77,9 @@ class AppContext < MObject
   def startApplication(nodeSet)
     debug("Starting application '#@id'")
 
-    # With OMLv2 the collection server can be started as soon as NH is running
-    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
-    #OmlApp.startCollectionServer
     unless @app.measurements.empty?
       # add OML environment
-      @env['OML_SERVER'] = OConfig.OML_SERVER_URL
+      @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_server_url]
       @env['OML_ID'] = Experiment.ID
       @env['OML_NODE_ID'] = '%node_id'
       
@@ -95,16 +92,19 @@ class AppContext < MObject
     acmd.group = nodeSet.groupName
     acmd.procID = @id
     acmd.env = @env
+
+    info "TDEBUG - 1 - acmd: '#{acmd}'"
     
     cmd = [@id, 'env', '-i']
     @env.each {|name, value|
       cmd << "#{name}=#{value}"
     }
-    
 
     appDefinition = @app.appDefinition
     cmd << appDefinition.path
     acmd.path = appDefinition.path
+
+    info "TDEBUG - 2 - cmd: '#{cmd}'"
     
     pdef = appDefinition.properties
     # check if bindings contain unknown parameters

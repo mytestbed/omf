@@ -42,7 +42,7 @@ require 'omf-expctl/agentCommands'
 # send/receive messages to/from the Node Handler (NH) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
-class XmppCommunicator < MObject
+class XmppCommunicator < Communicator
 
   DOMAIN = "Domain"
   SYSTEM = "System"

@@ -152,15 +152,6 @@ module OConfig
     return self.getConfigFromInventoryByKey('pxe_url')
   end
 
-  #
-  # Return the URL of the CMC service
-  #
-  # [Return] an URL string
-  #
-  def self.CMC_URL()
-    return self.getConfigFromInventoryByKey('cmc_url')
-  end
-
   
   #
   # Return the URL of the OML server used for this experiment

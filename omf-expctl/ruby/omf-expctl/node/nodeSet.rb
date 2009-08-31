@@ -1,0 +1,634 @@
+#
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+# = nodeSet.rb
+#
+# == Description
+#
+# This file defines the NodeSet class and its sub-classes: BasicNodeSet, AbstractGroupNodeSet,
+# GroupNodeSet, and RootGroupNodeSet.
+#
+require 'set'
+require 'omf-common/mobject'
+require 'omf-expctl/prototype'
+require 'omf-expctl/node/node'
+require 'omf-expctl/experiment'
+require 'observer'
+
+#
+# This abstract class represents a set of nodes on which
+# various operations can be performed in parallel
+#
+class NodeSet < MObject
+
+  include Observable
+
+  #
+  # Return an existing NodeSet
+  #
+  # - groupName = the name of the group of node to return, if '*' returns 
+  #               the Root NodeSet, i.e. the NodeSet with all the existing NodeSets
+  #
+  # [Return] an instance of an existing NodeSet
+  #
+  def self.[](groupName)
+    if (groupName == "*")
+      return NodeSet.ROOT
+    end
+    return @@groups[groupName]
+  end
+
+  #
+  # Return the Root NodeSet, i.e. the NodeSet with all the existing NodeSets
+  #
+  # [Return] an instance of the NodeSet, which holds all the existing NodeSets
+  #
+  def self.ROOT
+    return RootGroupNodeSet.instance
+  end
+
+  #
+  # Return the value of the 'frozen' flag.
+  #
+  # [Return] true or false
+  #
+  def self.frozen?
+    @@is_frozen
+  end
+
+  #
+  # Set the value of the 'frozen' flag. When set, no changes can be done to any NodeSets.
+  # Basically, this is called at the end of the resource description of an experiment, just
+  # before processing the execution steps of the experiment. This prevent experimenters/operators
+  # to modify the set of resources (e.g. nodes) allocated to an experiment, once its execution is
+  # being staged.
+  #
+  def self.freeze
+    @@is_frozen = true
+  end
+
+  #
+  # Reset all class state. Specifically forget all node set declarations.
+  # This is primarily used by the test suite.
+  #
+  def self.reset()
+    @@groupCnt = 0
+    @@groups = Hash.new
+    @@execsCount = 0
+    @@is_frozen = false
+  end
+
+
+  # Counter of anonymous groups
+  @@groupCnt = 0
+
+  # keep track of all the groups (which are named node sets)
+  @@groups = Hash.new
+
+  # Count issued commands to obtain unique ID
+  @@execsCount = 0
+
+  # Make sure that no node set are created after 'allNodes' has been used
+  @@is_frozen = false
+
+  attr_reader :groupName
+
+  #
+  # Create a new instance of NodeSet.
+  # The additional 'groupName' parameter will associate a group name with this node set. 
+  # All the nodes defined by the selector can from then on be addressed by 
+  # the selector "/groupName/*".
+  #
+  # - groupName = Optional name for specific node sets
+  #
+  def initialize(groupName = nil)
+    # for safety!
+    if self.frozen?
+      raise "Can't define any more nodes after 'allNodes' has been called"
+    end
+    @mutex = Mutex.new
+    @applications = Hash.new
+    @deferred = [] # store any messages if nodes aren't up yet
+    @onUpBlock = nil # Block to execute for every node checking in
+    @groupName = groupName != nil ? groupName.to_s : nil
+    if @groupName == nil
+      @groupName = "_#{@@groupCnt += 1}"
+    else
+      if @groupName[0] == '/'[0]
+        @groupName = @groupName[1..-1]
+      end
+    end
+    super("set::#{@groupName}") # set debug name
+    if (groupName == "_ALL_")
+      @nodeSelector = "*"
+    else
+      @nodeSelector = "#{@groupName}"
+      eachNode { |n|
+        n.addGroupName(@groupName)
+      }
+      add_observer(NodeSet.ROOT)
+      @@groups[@groupName] = self
+    end
+    eachNode { |n|
+      n.add_observer(self)
+    }
+  end
+
+#  # Return the application context labeled +appId+
+#  #
+#  # - appId = Application context label
+#  #
+#  def application(id)
+#    return @applications[id]
+#  end
+  
+  #
+  # This method adds an application which is associated with this node set
+  # This application will be started when 'startApplications'
+  # is called
+  #
+  # - appCtxt = the Application Context to add (AppContext). This context
+  #                holds the Application name, its binding, environments,...
+  #
+  def addApplication(appCtxt)
+    @applications[appCtxt.id] = appCtxt
+  end
+
+  #
+  # This method starts the application with ID 'name'
+  # This application has to have been added with 'addApplication'
+  # before.
+  #
+  # This method will create the command by querying the applciation's
+  # definition class and obtain parameters from either the fixed settings
+  # or the current value of experiment variables.
+  #
+  # - name = Virtual name of application
+  #
+  def startApplication(name)
+    ctxt = @applications[name]
+    raise OEDLIllegalArgumentException.new(:group, :name) unless ctxt
+    ctxt.startApplication(self)
+    
+#    raise "SHOULDN'T #{ctxt}"
+#    debug("Starting application '", name, "'")
+#    if (ctxt == nil)
+#      raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
+#    end
+#
+#    # With OMLv2 the collection server can be started as soon as NH is running
+#    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
+#    #OmlApp.startCollectionServer
+#
+#    app = ctxt[:app]
+#    bindings = ctxt[:bindings]
+#    env = ctxt[:env]
+#    appDef = app.appDefinition
+#    procName = "app:#{name}"
+#    cmd = [procName, 'env', '-i']
+#    if (env != nil)
+#      env.each {|name, value|
+#        cmd << "#{name}=#{value}"
+#      }
+#    end
+#
+#    cmd << appDef.path
+#    pdef = appDef.properties
+#    # check if bindings contain unknown parameters
+#    if (bindings != nil)
+#      if (diff = bindings.keys - pdef.keys) != []
+#        raise "Unknown parameters '#{diff.join(', ')}'" \
+#          + " not in '#{pdef.keys.join(', ')}'."
+#      end
+#      cmd = appDef.getCommandLineArgs(procName, bindings, self, cmd)
+#    end
+#    send(:exec, *cmd)
+  end
+
+  #
+  # This method starts all the applications associated with this nodeSet
+  #
+  def startApplications()
+    debug("Start all applications")
+    @applications.each_key { |name|
+      startApplication(name)
+    }
+  end
+
+  #
+  # This method stops the application with ID 'name'
+  # This application has to have been added 'addApplication'
+  # before.
+  #
+  # - name = Virtual name of application
+  #
+  def stopApplication(name)
+    debug("Stoppping application '", name, "'")
+    ctxt = @applications[name]
+    if (ctxt == nil)
+      raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
+    end
+    procName = "app:#{name}"
+    send(:STDIN, procName, 'exit')
+  end
+
+  #
+  # This method stops all the applications associated with this nodeSet
+  #
+  def stopApplications()
+    debug("Stop all applications")
+    @applications.each_key { |name|
+      stopApplication(name)
+    }
+  end
+
+  #
+  # This method runs a command on all nodes within this set.
+  #
+  # - cmdName = the name of the executable. It should be a path if it is not
+  #          in the agents search path. 
+  # - args = is an optional array of arguments. If an argument starts with a '%', 
+  #          each node will replace placeholders, such as %x, %y, or %n with the local values. 
+  # - env = is an optional Hash of environment variables and their repsective values which will
+  #          be set before the command is executed. Again, '%' substitution will occur on the values.
+  # - &block = an optional block with arity 4, which will be called whenever a message is received
+  #          from a node executing this command. The arguments of the block are for 
+  #          'node, operation, eventName, message'.
+  #
+  def exec(cmdName, args = nil, env = nil, &block)
+    debug("Running application '", cmdName, "'")
+    procName = "exec:#{@@execsCount += 1}"
+    
+    if (block.nil?)
+      block = Proc.new do |node, op, eventName, message|
+        prompt = "#{cmdName.split(' ')[0]}@#{node}"
+        case eventName
+        when 'STDOUT'
+          debug "Message (from #{prompt}):  #{message}"
+        when 'STARTED'
+          # ignore 
+        else
+          debug "Event #{eventName} (from #{prompt}): #{message}"
+        end
+      end
+    end
+    
+    # TODO: check for blocks arity.
+    eachNode { |n|
+      n.exec(procName, cmdName, args, env, &block)
+    }
+    cmd = [procName]
+
+    if (env != nil)
+      cmd += ['env', '-i']
+      env.each {|name, value|
+        cmd << "#{name}=#{value}"
+      }
+    end
+    cmd << cmdName
+    
+    if (args != nil)
+      args.each {|arg|
+        if arg.kind_of?(ExperimentProperty)
+          cmd << arg.value
+        else
+          cmd << arg.to_s
+        end
+      }
+    end
+    send(:exec, *cmd)
+  end
+
+  #
+  # This method returns true if all nodes in this set are up
+  #
+  # [Return] true if all nodes in set are up
+  #
+  def up?
+    return inject(true) { |flag, n|
+      #debug "Checking if #{n} is up"
+      if flag
+        if ! n.isUp
+          debug n, " is not up yet."
+          flag = false
+        end
+      end
+      flag
+    }
+  end
+
+  #
+  # This method set the resource 'path' on all nodes in this
+  # set to 'value'
+  #
+  # - path = Path to resource
+  # - value = New value (Nil or a String or a Hash) 
+  #
+  def configure(path, value)
+    case value.class.to_s
+      when "ExperimentProperty"
+        value.onChange { |v|
+          configure(path, v)
+        }
+        valueToSend = value.value
+      when "String" 
+        valueToSend = value.to_s
+      when "Hash"
+        valueToSend = "{"
+        value.each {|k,v|
+          valueToSend << ":#{k} => '#{v}', " 
+        }
+        valueToSend << "}"
+      else
+        valueToSend = ""
+    end
+    # Notify each node to update their state trace with this Configure command
+    eachNode {|n|
+      n.configure(path, value)
+    }
+    send(:CONFIGURE, path.join('/'), valueToSend.to_s)
+  end
+
+  #
+  # This method executes a block of command for every node in this set
+  # when it comes up. Note, we currently only support one block.
+  #
+  # - &block = the block of command to execute
+  #
+  def onNodeUp(&block)
+    @onUpBlock = block
+  end
+
+  #
+  # This method builds and activates the MAC address blacklists (if any)
+  # on all the nodes in this NodeSet
+  #
+  # - path = the full xpath used when setting the MAC filtering
+  # - value = the value given to that xpath when setting it
+  #
+  def setMACFilteringTable(path, value)
+    theTopo = value[:topology]
+    theTool = value[:method]
+    theDevice = path[-2]
+    # FIXME: This is a TEMPORARY hack !
+    # Currently the Inventory contains only info of interfaces such as "athX"
+    # This should not be the case, and should be fixed soon! When the Inventory
+    # will be "clean", we will have to modify the following interface definition
+    if theDevice.to_s == "w0"
+      theInterface = "ath0"
+    else
+      theInterface = "ath1"
+    end
+    Topology[theTopo].buildMACBlackList(theInterface, theTool)
+  end
+
+  # 
+  # Send a 'SET_DISCONNECT' message to the Node Agent(s) running on the 
+  # nodes/resources involved in this experiment.
+  # This message will also inform the NA of: the experiment ID, the URL
+  # where they can retrieve the experiment description (served by the NH
+  # webserver), and the contact info for the OML collection server.
+  #
+  def switchDisconnectionON
+    send(:SET_DISCONNECT, "#{Experiment.ID}", "#{NodeHandler.instance.expFileURL}", "#{OmlApp.getServerAddr}", "#{OmlApp.getServerPort}")
+  end
+
+  #
+  # This method sets the boot image of the nodes in this nodeSet
+  # If the 'setPXE' flag is 'true' (default), then the nodes in this set
+  # will be configured to boot from their assigned PXE image over the network. 
+  # (the name of the assigned PXE image is hold in the Inventory, the PXE service
+  # is responsible for retrieving this name and setting up the network boot).
+  # If the 'setPXE' flag is 'false' then the node boots from the images on their
+  # local disks.
+  #
+  # - domain = name of the domain (testbed) of this nodeSet
+  # - setPXE = true/false (default 'true') 
+  #
+  def pxeImage(domain = '', setPXE = true)
+    if (domain == '')
+      domain = "#{OConfig.GRID_NAME}"
+    end   
+    if NodeHandler.JUST_PRINT
+      if setPXE
+        puts ">> PXE: Boot into network PXE image for node set #{self} in #{domain}"
+      else
+        puts ">> PXE: Boot from local disk for node set #{self} in #{domain}"
+      end
+    else
+      if setPXE # set PXE
+        @pxePrefix = "#{OConfig.PXE_SERVICE}/setBootImageNS?domain=#{domain}&ns="
+      else # clear PXE
+        @pxePrefix = "#{OConfig.PXE_SERVICE}/clearBootImageNS?domain=#{domain}&ns="
+      end
+      setPxeEnvMulti()
+    end
+  end
+
+  #
+  # This method sets environment for booting a node through or throughout PXE.
+  # This should only be called from 'pxeImage', or any following methods
+  # which may reset a node and want to restore the original environment.
+  #
+  # - node = the node to consider
+  #
+  def setPxeEnv(node)
+    if (@pxePrefix != nil)
+      ns = "[#{node.x},#{node.y}]"
+      url = @pxePrefix + ns
+      debug "PXE: #{url}"
+      NodeHandler.service_call(url, "Error requesting PXE image")
+      node.image = "pxe:image"
+    end
+  end
+
+  #
+  # This method sets environment for booting multiple nodes through or
+  # throughout PXE. This should only be called from 'pxeImage', or any 
+  # following methods which may reset a node and want to restore the 
+  # original environment.
+  #
+  def setPxeEnvMulti()
+    if (@pxePrefix != nil)
+      nsArray = []
+      eachNode { |n|
+          nsArray << "[#{n.x},#{n.y}]"
+      }
+      nset = "[#{nsArray.join(",")}]"
+      url = @pxePrefix + nset
+      debug "PXE: #{url}"
+      NodeHandler.service_call(url, "Error requesting PXE image")
+      eachNode { |n|
+        n.image = "pxe:image"
+        CMC.nodeReset(n.x,n.y)
+      }
+    end
+  end
+
+  #
+  # This method sets the name of the image to expect on all nodes in this set
+  #
+  # - imageName = name of the image
+  #
+  def image=(imageName)
+    eachNode { |n|
+      n.image = imageName
+    }
+  end
+
+  #
+  # This method loads an image onto the disk of each node in the
+  # node set. This assumed the node booted into a PXE image
+  #
+  # - image = Image to load onto node's disk
+  # - domain = testbed for this node (optional, default= default testbed for this NH)
+  # - disk = Disk drive to load (default is given by OConfig.DEFAULT_DISK)
+  #
+  def loadImage(image, domain = '', disk = OConfig.DEFAULT_DISK)
+    if (domain == '')
+      domain = "#{OConfig.GRID_NAME}"
+    end
+    if NodeHandler.JUST_PRINT
+      puts ">> FRISBEE: Prepare image #{image} for set #{self}"
+      mcAddress = "Some_MC_address"
+      mcPort = "Some_MC_port"
+    else
+      # get frisbeed address
+      url = "#{OConfig.FRISBEE_SERVICE}/getAddress?domain=#{domain}&img=#{image}"
+      response = NodeHandler.service_call(url, "Can't get frisbee address")
+      mcAddress, mcPort = response.body.split(':')
+    end
+    opts = {:disk => disk, :mcAddress => mcAddress, :mcPort => mcPort}
+    eachNode { |n|
+      n.loadImage(image, opts)
+    }
+    debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
+    send('LOAD_IMAGE', mcAddress, mcPort, disk)
+  end
+
+  #
+  # This method stops an Image Server once the image loading on each 
+  # node in the nodeSet is done. 
+  # This assumed the node booted into a PXE image
+  #
+  # - image = Image to load onto node's disk
+  # - domain = testbed for this node (optional, default= default testbed for this NH)
+  # - disk = Disk drive to load (default is given by OConfig.DEFAULT_DISK)
+  #
+  def stopImageServer(image, domain = '', disk = OConfig.DEFAULT_DISK)
+    if (domain == '')
+      domain = "#{OConfig.GRID_NAME}"
+    end
+    if NodeHandler.JUST_PRINT
+      puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
+    else
+      # stop the frisbeed server on the Gridservice side
+      debug "Stop server of image #{image} for domain #{domain}"
+      url = "#{OConfig.FRISBEE_SERVICE}/stop?domain=#{domain}&img=#{image}"
+      response = NodeHandler.service_call(url, "Can't stop frisbee daemon on the GridService")
+      if (response.body != "OK")
+        error "Can't stop frisbee daemon on the GridService - image: '#{image}' - domain: '#{domain}'"
+        error "GridService's response to stop call: '#{response.body}'"
+      end
+    end
+  end
+
+  #
+  # This method sends a command to all nodes in this nodeSet 
+  #
+  # - command = Command to send
+  # - args = Array of parameters
+  #
+  def send(command, *args)
+    debug("#send: args(#{args.length})'#{args.join('#')}")
+    notQueued = true
+    @mutex.synchronize do
+      if (!up?)
+        debug "Deferred message: #{command} #{@nodeSelector} #{args.join(' ')}"
+        @deferred << [command, args]
+        notQueued = false
+      end
+    end
+    if (up? && notQueued)
+      Communicator.instance.send(@nodeSelector, command, args)
+      return
+    end
+  end
+
+  #
+  # This method is called by an observable entity (which this NodeSet is 'observing') to report some change(s)
+  #
+  # - sender = the entity that called this method
+  # - code = the description of the change(s) to report
+  #
+  def update(sender, code)
+    #debug "nodeSet (#{to_s}) update: #{sender} #{code}"
+    if ((code == :node_is_up) || (code == :node_is_removed))
+      if (up?)
+        update(self, :group_is_up)
+        changed
+        notify_observers(self, :group_is_up)
+      end
+      if @onUpBlock != nil
+        begin
+          @onUpBlock.call(sender)
+        rescue Exception => err
+          error("onUpBlock threw exception for #{sender}: #{err}")
+        end
+      end
+    elsif (code == :group_is_up)
+      send_deferred
+    elsif (code == :before_resetting_node)
+      setPxeEnv(sender)
+    end
+  end
+
+  #
+  # This method sends all the deferred messages (if any) when 
+  # all the nodes in this nodeSet are up
+  #
+  def send_deferred()
+    thesize = 0
+    @mutex.synchronize do
+     thesize = @deferred.size
+    end # synchronize
+    if (thesize > 0 && up?)
+      da = @deferred
+      @deferred = []
+      da.each { |e|
+        command = e[0]
+        args = e[1]
+        debug "send_deferred(#{args.class}:#{args.length}):#{args.join('#')}"
+        send(command, *args)
+      }
+    end
+  end
+
+  #
+  # Return a String text describing this NodeSet
+  #
+  def to_s
+    @nodeSelector
+  end
+end

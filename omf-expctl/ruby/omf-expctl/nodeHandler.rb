@@ -35,10 +35,6 @@
 # reader will see both terms 'EC' and 'NH' used in the code.
 #
 
-
-### THIS require HAS TO COME FIRST! See http://omf.mytestbed.net/issues/show/19
-#require 'omf-expctl/xmppCommunicator'
-
 require 'omf-expctl/version'
 
 ###
@@ -47,13 +43,6 @@ require 'benchmark'
 require 'thread'  # Queue class
 require 'net/http'
 require 'omf-expctl/exceptions'
-# IMPORTANT 
-# The mobject needs to be required after xmpp4r (required via oconfig)
-# This is because xmpp4r uses ruby's default 'logger' while mobject uses 'log4r'
-# When the order is not right, logging would broke, and other things with it
-# Really know what you are doing if you want to change this order!
-#require 'omf-expctl/oconfig'
-#require 'omf-common/mobject'
 require 'omf-common/mobject'
 require 'omf-expctl/communicator.rb'
 require 'omf-expctl/oconfig'
@@ -62,7 +51,10 @@ require 'singleton'
 require 'omf-expctl/version'
 require 'omf-expctl/traceState'
 require 'omf-expctl/experiment'
-require 'omf-expctl/nodeSet'
+require 'omf-expctl/node/basicNodeSet'
+require 'omf-expctl/node/groupNodeSet'
+require 'omf-expctl/node/rootGroupNodeSet'
+require 'omf-expctl/node/rootNodeSetPath'
 
 require 'rexml/document'
 require 'rexml/element'
