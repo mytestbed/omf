@@ -27,6 +27,12 @@
 # This file abstracts the communicator used 
 #
 
+#
+# This class defines the Communicator used by this Experiment Controller.
+# Different type of Communicator can be used, depending on the EC config file.
+# This class is the access point to the selected Communicator.
+# (The 'real' communicator class needs to sub-class this one)
+#
 class Communicator < MObject
   
   def self.instance()
@@ -47,9 +53,27 @@ class Communicator < MObject
     end
   end
   
-  def getAppCmd()
-    @appCmdStruct ||= Struct.new(:group, :procID, :env, :path, :cmdLine, :omlConfig)
-    cmd = @appCmdStruct.new()
+  #
+  # Return an Object which will hold all the information required to send 
+  # a command to the resources.
+  # By default this Object is a structure. However, different type of 
+  # communicators (i.e. sub-classes of this class) can define their own type
+  # for the Command Object.
+  # 
+  # The returned Command Object should have the following public accessors:
+  # - type = type of the command
+  # - group = name of the group to which this command is addressed
+  # - procID = name of this command
+  # - env = a Hash with the optional environment to set for this command (optional)
+  # - path = the full path to the application for this command
+  # - cmdLineArgs = an Array with the full command line arguments to append to this command (optional)
+  # - omlConfig =  an XML configuration element for OML (optional)
+  #
+  # [Return] an Object holding all the information to execute an application 
+  #
+  def getCmdObject()
+    @cmdStruct ||= Struct.new(:type, :group, :procID, :env, :path, :cmdLineArgs, :omlConfig)
+    cmd = @cmdStruct.new()
     cmd.env = {}
     cmd
   end

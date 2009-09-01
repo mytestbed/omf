@@ -32,6 +32,7 @@
 #
 
 require "omf-common/omfPubSubService"
+#require "omf-common/omfPubSubCommandObject"
 require 'omf-common/lineSerializer'
 require 'omf-common/mobject'
 require 'omf-expctl/agentCommands'
@@ -47,7 +48,6 @@ class XmppCommunicator < Communicator
   DOMAIN = "Domain"
   SYSTEM = "System"
   SESSION = "Session"
-
 
   @@instance = nil
     
@@ -165,6 +165,7 @@ class XmppCommunicator < Communicator
   #############################################################################################################  
   #############################################################################################################  
   #############################################################################################################
+  
   #
   # This method sends a message to one or multiple nodes
   # Format: <command arg1 arg2 ...>
@@ -258,6 +259,53 @@ class XmppCommunicator < Communicator
   def quit()
     @@service.remove_all_pubsub_nodes
     @@service.quit
+  end
+
+  #
+  # This method sends a command to one or multiple nodes.
+  # The command to send is passed as a Command Object.
+  # This implementation of an XMPP communicator uses the default Struct 
+  # format from the super-class Communicator as the type of the Command Object
+  # (see Communicator.getCmdObject for more details)
+  #
+  # - cmdObj = the Command Object to format and send
+  #
+  # The Command Object should have the following public accessors:
+  # - group = name of the group to which this command is addressed
+  # - procID = name of this command
+  # - env = a Hash with the optional environment to set for this command (optional)
+  # - path = the full path to the application for this command
+  # - cmdLineArgs = an Array with the full command line arguments to append to this command (optional)
+  # - omlConfig =  an XML configuration element for OML (optional)
+  #
+  def sendCmdObject(cmdObj)
+    target = cmdObj.group
+    msg = REXML::Document.new
+    msg << REXML::Element.new("#{cmdObj.type.to_s}")
+    msg.root << REXML::Element.new("ID").add_text("#{cmdObj.procID}")
+    msg.root << REXML::Element.new("GROUP").add_text("#{cmdObj.group}")
+    msg.root << REXML::Element.new("PATH").add_text("#{cmdObj.path}")
+    msg.root << REXML::Element.new("ARGS").add_text("#{cmdObj.cmdLineArgs.join(" ")}")
+    if !cmdObj.env.empty? 
+      line = ""
+      env.each { |k,v|
+        line << "#{k.to_s}=#{v.to_s}"  
+      }
+      msg.root << REXML::Element.new("ENV").add_text("#{line}")
+    end
+    if cmdObj.omlConfig != nil
+      msg.root << cmdObj.omlConfig # ASSUME that omlConfig is a REXML::Element!
+    end
+
+    if (target == "*")
+      send!(msg.to_s, "#{@@expNode}")
+    else
+      targets = target.split(' ')
+      targets.each {|tgt|
+        send!(msg, "#{@@expNode}/#{tgt}")
+      }
+    end
+    info "TDEBUG - XML - #{msg.to_s}"
   end
   
   #############################################################################################################  

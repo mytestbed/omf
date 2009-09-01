@@ -502,6 +502,46 @@ class NodeAgent < MObject
     end
   end
 
+  #
+  # Execute a command received from the Eexperiment Controller
+  #
+  # - cmdObj = an Object holding all the information to execute a 
+  #            given command (name, parameters,...)
+  #
+  # TODO: for the moment this is only used when an XML EXECUTE command is 
+  # received, because we need to get the OML configuration (in XML). In the
+  # future, all comms between EC and RC should use this scheme, and this should
+  # be more clean.
+  #
+  def execCommand2(cmdObj)
+   
+    @cmdStruct ||= Struct.new(:type, :group, :procID, :env, :path, :cmdLineArgs, :omlConfig)
+    cmd = @cmdStruct.new()
+    cmd.type = cmdObj.expanded_name
+    cmdObj.each_element("ID") { |e| cmd.procID = e.text }
+    cmdObj.each_element("GROUP") { |e| cmd.group = e.text }
+    cmdObj.each_element("PATH") { |e| cmd.path = e.text }
+    cmdObj.each_element("ARGS") { |e| cmd.cmdLineArgs = e.text }
+
+    debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.procID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}'"
+    method = nil
+    begin
+      method = AgentCommands.method(cmd.type)
+    rescue Exception
+      error "Unknown command '#{cmd.type}'"
+      send(:ERROR, :UNKNOWN_CMD, cmd.type)
+      return
+    end
+    begin
+      reply = method.call(self, cmd)
+    rescue Exception => err
+      error "While executing #{cmd.type}: #{err}"
+      send(:ERROR, :EXECUTION, cmd.type, err)
+      return
+    end
+  end
+
+
   ################################################
   private
 

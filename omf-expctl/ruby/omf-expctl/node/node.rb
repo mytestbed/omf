@@ -599,7 +599,8 @@ class Node < MObject
       # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
       # from the PubSub server (at least openfire works this way). It would then potentially
       # try to subscribe to nodes from a past experiment.
-      communicator.sendNoop(@nodeId)
+      #communicator.sendNoop(@nodeId)
+      Communicator.instance.sendNoop(@nodeId)
     end
     TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
     #@heartbeat.add_attribute('ts', timestamp)

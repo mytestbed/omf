@@ -202,56 +202,68 @@ class AppDefinition < MObject
   #
   # [Return] the complete resulting array of command line arguments
   #
-  def getCommandLineArgs(procName, bindings, nodeSet, cmd = [])
-
-    @properties.sort.each {|a|
-      name = a[0]
-      prop = a[1]
-      type = prop.type
-      if ((value = bindings[name]) != nil)
-        # This Property is a Dynamic Experiment Property...
-        if value.kind_of?(ExperimentProperty)
-          value.onChange { |v|
-            nodeSet.send(:STDIN, procName, prop.name, v)
-          }
-          if (value = value.value) == nil
-            next # continue with the next property
-          end
-        end
-      	# This Property is a Static Initialization Property 
-      	# First, check if it has the correct type
-        case type
-        when :integer, :int
-          if !value.kind_of?(Integer)
-            raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
-        	end
-    	  when :string
-    	    if !value.kind_of?(String)
-    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
-    	    end
-    	  when :boolean
-    	    if ((value != false) && (value != true)) 
-    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
-    	    end
-    	  when nil
-    	  when ExperimentProperty
-    	    #do nothing...
-    	  else
-    	    raise "Unknown type '#{type}' for Property '#{name}'" 
-        end
-      	# Second, add the corresponding flag+value to command line, if required
-      	if (((type == :boolean) && (value == true)) || (type != :boolean))
-          cmd << prop.commandLineFlag
-       	  if ((type != :boolean) && (value != nil))
-            cmd << value
-          end
-    	  end
-      end
-    }
-    return cmd
-  end
+#  def getCommandLineArgs(procName, bindings, nodeSet, cmd = [])
+#
+#    @properties.sort.each {|a|
+#      name = a[0]
+#      prop = a[1]
+#      type = prop.type
+#      if ((value = bindings[name]) != nil)
+#        # This Property is a Dynamic Experiment Property...
+#        if value.kind_of?(ExperimentProperty)
+#          value.onChange { |v|
+#            nodeSet.send(:STDIN, procName, prop.name, v)
+#          }
+#          if (value = value.value) == nil
+#            next # continue with the next property
+#          end
+#        end
+#      	# This Property is a Static Initialization Property 
+#      	# First, check if it has the correct type
+#        case type
+#        when :integer, :int
+#          if !value.kind_of?(Integer)
+#            raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
+#        	end
+#    	  when :string
+#    	    if !value.kind_of?(String)
+#    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
+#    	    end
+#    	  when :boolean
+#    	    if ((value != false) && (value != true)) 
+#    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
+#    	    end
+#    	  when nil
+#    	  when ExperimentProperty
+#    	    #do nothing...
+#    	  else
+#    	    raise "Unknown type '#{type}' for Property '#{name}'" 
+#        end
+#      	# Second, add the corresponding flag+value to command line, if required
+#      	if (((type == :boolean) && (value == true)) || (type != :boolean))
+#          cmd << prop.commandLineFlag
+#       	  if ((type != :boolean) && (value != nil))
+#            cmd << value
+#          end
+#    	  end
+#      end
+#    }
+#    return cmd
+#  end
   
-  def getCommandLineArgs2(bindings, appId, nodeSet)
+
+  #
+  # Return an array containing the command line arguments, which are required
+  # to start this type of application. The bindings for these arguments are
+  # defined in 'bindings'. 
+  #
+  # - bindings = Bindings for the command line arguments
+  # - appID = Name of the application
+  # - nodeSet =  Name of the group of resources that will execute this application
+  #
+  # [Return] the complete resulting array of command line arguments
+  #
+  def getCommandLineArgs(bindings, appId, nodeSet)
 
     cmd = []
     @properties.sort.each {|a|

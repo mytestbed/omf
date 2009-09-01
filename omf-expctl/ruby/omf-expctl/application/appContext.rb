@@ -39,11 +39,14 @@
 # and configurations of an application to be run on a node
 # during an experiment. 
 #
+
+require 'omf-common/mobject'
+
 class AppContext < MObject
+
   attr_reader :app, :id, :bindings, :env
 
   def initialize(app, context)
-    super()
     @id = app.appDefinition.getUniqueID
     @bindings = Hash.new
     @app = app
@@ -88,23 +91,24 @@ class AppContext < MObject
       end
     end
     
-    acmd = Communicator.instance.getAppCmd()
-    acmd.group = nodeSet.groupName
-    acmd.procID = @id
-    acmd.env = @env
+    app_cmd = Communicator.instance.getCmdObject()
+    app_cmd.type = :EXECUTE
+    app_cmd.group = nodeSet.groupName
+    app_cmd.procID = @id
+    app_cmd.env = @env
 
-    info "TDEBUG - 1 - acmd: '#{acmd}'"
+    info "TDEBUG - 1 - acmd: '#{app_cmd}'"
     
-    cmd = [@id, 'env', '-i']
-    @env.each {|name, value|
-      cmd << "#{name}=#{value}"
-    }
+    #cmd = [@id, 'env', '-i']
+    #@env.each {|name, value|
+    #  cmd << "#{name}=#{value}"
+    #}
 
     appDefinition = @app.appDefinition
-    cmd << appDefinition.path
-    acmd.path = appDefinition.path
+    #cmd << appDefinition.path
+    app_cmd.path = appDefinition.path
 
-    info "TDEBUG - 2 - cmd: '#{cmd}'"
+    #info "TDEBUG - 2 - cmd: '#{cmd}'"
     
     pdef = appDefinition.properties
     # check if bindings contain unknown parameters
@@ -113,18 +117,23 @@ class AppContext < MObject
             + " not in '#{pdef.keys.join(', ')}'."
     end
     
-    cmd = appDefinition.getCommandLineArgs(@id, @bindings, nodeSet, cmd)
-    acmd.cmdLine = appDefinition.getCommandLineArgs2(@bindings, @id, nodeSet)
+    #cmd = appDefinition.getCommandLineArgs(@id, @bindings, nodeSet, cmd)
+    app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet)
     
     #acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
     
-    nodeSet.send(:exec, *cmd)
+    #info "TDEBUG - 3 - SENDING cmd: '#{cmd.join(" ")}'"
+    info "TDEBUG - 2 - SENDING acmd: '#{app_cmd}'"
+    #info "TDEBUG - 3 - SENDING acmd: '#{acmd.cmdLine}'"
+
+    #nodeSet.send(:exec, *cmd)
+
     # FIXME:
     # Here we should send an XML document to the NA.
     # This would have the context and also later the 
     # XML config for the OML client on the NA side
     #
-    #Communicator.instance.sendAppCmd(acmd)
+    Communicator.instance.sendCmdObject(app_cmd)
     #
   end
   

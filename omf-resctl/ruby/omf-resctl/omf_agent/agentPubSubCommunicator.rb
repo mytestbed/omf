@@ -356,6 +356,15 @@ class AgentPubSubCommunicator < MObject
     #debug "TDEBUG - execute_command - A"
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
+      # TODO: this is the initial support for XML messages between EC and RC
+      # Currently this is only used for EXECUTE, due to the need of XML support to pass 
+      # the OML configuration from the EC to the RC. In the future, all comms should use XML
+      # and this should be cleaner.
+      if message == nil
+        xmlMessage = event.first_element("items").first_element("item").first_element("message").first_element("body").first_element("EXECUTE")
+        NodeAgent.instance.execCommand2(xmlMessage)
+        return
+      end
     rescue Exception => ex
       #debug "CDEBUG - execute_command() - Not a message event, ignoring: '#{event}'"
       return

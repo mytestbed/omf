@@ -301,6 +301,22 @@ module AgentCommands
   end
 
   #
+  # Command 'EXECUTE'
+  #
+  # Execute a program on the machine running this NA
+  #
+  # - agent = the instance of this NA
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute the program (e.g. command line, path, etc...)
+  #
+  def AgentCommands.EXECUTE(agent, cmdObject)
+    id = cmdObject.procID
+    fullCmdLine = "#{cmdObject.path} #{cmdObject.cmdLineArgs}"
+    MObject.info "TDEBUG - EXECUTE - '#{fullCmdLine}'"
+    ExecApp.new(id, agent, fullCmdLine)
+  end
+
+  #
   # Command 'KILL'
   #
   # Send a signal to a process running on this node
