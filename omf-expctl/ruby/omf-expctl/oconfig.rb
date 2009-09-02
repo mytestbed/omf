@@ -43,7 +43,7 @@ module OConfig
   TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
                          :pxe_url, :cmc_url, 
                          :frisbee_url, :frisbee_default_disk, 
-                         :image_host, :oml_server_url]
+                         :image_host, :oml_url]
 
   #
   # Return the value of a given configuration parameter

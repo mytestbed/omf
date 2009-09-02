@@ -82,9 +82,12 @@ class AppContext < MObject
 
     unless @app.measurements.empty?
       # add OML environment
-      @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_server_url]
-      @env['OML_ID'] = Experiment.ID
-      @env['OML_NODE_ID'] = '%node_id'
+      @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_url]
+      @env['OML_EXP_ID'] = Experiment.ID
+      @env['OML_NAME'] = 'node_id'
+      @env['OML_CONFIG'] = REXML::Document.new("<omlc exp_id='sandy5' id='node1'><collect url='tcp:10.0.0.200:3003'><mp name='udp_out' interval='1'><f fname='first' sname='the_sequence' pname='seq_no'/></mp></collect></omlc>")
+      #@env['OML_CONFIG'] = 'node_id'
+      #@env['OML_NODE_ID'] = '%node_id'
       
       @app.measurements.each do |m|
         # add mstream configurations

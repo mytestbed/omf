@@ -38,11 +38,6 @@ This version 2 is compatible with OMLv2
 TEXT
 
   # defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-  #a.defProperty('oml-server', 'Contact details for the oml collection server')
-  #a.defProperty('oml-id', 'ID for this oml client')
-  #a.defProperty('oml-exp-id', 'ID for this experiment')
-#
-#
   a.defProperty('udp:broadcast', 'Broadcast', nil, {:type => :integer, :dynamic => false})
   a.defProperty('udp:dst_host', 'IP address of the Destination', nil, {:type => :string, :dynamic => false})
   a.defProperty('udp:dst_port', 'Destination Port to send to', nil, {:type => :integer, :dynamic => false})
@@ -50,6 +45,15 @@ TEXT
   a.defProperty('udp:local_port', 'Local Port of this source node', nil, {:type => :integer, :dynamic => false})
   a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
   a.defProperty("cbr:rate", "Data rate of the flow [bps]", nil, {:dynamic => true, :type => :integer})
+
+  a.defMeasurement('udp_out') { |m|
+    m.defMetric('ts',:float)
+    m.defMetric('flow_id',:long)
+    m.defMetric('seq_no',:long)
+    m.defMetric('pkt_length',:long)
+    m.defMetric('dst_host',:string)
+    m.defMetric('dst_port',:long)
+  }
 
   a.path = "/usr/bin/otg2"
 }

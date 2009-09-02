@@ -171,6 +171,8 @@ class Application < MObject
   def measure(idRef = :mandatory, opts = {}, &block)
     raise OEDLMissingArgumentException.new(:measure, :idRef) if idRef == :mandatory
 
+    puts "TDEBUG - measure - #{idRef} - #{opts}"
+
     mDef = appDefinition.measurements[idRef]
     if (mDef == nil)
       raise "Unknown measurement point '#{idRef}'"

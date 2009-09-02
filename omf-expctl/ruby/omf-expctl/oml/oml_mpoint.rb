@@ -41,13 +41,15 @@ module OMF
         @@conversion = {
           Float => "xsd:float",
           Integer => "xsd:int",
+          String => "xsd:string",
+          'float' => "xsd:float",
           'int' => "xsd:int",
+          'string' => "xsd:string",
           'long' => "xsd:long",
           'short' => "xsd:short",
           'boolean' => "xsd:bool",
           'bool' => "xsd:bool",
-          'flag' => "xsd:bool",          
-          String => "xsd:string"
+          'flag' => "xsd:bool"          
         }
       
       
@@ -132,6 +134,8 @@ module OMF
           raise OEDLMissingArgumentException.new(:defMetric, :name) unless name
           raise OEDLMissingArgumentException.new(:defMetric, :type) unless type
           
+          puts "TDEBUG - defMetric - #{name} - #{type} - #{description}" 
+
           if @metrics[name] != nil
             raise "Metric '" + name + "' already defined."
           end

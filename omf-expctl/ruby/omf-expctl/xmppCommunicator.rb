@@ -288,8 +288,8 @@ class XmppCommunicator < Communicator
     msg.root << REXML::Element.new("ARGS").add_text("#{cmdObj.cmdLineArgs.join(" ")}")
     if !cmdObj.env.empty? 
       line = ""
-      env.each { |k,v|
-        line << "#{k.to_s}=#{v.to_s}"  
+      cmdObj.env.each { |k,v|
+        line << "#{k.to_s}=#{v.to_s} "  
       }
       msg.root << REXML::Element.new("ENV").add_text("#{line}")
     end

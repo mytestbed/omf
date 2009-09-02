@@ -475,6 +475,7 @@ class AppDefinition < MObject
   #
   def defMeasurement(id, description = nil, metrics = nil, &block)
 
+    info "TDEBUG - defMeasurement - #{id} - #{description} - #{metrics}"
     m = ::OMF::ExperimentController::OML::MPoint.new(id, description, metrics)
     block.call(m) if block
     @measurements[id] = m
