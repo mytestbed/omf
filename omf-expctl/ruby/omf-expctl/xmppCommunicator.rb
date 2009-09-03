@@ -32,6 +32,7 @@
 #
 
 require "omf-common/omfPubSubService"
+require "omf-common/omfCommandObject"
 #require "omf-common/omfPubSubCommandObject"
 require 'omf-common/lineSerializer'
 require 'omf-common/mobject'
@@ -96,7 +97,11 @@ class XmppCommunicator < Communicator
       end
     }
   end  
-      
+
+  def getCmdObject(type)
+    return OmfCommandObject.new(type)
+  end
+
   #
   # Configure and start the Communicator.
   # This method instantiates a PubSub Service Helper, which will connect to the
@@ -280,22 +285,9 @@ class XmppCommunicator < Communicator
   #
   def sendCmdObject(cmdObj)
     target = cmdObj.group
-    msg = REXML::Document.new
-    msg << REXML::Element.new("#{cmdObj.type.to_s}")
-    msg.root << REXML::Element.new("ID").add_text("#{cmdObj.procID}")
-    msg.root << REXML::Element.new("GROUP").add_text("#{cmdObj.group}")
-    msg.root << REXML::Element.new("PATH").add_text("#{cmdObj.path}")
-    msg.root << REXML::Element.new("ARGS").add_text("#{cmdObj.cmdLineArgs.join(" ")}")
-    if !cmdObj.env.empty? 
-      line = ""
-      cmdObj.env.each { |k,v|
-        line << "#{k.to_s}=#{v.to_s} "  
-      }
-      msg.root << REXML::Element.new("ENV").add_text("#{line}")
-    end
-    if cmdObj.omlConfig != nil
-      msg.root << cmdObj.omlConfig # ASSUME that omlConfig is a REXML::Element!
-    end
+    msg = cmdObj.to_xml
+
+    info "TDEBUG - XML - #{msg.to_s}"
 
     if (target == "*")
       send!(msg.to_s, "#{@@expNode}")
@@ -305,7 +297,6 @@ class XmppCommunicator < Communicator
         send!(msg, "#{@@expNode}/#{tgt}")
       }
     end
-    info "TDEBUG - XML - #{msg.to_s}"
   end
   
   #############################################################################################################  

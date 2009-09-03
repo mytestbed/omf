@@ -54,7 +54,21 @@ defPrototype("test:proto:udp_sender") { |p|
     otg.bindProperty('cbr:size', 'packetSize')
     otg.bindProperty('cbr:rate', 'rate')
 
-    otg.measure('udp_out')
+    #otg.measure(:mpoint => 'udp_out')
+    
+    otg.measure(:mpoint => 'udp_out', :interval => 5)
+    
+    #otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
+    #  mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
+    #end
+
+    #otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
+    #  mp.filter('myFilter1', :type => 'avg', 
+    #                         :options => {:input => 'pkt_length'})
+    #  mp.filter('myFilter2', :type => 'histogram', 
+    #                         :options => {:inputs => ['pkt_length', 'dst_host'], 
+    #                                      :category => 5})
+    #end
 
   }
 }

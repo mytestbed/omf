@@ -168,17 +168,18 @@ class Application < MObject
   # - idRef = Reference to a measurement point
   # - block = block of code to execute
   #
-  def measure(idRef = :mandatory, opts = {}, &block)
-    raise OEDLMissingArgumentException.new(:measure, :idRef) if idRef == :mandatory
+  #def measure(idRef = :mandatory, opts = {}, &block)
+  def measure(opts = {}, &block)
+    raise OEDLMissingArgumentException.new(:measure, :mpoint) if opts[:mpoint] == nil
 
-    puts "TDEBUG - measure - #{idRef} - #{opts}"
+    info "TDEBUG - measure - #{opts}"
 
-    mDef = appDefinition.measurements[idRef]
+    mDef = appDefinition.measurements[opts[:mpoint]]
     if (mDef == nil)
-      raise "Unknown measurement point '#{idRef}'"
+      raise "Unknown measurement point '#{opts[:mpoint]}'"
     end
 
-    m = OMF::ExperimentController::OML::MStream.new(mDef, self, &block)
+    m = OMF::ExperimentController::OML::MStream.new(opts, self, &block)
     @measurements << m
     return m
   end

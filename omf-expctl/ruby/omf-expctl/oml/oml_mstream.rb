@@ -51,18 +51,21 @@ module OMF
           cfg
         end
         
-        def initialize(mDef, application, &block)
-          super()
-          @mdef = mDef
+        def initialize(opts, application, &block)
+          #super()
+          @mdef = opts[:mpoint]
+	  @opts = opts
           @application = application
           
           block.call(self) if block
         end
         
+        #def metric(name = :mandatory, metrics = {h1, h2, h3})
         def metric(name = :mandatory, opts = {})
           raise OEDLMissingArgumentException.new(:metric, :name) if name == :mandatory
         end
       
+        #def filter(name = :mandatory, type = :mandatory, otps = {h1, h2, h3})
         def filter(name = :mandatory, opts = {})
           raise OEDLMissingArgumentException.new(:filter, :name) if name == :mandatory
         end
@@ -72,6 +75,23 @@ module OMF
           puts @mdef
         end
 
+	#
+	# An example of an XML representation of a MStream
+	#
+        #    <mp name="udp_out" interval="1" >
+        #      <f fname="first" sname="the_sequence" pname="seq_no"/>
+        #    </mp>
+	#
+	def to_xml()
+	  el = REXML::Element.new('mp')
+	  el.add_attribute("name", "#{@mdef}")
+	  if @opts.key?(:interval)
+	    el.add_attribute("interval", "#{@opts[:interval]}")
+          elsif @opts.key?(:samples)
+	    el.add_attribute("samples", "#{@opts[:samples]}")
+          end
+	  return el
+	end
         
         def SERVER_TIMESTAMP()
           'oml_ts_server'  # should be more descriptive

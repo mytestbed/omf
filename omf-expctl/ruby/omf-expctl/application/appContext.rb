@@ -79,65 +79,59 @@ class AppContext < MObject
 
   def startApplication(nodeSet)
     debug("Starting application '#@id'")
+    app_cmd = Communicator.instance.getCmdObject(:EXECUTE)
+    app_cmd.group = nodeSet.groupName
+    app_cmd.procID = @id
 
+    # Add the OML info, if any...
     unless @app.measurements.empty?
       # add OML environment
       @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_url]
       @env['OML_EXP_ID'] = Experiment.ID
-      @env['OML_NAME'] = 'node_id'
-      @env['OML_CONFIG'] = REXML::Document.new("<omlc exp_id='sandy5' id='node1'><collect url='tcp:10.0.0.200:3003'><mp name='udp_out' interval='1'><f fname='first' sname='the_sequence' pname='seq_no'/></mp></collect></omlc>")
-      #@env['OML_CONFIG'] = 'node_id'
-      #@env['OML_NODE_ID'] = '%node_id'
-      
+      @env['OML_NAME'] = "#{nodeSet}"
+
+      # Build the XML configuration for the OML Client library
+      # based on the measurement request of the Experiment
+      # First - build the header
+      omlXML = REXML::Document.new()
+      el = REXML::Element.new('omlc')
+      el.add_attribute("exp_id","#{Experiment.ID}")
+      el.add_attribute("id","#{nodeSet}")
+      omlXML << el
+      el = REXML::Element.new('collect')
+      el.add_attribute("url","#{OConfig[:tb_config][:default][:oml_url]}")
+      # Second - build the entry for each measurement point
       @app.measurements.each do |m|
         # add mstream configurations
+	info "TDEBUG - Build XML - #{m.to_xml}"
+	el << m.to_xml
       end
+      omlXML.root << el 
+      # Finally add the config to this Command Object
+      app_cmd.omlConfig = omlXML
+      info "TDEBUG - Build XML - #{app_cmd.omlConfig}"
     end
-    
-    app_cmd = Communicator.instance.getCmdObject()
-    app_cmd.type = :EXECUTE
-    app_cmd.group = nodeSet.groupName
-    app_cmd.procID = @id
+
+    # Add the environment info...
     app_cmd.env = @env
 
-    info "TDEBUG - 1 - acmd: '#{app_cmd}'"
-    
-    #cmd = [@id, 'env', '-i']
-    #@env.each {|name, value|
-    #  cmd << "#{name}=#{value}"
-    #}
-
+    # Add the path...
     appDefinition = @app.appDefinition
-    #cmd << appDefinition.path
     app_cmd.path = appDefinition.path
-
-    #info "TDEBUG - 2 - cmd: '#{cmd}'"
     
+    # Add the bindings...
     pdef = appDefinition.properties
     # check if bindings contain unknown parameters
     if (diff = @bindings.keys - pdef.keys) != []
       raise "Unknown parameters '#{diff.join(', ')}'" \
             + " not in '#{pdef.keys.join(', ')}'."
     end
-    
-    #cmd = appDefinition.getCommandLineArgs(@id, @bindings, nodeSet, cmd)
     app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet)
     
-    #acmd.omlConfig = OMF::ExperimentController::OML::MStream.omlConfig(@app.measurements)
-    
-    #info "TDEBUG - 3 - SENDING cmd: '#{cmd.join(" ")}'"
     info "TDEBUG - 2 - SENDING acmd: '#{app_cmd}'"
-    #info "TDEBUG - 3 - SENDING acmd: '#{acmd.cmdLine}'"
 
-    #nodeSet.send(:exec, *cmd)
-
-    # FIXME:
-    # Here we should send an XML document to the NA.
-    # This would have the context and also later the 
-    # XML config for the OML client on the NA side
-    #
+    # Ask the Communicator to send the Command Object 
     Communicator.instance.sendCmdObject(app_cmd)
-    #
   end
   
 end # ApplicationContext

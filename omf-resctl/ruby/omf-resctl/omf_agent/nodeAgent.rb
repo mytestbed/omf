@@ -41,6 +41,7 @@ require 'omf-resctl/omf_agent/agentPubSubCommunicator'
 require 'omf-resctl/omf_agent/agentCommands'
 require 'date'
 require 'omf-common/hash-ext'
+require "omf-common/omfCommandObject"
 
 #
 # This class defines the Node Agent (NA) entity, which is a daemon
@@ -514,16 +515,11 @@ class NodeAgent < MObject
   # be more clean.
   #
   def execCommand2(cmdObj)
-   
-    @cmdStruct ||= Struct.new(:type, :group, :procID, :env, :path, :cmdLineArgs, :omlConfig)
-    cmd = @cmdStruct.new()
-    cmd.type = cmdObj.expanded_name
-    cmdObj.each_element("ID") { |e| cmd.procID = e.text }
-    cmdObj.each_element("GROUP") { |e| cmd.group = e.text }
-    cmdObj.each_element("PATH") { |e| cmd.path = e.text }
-    cmdObj.each_element("ARGS") { |e| cmd.cmdLineArgs = e.text }
+  
 
-    debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.procID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}'"
+    cmd = OmfCommandObject.new(cmdObj)
+
+    debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.procID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
     method = nil
     begin
       method = AgentCommands.method(cmd.type)
