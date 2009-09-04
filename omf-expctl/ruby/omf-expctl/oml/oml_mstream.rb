@@ -28,6 +28,9 @@
 # or collection service
 #
 
+require "omf-expctl/oml/filter"
+
+
 module OMF
   module ExperimentController
     module OML
@@ -43,26 +46,45 @@ module OMF
           @@instances[uri] || self.new(uri)
         end
       
-        def self.omlConfig(mstreams)
-          cfg = []
-          mstreams.each do |ms|
-            cfg << ms.omlConfig
-          end
-          cfg
-        end
+        #def self.omlConfig(mstreams)
+        #  cfg = []
+        #  mstreams.each do |ms|
+        #    cfg << ms.omlConfig
+        #  end
+        #  cfg
+        #end
         
         def initialize(opts, application, &block)
-          #super()
           @mdef = opts[:mpoint]
 	  @opts = opts
           @application = application
-          
+	  @filters = Array.new
           block.call(self) if block
         end
         
         #def metric(name = :mandatory, metrics = {h1, h2, h3})
-        def metric(name = :mandatory, opts = {})
+        def metric(name = :mandatory, *opts)
           raise OEDLMissingArgumentException.new(:metric, :name) if name == :mandatory
+
+	  info "TDEBUG - metric - appliction: #{@application} - called: #{opts.to_s}"
+
+	  opts.each { |parameter|
+	  
+            info "TDEBUG - metric - parameter: #{parameter}"
+
+            appDef = AppDefinition[@application.to_s]
+	    measurementDef = appDef.measurements[@mdef]
+	    metricDef = measurementDef.metrics[parameter]
+	    if metricDef[:type] == "xsd:float" || metricDef[:type] == "xsd:int" || metricDef[:type] == "xsd:long" || metricDef[:type] == "xsd:short"
+              filterType = 'avg'
+	    else
+              filterType = 'first'
+	    end
+            filter = OMF::ExperimentController::OML::Filter.new(filterType, "#{name}_#{parameter}", {:input => parameter})  
+	    info "TDEBUG - metric - filter - #{filterType} - #{name} - #{parameter}"
+	    @filters << filter
+	  }
+
         end
       
         #def filter(name = :mandatory, type = :mandatory, otps = {h1, h2, h3})
@@ -71,13 +93,15 @@ module OMF
         end
 
         
-        def omlConfig()
-          puts @mdef
-        end
+        #def omlConfig()
+        #  puts @mdef
+        #end
 
 	#
 	# An example of an XML representation of a MStream
 	#
+        #    <mp name="udp_out" interval="1" >
+	# OR
         #    <mp name="udp_out" interval="1" >
         #      <f fname="first" sname="the_sequence" pname="seq_no"/>
         #    </mp>
@@ -90,6 +114,11 @@ module OMF
           elsif @opts.key?(:samples)
 	    el.add_attribute("samples", "#{@opts[:samples]}")
           end
+	  if @filters.size > 0
+            @filters.each { |f|
+              el.add_element(f.to_xml)
+	    }
+	  end
 	  return el
 	end
         

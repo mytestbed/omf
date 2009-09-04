@@ -146,7 +146,7 @@ module OMF
             end
             type = @@conversion[type]
           end
-          @metrics[name] = {"type" => type, "description" => description, 'seqNo' => @metrics.length}
+          @metrics[name] = {:type => type, :description => description, :seqNo => @metrics.length}
         end
       
         #

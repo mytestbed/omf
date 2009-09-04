@@ -30,6 +30,10 @@
 
 require 'omf-expctl/property'
 
+module OMF
+  module ExperimentController
+    module OML
+
 #
 # This class describes a measurement filter
 #
@@ -49,12 +53,12 @@ class Filter
   # 
   # Create a new filter
   #
-  # - idref = reference ID
+  # - idref = reference ID, this is the Type of this filter
+  # - name = a unique name for this filter
   # - properties = optional array of properties for this filter (default 'nil')
-  # - returnType = optional filter's return Type (default 'long')
   #
-  def Filter.create(idref, properties = nil, returnType = 'long')
-    Filter.new(idref, properties, returnType)
+  def Filter.create(idref, name, properties = nil)
+    Filter.new(idref, name, properties)
   end
 
   attr_reader :idref, :properties, :returnType
@@ -62,23 +66,23 @@ class Filter
   # 
   # Real filter creation
   #
-  # - idref = reference ID
-  # - properties = array of properties for this filter 
-  # - returnType = filter's return Type 
+  # - idref = reference ID, this is the Type of this filter
+  # - name = a unique name for this filter
+  # - properties = optional array of properties for this filter (default 'nil')
   #
-  def initialize(idref, properties, returnType)
+  def initialize(idref, name, properties = nil)
     @idref = idref
+    @name = name
     @properties = Array.new
     addProperties(properties)
-    @returnType = returnType
   end
 
   #
   # Some common filter definitions
   #
-  MIN_MAX = Filter.create(":min-max")
-  MEAN = Filter.create("sample_mean")
-  SUM = Filter.create("sample_sum")
+  #MIN_MAX = Filter.create(":min-max")
+  #MEAN = Filter.create("sample_mean")
+  #SUM = Filter.create("sample_sum")
   #MIN_MAX = Filter.create(FILTER_URI + ":min-max")
   #MEAN = Filter.create(FILTER_URI + ":mean")
 
@@ -101,19 +105,35 @@ class Filter
   # [Return] the XML element representing this filter
   #
   def to_xml
-    a = REXML::Element.new("filter")
-  a.add_attribute("idref", idref)
-  a.add_attribute("refid", idref) # for legacy reason
-  a.add_attribute('returnType', returnType)
+    el = REXML::Element.new("f")
 
-  if @properties.length > 0
-      pe = a.add_element("properties")
+    # In the current Filter handling by OML Server/Client
+    # pname is the input for the filter, and it is an attribute
+    # of the filter element in XML
+    # However, in the future there could be many inputs 
+    # to a filter, thus input will become a child element of the
+    # filter XML element.
+    if @properties.length > 0
       @properties.each {|p|
-        pe.add_element(p.to_xml)
+        el.add_attribute("pname", p.value) if p.idref == :input
       }
     end
-    return a
+    el.add_attribute("fname", @idref)
+    el.add_attribute("sname", @name)
+
+    # Support for future evolution of Filter
+    #a.add_attribute("idref", idref) 
+    #if @properties.length > 0
+    #  pe = a.add_element("properties")
+    #  @properties.each {|p|
+    #    pe.add_element(p.to_xml)
+    #  }
+    #end
+    return el
   end
 
 end
 
+    end # module OML
+  end # module ExperimentController
+end # OMF 

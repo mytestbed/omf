@@ -56,11 +56,17 @@ defPrototype("test:proto:udp_sender") { |p|
 
     #otg.measure(:mpoint => 'udp_out')
     
-    otg.measure(:mpoint => 'udp_out', :interval => 5)
+    #otg.measure(:mpoint => 'udp_out', :interval => 1)
+    #otg.measure(:mpoint => 'udp_out', :samples => 10)
     
-    #otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
-    #  mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
-    #end
+    otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
+      #mp.metric('myMetrics', 'seq_no' )
+      mp.metric('myMetrics', 'dst_host' )
+      #mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
+    end
+
+#      <f fname="first" sname="the_sequence" pname="seq_no"/>
+
 
     #otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
     #  mp.filter('myFilter1', :type => 'avg', 
