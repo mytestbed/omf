@@ -26,18 +26,21 @@
 #
 # == Description
 #
-# This class describes a measurement point used in an application definition
+# This file defines the MPoint class
+#
 #
 
 module OMF
   module ExperimentController
     module OML
 
+      #
+      # This class describes a measurement point used in an application definition
+      #
       class MPoint
       
-      
+        # Defines the available types for the metrics
         FLOAT = Float
-      
         @@conversion = {
           Float => "xsd:float",
           Integer => "xsd:int",
@@ -56,7 +59,7 @@ module OMF
         #
         # Unmarshall an instance from an XML tree.
         #
-        # - appDefRoot = Root of the XML tree containing the measurment definition
+        # - defRoot = Root of the XML tree containing the measurement definition
         #
         # [Return] a new AppMeasurement object holding the unmarshalled result
         #
@@ -100,7 +103,7 @@ module OMF
         attr_reader :metrics
       
         #
-        # Create a new measurement point (AppMeasurement) instance
+        # Create a new measurement point (Mpoint) instance
         #
         # - id =  the ID for this measurement point
         # - description =  some text describing this measurement point
@@ -134,8 +137,6 @@ module OMF
           raise OEDLMissingArgumentException.new(:defMetric, :name) unless name
           raise OEDLMissingArgumentException.new(:defMetric, :type) unless type
           
-          puts "TDEBUG - defMetric - #{name} - #{type} - #{description}" 
-
           if @metrics[name] != nil
             raise "Metric '" + name + "' already defined."
           end
@@ -150,18 +151,10 @@ module OMF
         end
       
         #
-        # _Deprecated_ - Use defMetric(...) instead
-        #
-        def addMetric(name, type, description = nil)
-          warn("'addMetric' is depreciated! Use 'defMetric' instead")
-          defMetric(name, type, description)
-        end
-      
-        #
         # Return the definition of this instance of measurement point as an XML element
         # (does the reverse of 'from_xml') 
         #
-        # [Return] an XML element
+        # [Return] an XML element (REXML::Element)
         #
         def to_xml
           a = REXML::Element.new("measurement")
@@ -180,6 +173,13 @@ module OMF
           return a
         end
       
+        #
+        # _Deprecated_ - Use defMetric(...) instead
+        #
+        def addMetric(name, type, description = nil)
+          raise OEDLIllegalCommandException.new(:addMetric) 
+        end
+
       end # MPoint
     end # module OML
   end # module ExperimentController

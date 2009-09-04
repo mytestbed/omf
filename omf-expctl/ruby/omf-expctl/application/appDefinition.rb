@@ -26,8 +26,8 @@
 #
 # == Description
 #
-# This class describes an application which can be used
-# for an experiment using OMF
+# This file defines the AppDefinition class
+#
 #
 
 require 'omf-common/syncVariables.rb'
@@ -58,17 +58,14 @@ end
 #
 class AppDefinition < MObject
 
-# Note: Do we really need that?
-#  VERSION = "$Revision: 873 $".split(":")[1].chomp("$").strip
-#  VERSION_STRING = "AppDefinition V#{$NH_VERSION}"
-
-
   @@apps = Hash.new
 
   #
   # Return a known AppDefinition instance.
   #
   # - uri = URI identifying the AppDefinition
+  #
+  # [Return] an AppDefinition object
   #
   def self.[](uri)
     app = @@apps[uri]
@@ -94,6 +91,8 @@ class AppDefinition < MObject
   #
   # - uri = the URI identifying this new AppDefinition
   #
+  # [Return] an AppDefinition object
+  #
   def self.create(uri)
     if @@apps.key?(uri)
       raise "Duplicate definition of application '#{uri}'"
@@ -105,6 +104,8 @@ class AppDefinition < MObject
   # Unmarshall an AppDefinition instance from an XML tree.
   #
   # appDefRoot = root of the XML tree holding the application definition
+  #
+  # [Return] an AppDefinition object
   #
   def self.from_xml(appDefRoot)
     if (appDefRoot.name != "application")
@@ -168,6 +169,10 @@ class AppDefinition < MObject
   attr_accessor :environment
 
   protected :initialize
+
+  #
+  # Create a new AppDefinition
+  #
   def initialize(uri)
     @@apps[uri] = self
 
@@ -179,8 +184,14 @@ class AppDefinition < MObject
     @instCounter = SynchronizedInteger.new
   end
   
+  #
+  # Return the unique ID of this AppDefinition
+  #
   # This is not Thread safe
   # (@instCounter is a shared resource)
+  #
+  #  [Return] the ID for this AppDefinition
+  #
   def getUniqueID()
     id = @id.gsub(':', '_')
     if ((cnt = @instCounter.incr()) > 1)
@@ -188,69 +199,6 @@ class AppDefinition < MObject
     end
     id
   end
-
-  #
-  # Return an array containing the command line arguments, which are required
-  # to start this type of application. The bindings for these arguments are
-  # defined in 'bindings'. If 'cmd' is provided, the bindings are added to 
-  # this array, otherwise a newly created one is returned.
-  #
-  # - procName = Name of the process associated with this application
-  # - bindings = Bindings for the command line arguments
-  # - nodeSet =  Set of nodes that will execute this application
-  # - cmd = initial array of command line arguments
-  #
-  # [Return] the complete resulting array of command line arguments
-  #
-#  def getCommandLineArgs(procName, bindings, nodeSet, cmd = [])
-#
-#    @properties.sort.each {|a|
-#      name = a[0]
-#      prop = a[1]
-#      type = prop.type
-#      if ((value = bindings[name]) != nil)
-#        # This Property is a Dynamic Experiment Property...
-#        if value.kind_of?(ExperimentProperty)
-#          value.onChange { |v|
-#            nodeSet.send(:STDIN, procName, prop.name, v)
-#          }
-#          if (value = value.value) == nil
-#            next # continue with the next property
-#          end
-#        end
-#      	# This Property is a Static Initialization Property 
-#      	# First, check if it has the correct type
-#        case type
-#        when :integer, :int
-#          if !value.kind_of?(Integer)
-#            raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
-#        	end
-#    	  when :string
-#    	    if !value.kind_of?(String)
-#    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
-#    	    end
-#    	  when :boolean
-#    	    if ((value != false) && (value != true)) 
-#    	      raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
-#    	    end
-#    	  when nil
-#    	  when ExperimentProperty
-#    	    #do nothing...
-#    	  else
-#    	    raise "Unknown type '#{type}' for Property '#{name}'" 
-#        end
-#      	# Second, add the corresponding flag+value to command line, if required
-#      	if (((type == :boolean) && (value == true)) || (type != :boolean))
-#          cmd << prop.commandLineFlag
-#       	  if ((type != :boolean) && (value != nil))
-#            cmd << value
-#          end
-#    	  end
-#      end
-#    }
-#    return cmd
-#  end
-  
 
   #
   # Return an array containing the command line arguments, which are required
@@ -313,12 +261,13 @@ class AppDefinition < MObject
     }
     return cmd
   end
-  
 
   #
   # Return the AppDefinition definition as XML element
   #
-  def to_xml
+  # [Return] an XML element (REXML::Element object)
+  #
+  def to_xml()
     a = REXML::Element.new("application")
     a.add_attribute("id", id)
     a.add_element("name", id).text = name != nil ? name : id
@@ -363,9 +312,8 @@ class AppDefinition < MObject
   #
   # DO NOT CALL DIRECTLY. Use the class method instead
   #
-  # @param appRoot XML element "application"
+  # - appRoot = the XML element "application"
   #
-  #protected
   def from_xml(appRoot)
     # assumes we already checked that appRoot.name = 'application'
     # and extracted 'id'. See AppDefinition.from_xml.
@@ -396,17 +344,6 @@ class AppDefinition < MObject
         warn "Ignoring element '#{el.name}'"
       end
     }
-  end
-
-
-
-  #
-  # _Deprecated_ - Use defProperty(...) instead
-  #
-  def addProperty(name, description, mnemonic, type, isDynamic = false)
-    warn("'addProperty' is depreciated! Use 'defProperty' instead")
-    options = {:type => type, :dynamic => isDynamic}
-    defProperty(name, description, mnemonic, options)
   end
 
   #
@@ -455,13 +392,14 @@ class AppDefinition < MObject
   #
   # Return the version number for this application
   #
+  # [Return] an AppVersion object
+  #
   def version(major = nil, minor = 0, revision = 0)
     if (major == nil)
       return @version
     end
     @version = AppVersion.new(major, minor, revision)
   end
-
 
   #
   # Add a measurement point to this application.
@@ -474,20 +412,10 @@ class AppDefinition < MObject
   # [Return] the newly created measurement point.
   #
   def defMeasurement(id, description = nil, metrics = nil, &block)
-
-    info "TDEBUG - defMeasurement - #{id} - #{description} - #{metrics}"
     m = ::OMF::ExperimentController::OML::MPoint.new(id, description, metrics)
     block.call(m) if block
     @measurements[id] = m
     return m
-  end
-
-  #
-  # _Deprecated_ - Use defMeasurement(...) instead
-  #
-  def addMeasurement(id, description, metrics)
-    warn("'addMeasurement' is depreciated! Use 'defMeasurement' instead")
-    defMeasurement(id, description, metrics)
   end
 
   #
@@ -499,6 +427,20 @@ class AppDefinition < MObject
   def repository(binary, development = nil)
     @binaryRepository = binary
     @developmentRepository = development
+  end
+
+  #
+  # _Deprecated_ - Use defMeasurement(...) instead
+  #
+  def addMeasurement(id, description, metrics)
+    raise OEDLIllegalCommandException.new(:addMeasurement) 
+  end
+
+  #
+  # _Deprecated_ - Use defProperty(...) instead
+  #
+  def addProperty(name, description, mnemonic, type, isDynamic = false)
+    raise OEDLIllegalCommandException.new(:addProperty) 
   end
 
 end

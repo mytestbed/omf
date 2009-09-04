@@ -73,6 +73,9 @@ defPrototype("test:proto:udp_sender") { |p|
       
       mp.filter(:name => 'myFilter2', :type => 'first', 
                 :options => {:input => 'dst_host'})
+
+      mp.filter(:name => 'myFilter2', :type => 'first', 
+                :options => {:input => 'dst_host'})
       #mp.filter(:name => 'myFilter2', :type => 'histogram', 
       #                       :options => {:inputs => ['pkt_length', 'dst_host'], 
       #                                    :category => 5})

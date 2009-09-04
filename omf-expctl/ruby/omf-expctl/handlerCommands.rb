@@ -32,9 +32,6 @@
 # stage the experiments
 #
 
-#module OMF
-#  module ExperimentController
-#    module Commands
 
 # The base exception for all errors related 
 class OEDLException < Exception; end
@@ -47,7 +44,7 @@ class OEDLMissingArgumentException < OEDLException
   def initialize(cmdName, argName, message = nil)
     @cmdName = cmdName
     @argName = argName
-    super(message || "Missing '#{argName}' argument for command '#{cmdName}")
+    super(message || "Missing '#{argName}' argument for command '#{cmdName}'")
   end
 end
 
@@ -58,6 +55,16 @@ class OEDLIllegalArgumentException < OEDLException
     @cmdName = cmdName
     @argName = argName
     message ||= "Illegal argument values for '#{argName}' in '#{cmdName}'"
+    super(message)
+  end
+end
+
+class OEDLIllegalCommandException < OEDLException
+  attr_reader :cmdName, :argName
+  
+  def initialize(cmdName, message = nil)
+    @cmdName = cmdName
+    message ||= "Illegal command '#{cmdName}' unsupported by OEDL"
     super(message)
   end
 end

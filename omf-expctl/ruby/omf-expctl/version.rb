@@ -37,8 +37,8 @@ module OMF
     myPath.delete_at(myPath.size - 1)
     EC_PATH = myPath.join("/")
 
-    VERSION_MAJOR = 1
-    VERSION_MINOR = 4
+    VERSION_MAJOR = 5
+    VERSION_MINOR = 2
     # Revision number is taken from the Source Repository
     # Following de-facto convention, revision number is set by 
     # the packaging scripts. 
