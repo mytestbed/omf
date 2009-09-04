@@ -66,13 +66,16 @@ defPrototype("test:proto:udp_sender") { |p|
     #end
 
 
-
     otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
-      mp.filter(:name => 'myFilter', :type => 'avg', 
+      
+      mp.filter(:name => 'myFilter1', :type => 'avg', 
                 :options => {:input => 'pkt_length'})
-    #  mp.filter(:name => 'myFilter2', :type => 'histogram', 
-    #                         :options => {:inputs => ['pkt_length', 'dst_host'], 
-    #                                      :category => 5})
+      
+      mp.filter(:name => 'myFilter2', :type => 'first', 
+                :options => {:input => 'dst_host'})
+      #mp.filter(:name => 'myFilter2', :type => 'histogram', 
+      #                       :options => {:inputs => ['pkt_length', 'dst_host'], 
+      #                                    :category => 5})
     end
 
   }

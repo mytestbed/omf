@@ -86,7 +86,7 @@ class Application < MObject
   def instantiate(nodeSet, context = {})
     install(nodeSet)
     appCtxt = AppContext.new(self, context)    
-    nodeSet.addApplication(appCtxt)
+    nodeSet.addApplicationContext(appCtxt)
     appCtxt
   end
 
@@ -169,17 +169,22 @@ class Application < MObject
   # - block = block of code to execute
   #
   #def measure(idRef = :mandatory, opts = {}, &block)
-  def measure(opts = {}, &block)
-    raise OEDLMissingArgumentException.new(:measure, :mpoint) if opts[:mpoint] == nil
+  #def measure(opts = {}, &block)
+  def measure(name = :mandatory, opts = {}, &block)
+    #raise OEDLMissingArgumentException.new(:measure, :mpoint) if opts[:mpoint] == nil
+    raise OEDLMissingArgumentException.new(:measure, :name) if name == :mandatory
 
     info "TDEBUG - measure - #{opts}"
 
-    mDef = appDefinition.measurements[opts[:mpoint]]
+    #mDef = appDefinition.measurements[opts[:mpoint]]
+    mDef = appDefinition.measurements[name]
     if (mDef == nil)
-      raise "Unknown measurement point '#{opts[:mpoint]}'"
+      raise "Unknown measurement point '#{name}'"
+      #raise "Unknown measurement point '#{opts[:mpoint]}'"
     end
 
-    m = OMF::ExperimentController::OML::MStream.new(opts, self, &block)
+    #m = OMF::ExperimentController::OML::MStream.new(opts, self, &block)
+    m = OMF::ExperimentController::OML::MStream.new(name, opts, self, &block)
     @measurements << m
     return m
   end

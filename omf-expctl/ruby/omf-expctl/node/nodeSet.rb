@@ -170,7 +170,7 @@ class NodeSet < MObject
   # - appCtxt = the Application Context to add (AppContext). This context
   #                holds the Application name, its binding, environments,...
   #
-  def addApplication(appCtxt)
+  def addApplicationContext(appCtxt)
     @applications[appCtxt.id] = appCtxt
   end
 

@@ -64,9 +64,9 @@ class RootNodeSetPath < NodeSetPath
       # then create a default Application object to hold it
       debug "Implicit creation of an app instance from: #{app}"
       appInstance =  Application.new(app, &block)
-    else
+    #else
       # real NH-compatible application (i.e. ruby wrapper)
-      appInstance = app
+    #  appInstance = app
     end
     appInstance.instantiate(@nodeSet)
   end

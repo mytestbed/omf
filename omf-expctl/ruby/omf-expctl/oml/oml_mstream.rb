@@ -54,8 +54,10 @@ module OMF
         #  cfg
         #end
         
-        def initialize(opts, application, &block)
-          @mdef = opts[:mpoint]
+        #def initialize(opts, application, &block)
+        def initialize(name, opts, application, &block)
+          #@mdef = opts[:mpoint]
+          @mdef = name
 	  @opts = opts
           @application = application
 	  @filters = Array.new
@@ -86,12 +88,13 @@ module OMF
 
         end
       
-        def filter(opts = {})
-          raise OEDLMissingArgumentException.new(:filter, :name) if opts[:name] == nil
-          raise OEDLMissingArgumentException.new(:filter, :type) if opts[:type] == nil
+        def filter(name = :mandatory, type = :mandatory, opts = {})
+          raise OEDLMissingArgumentException.new(:filter, :name) if name == :mandatory
+          raise OEDLMissingArgumentException.new(:filter, :type) if type == :mandatory
 
 	  info "TDEBUG - filter - appliction: #{@application} - called: #{opts.to_s}"
-          filter = OMF::ExperimentController::OML::Filter.new(opts[:type], "#{opts[:name]}", opts[:options])  
+          #filter = OMF::ExperimentController::OML::Filter.new(opts[:type], "#{opts[:name]}", opts[:options])  
+          filter = OMF::ExperimentController::OML::Filter.new(type, name, opts)  
 	  @filters << filter
         end
 
