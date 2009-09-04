@@ -62,7 +62,6 @@ module OMF
           block.call(self) if block
         end
         
-        #def metric(name = :mandatory, metrics = {h1, h2, h3})
         def metric(name = :mandatory, *opts)
           raise OEDLMissingArgumentException.new(:metric, :name) if name == :mandatory
 
@@ -87,9 +86,13 @@ module OMF
 
         end
       
-        #def filter(name = :mandatory, type = :mandatory, otps = {h1, h2, h3})
-        def filter(name = :mandatory, opts = {})
-          raise OEDLMissingArgumentException.new(:filter, :name) if name == :mandatory
+        def filter(opts = {})
+          raise OEDLMissingArgumentException.new(:filter, :name) if opts[:name] == nil
+          raise OEDLMissingArgumentException.new(:filter, :type) if opts[:type] == nil
+
+	  info "TDEBUG - filter - appliction: #{@application} - called: #{opts.to_s}"
+          filter = OMF::ExperimentController::OML::Filter.new(opts[:type], "#{opts[:name]}", opts[:options])  
+	  @filters << filter
         end
 
         
