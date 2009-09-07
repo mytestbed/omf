@@ -44,7 +44,7 @@ class Communicator < MObject
 
     case type = opts[:type]
     when 'xmpp'
-      require 'omf-expctl/xmppCommunicator.rb'
+      require 'omf-expctl/communicator/xmppCommunicator.rb'
       @@instance = XmppCommunicator.init(opts[:xmpp])
     when 'mock'
       @@instance = MockCommunicator.new()

@@ -33,7 +33,6 @@
 
 require "omf-common/omfPubSubService"
 require "omf-common/omfCommandObject"
-#require "omf-common/omfPubSubCommandObject"
 require 'omf-common/lineSerializer'
 require 'omf-common/mobject'
 require 'omf-expctl/agentCommands'
@@ -116,7 +115,7 @@ class XmppCommunicator < Communicator
   #
   def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
     
-    MObject.debug "TDEBUG - START PUBSUB - #{jid_suffix}"
+    debug "START PUBSUB - #{jid_suffix}"
     # Set some internal attributes...
     @@sessionID = sessionID
     @@expID = expID
@@ -286,9 +285,7 @@ class XmppCommunicator < Communicator
   def sendCmdObject(cmdObj)
     target = cmdObj.group
     msg = cmdObj.to_xml
-
-    info "TDEBUG - XML - #{msg.to_s}"
-
+    debug "Sending Command Object - #{msg.to_s}"
     if (target == "*")
       send!(msg.to_s, "#{@@expNode}")
     else

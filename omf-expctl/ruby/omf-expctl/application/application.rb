@@ -101,7 +101,6 @@ class Application < MObject
     return d.aptName != nil || d.binaryRepository != nil
   end
 
-
   #
   # Install the application on a given set of nodes (NodeSet)
   #
@@ -122,68 +121,27 @@ class Application < MObject
     end
   end
 
-
   #
-  # Install the application on a given set of nodes (NodeSet)
+  # Return an existing Measurement Point (MP) for this application, 
+  # and execute a block of command on it
   #
-  # - nodeSet = the NodeSet object on which to install the application
-  # - vName = the virtual name of the application
+  # Usage example:
+  #   otg.measure('udp_out', :interval => 5) do |mp|
+  #      mp.metric('myMetrics', 'seq_no' )
+  #   end
   #
-#  def install(nodeSet, vName)
-#    if (rep = appDefinition.binaryRepository) == nil
-#      raise "Missing binary repository for '#{appDefinition.name}"
-#    end
-#    # TODO: Need to differentiate among different install methods (apt, tar)
-#    nodeSet.send(:INSTALL, ["proc/#{vName}", rep])
-#  end
-  
-  
-
-
-
-  #
-  # Add a measurement point to this application
-  #
-  # - idRef  = Reference to a measurement point
-  # - filterMode = Type of OML filter - time or sample
-  # - metrics = Metrics to use from measurement point
-  #
-  def addMeasurement(idRef, filterMode, properties = nil, metrics = nil)
-
-    error("'addMeasurement' is no longer working! Use 'measure' inside 'addApplication' block instead")
-#    mDef = appDefinition.measurements[idRef]
-#    if (mDef == nil)
-#      raise "Unknown measurement point '#{idRef}'"
-#    end
-#    m = Measurement.new(mDef, filterMode, properties, metrics)
-#    @measurements += [m]
-#    return m
-  end
-
-
-  #
-  # Return a measure from a given measurement point, and execute 
-  # a block of command on it
-  #
-  # - idRef = Reference to a measurement point
+  # - idRef = Reference to a measurement point, this is the MP reference
+  #           as defined by the application developer
+  # - opts = a comma-separated list of key => value options for this MP
   # - block = block of code to execute
   #
-  #def measure(idRef = :mandatory, opts = {}, &block)
-  #def measure(opts = {}, &block)
   def measure(name = :mandatory, opts = {}, &block)
-    #raise OEDLMissingArgumentException.new(:measure, :mpoint) if opts[:mpoint] == nil
     raise OEDLMissingArgumentException.new(:measure, :name) if name == :mandatory
 
-    info "TDEBUG - measure - #{opts}"
-
-    #mDef = appDefinition.measurements[opts[:mpoint]]
     mDef = appDefinition.measurements[name]
     if (mDef == nil)
       raise "Unknown measurement point '#{name}'"
-      #raise "Unknown measurement point '#{opts[:mpoint]}'"
     end
-
-    #m = OMF::ExperimentController::OML::MStream.new(opts, self, &block)
     m = OMF::ExperimentController::OML::MStream.new(name, opts, self, &block)
     @measurements << m
     return m
@@ -197,7 +155,7 @@ class Application < MObject
   def to_xml
     a = REXML::Element.new("application")
     a.add_attribute("refid", appDefinition.uri)
-#    a.add_element("description").text = description
+    #a.add_element("description").text = description
 
     if @properties.length > 0
       pe = a.add_element("properties")
@@ -224,5 +182,11 @@ class Application < MObject
     @appRef
   end
   
+  #
+  # _Deprecated_ - Use measure(...) instead
+  #
+  def addMeasurement(idRef, filterMode, properties = nil, metrics = nil)
+    raise OEDLIllegalCommandException.new(:addMeasurement) 
+  end
 
 end

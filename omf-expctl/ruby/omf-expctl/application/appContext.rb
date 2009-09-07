@@ -26,22 +26,20 @@
 #
 # == Description
 #
-#
 # This class defines an Application Context.
 # An Application Context holds the name, definition, bindings 
 # and configurations of an application to be run on a node
 # during an experiment. 
 #
-
 #
-# This class defines an Application Context.
-# An Application Context holds the name, definition, bindings 
-# and configurations of an application to be run on a node
-# during an experiment. 
-#
-
 require 'omf-common/mobject'
 
+#
+# This class defines an Application Context.
+# An Application Context holds the name, definition, bindings 
+# and configurations of an application to be run on a node
+# during an experiment. 
+#
 class AppContext < MObject
 
   attr_reader :app, :id, :bindings, :env
@@ -63,25 +61,24 @@ class AppContext < MObject
       @bindings[name] = value
     }
     @env = Hash.new
-    
-    # NOTE: Thta should really go into OmlApp
-#    omlUrl = OmlApp.register(self)
-#    if omlUrl != nil
-#      @env['OML_CONFIG'] = omlUrl
-#      @env['%OML_NAME'] = 'node%x-%y'
-#      if @env.has_key?('LD_LIBRARY_PATH')
-#        @env['LD_LIBRARY_PATH'] += ':/usr/lib/'
-#      else
-#        @env['LD_LIBRARY_PATH'] = '/usr/lib/'
-#      end
-#    end
   end
 
+  #
+  # Start an Application on a given Node Set
+  # This method creates and sends the Command Object to start an application 
+  # on a group of nodes (resources)
+  # 
+  # - nodeSet = the group of nodes on which to start the application
+  #
   def startApplication(nodeSet)
     debug("Starting application '#@id'")
+
+    # Get a new Command Object and starting adding info to it
     app_cmd = Communicator.instance.getCmdObject(:EXECUTE)
     app_cmd.group = nodeSet.groupName
     app_cmd.procID = @id
+    appDefinition = @app.appDefinition
+    app_cmd.path = appDefinition.path
 
     # Add the OML info, if any...
     unless @app.measurements.empty?
@@ -89,7 +86,6 @@ class AppContext < MObject
       @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_url]
       @env['OML_EXP_ID'] = Experiment.ID
       @env['OML_NAME'] = "#{nodeSet}"
-
       # Build the XML configuration for the OML Client library
       # based on the measurement request of the Experiment
       # First - build the header
@@ -103,22 +99,16 @@ class AppContext < MObject
       # Second - build the entry for each measurement point
       @app.measurements.each do |m|
         # add mstream configurations
-	info "TDEBUG - Build XML - #{m.to_xml}"
 	el << m.to_xml
       end
       omlXML.root << el 
       # Finally add the config to this Command Object
       app_cmd.omlConfig = omlXML
-      info "TDEBUG - Build XML - #{app_cmd.omlConfig}"
     end
 
     # Add the environment info...
     app_cmd.env = @env
 
-    # Add the path...
-    appDefinition = @app.appDefinition
-    app_cmd.path = appDefinition.path
-    
     # Add the bindings...
     pdef = appDefinition.properties
     # check if bindings contain unknown parameters
@@ -128,8 +118,6 @@ class AppContext < MObject
     end
     app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet)
     
-    info "TDEBUG - 2 - SENDING acmd: '#{app_cmd}'"
-
     # Ask the Communicator to send the Command Object 
     Communicator.instance.sendCmdObject(app_cmd)
   end

@@ -94,7 +94,7 @@ module OMF
           if d =~ /^[a-z]/
             initF = "#{tabDir}/#{d}/init.rb"
             if File.readable?(initF)
-              MObject.info(:web, "Loading tab '#{d}' (#{initF})")
+              MObject.debug(:web, "Loading tab '#{d}' (#{initF})")
               load(initF)
             end
           end

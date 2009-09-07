@@ -44,7 +44,7 @@ require 'thread'  # Queue class
 require 'net/http'
 require 'omf-expctl/exceptions'
 require 'omf-common/mobject'
-require 'omf-expctl/communicator.rb'
+require 'omf-expctl/communicator/communicator.rb'
 require 'omf-expctl/oconfig'
 #
 require 'singleton'
@@ -55,7 +55,6 @@ require 'omf-expctl/node/basicNodeSet'
 require 'omf-expctl/node/groupNodeSet'
 require 'omf-expctl/node/rootGroupNodeSet'
 require 'omf-expctl/node/rootNodeSetPath'
-
 require 'rexml/document'
 require 'rexml/element'
 require 'omf-expctl/web/webServer'
@@ -63,7 +62,6 @@ require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/web/tab/log/logServlet'
-
 
 Project = nil
 
@@ -272,7 +270,7 @@ class NodeHandler < MObject
         end
         response
       rescue Exception => ex
-        MObject.fatal('service_call', "Exception: #{ex} (#{url})")
+        fatal('service_call', "Exception: #{ex} (#{url})")
         raise ServiceException.new(nil, ex)
       end
     end
@@ -373,45 +371,22 @@ class NodeHandler < MObject
     end
     @running = true
         
-    # Placeholder when XMPP-based Pub/Sub xmppCommunicator will be ready for integration
-    # communicator.configure(sid, userjid, userpassword, pubsubjid)  # configure our Pub/Sub xmppCommunicator
-    # Should all happen through OConfig
-
-#    if !debug?
-#      communicator.start("sandbox1.dynhost.nicta.com.au", "123", Experiment.getDomain(), "SessionID", Experiment.ID)
-#      communicator.sendReset  # if the nodes are already up, reset the agent now
-#    end
-#    
-#    # Static domain for testing
-#    communicator.start("#{OConfig.XMPP_HOST}", "SessionID", Experiment.ID)
-
     Profiler__::start_profile if @doProfiling
 
     startWebServer()
+    info "Web interface available at: #{OMF::ExperimentController::Web::url}"
 
-    # With OMLv2 we do not need to wait for application(s) setup to start the collection server.
-    # Also, now we use only one instance of OML2 server to serve multiple experiments, however
-    # we still need to call a start on it
-    #OmlApp.startCollectionServer
-    
     begin 
-      baseCmds = Object.methods
       require 'omf-expctl/handlerCommands'      
-
       if (@extraLibs)
         @extraLibs.split(',').each { |f|
           Experiment.load(f)
         }
       end
-#      puts "COMMANDS: #{Object.methods - baseCmds}"
     end
     
+    # Load the Experiment File , if any
     if @expFile
-      # Expose the Experiment File through the Web Server of NH
-      #@expFileURL = "#{OMF::ExperimentController::Web.url()}#{EXPFILE_MOUNT}"
-      #OMF::ExperimentController::Web.mapFile(EXPFILE_MOUNT, @expFile)
-
-      # Then Load the Experiment File 
       Experiment.load(@expFile)
       Experiment.start()
     end
@@ -432,14 +407,13 @@ class NodeHandler < MObject
   
     if interactive?
       require 'omf-expctl/console'
-  
       OMF::ExperimentController::Console.instance.run
     end
 
+    # Now block until the Experiment is Done...
     @@mutex.synchronize do
       @@blocker.wait(@@mutex)
     end
-
   end
 
   #
@@ -518,7 +492,7 @@ class NodeHandler < MObject
       @finalStateFile = file
     }
 
-    opts.on("-s", "--shutdown flag", "If true, shut down grid at the end of an experiment [#{NodeHandler.SHUTDOWN}]") {|flag|
+    opts.on("-s", "--shutdown flag", "If true, shut down resources at the end of an experiment [#{NodeHandler.SHUTDOWN}]") {|flag|
       NodeHandler.SHUTDOWN = (flag == 'true') || (flag == 'yes')
     }
 
@@ -613,7 +587,7 @@ class NodeHandler < MObject
         break
       end
       if (@expFile != nil)
-        MObject.fatal('init', "Found additional experiment file '#{s}'")
+        fatal('init', "Found additional experiment file '#{s}'")
         puts opts
         exit -1
       end
@@ -621,15 +595,14 @@ class NodeHandler < MObject
     }
 
     if (@expFile.nil? && ! (@interactive || @web_ui))
-      MObject.fatal('init', "Missing experiment file")
+      fatal('init', "Missing experiment file")
       puts opts
       exit -1
     end
 
-    MObject.info('init', "Experiment ID: #{Experiment.ID}")
+    info('init', "Experiment ID: #{Experiment.ID}")
     Experiment.expArgs = rest - [@expFile]
   end
-
 
 
   private
@@ -705,8 +678,8 @@ class NodeHandler < MObject
     end
     # Now start the logger
     @logConfigFile = log
-    #info('init', "Using Log config file: #{@logConfigFile}")
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
+    debug('init', "Using Log config file: #{@logConfigFile}")
     info('init', " #{OMF::ExperimentController::VERSION_STRING}")
   end
 
@@ -834,7 +807,7 @@ class NodeHandler < MObject
     accLog = Logger.new("w_access")
     accLog.instance_eval {
       def << (msg)
-        MObject.debug('web::access', msg.strip)
+        debug('web::access', msg.strip)
       end
     }
     begin
@@ -858,5 +831,3 @@ class NodeHandler < MObject
 end 
 #
 # END of the NodeHandler Class Declaration
-
-
