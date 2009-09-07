@@ -63,7 +63,7 @@ class RootNodeSetPath < NodeSetPath
       # if this is a one-off command line application
       # then create a default Application object to hold it
       debug "Implicit creation of an app instance from: #{app}"
-      appInstance =  Application.new(app, &block)
+      appInstance = Application.new(app, &block)
     #else
       # real NH-compatible application (i.e. ruby wrapper)
     #  appInstance = app

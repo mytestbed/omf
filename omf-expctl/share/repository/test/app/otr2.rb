@@ -21,11 +21,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#
+
 require 'omf-expctl/application/appDefinition'
 
+# This is an OMF Definition for the existing application called 'otr2'
+# This definition will allow OMF entities to use and instrument this application
+#
 defApplication('test:app:otr2', 'otr2') { |a|
 
+  a.path = "/usr/bin/otr2"
   a.version(1, 1, 2)
   a.shortDescription = "Programmable traffic sink"
   a.description = <<TEXT
@@ -34,15 +38,21 @@ packet streams via various transport options, such as TCP and UDP.
 This version 2 is compatible with OMLv2.
 TEXT
 
-  #defProperty(name, description, mnemonic = nil, options = nil)
-  #a.defProperty('oml-server', 'Contact details for the oml collection server')
-  #a.defProperty('oml-id', 'ID for this oml client')
-  #a.defProperty('oml-exp-id', 'ID for this experiment')
+  # Define the properties that can be configured for this application
+  # 
+  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  #
   a.defProperty('udp:local_host', 'IP address of this Destination node', nil, {:type => :string, :dynamic => false})
   a.defProperty('udp:local_port', 'Receiving Port of this Destination node', nil, {:type => :integer, :dynamic => false})
-  #a.defProperty('sink', 'Processing to do with received packets [udpi|udpmi]', nil, {:type => :string, :dynamic => false})
-  #a.defProperty('udpmi:local_host', 'IP address of the local host ', nil, {:type => :string, :dynamic => false})
-  #a.defProperty("debug-level", "debug level [integer]")
 
-  a.path = "/usr/bin/otr2"
+  # Define the Measurement Points and associated metrics that are available for this application
+  #
+  a.defMeasurement('udp_in') { |m|
+    m.defMetric('ts',:float)
+    m.defMetric('flow_id',:long)
+    m.defMetric('seq_no',:long)
+    m.defMetric('pkt_length',:long)
+    m.defMetric('dst_host',:string)
+    m.defMetric('dst_port',:long)
+  }
 }

@@ -22,12 +22,15 @@
 # THE SOFTWARE.
 #
 #
-#
-# Create an application representation from scratch
-#
+
 require 'omf-expctl/application/appDefinition'
 
+# This is an OMF Definition for the existing application called 'otg2'
+# This definition will allow OMF entities to use and instrument this application
+#
 defApplication('test:app:otg2', 'otg2') {|a|
+
+  a.path = "/usr/bin/otg2"
   a.version(1, 1, 2)
   a.shortDescription = "Programmable traffic generator v2"
   a.description = <<TEXT
@@ -37,7 +40,10 @@ these packets via various transports, such as TCP and UDP.
 This version 2 is compatible with OMLv2
 TEXT
 
-  # defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
+  # Define the properties that can be configured for this application
+  # 
+  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  #
   a.defProperty('udp:broadcast', 'Broadcast', nil, {:type => :integer, :dynamic => false})
   a.defProperty('udp:dst_host', 'IP address of the Destination', nil, {:type => :string, :dynamic => false})
   a.defProperty('udp:dst_port', 'Destination Port to send to', nil, {:type => :integer, :dynamic => false})
@@ -46,6 +52,8 @@ TEXT
   a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
   a.defProperty("cbr:rate", "Data rate of the flow [bps]", nil, {:dynamic => true, :type => :integer})
 
+  # Define the Measurement Points and associated metrics that are available for this application
+  #
   a.defMeasurement('udp_out') { |m|
     m.defMetric('ts',:float)
     m.defMetric('flow_id',:long)
@@ -54,6 +62,4 @@ TEXT
     m.defMetric('dst_host',:string)
     m.defMetric('dst_port',:long)
   }
-
-  a.path = "/usr/bin/otg2"
 }

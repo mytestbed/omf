@@ -26,25 +26,43 @@
 # Define a prototype
 #
 
+# This is an OMF Prototype definition
+# This prototype contains a single UDP traffic receiver, which uses the
+# existing application otr2.
+# It allows OMF entities to use and instrument this traffic receiver
+#
 defPrototype("test:proto:udp_receiver") { |p|
-  
   p.name = "UDP_Receiver"
-  p.description = "Nodes which receive packets"
+  p.description = "Nodes which receive UDP packets"
 
-  #p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
-  #p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
-  #p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
+  # Define the properties (and their default values) that can be configured 
+  # for this prototype
+  #
   p.defProperty('localHost', 'Host that generate the packets', 'localhost')
   p.defProperty('localPort', 'Host that generate the packets', 3000)
 
+  # Define the application to be installed on this type of node,
+  # bind the application properties to the prototype properties,
+  # and finally, define what measurements should be collected
+  # for each application.
+  #
   p.addApplication("test:app:otr2") { |otr|
 
-    #otr.bindProperty('oml-server', 'omlServer')
-    #otr.bindProperty('oml-id', 'id')
-    #otr.bindProperty('oml-exp-id', 'expId')
     otr.bindProperty('udp:local_host', 'localHost')
     otr.bindProperty('udp:local_port', 'localPort')
-
+    
+    otg.measure('udp_in', :interval => 1)
+    # Other valid measurement definitions...
+    #
+    #otg.measure('udp_in')
+    #otg.measure('udp_in', :interval => 5)
+    #otg.measure('udp_in', :sample => 5)
+    #otg.measure('udp_in', :interval => 5) do |mp|
+      #mp.metric('myMetrics', 'seq_no' )
+      #mp.metric('myMetrics', 'dst_host' )
+      #mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
+      #mp.filter('myFilter1', 'avg', :input => 'pkt_length')
+      #mp.filter('myFilter2', 'first', :input => 'dst_host')
+    #end
   }
-
 }

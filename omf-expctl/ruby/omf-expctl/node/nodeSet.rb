@@ -172,6 +172,9 @@ class NodeSet < MObject
   #
   def addApplicationContext(appCtxt)
     @applications[appCtxt.id] = appCtxt
+    eachNode { |n|
+      n.addApplicationContextToStates(appCtxt)
+    }
   end
 
   #

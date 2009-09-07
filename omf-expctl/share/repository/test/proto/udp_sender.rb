@@ -22,16 +22,19 @@
 # THE SOFTWARE.
 #
 #
-#
-# Define a prototype containing a single
-# traffic generator (otg).
-#
 
-
+# This is an OMF Prototype definition
+# This prototype contains a single UDP traffic generator, which uses the
+# existing application otg2.
+# It allows OMF entities to use and instrument this traffic generator
+#
 defPrototype("test:proto:udp_sender") { |p|
   p.name = "UDP_Sender"
   p.description = "A node which transmit a stream of packets over multiple paths"
 
+  # Define the properties (and their default values) that can be configured 
+  # for this prototype
+  #
   p.defProperty('destinationHost', 'Host to send packets to')
   p.defProperty('destinationPort', 'Host to send packets to',3000)
   p.defProperty('localHost', 'Host that generate the packets', 'localhost')
@@ -40,7 +43,7 @@ defPrototype("test:proto:udp_sender") { |p|
   p.defProperty('rate', 'Number of bits per second [bps]', 4096)
   p.defProperty('broadcast', 'Allow broadcast', 0)
 
-  # Define applications to be installed on this type of node,
+  # Define the application to be installed on this type of node,
   # bind the application properties to the prototype properties,
   # and finally, define what measurements should be collected
   # for each application.
@@ -54,32 +57,19 @@ defPrototype("test:proto:udp_sender") { |p|
     otg.bindProperty('cbr:size', 'packetSize')
     otg.bindProperty('cbr:rate', 'rate')
 
-    #otg.measure(:mpoint => 'udp_out')
-    
-    #otg.measure(:mpoint => 'udp_out', :interval => 1)
-    #otg.measure(:mpoint => 'udp_out', :samples => 10)
-    
-    #otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
+    otg.measure('udp_out', :interval => 1)
+    # Other valid measurement definitions...
+    #
+    #otg.measure('udp_out')
+    #otg.measure('udp_out', :interval => 5)
+    #otg.measure('udp_out', :sample => 5)
+    #otg.measure('udp_out', :interval => 5) do |mp|
       #mp.metric('myMetrics', 'seq_no' )
       #mp.metric('myMetrics', 'dst_host' )
       #mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
+      #mp.filter('myFilter1', 'avg', :input => 'pkt_length')
+      #mp.filter('myFilter2', 'first', :input => 'dst_host')
     #end
-
-
-    otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
-      
-      mp.filter(:name => 'myFilter1', :type => 'avg', 
-                :options => {:input => 'pkt_length'})
-      
-      mp.filter(:name => 'myFilter2', :type => 'first', 
-                :options => {:input => 'dst_host'})
-
-      mp.filter(:name => 'myFilter2', :type => 'first', 
-                :options => {:input => 'dst_host'})
-      #mp.filter(:name => 'myFilter2', :type => 'histogram', 
-      #                       :options => {:inputs => ['pkt_length', 'dst_host'], 
-      #                                    :category => 5})
-    end
 
   }
 }

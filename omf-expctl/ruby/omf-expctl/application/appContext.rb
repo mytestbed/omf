@@ -64,6 +64,57 @@ class AppContext < MObject
   end
 
   #
+  # Return the OML Configuration associated with this Application Context
+  #
+  # - nodeSet = the Node Set use when building the OML Config
+  #             (optional when this method is called by the Node's State tracing)
+  #
+  # [Return] an XML representation of the OML configuration, or nil if no 
+  #          measurement points are defined for this Application Context
+  #
+  def getOMLConfig(nodeSet = nil)
+    if !@app.measurements.empty?
+      # Build the XML configuration for the OML Client library
+      # based on the measurement request of the Experiment
+      # First - build the header
+      omlXML = REXML::Document.new()
+      el = REXML::Element.new('omlc')
+      el.add_attribute("exp_id","#{Experiment.ID}")
+      el.add_attribute("id","#{nodeSet}") if nodeSet != nil
+      omlXML << el
+      el = REXML::Element.new('collect')
+      el.add_attribute("url","#{OConfig[:tb_config][:default][:oml_url]}")
+      # Second - build the entry for each measurement point
+      @app.measurements.each do |m|
+        # add mstream configurations
+	el << m.to_xml
+      end
+      omlXML.root << el 
+      return omlXML
+    else
+      return nil
+    end
+  end
+
+  #
+  # Return the Environment configuration associated with this Application Context
+  #
+  # - nodeSet = the Node Set use when building the environment config
+  #             (optional when this method is called by the Node's State tracing)
+  #
+  # [Return] an Hash containing the environment parameters
+  #
+  def getENVConfig(nodeSet = nil)
+    unless @app.measurements.empty?
+      # add OML environment
+      @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_url]
+      @env['OML_EXP_ID'] = Experiment.ID
+      @env['OML_NAME'] = "#{nodeSet}" if nodeSet != nil
+    end
+    return @env
+  end
+
+  #
   # Start an Application on a given Node Set
   # This method creates and sends the Command Object to start an application 
   # on a group of nodes (resources)
@@ -81,33 +132,11 @@ class AppContext < MObject
     app_cmd.path = appDefinition.path
 
     # Add the OML info, if any...
-    unless @app.measurements.empty?
-      # add OML environment
-      @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_url]
-      @env['OML_EXP_ID'] = Experiment.ID
-      @env['OML_NAME'] = "#{nodeSet}"
-      # Build the XML configuration for the OML Client library
-      # based on the measurement request of the Experiment
-      # First - build the header
-      omlXML = REXML::Document.new()
-      el = REXML::Element.new('omlc')
-      el.add_attribute("exp_id","#{Experiment.ID}")
-      el.add_attribute("id","#{nodeSet}")
-      omlXML << el
-      el = REXML::Element.new('collect')
-      el.add_attribute("url","#{OConfig[:tb_config][:default][:oml_url]}")
-      # Second - build the entry for each measurement point
-      @app.measurements.each do |m|
-        # add mstream configurations
-	el << m.to_xml
-      end
-      omlXML.root << el 
-      # Finally add the config to this Command Object
-      app_cmd.omlConfig = omlXML
-    end
+    omlconf = getOMLConfig(nodeSet)
+    app_cmd.omlConfig = omlconf if omlconf != nil
 
     # Add the environment info...
-    app_cmd.env = @env
+    app_cmd.env = getENVConfig(nodeSet)
 
     # Add the bindings...
     pdef = appDefinition.properties

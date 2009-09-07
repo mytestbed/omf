@@ -249,12 +249,12 @@ class Node < MObject
   end
 
   #
-  # Add an application to this Node
+  # Add an application to the states of this Node
   #
   # - appCtxt = the Application Context to add (AppContext). This context
   #                holds the Application name, its binding, environments,...
   #
-  def addApplication(appCtxt)
+  def addApplicationContextToStates(appCtxt)
     debug("Add application #{appCtxt.id} to #{self}")
     TraceState.nodeAddApplication(self, appCtxt)
   end

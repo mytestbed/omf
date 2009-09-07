@@ -553,11 +553,18 @@ class NodeApp < NodeBuiltin
     @isReady = ! appCtxt.app.installable?
     @el.add_element('appDef', {'href' => appCtxt.app.appDefinition.uri})
 
-    if appCtxt.env != nil
+    env = appCtxt.getENVConfig
+    if env != nil
       envEl = @el.add_element('envList')
-      appCtxt.env.each {|k, v|
+      env.each {|k, v|
         envEl.add_element('env', {'name' => k.to_s}).text = v.to_s
       }
+    end
+
+    omlconf = appCtxt.getOMLConfig
+    if omlconf != nil
+      omlEl = @el.add_element('omlConfig')
+      omlEl.add_element(omlconf)
     end
   end
 
