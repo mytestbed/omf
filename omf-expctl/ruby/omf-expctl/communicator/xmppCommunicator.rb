@@ -115,7 +115,7 @@ class XmppCommunicator < Communicator
   #
   def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
     
-    debug "START PUBSUB - #{jid_suffix}"
+    debug "Starting XMPP PubSub communicator (connecting to server #{jid_suffix})"
     # Set some internal attributes...
     @@sessionID = sessionID
     @@expID = expID
@@ -143,8 +143,7 @@ class XmppCommunicator < Communicator
       exit!
     end
 
-    #debug "TDEBUG - start 2"
-    MObject.debug "Connected to PubSub Server: '#{jid_suffix}'"
+    debug "Connected to PubSub Server: '#{jid_suffix}'"
         
     # let the gridservice do this:
     #@@service.create_pubsub_node("/#{DOMAIN}")
@@ -285,7 +284,6 @@ class XmppCommunicator < Communicator
   def sendCmdObject(cmdObj)
     target = cmdObj.group
     msg = cmdObj.to_xml
-    debug "Sending Command Object - #{msg.to_s}"
     if (target == "*")
       send!(msg.to_s, "#{@@expNode}")
     else
@@ -342,7 +340,7 @@ class XmppCommunicator < Communicator
     item.add(msg)
   
     # Send it
-    #debug("*** Sending '#{message}' to '#{dst}' ***")
+    debug "Sending to '#{dst}' - '#{message}'"
     @@service.publish_to_node("#{dst}", item)        
   end
       

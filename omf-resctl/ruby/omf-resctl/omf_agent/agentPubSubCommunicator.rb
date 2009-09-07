@@ -386,6 +386,7 @@ class AgentPubSubCommunicator < MObject
       when "EXEC"
       when "KILL"
       when "STDIN"
+      when "EXIT"
       when "PM_INSTALL"
       when "APT_INSTALL"
       when "RESET"

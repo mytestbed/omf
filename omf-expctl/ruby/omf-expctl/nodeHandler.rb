@@ -600,7 +600,7 @@ class NodeHandler < MObject
       exit -1
     end
 
-    info('init', "Experiment ID: #{Experiment.ID}")
+    info('init', " Experiment ID: #{Experiment.ID}")
     Experiment.expArgs = rest - [@expFile]
   end
 

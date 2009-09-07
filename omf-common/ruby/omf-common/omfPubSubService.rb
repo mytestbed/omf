@@ -113,7 +113,7 @@ class OmfPubSubService < MObject
     @clientHelper.auth(password)
     @clientHelper.send(Jabber::Presence.new)
     @service = MyServiceHelper.new(@clientHelper, @pubsubjid)
-    debug "CDEBUG - initialize - connection opened to '#{host}'"
+    debug "Connection opened to XMPP server: '#{host}'"
   end
 
   #
@@ -149,7 +149,6 @@ class OmfPubSubService < MObject
         "pubsub#publish_model" => "open"}))
       rescue Exception => ex
         if ("#{ex}"=="conflict: ")
-          #debug "CDEBUG - create_pubsub_node - Node '#{node}' already exists!"
           # PubSub node already exists, do nothing
           return true
         end
@@ -171,7 +170,6 @@ class OmfPubSubService < MObject
         @service.delete_node(node)
       rescue Exception => ex
         if ("#{ex}"=="item-not-found: ")
-          #debug "CDEBUG - remove_pubsub_node - Node '#{node}' does not exist!"
           # PubSub node does not exist, do nothing
           return true
         end
@@ -191,7 +189,7 @@ class OmfPubSubService < MObject
         @service.publish_item_to(node,item)
       rescue Exception => ex
         if ("#{ex}"=="item-not-found: ")
-          debug "CDEBUG - publish_to_node - Node '#{node}' does not exist!"
+          debug "publish_to_node - Node '#{node}' does not exist!"
           return false
         end
         raise "OmfPubSubService - publish_to_node - Unhandled Exception - '#{ex}'"
@@ -230,11 +228,9 @@ class OmfPubSubService < MObject
     #
     def remove_all_pubsub_nodes()
       listAllSubscription = get_all_pubsub_subscriptions
-      #debug "CDEBUG - List BEFORE Removing All: #{listAllSubscription}"
       listAllSubscription.each { |sub|
         remove_pubsub_node(sub.node)
       }
-      #debug "CDEBUG - LIST AFTER Removing - #{get_all_pubsub_subscriptions}"
     end
 
     #
@@ -243,7 +239,7 @@ class OmfPubSubService < MObject
     # Close the connection to the PubSub server
     #
     def quit()
-      debug "CDEBUG - quit - removing user from PubSub server and closing connection"
+      debug "Removing user from PubSub server and closing connection"
       leave_all_pubsub_nodes
       @clientHelper.remove_registration
       @clientHelper.close
@@ -260,7 +256,7 @@ class OmfPubSubService < MObject
         @service.unsubscribe_from_fixed(node, subid)
       rescue Exception => ex
         if ("#{ex}"=="item-not-found: ")
-          debug "CDEBUG - leave_pubsub_node - Node '#{node}' does not exist!"
+          debug "leave_pubsub_node - Node '#{node}' does not exist!"
           return true
         end
         raise "OmfPubSubService - leave_pubsub_node - Unhandled Exception - '#{ex}'"
@@ -280,7 +276,7 @@ class OmfPubSubService < MObject
         @service.subscribe_to(node)
       rescue Exception => ex
         if ("#{ex}"=="item-not-found: ")
-          debug "CDEBUG - join_pubsub_node - Node '#{node}' does not exist!"
+          debug "join_pubsub_node - Node '#{node}' does not exist!"
           return false
         end
         raise "OmfPubSubService - join_pubsub_node - Unhandled Exception - '#{ex}'"

@@ -189,7 +189,7 @@ class RootNodeSetPath < NodeSetPath
   # - *args = a sequence of arguments to send as a messages to this application
   #
   def sendMessage(name, *args)
-    @nodeSet.send(:STDIN, "app:#{name}", *args)
+    @nodeSet.send(:STDIN, "#{name}", *args)
   end
   
   #

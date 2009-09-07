@@ -248,8 +248,7 @@ class NodeSet < MObject
     if (ctxt == nil)
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
-    procName = "app:#{name}"
-    send(:STDIN, procName, 'exit')
+    send(:EXIT, name)
   end
 
   #
@@ -560,7 +559,7 @@ class NodeSet < MObject
   # - args = Array of parameters
   #
   def send(command, *args)
-    debug("#send: args(#{args.length})'#{args.join('#')}")
+    debug("send: args(#{args.length})'#{args.join('#')}")
     notQueued = true
     @mutex.synchronize do
       if (!up?)
