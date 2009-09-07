@@ -27,6 +27,13 @@ then
   sed -i "s/local_if: eth1/local_if: $CONTROL/g" /etc/omf-resctl/nodeagent.yaml
 fi 
 
+# get xmpp server address from kernel command line
+if grep -i -q "xmpp=[a-zA-Z0-9]" /proc/cmdline
+then
+  XMPP=`cat /proc/cmdline | sed 's/.*xmpp=\([^ ]*\).*/\1/'` 
+  sed -i "s/xmpp_server: 10.0.0.200/xmpp_server: $XMPP/g" /etc/omf-resctl/nodeagent.yaml
+fi 
+
 $IP_CONFIG link set $CONTROL up
 $UDHCPC -i $CONTROL -s $UDHCPC_SCRIPT
 

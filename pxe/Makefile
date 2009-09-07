@@ -2,7 +2,7 @@
 # Build the Orbit PXE kernel image and initramfs
 #
 NAME = omf-pxe
-VER = 2.0.5
+VER = 2.0.6
 
 DEB_REP=debian
 KORG_URL = http://www.kernel.org/pub/linux/kernel/v
@@ -46,7 +46,6 @@ CURL_TAR_URL = $(CURL_URL)/$(CURL_TAR)
 APT_HOST ?= http://apt
 REPOSITORY ?= $(USER)@repository1
 REPOSITORY_ROOT ?= /export/web/orbit/dists/testing/main
-KEXEC_REP ?= debian/pool/main/k/kexec-tools
 WINLAB_REP ?= winlab/binary
 MAIN_REP ?= orbit/dists/testing/main/binary-i386
 KERNEL_CONFIG_FILE ?= $(KERNEL_NAME).config
@@ -60,26 +59,6 @@ INITRAMFS_LIST = $(INITRAMFS).list
 
 GETMAC_DIR= getmac-1.0
 
-FRISBEE_DEB=frisbee_1.0.3-1_i386.deb
-FRISBEE_DEB_URL = $(APT_HOST)/$(WINLAB_REP)/$(FRISBEE_DEB)
-IMAGEZIP_DEB=imagezip_1.0.0-1_i386.deb
-IMAGEZIP_DEB_URL = $(APT_HOST)/$(WINLAB_REP)/$(IMAGEZIP_DEB)
-
-NODEAGENT_CONF=nodeagent.yaml
-NODEAGENT_ETC=/etc/omf-resctl
-
-# This will go away with buildroot
-KEXEC_PATH=$(shell sudo apt-cache show kexec-tools | grep -m 1  "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\1|g')
-KEXEC_DEB=$(shell sudo apt-cache show kexec-tools | grep -m 1  "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
-KEXEC_DEB_URL = $(APT_HOST)/$(DEB_REP)/$(KEXEC_PATH)/$(KEXEC_DEB)
-
-SYSLINUX_PATH=$(shell sudo apt-cache show syslinux | grep -m 1 "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\1|g')
-SYSLINUX_DEB=$(shell sudo apt-cache show syslinux | grep -m 1  "Filename:" | \
-	cut -d" " -f 2 | sed -e 's|\(.*\)/\(.*deb\)|\2|g')
-SYSLINUX_DEB_URL=$(APT_HOST)/$(DEB_REP)/$(SYSLINUX_PATH)/$(SYSLINUX_DEB)
 PXE_PATH=/usr/lib/syslinux/
 PXE_SRC=pxelinux.0
 PXE_DST=pxelinux.bin
@@ -144,21 +123,14 @@ curl: 	get_curl
 	  cp -d `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/lib/lib* $(ROOTFS)/usr/lib; \
 	fi
 
-frisbee: get_frisbee
-	dpkg -x $(SOURCE)/$(FRISBEE_DEB) $(TEMP)
-	dpkg -x $(SOURCE)/$(IMAGEZIP_DEB) $(TEMP)
-	install -d $(ROOTFS)/usr/bin/
-	install -d $(ROOTFS)/usr/sbin/
-	install -m 755 $(TEMP)/usr/sbin/frisbee $(ROOTFS)/usr/sbin/
-	install -m 755 $(TEMP)/usr/bin/imagezip $(ROOTFS)/usr/bin/
-
 omf:
-	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; wget -N -i ../../omf-packages
+	sudo apt-get clean; sudo apt-get update
+	apt-get -d --reinstall -y --print-uris install omf-common omf-resctl libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip syslinux kexec-tools | grep http | awk '{print $$1}' | tr -d "'" > omf-packages
+	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
-	install -m 644 $(CONFIG)/$(NODEAGENT_CONF)  $(ROOTFS)/$(NODEAGENT_ETC)/
 
-syslinux: get_syslinux
-	dpkg -x $(SOURCE)/$(SYSLINUX_DEB) $(TEMP)
+syslinux: omf
+	dpkg -x $(SOURCE)/omf/syslinux* $(TEMP)
 	install -m 755 $(TEMP)/$(PXE_PATH)/$(PXE_SRC)  $(BUILD)/$(PXE_DST)
 
 getmac:
@@ -167,8 +139,8 @@ getmac:
 enroll:
 	install --mode=770 $(CONFIG)/enroll $(ROOTFS)/dev/
 
-kexec: get_kexec
-	dpkg -x $(SOURCE)/$(KEXEC_DEB) $(ROOTFS)
+kexec: omf
+	dpkg -x $(SOURCE)/omf/kexec* $(ROOTFS)
 
 filesystem: dirs
 	install -d $(ROOTFS)/tmp
@@ -238,7 +210,7 @@ kernel: dirs get_kernel
 	fi
 
 # Note: current kernel expects init on initramfs on /init, not /sbin/init
-initramfs: dirs bbox curl filesystem frisbee omf enroll syslinux kexec \
+initramfs: dirs bbox curl filesystem omf enroll syslinux kexec \
 	getmac get_init_cpio
 	rm -f $(BUILD)/$(INITRAMFS) $(BUILD)/$(INITRAMFSGZ)
 	rm -rf $(ROOTFS)/usr/share/doc/ $(ROOTFS)/usr/share/man/
@@ -271,22 +243,6 @@ get_bbox:
 get_curl:
 	if [ ! -r $(SOURCE)/$(CURL_TAR) ] ; then \
 	wget -P $(SOURCE) $(CURL_TAR_URL); \
-	fi
-
-get_frisbee:
-	if [ ! -r $(SOURCE)/$(FRISBEE_DEB) ] ; then \
-	wget -P $(SOURCE) $(FRISBEE_DEB_URL); \
-	wget -P $(SOURCE) $(IMAGEZIP_DEB_URL); \
-	fi
-
-get_syslinux:
-	if [ ! -r $(SOURCE)/$(SYSLINUX_DEB) ] ; then \
-	wget -P $(SOURCE) $(SYSLINUX_DEB_URL); \
-	fi	
-
-get_kexec:
-	if [ ! -r $(SOURCE)/$(KEXEC_DEB) ] ; then \
-	wget -P $(SOURCE) $(KEXEC_DEB_URL); \
 	fi
 
 install: kernel initramfs
@@ -325,7 +281,7 @@ clean:
 mrproper:
 	rm -rf $(BUILD) $(ROOTFS) $(SOURCE) $(TEMP)
 
-.PHONY: all apt-get-update dirs bbox curl frisbee omf syslinux getmac enroll \
+.PHONY: all apt-get-update dirs bbox curl omf syslinux getmac enroll \
 	kexec filesystem kernel initramfs get_init_cpio get_kernelget_bbox \
-	get_frisbee get_syslinux get_kexec install \
+	get_syslinux get_kexec install \
 	deb apt-install clean mrproper
