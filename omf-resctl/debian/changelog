@@ -1,3 +1,9 @@
+omf-resctl (5.0-3) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 15:23:17 +1000
+
 omf-resctl (5.0-1ubuntu2) testing; urgency=low
 
   * Testing XMPP + Latest refactoring from Max 

@@ -1,3 +1,9 @@
+imagezip (080901-2) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 14:14:09 +1000
+
 imagezip (080901-1ubuntu1) hardy; urgency=low
 
   * initial package release

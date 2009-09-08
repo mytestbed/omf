@@ -1,3 +1,9 @@
+omf-common (5.0-2) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 15:21:58 +1000
+
 omf-common (5.0-1ubuntu1) hardy; urgency=low
 
   * various XMPP improvements

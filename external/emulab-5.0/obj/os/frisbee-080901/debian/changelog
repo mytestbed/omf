@@ -1,3 +1,9 @@
+frisbee (080901-2) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 14:13:16 +1000
+
 frisbee (080901-1ubuntu1) hardy; urgency=low
 
   * initial package release

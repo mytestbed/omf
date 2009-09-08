@@ -1,3 +1,9 @@
+omf-aggmgr (5.0-2) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 14:19:10 +1000
+
 omf-aggmgr (5.0-1ubuntu2) hardy; urgency=low
 
   * removed oml2-server gridservice, now using SSH/Telnet only to reboot nodes

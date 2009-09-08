@@ -1,3 +1,15 @@
+omf-expctl (5.0-3) stable; urgency=low
+
+  * now includes missing file omf-expctl.rb
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 08 Sep 2009 14:09:28 +1000
+
+omf-expctl (5.0-2) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 15:22:34 +1000
+
 omf-expctl (5.0-1ubuntu1) hardy; urgency=low
 
   * XMPP improvements
