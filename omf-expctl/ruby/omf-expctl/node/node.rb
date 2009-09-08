@@ -339,13 +339,11 @@ class Node < MObject
     if (group[0] == ?/)
       group = group[1..-1]
     end
-    #name = "/#{group}/#{individual}"
     debug("Added to group '#{group}'")
-    @groups.add(group)
-    #@@nodeAliases[name] = self
-
+    @groups << group
     TraceState.nodeAddGroup(self, group)
     Communicator.instance.addToGroup(@nodeId, group)
+    send('ALIAS', group)
   end
 
   #
@@ -590,16 +588,15 @@ class Node < MObject
       setStatus(STATUS_UP)
       @checkedInAt = Time.now
       #@checkedInAtEl.attributes['ts'] = NodeHandler.getTS()
+      MObject.debug("enrolled node #{self}")
+      send_deferred
       changed
       notify_observers(self, :node_is_up)
-      send_deferred
-      MObject.debug("enrolled node #{self}")
       # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
       # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
       # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
       # from the PubSub server (at least openfire works this way). It would then potentially
       # try to subscribe to nodes from a past experiment.
-      #communicator.sendNoop(@nodeId)
       Communicator.instance.sendNoop(@nodeId)
     end
     TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
@@ -663,7 +660,7 @@ class Node < MObject
 
     @x = x
     @y = y
-    @groups = Set.new  # name of nodeSet groups this node belongs to
+    @groups = Array.new  # name of nodeSet groups this node belongs to
     #@apps = Hash.new
     @isUp = false
     #@senderSeq = 0

@@ -249,11 +249,10 @@ class XmppCommunicator < Communicator
   # (a node can belong to multiple groups)
   #
   # - nodeName = name of the node 
-  # - groupName =  name of the group to add the node to
+  # - groupName =  name (or an array or names) of the group(s) to add the node to
   #
   def addToGroup(nodeName, groupName)
     @@service.create_pubsub_node("#{@@expNode}/#{groupName}")
-    send!("ALIAS #{groupName}", "#{@@expNode}/#{nodeName}")
   end
 
   #
