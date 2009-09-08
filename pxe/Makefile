@@ -84,7 +84,7 @@ LIB +=	/lib/libdl.so.2 /lib/libcrypt.so.1
 LIB +=	/lib/libnss_dns.so.2 /lib/libresolv.so.2
 # Currently nodeagent requires lspci, which requires libpci. Remove this 
 # if not needed.
-LIB += /usr/lib/libpci.so.3 /usr/lib/libz.so
+LIB += /usr/lib/libpci.so.3
 # as well as lsusb
 LIB +=  /lib/libusb-0.1.so.4
 # for curl
@@ -125,7 +125,7 @@ curl: 	get_curl
 
 omf:
 	sudo apt-get clean; sudo apt-get update
-	apt-get -d --reinstall -y --print-uris install omf-common omf-resctl libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip syslinux kexec-tools | grep http | awk '{print $$1}' | tr -d "'" > omf-packages
+	apt-get -d --reinstall -y --print-uris install omf-common omf-resctl libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools | grep http | awk '{print $$1}' | tr -d "'" > omf-packages
 	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 
@@ -199,7 +199,7 @@ filesystem: dirs
   fi
 	install -m 755 /sbin/shutdown $(ROOTFS)/sbin/
 	echo "US/Eastern" > $(ROOTFS)/etc/timezone
-	echo "pxe:$(VER)" > $(ROOTFS)/.orbit_image
+	echo "pxe-$(VER)" > $(ROOTFS)/.omf_imageid
 
 kernel: dirs get_kernel
 	if [ ! -r $(BUILD)/$(KERNEL_NAME) ] ; then \

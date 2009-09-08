@@ -2,7 +2,7 @@
 ::sysinit:/etc/init.d/rcS
 
 #  Let's get some shells
-::askfirst:/bin/sh
+::askfirst:/bin/bash
 # We don't have any terminals
 #tty1::askfirst:/bin/sh
 #tty2::askfirst:/bin/sh
@@ -11,7 +11,7 @@
 
 # Example of how to put a getty on a serial line (for a terminal)
 #
-::respawn:/sbin/getty -l /bin/sh -L -n ttyS0 38400 vt100
+::respawn:/sbin/getty -l /bin/bash -L -n ttyS0 38400 vt100
 
 
 # Stuff to do when restarting the init process

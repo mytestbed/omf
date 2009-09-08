@@ -170,7 +170,7 @@ everyNS('image', 10) { |ns|
             nset = "[#{nsArray.join(",")}]"
             f.puts(" ","defTopology('#{topoNameS}', #{nset})")
          end
-         info " - #{nodesWithSuccessList.length} node(s) succesfully imaged - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
+         info " - #{nodesWithSuccessList.length} node(s) successfully imaged - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
       end
       info " ----------------------------- "
       ns.pxeImage("#{prop.domain.value}", setPXE=false)

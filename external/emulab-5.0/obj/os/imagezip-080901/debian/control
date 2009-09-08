@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: imagezip
 Architecture: i386
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libssl0.9.8
 Description: filesystem image compression tool
  filesystem image compression tool from EMULAB
 
