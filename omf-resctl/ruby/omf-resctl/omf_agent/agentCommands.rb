@@ -311,8 +311,8 @@ module AgentCommands
   #
   def AgentCommands.EXECUTE(agent, cmdObject)
     id = cmdObject.procID
-    fullCmdLine = "#{cmdObject.path} #{cmdObject.cmdLineArgs}"
-    MObject.info "TDEBUG - EXECUTE - '#{fullCmdLine}'"
+    fullCmdLine = "env -i #{cmdObject.env} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
+    MObject.debug "Executing: '#{fullCmdLine}'"
     ExecApp.new(id, agent, fullCmdLine)
   end
 
@@ -328,6 +328,33 @@ module AgentCommands
     id = getArg(argArray, "ID of process")
     signal = getArgDefault(argArray, "KILL")
     ExecApp[id].kill(signal)
+  end
+
+  #
+  # Command 'EXIT'
+  #
+  # Terminate an application running on this node
+  # First try to send the message 'exit' on the app's STDIN
+  # If no succes, then send a Kill signal to the process
+  #
+  # - agent = the instance of this NA
+  # - argArray = an array with the ID of the process 
+  #
+  def AgentCommands.EXIT(agent, argArray)
+    id = getArg(argArray, "ID of process")
+    begin
+      # First try sending 'exit' on the app's STDIN
+      MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
+      ExecApp[id].stdin('exit')
+      # If apps still exists after 4sec...
+      sleep 4
+      if ExecApp[id] != nil
+        MObject.debug("Sending 'kill' signal to application: #{id}")
+        ExecApp[id].kill('KILL')
+      end
+    rescue Exception => err
+      raise Exception.new("- Error while terminating application '#{id}' - #{err}")
+    end
   end
 
   #
@@ -349,32 +376,6 @@ module AgentCommands
     end
   end
 
-  #
-  # Command 'EXIT'
-  #
-  # Terminate an application running on this node
-  # First try to send the message 'exit' on the app's STDIN
-  # If no succes, then send a Kill signal to the process
-  #
-  # - agent = the instance of this NA
-  # - argArray = an array with the ID of the process
-  #
-  def AgentCommands.EXIT(agent, argArray)
-    id = getArg(argArray, "ID of process")
-    begin
-      # First try sending 'exit' on the app's STDIN
-      MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
-      ExecApp[id].stdin('exit')
-      # If apps still exists after 4sec...
-      sleep 4
-      if ExecApp[id] != nil
-        MObject.debug("Sending 'kill' signal to application: #{id}")
-        ExecApp[id].kill('KILL')
-      end
-    rescue Exception => err
-      raise Exception.new("- Error while terminating application '#{id}' - #{err}")
-    end
-  end
 
   #
   # Command 'PM_INSTALL'
