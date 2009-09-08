@@ -391,8 +391,8 @@ class Node < MObject
   # disk = Disk containing the image to save (e.g. '/dev/hda')
   #
   def saveImage(imgName = nil,
-                imgHost = OConfig.IMG_HOST,
-                disk = OConfig.DEFAULT_DISK)
+                imgHost = OConfig[:tb_config][:default][:image_host],
+                disk = OConfig[:tb_config][:default][:frisbee_default_disk])
 
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")

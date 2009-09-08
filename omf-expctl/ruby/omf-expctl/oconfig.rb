@@ -36,12 +36,18 @@ require 'observer'
 # to acces both its own configuration parameters, and the parameters 
 # which are specific to the testbed(s)
 #
+# Usage examples to query OConfig:
+#   
+#   OConfig[:tb_config][:default][:y_max]
+#
+#   OConfig[:ec_config][:communicator]
+#
 module OConfig
   
   @@domainName = nil
   @@observers = []
   TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
-                         :pxe_url, :cmc_url, 
+                         :pxe_url, :cmc_url, :result_url, 
                          :frisbee_url, :frisbee_default_disk, 
                          :image_host, :oml_url]
 
@@ -58,15 +64,6 @@ module OConfig
       warn("Configuration parameter '#{key}' is nil")
     end
     res
-  end
-
-  #
-  # Return the URL of the Inventory service
-  #
-  # [Return] an URL string
-  #
-  def self.INVENTORY_SERVICE()
-    self['inventory']['url']
   end
 
   #
@@ -144,36 +141,6 @@ module OConfig
 #  end
 
   #
-  # Return the URL of the PXE service
-  #
-  # [Return] an URL string
-  #
-  def self.PXE_SERVICE()
-    return self.getConfigFromInventoryByKey('pxe_url')
-  end
-
-  
-  #
-  # Return the URL of the OML server used for this experiment
-  #
-  # [Return] an URL string
-  #
-  def self.OML_SERVER_URL()
-    "tcp://acme.com:5012"
-    #return self.getConfigFromInventoryByKey('oml_url')
-  end
-
-
-  #
-  # Return the URL of the Frisbee service
-  #
-  # [Return] an URL string
-  #
-  def self.FRISBEE_SERVICE()
-    return self.getConfigFromInventoryByKey('frisbee_url')
-  end
-
-  #
   # Return the default disk identifier that should be used to load/save images
   #
   # [Return] a disk identifier (e.g. '/dev/hda')
@@ -213,15 +180,6 @@ module OConfig
   #
   def self.RESULT_SERVICE()
     return self.getConfigFromInventoryByKey('result_url')
-  end
-
-  #
-  # Return the name of the testbed on which this experiment will run
-  #
-  # [Return] a testbed name (string)
-  #
-  def self.GRID_NAME()
-    @@domainName
   end
 
   #

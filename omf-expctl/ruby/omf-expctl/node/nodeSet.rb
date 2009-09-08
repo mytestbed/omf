@@ -429,7 +429,7 @@ class NodeSet < MObject
   #
   def pxeImage(domain = '', setPXE = true)
     if (domain == '')
-      domain = "#{OConfig.GRID_NAME}"
+      domain = "#{OConfig.domain}"
     end   
     if NodeHandler.JUST_PRINT
       if setPXE
@@ -439,9 +439,9 @@ class NodeSet < MObject
       end
     else
       if setPXE # set PXE
-        @pxePrefix = "#{OConfig.PXE_SERVICE}/setBootImageNS?domain=#{domain}&ns="
+        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}/setBootImageNS?domain=#{domain}&ns="
       else # clear PXE
-        @pxePrefix = "#{OConfig.PXE_SERVICE}/clearBootImageNS?domain=#{domain}&ns="
+        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}/clearBootImageNS?domain=#{domain}&ns="
       end
       setPxeEnvMulti()
     end
@@ -504,11 +504,11 @@ class NodeSet < MObject
   #
   # - image = Image to load onto node's disk
   # - domain = testbed for this node (optional, default= default testbed for this NH)
-  # - disk = Disk drive to load (default is given by OConfig.DEFAULT_DISK)
+  # - disk = Disk drive to load (default is given by OConfig)
   #
-  def loadImage(image, domain = '', disk = OConfig.DEFAULT_DISK)
+  def loadImage(image, domain = '', disk = OConfig[:tb_config][:default][:frisbee_default_disk])
     if (domain == '')
-      domain = "#{OConfig.GRID_NAME}"
+      domain = "#{OConfig.domain}"
     end
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Prepare image #{image} for set #{self}"
@@ -516,7 +516,7 @@ class NodeSet < MObject
       mcPort = "Some_MC_port"
     else
       # get frisbeed address
-      url = "#{OConfig.FRISBEE_SERVICE}/getAddress?domain=#{domain}&img=#{image}"
+      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/getAddress?domain=#{domain}&img=#{image}"
       response = NodeHandler.service_call(url, "Can't get frisbee address")
       mcAddress, mcPort = response.body.split(':')
     end
@@ -535,18 +535,18 @@ class NodeSet < MObject
   #
   # - image = Image to load onto node's disk
   # - domain = testbed for this node (optional, default= default testbed for this NH)
-  # - disk = Disk drive to load (default is given by OConfig.DEFAULT_DISK)
+  # - disk = Disk drive to load (default is given by OConfig)
   #
-  def stopImageServer(image, domain = '', disk = OConfig.DEFAULT_DISK)
+  def stopImageServer(image, domain = '', disk = OConfig[:tb_config][:default][:frisbee_default_disk])
     if (domain == '')
-      domain = "#{OConfig.GRID_NAME}"
+      domain = "#{OConfig.domain}"
     end
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
     else
       # stop the frisbeed server on the Gridservice side
       debug "Stop server of image #{image} for domain #{domain}"
-      url = "#{OConfig.FRISBEE_SERVICE}/stop?domain=#{domain}&img=#{image}"
+      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/stop?domain=#{domain}&img=#{image}"
       response = NodeHandler.service_call(url, "Can't stop frisbee daemon on the GridService")
       if (response.body != "OK")
         error "Can't stop frisbee daemon on the GridService - image: '#{image}' - domain: '#{domain}'"

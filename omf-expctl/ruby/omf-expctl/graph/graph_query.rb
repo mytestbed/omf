@@ -70,7 +70,7 @@ module OMF
           unless @serviceURL
             query = queryTerm()
             expID ||= Experiment.ID
-            resultURL ||= OConfig.RESULT_SERVICE
+            resultURL ||= OConfig[:tb_config][:default][:result_url]
             @serviceURL = "http://#{@resultURL}/result/queryDatabase?expID=#{expID}&format=#{@format}&query=#{URI.escape(query)}"
           end
           res = NodeHandler.service_call(url, "Can't query results '#{@serviceURL}'")

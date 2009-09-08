@@ -348,12 +348,8 @@ class Topology < MObject
       s   = eval(source[1])
       # Query the INVENTORY gridservice for information on the source node
       mac = nil
-      url = "#{OConfig.INVENTORY_SERVICE}/getMacAddress?x=#{s[0]}&y=#{s[1]}&ifname=#{device}&domain=#{OConfig.GRID_NAME}"
+      url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?x=#{s[0]}&y=#{s[1]}&ifname=#{device}&domain=#{OConfig.domain}"
       response = NodeHandler.service_call(url, "Can't get node information from INVENTORY")
-      
-      # Alternative
-      #response = OConfig.query_inventory(:getMacAddress, :x => s[0], :y => s[1], :ifname => device)
-      
       doc = REXML::Document.new(response.body)
       doc.root.elements.each("/MAC_Address/#{device}") { |e|
 	mac = e.get_text.value

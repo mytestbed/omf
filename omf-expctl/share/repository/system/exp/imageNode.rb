@@ -41,7 +41,7 @@ defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the la
 #
 # First of all, do some checks...
 # - check if the requested image really exists on the Repository
-url = "#{OConfig.FRISBEE_SERVICE}/checkImage?img=#{prop.image.value}"
+url = "#{OConfig[:tb_config][:default][:frisbee_url]}/checkImage?img=#{prop.image.value}"
 response = NodeHandler.service_call(url, "Image does not exist")
 if response.body != "OK"
   MObject.error("ERROR - The image '#{prop.image.value}' does not exist! ")
@@ -215,9 +215,9 @@ OMF::ExperimentController::Web.mapProc('/progress') {|req, res|
       <h1>Imaging Progress</h1>
       <table class="grid">
 }
-  (1 .. OConfig.GRID_MAX_Y).each { |y|
+  (1 .. OConfig[:tb_config][:default][:y_max]).each { |y|
     body << "<tr class='row'>"
-    (1 .. OConfig.GRID_MAX_X).each { |x|
+    (1 .. OConfig[:tb_config][:default][:x_max]).each { |x|
       n = Node[x,y]
       if (n == nil)
         body << "<td class='cell'></td>"
@@ -238,42 +238,3 @@ OMF::ExperimentController::Web.mapProc('/progress') {|req, res|
   res.body = body.to_s
   res['Content-Type'] = "text/html"
 }
-
-# Thierry:
-#
-# The defWebService is not implemented yet in the handler commands
-# To be able to test PXE and Frisbee, we comment this for now
-#
-#defWebService('/progress') {|req, res|
-#  res.body("text/html") {
-#    head {
-#      meta('http-equiv' => "refresh",  :content => 10)
-#      title("Imaging Progress :: Orbit")
-#      link(:href => "resource/stylesheet/grid.css", :type => "text/css", :rel => "stylesheet")
-#    }
-#    body {
-#      h1("Imaging Progress")
-#      table(:class => "grid") {
-#       (1 .. OConfig.GRID_MAX_Y).each { |y|
-#          tr(:class => 'row') {
-#           (1 .. OConfig.GRID_MAX_X).each { |x|
-#              n = Node[x,y]
-#              if (n == nil)
-#                td(:class => 'cell')
-#              elsif (n.isUp)
-#                td(:class => 'cell cell-up') {
-#                  progress = n.match('apps/builtin[1]/properties/progress/text()').to_s
-#                  if (progress != nil)
-#                    div(:class => 'cell-progress', :style => 'width: #{progress}%')
-#                  end
-#                }
-#              else
-#                td(:class => 'cell cell-down')
-#              end
-#            } # each x
-#          } # tr
-#        } # each y
-#      } # table
-#    } # body
-#  }
-#}

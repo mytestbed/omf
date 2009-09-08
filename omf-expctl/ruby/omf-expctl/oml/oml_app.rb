@@ -115,6 +115,10 @@ class OmlApp < MObject
   #
   # Start the OML (v2) Collection Server
   #
+  # FIXME: Obsolete now, but keep around until we make disconnected 
+  # mode (i.e. EC in SLAVE_MODE) work with new XMPP (we might need the code below
+  # in some cut-and-paste...)
+  #
   def OmlApp.startCollectionServer()
 
     # Check if NH is running in 'slave' mode. If so, then this means this NH is 
@@ -163,67 +167,6 @@ class OmlApp < MObject
     else
       error "Failed to start OML server!"
     end
-  end
-
-  #
-  # Start the OML (v1) Collection Server
-  #
-  # FIXME: What about if no application is using OML?
-  #
-  def OmlApp.startCollectionServerV1()
-
-    if @@mpointsEl == nil
-      # no measurements used
-      return
-    end
-
-    if @@collectionServerStarted
-      # already running
-      return
-    end
-
-    @@collectionServerStarted = true
-
-    ss = StringIO.new()
-    ss.write("<?xml version='1.0'?>\n")
-    ss.write("<experiment id=\"#{OmlApp.getDbName}\" domain=\"#{OConfig.GRID_NAME}\">\n")
-
-    # WARNING: This may not work for multiple measurment points
-    el = NodeHandler::OML_EL.elements["measurement-points"]
-    #el.write(ss, 2) # Deprecated, replaced by next 2 lines
-    f = REXML::Formatters::Pretty.new() 
-    f.write(el, ss)
-    ss.write("\n")
-
-    ss.write("</experiment>\n")
-
-    MObject.debug("OmlApp::startCollectionServer post on #{OConfig.OML_HOST}:#{OConfig.OML_PORT}\n",
-    ss.string)
-    if NodeHandler.JUST_PRINT
-      puts "HTTP/POST #{OConfig.OML_HOST}:#{OConfig.OML_PORT}/oml/start\n#{ss.string}"
-    else
-      Net::HTTP.start(OConfig.OML_HOST, OConfig.OML_PORT) {|http|
-        response = http.post('/oml/start', ss.string)
-        if response.kind_of?(Net::HTTPOK)
-          str = response.body
-          MObject.debug("OmlApp::startCollectionServer response",str)
-
-          doc = REXML::Document.new(str)
-          mc = doc.root.elements['multicast-channel'].attributes
-
-          attr = {'addr' => "#{mc['addr']}",
-      'iface' => "#{mc['iface']}",
-      'port' => "#{mc['port']}" }
-          MObject.info("OML", "Started: ", attr.inspect)
-          NodeHandler::OML_EL.add_element('multicast-channel', attr)
-        else
-          @@collectionServerStarted = false
-          raise ServiceException.new(response,
-        "OML collection server did not start properly. Check gridservices for details")
-        end
-      }
-    end
-    @@collectionServerStarted = true
   end
 
   #
