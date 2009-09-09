@@ -40,8 +40,8 @@ require 'optparse'
 #
 class Experiment
 
+  REBOOT_TIME = 8
   @@name = "UNKNOWN"  # name of experiment
-#  @@expRoot = nil
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
   @@domain = nil
@@ -224,9 +224,9 @@ class Experiment
   end
 
   #
-  # Observe experiment for x milliseconds
+  # Observe experiment for x second
   #
-  # - time = time in milliseconds to sleep
+  # - time = time in second to sleep
   #
   def Experiment.sleep(time)
     TraceState.experiment(:status, "SLEEPING")
@@ -238,8 +238,19 @@ class Experiment
   # Start the Experiment
   #
   def Experiment.start()
-    allGroups.powerOn
+    # If -R flag was set on the command line
+    # Reset the nodes before starting the experiment if -R flag was set
+    if NodeHandler.NODE_RESET
+      MObject.info "Reset Resources was requested from command line..."
+      allGroups.powerReset
+      Kernel.sleep REBOOT_TIME 
+    # If not, just make sure the nodes are ON
+    else
+      allGroups.powerOn
+    end
+    # Now we can Enroll the nodes!
     allGroups.enroll()
+    # In case we're in Just Print mode, then fake the Heartbeat
     if NodeHandler.JUST_PRINT
       Thread.new() {
         while (true)

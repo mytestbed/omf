@@ -223,7 +223,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Reset node #{x}@#{y} (#{response})"
     else
-      CMC.nodeOn(x,y)
+      #CMC.nodeOn(x,y)
       url = "#{CMC.URL}/reset?x=#{x}&y=#{y}&domain=#{OConfig.domain}"
       begin
         response = NodeHandler.service_call(url, "Can't reset node #{x}:#{y}")

@@ -78,9 +78,6 @@ module AgentCommands
   VERSION = "$Revision: 1273 $".split(":")[1].chomp("$").strip
   SYSTEM_ID = :system
 
-  # File containing image name
-  IMAGE_NAME_FILE = '/.orbit_image'
-
   # 
   # Return the Application ID for the OML Proxy Collection Server
   # (This is only set when NA is involved in an experiment that support
@@ -181,8 +178,9 @@ module AgentCommands
   # - argArray = an array with the optional enroll parameters
   #
   def AgentCommands.YOUARE(agent, argArray)
-    # delete session and experiment IDs
+    # delete session ID, experiment ID, and desired image name
     argArray.delete_at(0)
+    argArray.delete_at(0)    
     argArray.delete_at(0)    
     agentId = getArg(argArray, "Name of agent")
     agent.addAlias(agentId, true)
@@ -562,18 +560,6 @@ module AgentCommands
     (first..last).each {|i|
       agent.communicator.resend(i)
     }
-  end
-
-  #
-  # Command 'RALLO'
-  #
-  # Send a reliable ALLO message (used for testing)
-  #
-  # - agent = the instance of this NA
-  # - argArray = an empty array 
-  #
-  def AgentCommands.RALLO(agent, argArray)
-    agent.send(:ALLO, Time.now.strftime("%I:%M:%S"))
   end
 
   private

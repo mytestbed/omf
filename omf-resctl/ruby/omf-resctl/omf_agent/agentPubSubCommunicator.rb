@@ -397,7 +397,6 @@ class AgentPubSubCommunicator < MObject
       when "LOAD_IMAGE"
       when "SAVE_IMAGE"
       when "RETRY"
-      when "RALLO"
       when "LIST"
       when "SET_MACTABLE"
       when "NOOP"
@@ -407,13 +406,14 @@ class AgentPubSubCommunicator < MObject
       when "ALIAS"
         join_groups(argArray[1, (argArray.length-1)])
       when "YOUARE"
-        # YOUARE format (see AgentCommands): YOUARE <sessionID> <expID> <name> <aliases>
+        # YOUARE format (see AgentCommands): YOUARE <sessionID> <expID> <desiredImage> <name> <aliases>
         # <sessionID> Session ID
         # <expID> Experiment ID
+        # <desiredImage> the name of the image that this node should have
         # <name> becomes the Agent Name for this Session/Experiment.
         # <aliases> optional aliases for this NA
 
-        if (argArray.length < 4)
+        if (argArray.length < 5)
          error "ERROR - execute_command() - YOUARE - message too short: '#{message}'"
          return
         end
@@ -421,7 +421,7 @@ class AgentPubSubCommunicator < MObject
         # Store the Session and Experiment IDs given by the NH's communicator
         @@sessionID = argArray[1]
         @@expID = argArray[2]
-        debug "TDEBUG - execute_command() - Set SessionID / ExpID: '#{@@sessionID}' / '#{@@expID}'"
+        debug "Process YOUARE - Set SessionID / ExpID: '#{@@sessionID}' / '#{@@expID}'"
         # Join the global PubSub nodes for this session / experiment
         n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
         m = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
@@ -431,14 +431,24 @@ class AgentPubSubCommunicator < MObject
           return
         end
         
-        # Store the full PubSub path for this session / experiment
+        # Store this node ID and full PubSub path for this session / experiment
         @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
+        @@myName = argArray[4]
+        list = Array.[](argArray[4])
 
-        @@myName = argArray[3]
-        list = Array.[](argArray[3])
+        # Check if the desired image is installed on that node, 
+	# if yes or if a desired image is not required, then continue
+	# if not, then ignore this YOUARE
+	desiredImage = argArray[3]
+	if (desiredImage != NodeAgent.instance.imageName() && desiredImage != '*')
+          debug "Process YOUARE - Desired Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
+	  send("WRONG_IMAGE", NodeAgent.instance.imageName())
+	  return
+	end
+
         # If there are some optional aliases, add them to the list of groups to join
         if (argArray.length > 1)
-          argArray[3,(argArray.length-1)].each { |name|
+          argArray[4,(argArray.length-1)].each { |name|
             list.push(name)
           }
         end

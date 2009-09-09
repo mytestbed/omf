@@ -53,6 +53,9 @@ require "omf-common/omfCommandObject"
 class NodeAgent < MObject
 
   AGENT_VERSION = "4.4.0"
+  
+  # File containing image name
+  IMAGE_NAME_FILE = '/.omf_imageid'
 
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
@@ -200,13 +203,13 @@ class NodeAgent < MObject
   #
   def imageName()
     if (@imageName.nil?)
-      if (File.exists?(AgentCommands::IMAGE_NAME_FILE))
-        File.open(AgentCommands::IMAGE_NAME_FILE) { |f|
+      if (File.exists?(IMAGE_NAME_FILE))
+        File.open(IMAGE_NAME_FILE) { |f|
           @imageName = f.read.chomp
         }
       else
         @imageName = 'unknown'
-        MObject.warn("Can't find '#{AgentCommands::IMAGE_NAME_FILE}'")
+        MObject.warn("Can't find '#{IMAGE_NAME_FILE}'")
       end
     end
     @imageName

@@ -55,6 +55,10 @@ class CmcStubService < GridService
   # Implement 'on' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return HTTP OK
   #
+  # Note: Correct behaviour of 'on' is
+  #       - if node is already ON do nothing
+  #       - if node is OFF then turn it ON
+  #
   s_info 'Switch on a node at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
@@ -75,6 +79,10 @@ class CmcStubService < GridService
   #
   # Implement 'reset' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return HTTP OK
+  #
+  # Note: Correct behaviour of 'reset' is
+  #       - if node is already ON, then reset/reboot it
+  #       - if node is OFF then turn it ON
   #
   s_info 'Reset a node at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'

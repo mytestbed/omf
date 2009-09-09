@@ -193,19 +193,25 @@ class RootNodeSetPath < NodeSetPath
   end
   
   #
-  # This method powers ON all nodes in the NodeSet of this Root Path.
-  #
-  def powerOn()
-    @nodeSet.eachUniqueNode { |n| n.powerOn() }
-  end
-
-  #
   # This method enroll to the experiment all nodes in the NodeSet of this Root Path.
   #
   def enroll()
     @nodeSet.eachUniqueNode { |n| n.enroll()}
   end
 
+  #
+  # This method reset all nodes in the NodeSet of this Root Path.
+  #
+  def powerReset()
+    @nodeSet.eachUniqueNode { |n| n.reset()}
+  end
+
+  #
+  # This method powers ON all nodes in the NodeSet of this Root Path.
+  #
+  def powerOn()
+    @nodeSet.eachUniqueNode { |n| n.powerOn() }
+  end
 
   #
   # This method powers OFF all nodes in the NodeSet of this Root Path.

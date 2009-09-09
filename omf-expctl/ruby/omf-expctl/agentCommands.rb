@@ -60,6 +60,25 @@ module AgentCommands
   end
 
   #
+  # Process 'WRONG_IMAGE' message from a Node Agent. 
+  # The NH receives such a message when a NA has an installed disk image which 
+  # is different from the one requested in the experiment description
+  # For now, the NH reset/reboot that node, and tries to enroll it again. When
+  # called within a LOAD experiment, this would trigger pxe booting and image loading.
+  # (in the future, the NH should request AM to install the correct image)
+  #
+  # - handler = the communicator that called this method
+  # - sender = the object that issued this command (i.e. usually a 'Node' object)
+  # - senderId = the sender ID 
+  # - argArray = an array holding the arguments for this command
+  #
+  def AgentCommands.WRONG_IMAGE(handler, sender, senderId, argArray)
+    MObject.debug("Received WRONG_IMAGE from '#{senderId}' - Desired: '#{sender.image}' - Installed: '#{argArray}'")
+    sender.reset()
+    sender.enroll()
+  end
+
+  #
   # Process 'APP_EVENT' message from a Node Agent. 
   # The NH receives such a message when a NA reports an application-specific 
   # event that happened on the node.

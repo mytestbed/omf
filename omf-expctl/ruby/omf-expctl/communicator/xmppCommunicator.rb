@@ -205,8 +205,9 @@ class XmppCommunicator < Communicator
   # - node =  id of the node to enroll
   # - name = name to give to the node once enrolled
   # - ipAddress = IP address of the node to enroll 
+  # - desiredImage = the name of the desired disk image on that node
   #
-  def enrollNode(node, name, ipAddress)
+  def enrollNode(node, name, ipAddress, desiredImage)
     @name2node[name] = node
     # create the experiment pubsub node so the node can subscribe to it
     # after receiving the YOUARE message
@@ -214,7 +215,7 @@ class XmppCommunicator < Communicator
     @@service.create_pubsub_node(psNode)
     # send the YOUARE to the system pubsub node
     psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
-    send!("YOUARE #{@@sessionID} #{@@expID} #{name}",psNode)
+    send!("YOUARE #{@@sessionID} #{@@expID} #{desiredImage} #{name}",psNode)
   end
 
   #
@@ -384,9 +385,10 @@ class XmppCommunicator < Communicator
     end
     cmd = argArray[0].upcase
         
-    # First - Here we check if this Command should trigger any specific task within this Communicator
+    # First - Here we check if this Command came from ourselves, if so then do nothing
     case cmd
     when "EXEC"
+    when "WRONG_IMAGE"
     when "HB"
     when "KILL"
     when "STDIN"
@@ -400,20 +402,20 @@ class XmppCommunicator < Communicator
     when "LOAD_IMAGE"
     when "SAVE_IMAGE"
     when "RETRY"
-    when "RALLO"
     when "LIST"
     when "SET_MACTABLE"
     when "JOIN"
     when "ALIAS"
     when "YOUARE"
     when "DOMAIN"
-    # we've sent this command ourselves, so we can safely ignore it
+    # If not, then this command came from a Node, then process it
     else
       begin
       cmd = argArray[2].upcase
       case cmd
       when "HB"
-        # we do not send the NOOP here, we do that only for the first HB in node.rb:heartbeat()
+      when "WRONG_IMAGE"
+      # we do not send the NOOP here, we do that only for the first HB in node.rb:heartbeat()
       when "APP_EVENT"
       when "DEV_EVENT"
       when "ERROR"                

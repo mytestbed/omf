@@ -231,7 +231,7 @@ class NodeHandler < MObject
   #
   # [Return] true/false (default 'false')
   #
-  def NodeHandler.RESET()
+  def NodeHandler.NODE_RESET()
     return @@reset
   end
 
@@ -240,7 +240,7 @@ class NodeHandler < MObject
   #
   # - flag = true/false
   #
-  def NodeHandler.RESET=(flag)
+  def NodeHandler.NODE_RESET=(flag)
     @@reset= flag
   end
 
@@ -496,8 +496,9 @@ class NodeHandler < MObject
       NodeHandler.SHUTDOWN = (flag == 'true') || (flag == 'yes')
     }
 
-    opts.on("-R", "--reset flag", "NOT IMPLEMENTED: If true, reset (reboot) the nodes before the experiment [#{NodeHandler.RESET}]") {|flag|
-      NodeHandler.RESET = (flag == 'true') || (flag == 'yes')
+    opts.on("-R", "--reset flag", "If set, then reset (reboot) the nodes before the experiment [default #{NodeHandler.NODE_RESET}]") {|flag|
+      NodeHandler.NODE_RESET = true
+      #NodeHandler.NODE_RESET = (flag == 'true') || (flag == 'yes')
     }
 
     opts.on("--tutorial", "Run tutorial [#{TUTORIAL}]") {

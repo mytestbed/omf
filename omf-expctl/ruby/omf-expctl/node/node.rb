@@ -155,7 +155,7 @@ class Node < MObject
   attr_reader :nodeId
 
   # Name of image to expect on node
-  attr_writer :image
+  attr_reader :image
 
   # Time the node was powered up
   attr_reader :poweredAt
@@ -373,7 +373,6 @@ class Node < MObject
   def image= (imageName)
     @image = imageName
     TraceState.nodeImage(self, imageName)
-    #@imageEl.text = imageName
   end
 
   #
@@ -492,7 +491,9 @@ class Node < MObject
   #
   def enroll()
     ipAddress = getControlIP()
-    Communicator.instance.enrollNode(self, @nodeId, ipAddress)
+    desiredImage = @image.nil? ? "*" : @image
+    info "TDEBUG - Node: #{@nodeId} - image: #{desiredImage}"
+    Communicator.instance.enrollNode(self, @nodeId, ipAddress, desiredImage)
   end
 
   #
@@ -507,8 +508,6 @@ class Node < MObject
     CMC::nodeReset(x, y)
     @checkedInAt = -1
     @poweredAt = Time.now
-    #@checkedInAtEl.attributes['ts'] = '-1'
-    #@poweredAtEl.attributes['ts'] = NodeHandler.getTS()
     changed
     notify_observers(self, :after_resetting_node)
   end
@@ -706,8 +705,6 @@ class Node < MObject
     @checkedInAt = -1
 
     @properties = Hash.new
-    #ipAddress = getControlIP()
-    #Communicator.instance.enrolNode(self, @nodeId, ipAddress)
     TraceState.nodeAdd(self, @nodeId, x, y)
     debug "Created node #{x}@#{y}"
      
