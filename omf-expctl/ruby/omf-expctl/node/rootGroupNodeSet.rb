@@ -85,14 +85,15 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   # - &block = the block of command to execute
   #
   def eachUniqueNode(&block)
-    allUniqueNode = Set.new
-    @@groups.each_value { |g|
-      if g.kind_of?(BasicNodeSet)
-        g.eachNode { |n| allUniqueNode.add(n) }
-      end
-    }
-    debug("Running eachUniqueNode for {#{allUniqueNode.to_a.join(", ")}}")
-    allUniqueNode.each &block
+    #allUniqueNode = Set.new
+    #@@groups.each_value { |g|
+    #  if g.kind_of?(BasicNodeSet)
+    #    g.eachNode { |n| allUniqueNode.add(n) }
+    #  end
+    #}
+    #debug("Running eachUniqueNode for {#{allUniqueNode.to_a.join(", ")}}")
+    #allUniqueNode.each &block
+    Node.each(&block)
   end
 
   #
@@ -112,25 +113,6 @@ class RootGroupNodeSet < AbstractGroupNodeSet
       #debug "#inject: result: #{result}"
     }
     return result
-  end
-
-  #
-  # This method powers OFF ALL the nodes
-  # By default the nodes are being powered off softly (asked nicely to 
-  # powerdown), but setting 'hard' to true the nodes are being powered 
-  # off immediately. Use the hard power down with caution.
-  #
-  # - hard = true/false (optional, default=false)
-  #
-  def powerOff(hard = false)
-    if hard
-      CMC.nodeAllOffHard()
-    else
-      CMC.nodeAllOffSoft()
-    end
-    Node.each {|n|
-      n.powerOff()
-    }
   end
 
 end

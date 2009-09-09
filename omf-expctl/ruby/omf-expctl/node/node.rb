@@ -461,20 +461,30 @@ class Node < MObject
       CMC.nodeOn(x, y)
     end
     @poweredAt = Time.now
-    #@poweredAtEl.attributes['ts'] = NodeHandler.getTS()
     if !@isUp
       setStatus(STATUS_POWERED_ON) 
     end
   end
 
   #
-  # Power this Node off
+  # Power this Node OFF
+  # By default the node is being powered off softly (asked nicely to 
+  # powerdown), but setting 'hard' to true the node is being powered 
+  # off immediately. Use the hard power down with caution.
   #
-  def powerOff()
-    #CMC::nodeOffSoft(x, y)
+  # - hard = optional, default false
+  #
+  def powerOff(hard = false)
+    # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
+    if !NodeHandler.SLAVE_MODE()
+      if hard
+        CMC.nodeOffSoft(x, y)
+      else
+        CMC.nodeOffSoft(x, y)
+      end
+    end
     @poweredAt = -1
     setStatus(STATUS_POWERED_OFF)
-    #@poweredAtEl.attributes['ts'] = '-1'
   end
 
   #

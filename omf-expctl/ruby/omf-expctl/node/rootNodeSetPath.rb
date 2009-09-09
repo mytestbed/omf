@@ -196,7 +196,6 @@ class RootNodeSetPath < NodeSetPath
   # This method powers ON all nodes in the NodeSet of this Root Path.
   #
   def powerOn()
-    #@nodeSet.powerOn
     @nodeSet.eachUniqueNode { |n| n.powerOn() }
   end
 
@@ -217,7 +216,7 @@ class RootNodeSetPath < NodeSetPath
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    @nodeSet.powerOff(hard)
+    @nodeSet.eachUniqueNode { |n| n.powerOff(hard)}
   end
 
   #
