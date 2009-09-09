@@ -85,11 +85,12 @@ class BasicNodeSet < NodeSet
   # This method powers ON all the nodes in this NodeSet
   #
   def powerOn()
-    ns = @topo.nodeSetDecl
+    #ns = @topo.nodeSetDecl
     # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
-    if !NodeHandler.SLAVE_MODE()
-      CMC.nodeSetOn(ns)
-    end
+    #if !NodeHandler.SLAVE_MODE()
+    #  CMC.nodeSetOn(ns)
+    #end
+    # Now set the state of each node to ON
     eachNode { |n|
       n.powerOn()
       if NodeHandler.JUST_PRINT

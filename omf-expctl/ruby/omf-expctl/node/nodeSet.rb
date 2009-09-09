@@ -480,10 +480,10 @@ class NodeSet < MObject
       url = @pxePrefix + nset
       debug "PXE: #{url}"
       NodeHandler.service_call(url, "Error requesting PXE image")
-      eachNode { |n|
-        n.image = "pxe:image"
-        CMC.nodeReset(n.x,n.y)
-      }
+      #eachNode { |n|
+      #  n.image = "pxe:image"
+      #  CMC.nodeReset(n.x,n.y)
+      #}
     end
   end
 

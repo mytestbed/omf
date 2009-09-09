@@ -456,7 +456,10 @@ class Node < MObject
   # Power this Node on
   #
   def powerOn()
-    #CMC::nodeOn(x, y)
+    # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
+    if !NodeHandler.SLAVE_MODE()
+      CMC.nodeOn(x, y)
+    end
     @poweredAt = Time.now
     #@poweredAtEl.attributes['ts'] = NodeHandler.getTS()
     if !@isUp
@@ -472,6 +475,14 @@ class Node < MObject
     @poweredAt = -1
     setStatus(STATUS_POWERED_OFF)
     #@poweredAtEl.attributes['ts'] = '-1'
+  end
+
+  #
+  # Enrol this Node into the experiment
+  #
+  def enroll()
+    ipAddress = getControlIP()
+    Communicator.instance.enrollNode(self, @nodeId, ipAddress)
   end
 
   #
@@ -649,6 +660,16 @@ class Node < MObject
     return @reconnected
   end
 
+  #
+  # Return a String with this Node's ID
+  #
+  # [Return] a String with this Node's ID
+  #
+  def to_s()
+    #return "#{@nodeId}(#{@aliases.to_a.join(', ')})"
+    return "#{@nodeId}"
+  end
+
   private
 
   #
@@ -675,8 +696,8 @@ class Node < MObject
     @checkedInAt = -1
 
     @properties = Hash.new
-    ipAddress = getControlIP()
-    Communicator.instance.enrolNode(self, @nodeId, ipAddress)
+    #ipAddress = getControlIP()
+    #Communicator.instance.enrolNode(self, @nodeId, ipAddress)
     TraceState.nodeAdd(self, @nodeId, x, y)
     debug "Created node #{x}@#{y}"
      
@@ -748,16 +769,6 @@ class Node < MObject
       parent = el
     }
     return el
-  end
-
-  #
-  # Return a String with this Node's ID
-  #
-  # [Return] a String with this Node's ID
-  #
-  def to_s()
-    #return "#{@nodeId}(#{@aliases.to_a.join(', ')})"
-    return "#{@nodeId}"
   end
 
 end

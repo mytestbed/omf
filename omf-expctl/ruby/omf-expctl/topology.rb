@@ -410,7 +410,7 @@ class Topology < MObject
   end
 
   #
-  # This method executes a block of commands for every node in this node set
+  # This method executes a block of commands for every node in this Topology
   #
   # - &block = the block of commands to execute
   #

@@ -239,6 +239,7 @@ class Experiment
   #
   def Experiment.start()
     allGroups.powerOn
+    allGroups.enroll()
     if NodeHandler.JUST_PRINT
       Thread.new() {
         while (true)

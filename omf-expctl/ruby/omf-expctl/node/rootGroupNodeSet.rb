@@ -62,6 +62,8 @@ class RootGroupNodeSet < AbstractGroupNodeSet
 
   #
   # This method executes a block of command on ALL the node in ALL the groups of NodeSets
+  # Note that a node can be a member of two different groups, this method executes the block
+  # twice for such a node.
   #
   # - &block = the block of command to execute
   #
@@ -73,6 +75,24 @@ class RootGroupNodeSet < AbstractGroupNodeSet
         g.eachNode &block
       end
     }
+  end
+
+  #
+  # This method executes a block of command on ALL unique nodes in ALL the groups of NodeSets
+  # Note that a node can be a member of two different groups, this method executes the block
+  # only once for such a node.
+  #
+  # - &block = the block of command to execute
+  #
+  def eachUniqueNode(&block)
+    allUniqueNode = Set.new
+    @@groups.each_value { |g|
+      if g.kind_of?(BasicNodeSet)
+        g.eachNode { |n| allUniqueNode.add(n) }
+      end
+    }
+    debug("Running eachUniqueNode for {#{allUniqueNode.to_a.join(", ")}}")
+    allUniqueNode.each &block
   end
 
   #

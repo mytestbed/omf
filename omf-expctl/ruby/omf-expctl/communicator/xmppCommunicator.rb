@@ -206,7 +206,7 @@ class XmppCommunicator < Communicator
   # - name = name to give to the node once enrolled
   # - ipAddress = IP address of the node to enroll 
   #
-  def enrolNode(node, name, ipAddress)
+  def enrollNode(node, name, ipAddress)
     @name2node[name] = node
     # create the experiment pubsub node so the node can subscribe to it
     # after receiving the YOUARE message
