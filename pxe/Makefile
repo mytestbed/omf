@@ -125,7 +125,7 @@ curl: 	get_curl
 
 omf:
 	sudo apt-get clean; sudo apt-get update
-	apt-get -d --reinstall -y --print-uris install omf-common omf-resctl libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools | grep http | awk '{print $$1}' | tr -d "'" > omf-packages
+	apt-get -d --reinstall --force-yes -y --print-uris install omf-common omf-resctl libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools | grep http | awk '{print $$1}' | tr -d "'" > omf-packages
 	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 
