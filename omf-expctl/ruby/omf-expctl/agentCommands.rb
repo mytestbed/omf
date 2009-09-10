@@ -67,6 +67,11 @@ module AgentCommands
   # called within a LOAD experiment, this would trigger pxe booting and image loading.
   # (in the future, the NH should request AM to install the correct image)
   #
+  # Note: This assumes that the XMPP server is actually keeping the last message 
+  # addressed to a group for every new subscribers. Thus there is no need to send 
+  # enrolling message again. If XMPP standard changes or server is not having 
+  # this behaviour, then a enroll process will need to be started here.
+  #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - senderId = the sender ID 
@@ -75,7 +80,6 @@ module AgentCommands
   def AgentCommands.WRONG_IMAGE(handler, sender, senderId, argArray)
     MObject.debug("Received WRONG_IMAGE from '#{senderId}' - Desired: '#{sender.image}' - Installed: '#{argArray}'")
     sender.reset()
-    sender.enroll()
   end
 
   #

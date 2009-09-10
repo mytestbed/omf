@@ -55,6 +55,8 @@ class Node < MObject
   STATUS_UP = 'UP'
   STATUS_RESET = 'RESET'
   STATUS_AGENT_RESET = 'AGENT_RESET'
+  REBOOT_TIME = 8 # in sec
+  
 
   @@nodes = ArrayMD.new
 
@@ -146,7 +148,7 @@ class Node < MObject
   attr_reader :x, :y, :MAC
 
   # True if node is up, false otherwise
-  attr_reader :isUp
+  #attr_reader :isUp
 
   # A set listing all the group memberships for this node
   attr_reader :groupMembership
@@ -164,6 +166,15 @@ class Node < MObject
   attr_reader :checkedInAt
 
   public :to_s
+
+  #
+  # Return true is this node is in the UP state
+  #
+  # [Return] true/false
+  #
+  def isUp()
+    return (@nodeStatus == STATUS_UP)
+  end
 
   #
   # Return the IP address of the node's control interface (this method queries the Inventory DB for this IP)
@@ -460,7 +471,8 @@ class Node < MObject
       CMC.nodeOn(x, y)
     end
     @poweredAt = Time.now
-    if !@isUp
+    #if !@isUp
+    if @nodeStatus != STATUS_UP
       setStatus(STATUS_POWERED_ON) 
     end
   end
@@ -477,7 +489,7 @@ class Node < MObject
     # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE_MODE()
       if hard
-        CMC.nodeOffSoft(x, y)
+        CMC.nodeOffHard(x, y)
       else
         CMC.nodeOffSoft(x, y)
       end
@@ -492,35 +504,43 @@ class Node < MObject
   def enroll()
     ipAddress = getControlIP()
     desiredImage = @image.nil? ? "*" : @image
-    info "TDEBUG - Node: #{@nodeId} - image: #{desiredImage}"
     Communicator.instance.enrollNode(self, @nodeId, ipAddress, desiredImage)
   end
 
   #
   # Reset this Node
   #
+  # If we are already in RESET state, and the last reset was less than REBOOT_TIME ago,
+  # That means that the actual node is more likely still rebooting, thus do nothing here
+  # Once that node will be done rebooting, either we will get in UP state or we will
+  # come back here and do a real reset this time. This avoids us to send many resets 
+  #
   def reset()
-    changed
-    notify_observers(self, :before_resetting_node)
-    @isUp = false
-    setStatus(STATUS_RESET)
-    debug("Resetting node")
-    CMC::nodeReset(x, y)
-    @checkedInAt = -1
-    @poweredAt = Time.now
-    changed
-    notify_observers(self, :after_resetting_node)
+    if (@nodeStatus == STATUS_RESET) && ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
+      return
+    else
+      changed
+      notify_observers(self, :before_resetting_node)
+      setStatus(STATUS_RESET)
+      debug("Resetting node")
+      CMC::nodeReset(x, y)
+      @checkedInAt = -1
+      @poweredAt = Time.now
+      changed
+      notify_observers(self, :after_resetting_node)
+    end
   end
 
   # 
   # Report a RESET event that happened on the NA for this Node
   #
   def reportAgentReset()
-    if @isUp
+    #if @isUp
+    if @nodeStatus == STATUS_UP
       warn "agent reset itself"
       setStatus(STATUS_AGENT_RESET)
-      @isUp = false
-      setStatus(STATUS_RESET)
+      #@isUp = false
+      #setStatus(STATUS_RESET)
       @checkedInAt = -1
       #@checkedInAtEl.attributes['ts'] = '-1'
       changed
@@ -602,7 +622,8 @@ class Node < MObject
   def heartbeat(sendSeqNo, recvSeqNo, timestamp)
     # check if we received all packets
     #inSequence?(sendSeqNo)
-    if (! @isUp)
+    #if (! @isUp)
+    if @nodeStatus != STATUS_UP
       # first heartbeat, looks like node is up and ready
       @isUp = true
       setStatus(STATUS_UP)
@@ -692,7 +713,8 @@ class Node < MObject
     @y = y
     @groups = Array.new  # name of nodeSet groups this node belongs to
     #@apps = Hash.new
-    @isUp = false
+    #@isUp = false
+    @nodeStatus = STATUS_DOWN
     #@senderSeq = 0
     @execs = Hash.new
     @blockedMACList = Set.new
@@ -720,6 +742,7 @@ class Node < MObject
   # - status = new status for this Node
   #
   def setStatus(status)
+    @nodeStatus = status
     TraceState.nodeStatus(self, status)
     #@statusEl.text = status
     #@statusEl.add_element('history', {'ts' => NodeHandler.getTS()}).text = status
@@ -733,7 +756,8 @@ class Node < MObject
   #
   def send(command, *args)
     #debug("node#send: args(#{args.length})'#{args.join('#')}")
-    if (@isUp)
+    #if (@isUp)
+    if @nodeStatus == STATUS_UP
       Communicator.instance.send(nodeId, command, args)
     else
       #raise "Node not up. Embed command in 'onNodeUp' block"
@@ -746,7 +770,8 @@ class Node < MObject
   # Send all deferred messages if there are any and if all the nodes are up
   # 
   def send_deferred()
-    if (@deferred.size > 0 && @isUp)
+    #if (@deferred.size > 0 && @isUp)
+    if (@deferred.size > 0 && @nodeStatus == STATUS_UP)
       da = @deferred
       @deferred = []
       da.each { |e|

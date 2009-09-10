@@ -40,7 +40,6 @@ require 'optparse'
 #
 class Experiment
 
-  REBOOT_TIME = 8
   @@name = "UNKNOWN"  # name of experiment
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
@@ -241,9 +240,8 @@ class Experiment
     # If -R flag was set on the command line
     # Reset the nodes before starting the experiment if -R flag was set
     if NodeHandler.NODE_RESET
-      MObject.info "Reset Resources was requested from command line..."
+      MObject.info "Reset flag is set - Resetting the resources"
       allGroups.powerReset
-      Kernel.sleep REBOOT_TIME 
     # If not, just make sure the nodes are ON
     else
       allGroups.powerOn

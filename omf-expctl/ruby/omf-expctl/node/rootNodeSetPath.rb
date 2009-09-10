@@ -196,14 +196,14 @@ class RootNodeSetPath < NodeSetPath
   # This method enroll to the experiment all nodes in the NodeSet of this Root Path.
   #
   def enroll()
-    @nodeSet.eachUniqueNode { |n| n.enroll()}
+    @nodeSet.eachUniqueNode { |n| n.enroll() }
   end
 
   #
   # This method reset all nodes in the NodeSet of this Root Path.
   #
   def powerReset()
-    @nodeSet.eachUniqueNode { |n| n.reset()}
+    @nodeSet.eachUniqueNode { |n| n.reset() }
   end
 
   #
@@ -222,7 +222,7 @@ class RootNodeSetPath < NodeSetPath
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    @nodeSet.eachUniqueNode { |n| n.powerOff(hard)}
+    @nodeSet.eachUniqueNode { |n| n.powerOff(hard) }
   end
 
   #

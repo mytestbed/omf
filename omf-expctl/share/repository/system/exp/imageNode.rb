@@ -35,24 +35,26 @@ Experiment.project = "Orbit::Admin"
 defProperty('nodes', [1..8, 1..8], "Range of nodes to image")
 defProperty('image', 'baseline.ndz', "Image to load on nodes")
 defProperty('domain', nil, "Domain of the nodes to image")
+defProperty('outpath', '/tmp', "Path where to place the topology files resulting from this image")
 # The following value of 800sec for timeout is based on trial imaging experiments 
 defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the last node has powered up")
 
 #
 # First of all, do some checks...
 # - check if the requested image really exists on the Repository
+#
 url = "#{OConfig[:tb_config][:default][:frisbee_url]}/checkImage?img=#{prop.image.value}"
 response = NodeHandler.service_call(url, "Image does not exist")
 if response.body != "OK"
-  MObject.error("ERROR - The image '#{prop.image.value}' does not exist! ")
-  MObject.error("ERROR - (From FrisbeeService: #{response.body})")
+  MObject.error("The image '#{prop.image.value}' does not exist! ")
+  MObject.error("(From FrisbeeService: #{response.body})")
   Experiment.done
   exit -1
 end
 # - check if timeout value from command line is really an integer
 if (prop.timeout.value.to_i == 0)
-  MObject.error("ERROR - The timeout value '#{prop.timeout.value}' is not an integer!")
-  MObject.error("ERROR - Check command line syntax.")
+  MObject.error("The timeout value '#{prop.timeout.value}' is not an integer!")
+  MObject.error("Check command line syntax.")
   Experiment.done
   exit -1
 end
@@ -62,7 +64,23 @@ end
 #
 defGroup('image', prop.nodes) {|n|
    n.pxeImage("#{prop.domain.value}", setPXE=true)
+   n.image = "pxe-2.0.6"
 }
+
+def outputTopologyFile(file, topo, msg, nset)
+  begin
+    File.open(file, "w") do |f|
+      f.puts("# Topology name: #{topo}", "# ")
+      f.puts(msg)
+      nsArray = []
+      nset.each { |n| nsArray << "[#{n.x},#{n.y}]" }
+      nsetString = "[#{nsArray.join(",")}]"
+      f.puts(" ","defTopology('#{topo}', #{nsetString})")
+    end
+  rescue Exception => err
+    MObject.error("Could not write topology file: '#{file}' (#{err})")
+  end
+end
 
 #
 # Every 10s check the state of the imaging process and report accordingly
@@ -122,55 +140,42 @@ everyNS('image', 10) { |ns|
     progAvg = nodeCnt > 0 ? progSum / nodeCnt : 0
     stats = "#{progMin}/#{progAvg}/#{progMax}"
     prog = "#{nodesDone}/#{nodesWithError}/#{nodeCnt}"
-    #info "Progress(#{prog}): #{stats} min(#{nodeMin})/avg/max (#{startupDelayMax})"
-    info "Progress(#{prog}): #{stats} min(#{nodeMin})/avg/max (#{startupDelayMax}) - Timeout: #{lastUpTime+prop.timeout.value-Time.now.to_i} sec."
+    timeLeft = lastUpTime+prop.timeout.value-Time.now.to_i
+    info "Progress(#{prog}): #{stats} min(#{nodeMin})/avg/max (#{startupDelayMax}) - Timeout: #{timeLeft} sec."
 
     if (nodesDone >= nodeCnt) || ((lastUpTime+prop.timeout.value) < Time.now.to_i)
       # we are done
       info " ----------------------------- "
       info " Imaging Process Done " 
       if nodesWithErrorList.length > 0
-         topoName = "system_topo_failed_#{Experiment.getDomain}"
-         topoNameS = "system:topo:failed:#{Experiment.getDomain}"
-         File.open("/tmp/#{Experiment.ID}-#{topoName}.rb","w") do |f|
-            f.puts("# Topology name: #{topoNameS}", "# ")
-            f.puts("# The following command creates a Topology wih the nodes that have failed the imaging process.")
-            f.puts("# On these nodes, the 'frisbee' client did not manage to start the imaging process.")
-            f.puts("# Check the nodehandler log file for the 'frisbee' client error message.", "# ")
-            nsArray = []
-            nodesWithErrorList.each { |n| nsArray << "[#{n.x},#{n.y}]" }
-            nset = "[#{nsArray.join(",")}]"
-            f.puts(" ","defTopology('#{topoNameS}', #{nset})")
-         end
-         info " - #{nodesWithErrorList.length} node(s) failed - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
+	 filename = "#{prop.outpath.value}/#{Experiment.ID}_topo_failed.rb"
+         topoName = "#{Experiment.ID}:topo:failed"
+	 message = <<TEXT
+# The following command creates a Topology wih the nodes that have failed the imaging process.
+# On these nodes, the 'frisbee' client did not manage to start the imaging process.
+# Check the nodehandler log file for the 'frisbee' client error message.
+#
+TEXT
+	 outputTopologyFile(filename, topoName, message, nodesWithErrorList)
+         info " - #{nodesWithErrorList.length} node(s) failed - See the topology file: '#{filename}'"
       end
       if nodesPendingList.length > 0
-         topoName = "system_topo_timedout_#{Experiment.getDomain}"
-         topoNameS = "system:topo:timedout:#{Experiment.getDomain}"
-         File.open("/tmp/#{Experiment.ID}-#{topoName}.rb","w") do |f|
-            f.puts("# Topology name: #{topoNameS}", "# ")
-            f.puts("# The following command creates a Topology wih the nodes that have timed-out the imaging process.")
-            f.puts("# These nodes did not finish imaging before the timeout limit of #{prop.timeout.value}.")
-            f.puts("# These nodes most probably have some issues (disk problems ?).","# ")
-            nsArray = []
-            nodesPendingList.each { |n| nsArray << "[#{n.x},#{n.y}]" }
-            nset = "[#{nsArray.join(",")}]"
-            f.puts(" ","defTopology('#{topoNameS}', #{nset})")
-         end
-         info " - #{nodesPendingList.length} node(s) timed-out - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
+	 filename = "#{prop.outpath.value}/#{Experiment.ID}_topo_timeout.rb"
+         topoName = "#{Experiment.ID}:topo:timeout"
+	 message = <<TEXT
+# The following command creates a Topology wih the nodes that have timed-out the imaging process.
+# These nodes did not finish imaging before the timeout limit.
+# These nodes most probably have some issues (disk problems ?).
+TEXT
+	 outputTopologyFile(filename, topoName, message, nodesPendingList)
+         info " - #{nodesPendingList.length} node(s) timed-out - See the topology file: '#{filename}'"
       end
       if nodesWithSuccessList.length > 0
-         topoName = "system_topo_active_#{Experiment.getDomain}"
-         topoNameS = "system:topo:active:#{Experiment.getDomain}"
-         File.open("/tmp/#{Experiment.ID}-#{topoName}.rb","w") do |f|
-            f.puts("# Topology name: #{topoNameS}", "# ")
-            f.puts("# The following command creates a Topology wih the nodes that have successfully been imaged.","# ")
-            nsArray = []
-            nodesWithSuccessList.each { |n| nsArray << "[#{n.x},#{n.y}]" }
-            nset = "[#{nsArray.join(",")}]"
-            f.puts(" ","defTopology('#{topoNameS}', #{nset})")
-         end
-         info " - #{nodesWithSuccessList.length} node(s) successfully imaged - See the topology file: '/tmp/#{Experiment.ID}-#{topoName}.rb'"
+	 filename = "#{prop.outpath.value}/#{Experiment.ID}_topo_active.rb"
+         topoName = "#{Experiment.ID}:topo:active"
+	 message = "# The following command creates a Topology wih the nodes that have successfully been imaged."
+	 outputTopologyFile(filename, topoName, message, nodesWithSuccessList)
+         info " - #{nodesWithSuccessList.length} node(s) successfully imaged - See the topology file: '#{filename}'"
       end
       info " ----------------------------- "
       ns.pxeImage("#{prop.domain.value}", setPXE=false)

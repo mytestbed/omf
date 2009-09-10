@@ -31,7 +31,7 @@
 #
 
 module CMC
-
+	
   # Holds the list of active nodes for this experiment
   @@activeNodes = nil
 

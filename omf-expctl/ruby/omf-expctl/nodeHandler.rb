@@ -449,19 +449,9 @@ class NodeHandler < MObject
       OConfig.domain = name
     }
     
-    opts.on("-D", "--debug", "Operate in debug mode") {|name|
-      @debug = true
-    }
+    opts.on("-D", "--debug", "Operate in debug mode") { @debug = true }
 
-
-    opts.on("-i", "--interactive", "Run the nodehandler in interactive mode") {
-      @interactive = true
-    }
-
-    # Deprecated
-    #opts.on("-k", "--keep-up", "Keep the grid up after the experiment finished") {
-    #  NodeHandler.SHUTDOWN = false
-    #}
+    opts.on("-i", "--interactive", "Run the nodehandler in interactive mode") { @interactive = true }
 
     opts.on("-l", "--libraries LIST", "Comma separated list of additional files to load [#{@extraLibs}]") {|list|
       @extraLibs = list
@@ -475,7 +465,7 @@ class NodeHandler < MObject
       Experiment.message = msg
     }
 
-    opts.on("-n", "--just-print", "Print the commands that would be executed, but do not execute them") {
+    opts.on("-n", "--just-print", "Print the commands that would be executed, but do not execute them") { 
       NodeHandler.JUST_PRINT = true
     }
 
@@ -488,33 +478,29 @@ class NodeHandler < MObject
       @webPort = port.to_i
     }
 
-    opts.on("-r", "--result FILE", "File to write final state information to") {|file|
+    opts.on("-o", "--output-result FILE", "File to write final state information to") {|file|
       @finalStateFile = file
     }
 
-    opts.on("-s", "--shutdown flag", "If true, shut down resources at the end of an experiment [#{NodeHandler.SHUTDOWN}]") {|flag|
-      NodeHandler.SHUTDOWN = (flag == 'true') || (flag == 'yes')
+    opts.on("-O", "--output-app-stdout", "Display on standard-out the outputs from the applications running on the nodes") { 
+      @@showAppOutput = true
     }
 
-    opts.on("-R", "--reset flag", "If set, then reset (reboot) the nodes before the experiment [default #{NodeHandler.NODE_RESET}]") {|flag|
-      NodeHandler.NODE_RESET = true
-      #NodeHandler.NODE_RESET = (flag == 'true') || (flag == 'yes')
-    }
+    opts.on("-r", "--reset", "If set, then reset (reboot) the nodes before the experiment") { @@reset = true }
 
-    opts.on("--tutorial", "Run tutorial [#{TUTORIAL}]") {
-      runTutorial = true
-    }
+    opts.on("-s", "--shutdown", "If set, then shut down resources at the end of an experiment") { @@shutdown = true }
+
+    opts.on("--tutorial", "Run tutorial [#{TUTORIAL}]") { runTutorial = true }
 
     opts.on("-t", "--tags TAGS", "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
     }
 
-    opts.on_tail("-w", "--web-ui", "Control experiment through web interface") {
-      @web_ui = true
-    }
+    opts.on_tail("-w", "--web-ui", "Control experiment through web interface") { @web_ui = true }
 
-    opts.on_tail("-h", "--help", "Show this message") { puts OMF::ExperimentController::VERSION_STRING; puts opts; exit }
-    opts.on_tail("-v", "--version", "Show the version\n") { puts OMF::ExperimentController::VERSION_STRING; exit }
+    opts.on_tail("-h", "--help", "Show this message") { |v| puts OMF::ExperimentController::VERSION_STRING; puts opts; exit }
+
+    opts.on_tail("-v", "--version", "Show the version\n") { |v| puts OMF::ExperimentController::VERSION_STRING; exit }
 
     opts.on("--slave-mode EXPID", "Run NH in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
       @@runningSlaveMode = true
@@ -535,10 +521,6 @@ class NodeHandler < MObject
 
     opts.on("--slave-mode-ycoord Y", "When NH in 'Slave' mode, this is the Y coordinate of the node where this slave NH is running") { |y|
       @slaveNodeY = eval(y)
-    }
-
-    opts.on("-A", "--show-app-output", "Display on standard-out the outputs from the applications running on the nodes") {
-      @@showAppOutput = true
     }
 
     #opts.on_tail("-p", "--profile", "Profile node handler") {
@@ -712,8 +694,8 @@ class NodeHandler < MObject
       # nothing to do
       return
     end
-
     @processCommands = false
+
     begin
       communicator.sendReset
       if XmppCommunicator.instantiated?
@@ -741,7 +723,7 @@ class NodeHandler < MObject
       #NodeHandler::DOCUMENT.write(ss, 2, true, true)
       NodeHandler::DOCUMENT.write(ss, 2)
     rescue Exception => ex
-      warn("Exception while saving final state (#{ex})")
+      debug("Exception while saving final state (#{ex})")
     end
 
     begin
@@ -749,9 +731,10 @@ class NodeHandler < MObject
     rescue Exception
       #ignore
     end
+
     if NodeHandler.SHUTDOWN
-      # TODO: only shut down nodes from this experiment
-      #CMC::nodeAllOffSoft()
+      info "Shutdown flag is set - Turning Off the resources"
+      allGroups.powerOff
     end
     @running = nil
   end
