@@ -57,35 +57,16 @@ function saveimage()
   OMF=omf
   DOMAIN=$2
   if [ -z $DOMAIN ] ;then
-    echo -n " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 10sec..."
-    $OMF tell offs "$1"
-    sleep 10
-    echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
-    echo " NICTA -- normal imaging process starts now..."
     echo " "
-    echo -n "Saving image from node '$1' from default domain..."
-    $OMF exec system:exp:saveNode -- --node "[$1]" 
+    echo -n "Saving disk image of '$1' from default domain..."
+    $OMF exec -s system:exp:saveNode -- --node "[$1]" 
     echo " "
-    echo " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 5sec..."
-    $OMF tell offs "$1"
-    sleep 5
-    echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
   else
-    echo -n " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 10sec..."
-    $OMF tell offs "$1" "$domain"
-    sleep 10
-    echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
-    echo " NICTA -- normal imaging process starts now..."
     echo " "
-    echo -n "Saving image from node '$1' from domain '$2'..."
-    $OMF exec system:exp:saveNode -- --node "[$1]" --domain $DOMAIN
+    echo "Saving disk image of '$1' from domain '$2'..."
+    $OMF exec -s -d $DOMAIN system:exp:saveNode -- --node "[$1]" --domain $DOMAIN
     echo " "
-    echo " NICTA -- waiting for working CM -- Hack to reboot nodes - wait 5sec..."
-    $OMF tell offs "$1" "$domain"
-    sleep 5
-    echo " NICTA -- waiting for working CM -- Hack to reboot nodes - Done."
   fi
-  echo " done."
   exit 0
 }
 

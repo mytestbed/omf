@@ -24,20 +24,6 @@
 #
 #
 
-#
-# NOTE: This 'omf_load' is a temporary fix to run at NICTA
-#       The problem at NICTA is that we do not have a workin CM solution yet, 
-#       to be able to turn off/on the nodes on the testbed.
-#       Thus, we force that here by calling 'omf_tell offs' before imaging.
-#       When a proper CM solution will be in place, this script should be 
-#       removed.
-#       
-# MORE NOTE: Just using the '-s true' option of NH to achieve the same goal
-#       is not a good solution, because it turns ALL the nodes off/on. Thus
-#       we cannot run multiple concurrent experiments (with spatial slicing).
-#
-
-
 # Names of PXE images are not retrieved from the Inventory
 #PXE_VERSION=sata-2.0.1 # TR: 'sata-2.0.1' at Nicta
 #PXE_VERSION=1.2.1-omf # TR: 'orbit-1.2.1-omf' at Winlab
@@ -116,11 +102,11 @@ then
   echo "Imaging nodes: '$topo' with image '$image'"
   echo "(Domain:  default from hostname)"
   echo "(Timeout:  $timeout sec.)"
-  $OMF exec system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout
+  $OMF exec -s system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout
 else
   echo "Imaging nodes: '$topo' with image '$image'"
   echo "(Domain:  $domain )"
   echo "(Timeout:  $timeout sec.)"
-  $OMF exec -d $domain system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout --domain $domain
+  $OMF exec -s -d $domain system:exp:imageNode -- --nodes "$topo" --image $image --timeout $timeout --domain $domain
 fi
 exit 0

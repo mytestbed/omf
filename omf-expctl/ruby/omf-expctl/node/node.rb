@@ -410,14 +410,12 @@ class Node < MObject
       imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
     TraceState.nodeSaveImage(self, imgName, imgHost, disk)
-    #procEl = getConfigNode(['apps'])
-    #info("Saving #{disk} from #{@nodeId} as \"tmp/#{imgName}\"")
-    #params = {:imgName => imgName, :nsfDir => nsfDir, :disk => disk}
-    #@apps['builtin:save_image'] = NodeBuiltin.new('save_image', params, self, procEl, 'ISSUED')
-    info("- Saving disk image from node #{@nodeId} in the file '#{imgName}'")
-    info("  (disk images are located at: '#{imgHost}')")
-    info("  (disk '#{disk}') will be imaged")    
+    info " "
+    info("- Saving disk image of #{@nodeId} in the file '#{imgName}'")
+    info("  (physical disk '#{disk}') will be saved")    
+    info("  (saved disk images are located at: '#{imgHost}')")
     send('SAVE_IMAGE', imgName, imgHost, disk)
+    info " "
   end
 
   #

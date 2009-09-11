@@ -43,6 +43,7 @@ defProperty('started', 'false', "internal flag")
 #
 defGroup('save', Experiment.property('node')) {|n|
   n.pxeImage("#{prop.domain.value}", setPXE=true)
+   n.image = "pxe-2.0.6"
 }
 
 everyNS('save', 10) { |ns|
@@ -52,11 +53,13 @@ everyNS('save', 10) { |ns|
     if status =~ /DONE/
       notDone = false
       if status =~ /DONE.ERR/
-        info("- Saving process of node n_#{n.x}_#{n.y} finished with ERRORS! at: #{Time.now}")
-	info("  Check the log file (probably disk read error on the node...)")
+        info("- Saving disk image of n_#{n.x}_#{n.y} finished with ERRORS!")
+	info("  Check the log file (probably disk read error on the node)")
       else
-        info("- Saving process of node n_#{n.x}_#{n.y} finished correctly at: #{Time.now}")
+        info("- Saving disk image of n_#{n.x}_#{n.y} finished with success.")
       end
+      info("- Saving process completed at: #{Time.now}")
+      info " "
     end
   }
   if (notDone == false)
@@ -72,8 +75,9 @@ everyNS('save', 10) { |ns|
     if status =~ /STARTED/
       if prop.started.value == "false"
         prop.started = "true"
-        info "- SAVE_IMAGE process started at: #{Time.now}"
-	info "  (this may take a while, e.g. 5min+, depending of the size of your image)"
+	inf " "
+        info "- Saving process started at: #{Time.now}"
+	info "  (this may take a while depending of the size of your image)"
       end
     end
   }
