@@ -1,0 +1,300 @@
+diff -ru dist-ntfsprogs-1.7.1/configure.in ntfsprogs-1.7.1/configure.in
+--- dist-ntfsprogs-1.7.1/configure.in	Thu Feb 13 03:25:45 2003
++++ ntfsprogs-1.7.1/configure.in	Mon Mar 10 17:22:32 2003
+@@ -74,7 +74,7 @@
+ if test ! -z "$CC"; then
+ 	_cc="$CC"
+ else
+-	_cc="gcc"
++	_cc="gcc30"
+ fi
+ 
+ dnl Check for gcc version being >= 2.96.
+diff -ru dist-ntfsprogs-1.7.1/include/debug.h ntfsprogs-1.7.1/include/debug.h
+--- dist-ntfsprogs-1.7.1/include/debug.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/debug.h	Mon Mar 10 17:22:32 2003
+@@ -22,6 +22,7 @@
+ #ifndef _NTFS_DEBUG_H
+ #define _NTFS_DEBUG_H
+ 
++#include <sys/param.h> /*Added for FreeBSD*/
+ #include "config.h"
+ 
+ #ifdef HAVE_STDIO_H
+diff -ru dist-ntfsprogs-1.7.1/include/disk_io.h ntfsprogs-1.7.1/include/disk_io.h
+--- dist-ntfsprogs-1.7.1/include/disk_io.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/disk_io.h	Mon Mar 10 17:22:32 2003
+@@ -22,6 +22,7 @@
+ #ifndef _NTFS_DISK_IO_H
+ #define _NTFS_DISK_IO_H
+ 
++#include <sys/param.h> /*Included for FreeBSD*/
+ #include "volume.h"
+ 
+ extern s64 ntfs_pread(const int fd, const s64 pos, s64 count, const void *b);
+diff -ru dist-ntfsprogs-1.7.1/include/endians.h ntfsprogs-1.7.1/include/endians.h
+--- dist-ntfsprogs-1.7.1/include/endians.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/endians.h	Mon Mar 10 17:22:32 2003
+@@ -33,8 +33,9 @@
+  * architectures requirering aligned memory accesses...
+  */
+ 
+-#include <asm/byteorder.h>
+-
++/* #include <asm/byteorder.h> Taken out for FreeBSD */
++#include "linux_types.h" /*Added for FreeBSD*/
++#include <linux/byteorder/little_endian.h> /* Added for FreeBSD, assume FreeBSD will only be running on an intel machine. */
+ /* Unsigned from LE to CPU conversion. */
+ 
+ #define le16_to_cpu(x)		(u16)__le16_to_cpu((u16)(x))
+diff -ru dist-ntfsprogs-1.7.1/include/inode.h ntfsprogs-1.7.1/include/inode.h
+--- dist-ntfsprogs-1.7.1/include/inode.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/inode.h	Mon Mar 10 17:22:32 2003
+@@ -25,6 +25,7 @@
+ /* Forward declaration */
+ typedef struct _ntfs_inode ntfs_inode;
+ 
++#include <sys/param.h> /*Included for FreeBSD*/
+ #include "types.h"
+ #include "support.h"
+ #include "runlist.h"
+diff -ru dist-ntfsprogs-1.7.1/include/mft.h ntfsprogs-1.7.1/include/mft.h
+--- dist-ntfsprogs-1.7.1/include/mft.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/mft.h	Mon Mar 10 17:22:32 2003
+@@ -25,6 +25,7 @@
+ #include "volume.h"
+ #include "inode.h"
+ #include "layout.h"
++#include <stdio.h> /* Russ freebsd debug change*/
+ 
+ extern int ntfs_mft_records_read(const ntfs_volume *vol, const MFT_REF mref,
+ 		const s64 count, MFT_RECORD *b);
+diff -ru dist-ntfsprogs-1.7.1/include/types.h ntfsprogs-1.7.1/include/types.h
+--- dist-ntfsprogs-1.7.1/include/types.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/types.h	Mon Mar 10 17:22:32 2003
+@@ -23,9 +23,9 @@
+ #ifndef _NTFS_TYPES_H
+ #define _NTFS_TYPES_H
+ 
+-#include <stdint.h>
++/* #include <stdint.h> C99 int types; Removed for FreeBSD */
+ #include <sys/types.h>
+-#include <linux/types.h>
++/* #include <linux/types.h> Removed for FreeBSD */
+ 
+ typedef uint8_t  u8;			/* Unsigned types of an exact size */
+ typedef uint16_t u16;
+diff -ru dist-ntfsprogs-1.7.1/include/volume.h ntfsprogs-1.7.1/include/volume.h
+--- dist-ntfsprogs-1.7.1/include/volume.h	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/include/volume.h	Mon Mar 10 17:22:32 2003
+@@ -22,6 +22,7 @@
+ #ifndef _NTFS_VOLUME_H
+ #define _NTFS_VOLUME_H
+ 
++#include <sys/param.h>
+ #include "config.h"
+ 
+ #include <sys/mount.h>
+diff -ru dist-ntfsprogs-1.7.1/libntfs/attrib.c ntfsprogs-1.7.1/libntfs/attrib.c
+--- dist-ntfsprogs-1.7.1/libntfs/attrib.c	Thu Feb 13 03:25:30 2003
++++ ntfsprogs-1.7.1/libntfs/attrib.c	Thu Mar 20 19:40:22 2003
+@@ -24,7 +24,7 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <errno.h>
+-
++#include <sys/param.h> /*Added for FreeBSD*/
+ #include "compat.h"
+ 
+ #include "attrib.h"
+@@ -383,8 +383,8 @@
+ {
+ 	if (NAttrNonResident(na) && na->rl)
+ 		free(na->rl);
+-	if (na->name != AT_UNNAMED)
+-		free(na->name);
++	/* if (na->name != AT_UNNAMED) */
++	/*	free(na->name); */
+ 	free(na);
+ 	return;
+ }
+Only in ntfsprogs-1.7.1/libntfs: attrib.c~
+diff -ru dist-ntfsprogs-1.7.1/libntfs/bitmap.c ntfsprogs-1.7.1/libntfs/bitmap.c
+--- dist-ntfsprogs-1.7.1/libntfs/bitmap.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/bitmap.c	Mon Mar 10 17:22:32 2003
+@@ -23,7 +23,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <errno.h>
+-
++#include <sys/param.h> /*Added for FreeBSD*/
+ #include "types.h"
+ #include "attrib.h"
+ #include "bitmap.h"
+diff -ru dist-ntfsprogs-1.7.1/libntfs/bootsect.c ntfsprogs-1.7.1/libntfs/bootsect.c
+--- dist-ntfsprogs-1.7.1/libntfs/bootsect.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/bootsect.c	Mon Mar 10 17:22:32 2003
+@@ -23,7 +23,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <errno.h>
+-
++#include <sys/param.h> /*Added for FreeBSD*/
+ #include "compat.h"
+ 
+ #include "bootsect.h"
+diff -ru dist-ntfsprogs-1.7.1/libntfs/dir.c ntfsprogs-1.7.1/libntfs/dir.c
+--- dist-ntfsprogs-1.7.1/libntfs/dir.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/dir.c	Mon Mar 10 17:22:32 2003
+@@ -22,6 +22,7 @@
+ #include <stdlib.h>
+ #include <errno.h>
+ #include <string.h>
++#include <assert.h>
+ 
+ #include "types.h"
+ #include "debug.h"
+@@ -78,6 +79,10 @@
+ 	int eo, rc;
+ 	u32 index_block_size, index_vcn_size;
+ 	u8 index_vcn_size_bits;
++	assert(sizeof(u8) == 1);
++	assert(sizeof(u32) == 4);
++	assert(sizeof(s64) == 8);
++	assert(sizeof(u64) == 8);
+ 
+ 	if (!dir_ni || !dir_ni->mrec || !uname || uname_len <= 0) {
+ 		errno = EINVAL;
+@@ -89,7 +94,7 @@
+ 		return -1;
+ 
+ 	/* Find the index root attribute in the mft record. */
+-	if (!ntfs_attr_lookup(AT_INDEX_ROOT, I30, 4, CASE_SENSITIVE, 0, NULL,
++	if (ntfs_attr_lookup(AT_INDEX_ROOT, I30, 4, CASE_SENSITIVE, 0, NULL, /*Russ FreeBSD change.  I changed a not because I thought it was wrong*/
+ 			0, ctx)) {
+ 		Dprintf("Index root attribute missing in directory inode "
+ 				"0x%Lx: %s\n",
+@@ -103,7 +108,7 @@
+ 	index_block_size = le32_to_cpu(ir->index_block_size);
+ 	if (index_block_size < NTFS_SECTOR_SIZE ||
+ 			index_block_size & (index_block_size - 1)) {
+-		Dprintf("Index block size %u is invalid.\n", index_block_size);
++		Dprintf("Index block size 0x%08x is invalid.\n", index_block_size);
+ 		goto put_err_out;
+ 	}
+ 	index_end = (u8*)&ir->index + le32_to_cpu(ir->index.index_length);
+diff -ru dist-ntfsprogs-1.7.1/libntfs/disk_io.c ntfsprogs-1.7.1/libntfs/disk_io.c
+--- dist-ntfsprogs-1.7.1/libntfs/disk_io.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/disk_io.c	Mon Mar 10 17:22:32 2003
+@@ -26,6 +26,7 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <stdio.h>
++#include <assert.h> /*Added for FreeBSD*/
+ #ifdef HAVE_LINUX_FD_H
+ #	include <sys/ioctl.h>
+ #	include <linux/fd.h>
+@@ -61,7 +62,8 @@
+  */
+ s64 ntfs_pread(const int fd, const s64 pos, s64 count, const void *b)
+ {
+-	s64 br, total;
++	s64 br, total, amount_wanted; /*Modified line: amount_wanted added FreeBSD*/
++	const int SECTOR_SIZE = 512; /*FreeBSD modified*/
+ 
+ 	Dprintf("%s(): Entering for pos 0x%Lx, count 0x%Lx.\n", __FUNCTION__,
+ 			pos, count);
+@@ -78,7 +80,19 @@
+ 		return -1;
+ 	}
+ 	/* Read the data. */
+-	for (total = 0; count; count -= br, total += br) {
++        /* Changed this for FreeBSD.  FreeBSD expects that all disk
++	 reads will be in SECTOR_SIZE chunks.  This is more a quick
++	 hack as it requires the buffer passed in to be larger than
++	 the data asked for.  The size must be rounded up to the
++	 nearest SECTOR_SIZE.  My code continues until "Old line"*/
++	amount_wanted = count;
++	if(count % SECTOR_SIZE != 0) count += SECTOR_SIZE - count % SECTOR_SIZE;
++	assert(count >= amount_wanted && count % SECTOR_SIZE == 0
++	       && "There is a programming error in the statement above");
++	for (total = 0; count > 0; count -= br, total += br) {
++		Dprintf("fd==%d\tb==%x\tcount==%d\n",fd,b,count);
++		Dprintf("total==%d\n",total);
++/*	for (total = 0; count; count -= br, total += br) { Old line */
+ 		br = read(fd, (char*)b + total, count);
+ 		/* If everything ok, continue. */
+ 		if (br > 0)
+diff -ru dist-ntfsprogs-1.7.1/libntfs/lcnalloc.c ntfsprogs-1.7.1/libntfs/lcnalloc.c
+--- dist-ntfsprogs-1.7.1/libntfs/lcnalloc.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/lcnalloc.c	Mon Mar 10 17:22:32 2003
+@@ -101,8 +101,8 @@
+ 	int err = 0, rlpos, rlsize, buf_size;
+ 	u8 pass, done_zones, search_zone, need_writeback, bit;
+ 
+-	Dprintf("%s(): Entering with count = 0x%Lx, start_lcn = 0x%Lx,
+-			zone = %s_ZONE.\n", (long long)count,
++	Dprintf("%s(): Entering with count = 0x%Lx, start_lcn = 0x%Lx,"
++			"zone = %s_ZONE.\n", (long long)count,
+ 			(long long)start_lcn,
+ 			zone == MFT_ZONE ? "MFT" : "DATA");
+ 	if (!vol || count < 0 || start_lcn < -1 || !vol->lcnbmp_na ||
+diff -ru dist-ntfsprogs-1.7.1/libntfs/mft.c ntfsprogs-1.7.1/libntfs/mft.c
+--- dist-ntfsprogs-1.7.1/libntfs/mft.c	Thu Feb 13 03:02:28 2003
++++ ntfsprogs-1.7.1/libntfs/mft.c	Mon Mar 10 17:22:32 2003
+@@ -59,7 +59,8 @@
+ 	s64 br;
+ 	VCN m;
+ 
+-	Dprintf("%s(): Entering for inode 0x%Lx.\n", __FUNCTION__, MREF(mref));
++/*  	Dprintf("%s(): Entering for inode 0x%Lx.\n", __FUNCTION__, MREF(mref)); */
++
+ 	if (!vol || !vol->mft_na || !b || count < 0) {
+ 		errno = EINVAL;
+ 		return -1;
+diff -ru dist-ntfsprogs-1.7.1/libntfs/unistr.c ntfsprogs-1.7.1/libntfs/unistr.c
+--- dist-ntfsprogs-1.7.1/libntfs/unistr.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/unistr.c	Mon Mar 10 17:22:32 2003
+@@ -21,13 +21,21 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+-#include <wchar.h>
++#include <wchar.h> /*This include file is wrong we really want to the one that
++		     kirk did*/
+ #include <string.h>
+ #include <errno.h>
+ 
+ #include "types.h"
+ #include "unistr.h"
+ #include "debug.h"
++
++/** FreeBSD Code*/
++extern size_t wcrtomb(char *, wchar_t, mbstate_t *);
++extern int mbsinit(const mbstate_t *);
++extern size_t mbsrtowcs(wchar_t *, const char **, size_t, mbstate_t *);
++extern size_t mbrtowc(wchar_t *, const char *, size_t, mbstate_t *);
++/** End FreeBSD Code*/
+ 
+ /*
+  * IMPORTANT
+diff -ru dist-ntfsprogs-1.7.1/libntfs/volume.c ntfsprogs-1.7.1/libntfs/volume.c
+--- dist-ntfsprogs-1.7.1/libntfs/volume.c	Thu Feb  6 08:24:56 2003
++++ ntfsprogs-1.7.1/libntfs/volume.c	Mon Mar 10 17:22:32 2003
+@@ -27,6 +27,7 @@
+ #include <sys/stat.h>
+ #include <limits.h>
+ 
++#include <linux/fs.h> /*Added for FreeBSD*/
+ #include "volume.h"
+ #include "attrib.h"
+ #include "mft.h"
+@@ -70,7 +71,7 @@
+ 	if (v->mftmirr_ni)
+ 		ntfs_inode_close(v->mftmirr_ni);
+ 	if (v->fd) {
+-		fdatasync(v->fd);
++/*		fdatasync(v->fd); Removed for FreeBSD*/
+ 		close(v->fd);
+ 	}
+ 	if (v->dev_name)

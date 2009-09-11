@@ -1,0 +1,27 @@
+frisbee (1.0.3-2) stable; urgency=low
+
+  * updated Debian packaging for OMF
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 11 Sep 2009 13:03:20 +1000
+
+frisbee (1.0.3-1) testing; urgency=low
+
+  * Allocated too much buffer memory.  Fixed. 
+
+ -- Faiyaz Ahmed <faiyaz@orbit-lab.org>  Wed, 28 Nov 2005 15:57:41 -0400
+
+frisbee (1.0.3) testing; urgency=low
+
+  * Defaulted hidden buffer values to 128M.  Modified rounding routine to only
+    print progress once.  
+  * Hid warnings in log instead of printf.
+  * Increased thread resolution to 1000HZ instead of 100.
+
+ -- Faiyaz Ahmed <faiyaz@orbit-lab.org>  Wed, 28 Nov 2005 15:57:41 -0400
+
+frisbee (1.0.1-1) unstable; urgency=low
+
+  * Initial release Closes: #nnnn  (nnnn is the bug number of your ITP)
+
+ -- Faiyaz Ahmed <faiyaz@orbit-pc3>  Wed, 24 Aug 2005 15:11:01 -0400
+

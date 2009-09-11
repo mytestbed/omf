@@ -1,0 +1,11 @@
+Source: frisbee
+Section: net 
+Priority: optional
+Maintainer: Faiyaz <faiyaz@orbit-lab.org>
+Build-Depends: 
+Standards-Version: 3.6.1
+
+Package: frisbee
+Architecture: any
+Depends: 
+Description:  Multicast imaging system. 

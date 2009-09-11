@@ -1,0 +1,157 @@
+#
+# Copyright (c) 2000-2004 University of Utah and the Flux Group.
+# All rights reserved.
+# 
+# This file is part of Frisbee, which is part of the Netbed/Emulab Network
+# Testbed.  Frisbee is free software, also known as "open source;" you can
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License (GPL), version 2, as published by the Free Software
+# Foundation (FSF).  To explore alternate licensing terms, contact the
+# University of Utah at flux-dist@cs.utah.edu or +1-801-585-3271.
+# 
+# Frisbee is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GPL for more details.  You
+# should have received a copy of the GPL along with Frisbee; see the file
+# COPYING.  If not, write to the FSF, 59 Temple Place #330, Boston, MA
+# 02111-1307, USA, or look at http://www.fsf.org/copyleft/gpl.html .
+#
+
+SRCDIR		= @srcdir@
+TESTBED_SRCDIR	= @top_srcdir@
+OBJDIR		= ../..
+SUBDIR		= os/imagezip
+DISTFILES	= global.h imagehdr.h queue.h sliceinfo.h \
+		  imagedump.c imagedump.8 imagezip.c imagezip.8 \
+		  imageunzip.c crc.c imageunzip.8 \
+		  extfs/*.[hc] fat/*.[hc] ffs/*.[hc] ntfs/*.[hc]
+
+EXPANDCOPYRIGHT	= /usr/site/lib/copyright/expand-copyr
+
+WITH_FFS	= 1
+WITH_EXTFS	= 1
+WITH_NTFS	= @WINSUPPORT@
+WITH_FAT	= @WINSUPPORT@
+
+include $(OBJDIR)/Makeconf
+
+SUBDIRCFLAGS	= -Wall -O2 -g
+ifdef LINUX
+SUBDIRCFLAGS	+= -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -D_THREAD_SAFE -pthread
+else
+PTHREADCFLAGS	= -D_THREAD_SAFE \
+		  -I/usr/local/include/pthread/linuxthreads
+SUBDIRCFLAGS	+= 
+PTHREADLIBS	= -L/usr/local/lib -llthread -llgcc_r
+endif
+
+# Define this if you implementation of cond_vars works well
+# They don't with linuxthreads under FreeBSD: wakeups take longer than
+# Necessary sometimes.
+#PTHREADCFLAGS	+= -DCONDVARS_WORK
+
+CFLAGS		= $(SUBDIRCFLAGS) -I$(SRCDIR) -static
+LIBS 		= -lz
+UNZIPCFLAGS	= $(CFLAGS) $(PTHREADCFLAGS) -Wall
+UNZIPLIBS	= $(LIBS) $(PTHREADLIBS)
+HASHCFLAGS	= $(CFLAGS) $(PTHREADCFLAGS) -Wall
+HASHLIBS	= $(LIBS) -lcrypto $(PTHREADLIBS)
+
+# UFS/UFS2
+ifeq ($(WITH_FFS),1)
+CFLAGS		+= -DWITH_FFS
+SUBDIRS		+= ffs
+FSLIBS		+= ffs/libffs.a
+endif
+
+# EXT2/EXT3
+ifeq ($(WITH_EXTFS),1)
+CFLAGS		+= -DWITH_EXTFS
+SUBDIRS		+= extfs
+FSLIBS		+= extfs/libextfs.a
+endif
+
+# with NTFS
+ifeq ($(WITH_NTFS),1)
+ifndef HAVE_GCC3
+CC		= gcc30
+endif
+CFLAGS		+= -DWITH_NTFS
+SUBDIRS		+= ntfs
+FSLIBS		+= ntfs/libntfs.a
+ifndef HAVE_LOCALE
+FSLIBS		+= ntfs/liblocale.a
+endif
+endif
+
+# with FAT
+ifeq ($(WITH_FAT),1)
+CFLAGS		+= -DWITH_FAT
+SUBDIRS		+= fat
+FSLIBS		+= fat/libfat.a
+endif
+
+all:	$(SUBDIRS) imagezip imageunzip imagedump imagehash
+
+include $(TESTBED_SRCDIR)/GNUmakerules
+
+imagezip: imagezip.o version.o $(FSLIBS)
+	$(CC) $(CFLAGS) imagezip.o version.o $(LIBS) $(FSLIBS) -o imagezip
+
+imageunzip: imageunzip.o crc.o version.o 
+	$(CC) $(CFLAGS) imageunzip.o crc.o version.o $(UNZIPLIBS) -o imageunzip
+
+imageunzip.o:	imageunzip.c
+	$(CC) -c $(UNZIPCFLAGS) -o imageunzip.o $<
+
+imagedump: imagedump.o version.o
+	$(CC) $(CFLAGS) imagedump.o version.o $(LIBS) -o imagedump
+
+imagehash: imagehash.o version.o
+	$(CC) $(CFLAGS) imagehash.o version.o $(HASHLIBS) -o imagehash
+
+imagehash.o:	imagehash.c
+	$(CC) -c $(HASHCFLAGS) -o imagehash.o $<
+
+ffs extfs ntfs fat:
+	@$(MAKE) SUBDIRCFLAGS="$(SUBDIRCFLAGS)" -C $@ all
+
+imagezip.o: sliceinfo.h imagehdr.h global.h
+imageunzip.o: imagehdr.h
+imagehash.o: imagehdr.h
+
+version.c: imagezip.c imageunzip.c imagedump.c
+	echo >$@ "char build_info[] = \"Built `date +%d-%b-%Y` by `id -nu`@`hostname | sed 's/\..*//'`:`pwd`\";"
+
+install: $(INSTALL_BINDIR)/imagezip $(INSTALL_BINDIR)/imageunzip $(INSTALL_BINDIR)/imagedump
+
+client-install: 
+	$(INSTALL) -m 755 -o root -g wheel -d $(DESTDIR)/usr/local/bin
+	$(INSTALL_PROGRAM) imagezip $(DESTDIR)/usr/local/bin/imagezip
+	$(INSTALL_PROGRAM) imageunzip $(DESTDIR)/usr/local/bin/imageunzip
+	$(INSTALL_PROGRAM) imagedump $(DESTDIR)/usr/local/bin/imagedump
+
+clean: subdir-clean
+	/bin/rm -f *.o imagezip imageunzip imagedump version.c
+	/bin/rm -f imagezip.tar imagezip.tar.gz
+
+subdir-clean:
+	@list='$(SUBDIRS)'; for dir in $$list; do \
+		$(MAKE) -C $$dir clean; \
+	done;
+
+imagezip.tar.gz: imagezip.tar
+	gzip -c imagezip.tar > imagezip.tar.gz
+
+imagezip.tar: Makefile.sa Makefile-linux.sa
+	rm -rf imagezip-dist; mkdir imagezip-dist
+	(cd $(SRCDIR); tar cf - Makefile.sa Makefile-linux.sa $(DISTFILES)) | \
+		(cd imagezip-dist; tar xf -)
+	mv imagezip-dist/Makefile.sa imagezip-dist/Makefile
+	mv imagezip-dist/Makefile-linux.sa imagezip-dist/Makefile-linux
+	(cd imagezip-dist; \
+		$(EXPANDCOPYRIGHT) Makefile Makefile-linux $(DISTFILES))
+	tar cf imagezip.tar imagezip-dist
+	rm -rf imagezip-dist
+
+.PHONY:	$(SUBDIRS)

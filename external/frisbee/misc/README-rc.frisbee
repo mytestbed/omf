@@ -1,0 +1,29 @@
+rc.frisbee is the script we run out of /etc/rc.local in standalone,
+memory-filesystem-based FreeBSD that we use to load disks.  If all
+goes well, the script runs at boot time, loading the disk and then
+rebooting.  If the script fails, the machine continues booting up to
+a login prompt where one can login to the console as root.
+
+"tmcc" is the client-side of the Testbed Master Control protocol.  It
+talks to the server-side ("tmcd") on the master Emulab server machine
+("boss") to obtain information from the Emulab database.  It also is
+used to signal state transitions to the DB (e.g., RELOADSETUP, RELOADDONE).
+
+"IPoD" is the ICMP Ping of Death, a feature we have in our kernels,
+that allows us to send a special ICMP packet to a machine to force it
+to reboot.  Useful in some hang situations, but irrelevant here.
+
+There is a lot of code in here for parsing FreeBSD dmesg output to
+determine how much memory is in the machine and then to divide that
+memory up for network/disk buffering in Frisbee.
+
+After we (finally!) run Frisbee, we run "growdisk" which creates a DOS
+partition (typically partition 4) containing all the extra space on the
+physical disk.  We create our images for the least-common-denominator
+disk we have (13GB) so the image will always fit on whatever disk we
+have.  Note that growdisk (or rc.frisbee) does not create a filesystem
+in the extra partition.  That is up to the user of the OS on the disk.
+
+"slicefix" is a script intended to allow post-Frisbee customization to
+the loaded partition or disk (note that partitions are called "slices"
+in FreeBSD).  We do not currently use this.

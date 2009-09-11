@@ -1,0 +1,12 @@
+imagezip (1.0.0-2) stable; urgency=low
+
+  * updated Debian packaging for OMF
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 11 Sep 2009 14:11:03 +1000
+
+imagezip (1.0.0-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Faiyaz <faiyaz@orbit-lab.org>  Thu, 20 Jan 2005 13:41:57 -0500
+

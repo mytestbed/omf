@@ -1,0 +1,247 @@
+Frisbee README/FAQ version 0.6 of Mon Mar  8 17:22:28 MST 2004
+(This is a possibly out of date copy of:
+http://www.emulab.net/downloads/frisbee-README.txt
+Check there for the latest.)
+
+frisbee-snapshot-20040308 is a "raw" tarball of our development tree which
+includes the NTFS source for imagezip (which was not in the original 20030618
+release).  It is raw in the sense that it has GNUmakefile.in files that will
+have to be customized (and otherwise hacked) to work.  The source also has a
+few bug fixes and new features that were not in original, 20030618 release:
+
+	- fixes to improve Linux support.  The frisbee client now builds
+	  and slice mode works in imagezip/unzip.
+
+	- option to frisbee client to set readahead size
+
+From Frisbee README/FAQ version 0.5 of Mon Nov 17 13:38:30 MST 2003:
+
+	- fix bug which would cause corrupt ext2fs images if the
+	  filesystem superblock's s_first_data_block field was non-zero.
+
+	- fix bug in frisbee server where it would report a negative size
+	  to the client resulting in severe core-age.
+
+	- support for smart compression of FAT filesystems in imagezip.
+
+	- support for extended partitions in imagezip.
+
+This tarball also includes source for "growdisk", a program run post-Frisbee
+on our machines to extend DOS partitions (not filesystems!), and the FreeBSD
+startup script (in the misc subdir) we use to invoke Frisbee.
+
+The rest of this file is the standard release README ...
+-----------
+
+This is a preliminary release of the Frisbee[1] disk imaging tool used in
+the University of Utah's Emulab testbed cluster and described in the
+USENIX '03 paper (a copy of which should be in the doc subdirectory).
+It also includes the associated image creation tool.
+
+1. What does Frisbee do?
+
+	The Frisbee server uses a custom multicast protocol to distribute
+	highly-compressed disk images to consenting clients.  The Frisbee
+	client is a multi-threaded marvel that receives, decompresses, and
+	smacks data down on your hard drive, really, really fast.  Frisbee
+	can be used to install complete disk images or single partition
+	images.
+
+	Note that installing a disk (partition) image is 100% fatal to the
+	current contents of said disk (partition).  Do not use Frisbee or
+	any tool to install an image unless you really mean it.
+
+1a. Is there anything that Frisbee cannot do?
+
+	Frisbee is not a drop-in replacement for commercial imaging
+	solutions.  For one thing, there is no Spiff-Ass GUI that even
+	a grandma could drive.  We're talking command lines here.
+	It also doesn't grow or shrink filesystems to fit the target
+	disk.  If you plop down a 1.4MB DOS filesystem image on your
+	spankin' 250GB hard disk, you wind up with a 1.4MB DOS filesystem
+	and a lotta wasted space.  Finally, Frisbee won't do post-disk-load
+	customizations, such as installing unique system IDs or IP addresses.
+	If you image a disk with a hardwired identity of agentsmith.matrix.com
+	and distribute it to 100 other machines, you'll wind up with 100
+	identical copies, and what good is that?
+
+2. What all is included in the box?
+
+	The Frisbee client and server are in the frisbee subdirectory.
+
+	The imagezip subdirectory contains the imagezip application
+	that allows you to create compressed images of whole disks or
+	disk partitions.  Imageunzip decompresses and installs images
+	like Frisbee, but reads the image file directly (i.e. gets the
+	image from a disk not the network).  Imagedump reveals the
+	innermost secrets of the image file.
+
+	What didn't make it in, was the savvy compression code for
+	NTFS.  Well, the glue code is there and the NTFS support
+	library can be downloaded from sourceforge (linux-ntfs),
+	I just didn't get everything put together and tested in time.
+
+3. How do I build everything?
+
+	cd imagezip; make
+	cd frisbee; make
+
+	We use FreeBSD, you should too.  It should build on any
+	reasonably recent 4.x version.  You will need to install
+	the linuxthreads port, version 2.2.3 or later.  You can build
+	single-threaded versions of the imagezip/unzip tools if you don't
+	want to do this, but you gotta have the threads if you
+	want Frisbee.
+
+	For Linux fans who are pissed about that FreeBSD comment,
+	take heart.  The image{zip,unzip,dump} tools work under
+	Linux as does the Frisbee server.  Just move Makefile-linux
+	to Makefile and do the make(s).  Currently, under Linux
+	the imagezipper only knows about EXT2 filesystems.  Nothing
+	fundamental here, just having rounded up all the necessary
+	BSD headers necessary to do BSD filesystems.  The Frisbee
+	client hasn't yet been ported to Linux and you shouldn't
+	need it in this release because...
+	
+4. How do I run Frisbee?
+
+	In Emulab we have an integrated environment from which we can
+	automatically boot a memory-based FreeBSD system via PXE.  This
+	method requires no physical interaction with the client machine
+	and is obviously the way to go for scaling.  However, it currently
+	requires more Emulab infrastructure than you would be interested
+	in setting up, so for this release we provide an ISO image of a
+	bootable FreeBSD system, complete with the frisbee client and
+	image creation tool installed:
+
+	http://www.emulab.net/downloads/frisbee-fs.iso
+
+	Burn this puppy on a CD and boot it up.  Note that booting the CD
+	by itself will NOT destroy the contents of your disk, it just brings
+	the machine up as a multi-user FreeBSD system.  As the CD boots,
+	it will prompt you for some info about the system (network interface,
+	IP configuration), request that you set a root password, and then
+	should come up to a login prompt where you can login as root.
+	Setting a root password is optional, but be aware that the system
+	will happily allow password-less root SSH if you don't.
+
+	To install an image, you need to run the frisbee server (frisbeed).
+	Run the server:
+
+	frisbeed -W 50000000 -p <port> -m <address> imagefile
+
+	where <address> is either a multicast address or the address of
+	the destination machine if you only want to unicast.  The -W
+	option sets a crude bandwidth throttle (in bits/sec) for sending.
+	By default it is pretty low (14Mbit/sec) so you will probably want
+	to crank it up.  The current frisbeed is what you might call
+	"TCP-hostile" so don't push it too high.
+	
+	To run the client on the target host, login as root either on
+	the console or via ssh and:
+
+	frisbee -p <port> -m <address> target-disk
+
+	Where <address> is either the chosen multicast address or the
+	address of the server machine if you are doing unicast.
+
+	EXAMPLES:
+
+	server: frisbeed -W 80000000 -p 3564 -m 234.5.6.1 fulldisk.ndz
+	client(s): frisbee -p 3564 -m 234.5.6.1 /dev/ad0
+		Multicast the full disk image "fulldisk.ndz" at 80Mbit/sec
+		and install on IDE drive 0 on all machines.
+
+	server: frisbeed -W 50000000 -p 3564 -m 192.168.1.2 bsd-part.ndz
+	client: frisbee -p 3564 -m 192.168.1.1 -s 2 /dev/ad0
+		Unicast a partition image at 50Mbit/sec to a specific host.
+		That host installs the image in partition (aka, "slice") 2
+		of IDE drive 0.  Note that the server has no knowledge that
+		this is a partition (vs. whole disk) image.
+
+5. Um... where do I get am image that I can install?
+
+	To create an image of a disk or partition you use the imagezip
+	tool.  If you have a machine set up as you like, and want to
+	clone the disk, boot it using the Frisbee CD.  Once up, you can
+	access it from another machine with sufficient disk space (a
+	couple of hundred MB to a few GB, depending on whether you are
+	doing a full disk image and whether you are using FS-aware
+	compression).  Then do:
+
+	ssh -n -l root cd-booted-machine 'imagezip /dev/ad0 -' > imagefile
+	<type password when prompted>
+
+	This can take quite awhile, again depending on the size of the
+	source disk/partition, how full it is, and what type of compression
+	is being used.
+
+6. How can I tell if the image was created and/or installed correctly?
+
+	What, you don't trust us?!  Ok, this is a hard problem.
+	The obvious answer is to checksum both the source and target
+	disks after creating and installing an image.  But that only
+	works if you create a "raw" image.  If you are using smart
+	compression, then free blocks are not saved and thus, the
+	corresponding blocks on the target disk will be different
+	than those on the source disk.
+
+	The image creation tool does do consistency checks for some
+	filesystem types, primarily to ensure that the number of free
+	blocks found matches what the filesystem thinks.  But there are
+	other things you can do.  For example, the mtree utility in BSD
+	allows you to create a specification of a file hierarchy,
+	including a checksum or hash for every file, which can be matched
+	against another tree.  So you can create a spec for the original
+	filesystem(s) on a disk/partition and use it to validate an
+	installed copy.
+
+	Keep in mind that any solution that involves looking at the
+	contents of the target disk on every install is going to
+	increase the installation time dramatically, most likely
+	negating the advantage (speed!) of using Frisbee in the first
+	place!  Sometimes you just have to have faith...use the Force...
+	whatever.
+
+7. I did everything you said, but it doesn't work!
+
+	The most common, non-obvious failure mode is for the client and
+	server to start up and just sit there apparently doing nothing.
+
+	The first thing to try is to restart both client and server with
+	the -d (debug) option.  We cleverly send all diagnostic output
+	to syslog unless you use -d, so it is quite possible that the
+	client and server are complaining about something, but you don't
+	see the messages.
+
+	Now, if the client (or server) complains that gethostbyname cannot
+	lookup the host name, your name resolution isn't working right,
+	maybe because your client machine isn't in the DNS.  To get around
+	this, explicitly specify the IP address of the appropriate interface
+	with "-i <myipaddr>".
+
+	If client and server still do nothing, it is possible that a firewall
+	is blocking the traffic or, if you are using multicast, that multicast
+	traffic is not being forwarded by your hub/switch/router.  If you can,
+	run a tcpdump on the server and see if you see any traffic from the
+	client, it should be periodically requesting data.  If you are
+	multicasting, try unicasting to one client and see if that works.
+	Try different port numbers as well if you might be going through a
+	firewall.
+
+	If you are using multicast and it is working, but much slower than
+	you expect, recall that dumb switches will just broadcast the
+	traffic and you will be limited by the slowest active port on the
+	switch.  If, like me, you have multiple machines connected with
+	100Mbit on a dual-speed switch also hosting your 10Mbit internet
+	connection, then you are not going to multicast any faster than
+	10Mbit/sec.  Unicast individual machines instead.
+--------------------------------
+
+[1] As I am sure everyone is aware, the *real* Frisbee is a trademark of
+    Wham-o, Inc. makers of the finest flying discs around.  Visit them at
+    http://www.wham-o.com/content/frisbee.html.  Note that while we also
+    do flying disk (images), you should not confuse the two domains.
+    Do not attempt to store your data on a 175g disc (even if you can
+    make it fit in your case) and never, ever play Ultimate with a
+    Seagate or Maxtor disk!

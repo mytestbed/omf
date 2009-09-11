@@ -1,0 +1,11 @@
+NTFS support.  Requires the Linux NTFS support from:
+
+http://linux-ntfs.sourceforge.net/
+
+The current version uses version 1.7.1 of the NTFS tools and libraries
+which can be downloaded via:
+
+http://prdownloads.sourceforge.net/linux-ntfs/ntfsprogs-1.7.1.tar.gz
+
+a copy of which is cached on www.emulab.net and should be downloaded
+automatically by the Makefile.

@@ -1,0 +1,144 @@
+#!/bin/sh
+#
+# Copyright (c) 2000-2003 University of Utah and the Flux Group.
+# All rights reserved.
+# 
+# This file is part of Frisbee, which is part of the Netbed/Emulab Network
+# Testbed.  Frisbee is free software, also known as "open source;" you can
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License (GPL), version 2, as published by the Free Software
+# Foundation (FSF).  To explore alternate licensing terms, contact the
+# University of Utah at flux-dist@cs.utah.edu or +1-801-585-3271.
+# 
+# Frisbee is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GPL for more details.  You
+# should have received a copy of the GPL along with Frisbee; see the file
+# COPYING.  If not, write to the FSF, 59 Temple Place #330, Boston, MA
+# 02111-1307, USA, or look at http://www.fsf.org/copyleft/gpl.html .
+#
+
+if [ -r /etc/emulab/paths.sh ]; then
+	. /etc/emulab/paths.sh
+else
+	BINDIR=/etc/testbed
+fi
+
+$BINDIR/tmcc state RELOADSETUP
+
+#
+# BOSSINFO returned data format is:
+#	<boss-node-name> <boss-node-IP>
+#
+# LOADINFO returned data format is:
+#	ADDR=<IPaddr-to-use>:<port-to-use> PART=<partition-#> \
+#		PARTOS=<OS-in-partition> DISK=<BSD-disk-name><BSD-disk-unit>
+#
+BOSSINFO=`$BINDIR/tmcc bossinfo`
+LOADINFO=`$BINDIR/tmcc loadinfo`
+
+##
+## For testing purposes.
+##
+#BOSSINFO='boss.emulab.net 155.101.128.70'
+#LOADINFO='ADDR=234.5.6.69:4444 PART=0'
+
+BOSSIP=`echo $BOSSINFO | awk '{ print $2 }'`
+
+# XXX should be part of loadinfo
+LOADIP="-S $BOSSIP"
+
+if [ -x /usr/sbin/ntpdate ]; then
+	/usr/sbin/ntpdate -b $BOSSIP >/dev/null 2>&1
+fi
+
+ADDRESS=`echo $LOADINFO | awk -F= '{ printf $2 }' | awk -F' ' '{ print $1 }'`
+PARTITION=`echo $LOADINFO | awk -F= '{ printf $3 }' | awk -F' ' '{ print $1 }'`
+PARTOS=`echo $LOADINFO | awk -F= '{ printf $4 }' | awk -F' ' '{ print $1 }'`
+DISK=`echo $LOADINFO | awk -F= '{ printf $5 }' | awk -F' ' '{ print $1 }'`
+DISK=${DISK:-'ad0'}
+
+if [ x"$PARTITION" != x -a "$PARTITION" != "0" ]; then
+	SLICE="-s $PARTITION";
+	case $PARTOS in
+	FreeBSD)
+		SLICE="$SLICE -D 165"
+		PTYPE=165
+		;;
+	OpenBSD)
+		SLICE="$SLICE -D 166"
+		PTYPE=166
+		;;
+	Linux)
+		SLICE="$SLICE -D 131"
+		PTYPE=131
+		;;
+	*)
+		;;
+	esac
+fi
+
+# Enable IPoD
+if [ -r $BINDIR/rc.ipod ]; then
+	. $BINDIR/rc.ipod
+fi
+
+#
+# set memory limits:
+#	allow 16MB for non-frisbee stuff
+#	split remaining memory (at least 2MB) between network/disk buffering
+#	in frisbee
+#
+HOSTMEM=`dmesg | grep 'avail memory' | sed -e 's/.* (\([0-9]*\)K bytes.*/\1/'`
+if [ $HOSTMEM -ge 26624 ]; then
+	HOSTMEM=`expr $HOSTMEM - 24576`
+	ulimit -v $HOSTMEM
+	HOSTMEM=`expr $HOSTMEM / 1024`
+
+	## For GaTech we use more memory for disks since the disks are so slow
+	#NETMEM=`expr $HOSTMEM \* 1 / 3`
+	#DISKMEM=`expr $HOSTMEM \* 2 / 3`
+	#MEMARGS="-C $NETMEM -W $DISKMEM"
+
+	# For Utah, we let the client split up the memory
+	# (50/50, but no more chunk buffers than there are chunks in the image)
+	MEMARGS="-M $HOSTMEM"
+fi
+
+if [ x"$ADDRESS" != x ]; then
+        PORT=`echo $ADDRESS | awk -F: '{ printf $2 }'`;
+	MCAST=`echo $ADDRESS | awk -F: '{ printf $1 }'`;
+	MCASTADDR="-m $MCAST -p $PORT";
+
+	echo "Running $BINDIR/frisbee $LOADIP $MEMARGS $SLICE $MCASTADDR /dev/$DISK at `date`";
+	$BINDIR/tmcc state RELOADING;
+
+	$BINDIR/frisbee $LOADIP $MEMARGS $SLICE $MCASTADDR /dev/$DISK;
+	case $? in
+	0)
+		echo "Frisbee run finished";
+		echo "Resizing final disk partition";
+		$BINDIR/growdisk -vW /dev/$DISK;
+		if [ x"$PTYPE" != x -a -x $BINDIR/slicefix ]; then
+			echo "Adjusting slice-related files";
+			if [ x"$SLICE" != x ]; then
+				$BINDIR/slicefix $PARTITION $DISK
+			else
+				$BINDIR/slicefix 1 $DISK
+				$BINDIR/slicefix 2 $DISK
+				$BINDIR/slicefix 3 $DISK
+				$BINDIR/slicefix 4 $DISK
+			fi
+		fi
+		echo "Image load complete, rebooting ...";
+		$BINDIR/tmcc state RELOADDONE;
+		/sbin/reboot;
+		;;
+	*)
+		echo "Frisbee run failed, status $?"
+		;;
+	esac
+else
+	echo "Unable to get address for loading image"
+fi
+echo "Failed to load disk, dropping to login prompt"
