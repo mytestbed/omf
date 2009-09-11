@@ -75,7 +75,7 @@ everyNS('save', 10) { |ns|
     if status =~ /STARTED/
       if prop.started.value == "false"
         prop.started = "true"
-	inf " "
+	info " "
         info "- Saving process started at: #{Time.now}"
 	info "  (this may take a while depending of the size of your image)"
       end

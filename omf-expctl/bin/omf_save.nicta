@@ -58,7 +58,7 @@ function saveimage()
   DOMAIN=$2
   if [ -z $DOMAIN ] ;then
     echo " "
-    echo -n "Saving disk image of '$1' from default domain..."
+    echo "Saving disk image of '$1' from default domain..."
     $OMF exec -s system:exp:saveNode -- --node "[$1]" 
     echo " "
   else

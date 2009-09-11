@@ -734,6 +734,7 @@ class NodeHandler < MObject
 
     if NodeHandler.SHUTDOWN
       info "Shutdown flag is set - Turning Off the resources"
+      allGroups.pxeImage(OConfig.domain, false) # remove PXE links, if any
       allGroups.powerOff
     end
     @running = nil

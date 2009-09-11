@@ -382,6 +382,7 @@ class Node < MObject
   # - imageName = name of the image to report
   #
   def image= (imageName)
+    #@apps['builtin:save_image'] = NodeBuiltin.new('save_image', params, self, procEl, 'ISSUED')
     @image = imageName
     TraceState.nodeImage(self, imageName)
   end
