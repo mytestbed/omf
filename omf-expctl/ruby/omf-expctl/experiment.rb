@@ -54,7 +54,7 @@ class Experiment
     if (@@expID == nil)
       ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
       @@expID = "#{OConfig.domain}_#{ts}"
-      TraceState.experiment(:id, @@expID)
+      #YTraceState.experiment(:id, @@expID)
     end
     return @@expID
   end
@@ -237,6 +237,7 @@ class Experiment
   # Start the Experiment
   #
   def Experiment.start()
+    TraceState.experiment(:id, @@expID)
     # If -R flag was set on the command line
     # Reset the nodes before starting the experiment if -R flag was set
     if NodeHandler.NODE_RESET

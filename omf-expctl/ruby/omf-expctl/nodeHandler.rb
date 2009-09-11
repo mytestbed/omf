@@ -587,21 +587,6 @@ class NodeHandler < MObject
     Experiment.expArgs = rest - [@expFile]
   end
 
-
-  private
-
-  #
-  # Create a new NodeHandler
-  #
-  def initialize()
-    #initialize_oml
-    @@runningSlaveMode = false
-    @@showAppOutput = false
-    @omlProxyPort = nil
-    @omlProxyAddr = nil
-    @web_ui = false
-  end
-
   #
   # This method loads the Experiment Controller config file
   # This config file contains the configuration for the EC
@@ -664,6 +649,20 @@ class NodeHandler < MObject
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
     debug('init', "Using Log config file: #{@logConfigFile}")
     info('init', " #{OMF::ExperimentController::VERSION_STRING}")
+  end
+
+  private
+
+  #
+  # Create a new NodeHandler
+  #
+  def initialize()
+    #initialize_oml
+    @@runningSlaveMode = false
+    @@showAppOutput = false
+    @omlProxyPort = nil
+    @omlProxyAddr = nil
+    @web_ui = false
   end
 
   #

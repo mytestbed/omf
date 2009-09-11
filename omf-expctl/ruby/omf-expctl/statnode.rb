@@ -28,64 +28,9 @@ require 'set'
 require 'omf-common/arrayMD'
 require 'net/http'
 require 'omf-common/mobject'
-require 'omf-expctl/exceptions.rb'
-require 'omf-expctl/property'
-require 'omf-expctl/traceState'
-require 'omf-expctl/experiment'
-require 'omf-expctl/oconfig'
-require 'omf-expctl/topology'
-require 'omf-expctl/handlerCommands'
+require 'omf-expctl/nodeHandler.rb'
 
-# Stub Class for the NodeHandler
-# The current OMF classe/module are so tighly coupled that nothing can be
-# done without a NodeHandler object.
-# TODO: "clean" the entire OMF design to remove this non-relevant dependencies
-# 
-class NodeHandler
-  DOCUMENT = REXML::Document.new
-  ROOT_EL = DOCUMENT.add(REXML::Element.new("context"))
-  LOG_EL = ROOT_EL.add_element("log")
-  EXPERIMENT_EL = ROOT_EL.add_element("experiment")
-  def NodeHandler.JUST_PRINT()
-    return false
-  end
-  def NodeHandler.SLAVE_MODE()
-    return false
-  end
-  def NodeHandler.getTS()
-    return DateTime.now.strftime("%T")
-  end
-  def NodeHandler.service_call(url, error_msg)
-    begin
-      response = Net::HTTP.get_response(URI.parse(url))
-      if (! response.kind_of? Net::HTTPSuccess)
-        raise ServiceException.new(response, error_msg)
-      end
-      response
-    rescue Exception => ex
-      puts "service_call - Exception: #{ex} (#{ex.class})"
-    end
-  end
-  def self.debug?
-  end
-end
-
-# Load the NodeHandler config file
-# So this software tool will use the same config as NodeHandler
-# (e.g. address for CMC, maximum X and Y for topologies, etc..) 
-# 
-def loadGridConfigFile()
-  cfgFile = "nodehandler.yaml"
-  path = ["/etc/omf-expctl/#{cfgFile}"]
-  path.each {|f|
-    if File.exists?(f)
-      OConfig.init(f)
-      return
-    end
-  }
-  raise "Can't find #{cfgFile} in #{path.join(':')}"
-end
-
+#
 # Get the status of nodes within a given topology
 #
 def getStatus(topo, domain)
@@ -102,9 +47,9 @@ def getStatus(topo, domain)
       t = Topology["#{filename}"]
     end
   end
-  d = (domain == "default") ?  OConfig.GRID_NAME : domain
+  d = (domain == "default") ?  OConfig.domain : domain
   puts " Testbed : #{d}"
-  url = "#{OConfig.CMC_URL}/allStatus?domain=#{d}"
+  url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{d}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
   doc.root.elements.each('//detail/*') { |e|
@@ -126,7 +71,7 @@ def countNodeStatus(domain)
   nOFF = 0
   nKO = 0
   d = (domain == "default") ?  OConfig.GRID_NAME : domain
-  url = "#{OConfig.CMC_URL}/allStatus?domain=#{d}"
+  url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{d}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
   doc.root.elements.each('//detail/*') { |e|
@@ -149,7 +94,9 @@ end
 begin
   topocmd = ARGV[0] # topo or command
   domain = ARGV[1] 
-  loadGridConfigFile()
+  NodeHandler.instance.loadControllerConfiguration()
+  NodeHandler.instance.startLogger()
+  OConfig.loadTestbedConfiguration()
   if (topocmd == "[-c]" || topocmd == "[--count]")
     countNodeStatus(domain)
   else
