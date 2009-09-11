@@ -60,7 +60,7 @@
       # have multiple IP addresses, but only one would be accessible from outside a 
       # firewall
       :web:
-        :host: '203.143.170.245'
+        :host: '203.143.170.94'
         #:host: '10.0.0.200'
         #:host: 'norbit.npc.nicta.com.au' # Norbit external IP 
 

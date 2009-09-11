@@ -214,7 +214,7 @@ class CmcStubService < GridService
   end
   
   def self.reboot(x,y,domain,req)
-    MObject.debug("CMCSTUB - Sending REBOOT cmd to NA at [#{x},#{y}]")
+    MObject.debug("cmcstub", "Sending REBOOT cmd to [#{x},#{y}]")
     tb = getTestbedConfig(req, @@config)
     inventoryURL = tb['inventory_url']
     ip = getControlIP(inventoryURL, x, y, domain)
@@ -222,7 +222,7 @@ class CmcStubService < GridService
       cmd = `nmap #{ip} -p22-23`
       #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
       if cmd.include? "22/tcp open"
-        ssh = `ssh #{ip} reboot`
+        ssh = `ssh -o CheckHostIP=no -o StrictHostKeyChecking=no #{ip} reboot`
       #MObject.debug("TDEBUG - SSH - '#{ssh}'")
       elsif cmd.include? "23/tcp open"
         tn = Net::Telnet::new('Host' => ip)
