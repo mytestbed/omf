@@ -4,6 +4,6 @@
 	missingok
 	notifempty
 	compress
-	nocreate
+	copytruncate
 }
 
