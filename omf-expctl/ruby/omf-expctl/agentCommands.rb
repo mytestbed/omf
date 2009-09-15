@@ -46,6 +46,12 @@ module AgentCommands
     sender.heartbeat(0, 0, "00:00")
   end
 
+  def AgentCommands.ENROLLED(handler, sender, senderId, argArray)
+    info "TDEBUG - Received ENROLLED from '#{senderId}' with '#{argArray.join(" ")}'"
+    sender.enrolled(argArray)
+  end
+
+
   #
   # Process 'WARN' message from a Node Agent. 
   # The NH receives such a message when a NA sends a warning text.

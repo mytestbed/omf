@@ -176,6 +176,15 @@ class Node < MObject
     return (@nodeStatus == STATUS_UP)
   end
 
+  def isEnrolled(group)
+    if @groups.has_key?(group)
+      return @groups[group]
+    else
+      error "Node '#{@nodeId}' does not belong to group '#{group}'"
+      return false
+    end
+  end
+
   #
   # Return the IP address of the node's control interface (this method queries the Inventory DB for this IP)
   #
@@ -351,7 +360,7 @@ class Node < MObject
       group = group[1..-1]
     end
     debug("Added to group '#{group}'")
-    @groups << group
+    @groups[group] = false 
     TraceState.nodeAddGroup(self, group)
     Communicator.instance.addToGroup(@nodeId, group)
     send('ALIAS', group)
@@ -644,6 +653,44 @@ class Node < MObject
     #@heartbeat.add_attribute('sentPackets', sendSeqNo)
     #@heartbeat.add_attribute('receivedPackets', recvSeqNo)
   end
+
+  def enrolled(groupArray)
+    info "TDEBUG - enrolled() - nodeID: '#{@nodeId}'"
+    if @nodeStatus != STATUS_UP
+      info "TDEBUG - enrolled() - nodeID: '#{@nodeId}' - First Time!"
+      # first received ENROLL, looks like node is up and ready
+      @isUp = true
+      @groups["_ALL_"] = true
+      setStatus(STATUS_UP)
+      @checkedInAt = Time.now
+      MObject.debug("enrolled node #{self}")
+      send_deferred
+      changed
+      notify_observers(self, :node_is_up)
+      # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
+      # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
+      # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
+      # from the PubSub server (at least openfire works this way). It would then potentially
+      # try to subscribe to nodes from a past experiment.
+      Communicator.instance.sendNoop(@nodeId)
+    end
+    if groupArray != nil
+      info "TDEBUG - enrolled() - nodeID: '#{@nodeId}' - GroupArray: '#{groupArray.join(" ")}'"
+      groupArray.each { |group|
+        if @groups.has_key?("#{group}")
+          if !@groups[group] 
+      info "TDEBUG - enrolled() - nodeID: '#{@nodeId}' - Group: '#{group}' - set to TRUE"
+            @groups[group] = true
+            changed
+            notify_observers(self, :node_is_up)
+          end
+        end
+      }
+    end
+    TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
+  end
+
+
   
   #
   # When a node is being removed from all topologies, the Topology
@@ -710,7 +757,8 @@ class Node < MObject
 
     @x = x
     @y = y
-    @groups = Array.new  # name of nodeSet groups this node belongs to
+    @groups = Hash.new  # name of nodeSet groups this node belongs to
+    @groups["_ALL_"] = false
     #@apps = Hash.new
     #@isUp = false
     @nodeStatus = STATUS_DOWN

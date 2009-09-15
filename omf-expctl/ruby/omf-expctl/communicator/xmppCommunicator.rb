@@ -414,6 +414,7 @@ class XmppCommunicator < Communicator
       cmd = argArray[2].upcase
       case cmd
       when "HB"
+      when "ENROLLED"
       when "WRONG_IMAGE"
       # we do not send the NOOP here, we do that only for the first HB in node.rb:heartbeat()
       when "APP_EVENT"
@@ -428,6 +429,8 @@ class XmppCommunicator < Communicator
       rescue Exception => ex
         error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NH"
       end
+      incomingPubSubNode =  event.first_element("items").first_element("item").attributes['node']
+      debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
       processCommand(argArray)
     end
   end

@@ -167,6 +167,7 @@ module AgentCommands
     argArray.each{ |name|
       agent.addAlias(name)
     }
+    agent.enrollReply(argArray)
   end
 
   #
@@ -192,7 +193,8 @@ module AgentCommands
     y = agentId.split("_")[2]
     agent.communicator.setX(eval(x))
     agent.communicator.setY(eval(y))
-    agent.okReply(:YOUARE)
+    agent.enrollReply(argArray << agentId)
+    #agent.okReply(:YOUARE)
   end
 
   #

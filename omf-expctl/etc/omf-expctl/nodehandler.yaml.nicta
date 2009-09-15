@@ -44,7 +44,7 @@
       # IMPORTANT: 
       #   Your Inventory database *must* hold information about the testbed you name 
       #   (e.g. the 'testbeds' table must have an entry corresponding to this name)
-      :name: 'npc'
+      :name: 'sandbox1'
 
       # This is the Path where NH should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)

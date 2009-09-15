@@ -171,6 +171,19 @@ class NodeAgent < MObject
   end
 
   #
+  # Send an ENROLL reply to the Node Handler (NH). When a YOUARE or ALIAS 
+  # command has been successfully completed, the NA sends this message
+  # to the NH
+  #
+  # - cmd = a String with the command that completed successfully
+  # - id = the ID of this NA (default = nil)
+  # - msgArray = an array with the full received command (name, parameters,...)
+  #
+  def enrollReply(*msgArray)
+    communicator.send(:ENROLLED, *msgArray)
+  end
+
+  #
   # Send an ERROR reply to the Node Handler (NH). When an error occured
   # while executing a command, the NA sends an 'ERROR' message
   # to the NH
@@ -519,7 +532,6 @@ class NodeAgent < MObject
   #
   def execCommand2(cmdObj)
   
-
     cmd = OmfCommandObject.new(cmdObj)
 
     debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.procID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"

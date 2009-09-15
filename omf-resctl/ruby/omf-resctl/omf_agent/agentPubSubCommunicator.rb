@@ -356,6 +356,9 @@ class AgentPubSubCommunicator < MObject
     #debug "TDEBUG - execute_command - A"
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
+      incomingPubSubNode =  event.first_element("items").attributes['node']
+      debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
+
       # TODO: this is the initial support for XML messages between EC and RC
       # Currently this is only used for EXECUTE, due to the need of XML support to pass 
       # the OML configuration from the EC to the RC. In the future, all comms should use XML

@@ -330,14 +330,26 @@ class NodeSet < MObject
     return inject(true) { |flag, n|
       #debug "Checking if #{n} is up"
       if flag
-        if ! n.isUp
-          debug n, " is not up yet."
+        if ! n.isEnrolled(@groupName)
+          debug n, " is not enrolled in '#{@groupName}' yet."
           flag = false
         end
       end
       flag
     }
   end
+  #def up?
+  #  return inject(true) { |flag, n|
+  #    #debug "Checking if #{n} is up"
+  #    if flag
+  #      if ! n.isUp
+  #        debug n, " is not up yet."
+  #        flag = false
+  #      end
+  #    end
+  #    flag
+  #  }
+  #end
 
   #
   # This method set the resource 'path' on all nodes in this
@@ -580,8 +592,10 @@ class NodeSet < MObject
   #
   def update(sender, code)
     #debug "nodeSet (#{to_s}) update: #{sender} #{code}"
+    info "TDEBUG - update() - NS: #{to_s} - sender: '#{sender}' - code: '#{code}'"
     if ((code == :node_is_up) || (code == :node_is_removed))
       if (up?)
+    info "TDEBUG - update() - NS: #{to_s} - sender: '#{sender}' - code: '#{code}' - A"
         update(self, :group_is_up)
         changed
         notify_observers(self, :group_is_up)
@@ -594,6 +608,7 @@ class NodeSet < MObject
         end
       end
     elsif (code == :group_is_up)
+    info "TDEBUG - update() - NS: #{to_s} - sender: '#{sender}' - code: '#{code}' - B"
       send_deferred
     elsif (code == :before_resetting_node)
       setPxeEnv(sender)

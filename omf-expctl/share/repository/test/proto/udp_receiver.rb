@@ -51,7 +51,7 @@ defPrototype("test:proto:udp_receiver") { |p|
     otr.bindProperty('udp:local_host', 'localHost')
     otr.bindProperty('udp:local_port', 'localPort')
     
-    otg.measure('udp_in', :interval => 1)
+    otr.measure('udp_in', :interval => 1)
     # Other valid measurement definitions...
     #
     #otg.measure('udp_in')
