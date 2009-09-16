@@ -642,7 +642,6 @@ class Node < MObject
     # and perform the associated tasks
     if @nodeStatus != STATUS_UP
       @isUp = true
-      @groups["_ALL_"] = true
       setStatus(STATUS_UP)
       @checkedInAt = Time.now
       debug "Node #{self} is Up and Enrolled"
@@ -669,6 +668,18 @@ class Node < MObject
           end
         end
       }
+    end
+    # Finally, check if this node is enrolled in all its group
+    # If so, then set it as enrolled for the _ALL_ group too!
+    allEnrolled = true
+    @groups.each { |k,v|
+      if (k != "_ALL_") && (v == false) then allEnrolled = false; end
+    }
+    if allEnrolled
+      @groups["_ALL_"] = true
+      debug "Node #{self} is Enrolled in ALL the groups"
+      changed
+      notify_observers(self, :node_is_up)
     end
     #TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
   end

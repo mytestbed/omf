@@ -139,7 +139,12 @@ class Prototype
     context = Hash.new
     @properties.each {|name, param|
       #puts "A>> #{name}"
-      context[name] = getBoundValue(name, bindings)
+      value = getBoundValue(name, bindings)
+      if value != nil
+        context[name] = getBoundValue(name, bindings)
+      else
+        warn "No specific or default value found for Property '#{name}'. Prototype '#{@name}' will not use it!"
+      end
     }
     @incPrototypes.each {|name, params|
       proto = Prototype[name]
@@ -147,8 +152,13 @@ class Prototype
       p.each { |key, val|
         if val.kind_of?(@@bindStruct)
           #puts "B>> #{val.name}:#{key}"
-          p[key] = val = getBoundValue(val.name, bindings)
-        end
+          value = getBoundValue(name, bindings)
+          if value != nil
+            p[key] = val = value
+          else 
+            warn "No specific or default value found for Property '#{name}'. Prototype '#{@name}' will not use it!"
+          end
+	end
         #debug "recursive bindings: #{key}=>#{val}"
       }
       proto.instantiate(nodeSet, p)
@@ -176,10 +186,7 @@ class Prototype
       if (@properties[name] == nil)
         raise "Unknown property #{name}"
       end
-      if (default = @properties[name].defaultValue) == nil
-        raise "Property #{name} is required"
-      end
-      return default
+      return @properties[name].defaultValue
     end
   end
   private :getBoundValue
