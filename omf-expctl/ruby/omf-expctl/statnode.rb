@@ -22,6 +22,12 @@
 # THE SOFTWARE.
 #
 #
+# = statnode.rb
+#
+# == Description
+#
+# This file provides a sotfware tool to query the status of one or many node(s)
+# It uses the existing Experiment Controller classes of OMF
 #
 
 require 'set'
@@ -32,6 +38,10 @@ require 'omf-expctl/nodeHandler.rb'
 
 #
 # Get the status of nodes within a given topology
+# Results will be displayed directly on STDOUT
+#
+# - topo = the Topology to query for
+# - domain =  the domain to query for
 #
 def getStatus(topo, domain)
 
@@ -64,7 +74,11 @@ def getStatus(topo, domain)
   puts "-----------------------------------------------"
 end
 
+#
 # Get the global status of all the ndoes within a given testbed
+# Results will be displayed directly on STDOUT
+# 
+# - domain = the domain to query for
 #
 def countNodeStatus(domain)
   nON = 0
@@ -89,6 +103,7 @@ def countNodeStatus(domain)
   puts "-----------------------------------------------"
 end
 
+#
 # Main Execution loop of this software tool
 #
 begin

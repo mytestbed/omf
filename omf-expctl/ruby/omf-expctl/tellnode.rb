@@ -22,68 +22,32 @@
 # THE SOFTWARE.
 #
 #
+# = tellnode.rb
+#
+# == Description
+#
+# This file provides a sotfware tool to manually reboot or power ON/OFF 
+# one or many node(s). It uses the existing Experiment Controller classes of OMF
+#
+
 require 'set'
 require 'omf-common/arrayMD'
 require 'net/http'
 require 'omf-common/mobject'
-require 'omf-expctl/exceptions.rb'
-require 'omf-expctl/property'
-require 'omf-expctl/traceState'
-require 'omf-expctl/experiment'
-require 'omf-expctl/oconfig'
-require 'omf-expctl/topology'
-require 'omf-expctl/handlerCommands'
+require 'omf-expctl/nodeHandler.rb'
 
 # Stub Class for the NodeHandler
 # The current OMF classe/module are so tighly coupled that nothing can be
 # done without a NodeHandler object.
 # TODO: "clean" the entire OMF design to remove this non-relevant dependencies
 # 
-class NodeHandler
-  DOCUMENT = REXML::Document.new
-  ROOT_EL = DOCUMENT.add(REXML::Element.new("context"))
-  LOG_EL = ROOT_EL.add_element("log")
-  EXPERIMENT_EL = ROOT_EL.add_element("experiment")
-  def NodeHandler.JUST_PRINT()
-    return false
-  end
-  def NodeHandler.SLAVE_MODE()
-    return false
-  end
-  def NodeHandler.getTS()
-    return DateTime.now.strftime("%T")
-  end
-  def NodeHandler.service_call(url, error_msg)
-    begin
-      response = Net::HTTP.get_response(URI.parse(url))
-      if (! response.kind_of? Net::HTTPSuccess)
-        raise ServiceException.new(response, error_msg)
-      end
-      response
-    rescue Exception => ex
-      #puts "service_call - Exception: #{ex} (#{ex.class})"
-    end
-  end
-  def self.debug?
-  end
-end
 
-# Load the NodeHandler config file
-# So this software tool will use the same config as NodeHandler
-# (e.g. address for CMC, maximum X and Y for topologies, etc..) 
-# 
-def loadGridConfigFile()
-  cfgFile = "nodehandler.yaml"
-  path = ["/etc/omf-expctl/#{cfgFile}"]
-  path.each {|f|
-    if File.exists?(f)
-      OConfig.init(f)
-      return
-    end
-  }
-  raise "Can't find #{cfgFile} in #{path.join(':')}"
-end
-
+#
+# Return a Topology object from a given topology declaration
+#
+# - topo = a topology declaration (either the name of an existing topology
+#          file, or the sequence of nodes within this topology)
+#
 def getTopo(topo)
   if topo.include?(":")
     filename = topo.delete("[]")
@@ -99,11 +63,17 @@ def getTopo(topo)
   return t
 end
 
-# Get the status of nodes within a given topology
+#
+# Send a power ON/OFF or reboot command to a given topology in a 
+# given domain.
+# Results will be displayed directly on STDOUT
+#
+# - topo = the Topology to send this command to
+# - domain =  the domain to send this command to
 #
 def tellNode(cmd, topo, domain)
   puts "---------------------------------------------------"
-  d = (domain == nil) ?  OConfig.GRID_NAME : domain
+  d = (domain == nil) ?  OConfig.domain : domain
   command = nil
   if (cmd == "on" || cmd == "-on" || cmd == "--turn-on")
     command = "on"
@@ -120,7 +90,7 @@ def tellNode(cmd, topo, domain)
   end
   puts " Testbed : #{d} - Command: #{command}"
   topo.eachNode { |n|
-    url = "#{OConfig.CMC_URL}/#{command}?x=#{n[0]}&y=#{n[1]}&domain=#{d}"
+    url = "#{OConfig[:tb_config][:default][:cmc_url]}/#{command}?x=#{n[0]}&y=#{n[1]}&domain=#{d}"
     response = NodeHandler.service_call(url, "Can't send command to CMC")
     if (response.kind_of? Net::HTTPOK)
       puts " Node n_#{n[0]}_#{n[1]} - Ok"
@@ -131,6 +101,7 @@ def tellNode(cmd, topo, domain)
   puts "---------------------------------------------------"
 end
 
+#
 # Main Execution loop of this software tool
 #
 begin
@@ -138,10 +109,11 @@ begin
   cmd = ARGV[0] 
   topo = ARGV[1] 
   domain = ARGV[2] 
-  loadGridConfigFile()
+  NodeHandler.instance.loadControllerConfiguration()
+  NodeHandler.instance.startLogger()
+  OConfig.loadTestbedConfiguration()
   Topology.useNodeClass = false
   TraceState.init()
-  puts "tellnode - TDEBUG - topo: '#{topo}'"
   theTopo = getTopo(topo)
   tellNode(cmd, theTopo, domain)
 end

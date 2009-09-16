@@ -99,11 +99,20 @@ class CmcStubService < GridService
   #
   # Implement 'offHard' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return HTTP OK
+  # 
+  # NOTE: 
+  # At NICTA, we do not have the CM card operational on our nodes yet...
+  # We use the NA's 'REBOOT' command to implement a 'offHard'
   #
   s_info 'Switch off a node HARD (immediately) at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :domain, 'domain', 'domain for request.'
   service 'offHard' do |req, res|
+    x = getParam(req, 'x')
+    y = getParam(req, 'y')
+    domain = getParam(req, 'domain')
+    reboot(x,y,domain,req)
     self.responseOK(res)
   end
   
