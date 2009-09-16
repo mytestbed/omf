@@ -194,7 +194,6 @@ module AgentCommands
     agent.communicator.setX(eval(x))
     agent.communicator.setY(eval(y))
     agent.enrollReply(argArray << agentId)
-    #agent.okReply(:YOUARE)
   end
 
   #

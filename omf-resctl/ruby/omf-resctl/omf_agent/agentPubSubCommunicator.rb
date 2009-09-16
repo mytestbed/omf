@@ -138,7 +138,7 @@ class AgentPubSubCommunicator < MObject
   #
   def start(jid_suffix)
     
-    debug "START PUBSUB - #{jid_suffix}"
+    debug "Connecting to PubSub Server: '#{jid_suffix}'"
     # Set some internal attributes...
     @@IPaddr = getControlAddr()
     
@@ -148,14 +148,11 @@ class AgentPubSubCommunicator < MObject
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
-        #debug "TDEBUG - New Event - '#{event}'"
         @queue << event
-        #debug "TDEBUG - Finished Processing Event" 
       }
     rescue Exception => ex
-      error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
+      error "Failed to create ServiceHelper for PubSub Server '#{jid_suffix}' - Error: '#{ex}'"
     end
-    debug "Connected to PubSub Server: '#{jid_suffix}'"
   end
 
   #
@@ -222,20 +219,14 @@ class AgentPubSubCommunicator < MObject
   #
   def reset
     # Leave all Pubsub nodes that we might have joined previously 
-    #@@service.leave_all_pubsub_nodes_except("/#{DOMAIN}/#{SYSTEM}")
     @@service.leave_all_pubsub_nodes
-    
+    # Re-subscribe to the System Pubsub node for this node
     sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
-    
     while (!@@service.join_pubsub_node(sysNode))
-       debug "CDEBUG - Node #{sysNode} does not exist (yet) on the PubSub server - retrying in 10s"
+       debug "Resetting - Systen node '#{sysNode}' does not exist (yet) on the PubSub server - retrying in 10s"
        sleep 10
        start(NodeAgent.instance.config('comm')['xmpp_server'])
     end
-    
-    # Subscribe to the default 'system' pubsub node
-    
-    #debug "TDEBUG - reset - Joined PubSub node '#{@@sysNode}'" 
   end
   
   #
@@ -285,24 +276,21 @@ class AgentPubSubCommunicator < MObject
   # - groups = an Array containing the name (Strings) of the group to subscribe to
   #
   def join_groups (groups)
-    
     # First check if we already have received the session and experiment IDs
     # If not something went wrong!
     if (@@pubsubNodePrefix == nil)
-      debug "join_groups - ERROR - Session / Exp IDs are NIL"
+      error "Session and Exp IDs are NIL"
       # TODO: Shall we return some error message back to the controller?
-      raise "ERROR - Session / Exp IDs are NIL"
+      raise "ERROR - Session and Exp IDs are NIL"
       return 
     end
-	
     # Now subscribe to all the groups (i.e. the PubSub nodes)  
-    #debug "TDEBUG - join_groups - Groups to join: #{groups.to_s}"
     groups.each { |group|
       fullNodeName = "#{@@pubsubNodePrefix}/#{group.to_s}"
       if @@service.join_pubsub_node(fullNodeName)
-        debug "TDEBUG - join_groups - Subscribed to PubSub node: '#{fullNodeName}'"
+        debug "Subscribed to PubSub node: '#{fullNodeName}'"
       else
-        debug "TDEBUG - join_groups - Failed to subscribe to PubSub node: '#{fullNodeName}'"
+        debug "Failed to subscribe to PubSub node: '#{fullNodeName}'"
       end
     }
   end
@@ -322,13 +310,11 @@ class AgentPubSubCommunicator < MObject
 
     # Send it
     dst = "#{@@pubsubNodePrefix}/#{@@myName}"
-    debug("Send to: #{dst} - message: '#{message}'")
+    debug("Send to '#{dst}' - msg: '#{message}'")
     begin
-      #debug "send! - A"
       @@service.publish_to_node("#{dst}", item)        
-      #debug "send! - B"
     rescue Exception => ex
-      error "ERROR - Failed sending '#{message}' to '#{dst}' - #{ex}"
+      error "Failed sending to '#{dst} - msg: '#{message}' - error: '#{ex}'"
     end
   end
       
@@ -353,11 +339,9 @@ class AgentPubSubCommunicator < MObject
   #
   def execute_command (event)
     # Extract the Message from the PubSub Event
-    #debug "TDEBUG - execute_command - A"
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
       incomingPubSubNode =  event.first_element("items").attributes['node']
-      debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
 
       # TODO: this is the initial support for XML messages between EC and RC
       # Currently this is only used for EXECUTE, due to the need of XML support to pass 
@@ -369,21 +353,25 @@ class AgentPubSubCommunicator < MObject
         return
       end
     rescue Exception => ex
-      #debug "CDEBUG - execute_command() - Not a message event, ignoring: '#{event}'"
       return
     end
-    #debug "TDEBUG - execute_command - B - message: '#{message}'"
         
     # Parse the Message to extract the Command
     # (when parsing, keep the full message to send it up to NA later)
     argArray = message.split(' ')
     if (argArray.length < 1)
-      error "ERROR - execute_command() - Message too short! '#{message}'"
+      error "Message too short! '#{message}'"
       return
     end
     cmd = argArray[0].upcase
         
-    # First - Here we check if this Command should trigger any specific task within this Communicator
+    # First Check if we sent that message ourselves, if so do nothing
+    if (@@myName != nil) && (cmd == @@myName.upcase) 
+        return
+    end
+
+    # Then - We check if this Command should trigger any specific task within this Communicator
+    debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
     begin
       case cmd
       when "EXEC"
@@ -415,40 +403,35 @@ class AgentPubSubCommunicator < MObject
         # <desiredImage> the name of the image that this node should have
         # <name> becomes the Agent Name for this Session/Experiment.
         # <aliases> optional aliases for this NA
-
         if (argArray.length < 5)
-         error "ERROR - execute_command() - YOUARE - message too short: '#{message}'"
+         error "YOUARE message too short: '#{message}'"
          return
         end
-
         # Store the Session and Experiment IDs given by the NH's communicator
         @@sessionID = argArray[1]
         @@expID = argArray[2]
-        debug "Process YOUARE - Set SessionID / ExpID: '#{@@sessionID}' / '#{@@expID}'"
+        debug "Processing YOUARE - SessionID: '#{@@sessionID}' - ExpID: '#{@@expID}'"
         # Join the global PubSub nodes for this session / experiment
         n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
         m = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
         if (!@@service.join_pubsub_node(n) || !@@service.join_pubsub_node(m)) then
-          error "ERROR - execute_command() - YOUARE - node does not exist: '#{n}'"
-          error "ERROR - possibly received a lingering YOUARE message from a previous experiment - discarding"
+          error "YOUARE message node does not exist: '#{n}'"
+          error "Possibly received an old YOUARE message from a previous experiment - discarding"
           return
         end
-        
         # Store this node ID and full PubSub path for this session / experiment
         @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
         @@myName = argArray[4]
         list = Array.[](argArray[4])
-
         # Check if the desired image is installed on that node, 
 	# if yes or if a desired image is not required, then continue
 	# if not, then ignore this YOUARE
 	desiredImage = argArray[3]
 	if (desiredImage != NodeAgent.instance.imageName() && desiredImage != '*')
-          debug "Process YOUARE - Desired Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
+          debug "Processing YOUARE - Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
 	  send("WRONG_IMAGE", NodeAgent.instance.imageName())
 	  return
 	end
-
         # If there are some optional aliases, add them to the list of groups to join
         if (argArray.length > 1)
           argArray[4,(argArray.length-1)].each { |name|
@@ -456,25 +439,18 @@ class AgentPubSubCommunicator < MObject
           }
         end
         join_groups(list)
+      # ELSE CASE -  We don't know this command, log that and discard it.
       else
-        # if we sent this message to the NH ourselves, do nothing  
-        if (@@myName!=nil) then
-          if (cmd==@@myName.upcase) then 
-            return
-          end
-        end
-        # When nothing else matches - We don't know this command, log that and discard it.        
-        NodeAgent.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NA" 
+        debug "Unsupported command: '#{cmd}' - not passing it to NA" 
         return
-      end
+      end # END CASE
     rescue Exception => ex
-      error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NA"
+      error "Failed to process message: '#{message}' - Error: '#{ex}'"
+      return
     end
     
-    # Second - Now that we can pass the full message up to the NodeAgent
-    #debug "execute_command - PASSING CMD to NA - 1"
+    # Finally - We can pass the full message up to the NodeAgent
     NodeAgent.instance.execCommand(argArray)
-    #debug "execute_command - PASSING CMD to NA - 2"
   end
 
 end #class

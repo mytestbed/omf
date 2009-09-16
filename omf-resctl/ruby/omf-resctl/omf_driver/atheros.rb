@@ -138,7 +138,6 @@ class AtherosDevice < WirelessDevice
           else
             raise "Unknown device name '#{@deviceName}'."
         end
-        debug "TDEBUG - #{getToolVersion()}"
         if (getToolVersion() > OLD_MADWIFI_VERSION)
           return "wlanconfig #{@deviceName} destroy ; wlanconfig #{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
         else

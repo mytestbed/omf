@@ -48,6 +48,11 @@ class XmppCommunicator < Communicator
   DOMAIN = "Domain"
   SYSTEM = "System"
   SESSION = "Session"
+  VALID_EC_COMMANDS = Set.new ["EXEC", "WRONG_IMAGE", "KILL", "STDIN", 
+	                "PM_INSTALL", "APT_INSTALL", "RESET", "RESTART",
+                        "REBOOT", "MODPROBE", "CONFIGURE", "LOAD_IMAGE",
+                        "SAVE_IMAGE", "RETRY", "SET_MACTABLE", "ALIAS",
+                        "YOUARE", "EXIT"]
 
   @@instance = nil
     
@@ -115,7 +120,7 @@ class XmppCommunicator < Communicator
   #
   def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
     
-    debug "Starting XMPP PubSub communicator (connecting to server #{jid_suffix})"
+    debug "Connecting to PubSub Server: '#{jid_suffix}'"
     # Set some internal attributes...
     @@sessionID = sessionID
     @@expID = expID
@@ -126,24 +131,20 @@ class XmppCommunicator < Communicator
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
-        #debug "TDEBUG - New Event - '#{event}'" 
         @queue << event
-        #debug "TDEBUG - Finished Processing Event" 
       }         
     rescue Exception => ex
-      error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
+      error "Failed to create ServiceHelper for PubSub Server '#{jid_suffix}' - Error: '#{ex}'"
     end
 
     begin
       @@service.remove_all_pubsub_nodes
     rescue Exception => ex
-      error "ERROR - Removing old PubSub nodes - Error: '#{ex}'"
-      error "ERROR - Most likely reason: Cannot connect to PubSubServer: '#{jid_suffix}'"
-      error "ERROR - bailing out."
+      error "Failed to remove old PubSub nodes - Error: '#{ex}'"
+      error "Most likely reason: Cannot connect to PubSubServer: '#{jid_suffix}'"
+      error "Exiting!"
       exit!
     end
-
-    debug "Connected to PubSub Server: '#{jid_suffix}'"
         
     # let the gridservice do this:
     #@@service.create_pubsub_node("/#{DOMAIN}")
@@ -306,23 +307,18 @@ class XmppCommunicator < Communicator
   # - groups = an Array containing the name (Strings) of the group to subscribe to
   #
   def join_groups (groups)
-    
     # First check if we already have received the session and experiment IDs
     # If not something went wrong!
     if (@@pubsubNodePrefix == nil)
-      MObject.debug "join_groups - ERROR - Session / Exp IDs are NIL"
-      # TODO: Shall we return some error message back to the controller?
+      error "Session and Exp IDs are NIL"
       raise "ERROR - Session / Exp IDs are NIL"
       return 
     end
-	
     # Now subscribe to all the groups (i.e. the PubSub nodes)  
-    #debug "TDEBUG - join_groups - Groups to join: #{groups.to_s}"
     groups.each { |group|
       fullNodeName = "#{@@pubsubNodePrefix}/#{group.to_s}"
-      MObject.debug "TDEBUG - join_groups - a group: #{fullNodeName}"
       @@service.join_pubsub_node(fullNodeName)
-      MObject.debug "TDEBUG - join_groups - Subcribed to PubSub node: '#{fullNodeName}'"
+      debug "Subscribed to PubSub node: '#{fullNodeName}'"
     }
   end
         
@@ -340,7 +336,7 @@ class XmppCommunicator < Communicator
     item.add(msg)
   
     # Send it
-    debug "Sending to '#{dst}' - '#{message}'"
+    debug("Send to '#{dst}' - msg: '#{message}'")
     @@service.publish_to_node("#{dst}", item)        
   end
       
@@ -368,10 +364,12 @@ class XmppCommunicator < Communicator
     # Extract the Message from the PubSub Event
     begin
       message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
+      if message.nil?
+        return
+      end
     rescue Exception => ex
       # received a XMPP fragment that is not a text message, such as an (un)subscribe notification
       # we're ignoring those
-      # error "ERROR - execute_command() - Cannot parse Event '#{event}'"
       return
     end
     #debug "message received: '#{message}'"
@@ -380,59 +378,40 @@ class XmppCommunicator < Communicator
     # (when parsing, keep the full message to send it up to NA later)
     argArray = message.split(' ')
     if (argArray.length < 1)
-      error "ERROR - execute_command() - Message too short, ignoring: '#{message}'"
+      erro "Message too short! '#{message}'"
       return
     end
-    cmd = argArray[0].upcase
         
     # First - Here we check if this Command came from ourselves, if so then do nothing
-    case cmd
-    when "EXEC"
-    when "WRONG_IMAGE"
-    when "HB"
-    when "KILL"
-    when "STDIN"
-    when "PM_INSTALL"
-    when "APT_INSTALL"
-    when "RESET"
-    when "RESTART"
-    when "REBOOT"
-    when "MODPROBE"
-    when "CONFIGURE"
-    when "LOAD_IMAGE"
-    when "SAVE_IMAGE"
-    when "RETRY"
-    when "LIST"
-    when "SET_MACTABLE"
-    when "JOIN"
-    when "ALIAS"
-    when "YOUARE"
-    when "DOMAIN"
-    # If not, then this command came from a Node, then process it
-    else
-      begin
+    cmd = argArray[0].upcase
+    if VALID_EC_COMMANDS.include?(cmd)
+      return
+    end
+
+    # Now, this command came from a Node, check if we have to do anything on the communicator side
+    incomingPubSubNode =  event.first_element("items").attributes['node']
+    debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
+    begin
       cmd = argArray[2].upcase
       case cmd
       when "HB"
       when "ENROLLED"
       when "WRONG_IMAGE"
-      # we do not send the NOOP here, we do that only for the first HB in node.rb:heartbeat()
       when "APP_EVENT"
       when "DEV_EVENT"
       when "ERROR"                
-
-        # When nothing else matches - We don't know this command, log that and discard it.
+      # When nothing else matches - We don't know this command, log that and discard it.
       else
-        NodeHandler.debug "execute_command() - Unsupported command: '#{cmd}' - not passing it to NH" 
+        debug "Unsupported command: '#{cmd}' - not passing it to NH" 
         return
       end
-      rescue Exception => ex
-        error "ERROR - execute_command() - Bad message: '#{message}' - Error: '#{ex}' - still passing it to NH"
-      end
-      incomingPubSubNode =  event.first_element("items").first_element("item").attributes['node']
-      debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
-      processCommand(argArray)
+    rescue Exception => ex
+      error "Failed to process message: '#{message}' - Error: '#{ex}'"
+      return
     end
+
+    # Finally pass the command up
+    processCommand(argArray)
   end
 
    #
@@ -449,7 +428,7 @@ class XmppCommunicator < Communicator
      sender = @name2node[senderId]
      
      if (sender == nil)
-       MObject.debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
+       debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
        return
      end
      # get rid of the sequence number
@@ -471,7 +450,7 @@ class XmppCommunicator < Communicator
        reply = method.call(self, sender, senderId, argArray)
      rescue Exception => ex
        #error("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
-       MObject.debug("Error ('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'")
+       debug("Error ('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'")
      end
    end
     

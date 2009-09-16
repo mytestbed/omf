@@ -628,69 +628,50 @@ class Node < MObject
   # - timestamp = timestamp value for this heartbeat
   #
   def heartbeat(sendSeqNo, recvSeqNo, timestamp)
-    # check if we received all packets
-    #inSequence?(sendSeqNo)
-    #if (! @isUp)
-    if @nodeStatus != STATUS_UP
-      # first heartbeat, looks like node is up and ready
-      @isUp = true
-      setStatus(STATUS_UP)
-      @checkedInAt = Time.now
-      #@checkedInAtEl.attributes['ts'] = NodeHandler.getTS()
-      MObject.debug("enrolled node #{self}")
-      send_deferred
-      changed
-      notify_observers(self, :node_is_up)
-      # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
-      # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
-      # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
-      # from the PubSub server (at least openfire works this way). It would then potentially
-      # try to subscribe to nodes from a past experiment.
-      Communicator.instance.sendNoop(@nodeId)
-    end
     TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
-    #@heartbeat.add_attribute('ts', timestamp)
-    #@heartbeat.add_attribute('sentPackets', sendSeqNo)
-    #@heartbeat.add_attribute('receivedPackets', recvSeqNo)
   end
 
+  # 
+  # Process a received ENROLLED message from this Node
+  #
+  # - groupArray = an Array with the names of all the groups within the 
+  #              original YOAURE/ALIAS message with which this NA has enrolled
+  #
   def enrolled(groupArray)
-    info "TDEBUG - enrolled() - nodeID: '#{@nodeId}'"
+    # First, If this is the first ENROLLED that we received, set the state to UP
+    # and perform the associated tasks
     if @nodeStatus != STATUS_UP
-      info "TDEBUG - enrolled() - nodeID: '#{@nodeId}' - First Time!"
-      # first received ENROLL, looks like node is up and ready
       @isUp = true
       @groups["_ALL_"] = true
       setStatus(STATUS_UP)
       @checkedInAt = Time.now
-      MObject.debug("enrolled node #{self}")
+      debug "Node #{self} is Up and Enrolled"
       send_deferred
       changed
       notify_observers(self, :node_is_up)
-      # when we receive a heartbeat, send a NOOP message to the NA. This is necessary
+      # when we receive the first ENROLL, send a NOOP message to the NA. This is necessary
       # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
       # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
       # from the PubSub server (at least openfire works this way). It would then potentially
       # try to subscribe to nodes from a past experiment.
       Communicator.instance.sendNoop(@nodeId)
     end
+    # Now, if this ENROLL specifies a list of group this NA has enrolled to
+    # then process them
     if groupArray != nil
-      info "TDEBUG - enrolled() - nodeID: '#{@nodeId}' - GroupArray: '#{groupArray.join(" ")}'"
       groupArray.each { |group|
         if @groups.has_key?("#{group}")
           if !@groups[group] 
-      info "TDEBUG - enrolled() - nodeID: '#{@nodeId}' - Group: '#{group}' - set to TRUE"
             @groups[group] = true
+            debug "Node #{self} is Enrolled in group '#{group}'"
             changed
             notify_observers(self, :node_is_up)
           end
         end
       }
     end
-    TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
+    #TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
   end
-
-
   
   #
   # When a node is being removed from all topologies, the Topology

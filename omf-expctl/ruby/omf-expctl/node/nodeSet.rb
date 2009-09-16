@@ -591,11 +591,11 @@ class NodeSet < MObject
   # - code = the description of the change(s) to report
   #
   def update(sender, code)
-    #debug "nodeSet (#{to_s}) update: #{sender} #{code}"
-    info "TDEBUG - update() - NS: #{to_s} - sender: '#{sender}' - code: '#{code}'"
+    # This is a node UP or REMOVED update
     if ((code == :node_is_up) || (code == :node_is_removed))
+      # Check if ALL the nodes in this NodeSet are Up
       if (up?)
-    info "TDEBUG - update() - NS: #{to_s} - sender: '#{sender}' - code: '#{code}' - A"
+        # Yes? Then mark this group as UP!
         update(self, :group_is_up)
         changed
         notify_observers(self, :group_is_up)
@@ -607,9 +607,10 @@ class NodeSet < MObject
           error("onUpBlock threw exception for #{sender}: #{err}")
         end
       end
+    # This is a group UP update
     elsif (code == :group_is_up)
-    info "TDEBUG - update() - NS: #{to_s} - sender: '#{sender}' - code: '#{code}' - B"
       send_deferred
+    # This is a reset update
     elsif (code == :before_resetting_node)
       setPxeEnv(sender)
     end

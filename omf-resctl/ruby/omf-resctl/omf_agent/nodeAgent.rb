@@ -175,9 +175,8 @@ class NodeAgent < MObject
   # command has been successfully completed, the NA sends this message
   # to the NH
   #
-  # - cmd = a String with the command that completed successfully
-  # - id = the ID of this NA (default = nil)
-  # - msgArray = an array with the full received command (name, parameters,...)
+  # - msgArray = an array with the names of all the groups within the 
+  #              original YOAURE/ALIAS message with which this NA has enrolled
   #
   def enrollReply(*msgArray)
     communicator.send(:ENROLLED, *msgArray)
