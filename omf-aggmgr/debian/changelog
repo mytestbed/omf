@@ -1,3 +1,9 @@
+omf-aggmgr (5.0-3) stable; urgency=low
+
+  * fixed logrotation
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 15 Sep 2009 16:36:06 +1000
+
 omf-aggmgr (5.0-2) stable; urgency=low
 
   * changed distribution to stable

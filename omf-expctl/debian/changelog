@@ -1,3 +1,9 @@
+omf-expctl (5.0-4) stable; urgency=low
+
+  * fixed bug #120
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 15 Sep 2009 16:40:50 +1000
+
 omf-expctl (5.0-3) stable; urgency=low
 
   * now includes missing file omf-expctl.rb
