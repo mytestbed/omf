@@ -799,7 +799,6 @@ class Node < MObject
     if @nodeStatus == STATUS_UP
       Communicator.instance.send(nodeId, command, args)
     else
-      #raise "Node not up. Embed command in 'onNodeUp' block"
       debug "Deferred message: #{command} #{@nodeId} #{args.join(' ')}"
       @deferred << [command, args]
     end

@@ -449,8 +449,7 @@ class XmppCommunicator < Communicator
        # Execute the command
        reply = method.call(self, sender, senderId, argArray)
      rescue Exception => ex
-       #error("Error ('#{ex}') - While processing agent command '#{argArray.join(' ')}'")
-       debug("Error ('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'")
+       error "('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'"
      end
    end
     
