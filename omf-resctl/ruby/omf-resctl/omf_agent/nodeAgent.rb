@@ -34,10 +34,8 @@
 # understands.
 #
 
-### THIS require HAS TO COME FIRST! See http://omf.mytestbed.net/issues/show/19
+require 'omf-common/omfVersion'
 require 'omf-resctl/omf_agent/agentPubSubCommunicator'
-###
-#require 'omf-resctl/omf_agent/communication'
 require 'omf-resctl/omf_agent/agentCommands'
 require 'date'
 require 'omf-common/hash-ext'
@@ -52,7 +50,11 @@ require "omf-common/omfCommandObject"
 #
 class NodeAgent < MObject
 
-  AGENT_VERSION = "4.4.0"
+  #
+  # Our Version Number
+  #
+  VERSION = OMF::Common::VERSION(__FILE__)
+  VERSION_STRING = "OMF Resource Controller #{VERSION}"
   
   # File containing image name
   IMAGE_NAME_FILE = '/.omf_imageid'
@@ -82,7 +84,7 @@ class NodeAgent < MObject
     if (! @running.nil?)
       raise "Already running"
     end
-    info("NodeAgent V#{AGENT_VERSION}")
+    info(VERSION_STRING)
     reset
 
     @running = ConditionVariable.new
@@ -428,7 +430,7 @@ class NodeAgent < MObject
     }
     opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
     opts.on_tail("-v", "--version", "Show the version") {
-      puts NH_VERSION_STRING
+      puts VERSION_STRING
       exit
     }
 

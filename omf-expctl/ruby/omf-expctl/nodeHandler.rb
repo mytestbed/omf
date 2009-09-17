@@ -35,9 +35,8 @@
 # reader will see both terms 'EC' and 'NH' used in the code.
 #
 
-require 'omf-expctl/version'
 
-###
+require 'omf-common/omfVersion'
 require 'set'
 require 'benchmark'
 require 'thread'  # Queue class
@@ -46,9 +45,7 @@ require 'omf-expctl/exceptions'
 require 'omf-common/mobject'
 require 'omf-expctl/communicator/communicator.rb'
 require 'omf-expctl/oconfig'
-#
 require 'singleton'
-require 'omf-expctl/version'
 require 'omf-expctl/traceState'
 require 'omf-expctl/experiment'
 require 'omf-expctl/node/basicNodeSet'
@@ -75,6 +72,12 @@ class NodeHandler < MObject
   # NH follows the 'singleton' design pattern
   #
   include Singleton
+
+  #
+  # Our Version Number
+  #
+  VERSION = OMF::Common::VERSION(__FILE__)
+  VERSION_STRING = "OMF Experiment Controller #{VERSION}"
 
   #
   # Where to find the default config files
@@ -498,9 +501,9 @@ class NodeHandler < MObject
 
     opts.on_tail("-w", "--web-ui", "Control experiment through web interface") { @web_ui = true }
 
-    opts.on_tail("-h", "--help", "Show this message") { |v| puts OMF::ExperimentController::VERSION_STRING; puts opts; exit }
+    opts.on_tail("-h", "--help", "Show this message") { |v| puts VERSION_STRING; puts opts; exit }
 
-    opts.on_tail("-v", "--version", "Show the version\n") { |v| puts OMF::ExperimentController::VERSION_STRING; exit }
+    opts.on_tail("-v", "--version", "Show the version\n") { |v| puts VERSION_STRING; exit }
 
     opts.on("--slave-mode EXPID", "Run NH in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
       @@runningSlaveMode = true
@@ -601,7 +604,7 @@ class NodeHandler < MObject
     else
       # No luck, then look at our default paths...
       path = ["../#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}",
-              "#{DEFAULT_CONFIG_PATH}#{OMF::ExperimentController::VERSION}/#{DEFAULT_CONFIG_FILE}",
+              "#{DEFAULT_CONFIG_PATH}#{VERSION}/#{DEFAULT_CONFIG_FILE}",
               "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}"]
       path.each {|f|
         if File.exists?(f)
@@ -632,7 +635,7 @@ class NodeHandler < MObject
       # No luck, then look at our default paths...
       path =[".#{DEFAULT_CONFIG_LOG}",
              "~/.#{DEFAULT_CONFIG_LOG}",
-             "#{DEFAULT_CONFIG_PATH}#{OMF::ExperimentController::VERSION}/#{DEFAULT_CONFIG_LOG}",
+             "#{DEFAULT_CONFIG_PATH}#{VERSION}/#{DEFAULT_CONFIG_LOG}",
              "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_LOG}"]
       path.each {|f|
         if File.exists?(f)
@@ -648,7 +651,7 @@ class NodeHandler < MObject
     @logConfigFile = log
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
     debug('init', "Using Log config file: #{@logConfigFile}")
-    info('init', " #{OMF::ExperimentController::VERSION_STRING}")
+    info('init', " #{VERSION_STRING}")
   end
 
   private

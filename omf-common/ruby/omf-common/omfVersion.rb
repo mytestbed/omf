@@ -30,25 +30,29 @@
 #
 
 module OMF
-  module ExperimentController
-
-    # Find the absolute path of this file
-    myPath = __FILE__.split("/")
-    myPath.delete_at(myPath.size - 1)
-    EC_PATH = myPath.join("/")
+  module Common
 
     VERSION_MAJOR = 5
     VERSION_MINOR = 2
-    # Revision number is taken from the Source Repository
-    # Following de-facto convention, revision number is set by 
-    # the packaging scripts. 
-    # (Pkg script will create the REVISION file with the info from the
-    # source repository, thus REVISION only exists in software installed
-    # from a package. We use 'testing' when REVISION is not found)
-    VERSION_REVISION = File.readable?("#{EC_PATH}/REVISION") ? File.new("#{EC_PATH}/REVISION").read().chomp("$").to_i : "testing"
-    
-    VERSION = "#{VERSION_MAJOR}.#{VERSION_MINOR}.#{VERSION_REVISION}"
-    VERSION_STRING = "OMF Experiment Controller V #{VERSION}"
+
+    #
+    # Return the full version number for an OMF software
+    #
+    def self.VERSION(path)
+      # Find the absolute path 
+      myPath = path.split("/")
+      myPath.delete_at(myPath.size - 1)
+      absPath = myPath.join("/")
+      # Revision number is taken from the Source Repository
+      # Following de-facto convention, revision number is set by 
+      # the packaging scripts. 
+      # (Pkg script will create the REVISION file with the info from the
+      # source repository, thus REVISION only exists in software installed
+      # from a package. We use 'testing' when REVISION is not found)
+      revision = File.readable?("#{absPath}/REVISION") ? File.new("#{absPath}/REVISION").read().chomp("$").to_i : "testing"
+      version = "#{VERSION_MAJOR}.#{VERSION_MINOR}.#{revision}"
+      return version
+    end
   end
 end
 

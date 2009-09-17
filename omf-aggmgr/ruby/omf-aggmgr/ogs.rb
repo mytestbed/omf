@@ -37,6 +37,7 @@
 require 'webrick'
 require 'log4r'
 require 'omf-common/mobject'
+require 'omf-common/omfVersion'
 
 # We need to find a better way of adding the dependencies of the
 # individual services.
@@ -78,9 +79,11 @@ end
 include WEBrick
 include Log4r
 
-$VERSION = "@VERSION@"
-REVISION = "$Revision: $".split(":")[1].chomp("$").strip
-VERSION_STRING = "Orbit Services Version #{$VERSION} (#{REVISION})"
+#
+# Our Version Number
+#
+VERSION = OMF::Common::VERSION(__FILE__)
+VERSION_STRING = "OMF Aggregate Manager #{VERSION}"
 
 DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr", "/etc/omf-aggmgr"]
 DEF_CONFIG_FILE = 'gridservice_cfg.yaml'
