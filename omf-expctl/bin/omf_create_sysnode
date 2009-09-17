@@ -1,0 +1,20 @@
+#!/usr/bin/ruby1.8
+
+require "omf-common/omfPubSubService"
+
+if ARGV.length != 2
+  puts "Usage: #{$0} <IP address of XMPP server> <IP address of node to add>"
+  exit 0
+end
+
+begin
+  @@service = OmfPubSubService.new("aggmgr", "123", ARGV[0])
+rescue Exception => ex
+  puts "ERROR Creating ServiceHelper - '#{ex}'"
+end
+
+puts "Connected to PubSub Server: '#{ARGV[0]}'"
+    
+@@service.create_pubsub_node("/Domain")
+@@service.create_pubsub_node("/Domain/System")
+@@service.create_pubsub_node("/Domain/System/#{ARGV[1]}")
