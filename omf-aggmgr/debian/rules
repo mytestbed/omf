@@ -46,6 +46,7 @@ install: build
 
 	# Add here commands to install the package into debian/omf-aggmgr.
 	tar -C ruby -cf - --exclude='.svn' omf-aggmgr | tar -xf - -C debian/omf-aggmgr/usr/lib/ruby/1.8/
+	svn info | grep Revision | cut -d ' ' -f 2 > debian/omf-aggmgr/usr/lib/ruby/1.8/omf-aggmgr/REVISION
 	tar -C etc -cf - --exclude='.svn' omf-aggmgr | tar -xf - -C debian/omf-aggmgr/etc/
 	tar -cf - --exclude='.svn' sbin | tar -xf - -C debian/omf-aggmgr/usr
 	
