@@ -52,6 +52,6 @@ if [ -f /usr/sbin/telnetd ]; then
 else
 	echo "telnet daemon not found"
 fi
-cat /.orbit_image
+cat /.omf_imageid
 # Start nodeagent
 /etc/init.d/omf-resctl start

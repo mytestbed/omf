@@ -1,3 +1,9 @@
+omf-expctl (5.0-5) stable; urgency=low
+
+  * fixed omf tell
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 17 Sep 2009 13:42:34 +1000
+
 omf-expctl (5.0-4) stable; urgency=low
 
   * fixed bug #120

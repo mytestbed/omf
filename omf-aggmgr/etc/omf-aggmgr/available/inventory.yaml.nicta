@@ -11,7 +11,7 @@ inventory:
       # Name of the Database Server
       host: localhost
       # Username and password to access the database server
-      user: orbit
-      password: orbit
+      user: omf
+      password: omf
       # Name of the database to use
       database: inventory

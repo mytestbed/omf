@@ -1,3 +1,5 @@
+#!/usr/bin/ruby1.8
+
 require "omf-common/omfPubSubService"
 
 jid_suffix="10.0.0.200"
@@ -16,7 +18,7 @@ begin
     puts "TDEBUG - Finished Processing Event" 
   }         
 rescue Exception => ex
-  error "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
+  puts "ERROR - start - Creating ServiceHelper - PubSubServer: '#{jid_suffix}' - Error: '#{ex}'"
 end
 
 #debug "TDEBUG - start 2"

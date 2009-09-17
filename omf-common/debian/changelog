@@ -1,3 +1,9 @@
+omf-common (5.0-3) stable; urgency=low
+
+  * fixed omf tell
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 17 Sep 2009 13:42:03 +1000
+
 omf-common (5.0-2) stable; urgency=low
 
   * changed distribution to stable
