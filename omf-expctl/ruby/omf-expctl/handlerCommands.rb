@@ -66,7 +66,7 @@ class OEDLIllegalCommandException < OEDLException
     @cmdName = cmdName
     message ||= "Illegal command '#{cmdName}' unsupported by OEDL"
     super(message)
-  end
+  end   
 end
 
 

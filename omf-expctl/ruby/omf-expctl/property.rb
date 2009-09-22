@@ -123,6 +123,7 @@ module CreatePropertiesModule
   # - unit = optional, unit for this Property
   #
   def setProperty(propName, value, unit = nil)
+    info "TDEBUG - SetProp - #{propName} - #{value}"
     prop = Property.new(propName, value, unit)
     @properties += [prop]
   end

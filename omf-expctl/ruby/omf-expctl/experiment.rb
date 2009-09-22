@@ -392,6 +392,7 @@ class ExperimentProperty < MObject
 
   def onChange (&block)
     debug("Somebody bound to me")
+    info "TDEBUG - Somebody bound to me - #{to_s}"
     @changeListeners << block
   end
 
@@ -401,8 +402,11 @@ class ExperimentProperty < MObject
     #    @bindings.each {|b|
     #      b[:ns].send(:set, [b[:name], value])
     #    }
-    info(@name, ' = ', value.inspect, ':', value.class)
+    #info(@name, ' = ', value.inspect, ':', value.class)
+    info("TDEBUG - ", @name, ' = ', value.inspect, ':', value.class)
+    info "TDEBUG - Listeners size: #{@changeListeners.size}"
     @changeListeners.each { |l|
+      info "TDEBUG - Notify Listener: #{l.to_s} - #{l.class}"
       l.call(value)
     }
     TraceState.property(@name, :set, {'value' => value.inspect})
@@ -410,6 +414,14 @@ class ExperimentProperty < MObject
 
   def to_s()
     @value
+  end
+
+  def /(right)
+    if @value.kind_of?(Integer) || @value.kind_of?(Float)
+      return (@value / right)
+    else
+      raise OEDLIllegalCommandException.new("/", "Illegal '/' operation, Experiment Property '#{@name}' not a float or integer.")
+    end
   end
 
 end
