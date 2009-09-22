@@ -33,7 +33,7 @@
 # available parameters and measurment points
 #
 
-require "omf-expctl/version"
+require "omf-common/omfVersion"
 require "omf-expctl/application/appProperty"
 require "omf-expctl/application/appDefinition"
 require "omf-expctl/application/appContext"

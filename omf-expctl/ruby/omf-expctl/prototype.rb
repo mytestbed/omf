@@ -28,7 +28,7 @@
 #
 # This file defines the 'Prototype' classe
 #
-require "omf-expctl/version.rb"
+require "omf-common/omfVersion.rb"
 require "omf-expctl/parameter.rb"
 require "omf-expctl/application/application.rb"
 #require "omf-expctl/oml/oml_mpoint.rb"
