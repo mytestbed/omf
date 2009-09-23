@@ -93,6 +93,8 @@ def prop
   return PropertyContext
 end
 
+alias :property :prop
+
 #
 # Define a new topology. The topology can
 # be described by an optionally array declaration, or

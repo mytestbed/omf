@@ -218,12 +218,9 @@ class AppDefinition < MObject
       name = a[0]
       prop = a[1]
       type = prop.type
-      info "TDEBUG A"
       if ((value = bindings[name]) != nil)
-        info "TDEBUG B - name: #{name} - value: #{value.to_s} - type: #{value.class}"
         # This Property is a Dynamic Experiment Property...
         if value.kind_of?(ExperimentProperty)
-          info "TDEBUG - Value is an ExperimentProperty - #{value.to_s}"
           value.onChange { |v|
             nodeSet.send(:STDIN, appId, prop.name, v)
           }
@@ -262,7 +259,6 @@ class AppDefinition < MObject
         end
       end
     }
-    info "TDEBUG Z - cmd: #{cmd}"
     return cmd
   end
 

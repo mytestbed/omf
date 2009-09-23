@@ -584,10 +584,14 @@ class Topology < MObject
       x = nodes[0]
       if x.kind_of?(Integer)
         x = [x]
+      elsif x.kind_of?(ExperimentProperty)
+        x = [x.value]
       end
       y = nodes[1]
       if y.kind_of?(Integer)
         y = [y]
+      elsif y.kind_of?(ExperimentProperty)
+        y = [y.value]
       end
       if ! ((x.kind_of?(Range) || x.kind_of?(Array)) \
       && (y.kind_of?(Array) || y.kind_of?(Range)))

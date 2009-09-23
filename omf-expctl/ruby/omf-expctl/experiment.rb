@@ -274,13 +274,27 @@ class Experiment
   end
 end
 
-
+#
+# This class defines a Context for Experiment Properties
+#
 class PropertyContext < MObject
 
+  #
+  # Return an existing Experiment Property, or create a new
+  # one if id does not exist
+  #
+  # - paramName = the name of the property to return /create
+  #
+  # [Return] an Experiment Property
+  #
   def PropertyContext.[](paramName)
     return ExperimentProperty.create(paramName)
   end
 
+  #
+  # Handles missing method, allows to access an existing Experiment
+  # Property with the syntax 'propcontext.propname'
+  #
   def PropertyContext.method_missing(name, args = nil)
     name = name.to_s
     if setter = (name[-1] == ?=)
@@ -298,9 +312,13 @@ class PropertyContext < MObject
       return p
     end
   end
+
 end
 
-
+#
+# This class defines an Experiment Property, and also holds all the 
+# properties of an experiment.
+#
 class ExperimentProperty < MObject
 
   # Contains all the experiment properties
@@ -309,13 +327,23 @@ class ExperimentProperty < MObject
   # Holds all observers on property creation and modifications
   @@observers = []
 
+  #
+  # Returns a given property
+  # - name =nameof the property to return
+  #
+  # [Return] a property
+  #
   def self.[] (name)
     return @@properties[name.to_s]
   end
   
-  # Iterate over all experiment properties. The block
+  #
+  # Iterate over all Experiment Properties. The block
   # will be called with the respective property as single
   # argument
+  #
+  # - sortNames = if 'true' sort the properties (default: true)
+  # - &block = the block of commands to call
   #
   def self.each(sortNames = true, &block)
     names = @@properties.keys
@@ -327,6 +355,15 @@ class ExperimentProperty < MObject
     }
   end
 
+  # 
+  # Return an existing Experiment Property, or create a new one
+  #
+  # - name = name of the property to create/return
+  # - value = value to assign to this property
+  # - description = short string description for this property
+  #
+  # [Return] an Experiment Property
+  #
   def self.create(name, value = nil, description = nil)
     name = name.to_s
     p = nil
@@ -343,84 +380,143 @@ class ExperimentProperty < MObject
     return p
   end
 
+  #
+  # Return the names of the all defined Experiment Properties
+  #
+  # [Return] an Array with the names of all defined Experiment Properties
+  #
   def self.names()
     return @@properties.keys
   end
 
+  # 
+  # Set the ROOT element for all defined properties (used to record Experiment state)
+  #
+  # - el = the root element 
+  #
   def self.propertyRootEl= (el)
     @@expProps = el
   end
 
+  # 
+  # Return the ROOT element for all defined properties (used to record Experiment state)
+  #
+  # [Return] the root element 
+  #
   def self.propertyRootEl()
     @@expProps
   end
-  
+ 
+  #
+  # Add a 'observer' to this Experiment Property
+  #
+  # - proc = observer to add
+  #
   def self.add_observer(&proc)
     @@observers << proc
   end
 
-
   attr_reader :name, :value, :description, :id
 
   private :initialize
-  def initialize(name, value = nil, description = nil)
-    super("prop.#{name}")
 
+  #
+  # Create a new Experiment Property
+  #
+  # - name = name of the property to create/return
+  # - value = value to assign to this property
+  # - description = short string description for this property
+  #
+  def initialize(name, value = nil, description = nil)
+    super("property.#{name}")
     @name = name.to_s
     @description = description
     @bindings = Array.new
     @changeListeners = Array.new
-
     @id = "ep_#{name}"
-#    el = @@expProps.add_element('property',
-#    {'name' => @name, 'id' => @id})
-
     state = {'id' => @id, 'description' => description}
     TraceState.property(name.to_s, :new, state)
-
-
-#    @valEl = el.add_element('value')
-#    if description != nil
-#      el.add_element('description').text = description
-#    end
     set(value)
   end
 
-  #  def bindTo(nodeSet, name)
-  #    @bindings += [{:ns => nodeSet, :name => name}]
-  #  end
-
+  # 
+  # Add a block of command to the list of actions to do 
+  # when this property is being changed
+  #
+  # - &block =  the block of command to add
+  #
   def onChange (&block)
     debug("Somebody bound to me")
-    info "TDEBUG - Somebody bound to me - #{to_s}"
     @changeListeners << block
   end
 
-
+  #
+  # Update the value of this Experiment Property
+  #
+  # - value = new value for this property
+  #
   def set(value)
     @value = value
-    #    @bindings.each {|b|
-    #      b[:ns].send(:set, [b[:name], value])
-    #    }
-    #info(@name, ' = ', value.inspect, ':', value.class)
-    info("TDEBUG - ", @name, ' = ', value.inspect, ':', value.class)
-    info "TDEBUG - Listeners size: #{@changeListeners.size}"
+    info(@name, ' = ', value.inspect, '(type:', value.class,')')
     @changeListeners.each { |l|
-      info "TDEBUG - Notify Listener: #{l.to_s} - #{l.class}"
       l.call(value)
     }
     TraceState.property(@name, :set, {'value' => value.inspect})
   end
 
+  # Explicit conversion to String
   def to_s()
-    @value
+    @value.to_s
   end
 
+  # Implicit conversion to String (required for + operator)
+  def to_str()
+    @value.to_s
+  end
+
+  # Division operator for Integer and Float properties
   def /(right)
     if @value.kind_of?(Integer) || @value.kind_of?(Float)
       return (@value / right)
     else
-      raise OEDLIllegalCommandException.new("/", "Illegal '/' operation, Experiment Property '#{@name}' not a float or integer.")
+      raise OEDLIllegalCommandException.new("/", "Illegal operation, Experiment Property '#{@name}' not a float or integer.")
+    end
+  end
+
+  # Multiplication operator for Integer and Float properties
+  def *(right)
+    if @value.kind_of?(Integer) || @value.kind_of?(Float)
+      return (@value * right)
+    else
+      raise OEDLIllegalCommandException.new("*", "Illegal operation, Experiment Property '#{@name}' not a float or integer.")
+    end
+  end
+
+  # Substraction operator for Integer and Float properties
+  def -(right)
+    if @value.kind_of?(Integer) || @value.kind_of?(Float)
+      return (@value - right)
+    else
+      raise OEDLIllegalCommandException.new("-", "Illegal operation, Experiment Property '#{@name}' not a float or integer.")
+    end
+  end
+
+  # Addition operator for Integer, Float, and String properties
+  def +(right)
+    if @value.kind_of?(Integer) || @value.kind_of?(Float) || @value.kind_of?(String) 
+      return (@value + right)
+    else
+      raise OEDLIllegalCommandException.new("+", "Illegal operation, Experiment Property '#{@name}' not a float, integer, or string.")
+    end
+  end
+
+  # Explicit Coercion for Integer, Float, and String properties
+  # (allow property to be on the right-hand of an operator such as +)
+  def coerce(other)
+    if @value.kind_of?(Integer) || @value.kind_of?(Float) || @value.kind_of?(String) 
+      return other, @value
+    else
+      raise OEDLIllegalCommandException.new("coercion", "Illegal operation, Experiment Property '#{@name}' not a float, integer, or string.")
     end
   end
 
