@@ -498,11 +498,16 @@ alias :mStream :mstream
 #
 # Wait for some time before issuing more commands
 #
-# - time = Time to wait in seconds
+# - time = Time to wait in seconds (can be
 #
 def wait(time)
-  info "Request from Experiment Script: Wait for #{time}s...."
-  Kernel.sleep time
+  if time.kind_of?(ExperimentProperty)
+    duration = time.value
+  else
+    duration = time
+  end
+  info "Request from Experiment Script: Wait for #{duration}s...."
+  Kernel.sleep duration
 end
 
 #
