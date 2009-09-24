@@ -573,7 +573,7 @@ class NodeHandler < MObject
         break
       end
       if (@expFile != nil)
-        fatal('init', "Found additional experiment file '#{s}'")
+        fatal('init', " Found additional experiment file '#{s}'")
         puts opts
         exit -1
       end
@@ -581,7 +581,7 @@ class NodeHandler < MObject
     }
 
     if (@expFile.nil? && ! (@interactive || @web_ui))
-      fatal('init', "Missing experiment file")
+      fatal('init', " Missing experiment file")
       puts opts
       exit -1
     end

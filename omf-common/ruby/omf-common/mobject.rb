@@ -195,6 +195,17 @@ class MObject
     end
   end
 
+  def fatal(*message)
+    if @@logger == nil
+      puts "FATAL: #{message.join('')}"
+    else
+      if (@logger == nil)
+        logger
+      end
+      @logger.fatal(message.join('')) if @logger.fatal?
+    end
+  end
+
   private
   def logger(category = self.class.to_s)
     if @logger == nil
