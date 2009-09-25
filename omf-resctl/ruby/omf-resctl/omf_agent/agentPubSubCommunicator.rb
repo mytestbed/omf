@@ -78,8 +78,6 @@ class AgentPubSubCommunicator < MObject
         execute_command(event)
       end
     }
-    # TODO: fetch the pubsub hostname via inventory
-    # fetch the interface from config file
     start(NodeAgent.instance.config('comm')['xmpp_server'])
   end
 
@@ -153,6 +151,17 @@ class AgentPubSubCommunicator < MObject
     rescue Exception => ex
       error "Failed to create ServiceHelper for PubSub Server '#{jid_suffix}' - Error: '#{ex}'"
     end
+    
+    # keep the connection to the PubSub server alive by sending a ping every hour
+    # otherwise clients will be listed as "offline" in Openfire after a timeout
+    Thread.new do
+      while true do
+        sleep 3600
+        debug("Sending a ping to the XMPP server (keepalive)")
+        @@service.ping        
+      end
+    end
+    
   end
 
   #
@@ -223,7 +232,7 @@ class AgentPubSubCommunicator < MObject
     # Re-subscribe to the System Pubsub node for this node
     sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
     while (!@@service.join_pubsub_node(sysNode))
-       debug "Resetting - Systen node '#{sysNode}' does not exist (yet) on the PubSub server - retrying in 10s"
+       debug "Resetting - System node '#{sysNode}' does not exist (yet) on the PubSub server - retrying in 10s"
        sleep 10
        start(NodeAgent.instance.config('comm')['xmpp_server'])
     end

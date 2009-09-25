@@ -68,7 +68,23 @@ class MyServiceHelper < Jabber::PubSub::ServiceHelper
       ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
     end # @stream.send_with_id(iq)
     ret  
-  end 
+  end
+  
+  #
+  # Send a ping to the PubSub server
+  # implemented according to
+  # http://xmpp.org/extensions/xep-0199.html#c2s
+  #
+  def ping
+    iq = Jabber::Iq.new(:get, @stream.jid.domain)
+    iq.from = @stream.jid
+    ping = iq.add(REXML::Element.new('ping'))
+    ping.add_namespace 'urn:xmpp:ping'
+    @stream.send_with_id(iq) do |reply|
+      ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
+    end # @stream.send_with_id(iq)
+  end
+   
 end
 
 # 
@@ -303,5 +319,16 @@ class OmfPubSubService < MObject
       end
       list
     end
-
+    
+    #
+    # Send a ping to the PubSub server
+    #
+    def ping
+      begin
+        @service.ping
+      rescue Exception => ex
+        raise "OmfPubSubService - ping - ERROR - '#{ex}'"
+      end
+    end
+    
   end #class
