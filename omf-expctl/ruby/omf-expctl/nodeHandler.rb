@@ -429,6 +429,7 @@ class NodeHandler < MObject
     require 'optparse'
 
     runTutorial = false
+    listTutorial = false
 
     @interactive = false
     @doProfiling = false
@@ -493,7 +494,9 @@ class NodeHandler < MObject
 
     opts.on("-s", "--shutdown", "If set, then shut down resources at the end of an experiment") { @@shutdown = true }
 
-    opts.on("--tutorial", "Run tutorial [#{TUTORIAL}]") { runTutorial = true }
+    opts.on("--tutorial", "Run a tutorial experiment (usage: '--tutorial -- --tutorialName tutorial-1a')") { runTutorial = true }
+
+    opts.on("--tutorial-list", "List all the available tutorial") { listTutorial = true }
 
     opts.on("-t", "--tags TAGS", "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
@@ -555,6 +558,11 @@ class NodeHandler < MObject
     # the testbed name. In the future, we will have multiple testbed configs... 
     # And this will not be there, but rather provided by the resource provisioning
     OConfig.loadTestbedConfiguration()
+
+    if listTutorial
+      OConfig.load("test:exp:tutorial-list" , true)
+      exit
+    end
 
     # Now start the Communiator
     Communicator.init(OConfig[:ec_config][:communicator])
@@ -814,7 +822,6 @@ class NodeHandler < MObject
         end
     end
   end
-
 end 
 #
 # END of the NodeHandler Class Declaration

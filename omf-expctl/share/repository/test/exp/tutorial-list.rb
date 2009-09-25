@@ -21,9 +21,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# This experiment is the entry point that runs all the tutorials
-# It takes a parameter 'tname' which hold the name of the tutorial to run
+# This is the list of available tutorials
 #
-defProperty('tutorialName', 'tutorial-1a', "Name of the tutorial to run")
-info "Running tutorial: " + property.tutorialName
-Experiment.load("test:exp:#{property.tutorialName}")
+TUTORIAL_LIST = { 
+  'tutorial-1a' => 'Simple Hello-World, involving one UDP traffic sender, one receiver',
+  'tutorial-1b' => 'Extended Hello-World, showing use of experiment properties',
+  'tutorial-1c' => 'Extended Hello-World, showing use of dynamic experiment properties',
+  'tutorial-1d' => 'Same as tutorial-1c, but showing different way of configuring nodes',
+}
+
+puts "\n List of Available tutorials:\n\n"
+TUTORIAL_LIST.each { |k,v| puts " - Name: #{k} - Description: #{v}" }
+puts "\n Usage example:\n\n"
+puts "   omf exec --tutorial -- --tutorialName tutorial-1a"
+puts "   omf exec --tutorial -- --tutorialName tutorial-1b --sender 1 --receiver 3"
+puts " "
