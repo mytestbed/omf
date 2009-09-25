@@ -419,12 +419,35 @@ class Node < MObject
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
       imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
-    TraceState.nodeSaveImage(self, imgName, imgHost, disk)
+    
+    # pick a free port
+    server = TCPServer.new(0)
+    imgPort = server.addr[1]
+  
+    # TODO: catch write errors here
+    imgFile = File.open(imgName, "w")
+ 
+    # a single thread to accept the incoming connection, 
+    # write the image file and close the socket server
+    Thread.new { 
+      s = server.accept
+      while(data = s.read(1024*1024)) do
+        imgFile.write(data)
+      end
+      s.close
+    }
+
+    # alternatively use netcat:
+    # server.close
+    # cmd = "nc -l -p #{imgPort} > #{imgName} &"
+    # system(cmd)
+    
+    TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "
     info("- Saving disk image of #{@nodeId} in the file '#{imgName}'")
     info("  (physical disk '#{disk}') will be saved")    
     info("  (saved disk images are located at: '#{imgHost}')")
-    send('SAVE_IMAGE', imgName, imgHost, disk)
+    send('SAVE_IMAGE', imgHost, imgPort, disk)
     info " "
   end
 

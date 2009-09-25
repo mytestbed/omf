@@ -499,7 +499,7 @@ module AgentCommands
   end
 
   #
-  # Command 'LOAD_NODE'
+  # Command 'LOAD_IMAGE'
   #
   # Load a specified disk image onto this node through frisbee
   #
@@ -519,20 +519,20 @@ module AgentCommands
   end
 
   #
-  # Command 'SAVE_NODE'
+  # Command 'SAVE_IMAGE'
   #
   # Save the image of this node with frisbee and send
   # it to the image server.
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the host of the file server, the image name, and the name of the disk device to save
+  # - argArray = an array with the host and port of the file server, and the name of the disk device to save
   #
   def AgentCommands.SAVE_IMAGE(agent, argArray)
-    imgName = getArg(argArray, "Name of saved image") 
     imgHost = getArg(argArray, "Image Host")
+    imgPort = getArg(argArray, "Image Port") 
     disk = getArgDefault(argArray, "/dev/hda")
     
-    cmd = "imagezip #{disk} - | curl -nsT - ftp://#{imgHost}/upload/#{imgName}"
+    cmd = "imagezip #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
     MObject.debug "AgentCommands", "Image save command: #{cmd}"
     ExecApp.new('builtin:save_image', agent, cmd, true)
   end
