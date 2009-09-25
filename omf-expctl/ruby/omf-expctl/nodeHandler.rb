@@ -683,7 +683,7 @@ class NodeHandler < MObject
   # - uri = the URI referencing the experiment resources 
   #
   def printResource(uri)
-    loadConfiguration()
+    loadControllerConfiguration()
     res = OConfig.load(uri, false)
     if (res.nil?)
       puts "ERROR: Unknown uri '#{uri}'"

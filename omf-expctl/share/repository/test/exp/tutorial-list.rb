@@ -32,7 +32,10 @@ TUTORIAL_LIST = {
 
 puts "\n List of Available tutorials:\n\n"
 TUTORIAL_LIST.each { |k,v| puts " - Name: #{k} - Description: #{v}" }
-puts "\n Usage example:\n\n"
+puts "\n How to run a tutorial:\n"
 puts "   omf exec --tutorial -- --tutorialName tutorial-1a"
 puts "   omf exec --tutorial -- --tutorialName tutorial-1b --sender 1 --receiver 3"
+puts "\n How to print the experiment description of a tutorial:\n"
+puts "   omf exec -p tutorial-1a"
 puts " "
+
