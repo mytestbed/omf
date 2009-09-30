@@ -1,3 +1,9 @@
+omf-common (5.0-4) stable; urgency=low
+
+  * added keepalive support for XMPP
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 25 Sep 2009 16:24:26 +1000
+
 omf-common (5.0-3) stable; urgency=low
 
   * fixed omf tell

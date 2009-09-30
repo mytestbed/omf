@@ -1,3 +1,9 @@
+omf-expctl (5.0-6) stable; urgency=low
+
+  * included omf_create_sysnode script
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 25 Sep 2009 10:52:39 +1000
+
 omf-expctl (5.0-5) stable; urgency=low
 
   * fixed omf tell
