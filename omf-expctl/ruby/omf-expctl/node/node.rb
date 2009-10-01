@@ -315,6 +315,10 @@ class Node < MObject
   def onAppEvent(eventName, appId, message)
     #debug("Message for app '#{appId}' - '#{message}'")
     appName, op = appId.split('/')
+    if (eventName.upcase == "STDOUT") && NodeHandler.SHOW_APP_OUTPUT()
+       # When requested by user, print SDOUT events on our own standard-out
+       info("From app '#{appId}' - '#{message}'")
+    end
     if (appName =~ /^exec:/)
       if ! @execs.key?(appName)
         warn("Received '#{eventName}' for unknown command '#{appName}' - '#{message}'")
@@ -325,10 +329,6 @@ class Node < MObject
         block.call(self, op, eventName, message)
       end
       return
-    end
-    if (eventName.upcase == "STDOUT") && NodeHandler.SHOW_APP_OUTPUT()
-       # When requested by user, print SDOUT events on our own standard-out
-       info("From app '#{appId}' - '#{message}'")
     end
     TraceState.nodeOnAppEvent(self, eventName, appName, op, message)
   end
