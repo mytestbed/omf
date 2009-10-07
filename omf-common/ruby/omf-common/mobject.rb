@@ -78,12 +78,12 @@ class MObject
       begin
         Log4r::Configurator.load_xml_file(configFile)
       rescue Log4r::ConfigError => ex
-        @@logger.outputters = Outputter.stdout
+        @@logger.outputters = Log4r::Outputter.stdout
         MObject.error("Log::Config", ex)
       end
     else
       # set default behavior
-      @@logger.outputters = Outputter.stdout
+      @@logger.outputters = Log4r::Outputter.stdout
     end
   end
 

@@ -86,7 +86,7 @@ class ExecApp < MObject
       rescue => ex
         if cmd.kind_of?(Array)
           cmd = cmd.join(' ')
-        end
+	end
         STDERR.puts "exec failed for '#{cmd}'(#{$!}): #{ex}"
       end
       # Should never get here
