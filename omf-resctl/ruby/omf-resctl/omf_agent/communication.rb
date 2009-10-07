@@ -180,11 +180,23 @@ class Communicator < MObject
     isConfigured = false
     while (isConfigured == false)
       if Communicator.isPlatformLinux?
-        match = /[.\d]+\.[.\d]+\.[.\d]+\.[.\d]+/
-        lines = IO.popen("/sbin/ifconfig #{@localIF}", "r").readlines
-        if (lines.length >= 2)
-          @@localAddr = lines[1][match]
-        end
+	      if(RUBY_PLATFORM.include?('arm-linux'))
+	        ## arm-linux is assumed to be android platform
+	        lines = IO.popen("ifconfig #{@localIF}", "r").readlines
+	        iplines = "#{lines}"
+	        ip_index = iplines.index('ip') + 3
+	        mask_index = iplines.index('mask')
+	        ip_length = mask_index -1 -ip_index
+	       @@localAddr = iplines.slice(ip_index,ip_length)
+
+		else
+		## Other Linux Platform
+        	match = /[.\d]+\.[.\d]+\.[.\d]+\.[.\d]+/
+        	lines = IO.popen("/sbin/ifconfig #{@localIF}", "r").readlines
+        	if (lines.length >= 2)
+          		@@localAddr = lines[1][match]
+        		end
+	      end
         # hack for APP1
         #if @@localAddr == nil
         #  @@localAddr = IO.popen("/sbin/ifconfig eth0", "r").readlines[1][match]
@@ -355,8 +367,8 @@ class TcpServerCommunicator < Communicator
   #
   # - message = the text message to send
   #
-  def send(*msgArray)
-    send!(0, *msgArray)
+  def send(msgArray)
+    send!(0, msgArray)
   end
 
   #

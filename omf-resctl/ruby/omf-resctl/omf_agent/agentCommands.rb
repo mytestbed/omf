@@ -164,10 +164,11 @@ module AgentCommands
   # - argArray = an array with the list of name to add as aliases
   #
   def AgentCommands.ALIAS(agent, argArray)
-    argArray.each{ |name|
+    aliasArray = argArray
+    aliasArray.each{ |name|
       agent.addAlias(name)
     }
-    agent.enrollReply(argArray)
+    agent.enrollReply(aliasArray)
   end
 
   #
@@ -185,7 +186,8 @@ module AgentCommands
     argArray.delete_at(0)    
     agentId = getArg(argArray, "Name of agent")
     agent.addAlias(agentId, true)
-    argArray.each{ |name|
+    aliasArray = argArray
+    aliasArray.each{ |name|
       agent.addAlias(name)
     }
     # The ID of a node (for the moment [x,y]) should be taken form here, and not from the IP address of the Control Interface!
@@ -193,7 +195,8 @@ module AgentCommands
     y = agentId.split("_")[2]
     agent.communicator.setX(eval(x))
     agent.communicator.setY(eval(y))
-    agent.enrollReply(argArray << agentId)
+    aliasArray << agentId
+    agent.enrollReply(aliasArray)
   end
 
   #
