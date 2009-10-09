@@ -55,7 +55,9 @@ module AgentCommands
   # - argArray = an array holding the arguments for this command
   #
   def AgentCommands.ENROLLED(handler, sender, senderId, argArray)
+    info "TDEBUG - A - sender: #{sender} - array: #{argArray.join(" ")}"
     sender.enrolled(argArray)
+    info "TDEBUG - B - "
   end
 
 

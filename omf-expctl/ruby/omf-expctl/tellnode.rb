@@ -36,12 +36,6 @@ require 'net/http'
 require 'omf-common/mobject'
 require 'omf-expctl/nodeHandler.rb'
 
-# Stub Class for the NodeHandler
-# The current OMF classe/module are so tighly coupled that nothing can be
-# done without a NodeHandler object.
-# TODO: "clean" the entire OMF design to remove this non-relevant dependencies
-# 
-
 #
 # Return a Topology object from a given topology declaration
 #

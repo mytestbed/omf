@@ -260,7 +260,7 @@ class Topology < MObject
   #
   # - srcName = name of the source node (as given by user when node was added to the Topology)
   # - dstName = name of the destination node (as given by user when node was added to the Topology)
-  # - spec = optional, a Hash with the link options, such as { :rate=>54, :per=>0.1, :asymmetric=>true }, by default links are symmetric
+  # - spec = optional, a Hash with the link options, such as { :portFilter => 5001 :delay => "54ms", :loss=>"10%", :bw => "50kbit" :asymmetric=>true }, by default links are symmetric  
   #
   def addLink(srcName, dstName, spec = {})
     debug "addLink() #{srcName} -> #{dstName} ('#{spec.to_s}')"
@@ -278,14 +278,39 @@ class Topology < MObject
     end
     @edges = getGraphEdges(@graph)
     source = [srcName,@mapping[srcName]]
+    dstCompare = [dstName,@mapping[dstName]]
     @graph.adjacent(source).each { |dest|
       if (@graph.edge?(source,dest))
-        linkSpec = @edges[source+dest].label
+        # check if there is already a link set between this source and this dest
+        if (dest.to_s == dstCompare.to_s)
+	  #update of the link (spec ...)
+	  linkSpec = @edges[source+dest].label
+	  #update of a rule, which means update of a hash in a hash
+	  spec.each_key{|key|
+	    if(spec[key].kind_of? Hash and linkSpec[key].kind_of? Hash)
+              linkSpec[key] = linkSpec[key].merge!(spec[key])
+	      spec.delete(key)
+            end
+	  }
+ 	  #update of others value in the specs
+ 	  linkSpec.merge!(spec)
+	  spec = linkSpec
+	  #spec values => flush  means removing all traffic shaping characteristics
+	  if (spec[:values].to_s == "flush")
+	    puts "flush flush"
+	    spec.each_key{|key|
+	      if (key != :asymmetric)
+	        spec.delete(key)
+	      end
+	    }
+          end
+        end
         if (isSpecificationCompatible(spec, linkSpec) == false)
           raise "Topology:addLink() - Link '#{srcName}' to '#{dstName}' is incompatible with previous links" 
         end
       end
     }
+    puts spec.to_s
     # This link is OK, add it to the graph of this topology
     @graph.add_edge!([srcName,@mapping[srcName]],[dstName,@mapping[dstName]],spec)
   end
@@ -322,6 +347,126 @@ class Topology < MObject
     end
     return mapping
   end
+
+  #
+  #This method will will go through all the nodes in this topology and create
+  #the correct rules for our traffic shaper
+  #- device = is the device to on which will be applied the rule
+  #
+  #Until now, the only tool available is NetEM/Tc
+  # values[] = values of parameters for the action : values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange].  Value -1 = not set, 
+  #   except for portRange, 0 
+  #     
+  #
+
+  def buildTCList(device)
+    # Sanity check
+    if (@graph == nil)
+      raise "Cannot build MAC black-lists, no vertices/edges in this topology '#{@uri}'"
+    end
+    #if there is a link we read the spec and create an array with all values : values = [ipDst -1,delay -1,delayvar -1,delayCor -1,loss -1,lossCor -1,bw -1,bwBuffer -1,bwLimit -1,per -1, duplication -1,portDst -1,portRange 0,portProtocol,interface]
+    @edges = getGraphEdges(@graph)
+    @graph.vertices.each { |source|
+      s   = eval(source[1])
+      nodeSrc = Node[s[0],s[1]]
+      @graph.adjacent(source).each { |dest|
+        if (@graph.edge?(source,dest))
+          d = eval(dest[1])
+          spec = @edges[source+dest].label
+          spec.each_key{|key|
+	  #if the value is a Hash, it means it is a rule. We use it
+	  if (spec[key].kind_of? Hash)
+	      # value to know if netem or tbf are used in the rule
+	      netem = 0
+	      tbf = 0
+	      param = spec[key]
+              debug "Link ["+s[0].to_s+","+s[1].to_s+"] -> ["+d[0].to_s+","+d[1].to_s+"] - ("+param.to_s+")"
+    	      values= [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,"eth0"]
+	      if param[:delay]!= nil
+		netem = 1
+ 	        values[1] = ["#{param[:delay].to_s}"]
+	        if param[:delayVar] != nil
+		  #delay + varation in delay
+		  values[2] = ["#{param[:delayVar].to_s}"]
+		  if param[:delayCor] != nil
+		    #delay + variation + correlation
+		    values[3] = ["#{param[:delayCor].to_s}"]
+		  end
+	        end
+	      end
+	      if param[:loss] != nil
+       		netem = 1
+	        values[4] =  ["#{param[:loss].to_s}"]
+	        if param[:lossCor] != nil
+		  #loss + loss correlation
+		  values[5] = ["#{param[:lossCor].to_s}"] 
+	        end
+	      end
+              if (param[:bw] != nil) 
+                values[6] =  ["#{param[:bw].to_s}"]
+		if (param[:bwBuffer] != nil)
+                  values[7] = ["#{param[:bwBuffer].to_s}"]
+		else
+                  values[7] = "16000"
+		end
+		if (param[:bwLimit] != nil)
+                  values[8] = ["#{param[:bwLimit].to_s}"]
+		else
+                  values[8] = "30000"
+		end
+		tbf = 1
+              end
+	      if param[:per] != nil
+		netem = 1
+ 	        values[9] =  ["#{param[:per].to_s}"]
+              end
+	      if param[:duplication] != nil
+		netem = 1
+ 	        values[10] =  ["#{param[:duplication].to_s}"]
+              end
+              nodeDst = Node[d[0],d[1]]
+              mac = nil
+              url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?x=#{d[0]}&y=#{d[1]}&ifname=#{device}&domain=#{OConfig.domain}"
+              response = NodeHandler.service_call(url, "Can't get node information from INVENTORY")
+              doc = REXML::Document.new(response.body)
+              doc.root.elements.each("/MAC_Address/#{device}") { |e|
+                mac = e.get_text.value
+              }
+ 	      puts mac.to_s+"- @mac dst"+d[0].to_s+"-"+d[1].to_s 
+	      if (mac == nil)
+                doc.root.elements.each('/MAC_Address/ERROR') { |e|
+	          error "Topology - #{e.get_text.value}"
+                  raise "Topology - #{e.get_text.value}"
+                }
+              end
+	      ipDst=nodeDst.ipExp?()
+	      values[0]= ipDst
+	      #Port filtered
+	      if (param[:portFilter] != nil)
+	        values[11] = param[:portFilter] 
+                if (param[:portRange] != nil)
+                  values[12]=param[:portRange]
+                end
+		if (param[:portProtocol] == "tcp")
+		  values[13]=6
+		elsif (param[:portProtocol] == "udp")
+		  values[13]=17
+		end
+
+	      end
+	      #netem == 0 and tbf == 0 means rule empty, or syntax error (ex : bw without buffer and limit), we don't send anything.
+	      puts "value #{values}"
+	      if (netem == 1 or tbf == 1)
+		values[14] = device.to_s
+                nodeSrc.setTrafficRules(values)
+	      end
+	    end
+          }  
+        end
+      }
+    }
+  end
+
 
   #
   # This method will go through all the nodes in this topology and build/activate 

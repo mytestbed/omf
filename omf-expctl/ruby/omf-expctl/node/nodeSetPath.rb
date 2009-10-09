@@ -117,7 +117,7 @@ class NodeSetPath < MObject
     end
     if value != nil
       if (@path.last.to_s == "enforce_link")
-        @nodeSet.setMACFilteringTable(@path, @value)
+        @nodeSet.setLinkCharacteristics(@path, @value)
         # If this NH is invoked with support for temporary disconnected node/resource, then 
         # do not execute any node/resource configuration commands (this will be done by the
         # slave NH running on the node/resource).

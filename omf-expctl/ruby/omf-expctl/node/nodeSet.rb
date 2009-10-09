@@ -394,13 +394,11 @@ class NodeSet < MObject
   end
 
   #
-  # This method builds and activates the MAC address blacklists (if any)
-  # on all the nodes in this NodeSet
-  #
+  # This method set link characteristics depending on tools needed.
   # - path = the full xpath used when setting the MAC filtering
   # - value = the value given to that xpath when setting it
   #
-  def setMACFilteringTable(path, value)
+  def setLinkCharacteristics(path, value)
     theTopo = value[:topology]
     theTool = value[:method]
     theDevice = path[-2]
@@ -408,12 +406,21 @@ class NodeSet < MObject
     # Currently the Inventory contains only info of interfaces such as "athX"
     # This should not be the case, and should be fixed soon! When the Inventory
     # will be "clean", we will have to modify the following interface definition
-    if theDevice.to_s == "w0"
-      theInterface = "ath0"
-    else
-      theInterface = "ath1"
+    case theDevice.to_s
+      when "w0"
+        theInterface = "ath0"
+      when "w1"
+        theInterface = "ath1"
+      when "e0"
+        theInterface = "eth0"
+      when "e1"
+        theInterface = "eth1"
     end
-    Topology[theTopo].buildMACBlackList(theInterface, theTool)
+    if theTool == "tc"
+      Topology[theTopo].buildTCList(theInterface)
+    else
+      Topology[theTopo].buildMACBlackList(theInterface, theTool)
+    end
   end
 
   # 

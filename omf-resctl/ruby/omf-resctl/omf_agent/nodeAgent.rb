@@ -177,11 +177,11 @@ class NodeAgent < MObject
   # command has been successfully completed, the NA sends this message
   # to the NH
   #
-  # - aliasArray = an array with the names of all the groups within the 
+  # - msgArray = an array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
-  def enrollReply(aliasArray)
-    communicator.send(:ENROLLED, *aliasArray)
+  def enrollReply(*msgArray)
+    communicator.send(:ENROLLED, *msgArray)
   end
 
   #
@@ -278,6 +278,10 @@ class NodeAgent < MObject
     #### ONLY FOR WINDOWS TESTING
     #    controlIP = localAddr || "10.10.2.3"
     #### END OF HACK
+    #rules deletion
+    cmd = "tc qdisc del dev eth0 root "
+    MObject.debug "Exec: '#{cmd}'"
+    result=`#{cmd}`
     resetState
     communicator.reset
   end

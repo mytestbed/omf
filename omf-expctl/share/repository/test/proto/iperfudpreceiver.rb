@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,37 +26,31 @@
 # Define a prototype
 #
 
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
 
 p = Prototype.create("test:proto:iperfudpreceiver")
 p.name = "Iperf UDP Receiver"
 p.description = "Nodes which receive packets"
 p.defProperty('use_udp', 'Protocol to use')
 p.defProperty('server', 'Client/Server')
-#p.defProperty('port', 'Port to listen on')
+p.defProperty('port', 'Port to listen on')
 p.defProperty('time', 'Duration of experiment (seconds)', 10)
-p.defProperty('len', 'Payload length', 512)
+#p.defProperty('len', 'Payload length', 512)
 p.defProperty('report_interval', 'Interval between bandwidth reports', 1)
+p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:10.0.1.200:3003") #"tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
+p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
+p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
 
-iperfr = p.addApplication('iperfr', "test:app:iperfr")
-iperfr.bindProperty('udp')
+p.addApplication("test:app:iperfr"){|iperfr| 
+iperfr.bindProperty('udp','use_udp')
 iperfr.bindProperty('server')
-#iperfr.bindProperty('port','port')
+iperfr.bindProperty('port','port')
 iperfr.bindProperty('time')
-iperfr.bindProperty('len')
+#iperfr.bindProperty('len')
 iperfr.bindProperty('interval','report_interval')
-
-iperfr.addMeasurement('receiverport',  Filter::SAMPLE,
-  {Filter::SAMPLE_SIZE => 1},
-  [
-    ['flow_no'],
-    ['throughput'],
-    ['jitter'],
-    ['packet_loss']
-  ]
-)
+iperfr.bindProperty('oml-server', 'omlServer')
+iperfr.bindProperty('oml-id', 'id')
+iperfr.bindProperty('oml-exp-id', 'expId')
+}
 
 if $0 == __FILE__
   p.to_xml.write($stdout, 2)

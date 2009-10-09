@@ -172,9 +172,6 @@ class AgentPubSubCommunicator < MObject
   def self.isPlatformLinux?
     return RUBY_PLATFORM.include?('linux')
   end
-  def self.isPlatformArmLinux?
-    return RUBY_PLATFORM.include?('arm-linux')
-  end
 
   #
   # Return the MAC address of the control interface
@@ -202,21 +199,10 @@ class AgentPubSubCommunicator < MObject
     # If we are on a Linux Box, we parse the output of 'ifconfig' 
     if AgentPubSubCommunicator.isPlatformLinux?
       interface = NodeAgent.instance.config('comm')['local_if']
-      if AgentPubSubCommunicator.isPlatformArmLinux?
-	      ## arm-linux is assumed to be android platform
-	       lines = IO.popen("ifconfig #{interface}", "r").readlines
-	       iplines = "#{lines}"
-	       ip_index = iplines.index('ip') + 3
-	       mask_index = iplines.index('mask')
-	       ip_length = mask_index -1 -ip_index
-	       @@IPaddr = iplines.slice(ip_index,ip_length)
-	      ## @@IPaddr = "1.2.3.4"
-       else
-      	lines = IO.popen("ifconfig #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
-      	if (lines.length > 0)
+      lines = IO.popen("ifconfig #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
+      if (lines.length > 0)
           @@IPaddr = lines[0].chomp
-	 end
-       end
+      end
     else
     # not implemented for other OS
       @@IPaddr = "0.0.0.0"
@@ -413,6 +399,7 @@ class AgentPubSubCommunicator < MObject
       when "RETRY"
       when "LIST"
       when "SET_MACTABLE"
+      when "SET_TRAFFICRULES"
       when "NOOP"
         return
       when "JOIN"

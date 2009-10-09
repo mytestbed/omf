@@ -101,6 +101,138 @@ module AgentCommands
     return SLAVE_EXPCTL_ID
   end
 
+  # Command 'REMOVE_TRAFFICRULES'
+  #
+  # Remove a traffic rule and the filter attached. It not destroys the main class which hosts the rule
+  # - values = values needed to delete a rule an a filter : the Id, and all parameters of the filter
+  #
+ 
+  def AgentCommands.REMOVE_TRAFFICRULES(agent , argArray)
+    #check if the tool is available (Currently, only TC)
+    if (!File.exist?("/sbin/tc"))
+      raise "Traffic shaping method not available in 'SET_TRAFFICRULES'"
+    else
+      ipDst= getArg(argArray, "value of the destination IP")
+      portDst=getArg(argArray, "value of the port for filter based on port")
+      portRange=getArg(argArray, "Range for filtering by port")
+      nbRules = getArg(argArray , "Number of rules")
+      portRange = portRange.to_i
+      portRange = 65535 - portRange
+      portRange = portRange.to_s(16)
+      #Rule deletion.
+      cmdDelRule ="tc qdisc del dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: ; tc qdisc add dev eth0 parent #{nbRules}0:1 handle #{nbRules}01: "
+      MObject.debug "Exec: '#{cmdDelRule}'"
+      result=`#{cmdDelRule}`
+      #Filter deletion
+      if(portDst!="-1")
+        cmdFilter= "tc filter del dev eth0 protocol ip parent 1:0 prio 3 u32 match ip protocol 17 0xff match ip dport #{portDst} 0x#{portRange} match ip dst #{ipDst} flowid 1:1#{nbRules}"
+      else
+        cmdFilter= " tc filter del dev eth0 protocol ip parent 1:0 prio 3 u32 match ip dst #{ipDst} flowid 1:1#{nbRules}"
+      end
+      MObject.debug "Exec: '#{cmdFilter}'"
+      result=`#{cmdFilter}`
+    end
+  end
+
+    #  Command 'SET_TRAFFICRULES'
+    #  Add a traffic shaping rules between the node src and the destination and specify a filter either on @dst either on @dst and destination port.
+    #  - values = all the values to set the rules. values =[ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,per,duplication,portDst,portRange,rulesId]
+    #
+
+  def AgentCommands.SET_TRAFFICRULES(agent , argArray)
+    #check if the tool is available (Currently, only TC)
+    if (!File.exist?("/sbin/tc"))
+      raise "Traffic shaping method not available in 'SET_TRAFFICRULES'"
+    else
+      ipDst=getArg(argArray, "@ip dst")
+      delay=getArg(argArray, "value of the delay. -1=not set")
+      delayVar=getArg(argArray, "Value of the delay variation")
+      delayCor=getArg(argArray, "Value of the delay correlation")
+      loss=getArg(argArray, "value of the loss")
+      lossCor=getArg(argArray, "value of the loss correlation")
+      bw=getArg(argArray, "value of the bandwidth")
+      bwBuffer=getArg(argArray, "value of the buffer for TBf")
+      bwLimit=getArg(argArray, "value of the limit for TBF")
+      per=getArg(argArray, "value of the packet error rate")
+      duplication=getArg(argArray, "value of the duplication")
+      portDst=getArg(argArray, "value of the port for filter based on port")
+      portRange=getArg(argArray, "Range for filtering by port")
+      protocol=getArg(argArray, "TCP or UDP")
+      interface = getArg(argArray, "interface to apply the rules")
+      nbRules = getArg(argArray , "Number of rules")
+      nbRules = nbRules.to_i
+      nbRules = nbRules + 1
+      portRange = portRange.to_i
+      portRange = 65535 - portRange
+      portRange = portRange.to_s(16)
+      #values to check that either netem or tbf are in use (no empty rule)
+      netem = 0
+      tbf = 0
+      if (nbRules==2)
+        cmdMainPipe = "tc qdisc del dev eth0 root ; tc qdisc add dev eth0 handle 1: root htb ; tc class add dev eth0 parent 1: classid 1:1 htb rate 1000Mbps "
+        MObject.debug "Exec: '#{cmdMainPipe}'"
+        result=`#{cmdMainPipe}`
+      end
+      #Creation of netem parameters part
+      parameters ="netem "
+      puts "delay #{delay}"
+      if (delay != "-1")
+        netem = 1
+        parameters = parameters + "delay #{delay}"
+        if (delayVar != "-1")
+          parameters = parameters + " #{delayVar}"
+          if (delayCor != "-1")
+            parameters = parameters + " #{delayCor}"
+          end
+        end
+      end
+      if (loss!= "-1")
+        netem = 1
+        parameters = parameters + " loss #{loss}"
+        if (lossCor != "-1")
+          parameters = parameters +" #{lossCor}"
+        end
+      end
+      if (per != "-1")
+        netem = 1
+        parameters = parameters + " corrupt #{per}"
+      end
+      if (duplication != "-1")
+        netem = 1
+        parameters = parameters + " duplicate #{duplication}"
+end
+      #Only tbf in the rule
+      if(bw != "-1"  and netem == 0)
+        tbf = 1
+        parametersTbf = "tbf rate #{bw} buffer #{bwBuffer} limit #{bwLimit}"
+          cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parametersTbf}"
+          MObject.debug "Exec: '#{cmdRule}'"
+          result=`#{cmdRule}`
+      #Bw AND Netem Stuff
+      elsif (bw != "-1" and netem == 1)
+        tbf = 1
+        parametersTbf = "tbf rate #{bw} buffer #{bwBuffer} limit #{bwLimit}"
+        cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parameters} ; tc qdisc add dev eth0 parent #{nbRules}0:1 handle #{nbRules}01: #{parametersTbf}"
+        MObject.debug "Exec: '#{cmdRule}'"
+        result=`#{cmdRule}`
+      elsif (bw == "-1" and netem == 1)
+        cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parameters}"
+        MObject.debug "Exec: '#{cmdRule}'"
+        result=`#{cmdRule}`
+      end
+      if(tbf != 0 or netem != 0)
+        if(portDst!="-1")
+          cmdFilter= "tc filter add dev #{interface} protocol ip parent 1:0 prio 3 u32 match ip protocol #{protocol} 0xff match ip dport #{portDst} 0x#{portRange} match ip dst #{ipDst} flowid 1:1#{nbRules}"
+        else
+          cmdFilter= " tc filter add dev #{interface} protocol ip parent 1:0 prio 3 u32 match ip dst #{ipDst} flowid 1:1#{nbRules}"
+        end
+      end
+      MObject.debug "Exec: '#{cmdFilter}'"
+      result=`#{cmdFilter}`
+      agent.okReply(:SET_TRAFFICRULES)
+    end
+  end
+
   #
   # Command 'SET_MACTABLE'
   #
@@ -164,11 +296,10 @@ module AgentCommands
   # - argArray = an array with the list of name to add as aliases
   #
   def AgentCommands.ALIAS(agent, argArray)
-    aliasArray = argArray
-    aliasArray.each{ |name|
+    argArray.each{ |name|
       agent.addAlias(name)
     }
-    agent.enrollReply(aliasArray)
+    agent.enrollReply(argArray)
   end
 
   #
@@ -186,8 +317,7 @@ module AgentCommands
     argArray.delete_at(0)    
     agentId = getArg(argArray, "Name of agent")
     agent.addAlias(agentId, true)
-    aliasArray = argArray
-    aliasArray.each{ |name|
+    argArray.each{ |name|
       agent.addAlias(name)
     }
     # The ID of a node (for the moment [x,y]) should be taken form here, and not from the IP address of the Control Interface!
@@ -195,8 +325,7 @@ module AgentCommands
     y = agentId.split("_")[2]
     agent.communicator.setX(eval(x))
     agent.communicator.setY(eval(y))
-    aliasArray << agentId
-    agent.enrollReply(aliasArray)
+    agent.enrollReply(argArray << agentId)
   end
 
   #

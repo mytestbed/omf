@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,41 +25,33 @@
 #
 # Define a prototype
 #
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
-
-p = Prototype.create("test:proto:iperfudpsender")
+defPrototype("test:proto:iperfudpsender") { |p|
 p.name = "Iperf UDP Sender"
 p.description = "Nodes which send a stream of packets"
-p.defProperty('use_udp', 'Protocol to use')
-p.defProperty('client', 'Host to send packets to')
-p.defProperty('sender_rate', 'Number of bits per second', 100000)
-#p.defProperty('port', 'Port to send packets to')
-p.defProperty('len', 'Size of packets')
+p.defProperty('use_udp', 'Protocol to use', false)
+p.defProperty('client', 'Host to send packets to', "localhost")
+p.defProperty('sender_rate', 'Number of bits per second', 100000000)
+p.defProperty('port', 'Port to send packets to', 5001)
+#p.defProperty('len', 'Size of packets')
 p.defProperty('time', 'Experiment duration (sec)', 10)
+p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:10.0.1.200:3003")#"tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
+p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
+p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
 
-iperfs = p.addApplication(:iperfs, "test:app:iperfs")
-iperfs.bindProperty('udp','use_udp')
-iperfs.bindProperty('client')
+p.addApplication("test:app:iperfs"){|iperfs|
+iperfs.bindProperty('Audp','use_udp')
+iperfs.bindProperty('Aclient', 'client')
 iperfs.bindProperty('bandwidth','sender_rate')
-iperfs.bindProperty('len')
+#iperfs.bindProperty('len')
 iperfs.bindProperty('time')
-#iperfs.bindProperty('port')
+iperfs.bindProperty('port')
+iperfs.bindProperty('oml-server', 'omlServer')
+iperfs.bindProperty('oml-id', 'id')
+iperfs.bindProperty('oml-exp-id', 'expId')
 
-iperfs.addMeasurement('senderport',  Filter::SAMPLE,
-  {Filter::SAMPLE_SIZE => 1},
-  [
-    ['stream_no'],
-    ['pkt_seqno'],
-    ['pkt_size', Filter::SUM],
-    ['gen_timestamp'],
-    ['tx_timestamp']
-  ]
-)
-
+}
 if $0 == __FILE__
   p.to_xml.write($stdout, 2)
   puts
 end
-
+}

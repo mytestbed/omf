@@ -155,6 +155,15 @@ class Node < MObject
 
   # ID of shadow xml node
   attr_reader :nodeId
+  
+  # IP of interface for experiment
+  attr_writer :ipExp
+
+  # Number of rules for TC
+  attr_writer :rulesNb
+
+  #list of rules applied on this node
+  attr_writer :rulesList
 
   # Name of image to expect on node
   attr_reader :image
@@ -379,11 +388,33 @@ class Node < MObject
       value.sub!(/%x/, @x.to_s)
       value.sub!(/%y/, @y.to_s)
     end
+    ipExp(value)
+    ipexp = ipExp?()
     TraceState.nodeConfigure(self, path, value, status)
     #el = getConfigNode(path)
     #el.text = value
     #el.add_attribute('status', status)
   end
+
+    #
+    # Set the IP of the interface used for experiment.
+    #   
+    #   - ipExp = @ip of the interface
+    #        
+  def ipExp(ip)
+    @ipExp = ip
+  end
+
+  #
+  #  Return the Ip of the interface used for experiment
+  #    
+  #  [Return] @Ip
+  #
+
+  def ipExp?()
+        return @ipExp
+  end
+
 
   #
   # Set the name of the image, which will be reported by this Node at check-in time.
@@ -460,6 +491,45 @@ class Node < MObject
     @blockedMACList.each{ |mac|
       send('SET_MACTABLE', toolToUse, mac)
     }
+  end
+
+  #
+  #  Send message with rule parameters to enable traffic shaping
+  #  
+  #  - values = values of parameters for the action : values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange, portProtocol].  Value -1 = not set, except for portRange, 0
+  #  - ipDst = ip of the destination host
+  # 
+
+  def setTrafficRules(values)
+    nbRules = @rulesId
+    values = values + [@rulesId]
+    ipDst = values[0].to_s
+    if (@rulesList.size > 0)
+      i=0
+      while (i<@rulesList.size)
+        puts @rulesList[i][0].to_s+"rulesList"
+        #
+        #    UPDATE OF A RULE WHILE EXPERIMENT IS RUNNING
+        #     
+        #     if (@rulesList[i][0] == ipDst)
+        #     send('SET_REMOVERULES',rulesList[i][0],rulesList[i][11],rulesList[i][12],rulesList[i][13])
+        #     j=1
+        #     while (j!=13)
+        #       if (@rulesList[i][j] != values[j] and values[j] != -1)
+        #         @rulesList[i][j] = values[j]
+        #     end
+        #     j = j+1   
+        #   end
+        #   values = @rulesList[i]      
+        # end
+        
+        i = i+1
+      end
+    end
+    send('SET_TRAFFICRULES',values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14],values[15])
+    @rulesList = @rulesList + [values]
+    @rulesId = @rulesId + 1
+    puts " -- "
   end
   
   #
@@ -769,7 +839,8 @@ class Node < MObject
   def initialize(x, y)
     @nodeId = "n_#{x}_#{y}"
     super("node::#{@nodeId}")
-
+    @rulesId = 1
+    @rulesList = []
     @x = x
     @y = y
     @groups = Hash.new  # name of nodeSet groups this node belongs to
