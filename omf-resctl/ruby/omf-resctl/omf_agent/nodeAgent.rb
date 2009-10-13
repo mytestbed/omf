@@ -177,11 +177,11 @@ class NodeAgent < MObject
   # command has been successfully completed, the NA sends this message
   # to the NH
   #
-  # - msgArray = an array with the names of all the groups within the 
+  # - aliasArray = an array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
-  def enrollReply(*msgArray)
-    communicator.send(:ENROLLED, *msgArray)
+  def enrollReply(aliasArray)
+    communicator.send(:ENROLLED, *aliasArray)
   end
 
   #
