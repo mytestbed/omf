@@ -229,6 +229,7 @@ class AbstractDaemon < MObject
   #
   def findPort()
     # this is REALLY ugly
+    # also, what if the port is in use by another application on this host?
     port = @config['startPort']
     while true
       good = true

@@ -420,27 +420,7 @@ class Node < MObject
       imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
     
-    # pick a free port
-    server = TCPServer.new(0)
-    imgPort = server.addr[1]
-  
-    # TODO: catch write errors here
-    imgFile = File.open(imgName, "w")
- 
-    # a single thread to accept the incoming connection, 
-    # write the image file and close the socket server
-    Thread.new { 
-      s = server.accept
-      while(data = s.read(1024*1024)) do
-        imgFile.write(data)
-      end
-      s.close
-    }
-
-    # alternatively use netcat:
-    # server.close
-    # cmd = "nc -l -p #{imgPort} > #{imgName} &"
-    # system(cmd)
+    # TODO: call saveimage grid service and retrieve port
     
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "

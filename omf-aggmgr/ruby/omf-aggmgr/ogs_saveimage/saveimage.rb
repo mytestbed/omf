@@ -1,0 +1,111 @@
+#
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2009 - WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+# = saveimage.rb
+#
+# == Description
+#
+# This file defines the SaveimageService class.
+#
+
+require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs_saveimage/saveimaged'
+
+#
+# This class defines a Service to control a Saveimage server. A Saveimage server
+# is used to distribute disk image in an efficient manner among the nodes of a 
+# given testbed.
+#
+# For more details on how features of this Service are implemented below, please
+# refer to the description of the AbstractService class
+#
+class SaveimageService < GridService
+
+  # used to register/mount the service, the service's url will be based on it
+  name 'saveimage'  
+  info 'Service to control netcat to receive image files'
+  @@config = nil
+  
+  #
+  # Implement 'getAddress' service using the 'service' method of AbstractService
+  #
+  s_info 'Get the port number of a netcat instance receiving a specified image (start a new instance if none exists)'
+  s_param :img, 'imgName', 'name of image to save.'
+  s_param :domain, 'domain', 'domain for request.'
+  s_param :user, 'user', 'UNIX user name to set image file ownership.'
+  service 'getAddress' do |req, res|    
+    d = SaveimageDaemon.start(req)
+    res['Content-Type'] = "text"
+    res.body = d.getAddress()
+  end
+  
+  #
+  # Implement 'stop' service using the 'service' method of AbstractService
+  #
+  s_info 'Stop receiving a specified image'
+  s_param :img, 'imgName', 'name of image to save.'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'stop' do |req, res|
+    d = SaveimageDaemon.stop(req)
+    res['Content-Type'] = "text"
+    res.body = "OK"
+  end
+
+  #
+  # Implement 'status' service using the 'service' method of AbstractService
+  #
+  s_info 'Returns the list of a certain or all netcat instances'
+  s_param :img, 'imgName', 'name of image to save.'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'status' do |req, res|
+    img = getParamDef(req, 'img', nil)
+    domain = getParam(req, 'domain')
+    name = SaveimageDaemon.daemon_name(req)
+    list = img == nil ? SaveimageDaemon.all : [SaveimageDaemon[name]]
+    # Build the header of the XML response
+    root = REXML::Element.new("saveimage_status")
+    root.elements["interface:port"].text = "#{SaveimageDaemon.getAddress}"
+    # Build the rest of the XML response
+    list.each { |d|
+      root = d.serverDescription(root)
+    } if list != nil
+    setResponse(res, root)
+  end
+
+  #
+  # Configure the service through a hash of options
+  #
+  # - config = the Hash holding the config parameters for this service
+  #
+  def self.configure(config)
+    @@config = config
+    SaveimageDaemon.configure(config)
+    error("Missing configuration 'imageDir'") if @@config['imageDir'] == nil
+    error("Missing configuration 'startPort'") if @@config['startPort'] == nil
+    error("Missing configuration 'timeout'") if @@config['timeout'] == nil
+    error("Missing configuration 'ncBin'") if @@config['ncBin'] == nil
+    error("Missing configuration 'saveimageIF'") if @@config['saveimageIF'] == nil
+  end
+
+end
