@@ -426,9 +426,8 @@ class Node < MObject
     
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "
-    info("- Saving disk image of #{@nodeId} in the file '#{imgName}'")
-    info("  (physical disk '#{disk}') will be saved")    
-    info("  (saved disk images are located at: '#{imgHost}')")
+    info("- Saving image of '#{disk}' on node '#{@nodeId}'")
+    info("  to the file '#{imgName}' on host '#{imgHost}'")
     send('SAVE_IMAGE', imgHost, imgPort, disk)
     info " "
   end

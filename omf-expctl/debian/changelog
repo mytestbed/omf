@@ -1,3 +1,12 @@
+omf-expctl (5.2-1) stable; urgency=low
+
+  * first OMF 5.2 release package
+  * support for saveimage gridservice
+  * better free webserver port detection
+  * moved webserver access logs to /tmp
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 16 Oct 2009 20:29:45 +1100
+
 omf-expctl (5.0-6) stable; urgency=low
 
   * included omf_create_sysnode script

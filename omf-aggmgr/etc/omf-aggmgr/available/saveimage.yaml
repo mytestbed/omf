@@ -1,0 +1,27 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the Saveimage GridService
+#
+---
+saveimage:
+
+  # Max. number of concurrent netcat instances allowed
+  maxDaemons: 10
+
+  testbed:
+    default:
+      # Using ports starting at ...
+      startPort: 9000
+
+      # Time out frisbee server if nobody requested it within TIMEOUT sec
+      timeout: 600
+      
+      # Path to netcat binary
+      ncBin: /bin/nc
+
+      # Directory where images are saved to
+      imageDir: /var/lib/omf-images
+      
+      # Local interface to bind to for netcat
+      saveimageIF: 10.0.0.200

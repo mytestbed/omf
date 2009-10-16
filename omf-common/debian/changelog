@@ -1,3 +1,9 @@
+omf-common (5.2-1) stable; urgency=low
+
+  * first OMF 5.2 release package
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 16 Oct 2009 20:27:58 +1100
+
 omf-common (5.0-4) stable; urgency=low
 
   * added keepalive support for XMPP
