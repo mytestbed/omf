@@ -1,3 +1,10 @@
+omf-resctl (5.2-1) stable; urgency=low
+
+  * first OMF 5.2 release package
+  * supports new saveimage gridservice
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 16 Oct 2009 20:31:08 +1100
+
 omf-resctl (5.0-6) stable; urgency=low
 
   * added XMPP keepalive support

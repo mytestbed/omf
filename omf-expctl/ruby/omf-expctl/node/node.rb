@@ -442,7 +442,7 @@ class Node < MObject
   # disk = Disk containing the image to save (e.g. '/dev/hda')
   #
   def saveImage(imgName = nil,
-                imgHost = OConfig[:tb_config][:default][:image_host],
+                domain = OConfig.domain,
                 disk = OConfig[:tb_config][:default][:frisbee_default_disk])
 
     if imgName == nil
@@ -450,34 +450,15 @@ class Node < MObject
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
       imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
-    
-    # pick a free port
-    server = TCPServer.new(0)
-    imgPort = server.addr[1]
-  
-    # TODO: catch write errors here
-    imgFile = File.open(imgName, "w")
- 
-    # a single thread to accept the incoming connection, 
-    # write the image file and close the socket server
-    Thread.new { 
-      s = server.accept
-      while(data = s.read(1024*1024)) do
-        imgFile.write(data)
-      end
-      s.close
-    }
-
-    # alternatively use netcat:
-    # server.close
-    # cmd = "nc -l -p #{imgPort} > #{imgName} &"
-    # system(cmd)
+        
+    url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
+    response = NodeHandler.service_call(url, "Can't get netcat address/port")
+    imgHost, imgPort = response.body.split(':')
     
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "
-    info("- Saving disk image of #{@nodeId} in the file '#{imgName}'")
-    info("  (physical disk '#{disk}') will be saved")    
-    info("  (saved disk images are located at: '#{imgHost}')")
+    info("- Saving image of '#{disk}' on node '#{@nodeId}'")
+    info("  to the file '#{imgName}' on host '#{imgHost}'")
     send('SAVE_IMAGE', imgHost, imgPort, disk)
     info " "
   end

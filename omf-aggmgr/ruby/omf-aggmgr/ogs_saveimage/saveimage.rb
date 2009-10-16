@@ -22,57 +22,39 @@
 # THE SOFTWARE.
 #
 #
-# = frisbee.rb
+# = saveimage.rb
 #
 # == Description
 #
-# This file defines the FrisbeeService class.
+# This file defines the SaveimageService class.
 #
 
 require 'omf-aggmgr/ogs/gridService'
-require 'omf-aggmgr/ogs_frisbee/frisbeed'
+require 'omf-aggmgr/ogs_saveimage/saveimaged'
 
 #
-# This class defines a Service to control a Frisbee server. A Frisbee server
-# is used to distribute disk image in an efficient manner among the nodes of a 
-# given testbed.
+# This class defines a Service to receive node images via netcat. These images are compressed by 'imagezip'
+# on the nodes and sent to the AM via a TCP socket.
 #
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class FrisbeeService < GridService
+class SaveimageService < GridService
 
   # used to register/mount the service, the service's url will be based on it
-  name 'frisbee'  
-  info 'Service to control frisbee servers to stream specific images'
+  name 'saveimage'  
+  info 'Service to control netcat to receive image files'
   @@config = nil
- 
-  #
-  # Implement 'checkImage' service using the 'service' method of AbstractService
-  #
-  s_info 'Check if a given disk image really exist on the repository'
-  s_param :img, '[imgName]', 'name of image to check.'
-  service 'checkImage' do |req, res|    
-    config = getTestbedConfig(req, @@config)
-    image = getParamDef(req, 'img', nil)
-    imagePath = "#{config['imageDir']}/#{image}"
-    res['Content-Type'] = "text"
-    if ! File.readable?(imagePath)
-      MObject.error("FrisbeeService - checkImage - '#{image}' DOES NOT EXIST !")
-      res.body = "IMAGE NOT FOUND"
-    else
-      res.body = "OK"
-    end
-  end
   
   #
   # Implement 'getAddress' service using the 'service' method of AbstractService
   #
-  s_info 'Get the port number of a frisbee server serving a specified image (start a new server if none exists)'
-  s_param :img, '[imgName]', 'name of image to serve [defaultImage].'
-  s_param :domain, '[domain]', 'domain for request.'
+  s_info 'Get the port number of a netcat instance receiving a specified image (start a new instance if none exists)'
+  s_param :img, 'imgName', 'name of image to save.'
+  s_param :domain, 'domain', 'domain for request.'
+  s_param :user, 'user', 'UNIX user name to set image file ownership.'
   service 'getAddress' do |req, res|    
-    d = FrisbeeDaemon.start(req)
+    d = SaveimageDaemon.start(req)
     res['Content-Type'] = "text"
     res.body = d.getAddress()
   end
@@ -80,11 +62,11 @@ class FrisbeeService < GridService
   #
   # Implement 'stop' service using the 'service' method of AbstractService
   #
-  s_info 'Stop serving a specified image'
-  s_param :img, '[imgName]', 'name of image to serve [defaultImage].'
-  s_param :domain, '[domain]', 'domain for request.'
+  s_info 'Stop receiving a specified image'
+  s_param :img, 'imgName', 'name of image to save.'
+  s_param :domain, 'domain', 'domain for request.'
   service 'stop' do |req, res|
-    d = FrisbeeDaemon.stop(req)
+    d = SaveimageDaemon.stop(req)
     res['Content-Type'] = "text"
     res.body = "OK"
   end
@@ -92,24 +74,18 @@ class FrisbeeService < GridService
   #
   # Implement 'status' service using the 'service' method of AbstractService
   #
-  s_info 'Returns the list of all served image'
-  s_param :img, '[imgName]', 'If defined, only report about that image.'
-  s_param :domain, '[domain]', 'domain for request.'
+  s_info 'Returns the list of a certain or all netcat instances'
+  s_param :img, '[imgName]', 'name of image to save.'
+  s_param :domain, 'domain', 'domain for request.'
   service 'status' do |req, res|
     img = getParamDef(req, 'img', nil)
     domain = getParam(req, 'domain')
-    name = FrisbeeDaemon.daemon_name(req)
-    list = img == nil ? FrisbeeDaemon.all : [FrisbeeDaemon[name]]
+    list = img == nil ? SaveimageDaemon.all : [SaveimageDaemon[SaveimageDaemon.daemon_name(req)]]
     # Build the header of the XML response
-    root = REXML::Element.new("frisbee_status")
-    root.add_element("bandwidth")
-    root.add_element("mc_address")
-    bw = Float("#{FrisbeeDaemon.getBandwidth}") / 1000000.0
-    root.elements["bandwidth"].text = bw
-    root.elements["mc_address"].text = "#{FrisbeeDaemon.getMCAddress}"
+    root = REXML::Element.new("saveimage_status")
     # Build the rest of the XML response
     list.each { |d|
-      root = d.serverDescription(root)
+      root = d.serverDescription(root) if d != nil
     } if list != nil
     setResponse(res, root)
   end
@@ -121,10 +97,7 @@ class FrisbeeService < GridService
   #
   def self.configure(config)
     @@config = config
-    FrisbeeDaemon.configure(config)
+    SaveimageDaemon.configure(config)
   end
 
 end
-
-
-

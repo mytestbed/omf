@@ -215,8 +215,11 @@ class AbstractDaemon < MObject
   # Stop this particular Daemon instance	
   #
   def stop()
-    @running = false  # to avoid error message from kill
-    Process.kill("KILL", @pid)
+    @running = false  # to avoid error message from termination
+    # the "minus" terminates all processes with the group ID @pid
+    # this ensures the child and all of its grandchildren are terminated
+    # PROBLEM: the children are not terminated when the parent exits
+    Process.kill("-TERM", @pid)
     Timer.cancel(@name)
   end
 	
@@ -249,8 +252,18 @@ class AbstractDaemon < MObject
         }
       end 
       if (good)
-        return port
+        begin
+          info "Checking port #{port}..."
+          serv = TCPServer.new(port)
+        rescue
+          good = false
+          info "Port #{port} is in use"
+        else
+          serv.close
+          info "Port #{port} is free"
+        end
       end
+      return port if (good)
       # The candidate port is already used, increase it and loop again...
       port += 1
     end
@@ -268,6 +281,10 @@ class AbstractDaemon < MObject
     info "Starting #{cmd}"
     @running = true
     @pid = fork {
+      # set the process group ID to the pid of the child
+      # this way, the child and all grandchildren will be in the same process group
+      # so we can terminate all of them with just one signal to the group
+      Process.setpgid(0,Process.pid)
       begin
         exec(cmd)
       rescue
