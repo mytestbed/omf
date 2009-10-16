@@ -100,14 +100,14 @@ class FrisbeeService < GridService
     domain = getParam(req, 'domain')
     name = FrisbeeDaemon.daemon_name(req)
     list = img == nil ? FrisbeeDaemon.all : [FrisbeeDaemon[name]]
-    # Built the header of the XML response
+    # Build the header of the XML response
     root = REXML::Element.new("frisbee_status")
     root.add_element("bandwidth")
     root.add_element("mc_address")
     bw = Float("#{FrisbeeDaemon.getBandwidth}") / 1000000.0
     root.elements["bandwidth"].text = bw
     root.elements["mc_address"].text = "#{FrisbeeDaemon.getMCAddress}"
-    # Built the rest of the XML response
+    # Build the rest of the XML response
     list.each { |d|
       root = d.serverDescription(root)
     } if list != nil

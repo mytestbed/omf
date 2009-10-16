@@ -799,28 +799,36 @@ class NodeHandler < MObject
   # configuration info, e.g. OML configs  
   #
   def startWebServer(port = @webPort)
-    accLog = Logger.new("w_access")
+    accLog = Logger.new("/tmp/#{Experiment.ID}.w_access.log")
     accLog.instance_eval {
       def << (msg)
         debug('web::access', msg.strip)
       end
     }
-    begin
-        OMF::ExperimentController::Web::start(port, {:Logger => Logger.new("w_internal"),
-             :DocumentRoot => NodeHandler.WEB_ROOT(),
-             :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
-    rescue Exception => except
-        warn("Received '#{except}' when starting NH webserver (port: '#{port}')")
-        warn("There may be another NH already running on the same testbed...")
-        newPort = port + 1;
-        if (newPort >= (@webPort + MAXWEBTRY))
-          error("Already tried '#{MAXWEBTRY}' times to start NH webserver. Giving up!")
-          exit
-        else
-          warn("Trying again with another port (port: '#{newPort}')...")
-          return startWebServer(newPort)
-        end
+    
+    confirmedPort = 0
+    for i in port..port+MAXWEBTRY do
+      begin
+        #info "Checking port #{i}..."
+        serv = TCPServer.new(i)
+      rescue
+        #info "Port #{i} is in use!"
+      else
+        serv.close
+        #info "Port #{i} is free!"
+        confirmedPort = i
+      end
+      break if confirmedPort != 0   
     end
+    
+    if confirmedPort == 0
+      error("Binding a free TCP port in the range #{port} to #{port+MAXWEBTRY} was unsuccessful. Giving up!")
+      exit
+    end
+        
+    OMF::ExperimentController::Web::start(confirmedPort, {:Logger => Logger.new("/tmp/#{Experiment.ID}.w_internal.log"),
+         :DocumentRoot => NodeHandler.WEB_ROOT(),
+         :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
   end
 end 
 #

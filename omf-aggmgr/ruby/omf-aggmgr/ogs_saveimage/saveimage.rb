@@ -33,9 +33,8 @@ require 'omf-aggmgr/ogs/gridService'
 require 'omf-aggmgr/ogs_saveimage/saveimaged'
 
 #
-# This class defines a Service to control a Saveimage server. A Saveimage server
-# is used to distribute disk image in an efficient manner among the nodes of a 
-# given testbed.
+# This class defines a Service to receive node images via netcat. These images are compressed by 'imagezip'
+# on the nodes and sent to the AM via a TCP socket.
 #
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
@@ -76,19 +75,17 @@ class SaveimageService < GridService
   # Implement 'status' service using the 'service' method of AbstractService
   #
   s_info 'Returns the list of a certain or all netcat instances'
-  s_param :img, 'imgName', 'name of image to save.'
+  s_param :img, '[imgName]', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
   service 'status' do |req, res|
     img = getParamDef(req, 'img', nil)
     domain = getParam(req, 'domain')
-    name = SaveimageDaemon.daemon_name(req)
-    list = img == nil ? SaveimageDaemon.all : [SaveimageDaemon[name]]
+    list = img == nil ? SaveimageDaemon.all : [SaveimageDaemon[SaveimageDaemon.daemon_name(req)]]
     # Build the header of the XML response
     root = REXML::Element.new("saveimage_status")
-    root.elements["interface:port"].text = "#{SaveimageDaemon.getAddress}"
     # Build the rest of the XML response
     list.each { |d|
-      root = d.serverDescription(root)
+      root = d.serverDescription(root) if d != nil
     } if list != nil
     setResponse(res, root)
   end
@@ -101,11 +98,6 @@ class SaveimageService < GridService
   def self.configure(config)
     @@config = config
     SaveimageDaemon.configure(config)
-    error("Missing configuration 'imageDir'") if @@config['imageDir'] == nil
-    error("Missing configuration 'startPort'") if @@config['startPort'] == nil
-    error("Missing configuration 'timeout'") if @@config['timeout'] == nil
-    error("Missing configuration 'ncBin'") if @@config['ncBin'] == nil
-    error("Missing configuration 'saveimageIF'") if @@config['saveimageIF'] == nil
   end
 
 end

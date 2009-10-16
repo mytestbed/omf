@@ -49,7 +49,7 @@ module OConfig
   TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
                          :pxe_url, :cmc_url, :result_url, 
                          :frisbee_url, :frisbee_default_disk, 
-                         :image_host, :oml_url]
+                         :oml_url, :saveimage_url]
 
   #
   # Return the value of a given configuration parameter
@@ -147,14 +147,6 @@ module OConfig
   #
   def self.DEFAULT_DISK()
     return self.getConfigFromInventoryByKey('frisbee_default_disk')
-  end
-
-  # Return the default host that should be used to load/save images
-  #
-  # [Return] a hostname or IP address
-  #
-  def self.IMG_HOST()
-    return self.getConfigFromInventoryByKey('image_host')
   end
   
   # Return the OML server hostname

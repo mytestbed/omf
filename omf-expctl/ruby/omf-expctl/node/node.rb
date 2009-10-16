@@ -411,7 +411,7 @@ class Node < MObject
   # disk = Disk containing the image to save (e.g. '/dev/hda')
   #
   def saveImage(imgName = nil,
-                imgHost = OConfig[:tb_config][:default][:image_host],
+                domain = OConfig.domain,
                 disk = OConfig[:tb_config][:default][:frisbee_default_disk])
 
     if imgName == nil
@@ -419,8 +419,10 @@ class Node < MObject
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
       imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
     end
-    
-    # TODO: call saveimage grid service and retrieve port
+        
+    url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
+    response = NodeHandler.service_call(url, "Can't get netcat address/port")
+    imgHost, imgPort = response.body.split(':')
     
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "
