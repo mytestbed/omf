@@ -75,7 +75,7 @@ class SaveimageService < GridService
   # Implement 'status' service using the 'service' method of AbstractService
   #
   s_info 'Returns the list of a certain or all netcat instances'
-  s_param :img, '[imgName]', 'name of image to save.'
+  s_param :img, 'imgName', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
   service 'status' do |req, res|
     img = getParamDef(req, 'img', nil)

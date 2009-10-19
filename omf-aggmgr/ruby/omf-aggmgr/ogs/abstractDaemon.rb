@@ -257,10 +257,10 @@ class AbstractDaemon < MObject
           serv = TCPServer.new(port)
         rescue
           good = false
-          info "Port #{port} is in use"
+          info "Port #{port} is in use!"
         else
           serv.close
-          info "Port #{port} is free"
+          info "Port #{port} is free!"
         end
       end
       return port if (good)
