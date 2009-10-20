@@ -25,38 +25,40 @@
 # NOTE: use only 'spaces' to indent !
 # ('tab' indents are not supported by the ruby yaml parser used to read this file)
 #
-# This is the Config file for the NodeHandler4 on the NICTA platform
+# This is the config file for the EC on the NICTA platform
 #
 ---
 :econtroller:
   
-  :domain:
+  :config:
   
     # Config Parameter for the "default" Testbed
-    #
-    :default:
+    # IMPORTANT:
+    # There has to be a default domain defined here
+    # do not add a colon ':' in front of any domain name
+    default:
     
       # This is the default name for the default testbed
-      # NH will use this name if NO domain has been given on the command lide ( -d option)
-      # This is optional. When 'name' is not present, the NH will take the first
+      # EC will use this name if NO domain has been given on the command line ( -d option)
+      # This is optional. When 'name' is not present, the EC will take the first
       # sub-domain of the host it is executing on as the default testbed name.
       # (e.g. domain: 'indoor.nicta.com.au' will result in the name 'indoor')
       # IMPORTANT: 
       #   Your Inventory database *must* hold information about the testbed you name 
       #   (e.g. the 'testbeds' table must have an entry corresponding to this name)
-      :name: 'sandbox1'
+      :domain: 'sandbox2'
 
-      # This is the Path where NH should look for its repository of built in experiments
+      # This is the Path where EC should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)
       :repository:
         :path: ["../repository", "/usr/share/omf-expctl/repository"]
 
-      # This is the Url where NH can contact the Inventory Service
+      # This is the Url where EC can contact the Inventory Service
       :inventory:
         :url: 'http://localhost:5022/inventory'
 
-      # This is the host address/name where NH serves its webserver interface
-      # This needs to be explicitely specified. For example the machine running NH can 
+      # This is the host address/name where EC serves its web server interface
+      # This needs to be explicitly specified. For example the machine running EC can 
       # have multiple IP addresses, but only one would be accessible from outside a 
       # firewall
       :web:
@@ -73,20 +75,20 @@
     # Config Parameter for the "planetlab" Testbed
     #
     # Optional here, since all the above config  
-    # Just put it to remember that this NH can run experiments on some PL nodes.
-    # (this is possible because our Inventory Service has information about a 'planelab' testbed...)
+    # Just put it to remember that this EC can run experiments on some PL nodes.
+    # (this is possible because our Inventory Service has information about a 'planetlab' testbed...)
     #
-    :planetlab:
+    planetlab:
       :name: 'planetlab' # Optional.... 
 
     # Config Parameter for the "debug" Testbed
     #
-    # To use this testbed, call nodeHandler with the option PRINT_ONLY or "-d debug"
+    # To use this testbed, call EC with the option PRINT_ONLY or "-d debug"
     # Any parameter settings within this section will override the settings 
-    # done in the "default" section. The nodeHandler fisrt load the "default"
+    # done in the "default" section. The EC first loads the "default"
     # settings, then it uses the "domain" specific settings to override the 
     # relevant parameters
-    :debug:
+    debug:
       :repository:
         :path: ['../repository']
       :communicator:

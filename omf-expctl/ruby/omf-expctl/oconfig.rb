@@ -74,7 +74,7 @@ module OConfig
   #                 is the name of the domain where this EC is running 
   #
   def self.loadTestbedConfiguration(testbedName = @@domainName)
-    # Check if NH is running in 'Slave' mode. If so, then this EC is actually running
+    # Check if EC is running in 'Slave' mode. If so, then this EC is actually running
     # directly on a node/resource and will only be responsible for orchestrating the part
     # of the experiment which is specific to this node/resource. Thus config parameters
     # are also specific (most would be turned to 'localhost' and local node ID)
@@ -96,7 +96,7 @@ module OConfig
       configFromInventory.root.elements.each("/CONFIG/#{key}") { |e|
         if (e.get_text != nil)
           tb_hash[key] = e.get_text.value
-	else
+	      else
           raise "OConfig - Missing value for configuration parameter '#{key}' for '#{testbedName}' testbed."
         end
       }
@@ -237,7 +237,7 @@ module OConfig
 
   #
   # Similar to 'load' method, but use the external loading function, which may be defined 
-  # in the NH config file. This loading method is obsolete, and should be removed.
+  # in the EC config file. This loading method is obsolete, and should be removed.
   # See 'load' for more info on 'uri' and 'evalRuby' arguments.
   #
   def self.loadExternal(uri, evalRuby = false)
@@ -247,9 +247,9 @@ module OConfig
   #
   # Retrieve and return a piece of code from the Node Handler
   # configuration file as a Proc. This method is obsolete, as we have adopted a design
-  # where the NH get most of its config from the Inventory service. Thus it should be removed.
+  # where the EC get most of its config from the Inventory service. Thus it should be removed.
   #
-  # - name = name identifying the code block to retrieve in the NH config file
+  # - name = name identifying the code block to retrieve in the EC config file
   # 
   # [Return] the retrieved code block.
   #
@@ -302,7 +302,7 @@ module OConfig
       raise "Missing ':econtroller' root in '#{configFile}'"
     end
     # Now initialize this new OConfig
-    self.init(c[:domain])
+    self.init(c[:config])
   end
   
   #
@@ -310,24 +310,26 @@ module OConfig
   # existing YAML hash. 
   #
   # - opts = a YAML hash
-  # - domainName = (optional) the name of the domain where this EC is running
+  # - configName = the name of the config file section to look at
   #
-  def self.init(opts, domainName = @@domainName)
-    @@config = Hash.new
-    # First set the domain name or try to 'guess' it
-    if (domainName == nil)
-      n = nil
-      if ((n = opts[:default][:name]) == nil)
-        IO.popen('hostname -d') {|f| n = f.gets.split('.')[0] }
-	opts[:default][:name] = n
-      end
-      @@domainName = n
+  def self.init(opts, configName = @@domainName)
+    @@config = Hash.new    
+    # Load the 'default' EC configuration parameters from the YAML hash
+    @@config[:ec_config] = opts['default']
+    if @@config[:ec_config] == nil
+      raise "OConfig - 'default' config entry missing in configuration file."
     end
-    # Then load the 'default' EC configuration parameters from the YAML hash
-    @@config[:ec_config] = opts[:default]
-    # Finally load domain-specific override parameters, if any
-    if ((override = opts[@@domainName]) != nil)
-      @@config[:ec_config].merge!(override)
+    # Load domain-specific override parameters, if any
+    if configName != nil
+      if ((override = opts[configName]) != nil)
+        @@config[:ec_config].merge!(override)
+      else
+        warn "OConfig - No entry in configuration file for config '#{configName}'. Using 'default' config."
+      end
+    end
+    # get the domain name from the config file
+    if ((@@domainName = @@config[:ec_config][:domain]) == nil)
+      raise "OConfig - Domain (':domain:') missing in config file."
     end
   end
   
