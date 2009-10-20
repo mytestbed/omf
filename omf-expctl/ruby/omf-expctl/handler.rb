@@ -22,8 +22,5 @@
 # THE SOFTWARE.
 #
 #
-$NH_VERSION = "4.4.0"
-
 require 'rubygems'
 require 'omf-expctl/nodeHandler'
-puts "TDEBUG - handler.rb"

@@ -82,8 +82,8 @@ include Log4r
 #
 # Our Version Number
 #
-VERSION = OMF::Common::VERSION(__FILE__)
-VERSION_STRING = "OMF Aggregate Manager #{VERSION}"
+OMF_VERSION = OMF::Common::VERSION(__FILE__)
+OMF_VERSION_STRING = "OMF Aggregate Manager #{OMF_VERSION}"
 
 DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr", "/etc/omf-aggmgr"]
 DEF_CONFIG_FILE = 'gridservice_cfg.yaml'
@@ -332,7 +332,7 @@ opts.on("-s", "--services NAME1,NAME2", "Services to load [load all in 'dir']") 
 
 opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
 opts.on_tail("-v", "--version", "Show the version") {
-  puts VERSION_STRING
+  puts OMF_VERSION_STRING
   exit
 }
 
@@ -344,7 +344,7 @@ begin
   rest = opts.parse(ARGV)
 
   MObject.initLog('service', nil, logParams)
-  MObject.info('init', VERSION_STRING)
+  MObject.info('init', OMF_VERSION_STRING)
   run(params)
 rescue SystemExit => err
   exit
