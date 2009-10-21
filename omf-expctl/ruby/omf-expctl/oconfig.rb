@@ -45,6 +45,7 @@ require 'observer'
 module OConfig
   
   @@domainName = nil
+  @@configName = nil  
   @@observers = []
   TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
                          :pxe_url, :cmc_url, :result_url, 
@@ -70,10 +71,7 @@ module OConfig
   # Query the Inventory service for the configuration parameters related to 
   # a given testbed
   #
-  # - testbedName = name of the testbed for which to query (optional), default 
-  #                 is the name of the domain where this EC is running 
-  #
-  def self.loadTestbedConfiguration(testbedName = @@domainName)
+  def self.loadTestbedConfiguration()
     # Check if EC is running in 'Slave' mode. If so, then this EC is actually running
     # directly on a node/resource and will only be responsible for orchestrating the part
     # of the experiment which is specific to this node/resource. Thus config parameters
@@ -86,8 +84,8 @@ module OConfig
       @@config[:tb_config] = Hash.new 
     end
     # Retrieve the testbed-specific configuration parameters from the Inventory
-    url = "#{@@config[:ec_config][:inventory][:url]}/getConfig?&domain=#{testbedName}"
-    response = NodeHandler.service_call(url, "Can't get config for testbed '#{testbedName}' from INVENTORY")
+    url = "#{@@config[:ec_config][:inventory][:url]}/getConfig?&domain=#{@@domainName}"
+    response = NodeHandler.service_call(url, "Can't get config for domain '#{@@domainName}' from INVENTORY")
     configFromInventory = REXML::Document.new(response.body)
     # Extract the information from the REXML, and store them in a Hash 
     tb_hash = Hash.new
@@ -97,7 +95,7 @@ module OConfig
         if (e.get_text != nil)
           tb_hash[key] = e.get_text.value
 	      else
-          raise "OConfig - Missing value for configuration parameter '#{key}' for '#{testbedName}' testbed."
+          raise "OConfig - Missing value for configuration parameter '#{key}' in '#{@@domainName}' domain."
         end
       }
     }
@@ -275,13 +273,28 @@ module OConfig
   def self.domain=(domain)
     @@domainName = domain
   end
-
   
   #
   # Return the domain of this Experiment
   #
   def self.domain()
     @@domainName 
+  end
+  
+  #
+  # Set the configuration section for this Experiment Controller
+  #
+  # - config =  Name of the configuration section
+  #
+  def self.config=(config)
+    @@configName = config
+  end
+  
+  #
+  # Return the configuration section of this Experiment
+  #
+  def self.config()
+    @@configName 
   end
 
   #
@@ -310,21 +323,20 @@ module OConfig
   # existing YAML hash. 
   #
   # - opts = a YAML hash
-  # - configName = the name of the config file section to look at
   #
-  def self.init(opts, configName = @@domainName)
+  def self.init(opts)
     @@config = Hash.new    
     # Load the 'default' EC configuration parameters from the YAML hash
-    @@config[:ec_config] = opts['default']
+    @@config[:ec_config] = opts[:default]
     if @@config[:ec_config] == nil
-      raise "OConfig - 'default' config entry missing in configuration file."
+      raise "OConfig - ':default:' config entry missing in configuration file."
     end
     # Load domain-specific override parameters, if any
-    if configName != nil
-      if ((override = opts[configName]) != nil)
+    if @@configName != nil
+      if ((override = opts[@@configName.intern]) != nil)
         @@config[:ec_config].merge!(override)
       else
-        warn "OConfig - No entry in configuration file for config '#{configName}'. Using 'default' config."
+        warn "OConfig - No entry in configuration file for config '#{@@configName}'. Using ':default:' config."
       end
     end
     # get the domain name from the config file

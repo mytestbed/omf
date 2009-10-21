@@ -40,7 +40,7 @@ require 'omf-expctl/agentCommands'
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
 # The Node Agent (NA) aka Resource Controller will use this Communicator to 
-# send/receive messages to/from the Node Handler (NH) aka Experiment Controller
+# send/receive messages to/from the Node Handler (EC) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
 class XmppCommunicator < Communicator
@@ -341,7 +341,7 @@ class XmppCommunicator < Communicator
   end
       
   #
-  # Process an incoming message from the NH. This method is called by the
+  # Process an incoming message from the EC. This method is called by the
   # callback hook, which was set up in the 'start' method of this Communicator.
   # First, we parse the message to extract the command and its arguments.
   # Then, we check if this command should trigger some Communicator-specific actions.
@@ -402,7 +402,7 @@ class XmppCommunicator < Communicator
       when "ERROR"                
       # When nothing else matches - We don't know this command, log that and discard it.
       else
-        debug "Unsupported command: '#{cmd}' - not passing it to NH" 
+        debug "Unsupported command: '#{cmd}' - not passing it to EC" 
         return
       end
     rescue Exception => ex

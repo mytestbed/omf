@@ -66,7 +66,7 @@ module OMF
       @@tabs = []
     
       #
-      # Start a new web-server (in a new Thread) to report on the NH's status
+      # Start a new web-server (in a new Thread) to report on the EC's status
       #
       # - port = optional, port to listen to (default=2000)
       # - args = optional, arguments for the server
@@ -155,16 +155,16 @@ module OMF
       end
     
       #
-      # Return the URL of this NH's webserver
+      # Return the URL of this EC's webserver
       #
       # [Return] a String wih the URL
       #
       def self.url()
         addr = @@server.listeners[0].addr
-	host = OConfig[:ec_config][:web][:host]
-        # Check if NH is running in 'Slave' Mode or has no Host set in its config file
+	      host = OConfig[:ec_config][:web][:host]
+        # Check if EC is running in 'Slave' Mode or has no Host set in its config file
         if NodeHandler.SLAVE_MODE() || host == nil
-           # Yes - then other entities should access NH's web server on localhost
+           # Yes - then other entities should access EC's web server on localhost
           return "http://127.0.0.1:#{addr[1]}"
         else
           return "http://#{host}:#{addr[1]}"
@@ -211,7 +211,7 @@ module OMF
       end
     
       #
-      # Stop the NH's webserver
+      # Stop the EC's webserver
       #
       def self.stop()
         @@server.shutdown if @@server != nil

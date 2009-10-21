@@ -28,7 +28,7 @@
 #
 # This file contains the definition of all the commands that 
 # the experimenters can use in their scripts. All these commands'
-# are understood by the NH, which will interpret them in order to
+# are understood by the EC, which will interpret them in order to
 # stage the experiments
 #
 
@@ -378,9 +378,9 @@ end
 # - &block = the code-block to execute/evaluate against the nodes in 'up' state 
 #
 def whenAllUp(&block)
-  # Check if this NH instance is set to run in Disconnection Mode
+  # Check if this EC instance is set to run in Disconnection Mode
   # If yes, then returned now because whatever is asked from this whenAll should be
-  # executed by the whenAll of the slave NH on the disconnected mode
+  # executed by the whenAll of the slave EC on the disconnected mode
   if NodeHandler.disconnectionMode?
     return
   end
@@ -397,9 +397,9 @@ end
 # - &block = the code-block to execute/evaluate against the 'installed' nodes 
 #
 def whenAllInstalled(&block)
-  # Check if this NH instance is set to run in Disconnection Mode
+  # Check if this EC instance is set to run in Disconnection Mode
   # If yes, then returned now because whatever is asked from this whenAll should be
-  # executed by the whenAll of the slave NH on the disconnected mode
+  # executed by the whenAll of the slave EC on the disconnected mode
   if NodeHandler.disconnectionMode?
     return
   end
@@ -512,7 +512,7 @@ end
 
 #
 # Debugging support:
-# print an information message to the 'stdout' & the logfile of NH
+# print an information message to the 'stdout' & the logfile of EC
 #
 # - *msg = message to print
 #
@@ -522,7 +522,7 @@ end
 
 #
 # Debugging support:
-# print an warning message to the 'stdout' & the logfile of NH
+# print an warning message to the 'stdout' & the logfile of EC
 #
 # - *msg = message to print
 #
@@ -532,7 +532,7 @@ end
 
 #
 # Debugging support:
-# print an error message to the 'stdout' & the logfile of NH
+# print an error message to the 'stdout' & the logfile of EC
 #
 # - *msg = message to print
 #
@@ -542,7 +542,7 @@ end
 
 #
 # Reporting/Debugging support:
-# print the XML tree of states/attributs of NH
+# print the XML tree of states/attributs of EC
 #
 def ls(xpath = nil)
   root = NodeHandler::ROOT_EL
@@ -561,7 +561,7 @@ end
 
 #
 # Reporting/Debugging support:
-# print the XML tree of states/attributs of NH
+# print the XML tree of states/attributs of EC
 #
 def ls2(xpath = nil)
   root = NodeHandler::ROOT_EL

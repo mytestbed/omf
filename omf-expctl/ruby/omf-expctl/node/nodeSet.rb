@@ -199,7 +199,7 @@ class NodeSet < MObject
 #      raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
 #    end
 #
-#    # With OMLv2 the collection server can be started as soon as NH is running
+#    # With OMLv2 the collection server can be started as soon as EC is running
 #    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
 #    #OmlApp.startCollectionServer
 #
@@ -420,7 +420,7 @@ class NodeSet < MObject
   # Send a 'SET_DISCONNECT' message to the Node Agent(s) running on the 
   # nodes/resources involved in this experiment.
   # This message will also inform the NA of: the experiment ID, the URL
-  # where they can retrieve the experiment description (served by the NH
+  # where they can retrieve the experiment description (served by the EC
   # webserver), and the contact info for the OML collection server.
   #
   def switchDisconnectionON
@@ -510,7 +510,7 @@ class NodeSet < MObject
   # node set. This assumed the node booted into a PXE image
   #
   # - image = Image to load onto node's disk
-  # - domain = testbed for this node (optional, default= default testbed for this NH)
+  # - domain = testbed for this node (optional, default= default testbed for this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
   def loadImage(image, domain = '', disk = OConfig[:tb_config][:default][:frisbee_default_disk])
@@ -541,7 +541,7 @@ class NodeSet < MObject
   # This assumed the node booted into a PXE image
   #
   # - image = Image to load onto node's disk
-  # - domain = testbed for this node (optional, default= default testbed for this NH)
+  # - domain = testbed for this node (optional, default= default testbed for this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
   def stopImageServer(image, domain = '', disk = OConfig[:tb_config][:default][:frisbee_default_disk])

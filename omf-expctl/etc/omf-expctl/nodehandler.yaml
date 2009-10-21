@@ -25,7 +25,7 @@
 # NOTE: use only 'spaces' to indent !
 # ('tab' indents are not supported by the ruby yaml parser used to read this file)
 #
-# This is the config file for the EC on the NICTA platform
+# This is the config file for the EC
 #
 ---
 :econtroller:
@@ -33,19 +33,13 @@
   :config:
   
     # Config Parameter for the "default" Testbed
-    # IMPORTANT:
-    # There has to be a default domain defined here
-    # do not add a colon ':' in front of any domain name
-    default:
+    # IMPORTANT: There has to be a default entry. It should contain a complete set of
+    # parameters, so other configurations can fall back to it
+    :default:
     
-      # This is the default name for the default testbed
-      # EC will use this name if NO domain has been given on the command line ( -d option)
-      # This is optional. When 'name' is not present, the EC will take the first
-      # sub-domain of the host it is executing on as the default testbed name.
-      # (e.g. domain: 'indoor.nicta.com.au' will result in the name 'indoor')
-      # IMPORTANT: 
-      #   Your Inventory database *must* hold information about the testbed you name 
-      #   (e.g. the 'testbeds' table must have an entry corresponding to this name)
+      # This is the domain name of the testbed
+      # You need a corresponding entry in the testbed table of your inventory that has this name
+      # set in the 'node_domain' column
       :domain: 'sandbox2'
 
       # This is the Path where EC should look for its repository of built in experiments
@@ -57,14 +51,11 @@
       :inventory:
         :url: 'http://localhost:5022/inventory'
 
-      # This is the host address/name where EC serves its web server interface
-      # This needs to be explicitly specified. For example the machine running EC can 
-      # have multiple IP addresses, but only one would be accessible from outside a 
-      # firewall
+      # This should be the IP address of the local interface that is accessible from
+      # the nodes. This address will be given to the nodes so they can retrieve
+      # applications from the EC via HTTP.
       :web:
-        :host: '203.143.170.94'
-        #:host: '10.0.0.200'
-        #:host: 'norbit.npc.nicta.com.au' # Norbit external IP 
+        :host: '10.0.0.200'
 
       :communicator:
         :type: 'xmpp'
@@ -72,23 +63,22 @@
           :server: '10.0.0.200'
           :password: '123'
         
-    # Config Parameter for the "planetlab" Testbed
+    # "planetlab" configuration
     #
-    # Optional here, since all the above config  
-    # Just put it to remember that this EC can run experiments on some PL nodes.
+    # Just put it here to remind you that this EC can run experiments on some PL nodes.
     # (this is possible because our Inventory Service has information about a 'planetlab' testbed...)
     #
-    planetlab:
-      :name: 'planetlab' # Optional.... 
+    :planetlab:
+      :domain: 'planetlab' # Optional.... 
 
-    # Config Parameter for the "debug" Testbed
+    # "debug" configuration
     #
     # To use this testbed, call EC with the option PRINT_ONLY or "-d debug"
     # Any parameter settings within this section will override the settings 
     # done in the "default" section. The EC first loads the "default"
-    # settings, then it uses the "domain" specific settings to override the 
+    # settings, then it uses the "debug" specific settings to override the 
     # relevant parameters
-    debug:
+    :debug:
       :repository:
         :path: ['../repository']
       :communicator:
