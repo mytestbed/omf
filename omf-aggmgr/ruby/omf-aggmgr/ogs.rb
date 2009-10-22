@@ -35,7 +35,6 @@
 #
 
 require 'webrick'
-require 'log4r'
 require 'omf-common/mobject'
 require 'omf-common/omfVersion'
 
@@ -77,7 +76,6 @@ require 'omf-aggmgr/ogs_cmc/cmc' # use real cmc
 end
 
 include WEBrick
-include Log4r
 
 #
 # Our Version Number
@@ -200,7 +198,7 @@ end
 def startServer(params)
   @@server = HTTPServer.new(
     :Port => params[:webPort] || DEF_WEB_PORT,
-    :Logger => Logger.new("#{MObject.logger.fullname}::web"),
+    :Logger => Log4r::Logger.new("#{MObject.logger.fullname}::web"),
     :RequestHandler => lambda {|req, resp|
       beforeRequestHook(req, resp)
     }
