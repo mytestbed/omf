@@ -116,9 +116,9 @@ module OMF
           if metrics != nil
             metrics.each {|e|
               if e.kind_of? Array
-                addMetric(e[0], e[1], e.length == 3 ? e[2] : nil)
+                defMetric(e[0], e[1], e.length == 3 ? e[2] : nil)
               elsif e.kind_of? Hash
-                addMetric(e["name"], e["type"], e["description"])
+                defMetric(e["name"], e["type"], e["description"])
               else
                 raise "Metric definition '" + e + "' needs to be either and array or a hash"
               end

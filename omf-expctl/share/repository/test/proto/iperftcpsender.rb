@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,6 @@
 #
 # Define a prototype
 #
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
-
 
 p = Prototype.create("test:proto:iperftcpsender")
 p.name = "Iperf TCP Sender"

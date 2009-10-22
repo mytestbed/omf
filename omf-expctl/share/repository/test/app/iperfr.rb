@@ -37,20 +37,20 @@ producing various forms of packet streams and port for sending
 these packets via various transports, such as TCP and UDP.
 TEXT
 
-# addProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-a.addProperty('udp', 'Use UDP, otherwise TCP by default', nil, :string, false)
-a.addProperty('server', 'Client/Server', nil, :string, false)
-a.addProperty('port', 'Receiver port number', nil, :integer, false)
-a.addProperty('window', 'TCP Receiver Window Size', nil, :integer, false)
-a.addProperty('time', "Duration for traffic generation(seconds)", nil, :integer, false)
-a.addProperty('len', "Payload Length(bytes)", nil, :integer, false)
-a.addProperty('interval', "Interval between reports (sec)", nil, :integer, false)
+# defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
+a.defProperty('udp', 'Use UDP, otherwise TCP by default')
+a.defProperty('server', 'Client/Server')
+a.defProperty('port', 'Receiver port number')
+a.defProperty('window', 'TCP Receiver Window Size')
+a.defProperty('time', "Duration for traffic generation(seconds)")
+a.defProperty('len', "Payload Length(bytes)")
+a.defProperty('interval', "Interval between reports (sec)")
 
-a.addMeasurement("receiverport", nil, [
-  ['flow_no','int'],
-  ['throughput',Float],
-  ['jitter',Float],
-  ['packet_loss',Float]
+a.defMeasurement("receiverport", nil, [
+  ['flow_no',:int],
+  ['throughput',:float],
+  ['jitter',:float],
+  ['packet_loss',:float]
  ])
 a.path = "/usr/bin/iperf"
 

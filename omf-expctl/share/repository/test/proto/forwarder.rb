@@ -27,10 +27,6 @@
 #
 # $Id: forwarder.rb 997 2006-01-20 06:59:31Z sachin $
 
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
-
 p = Prototype.create("test:proto:forwarder")
 p.name = "Forwarder"
 p.description = "Nodes which forward packets"

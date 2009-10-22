@@ -37,17 +37,17 @@ producing various forms of packet streams and port for sending
 these packets via various transports, such as TCP and UDP.
 TEXT
 
-# addProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-a.addProperty('udp', 'Use UDP, otherwise TCP by default', nil, :string, false)
-a.addProperty('client', 'Run as client', nil, :string, false)
-a.addProperty('port', 'Sender port number', nil, :integer, false)
-a.addProperty('window', 'TCP Send Window Size', nil, :integer, false)
-a.addProperty('len', "Payload length (bytes)", nil, :integer, false)
-a.addProperty('bandwidth', "Offered load for UDP", nil, :integer, false)
-a.addProperty('time', "Duration of traffic generation(secs)", nil, :integer, false)
-a.addProperty('parallel', "Number of parallel flows", nil, :integer, false)
+# defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
+a.defProperty('udp', 'Use UDP, otherwise TCP by default')
+a.defProperty('client', 'Run as client')
+a.defProperty('port', 'Sender port number')
+a.defProperty('window', 'TCP Send Window Size')
+a.defProperty('len', "Payload length (bytes)")
+a.defProperty('bandwidth', "Offered load for UDP")
+a.defProperty('time', "Duration of traffic generation(secs)")
+a.defProperty('parallel', "Number of parallel flows")
 
-a.addMeasurement("senderport", nil, [
+a.defMeasurement("senderport", nil, [
     ['stream_no', 'int'],
     ['pkt_seqno', 'long'],
     ['pkt_size', 'long'],

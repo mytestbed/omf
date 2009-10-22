@@ -25,9 +25,6 @@
 #
 # Define a prototype
 #
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
 
 p = Prototype.create("test:proto:driverqueryapp")
 p.name = "Wireless Driver Stats"
