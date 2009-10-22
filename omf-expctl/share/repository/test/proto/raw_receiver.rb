@@ -26,10 +26,6 @@
 # Define a prototype
 #
 
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
-
 p = Prototype.create("test:proto:raw_receiver")
 p.name = "RAW Receiver"
 p.description = "Nodes which receive packets"

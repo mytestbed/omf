@@ -26,10 +26,6 @@
 # Define a prototype
 #
 
-require 'omf-expctl/prototype'
-require 'omf-expctl/filter'
-require 'omf-expctl/appDefinition'
-
 p = Prototype.create("test:proto:itgvoipsender")
 p.name = "ITG VoIP Sender"
 p.description = "Nodes which send a stream of packets"
