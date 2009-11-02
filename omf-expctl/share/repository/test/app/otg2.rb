@@ -23,8 +23,6 @@
 #
 #
 
-require 'omf-expctl/application/appDefinition'
-
 # This is an OMF Definition for the existing application called 'otg2'
 # This definition will allow OMF entities to use and instrument this application
 #
