@@ -30,6 +30,9 @@
 # (In OMF, saving the disk image of a node is treated as an 'experiment' itself)
 #
 #
+
+info("Do not run this script as root!")
+
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
 

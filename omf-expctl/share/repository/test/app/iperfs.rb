@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,20 +37,25 @@ producing various forms of packet streams and port for sending
 these packets via various transports, such as TCP and UDP.
 TEXT
 
-# addProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-a.defProperty('Audp', 'Use UDP, otherwise TCP by default', ?u,  {:dynamic => false, :type => :string})
-a.defProperty('Aclient', 'Run as client', ?c,  {:dynamic => false, :type => :string})
-a.defProperty('port', 'Sender port number', ?p, {:type => :integer, :dynamic => false})
-a.defProperty('window', 'TCP Send Window Size', nil, {:type => :integer, :dynamic => false})
-#a.addProperty('len', "Payload length (bytes)", nil, :integer, false)
-a.defProperty('bandwidth', "Offered load for UDP", ?b,  {:dynamic => false, :type => :integer})
-a.defProperty('time', "Duration of traffic generation(secs)", nil, {:type => :integer, :dynamice => false})
-a.defProperty('parallel', "Number of parallel flows", nil, {:type => :integer, :dynamic => false})
-a.defProperty('oml-server', 'Contact details for the oml collection server')
-a.defProperty('oml-id', 'ID for this oml client')
-a.defProperty('oml-exp-id', 'ID for this experiment')
+# defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
+a.defProperty('udp', 'Use UDP, otherwise TCP by default')
+a.defProperty('client', 'Run as client')
+a.defProperty('port', 'Sender port number')
+a.defProperty('window', 'TCP Send Window Size')
+a.defProperty('len', "Payload length (bytes)")
+a.defProperty('bandwidth', "Offered load for UDP")
+a.defProperty('time', "Duration of traffic generation(secs)")
+a.defProperty('parallel', "Number of parallel flows")
 
-a.path = "/usr/bin/iperf_oml2"
+a.defMeasurement("senderport", nil, [
+    ['stream_no', 'int'],
+    ['pkt_seqno', 'long'],
+    ['pkt_size', 'long'],
+    ['gen_timestamp', 'long'],
+    ['tx_timestamp', 'long']
+ ])
+
+a.path = "/usr/bin/iperf"
 
 if $0 == __FILE__
   require 'stringio'
