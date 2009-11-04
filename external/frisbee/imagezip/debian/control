@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 5), libssl-dev
 Standards-Version: 3.7.2
 
 Package: imagezip
-Architecture: i386
+Architecture: any
 Depends: libssl0.9.8
 Description: filesystem image compression tool
  filesystem image compression tool from EMULAB

@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 
 Package: omf-aggmgr
-Architecture: any
+Architecture: all
 Depends: frisbee, libmysql-ruby, libldap-ruby1.8 (>=0.9.0-1), libsqlite3-ruby, omf-common, mysql-server, psmisc, nmap
 Description: OMF Aggregate Manager
  Provides various services for running experiments in OMF
