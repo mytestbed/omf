@@ -75,7 +75,7 @@ class GridService < AbstractService
   end
 
   #
-  # Make this Service to return 'resXml' as 'text/xml'
+  # Make this Service return a 'resXml' as a 'text/xml'
   #
   # - res = the HTTP Response message to update
   # - resXML =  the resXML to turn into text/XML
@@ -88,6 +88,17 @@ class GridService < AbstractService
     res['Content-Type'] = "text/xml"
   end
 
+  #
+  # Make this Service return a plain text as a 'text/plain'
+  #
+  # - res = the HTTP Response message to update
+  # - resXML =  the plain text to return
+  #
+  def self.setResponsePlainText(res, resTxt)
+    res.body = resTxt
+    res['Content-Type'] = "text/plain"
+  end
+  
   #
   # Parse a given parameter inside a HTTP request (sent to this Service) into
   # a Node Set declaration, which is an array of Node Sets. If this parameter is 
