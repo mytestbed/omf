@@ -121,21 +121,18 @@ class ResultService < GridService
     # Retrieve the request parameter
     id = getParam(req, 'expID')
     # Access and Query the experiment database
-    result = nil
+    dump = nil
     begin
       path = "#{@@config['database_path']}/#{id}.sq3" 
       cmd = "#{@@config['sqlite3_path']} #{path} .dump"
-      result =  `#{cmd}`
+      dump =  `#{cmd}`
     rescue Exception => ex
       error "Result - Error dumping the experiment measurement database --- ID: #{id} --- '#{ex}'"
     end
-    # Build and Set the XML response
-    msgEmpty = "No data from this experiment measurement database --- ID: #{id} --- #{ex} "
-    replyXML = buildXMLReply("DATABASE", result, msgEmpty) { |root,lines|
-      addXMLElement(root, "DUMP", "#{lines}")
-    }
-    replyXML.add_attribute("ExperimentID", "#{id}")
-    setResponse(res, replyXML)
+    # The database dump should be returned as a pain text 
+    # So the user can load the dump directly with SQLite3 without any reformatting
+    result = "--\n-- Database Dump\n-- Experiment ID: #{id}\n--\n" + dump 
+    setResponsePlainText(res, result)
   end
   
   #
