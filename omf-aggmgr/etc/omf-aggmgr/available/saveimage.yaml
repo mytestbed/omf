@@ -24,7 +24,7 @@ saveimage:
       owner: nobody
 
       # Directory where images are saved to
-      imageDir: /var/lib/omf-images
+      imageDir: /var/lib/omf-images-5.2
       
       # Local interface to bind to for netcat
       saveimageIF: 10.0.0.200

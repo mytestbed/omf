@@ -81,9 +81,10 @@ include WEBrick
 # Our Version Number
 #
 OMF_VERSION = OMF::Common::VERSION(__FILE__)
+OMF_MM_VERSION = OMF::Common::MM_VERSION()
 OMF_VERSION_STRING = "OMF Aggregate Manager #{OMF_VERSION}"
 
-DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr", "/etc/omf-aggmgr"]
+DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr-#{OMF_MM_VERSION}", "/etc/omf-aggmgr-#{OMF_MM_VERSION}"]
 DEF_CONFIG_FILE = 'gridservice_cfg.yaml'
 DEF_WEB_PORT = 5012
 
@@ -305,7 +306,7 @@ end
 #
 # Handle Command-line Options...
 #
-logParams = {:env => "GRID_SERVICE_LOG", :fileName => "def_gridservices_log.xml",
+logParams = {:env => "GRID_SERVICES_LOG", :fileName => "def_gridservices_log.xml",
   :searchPath => DEF_SEARCH_PATH}
 params = {}
 

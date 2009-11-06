@@ -1,44 +1,5 @@
-omf-aggmgr (5.2-1) stable; urgency=low
+omf-aggmgr-5.2 (1) stable; urgency=low
 
-  * first OMF 5.2 release package
-  * added saveimage gridservice
-  * now checks if a port is free before trying to bind it
+  * Initial release.
 
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 16 Oct 2009 20:26:14 +1100
-
-omf-aggmgr (5.0-4) stable; urgency=low
-
-  * fixed omf tell
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 17 Sep 2009 13:41:33 +1000
-
-omf-aggmgr (5.0-3) stable; urgency=low
-
-  * fixed logrotation
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 15 Sep 2009 16:36:06 +1000
-
-omf-aggmgr (5.0-2) stable; urgency=low
-
-  * changed distribution to stable
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 14:19:10 +1000
-
-omf-aggmgr (5.0-1ubuntu2) hardy; urgency=low
-
-  * removed oml2-server gridservice, now using SSH/Telnet only to reboot nodes
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 03 Aug 2009 14:24:06 +1000
-
-omf-aggmgr (5.0-1ubuntu1) hardy; urgency=low
-
-  * improved startup script, fixed module locations, renamed logfile
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 19 May 2009 19:39:37 +1000
-
-omf-aggmgr (5.0-1) testing; urgency=low
-
-  * Initial release
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 17 Apr 2009 17:23:28 +1000
-
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 06 Nov 2009 12:59:14 +1100
