@@ -289,6 +289,15 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
   Thread.new(ns) { |ns|
     while true
       begin
+        # If the NodeSet is ALL (i.e. selector "*") and it is empty,
+        # then stop the experiment!
+        if (ns.to_s == "*") && ns.empty?
+          info " "
+          info "-- All the defined groups are empty (they do not include any nodes)!"
+          info "-- Stopping the Experiment now."
+          Experiment.done
+          sleep 2 # otherwise this loops again before the experiment stops, annoyingly reprinting the above msg
+        end
         res = false
         isUp = ns.up?
         #MObject.debug("whenAll::internal", "Checking ", ns, " up?: ", isUp)
