@@ -1,13 +1,13 @@
-Source: omf-expctl
+Source: omf-expctl-5.2
 Section: omf
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
 Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 
-Package: omf-expctl
+Package: omf-expctl-5.2
 Architecture: all
-Depends: libmarkaby-ruby, rubygems, omf-common, libcoderay-ruby1.8, netcat
+Depends: libmarkaby-ruby, rubygems, omf-common-5.2, libcoderay-ruby1.8, netcat
 Description: OMF Experiment Controller
  Controls experiments in the OMF testbed.
 

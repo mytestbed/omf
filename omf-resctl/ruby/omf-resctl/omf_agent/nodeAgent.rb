@@ -54,6 +54,7 @@ class NodeAgent < MObject
   # Our Version Number
   #
   VERSION = OMF::Common::VERSION(__FILE__)
+  OMF_MM_VERSION = OMF::Common::MM_VERSION()
   VERSION_STRING = "OMF Resource Controller #{VERSION}"
   
   # File containing image name
@@ -361,7 +362,7 @@ class NodeAgent < MObject
 
     cfgFile = nil
     @interactive = false
-    @logConfigFile = ENV['NODE_AGENT_LOG'] || "/etc/omf-resctl/nodeagent_log.xml"
+    @logConfigFile = ENV['NODE_AGENT_LOG'] || "/etc/omf-resctl-#{OMF_MM_VERSION}/nodeagent_log.xml"
 
     # --listen-addr --listen-port --handler-addr --handler-port
     opts = OptionParser.new
@@ -443,7 +444,7 @@ class NodeAgent < MObject
     # read optional config file
     if cfgFile.nil?
       name = "nodeagent.yaml"
-      path = ["../etc/omf-resctl/#{name}", "/etc/omf-resctl/#{name}"]
+      path = ["../etc/omf-resctl/#{name}", "/etc/omf-resctl-#{OMF_MM_VERSION}/#{name}"]
       cfgFile = path.detect {|f|
         File.readable?(f)
       }

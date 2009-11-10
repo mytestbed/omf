@@ -45,7 +45,7 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/omf-expctl
-	tar -C ruby -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/omf-expctl/usr/lib/ruby/1.8/
+	tar -C ruby -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/omf-expctl-5.2/usr/share
 	svn info | grep Revision | cut -d ' ' -f 2 > debian/omf-expctl/usr/lib/ruby/1.8/omf-expctl/REVISION
 	cp ruby/omf-expctl.rb debian/omf-expctl/usr/lib/ruby/1.8/
 	tar -C etc -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/omf-expctl/etc/

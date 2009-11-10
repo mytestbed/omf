@@ -15,7 +15,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-NAME=omf-resctl
+NAME=omf-resctl-5.2
 
 test -x /usr/sbin/$NAME || exit 0
 

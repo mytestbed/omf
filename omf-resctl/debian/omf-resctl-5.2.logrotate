@@ -1,4 +1,4 @@
-/var/log/omf-resctl.log {
+/var/log/omf-resctl-5.2.log {
 	weekly
 	rotate 4
 	missingok
