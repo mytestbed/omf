@@ -40,20 +40,11 @@ iperfs.bindProperty('client')
 iperfs.bindProperty('len')
 iperfs.bindProperty('time')
 iperfs.bindProperty('window')
+iperfs.measure('Peer_Info', :samples => 1)
+iperfs.measure('TCP_received', :samples =>1)
 
-iperfs.addMeasurement('senderport',  Filter::SAMPLE,
-  {Filter::SAMPLE_SIZE => 1},
-  [
-    ['stream_no'],
-    ['pkt_seqno'],
-    ['pkt_size', Filter::SUM],
-    ['gen_timestamp'],
-    ['tx_timestamp']
-  ]
-)
 #
 if $0 == __FILE__
   p.to_xml.write($stdout, 2)
   puts
 end
-

@@ -25,9 +25,9 @@
 #
 # Create an application representation from scratch
 #
-require 'omf-expctl/application/appDefinition'
 
-a = AppDefinition.create('test:app:iperfr')
+defApplication('test:app:iperfr','iperfr'){|a|
+# = AppDefinition.create('test:app:iperfr')
 a.name = "iperfr"
 a.version(0, 0, 1)
 a.shortDescription = "Iperf traffic generator"
@@ -37,22 +37,42 @@ producing various forms of packet streams and port for sending
 these packets via various transports, such as TCP and UDP.
 TEXT
 
-# defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-a.defProperty('udp', 'Use UDP, otherwise TCP by default')
-a.defProperty('server', 'Client/Server')
-a.defProperty('port', 'Receiver port number')
-a.defProperty('window', 'TCP Receiver Window Size')
-a.defProperty('time', "Duration for traffic generation(seconds)")
-a.defProperty('len', "Payload Length(bytes)")
-a.defProperty('interval', "Interval between reports (sec)")
+# addProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
+a.defProperty('udp', 'Use UDP, otherwise TCP by default', nil, {:type => :string, :dynamic => false})
+a.defProperty('server', 'Client/Server', nil, {:type => :string, :dynamic => false})
+a.defProperty('port', 'Receiver port number', nil, {:type => :integer, :dynamic => false})
+a.defProperty('window', 'TCP Receiver Window Size', nil, {:type => :integer, :dynamice => false})
+a.defProperty('time', "Duration for traffic generation(seconds)", nil,{:type => :integer, :dynamice => false})
+#a.addProperty('len', "Payload Length(bytes)", nil, :integer, false)
+a.defProperty('interval', "Interval between reports (sec)", nil, {:type => :integer, :dynamic => false})
 
-a.defMeasurement("receiverport", nil, [
-  ['flow_no',:int],
-  ['throughput',:float],
-  ['jitter',:float],
-  ['packet_loss',:float]
- ])
-a.path = "/usr/bin/iperf"
+a.defMeasurement("TCP_received"){ |m|
+    m.defMetric('ID', :long)
+    m.defMetric('Begin_interval', :float)
+    m.defMetric('End_interval', :float)
+    m.defMetric('Transfer', :float)
+    m.defMetric('Bandwidth', :float)
+ }
+a.defMeasurement("UDP_received"){ |m|
+    m.defMetric('ID', :long)
+    m.defMetric('Begin_interval', :float)
+    m.defMetric('End_interval', :float)
+    m.defMetric('Transfer', :float)
+    m.defMetric('Bandwidth', :float)
+    m.defMetric('Jitter', :float)
+    m.defMetric('Packet_Lost', :long)
+    m.defMetric('Total_Packet', :long)
+    m.defMetric('PLR', :float)
+ }
+a.defMeasurement("Peer_Info"){ |m|
+    m.defMetric('ID', :long)
+    m.defMetric('local_address', :string)
+    m.defMetric('local_port', :long)
+    m.defMetric('foreign_address', :string)
+    m.defMetric('foreign_port', :long)
+ }
+
+a.path = "/usr/bin/iperf_oml2"
 
 if $0 == __FILE__
   require 'stringio'
@@ -74,4 +94,5 @@ if $0 == __FILE__
   t.to_xml.write($stdout, 2)
 
 end
+}
 

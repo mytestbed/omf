@@ -42,20 +42,11 @@ iperfr.bindProperty('server')
 iperfr.bindProperty('time')
 iperfr.bindProperty('window')
 iperfr.bindProperty('interval', 'report_interval')
-
-iperfr.addMeasurement('receiverport',  Filter::SAMPLE,
-  {Filter::SAMPLE_SIZE => 1},
-    [
-      ['flow_no'],
-      ['throughput'],
-      ['jitter'],
-      ['packet_loss']
-    ]
-)
+iperfr.measure('Peer_Info', :samples => 1)
+iperfr.measure('TCP_received', :samples =>1)
 
 
 if $0 == __FILE__
   p.to_xml.write($stdout, 2)
   puts
 end
-

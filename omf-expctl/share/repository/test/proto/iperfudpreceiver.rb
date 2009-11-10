@@ -36,24 +36,22 @@ p.defProperty('port', 'Port to listen on')
 p.defProperty('time', 'Duration of experiment (seconds)', 10)
 #p.defProperty('len', 'Payload length', 512)
 p.defProperty('report_interval', 'Interval between bandwidth reports', 1)
-p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:10.0.1.200:3003") #"tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
-p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
-p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
 
-p.addApplication("test:app:iperfr"){|iperfr| 
+p.addApplication("test:app:iperfr"){|iperfr|
 iperfr.bindProperty('udp','use_udp')
 iperfr.bindProperty('server')
 iperfr.bindProperty('port','port')
 iperfr.bindProperty('time')
 #iperfr.bindProperty('len')
 iperfr.bindProperty('interval','report_interval')
-iperfr.bindProperty('oml-server', 'omlServer')
-iperfr.bindProperty('oml-id', 'id')
-iperfr.bindProperty('oml-exp-id', 'expId')
+iperfr.measure('Peer_Info', :samples => 1)
+iperfr.measure('UDP_received', :samples =>1)
+iperfr.measure('TCP_received', :samples =>1)
 }
 
 if $0 == __FILE__
   p.to_xml.write($stdout, 2)
   puts
 end
+
 

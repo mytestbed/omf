@@ -322,11 +322,28 @@ class NodeSet < MObject
   end
 
   #
+  # This method returns true if this set does not include any nodes
+  #
+  # [Return] true if this set is empty (no nodes associate to it)
+  #
+  def empty?
+    flag = true
+    eachNode { |n|
+      flag = false
+    }
+    return flag
+  end
+
+  #
   # This method returns true if all nodes in this set are up
   #
   # [Return] true if all nodes in set are up
   #
   def up?
+    if empty?
+      return false
+    end
+    # This implicitly calls eachNode defined in BasicNodeSet!
     return inject(true) { |flag, n|
       #debug "Checking if #{n} is up"
       if flag

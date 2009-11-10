@@ -33,8 +33,10 @@
 #
 
 # Define some properties that we will use in this 
-defProperty('resetDelay', 210, "Time to wait before assuming that node didn't boot")
-defProperty('resetTries', 1, "Number of reset tries before declaring node dead")
+#defProperty('resetDelay', 210, "Time to wait before assuming that node didn't boot")
+#defProperty('resetTries', 1, "Number of reset tries before declaring node dead")
+defProperty('resetDelay', 10, "Time to wait before assuming that node didn't boot")
+defProperty('resetTries', 0, "Number of reset tries before declaring node dead")
 # keeps track of how many times a node has been reset
 ResetCount = {}
 

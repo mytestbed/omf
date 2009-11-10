@@ -34,9 +34,6 @@ p.defProperty('sender_rate', 'Number of bits per second', 100000000)
 p.defProperty('port', 'Port to send packets to', 5001)
 #p.defProperty('len', 'Size of packets')
 p.defProperty('time', 'Experiment duration (sec)', 10)
-p.defProperty('omlServer', 'Contact details for the oml collection server', "tcp:10.0.1.200:3003")#"tcp:#{OmlApp.getServerAddr}:#{OmlApp.getServerPort}")
-p.defProperty('id', 'ID for this oml client', "#{Experiment.ID}")
-p.defProperty('expId', 'ID for this experiment', "#{Experiment.ID}")
 
 p.addApplication("test:app:iperfs"){|iperfs|
 iperfs.bindProperty('Audp','use_udp')
@@ -45,13 +42,13 @@ iperfs.bindProperty('bandwidth','sender_rate')
 #iperfs.bindProperty('len')
 iperfs.bindProperty('time')
 iperfs.bindProperty('port')
-iperfs.bindProperty('oml-server', 'omlServer')
-iperfs.bindProperty('oml-id', 'id')
-iperfs.bindProperty('oml-exp-id', 'expId')
-
+iperfs.measure('Peer_Info', :samples => 1)
+iperfs.measure('TCP_received', :samples =>1)
+iperfs.measure('UDP_received', :samples =>1)
 }
 if $0 == __FILE__
   p.to_xml.write($stdout, 2)
   puts
 end
 }
+
