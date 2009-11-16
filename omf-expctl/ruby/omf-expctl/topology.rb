@@ -484,7 +484,17 @@ class Topology < MObject
   # - x = X coordinate of added node
   # - y = Y coordinate of added node
   #
-  def addNodeByCoordinate(x, y)
+  def addNodeByCoordinate(xIn, yIn)
+    if xIn.kind_of?(ExperimentProperty)
+      x = xIn.value
+    else
+      x = xIn
+    end
+    if yIn.kind_of?(ExperimentProperty)
+      y = yIn.value
+    else
+      y = yIn
+    end
     begin
       # Check if EC is in 'Slave Mode' - If so, only add the node on which this EC is running as slave
       if NodeHandler.SLAVE_MODE() 
