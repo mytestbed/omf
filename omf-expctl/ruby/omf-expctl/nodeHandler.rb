@@ -811,12 +811,13 @@ class NodeHandler < MObject
       begin
         #info "Checking port #{i}..."
         serv = TCPServer.new(i)
+        serv.close
+        OMF::ExperimentController::Web::start(i, {:Logger => Logger.new("/tmp/#{Experiment.ID}.w_internal.log"),
+           :DocumentRoot => NodeHandler.WEB_ROOT(),
+           :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
+        confirmedPort = i
       rescue
         #info "Port #{i} is in use!"
-      else
-        serv.close
-        #info "Port #{i} is free!"
-        confirmedPort = i
       end
       break if confirmedPort != 0   
     end
@@ -826,9 +827,6 @@ class NodeHandler < MObject
       exit
     end
         
-    OMF::ExperimentController::Web::start(confirmedPort, {:Logger => Logger.new("/tmp/#{Experiment.ID}.w_internal.log"),
-         :DocumentRoot => NodeHandler.WEB_ROOT(),
-         :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
   end
 end 
 #
