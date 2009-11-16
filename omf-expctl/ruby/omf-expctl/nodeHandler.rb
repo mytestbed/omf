@@ -77,6 +77,7 @@ class NodeHandler < MObject
   # Our Version Number
   #
   VERSION = OMF::Common::VERSION(__FILE__)
+  MM_VERSION = OMF::Common::MM_VERSION()
   VERSION_STRING = "OMF Experiment Controller #{VERSION}"
 
   #
@@ -612,7 +613,7 @@ class NodeHandler < MObject
     else
       # No luck, then look at our default paths...
       path = ["../#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}",
-              "#{DEFAULT_CONFIG_PATH}#{VERSION}/#{DEFAULT_CONFIG_FILE}",
+              "#{DEFAULT_CONFIG_PATH}-#{MM_VERSION}/#{DEFAULT_CONFIG_FILE}",
               "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}"]
       path.each {|f|
         if File.exists?(f)
@@ -643,7 +644,7 @@ class NodeHandler < MObject
       # No luck, then look at our default paths...
       path =[".#{DEFAULT_CONFIG_LOG}",
              "~/.#{DEFAULT_CONFIG_LOG}",
-             "#{DEFAULT_CONFIG_PATH}#{VERSION}/#{DEFAULT_CONFIG_LOG}",
+             "#{DEFAULT_CONFIG_PATH}-#{MM_VERSION}/#{DEFAULT_CONFIG_LOG}",
              "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_LOG}"]
       path.each {|f|
         if File.exists?(f)

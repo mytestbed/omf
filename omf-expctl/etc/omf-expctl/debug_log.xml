@@ -2,7 +2,7 @@
   <pre_config>
     <global level="DEBUG"/>
   </pre_config>
-  <!-- outputers -->
+  <!-- outputters -->
   <outputter type="StdoutOutputter" name="console" level="DEBUG"/>
   <outputter type="OMF::ExperimentController::Web::Log::LogOutputter" name="web" level="DEBUG"/>
 	

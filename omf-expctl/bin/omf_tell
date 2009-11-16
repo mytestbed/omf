@@ -24,6 +24,7 @@
 #
 #
 
+VER=5.2
 APP=omf-expctl/tellnode.rb
 TOPO_ALL=system:topo:all
 MY_NAME="$ROOTAPP tell"
@@ -78,12 +79,11 @@ if [ -z $topo ] || [ "$topo" == "all" ] ; then
   topo=$TOPO_ALL
 fi
 
-if [ -e /usr/lib/ruby/1.8/$APP ]; then
-   PDIR=/usr/lib/ruby/1.8
+if [ -e /usr/share/omf-expctl-$VER/$APP ]; then
+   PDIR=/usr/share/omf-expctl-$VER
 else
-   echo "Cannot find the ruby module $APP"
+   echo "Cannot find the ruby module location ($APP)."
    exit 1;
 fi
 
-exec ruby1.8 -I$PDIR $PDIR/$APP $cmd "[$topo]" $domain
-
+exec ruby1.8 -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP $cmd "[$topo]" $domain

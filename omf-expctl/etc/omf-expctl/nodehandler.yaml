@@ -45,11 +45,11 @@
       # This is the Path where EC should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)
       :repository:
-        :path: ["../repository", "/usr/share/omf-expctl/repository"]
+        :path: ["../repository", "/usr/share/omf-expctl-5.2/repository"]
 
       # This is the Url where EC can contact the Inventory Service
       :inventory:
-        :url: 'http://localhost:5022/inventory'
+        :url: 'http://localhost:5052/inventory'
 
       # This should be the IP address of the local interface that is accessible from
       # the nodes. This address will be given to the nodes so they can retrieve

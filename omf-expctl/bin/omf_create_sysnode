@@ -1,4 +1,4 @@
-#!/usr/bin/ruby1.8
+#!/usr/bin/ruby1.8 -I/usr/share/omf-common-5.2
 
 require "omf-common/omfPubSubService"
 

@@ -25,7 +25,7 @@
 # NOTE: use only 'spaces' to indent !
 # ('tab' indents are not supported by the ruby yaml parser used to read this file)
 #
-# This is the Config file for the NodeHandler4 running in 'Slave Mode' on a node/resources,
+# This is the Config file for the EC running in 'Slave Mode' on a node/resources,
 # which can potentially be disconnected from the Control Network
 #
 ---
@@ -50,11 +50,11 @@ nodehandler:
       # This is the Path where NH should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)
       repository:
-        path: ["../repository", "/usr/share/omf-expctl/repository"]
+        path: ["../repository", "/usr/share/omf-expctl-5.2/repository"]
 
       # This is the Url where NH can contact the Inventory Service
       inventory:
-        url: 'http://localhost:5022/inventory'
+        url: 'http://localhost:5052/inventory'
 
       xmpp-server:
         host: '10.0.0.200'
@@ -69,4 +69,3 @@ nodehandler:
     debug:
       repository:
         path: ['../repository']
-      commServer: ../c/commServer/commServer -d 4 --iface eth1

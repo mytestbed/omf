@@ -52,6 +52,11 @@ if [ $# -lt 1 ] ; then
   usage ; exit 1
 fi
 
+if [ $USER == 'root' ] ; then
+  echo "You cannot save images as superuser (root). Exiting."
+  exit 1
+fi
+
 function saveimage()
 {
   OMF=omf

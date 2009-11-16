@@ -95,7 +95,7 @@ if [ -z $timeout ] ; then
   timeout=$DEF_TIMEOUT
 fi
 
-OMF=/usr/bin/omf
+OMF=omf
 
 if [ -z $domain ] 
 then

@@ -21,4 +21,4 @@ pxe:
   #
   testbed:
     default: 
-      inventory_url: 'http://localhost:5022/inventory'
+      inventory_url: 'http://localhost:5052/inventory'
