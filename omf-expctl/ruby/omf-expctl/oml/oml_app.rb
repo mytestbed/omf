@@ -121,15 +121,15 @@ class OmlApp < MObject
   #
   def OmlApp.startCollectionServer()
 
-    # Check if NH is running in 'slave' mode. If so, then this means this NH is 
+    # Check if EC is running in 'slave' mode. If so, then this means this EC is 
     # being invoked directly on a specific node/resource which can be temporary 
-    # disconnected from the Control Network. Thus, this NH has been invoked by
+    # disconnected from the Control Network. Thus, this EC has been invoked by
     # a 'master' Node Agent, which is then in charge of launching a Proxy OML
-    # Collection Server. This NH then only retrieves the info for that Proxy 
+    # Collection Server. This EC then only retrieves the info for that Proxy 
     # Server from the 'master' NA.
     if NodeHandler.SLAVE_MODE
       # YES - then the OML server has already been launched by the Master NA
-      # We just fetch its config setting from the 'slave' NH
+      # We just fetch its config setting from the 'slave' EC
       @@collectionServerStarted = true
       @@oml2ServerPort = NodeHandler.instance.omlProxyPort
       @@oml2ServerAddr = NodeHandler.instance.omlProxyAddr
@@ -174,7 +174,7 @@ class OmlApp < MObject
   #
   def OmlApp.stopCollectionServer
 
-    # Check if NH is running in 'slave' mode. 
+    # Check if EC is running in 'slave' mode. 
     # If so then do nothing then the OML Proxy server is managed by the Master NA, do nothing
     if NodeHandler.SLAVE_MODE
       return

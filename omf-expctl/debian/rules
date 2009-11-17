@@ -9,8 +9,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-
-
+VERSION=5.2
+PKG_NAME=omf-expctl-$(VERSION)
 
 configure: configure-stamp
 configure-stamp:
@@ -45,12 +45,16 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/omf-expctl
-	tar -C ruby -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/omf-expctl/usr/lib/ruby/1.8/
-	svn info | grep Revision | cut -d ' ' -f 2 > debian/omf-expctl/usr/lib/ruby/1.8/omf-expctl/REVISION
-	cp ruby/omf-expctl.rb debian/omf-expctl/usr/lib/ruby/1.8/
-	tar -C etc -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/omf-expctl/etc/
-	tar -C share -cf - --exclude='.svn' repository | tar -xf - -C debian/omf-expctl/usr/share/omf-expctl/	
-	tar -cf - --exclude='.svn' bin | tar -xf - -C debian/omf-expctl/usr
+	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
+	tar -C ruby -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
+	cp ruby/omf-expctl.rb debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
+	svn info | grep Revision | cut -d ' ' -f 2 > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-expctl/REVISION
+	tar -C etc -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/$(PKG_NAME)/etc/
+	tar -cf - --exclude='.svn' bin | tar -xf - -C debian/$(PKG_NAME)/usr
+	tar -C share -cf - --exclude='.svn' repository | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
+	
+	mv debian/$(PKG_NAME)/etc/omf-expctl debian/$(PKG_NAME)/etc/$(PKG_NAME)
+	for FILE in `ls debian/$(PKG_NAME)/usr/bin/`; do mv debian/$(PKG_NAME)/usr/bin/$$FILE debian/$(PKG_NAME)/usr/bin/$$FILE-$(VERSION); done;
 	
 # Build architecture-independent files here.
 binary-indep: build install

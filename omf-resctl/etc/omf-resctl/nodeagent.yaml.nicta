@@ -65,5 +65,5 @@ nodeagent:
     # To enable/disable ii) uncomment/comment the following lines
     server_port: 9026
     # local_if: Control Interface used with TCPServer Comm.
-    local_if: eth1
+    local_if: control
     xmpp_server: 10.0.0.200

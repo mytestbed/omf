@@ -577,7 +577,7 @@ class Topology < MObject
   # Return the value of the 'strict' flag for this Topology
   # If a topology is strict an Exception is called when something
   # tries to modify it, i.e. by adding/removing nodes. For example,
-  # when a node fails to start up, NH will try to remove it from 
+  # when a node fails to start up, EC will try to remove it from 
   # this topology, which will raise an exception if 'strict' is set
   #
   # [Return] true/false
@@ -641,7 +641,7 @@ class Topology < MObject
       y = yIn
     end
     begin
-      # Check if NH is in 'Slave Mode' - If so, only add the node on which this NH is running as slave
+      # Check if EC is in 'Slave Mode' - If so, only add the node on which this EC is running as slave
       if NodeHandler.SLAVE_MODE() 
         if (x != NodeHandler.instance.slaveNodeX) || (y != NodeHandler.instance.slaveNodeY) 
           info "Slave Mode on [#{NodeHandler.instance.slaveNodeX},#{NodeHandler.instance.slaveNodeY}], thus ignoring node [#{x},#{y}]"

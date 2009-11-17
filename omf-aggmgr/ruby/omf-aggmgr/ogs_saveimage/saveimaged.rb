@@ -81,12 +81,6 @@ class SaveimageDaemon < AbstractDaemon
   #
   def getCommand()
     # check if we have the necessary configuration parameters
-    if (@img == nil)
-      raise HTTPStatus::BadRequest, "No image file name specified"
-    end
-    if (@user == nil)
-      raise HTTPStatus::BadRequest, "No user name specified"
-    end
     if @config['imageDir'] == nil
       raise HTTPStatus::BadRequest, "Missing configuration 'imageDir'"
     end
@@ -95,6 +89,12 @@ class SaveimageDaemon < AbstractDaemon
     end
     if @config['ncBin'] == nil
       raise HTTPStatus::BadRequest, "Missing configuration 'ncBin'"
+    end
+    
+    # check for unsafe characters in the image name
+    # this is a security measure
+    if (@img =~ /[\/\;\:\&\$\|]+/) != nil
+      raise HTTPStatus::BadRequest, "Image file name '#{@img}' contains invalid characters"
     end
     
     # check if the image file already exists
@@ -106,7 +106,7 @@ class SaveimageDaemon < AbstractDaemon
     # check for non-alphanumeric characters in the user name
     # this is a security measure
     if (@user =~ /[\W]+/) != nil
-      raise HTTPStatus::BadRequest, "Invalid user name #{@user}"
+      raise HTTPStatus::BadRequest, "Invalid user name '#{@user}'"
     end
     # do not allow to create images as root
     if @user == 'root'
@@ -116,18 +116,25 @@ class SaveimageDaemon < AbstractDaemon
     # check if the user exists locally
     uid = %x[id -u #{@user}]
     if uid.to_i == 0
-      raise HTTPStatus::BadRequest, "User #{@user} does not exist on this system!"
+      debug "User '#{@user}' does not exist on this system!"
+      # if the user from the HTTP request doesn't exist on the AM, fall back to the
+      # owner given in the config file
+      if @config['owner'] == nil
+        raise HTTPStatus::BadRequest, "Missing configuration 'owner'"
+      else
+        @user = @config['owner']
+      end
     end
     
     # check for user write permission
     if !system("su #{@user} -c 'touch #{imgPath}'")
-      raise HTTPStatus::BadRequest, "User #{@user} cannot create file #{imgPath}"
+      raise HTTPStatus::BadRequest, "User '#{@user}' cannot create file '#{imgPath}'"
     end
 
     # all good, return the netcat command line
     addr = @config['saveimageIF']
     ncBin = @config['ncBin']
-    debug("Starting netcat ('#{ncBin}') as user #{user} to receive image '#{imgPath}' on '#{port}' interface '#{addr}'")
+    debug("Starting netcat ('#{ncBin}') as user '#{user}' to receive image '#{imgPath}' on '#{port}' interface '#{addr}'")
     cmd = "su #{user} -c '#{ncBin} -l -s #{addr} -p #{port} > #{imgPath}'"
   end
 

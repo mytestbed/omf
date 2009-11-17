@@ -27,8 +27,8 @@
 # == Description
 #
 # During the experiment execution, the various Node Agent(s) (NA) send
-# messages back to the Node Handler (NH). This module contains the methods 
-# used by the (NH) to process the commands inside these messages.
+# messages back to the Node Handler (EC). This module contains the methods 
+# used by the (EC) to process the commands inside these messages.
 #
 
 module AgentCommands
@@ -47,7 +47,7 @@ module AgentCommands
 
   #
   # Process 'ENROLLED' message from a Node Agent. 
-  # The NH receives such a message when a NA has enrolled in a group of the experiment.
+  # The EC receives such a message when a NA has enrolled in a group of the experiment.
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
@@ -61,7 +61,7 @@ module AgentCommands
 
   #
   # Process 'WARN' message from a Node Agent. 
-  # The NH receives such a message when a NA sends a warning text.
+  # The EC receives such a message when a NA sends a warning text.
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
@@ -74,11 +74,11 @@ module AgentCommands
 
   #
   # Process 'WRONG_IMAGE' message from a Node Agent. 
-  # The NH receives such a message when a NA has an installed disk image which 
+  # The EC receives such a message when a NA has an installed disk image which 
   # is different from the one requested in the experiment description
-  # For now, the NH reset/reboot that node, and tries to enroll it again. When
+  # For now, the EC reset/reboot that node, and tries to enroll it again. When
   # called within a LOAD experiment, this would trigger pxe booting and image loading.
-  # (in the future, the NH should request AM to install the correct image)
+  # (in the future, the EC should request AM to install the correct image)
   #
   # Note: This assumes that the XMPP server is actually keeping the last message 
   # addressed to a group for every new subscribers. Thus there is no need to send 
@@ -97,7 +97,7 @@ module AgentCommands
 
   #
   # Process 'APP_EVENT' message from a Node Agent. 
-  # The NH receives such a message when a NA reports an application-specific 
+  # The EC receives such a message when a NA reports an application-specific 
   # event that happened on the node.
   #
   # - handler = the communicator that called this method
@@ -117,7 +117,7 @@ module AgentCommands
 
   #
   # Process 'DEV_EVENT' message from a Node Agent. 
-  # The NH receives such a message when a NA reports a device-specific
+  # The EC receives such a message when a NA reports a device-specific
   # event that happened on the node.
   #
   # - handler = the communicator that called this method
@@ -137,7 +137,7 @@ module AgentCommands
 
   #
   # Process 'APP_EVENT' message from a Node Agent. 
-  # The NH receives such a message when a NA reports a error 
+  # The EC receives such a message when a NA reports a error 
   # event that happened on the node.
   #
   # - handler = the communicator that called this method
@@ -145,7 +145,7 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  # When the error resulted from a previous 'CONFIGURE' message issued by the NH,
+  # When the error resulted from a previous 'CONFIGURE' message issued by the EC,
   # the argument array contains the two following fields:
   # - path  Id of resource to have been configured
   # - msg   Message describing error condition
@@ -175,15 +175,15 @@ module AgentCommands
 
   #
   # Process 'END_EXPERIMENT' message from a Node Agent. 
-  # The NH receives such a message only when it is invoked with an experiment that
+  # The EC receives such a message only when it is invoked with an experiment that
   # support temporary disconnection of node/resource from the Control Network.
   # In such case, after distributing the experiment description directly to the NA(s),
-  # the NH enters a waiting state, where it waits for the NA(s) to report the end of 
+  # the EC enters a waiting state, where it waits for the NA(s) to report the end of 
   # the experiment.
-  # Thus a given NA sends this message to the NH when it has finished executing the 
+  # Thus a given NA sends this message to the EC when it has finished executing the 
   # tasks describes in the experiment script for its particular nodes, AND when this
   # node is reconnected to the Control Network after a temporary disconnection. 
-  # The NH will wait for an 'END_EXPERIMENT' from all the nodes involved in an experiment
+  # The EC will wait for an 'END_EXPERIMENT' from all the nodes involved in an experiment
   # before declaring that the experiment is indeed completed.
   #
   # - handler = the communicator that called this method

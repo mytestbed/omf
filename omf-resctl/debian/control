@@ -1,13 +1,13 @@
-Source: omf-resctl
+Source: omf-resctl-5.2
 Section: omf
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
 Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 
-Package: omf-resctl
-Architecture: any
-Depends: wget, ruby1.8, omf-common, wireless-tools
+Package: omf-resctl-5.2
+Architecture: all
+Depends: wget, ruby1.8, omf-common-5.2, wireless-tools
 Description: OMF Resource Controller
  Client application for the OMF Experiment Controller.
 

@@ -7,7 +7,7 @@ Section: omf
 
 Package: libcoderay-ruby1.8
 Section: omf
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, libruby1.8
 Description: fast syntax highlighter for Ruby
  CodeRay is fast syntax highlighter for Ruby, HTML, JavaScript, CSS, C, YAML, and other languages. It produces colorful, valid XHTML.

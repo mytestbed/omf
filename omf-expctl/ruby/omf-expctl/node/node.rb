@@ -201,7 +201,7 @@ class Node < MObject
   #
   def getControlIP()
     
-    # Check if NH is running in 'Slave Mode'
+    # Check if EC is running in 'Slave Mode'
     if NodeHandler.SLAVE_MODE()
       # Yes - Then there can only be 1 NA to talk to, it's the 'Slave' NA on localhost
       return "127.0.0.1"
@@ -548,7 +548,7 @@ class Node < MObject
   # Power this Node on
   #
   def powerOn()
-    # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
+    # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
     if !NodeHandler.SLAVE_MODE()
       CMC.nodeOn(x, y)
     end
@@ -568,7 +568,7 @@ class Node < MObject
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    # Check that NH is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
+    # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE_MODE()
       if hard
         CMC.nodeOffHard(x, y)

@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 
 Package: frisbee
-Architecture: i386
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, zlib1g
 Description: multicast file distribution tool
  multicast file distribution tool from EMULAB

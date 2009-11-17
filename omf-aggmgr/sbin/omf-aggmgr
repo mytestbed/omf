@@ -24,15 +24,12 @@
 #
 #
 
+VER=5.2
 APP=omf-aggmgr/ogs.rb
-if [ -e ../$APP ]; then
-   PDIR=..
-else 
-   if [ -e /usr/lib/ruby/1.8/$APP ]; then
-      PDIR=/usr/lib/ruby/1.8
-   else
-      echo "Cannot find the ruby module location ($APP)."
-      exit 1;
-   fi
+if [ -e /usr/share/omf-aggmgr-$VER/$APP ]; then
+   PDIR=/usr/share/omf-aggmgr-$VER
+else
+   echo "Cannot find the ruby module location ($APP)."
+   exit 1;
 fi
-exec ruby1.8 -I$PDIR $PDIR/$APP $*
+exec ruby1.8 -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP $*

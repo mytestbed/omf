@@ -1,49 +1,5 @@
-omf-resctl (5.2-1) stable; urgency=low
+omf-resctl-5.2 (1) stable; urgency=low
 
-  * first OMF 5.2 release package
-  * supports new saveimage gridservice
+  * Initial release.
 
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 16 Oct 2009 20:31:08 +1100
-
-omf-resctl (5.0-6) stable; urgency=low
-
-  * added XMPP keepalive support
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 25 Sep 2009 16:26:31 +1000
-
-omf-resctl (5.0-5) stable; urgency=low
-
-  * fixed omf tell
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 17 Sep 2009 13:43:13 +1000
-
-omf-resctl (5.0-4) stable; urgency=low
-
-  * fixed logrotation issue
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 15 Sep 2009 16:41:21 +1000
-
-omf-resctl (5.0-3) stable; urgency=low
-
-  * changed distribution to stable
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 15:23:17 +1000
-
-omf-resctl (5.0-1ubuntu2) testing; urgency=low
-
-  * Testing XMPP + Latest refactoring from Max 
-
- --  <thierry@sandbox1.dynhost.nicta.com.au>  Wed, 02 Sep 2009 09:01:36 +1000
-
-omf-resctl (5.0-1ubuntu1) hardy; urgency=low
-
-  * XMPP improvements
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 03 Aug 2009 14:26:30 +1000
-
-omf-resctl (5.0-1) testing; urgency=low
-
-  * Initial release
-
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 17 Apr 2009 18:00:40 +1000
-
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 09 Nov 2009 15:00:38 +1100

@@ -25,6 +25,7 @@
 #
 #
 
+VER=5.2
 APP=omf-expctl/statnode.rb
 TOPO_ALL=system:topo:all
 MY_NAME="$ROOTAPP stat"
@@ -80,11 +81,11 @@ if [ -z $domain ] ; then
   domain="default"
 fi
 
-if [ -e /usr/lib/ruby/1.8/$APP ]; then
-  PDIR=/usr/lib/ruby/1.8
+if [ -e /usr/share/omf-expctl-$VER/$APP ]; then
+   PDIR=/usr/share/omf-expctl-$VER
 else
-  echo "Cannot find the ruby module $APP"
-  exit 1;
+   echo "Cannot find the ruby module location ($APP)."
+   exit 1;
 fi
    
-exec ruby1.8 -I$PDIR $PDIR/$APP "[$topo_or_cmd]" $domain
+exec ruby1.8 -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP "[$topo_or_cmd]" $domain

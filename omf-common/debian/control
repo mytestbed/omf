@@ -1,13 +1,13 @@
-Source: omf-common
+Source: omf-common-5.2
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
 Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 Section: omf
 
-Package: omf-common
+Package: omf-common-5.2
 Section: omf
-Architecture: any
+Architecture: all
 Depends: liblog4r-ruby, libxmpp4r-ruby (>=1.0-bugfix1)
 Description: Common ruby classes for OMF
  Ruby classes commonly required by OMF Experiment Controller, Resource Controller and Aggregate Manager

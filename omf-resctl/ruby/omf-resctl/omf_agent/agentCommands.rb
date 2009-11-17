@@ -41,6 +41,8 @@ module AgentCommands
 
   # Version of the communication protocol between the NH and the NAs
   PROTOCOL_VERSION = "4.2"
+  
+  OMF_MM_VERSION = OMF::Common::MM_VERSION()
 
   # TODO:
   # For GEC4 demo we use these Constant values.
@@ -53,12 +55,12 @@ module AgentCommands
   SLAVE_RESCTL_ID = "SLAVE-RESOURCE-CTL"
   SLAVE_RESCTL_LISTENIF = "lo" # Slave Agent listens only on localhost interface
   SLAVE_RESCTL_LISTENPORT = 9026
-  SLAVE_RESCTL_CMD = "sudo /usr/sbin/omf-resctl"
-  SLAVE_RESCTL_LOG = "/etc/omf-resctl/nodeagentSlave_log.xml"
+  SLAVE_RESCTL_CMD = "sudo /usr/sbin/omf-resctl-#{OMF_MM_VERSION}"
+  SLAVE_RESCTL_LOG = "/etc/omf-resctl-#{OMF_MM_VERSION}/nodeagentSlave_log.xml"
   # Slave Experimet Controller (aka NodeHandler)
   SLAVE_EXPCTL_ID = "SLAVE-EXP-CTL"
-  SLAVE_EXPCTL_CMD = "/usr/bin/omf exec"
-  SLAVE_EXPCTL_CFG = "/etc/omf-expctl/nodehandlerSlave.yaml"
+  SLAVE_EXPCTL_CMD = "/usr/bin/omf-#{OMF_MM_VERSION} exec"
+  SLAVE_EXPCTL_CFG = "/etc/omf-expctl-#{OMF_MM_VERSION}/nodehandlerSlave.yaml"
   # Proxy OML Collection Server
   OML_PROXY_ID = "PROXY-OML-SERVER"
   OML_PROXY_CMD = "/usr/bin/oml2-proxy-server"
@@ -573,7 +575,7 @@ end
   def AgentCommands.RESTART(agent, argArray)
     agent.communicator.quit
     ExecApp.killAll
-    system('/etc/init.d/omf-resctl restart')
+    system("/etc/init.d/omf-resctl-#{OMF_MM_VERSION} restart")
     # will be killed by now :(
   end
 

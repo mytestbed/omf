@@ -10,4 +10,4 @@ cmc:
     default: 
 
       # inventory_url: URL to the Inventory GS, where we can get mapping [x,y] to IP@
-      inventory_url: 'http://localhost:5022/inventory'
+      inventory_url: 'http://localhost:5052/inventory'

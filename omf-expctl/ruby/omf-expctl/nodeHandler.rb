@@ -28,11 +28,11 @@
 #
 # This is the main source file for the Node Handler. It defines the NodeHandler class.
 #
-# NOTE: Originally 'Node Handler' (NH) was the name of this OMF entity. As of end of 2008
+# NOTE: Originally 'Node Handler' (EC) was the name of this OMF entity. As of end of 2008
 # we are adopting a new naming scheme closer to the GENI specifications. In this new scheme,
 # the term 'Experiment Controller' (EC) replaces 'Node Handler'. This code will gradually
 # be changed to reflect this. However, this is change is a low priority task, therefore the
-# reader will see both terms 'EC' and 'NH' used in the code.
+# reader will see both terms 'EC' and 'EC' used in the code.
 #
 
 
@@ -69,7 +69,7 @@ Project = nil
 class NodeHandler < MObject
 
   #
-  # NH follows the 'singleton' design pattern
+  # EC follows the 'singleton' design pattern
   #
   include Singleton
 
@@ -77,6 +77,7 @@ class NodeHandler < MObject
   # Our Version Number
   #
   VERSION = OMF::Common::VERSION(__FILE__)
+  MM_VERSION = OMF::Common::MM_VERSION()
   VERSION_STRING = "OMF Experiment Controller #{VERSION}"
 
   #
@@ -119,7 +120,7 @@ class NodeHandler < MObject
   @@justPrint = false
 
   # 
-  # Flag indicating if this Experiment Controller (NH) is invoked for an Experiment
+  # Flag indicating if this Experiment Controller (EC) is invoked for an Experiment
   # that support temporary disconnections
   #
   @@disconnectionMode = false
@@ -144,7 +145,7 @@ class NodeHandler < MObject
 
   #
   # Return the value of the 'showAppOutput' flag
-  # When this flag is 'true', the NH will display on its standard-out any outputs 
+  # When this flag is 'true', the EC will display on its standard-out any outputs 
   # coming from the standard-out of the applications running on the nodes.
   #
   # [Return] true/false (default 'false')
@@ -180,7 +181,7 @@ class NodeHandler < MObject
   @@webRoot = "#{ENV['HOME']}/public_html"
 
   #
-  # Return the root URL for the NH's webserver
+  # Return the root URL for the EC's webserver
   #
   # [Return] an URL String
   #
@@ -189,7 +190,7 @@ class NodeHandler < MObject
   end
 
   #
-  # Set the root URL for the NH's webserver
+  # Set the root URL for the EC's webserver
   #
   # - root = an URL String
   #
@@ -327,7 +328,7 @@ class NodeHandler < MObject
   end
 
   # 
-  # Set the Flag indicating that this Experiment Controller (NH) is invoked for an 
+  # Set the Flag indicating that this Experiment Controller (EC) is invoked for an 
   # Experiment that support temporary disconnections
   #
   def NodeHandler.setDisconnectionMode()
@@ -336,7 +337,7 @@ class NodeHandler < MObject
   end
 
   # 
-  # Return the value of the Flag indicating that this Experiment Controller (NH) is 
+  # Return the value of the Flag indicating that this Experiment Controller (EC) is 
   # invoked for an Experiment that support temporary disconnections
   #
   # [Return] true/false
@@ -445,15 +446,15 @@ class NodeHandler < MObject
                   "    [EXP_OPTIONS] are any options defined in the experiment script\n" +
                   "    [OPTIONS] are any of the following:\n\n" 
 
-    opts.on("-c", "--config FILE", "File containing local configuration parameters") {|file|
+    opts.on("-C", "--configfile FILE", "File containing local configuration parameters") {|file|
       @configFile = file
     }
 
-    opts.on("-d", "--domain NAME", "Resource domain. Usually the name of the testbed") {|name|
-      OConfig.domain = name
+    opts.on("-c", "--config NAME", "Configuration section from the config file ('default' if omitted)") {|name|
+      OConfig.config = name
     }
     
-    opts.on("-D", "--debug", "Operate in debug mode") { @debug = true }
+    opts.on("-d", "--debug", "Operate in debug mode") { @debug = true }
 
     opts.on("-i", "--interactive", "Run the nodehandler in interactive mode") { @interactive = true }
 
@@ -508,24 +509,24 @@ class NodeHandler < MObject
 
     opts.on_tail("-v", "--version", "Show the version\n") { |v| puts VERSION_STRING; exit }
 
-    opts.on("--slave-mode EXPID", "Run NH in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
+    opts.on("--slave-mode EXPID", "Run EC in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
       @@runningSlaveMode = true
       Experiment.ID = "#{id}"
     }
 
-    opts.on("--slave-mode-omlport PORT", "When NH in 'Slave' mode, this is the PORT to the local proxy OML collection server") { |port|
+    opts.on("--slave-mode-omlport PORT", "When EC in 'Slave' mode, this is the PORT to the local proxy OML collection server") { |port|
       @omlProxyPort = port.to_i
     }
 
-    opts.on("--slave-mode-omladdr ADDR", "When NH in 'Slave' mode, this is the Address to the local proxy OML collection server") { |addr|
+    opts.on("--slave-mode-omladdr ADDR", "When EC in 'Slave' mode, this is the Address to the local proxy OML collection server") { |addr|
       @omlProxyAddr = addr
     }
 
-    opts.on("--slave-mode-xcoord X", "When NH in 'Slave' mode, this is the X coordinate of the node where this slave NH is running") { |x|
+    opts.on("--slave-mode-xcoord X", "When EC in 'Slave' mode, this is the X coordinate of the node where this slave EC is running") { |x|
       @slaveNodeX = eval(x)
     }
 
-    opts.on("--slave-mode-ycoord Y", "When NH in 'Slave' mode, this is the Y coordinate of the node where this slave NH is running") { |y|
+    opts.on("--slave-mode-ycoord Y", "When EC in 'Slave' mode, this is the Y coordinate of the node where this slave EC is running") { |y|
       @slaveNodeY = eval(y)
     }
 
@@ -612,7 +613,7 @@ class NodeHandler < MObject
     else
       # No luck, then look at our default paths...
       path = ["../#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}",
-              "#{DEFAULT_CONFIG_PATH}#{VERSION}/#{DEFAULT_CONFIG_FILE}",
+              "#{DEFAULT_CONFIG_PATH}-#{MM_VERSION}/#{DEFAULT_CONFIG_FILE}",
               "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_FILE}"]
       path.each {|f|
         if File.exists?(f)
@@ -643,7 +644,7 @@ class NodeHandler < MObject
       # No luck, then look at our default paths...
       path =[".#{DEFAULT_CONFIG_LOG}",
              "~/.#{DEFAULT_CONFIG_LOG}",
-             "#{DEFAULT_CONFIG_PATH}#{VERSION}/#{DEFAULT_CONFIG_LOG}",
+             "#{DEFAULT_CONFIG_PATH}-#{MM_VERSION}/#{DEFAULT_CONFIG_LOG}",
              "#{DEFAULT_CONFIG_PATH}/#{DEFAULT_CONFIG_LOG}"]
       path.each {|f|
         if File.exists?(f)
@@ -795,7 +796,7 @@ class NodeHandler < MObject
   end
 
   #
-  # This method starts the NH's WebServer which will be used by nodes to retrieve
+  # This method starts the EC's WebServer which will be used by nodes to retrieve
   # configuration info, e.g. OML configs  
   #
   def startWebServer(port = @webPort)
@@ -816,6 +817,11 @@ class NodeHandler < MObject
            :DocumentRoot => NodeHandler.WEB_ROOT(),
            :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
         confirmedPort = i
+      rescue
+        #info "Port #{i} is in use!"
+        OMF::ExperimentController::Web::start(i, {:Logger => Logger.new("/tmp/#{Experiment.ID}.w_internal.log"),
+           :DocumentRoot => NodeHandler.WEB_ROOT(),
+           :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
       rescue
         #info "Port #{i} is in use!"
       end

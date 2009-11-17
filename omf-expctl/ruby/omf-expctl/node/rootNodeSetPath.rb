@@ -65,7 +65,7 @@ class RootNodeSetPath < NodeSetPath
       debug "Implicit creation of an app instance from: #{app}"
       appInstance = Application.new(app, &block)
     #else
-      # real NH-compatible application (i.e. ruby wrapper)
+      # real EC-compatible application (i.e. ruby wrapper)
     #  appInstance = app
     end
     appInstance.instantiate(@nodeSet)
@@ -78,7 +78,7 @@ class RootNodeSetPath < NodeSetPath
   #           be configured to boot from that PXE image name over the network. If 'image' is set 
   #           to 'nil' then the nodes will boot from their local disks. 
   # - imageName = optional, name of image to check for. This optional name allows a node to verify 
-  #           at the time the nodes check in (i.e. after boot and NA-NH contact), if it really booted 
+  #           at the time the nodes check in (i.e. after boot and NA-EC contact), if it really booted 
   #           into the right image. The image name is stored in '/.orbit_image'
   #
   def pxeImage(domain, pxeFlag)

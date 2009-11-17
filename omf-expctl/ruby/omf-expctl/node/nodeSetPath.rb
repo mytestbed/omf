@@ -118,9 +118,9 @@ class NodeSetPath < MObject
     if value != nil
       if (@path.last.to_s == "enforce_link")
         @nodeSet.setLinkCharacteristics(@path, @value)
-        # If this NH is invoked with support for temporary disconnected node/resource, then 
+        # If this EC is invoked with support for temporary disconnected node/resource, then 
         # do not execute any node/resource configuration commands (this will be done by the
-        # slave NH running on the node/resource).
+        # slave EC running on the node/resource).
       elsif (NodeHandler.disconnectionMode? == false) 
         @nodeSet.configure(@path, @value)
       end
@@ -200,12 +200,12 @@ class NodeSetPath < MObject
   end
 
   # 
-  #  Set the Flag indicating that this Experiment Controller (NH) is invoked for an 
+  #  Set the Flag indicating that this Experiment Controller (EC) is invoked for an 
   #  Experiment that support temporary disconnections
   #       
   def allowDisconnection
-    # Check if NH is NOT in 'Slave Mode'
-    # When is 'Slave Mode' this mean there is already a Master NH which has its 'disconnection mode' set
+    # Check if EC is NOT in 'Slave Mode'
+    # When is 'Slave Mode' this mean there is already a Master EC which has its 'disconnection mode' set
     # so we do nothing here
     if !NodeHandler.SLAVE_MODE()
       NodeHandler.setDisconnectionMode()

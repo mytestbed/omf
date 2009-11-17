@@ -23,7 +23,7 @@ case "$1" in
     # Source debconf library
     #
     . /usr/share/debconf/confmodule
-    mkdir -p -m 777 /var/lib/omf-images  
+    mkdir -p -m 777 /var/lib/omf-images-5.2
     ;;
     
     abort-upgrade|abort-remove|abort-deconfigure)	    
