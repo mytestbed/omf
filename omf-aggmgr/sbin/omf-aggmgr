@@ -24,7 +24,7 @@
 #
 #
 
-VER=5.2
+VER=5.3
 APP=omf-aggmgr/ogs.rb
 if [ -e /usr/share/omf-aggmgr-$VER/$APP ]; then
    PDIR=/usr/share/omf-aggmgr-$VER

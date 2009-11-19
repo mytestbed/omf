@@ -9,7 +9,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PKG_NAME=omf-common-5.2
+PKG_NAME=omf-common-5.3
 
 # shared library versions, option 1
 version=2.0.5

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
 #
@@ -24,12 +24,12 @@
 #
 #
 
-VER=5.3
-APP=omf-resctl/nodeAgent.rb
-if [ -e /usr/share/omf-resctl-$VER/$APP ]; then
-   PDIR=/usr/share/omf-resctl-$VER
+VER=-5.3
+APP=omf_create_sysnode.rb
+if [ -e /usr/share/omf-aggmgr$VER/omf-aggmgr/$APP ]; then
+   PDIR=/usr/share/omf-aggmgr$VER/omf-aggmgr
 else
    echo "Cannot find the ruby module location ($APP)."
    exit 1;
 fi
-exec ruby1.8 -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP $*
+exec ruby1.8 -I/usr/share/omf-common$VER $PDIR/$APP $*

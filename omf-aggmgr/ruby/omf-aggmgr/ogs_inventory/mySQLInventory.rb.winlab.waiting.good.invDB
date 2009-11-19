@@ -494,11 +494,11 @@ END_QS2
     value = nil
     case key
       when "pxe_url" 
-        value = 'http://pxe:5052/pxe'
+        value = 'http://pxe:5053/pxe'
       when "cmc_url" 
         value = "http://cmc:5012/cmc"
       when "frisbee_url" 
-        value = 'http://frisbee:5052/frisbee'
+        value = 'http://frisbee:5053/frisbee'
       when "frisbee_default_disk" 
         value = '/dev/hda'
       when "x_max" 

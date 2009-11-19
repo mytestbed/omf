@@ -66,7 +66,7 @@ require 'omf-aggmgr/ogs_inventory/inventory'
 require 'omf-aggmgr/ogs_result/result'
 # Two CMC alternatives:
 # - 'cmc', which is the full CMC implementation (currently under dev/debug)
-# - 'cmcStub', which is just a stub to temporary make the NH happy on the NICTA 
+# - 'cmcStub', which is just a stub to temporary make the EC happy on the NICTA 
 #    platform which currently does not have CMC functionalities
 #
 # Both will be installed with the package.

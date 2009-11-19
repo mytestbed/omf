@@ -39,7 +39,7 @@ require 'omf-common/lineSerializer'
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
 # The Node Agent (NA) aka Resource Controller will use this Communicator to 
-# send/receive messages to/from the Node Handler (NH) aka Experiment Controller
+# send/receive messages to/from the Node Handler (EC) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
 class AgentPubSubCommunicator < MObject
@@ -263,7 +263,7 @@ class AgentPubSubCommunicator < MObject
   end
   
   #
-  # Send a message to the NH
+  # Send a message to the EC
   #
   # -  msgArray = the array of text to send
   #
@@ -272,7 +272,7 @@ class AgentPubSubCommunicator < MObject
   end
 
   #
-  # Send a heartbeat back to the NH
+  # Send a heartbeat back to the EC
   #
   def sendHeartbeat()
     send!(0, :HB, -1, -1, -1, -1)
@@ -319,7 +319,7 @@ class AgentPubSubCommunicator < MObject
   end
       
   #
-  # Send a message to the NH
+  # Send a message to the EC
   #
   # - seqNo = sequence number of the message to send
   # - msgArray = the array of text to send
@@ -342,7 +342,7 @@ class AgentPubSubCommunicator < MObject
   end
       
   #
-  # Process an incoming message from the NH. This method is called by the
+  # Process an incoming message from the EC. This method is called by the
   # callback hook, which was set up in the 'start' method of this Communicator.
   # First, we parse the message to extract the command and its arguments.
   # Then, we check if this command should trigger some Communicator-specific actions.
@@ -431,7 +431,7 @@ class AgentPubSubCommunicator < MObject
          error "YOUARE message too short: '#{message}'"
          return
         end
-        # Store the Session and Experiment IDs given by the NH's communicator
+        # Store the Session and Experiment IDs given by the EC's communicator
         @@sessionID = argArray[1]
         @@expID = argArray[2]
         debug "Processing YOUARE - SessionID: '#{@@sessionID}' - ExpID: '#{@@expID}'"

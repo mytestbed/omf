@@ -33,7 +33,7 @@ module OMF
   module Common
 
     VERSION_MAJOR = 5
-    VERSION_MINOR = 2
+    VERSION_MINOR = 3
 
     def self.MM_VERSION()
       return "#{VERSION_MAJOR}.#{VERSION_MINOR}"

@@ -25,7 +25,7 @@
 #
 # == Description
 #
-# This Ruby file contains various general declarations, which the NH will load 
+# This Ruby file contains various general declarations, which the EC will load 
 # before the user's experiment file
 #
 # These declarations implement the process that loop, check and wait that all the 

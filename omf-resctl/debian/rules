@@ -9,7 +9,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PKG_NAME=omf-resctl-5.2
+PKG_NAME=omf-resctl-5.3
 
 configure: configure-stamp
 configure-stamp:

@@ -24,6 +24,9 @@
 #
 #
 
+# determine OMF version
+if [ ${0#*-} != $0 ]; then VER=-${0#*-}; fi
+
 # Retrieve command line
 MY_NAME=`echo $0 | awk 'BEGIN {FS="/"};{print $NF}'`
 FULL_ARG_LINE=$@
@@ -51,9 +54,9 @@ function usage()
 
 # Parse command line
 case "$CMD_NAME" in
-  "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_NAME" ;;
+  "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_NAME$VER" ;;
   "help" ) case "$CMD_ARG_LINE" in
-             "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_ARG_LINE" ; CMD_ARG_LINE="--help";;
+             "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_ARG_LINE$VER" ; CMD_ARG_LINE="--help";;
 	     * ) usage ; exit 0 ;;
 	   esac ;;
   * ) usage ; exit 0 ;;

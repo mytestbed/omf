@@ -9,7 +9,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PKG_NAME=omf-aggmgr-5.2
+VERSION=5.3
+PKG_NAME=omf-aggmgr-$(VERSION)
 
 configure: configure-stamp
 configure-stamp:
@@ -52,6 +53,7 @@ install: build
 	
 	mv debian/$(PKG_NAME)/etc/omf-aggmgr debian/$(PKG_NAME)/etc/$(PKG_NAME)
 	mv debian/$(PKG_NAME)/usr/sbin/omf-aggmgr debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
+	mv debian/$(PKG_NAME)/usr/sbin/omf_create_sysnode debian/$(PKG_NAME)/usr/sbin/omf_create_sysnode-$(VERSION)
 		
 # Build architecture-independent files here.
 binary-indep: build install

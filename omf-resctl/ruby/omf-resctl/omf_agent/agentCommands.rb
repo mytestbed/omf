@@ -39,7 +39,7 @@ require 'omf-resctl/omf_driver/ethernet'
 
 module AgentCommands
 
-  # Version of the communication protocol between the NH and the NAs
+  # Version of the communication protocol between the EC and the NAs
   PROTOCOL_VERSION = "4.2"
   
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
@@ -308,7 +308,7 @@ end
   #
   # Command 'YOUARE'
   # 
-  # Initial enroll message received from the NH
+  # Initial enroll message received from the EC
   #
   # - agent = the instance of this NA
   # - argArray = an array with the optional enroll parameters
@@ -338,8 +338,8 @@ end
   # 
   # Activate the 'Disconnection Mode' for this NA. In this mode, this NA will assume
   # the role of a 'master' NA. It will fetch a copy of the experiment description from
-  # the main 'master' NH. Then it will execute a Proxy OML server, a 'slave' NA and
-  # a 'slave' NH. Finally, it will monitor the 'slave' NH, and upon its termination, 
+  # the main 'master' EC. Then it will execute a Proxy OML server, a 'slave' NA and
+  # a 'slave' EC. Finally, it will monitor the 'slave' EC, and upon its termination, 
   # it will initiate the final measurement collection (OML proxy to OML server), and
   # the end of the experiment.
   #
@@ -351,10 +351,10 @@ end
   def AgentCommands.SET_DISCONNECT(agent, argArray)
     agent.allowDisconnection
     
-    # Fetch the Experiment ID from the NH
+    # Fetch the Experiment ID from the EC
     expID = getArg(argArray, "Experiment ID")
 
-    # Fetch the Experiment Description from the NH
+    # Fetch the Experiment Description from the EC
     ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
     urlED = getArg(argArray, "URL for Experiment Description")
     fileName = "/tmp/exp_#{ts}.rb"
@@ -364,7 +364,7 @@ end
     end
     MObject.debug("Experiment Description saved at: '#{fileName}'")
 
-    # Fetch the addr:port of the OML Collection Server from the NH
+    # Fetch the addr:port of the OML Collection Server from the EC
     addrMasterOML = getArg(argArray, "Address of Master OML Server")
     portMasterOML = getArg(argArray, "Port of Master OML Server")
 
@@ -393,7 +393,7 @@ end
                                --slave-mode-xcoord #{agent.x} \
                                --slave-mode-ycoord #{agent.y} \
                                #{fileName}"
-    MObject.debug("Starting Slave Experiment Controller (NH) with: '#{cmd}'")
+    MObject.debug("Starting Slave Experiment Controller (EC) with: '#{cmd}'")
     ExecApp.new(SLAVE_EXPCTL_ID, agent, cmd)
     
   end
@@ -677,14 +677,14 @@ end
   #
   # Command 'RETRY'
   # 
-  # Resend a command to the NH
+  # Resend a command to the EC
   #
   # - agent = the instance of this NA
   # - argArray = an array with the sequence number of the commands to resend
   #
   def AgentCommands.RETRY(agent, argArray)
     # If this NA is operating with support for temporary disconnection, 
-    # then ignore any RETRY requests from the NH.
+    # then ignore any RETRY requests from the EC.
     if agent.allowDisconnection?
       MObject.debug "Ignore RETRY (Disconnection Support ON)"
       return

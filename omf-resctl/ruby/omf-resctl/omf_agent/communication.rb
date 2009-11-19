@@ -28,7 +28,7 @@
 #
 # This file defines the Communicator class and its sub-class TcpServerCommunicator,
 # TcpCommunicator, and MCCommunicator.
-# These classes implement the communication link between this NA and the NH
+# These classes implement the communication link between this NA and the EC
 #
 # We implement the following communication protocol with an emphasis on
 # minimizing the need for an agent (many) to send to a handler (one).
@@ -266,7 +266,7 @@ class Communicator < MObject
   end
 
   #
-  # Send a 'WHO AM I' message to the NH
+  # Send a 'WHO AM I' message to the EC
   #
   def sendWHOAMI
     addr, port = getListenAddress()
@@ -276,10 +276,10 @@ class Communicator < MObject
   end
 
   #
-  # Send a 'EXPERIMENT DONE' message to the NH
+  # Send a 'EXPERIMENT DONE' message to the EC
   #
   def sendEXPDONE
-    debug "Sending END_EXPERIMENT to the NH"
+    debug "Sending END_EXPERIMENT to the EC"
     send!(0, "END_EXPERIMENT", "123 456")
   end
 
@@ -345,7 +345,7 @@ class Communicator < MObject
   end
 
   #
-  # Called when this Communicator lost contact with the NH after being enrolled to it.
+  # Called when this Communicator lost contact with the EC after being enrolled to it.
   # Currently, when this happens, here we log it as debug message, and we reset the NA instance.
   #
   def onHandlerDisconnected()
@@ -357,7 +357,7 @@ end
 
 #
 # This sub-class TcpServerCommunicator defines a NA Communicator, 
-# which will act as a TCP Server. In this design, the NH will act as a TCP
+# which will act as a TCP Server. In this design, the EC will act as a TCP
 # client, connecting to the NA. 
 #
 class TcpServerCommunicator < Communicator
@@ -434,9 +434,9 @@ class TcpServerCommunicator < Communicator
   end
 
   #
-  # Called when a NH connects to this NA
+  # Called when a EC connects to this NA
   #
-  # - sock = socket used to communicate with the newly connected NH
+  # - sock = socket used to communicate with the newly connected EC
   #
   def onHandlerConnected(sock)
     if (@sock != nil)
@@ -449,7 +449,7 @@ class TcpServerCommunicator < Communicator
   end
 
   #
-  # Process an incoming command from the NH. 
+  # Process an incoming command from the EC. 
   # Commands should be of the form:
   #
   #   sequenceNo target command arg1 arg2 ...
@@ -483,7 +483,7 @@ end # TcpServerCommunicator
 
 #
 # This sub-class TcpCommunicator defines a NA Communicator, which will act as a TCP Client. 
-# In this design, the NH will act as a TCP server, to which the NA will connect. 
+# In this design, the EC will act as a TCP server, to which the NA will connect. 
 #
 class TcpCommunicator < Communicator
 
@@ -617,7 +617,7 @@ class TcpCommunicator < Communicator
   end
 
   #
-  # Process an incoming command from the NH. 
+  # Process an incoming command from the EC. 
   # Commands should be of the form:
   #
   #   sequenceNo target command arg1 arg2 ...
@@ -648,7 +648,7 @@ end # TcpCommunicator
 
 #
 # This sub-class MCCommunicator defines a NA Communicator, 
-# which will communicate the NH over an unreliable Multicast channel.
+# which will communicate the EC over an unreliable Multicast channel.
 #
 class MCCommunicator < Communicator
 
@@ -705,13 +705,13 @@ class MCCommunicator < Communicator
   
   #
   # Send a 'relaxed' heartbeat back to the handler
-  # This is only possible when NH has requested this NA to 
+  # This is only possible when EC has requested this NA to 
   # allow disconnections to happen (e.g. experiment involving
-  # mobile nodes that can be out of range of NH)
+  # mobile nodes that can be out of range of EC)
   # In this case, a HB message not acknowledged will not trigger a reset
   # but instead will put the NA in a 'temporary disconnected' state, where
   # it still sends HB (tries to reconnect), this state is left upon reconnection
-  # with the NH
+  # with the EC
   #
   def sendRelaxedHeartbeat()
 
@@ -940,7 +940,7 @@ class MCCommunicator < Communicator
   end
 
   #
-  # Process an incoming command from the NH. 
+  # Process an incoming command from the EC. 
   # Commands should be of the form:
   #
   #   sequenceNo target command arg1 arg2 ...
@@ -1015,7 +1015,7 @@ class MCCommunicator < Communicator
 
     # Thierry: This mutex protect access to @outSeqNumber
     # it avoids cases where the 'HB thread' sends a HB with seqNum X while the 'main thread' is still sending
-    # the message with seqNum X (-> NH would receive HB before msg -> would erroneously think 'out of sequence')
+    # the message with seqNum X (-> EC would receive HB before msg -> would erroneously think 'out of sequence')
     @lockSeqNumber = Mutex.new
 
     # keeping track of seq numbers of
@@ -1047,7 +1047,7 @@ class MCCommunicator < Communicator
 
   #
   # Return the address and port this Communicator using to send
-  # commands to the corresponding NH entity
+  # commands to the corresponding EC entity
   #
   # [Return] an Array of the form [addr, port]
   #

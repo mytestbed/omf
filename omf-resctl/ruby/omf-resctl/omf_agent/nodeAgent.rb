@@ -157,9 +157,9 @@ class NodeAgent < MObject
   end
 
   #
-  # Send an OK reply to the Node Handler (NH). When a command has been 
+  # Send an OK reply to the Node Handler (EC). When a command has been 
   # successfully completed, the NA sends an 'HeartBeat' OK message
-  # to the NH
+  # to the EC
   #
   # - cmd = a String with the command that completed successfully
   # - id = the ID of this NA (default = nil)
@@ -174,9 +174,9 @@ class NodeAgent < MObject
   end
 
   #
-  # Send an ENROLL reply to the Node Handler (NH). When a YOUARE or ALIAS 
+  # Send an ENROLL reply to the Node Handler (EC). When a YOUARE or ALIAS 
   # command has been successfully completed, the NA sends this message
-  # to the NH
+  # to the EC
   #
   # - aliasArray = an array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
@@ -186,9 +186,9 @@ class NodeAgent < MObject
   end
 
   #
-  # Send an ERROR reply to the Node Handler (NH). When an error occured
+  # Send an ERROR reply to the Node Handler (EC). When an error occured
   # while executing a command, the NA sends an 'ERROR' message
-  # to the NH
+  # to the EC
   #
   # - cmd = a String with the command that produced the error
   # - id = the ID of this NA (default = nil)
@@ -199,7 +199,7 @@ class NodeAgent < MObject
   end
 
   #
-  # Send a text message to the Node Handler (NH). 
+  # Send a text message to the Node Handler (EC). 
   #
   # - msgArray = an array with the full text message to send 
   #
@@ -231,7 +231,7 @@ class NodeAgent < MObject
   end
 
   #
-  # Send a message to the Node Handler (NH) when an event related
+  # Send a message to the Node Handler (EC) when an event related
   # to a particular application has happened. This method is
   # usually called by ExecApp which monitors the application 
   # identified by 'id'.
@@ -255,7 +255,7 @@ class NodeAgent < MObject
   end
 
   #
-  # Send a message to the Node Handler (NH) when an event related
+  # Send a message to the Node Handler (EC) when an event related
   # to a particular device has happened. This method is
   # usually called by a Device instance reporting its state change
   #
@@ -318,7 +318,7 @@ class NodeAgent < MObject
 
   #
   # Set the 'Experiment Done' flag to true
-  # Should be called when the 'slave' NH terminates
+  # Should be called when the 'slave' EC terminates
   #
   def expirementDone
     debug "Expirement is DONE"
@@ -348,7 +348,7 @@ class NodeAgent < MObject
   end
 
   #
-  # Return the connection status of this NA (i.e. is it connected to the NH?)
+  # Return the connection status of this NA (i.e. is it connected to the EC?)
   #
   # [Return] true/false
   #
@@ -488,7 +488,7 @@ class NodeAgent < MObject
   end
 
   #
-  # Execute a command received from the NH
+  # Execute a command received from the EC
   #
   # - argArray = an array holding the full command to execute (name, parameters,...)
   #
@@ -519,7 +519,7 @@ class NodeAgent < MObject
       return
     end
     # Thierry: moved that code here 
-    # to avoid sending 'HB' msg with source field set to IP addr instead of "n_x_y" to NH
+    # to avoid sending 'HB' msg with source field set to IP addr instead of "n_x_y" to EC
     if (!@connected && command == 'YOUARE')
       @connected = true  # the nodeAgent knows us!
     end

@@ -38,8 +38,8 @@ nodehandler:
     default:
     
       # This is the default name for the default testbed
-      # NH will use this name if NO domain has been given on the command lide ( -d option)
-      # This is optional. When 'name' is not present, the NH will take the first
+      # EC will use this name if NO domain has been given on the command lide ( -d option)
+      # This is optional. When 'name' is not present, the EC will take the first
       # sub-domain of the host it is executing on as the default testbed name.
       # (e.g. domain: 'indoor.nicta.com.au' will result in the name 'indoor')
       # IMPORTANT: 
@@ -47,12 +47,12 @@ nodehandler:
       #   (e.g. the 'testbeds' table must have an entry corresponding to this name)
       name: 'local'
 
-      # This is the Path where NH should look for its repository of built in experiments
+      # This is the Path where EC should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)
       repository:
-        path: ["../repository", "/usr/share/omf-expctl-5.2/repository"]
+        path: ["../repository", "/usr/share/omf-expctl-5.3/repository"]
 
-      # This is the Url where NH can contact the Inventory Service
+      # This is the Url where EC can contact the Inventory Service
       inventory:
         url: 'http://localhost:5052/inventory'
 

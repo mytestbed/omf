@@ -16,8 +16,6 @@ set -e
 # the debian-policy package
 #
 
-VER=5.2
-
 case "$1" in
     install|configure)
     
@@ -25,17 +23,10 @@ case "$1" in
     # Source debconf library
     #
     . /usr/share/debconf/confmodule
-
-    update-alternatives --install /usr/bin/omf omf /usr/bin/omf-$VER 50
-    update-alternatives --install /usr/bin/omf_create_sysnode omf_create_sysnode /usr/bin/omf_create_sysnode-$VER 50
-    update-alternatives --install /usr/bin/omf_exec omf_exec /usr/bin/omf_exec-$VER 50
-    update-alternatives --install /usr/bin/omf_load omf_load /usr/bin/omf_load-$VER 50
-    update-alternatives --install /usr/bin/omf_save omf_save /usr/bin/omf_save-$VER 50
-    update-alternatives --install /usr/bin/omf_stat omf_stat /usr/bin/omf_stat-$VER 50    
-    update-alternatives --install /usr/bin/omf_tell omf_tell /usr/bin/omf_tell-$VER 50
+    mkdir -p -m 777 /var/lib/omf-images-5.3
     ;;
     
-    abort-upgrade|abort-remove|abort-deconfigure)
+    abort-upgrade|abort-remove|abort-deconfigure)	    
     ;;		
     
     *)

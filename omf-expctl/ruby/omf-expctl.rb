@@ -23,14 +23,13 @@
 #
 #
 
-$NH_VERSION = "4.4.0"
 require 'rubygems'
 require 'omf-expctl/nodeHandler'
 
 startTime = Time.now
 cleanExit = false
 
-# Initialize the state tracking, Parse the command line options, and Run the NH
+# Initialize the state tracking, Parse the command line options, and Run the EC
 begin
   TraceState.init()
   NodeHandler.instance.parseOptions(ARGV)
@@ -56,7 +55,7 @@ rescue Exception => ex
   end
 end
 
-# If NH is called in 'interactive' mode, then start a Ruby interpreter
+# If EC is called in 'interactive' mode, then start a Ruby interpreter
 #if NodeHandler.instance.interactive?
 #  require 'omf-expctl/console'
 #  
@@ -68,7 +67,7 @@ end
 ##  IRB.start()
 #end
 
-# End of the experimentation, Shutdown the NH
+# End of the experimentation, Shutdown the EC
 if (NodeHandler.instance.running?)
   NodeHandler.instance.shutdown
   duration = (Time.now - startTime).to_i

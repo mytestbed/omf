@@ -12,7 +12,7 @@ frisbee:
   testbed:
     default:
       # Directory images are stored
-      imageDir: /var/lib/omf-images-5.2
+      imageDir: /var/lib/omf-images-5.3
       #defaultImage: orbit-baseline
       defaultImage: norbix
 

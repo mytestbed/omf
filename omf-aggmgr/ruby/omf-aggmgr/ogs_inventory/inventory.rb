@@ -258,7 +258,7 @@ class InventoryService < GridService
   service 'getConfig' do |req, res|
     # Retrieve the request parameter
     domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config) # This is GS config, not NH configs!
+    tb = getTestbedConfig(req, @@config) # This is GS config, not EC configs!
     rootXMLConfig = REXML::Element.new("CONFIG")
     inv = getInv(tb)
     CONST_CONFIG_KEYS.each { |k|

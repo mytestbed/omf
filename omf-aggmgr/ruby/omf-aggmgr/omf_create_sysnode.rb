@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/usr/bin/ruby
 #
 # Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2009 - WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
-#
 
-VER=5.3
-APP=omf-resctl/nodeAgent.rb
-if [ -e /usr/share/omf-resctl-$VER/$APP ]; then
-   PDIR=/usr/share/omf-resctl-$VER
-else
-   echo "Cannot find the ruby module location ($APP)."
-   exit 1;
-fi
-exec ruby1.8 -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP $*
+require "omf-common/omfPubSubService"
+
+if ARGV.length != 2
+  puts "Usage: #{$0} <IP address of XMPP server> <IP address of node to add>"
+  exit 0
+end
+
+begin
+  @@service = OmfPubSubService.new("aggmgr", "123", ARGV[0])
+rescue Exception => ex
+  puts "ERROR Creating ServiceHelper - '#{ex}'"
+end
+
+puts "Connected to PubSub Server: '#{ARGV[0]}'"
+    
+@@service.create_pubsub_node("/Domain")
+@@service.create_pubsub_node("/Domain/System")
+@@service.create_pubsub_node("/Domain/System/#{ARGV[1]}")

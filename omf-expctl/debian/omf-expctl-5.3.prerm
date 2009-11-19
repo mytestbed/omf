@@ -1,8 +1,7 @@
 #! /bin/sh
 
-VER=5.2
+VER=5.3
 update-alternatives --remove omf /usr/bin/omf-$VER
-update-alternatives --remove omf_create_sysnode /usr/bin/omf_create_sysnode-$VER
 update-alternatives --remove omf_exec /usr/bin/omf_exec-$VER
 update-alternatives --remove omf_load /usr/bin/omf_load-$VER
 update-alternatives --remove omf_save /usr/bin/omf_save-$VER
