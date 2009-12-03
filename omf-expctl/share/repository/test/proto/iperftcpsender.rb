@@ -47,7 +47,7 @@ defPrototype("test:proto:iperftcpsender") { |p|
     iperf.bindProperty('time')
     iperf.bindProperty('window')
     iperf.measure('Peer_Info', :samples => 1)
-    iperf.measure('TCP_received', :samples =>1)
+    iperf.measure('TCP_Info', :samples =>1)
   }
 }
 

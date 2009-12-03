@@ -50,6 +50,6 @@ defPrototype("test:proto:iperftcpreceiver") { |p|
     iperf.bindProperty('window')
     iperf.bindProperty('interval', 'report_interval')
     iperf.measure('Peer_Info', :samples => 1)
-    iperf.measure('TCP_received', :samples =>1)
+    iperf.measure('TCP_Info', :samples =>1)
   }
 }

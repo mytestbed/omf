@@ -52,14 +52,21 @@ TEXT
 
   # Define the Measurement Points and associated metrics that are available for this application
   #
-  a.defMeasurement("TCP_received"){ |m|
+  a.defMeasurement("TCP_Info"){ |m|
     m.defMetric('ID', :long)
     m.defMetric('Begin_interval', :float)
     m.defMetric('End_interval', :float)
     m.defMetric('Transfer', :float)
     m.defMetric('Bandwidth', :float)
  }
-  a.defMeasurement("UDP_received"){ |m|
+  a.defMeasurement("UDP_Periodic_Info"){ |m|
+    m.defMetric('ID', :long)
+    m.defMetric('Begin_interval', :float)
+    m.defMetric('End_interval', :float)
+    m.defMetric('Transfer', :float)
+    m.defMetric('Bandwidth', :float)
+ }
+  a.defMeasurement("UDP_Rich_Info"){ |m|
     m.defMetric('ID', :long)
     m.defMetric('Begin_interval', :float)
     m.defMetric('End_interval', :float)

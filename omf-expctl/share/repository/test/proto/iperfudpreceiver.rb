@@ -50,7 +50,6 @@ defPrototype("test:proto:iperfudpreceiver") { |p|
     iperf.bindProperty('time')
     iperf.bindProperty('interval','report_interval')
     iperf.measure('Peer_Info', :samples => 1)
-    iperf.measure('UDP_received', :samples =>1)
-    iperf.measure('TCP_received', :samples =>1)
+    iperf.measure('UDP_Rich_Info', :samples =>1)
   }
 }
