@@ -32,6 +32,7 @@
 class AppProperty
   
   DEF_TYPE = :string
+  DEF_LAST_ORDER = 999
 
   #
   # Unmarshall an AppProperty instance from an XML tree.
@@ -85,6 +86,9 @@ class AppProperty
     @description = description
     @mnemonic = mnemonic
     @options = options
+    if !@options.has_key?(:order)
+      @options[:order] = DEF_LAST_ORDER
+    end
   end
 
   #
@@ -132,7 +136,7 @@ class AppProperty
   # [Return] 
   #
   def order()
-    @options[:order] || 999
+    @options[:order] || DEF_LAST_ORDER
   end
 
   def <=>(other)

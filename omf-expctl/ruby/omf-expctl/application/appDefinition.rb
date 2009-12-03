@@ -214,7 +214,9 @@ class AppDefinition < MObject
   def getCommandLineArgs(bindings, appId, nodeSet)
 
     cmd = []
-    @properties.sort.each {|a|
+    # First sort the properties according to their order (if specified in their options Hash)
+    sortedProperties = @properties.sort {|a,b| a[1] <=> b[1]}
+    sortedProperties.each {|a|
       name = a[0]
       prop = a[1]
       type = prop.type
