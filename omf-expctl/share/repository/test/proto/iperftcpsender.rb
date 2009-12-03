@@ -22,29 +22,32 @@
 # THE SOFTWARE.
 #
 #
-#
+
 # Define a prototype
 #
+defPrototype("test:proto:iperftcpsender") { |p|
+  p.name = "Iperf TCP Sender"
+  p.description = "Nodes which send a stream of packets"
 
-p = Prototype.create("test:proto:iperftcpsender")
-p.name = "Iperf TCP Sender"
-p.description = "Nodes which send a stream of packets"
-p.defProperty('client', 'Host to send packets to')
-#p.defProperty('port', 'Port to send packets to')
-p.defProperty('len', 'Size of packets')
-p.defProperty('window', 'TCP window Size (bytes)', 64000)
-p.defProperty('time', 'Experiment duration (sec)', 10)
+  # Define the properties (and their default values) that can be configured 
+  # for this prototype
+  #
+  p.defProperty('client', 'Host to send packets to')
+  p.defProperty('len', 'Size of packets')
+  p.defProperty('window', 'TCP window Size (bytes)', 64000)
+  p.defProperty('time', 'Experiment duration (sec)', 10)
 
-iperfs = p.addApplication(:iperfs, "test:app:iperfs")
-iperfs.bindProperty('client')
-iperfs.bindProperty('len')
-iperfs.bindProperty('time')
-iperfs.bindProperty('window')
-iperfs.measure('Peer_Info', :samples => 1)
-iperfs.measure('TCP_received', :samples =>1)
+  # Define the application to be installed on this type of node,
+  # bind the application properties to the prototype properties,
+  # and finally, define what measurements should be collected
+  # for each application.
+  #
+  p.addApplication("test:app:iperf"){|iperf|
+    iperf.bindProperty('client', 'client')
+    iperf.bindProperty('time')
+    iperf.bindProperty('window')
+    iperf.measure('Peer_Info', :samples => 1)
+    iperf.measure('TCP_received', :samples =>1)
+  }
+}
 
-#
-if $0 == __FILE__
-  p.to_xml.write($stdout, 2)
-  puts
-end

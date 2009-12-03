@@ -22,33 +22,35 @@
 # THE SOFTWARE.
 #
 #
-#
+
 # Define a prototype
 #
 defPrototype("test:proto:iperfudpsender") { |p|
-p.name = "Iperf UDP Sender"
-p.description = "Nodes which send a stream of packets"
-p.defProperty('use_udp', 'Protocol to use', false)
-p.defProperty('client', 'Host to send packets to', "localhost")
-p.defProperty('sender_rate', 'Number of bits per second', 100000000)
-p.defProperty('port', 'Port to send packets to', 5001)
-#p.defProperty('len', 'Size of packets')
-p.defProperty('time', 'Experiment duration (sec)', 10)
+  p.name = "Iperf UDP Sender"
+  p.description = "Nodes which send a stream of packets"
 
-p.addApplication("test:app:iperfs"){|iperfs|
-iperfs.bindProperty('Audp','use_udp')
-iperfs.bindProperty('Aclient', 'client')
-iperfs.bindProperty('bandwidth','sender_rate')
-#iperfs.bindProperty('len')
-iperfs.bindProperty('time')
-iperfs.bindProperty('port')
-iperfs.measure('Peer_Info', :samples => 1)
-iperfs.measure('TCP_received', :samples =>1)
-iperfs.measure('UDP_received', :samples =>1)
-}
-if $0 == __FILE__
-  p.to_xml.write($stdout, 2)
-  puts
-end
-}
+  # Define the properties (and their default values) that can be configured 
+  # for this prototype
+  #
+  p.defProperty('use_udp', 'Protocol to use', true)
+  p.defProperty('client', 'Host to send packets to', "localhost")
+  p.defProperty('sender_rate', 'Number of bits per second', 25500000)
+  p.defProperty('port', 'Port to send packets to', 5001)
+  p.defProperty('time', 'Experiment duration (sec)', 10)
 
+  # Define the application to be installed on this type of node,
+  # bind the application properties to the prototype properties,
+  # and finally, define what measurements should be collected
+  # for each application.
+  #
+  p.addApplication("test:app:iperf"){|iperf|
+    iperf.bindProperty('udp','use_udp')
+    iperf.bindProperty('client', 'client')
+    iperf.bindProperty('bandwidth','sender_rate')
+    iperf.bindProperty('time')
+    iperf.bindProperty('port')
+    iperf.measure('Peer_Info', :samples => 1)
+    iperf.measure('TCP_received', :samples =>1)
+    iperf.measure('UDP_received', :samples =>1)
+  }
+}

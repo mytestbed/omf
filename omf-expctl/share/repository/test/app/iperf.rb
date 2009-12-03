@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2008 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2008 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,35 +25,41 @@
 #
 # Create an application representation from scratch
 #
-
-defApplication('test:app:iperfr','iperfr'){|a|
-# = AppDefinition.create('test:app:iperfr')
-a.name = "iperfr"
-a.version(0, 0, 1)
-a.shortDescription = "Iperf traffic generator"
-a.description = <<TEXT
+defApplication('test:app:iperf','iperf'){|a|
+  a.name = "iperf"
+  a.version(0, 0, 1)
+  a.path = "/usr/bin/iperf_oml2"
+  a.shortDescription = "Iperf traffic generator"
+  a.description = <<TEXT
 Iperf is a traffic generator for TCP and UDP traffic. It contains generators
 producing various forms of packet streams and port for sending
 these packets via various transports, such as TCP and UDP.
 TEXT
 
-# addProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
-a.defProperty('udp', 'Use UDP, otherwise TCP by default', nil, {:type => :string, :dynamic => false})
-a.defProperty('server', 'Client/Server', nil, {:type => :string, :dynamic => false})
-a.defProperty('port', 'Receiver port number', nil, {:type => :integer, :dynamic => false})
-a.defProperty('window', 'TCP Receiver Window Size', nil, {:type => :integer, :dynamice => false})
-a.defProperty('time', "Duration for traffic generation(seconds)", nil,{:type => :integer, :dynamice => false})
-#a.addProperty('len', "Payload Length(bytes)", nil, :integer, false)
-a.defProperty('interval', "Interval between reports (sec)", nil, {:type => :integer, :dynamic => false})
+  # Define the properties that can be configured for this application
+  # 
+  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  #
+  a.defProperty('udp', 'Use UDP, otherwise TCP by default', 'u',  {:order => 2, :dynamic => false, :type => :boolean})
+  a.defProperty('client', 'Run as client', 'c',  {:order => 1, :dynamic => false, :type => :string})
+  a.defProperty('server', 'Client/Server', 's', {:type => :boolean, :dynamic => false})
+  a.defProperty('port', 'Sender port number', 'p', {:type => :integer, :dynamic => false})
+  a.defProperty('window', 'TCP Send Window Size', nil, {:type => :integer, :dynamic => false})
+  a.defProperty('time', "Duration of traffic generation(secs)", nil, {:type => :integer, :dynamice => false})
+  a.defProperty('bandwidth', "Offered load for UDP", 'b',  {:dynamic => false, :type => :integer})
+  a.defProperty('parallel', "Number of parallel flows", nil, {:type => :integer, :dynamic => false})
+  a.defProperty('interval', "Interval between reports (sec)", nil, {:type => :integer, :dynamic => false})
 
-a.defMeasurement("TCP_received"){ |m|
+  # Define the Measurement Points and associated metrics that are available for this application
+  #
+  a.defMeasurement("TCP_received"){ |m|
     m.defMetric('ID', :long)
     m.defMetric('Begin_interval', :float)
     m.defMetric('End_interval', :float)
     m.defMetric('Transfer', :float)
     m.defMetric('Bandwidth', :float)
  }
-a.defMeasurement("UDP_received"){ |m|
+  a.defMeasurement("UDP_received"){ |m|
     m.defMetric('ID', :long)
     m.defMetric('Begin_interval', :float)
     m.defMetric('End_interval', :float)
@@ -64,7 +70,7 @@ a.defMeasurement("UDP_received"){ |m|
     m.defMetric('Total_Packet', :long)
     m.defMetric('PLR', :float)
  }
-a.defMeasurement("Peer_Info"){ |m|
+  a.defMeasurement("Peer_Info"){ |m|
     m.defMetric('ID', :long)
     m.defMetric('local_address', :string)
     m.defMetric('local_port', :long)
@@ -72,27 +78,5 @@ a.defMeasurement("Peer_Info"){ |m|
     m.defMetric('foreign_port', :long)
  }
 
-a.path = "/usr/bin/iperf_oml2"
-
-if $0 == __FILE__
-  require 'stringio'
-  require 'rexml/document'
-  include REXML
-
-  sio = StringIO.new()
-  a.to_xml.write(sio, 2)
-  sio.rewind
-  puts sio.read
-
-  sio.rewind
-  doc = Document.new(sio)
-  t = AppDefinition.from_xml(doc.root)
-
-  puts
-  puts "-------------------------"
-  puts
-  t.to_xml.write($stdout, 2)
-
-end
 }
 

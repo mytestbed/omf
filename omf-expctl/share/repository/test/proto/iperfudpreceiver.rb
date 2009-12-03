@@ -22,36 +22,35 @@
 # THE SOFTWARE.
 #
 #
-#
+
 # Define a prototype
 #
+defPrototype("test:proto:iperfudpreceiver") { |p|
+  p.name = "Iperf UDP Receiver"
+  p.description = "Nodes which receive packets"
 
+  # Define the properties (and their default values) that can be configured 
+  # for this prototype
+  #
+  p.defProperty('use_udp', 'Protocol to use', true)
+  p.defProperty('server', 'Client/Server', true)
+  p.defProperty('port', 'Port to listen on')
+  p.defProperty('time', 'Duration of experiment (seconds)', 10)
+  p.defProperty('report_interval', 'Interval between bandwidth reports', 1)
 
-p = Prototype.create("test:proto:iperfudpreceiver")
-p.name = "Iperf UDP Receiver"
-p.description = "Nodes which receive packets"
-p.defProperty('use_udp', 'Protocol to use')
-p.defProperty('server', 'Client/Server')
-p.defProperty('port', 'Port to listen on')
-p.defProperty('time', 'Duration of experiment (seconds)', 10)
-#p.defProperty('len', 'Payload length', 512)
-p.defProperty('report_interval', 'Interval between bandwidth reports', 1)
-
-p.addApplication("test:app:iperfr"){|iperfr|
-iperfr.bindProperty('udp','use_udp')
-iperfr.bindProperty('server')
-iperfr.bindProperty('port','port')
-iperfr.bindProperty('time')
-#iperfr.bindProperty('len')
-iperfr.bindProperty('interval','report_interval')
-iperfr.measure('Peer_Info', :samples => 1)
-iperfr.measure('UDP_received', :samples =>1)
-iperfr.measure('TCP_received', :samples =>1)
+  # Define the application to be installed on this type of node,
+  # bind the application properties to the prototype properties,
+  # and finally, define what measurements should be collected
+  # for each application.
+  #
+  p.addApplication("test:app:iperf"){|iperf| 
+    iperf.bindProperty('udp','use_udp')
+    iperf.bindProperty('server')
+    iperf.bindProperty('port','port')
+    iperf.bindProperty('time')
+    iperf.bindProperty('interval','report_interval')
+    iperf.measure('Peer_Info', :samples => 1)
+    iperf.measure('UDP_received', :samples =>1)
+    iperf.measure('TCP_received', :samples =>1)
+  }
 }
-
-if $0 == __FILE__
-  p.to_xml.write($stdout, 2)
-  puts
-end
-
-

@@ -22,31 +22,34 @@
 # THE SOFTWARE.
 #
 #
-#
+
 # Define a prototype
 #
+defPrototype("test:proto:iperftcpreceiver") { |p|
+  p.name = "Iperf TCP Receiver"
+  p.description = "Nodes which receive packets"
 
-p = Prototype.create("test:proto:iperftcpreceiver")
-p.name = "Iperf TCP Receiver"
-p.description = "Nodes which receive packets"
-p.defProperty('server', 'Client/Server')
-#p.defProperty('port', 'Port to listen on')
-p.defProperty('time', 'Duration of experiment (seconds)', 10)
-p.defProperty('window', 'Receiver Window Size', 64000)
-p.defProperty('report_interval', 'Interval beween reports', 1)
+  # Define the properties (and their default values) that can be configured 
+  # for this prototype
+  #
+  p.defProperty('server', 'Client/Server', true)
+  p.defProperty('port', 'Port to listen on', 5001)
+  p.defProperty('time', 'Duration of experiment (seconds)', 10)
+  p.defProperty('window', 'Receiver Window Size', 64000)
+  p.defProperty('report_interval', 'Interval beween reports', 1)
 
-
-iperfr = p.addApplication('iperfr', "test:app:iperfr")
-iperfr.bindProperty('server')
-#iperfr.bindProperty('port','port')
-iperfr.bindProperty('time')
-iperfr.bindProperty('window')
-iperfr.bindProperty('interval', 'report_interval')
-iperfr.measure('Peer_Info', :samples => 1)
-iperfr.measure('TCP_received', :samples =>1)
-
-
-if $0 == __FILE__
-  p.to_xml.write($stdout, 2)
-  puts
-end
+  # Define the application to be installed on this type of node,
+  # bind the application properties to the prototype properties,
+  # and finally, define what measurements should be collected
+  # for each application.
+  #
+  p.addApplication("test:app:iperf"){|iperf|
+    iperf.bindProperty('server')
+    iperf.bindProperty('port','port')
+    iperf.bindProperty('time')
+    iperf.bindProperty('window')
+    iperf.bindProperty('interval', 'report_interval')
+    iperf.measure('Peer_Info', :samples => 1)
+    iperf.measure('TCP_received', :samples =>1)
+  }
+}
