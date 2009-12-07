@@ -46,7 +46,7 @@ defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the la
 url = "#{OConfig[:tb_config][:default][:frisbee_url]}/checkImage?img=#{prop.image.value}"
 response = NodeHandler.service_call(url, "Image does not exist")
 if response.body != "OK"
-  MObject.error("The image '#{prop.image.value}' does not exist! ")
+  MObject.error("The image file '#{prop.image.value}' was not found on the AM running the frisbee service! ")
   MObject.error("(From FrisbeeService: #{response.body})")
   Experiment.done
   exit -1
@@ -192,7 +192,7 @@ TEXT
 #
 whenAllUp() {|ns|
   # Only execute imaging if node set is not empty!
-  # (e.g. in rare occasions no node managed to come up and register to EC, when this
+  # (e.g. in rare occasions no node managed to come up and register to NH, when this
   # happens, we need to exit quietly from this 'whenAllUp')
   nodeCount = 0 
   ns.eachNode { |n|

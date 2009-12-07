@@ -132,9 +132,6 @@ class CmcService < GridService
   #
   def self.configure(config)
     @@config = config
-    #error("Missing configuration 'cfgDir'") if @@config['cfgDir'] == nil
-    ## this needs more work!
-    $PrimaryInterface = ::CMC::Testbed.loadConfig("/etc/omf-aggmgr/available/cmc.yaml")
   end
   
   def self.authorizeIP(req, res)
@@ -146,7 +143,7 @@ class CmcService < GridService
    # We have to make sure that either the domain of the peer address
    # maches the requested testbed or that the address  
    # belongs to the set/range of addresses authorized to access nodes
-   puts "Checking authorization for domain #{domain}' req=#{peerDomain}, peerIP=#{peerIP}"
+   puts "Checking authorization for domain #{domain}' req=#{peerDomain}, peerIP=#{peerIp}"
    # We need to do parial match on subdomain and handle default as well ...
    isAuth = (domain == peerDomain)
    isAuth
