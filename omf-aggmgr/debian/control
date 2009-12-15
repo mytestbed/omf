@@ -7,6 +7,6 @@ Standards-Version: 3.7.2
 
 Package: omf-aggmgr-5.3
 Architecture: all
-Depends: frisbee, libmysql-ruby, libldap-ruby1.8 (>=0.9.0-1), libsqlite3-ruby, omf-common-5.3, psmisc, nmap
+Depends: frisbee, libmysql-ruby, libldap-ruby1.8 (>=0.9.0-1), libsqlite3-ruby, omf-common-5.3, psmisc, nmap, netcat
 Description: OMF Aggregate Manager
  Provides various services for running experiments in OMF
