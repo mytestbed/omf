@@ -31,8 +31,6 @@
 #
 #
 
-info("Do not run this script as root!")
-
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
 
@@ -46,7 +44,7 @@ defProperty('started', 'false', "internal flag")
 #
 defGroup('save', Experiment.property('node')) {|n|
   n.pxeImage("#{prop.domain.value}", setPXE=true)
-   n.image = "pxe-2.0.6"
+   n.image = "pxe-5.2.1"
 }
 
 everyNS('save', 10) { |ns|

@@ -64,7 +64,7 @@ end
 #
 defGroup('image', prop.nodes) {|n|
    n.pxeImage("#{prop.domain.value}", setPXE=true)
-   n.image = "pxe-2.0.6"
+   n.image = "pxe-5.2.1"
 }
 
 def outputTopologyFile(file, topo, msg, nset)

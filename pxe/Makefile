@@ -2,14 +2,15 @@
 # Build the Orbit PXE kernel image and initramfs
 #
 NAME = omf-pxe
-VER = 2.0.6
+VER = 5.2.1
 
+OMF_RELEASE=5.2
 DEB_REP=debian
-KORG_URL = http://www.kernel.org/pub/linux/kernel/v
+KORG_URL = http://mirror.aarnet.edu.au/pub/ftp.kernel.org/linux/kernel/v
 KERNEL_VERSION = 2
 KERNEL_PATCHLEVEL = 6
-KERNEL_SUBLEVEL = 29
-KERNEL_EXTRAVERSION = .2
+KERNEL_SUBLEVEL = 32
+KERNEL_EXTRAVERSION = 
 KERNEL_MAIN_VER=$(KERNEL_VERSION).$(KERNEL_PATCHLEVEL).$(KERNEL_SUBLEVEL)
 KVER = $(KERNEL_MAIN_VER)$(KERNEL_EXTRAVERSION)
 KERNEL_DIR = linux-$(KVER)
@@ -22,11 +23,6 @@ BBOX_DIR = busybox-$(BBOX_VERSION)
 BBOX_TAR = busybox-$(BBOX_VERSION).tar.gz
 BBOX_URL = http://busybox.net/downloads
 BBOX_TAR_URL = $(BBOX_URL)/$(BBOX_TAR)
-CURL_VERSION = 7.19.4
-CURL_DIR = curl-$(CURL_VERSION)
-CURL_TAR = curl-$(CURL_VERSION).tar.gz
-CURL_URL = http://curl.haxx.se/download/
-CURL_TAR_URL = $(CURL_URL)/$(CURL_TAR)
 
 # --------  START OF SITE DEPENDENT VARIABLES ---------
 #  In order to make this work for users outside of Winlab, the site
@@ -87,7 +83,7 @@ LIB +=	/lib/libnss_dns.so.2 /lib/libresolv.so.2
 LIB += /usr/lib/libpci.so.3
 # as well as lsusb
 LIB +=  /lib/libusb-0.1.so.4
-# for curl
+# for ruby1.8
 LIB +=  /lib/librt.so.1
 UCLIBC = /lib/ld-uClibc.so.0 /lib/libc.so.0 /lib/libm.so.0
 
@@ -109,26 +105,14 @@ bbox: 	get_bbox
 	  $(CONFIG)/$(BBOX_CONFIG_FILE) > $(SOURCE)/$(BBOX_DIR)/.config
 	$(MAKE) -C $(SOURCE)/$(BBOX_DIR) install
 
-curl: 	get_curl
-	if [ ! -r $(SOURCE)/$(CURL_DIR) ] ; then \
-	  tar -xzf $(SOURCE)/$(CURL_TAR) -C $(SOURCE); \
-	fi
-	if [ ! -r $(ROOTFS)/usr/bin/curl ] ; then \
-       	  (cd $(SOURCE)/$(CURL_DIR); ./configure --without-ssl); \
-	  mkdir -p $(SOURCE)/$(CURL_DIR)/install; \
-	  $(MAKE) -C $(SOURCE)/$(CURL_DIR) install DESTDIR=`pwd`/$(SOURCE)/$(CURL_DIR)/install; \
-	  install -d $(ROOTFS)/usr/bin; \
-	  install -d $(ROOTFS)/usr/lib; \
-	  install -m 755 `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/bin/curl $(ROOTFS)/usr/bin/; \
-	  cp -d `pwd`/$(SOURCE)/$(CURL_DIR)/install/usr/local/lib/lib* $(ROOTFS)/usr/lib; \
-	fi
-
 omf:
 	sudo apt-get clean; sudo apt-get update
-	apt-get -d --reinstall --force-yes -y --print-uris install omf-common omf-resctl libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools netcat-traditional | grep http | awk '{print $$1}' | tr -d "'" > omf-packages
-	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../omf-packages
+	apt-get -d --reinstall --force-yes -y --print-uris install omf-common-$(OMF_RELEASE) omf-resctl-$(OMF_RELEASE) libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools netcat-traditional | grep http | awk '{print $$1}' | tr -d "'" > $(TEMP)/omf-packages
+	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../$(TEMP)/omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	mv $(ROOTFS)/bin/nc.traditional $(ROOTFS)/bin/nc
+	sed -i 's/local_if: control/local_if: eth0/g' $(ROOTFS)/etc/omf-resctl-$(OMF_RELEASE)/nodeagent.yaml
+	sed -i 's/omf-resctl/omf-resctl-$(OMF_RELEASE)/g' $(ROOTFS)/etc/init.d/rcS.actual
 
 syslinux: omf
 	dpkg -x $(SOURCE)/omf/syslinux* $(TEMP)
@@ -211,7 +195,7 @@ kernel: dirs get_kernel
 	fi
 
 # Note: current kernel expects init on initramfs on /init, not /sbin/init
-initramfs: dirs bbox curl filesystem omf enroll syslinux kexec \
+initramfs: dirs bbox filesystem omf enroll syslinux kexec \
 	getmac get_init_cpio
 	rm -f $(BUILD)/$(INITRAMFS) $(BUILD)/$(INITRAMFSGZ)
 	rm -rf $(ROOTFS)/usr/share/doc/ $(ROOTFS)/usr/share/man/
@@ -219,7 +203,7 @@ initramfs: dirs bbox curl filesystem omf enroll syslinux kexec \
 		-u `id -u` -g `id -g` $(ROOTFS) > $(TEMP)/$(INITRAMFS_LIST)
 	$(SOURCE)/$(KERNEL_DIR)/usr/gen_init_cpio \
 		$(TEMP)/$(INITRAMFS_LIST) > $(BUILD)/$(INITRAMFS)
-	gzip -f -9 $(BUILD)/$(INITRAMFS)
+	bzip2 -f -9 $(BUILD)/$(INITRAMFS)
 
 get_init_cpio: get_kernel
 	if [ ! -f $(SOURCE)/$(KERNEL_DIR)/usr/gen_init_cpio ] ; then \
@@ -239,11 +223,6 @@ get_kernel:
 get_bbox: 
 	if [ ! -r $(SOURCE)/$(BBOX_TAR) ] ; then \
 	wget -P $(SOURCE) $(BBOX_TAR_URL); \
-	fi
-
-get_curl:
-	if [ ! -r $(SOURCE)/$(CURL_TAR) ] ; then \
-	wget -P $(SOURCE) $(CURL_TAR_URL); \
 	fi
 
 install: kernel initramfs
@@ -274,15 +253,12 @@ clean:
 	if [ -d $(SOURCE)/$(BBOX_DIR) ] ; then \
 	  $(MAKE) -C $(SOURCE)/$(BBOX_DIR) clean ; \
 	fi
-	if [ -d $(SOURCE)/$(CURL_DIR) ] ; then \
-	  $(MAKE) -C $(SOURCE)/$(CURL_DIR) clean ; \
-	fi
 	$(MAKE) -C $(GETMAC_DIR)/ clean
 
 mrproper:
 	rm -rf $(BUILD) $(ROOTFS) $(SOURCE) $(TEMP)
 
-.PHONY: all apt-get-update dirs bbox curl omf syslinux getmac enroll \
+.PHONY: all apt-get-update dirs bbox omf syslinux getmac enroll \
 	kexec filesystem kernel initramfs get_init_cpio get_kernelget_bbox \
 	get_syslinux get_kexec install \
 	deb apt-install clean mrproper
