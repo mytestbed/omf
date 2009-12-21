@@ -517,7 +517,9 @@ class ImageNodeApp < NodeBuiltin
     if (message.nil?)
       match = nil
     else
-      match = message.match(/^Progress: ([0-9]*)/)
+      # Remove any quote character from the message
+      m = message.delete("\"")
+      match = m.match(/^Progress: ([0-9]*)/)
     end
     if match != nil
       setProgress(match[1])
