@@ -391,9 +391,6 @@ class Node < MObject
     ipExp(value)
     ipexp = ipExp?()
     TraceState.nodeConfigure(self, path, value, status)
-    #el = getConfigNode(path)
-    #el.text = value
-    #el.add_attribute('status', status)
   end
 
     #
@@ -522,26 +519,6 @@ class Node < MObject
   #
   def loadImage(image, opts) 
     TraceState.nodeLoadImage(self, image, opts)
-    #TraceState.nodeLoadImage(node, image, opts)
-    #procEl = getConfigNode(['apps'])
-    #appEl = ImageNodeApp.new(opts, self, procEl)
-    #appEl.setStatus('ISSUED')
-    #@apps['builtin:load_image'] = appEl
-  end
-
-  #
-  # Set the status of a configurable resource of this Node
-  #
-  # - path = Name of resource
-  # - status = Status of resource
-  # - extra = Optional hash table defining additional status attributes
-  #
-  def configureStatus(path, status, optional = nil)
-    el = getConfigNode(path)
-    el.add_attribute('status', status)
-    optional.each {|k, v|
-      el.add_attribute(k.to_s, v)
-    } if optional != nil
   end
 
   #
@@ -894,26 +871,6 @@ class Node < MObject
         send(command, *args)
       }
     end
-  end
-
-  #
-  # Return an XML element whose path is relative
-  # to this Node's root element (@el)
-  #
-  # - path = an Array holding the path to the requested element
-  #
-  # [Return] an XML element
-  #
-  def getConfigNode(path)
-    parent = @el
-    el = nil
-    path.each {|name|
-      if (el = parent.elements[name]) == nil
-        el = parent.add_element(name)
-      end
-      parent = el
-    }
-    return el
   end
 
 end
