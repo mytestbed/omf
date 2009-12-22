@@ -159,7 +159,7 @@ module AgentCommands
         message = argArray.join(' ')
         id = NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(path.split("/"), reason, "error")
-        MObject.error("agentCmd::CONFIGURE_ERROR", "('#{path}')", "#{reason} on '#{sender}': #{message}")
+        MObject.error("agentCmd::CONFIGURE_ERROR ('#{path}')", " #{reason} on '#{sender}': #{message}")
       when 'LOST_HANDLER'
         MObject.error("agentCmd::LOST_HANDLER_ERROR", "'#{sender}' lost us")
       when 'EXECUTION'
