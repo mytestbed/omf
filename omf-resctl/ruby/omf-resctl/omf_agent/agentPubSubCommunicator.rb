@@ -47,6 +47,8 @@ class AgentPubSubCommunicator < MObject
   DOMAIN = "Domain"
   SYSTEM = "System"
   SESSION = "Session"
+  PING_INTERVAL = 3600
+  RETRY_INTERVAL = 10
 
   include Singleton
   @@instantiated = false
@@ -139,7 +141,19 @@ class AgentPubSubCommunicator < MObject
     debug "Connecting to PubSub Server: '#{jid_suffix}'"
     # Set some internal attributes...
     @@IPaddr = getControlAddr()
-    
+
+    # Check DNS - DNS is required to connected to PubSub Server 
+    checkDNS = false
+    while !checkDNS
+      reply = `ping -c 1 #{jid_suffix}`
+      if $?.success?
+        checkDNS = true
+      else
+        info "Could not resolve or contact: '#{jid_suffix}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
+        sleep RETRY_INTERVAL
+      end
+    end
+
     # Create a Service Helper to interact with the PubSub Server
     begin
       @@service = OmfPubSubService.new(@@IPaddr, "123", jid_suffix)
@@ -156,7 +170,7 @@ class AgentPubSubCommunicator < MObject
     # otherwise clients will be listed as "offline" in Openfire after a timeout
     Thread.new do
       while true do
-        sleep 3600
+        sleep PING_INTERVAL
         debug("Sending a ping to the XMPP server (keepalive)")
         @@service.ping        
       end
@@ -199,39 +213,45 @@ class AgentPubSubCommunicator < MObject
       return @@IPaddr
     end
 
-    # If we are on a Linux Box, we parse the output of 'ifconfig' 
-    if AgentPubSubCommunicator.isPlatformLinux?
-      interface = NodeAgent.instance.config('comm')['local_if']
-      if AgentPubSubCommunicator.isPlatformArmLinux?
-	      ## arm-linux is assumed to be android platform
-	       lines = IO.popen("ifconfig #{interface}", "r").readlines
-	       iplines = "#{lines}"
-	       ip_index = iplines.index('ip') + 3
-	       mask_index = iplines.index('mask')
-	       ip_length = mask_index -1 -ip_index
-	       @@IPaddr = iplines.slice(ip_index,ip_length)
-	      ## @@IPaddr = "1.2.3.4"
-       else
-      	lines = IO.popen("ifconfig #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
-      	if (lines.length > 0)
-          @@IPaddr = lines[0].chomp
-	 end
-       end
-    else
-    # not implemented for other OS
-      @@IPaddr = "0.0.0.0"
+    foundIP = false
+    while !foundIP
+      # If we are on a Linux Box, we parse the output of 'ifconfig' 
+      if AgentPubSubCommunicator.isPlatformLinux?
+        interface = NodeAgent.instance.config('comm')['local_if']
+        if AgentPubSubCommunicator.isPlatformArmLinux?
+          ## arm-linux is assumed to be android platform
+          lines = IO.popen("ifconfig #{interface}", "r").readlines
+          iplines = "#{lines}"
+          ip_index = iplines.index('ip') + 3
+          mask_index = iplines.index('mask')
+          ip_length = mask_index -1 -ip_index
+          @@IPaddr = iplines.slice(ip_index,ip_length)
+          foundIP = true
+        else
+          lines = IO.popen("ifconfig | grep -A1 #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
+          if (lines.length > 0)
+            @@IPaddr = lines[0].chomp
+            foundIP = true
+  	  end
+        end
+      else
+      # not implemented for other OS
+        error "Cannot determine IP address of the Control Interface For this Platform"
+        @@IPaddr = "0.0.0.0"
+        error "Using fake IP: #{@@IPaddr}"
+        foundIP = true
+      end
+
+      # Couldnt get the Mac Address, retry...
+      if (@@IPaddr.nil?)
+        error "Cannot determine IP address of the Control Interface"
+        error "Waiting #{RETRY_INTERVAL} sec, and retrying..."
+        sleep RETRY_INTERVAL
+      end
     end
 
-    # Couldnt get the Mac Address, terminate this NA
-    if (@@IPaddr.nil?)
-      error "Cannot determine IP address of the Control Interface"
-      exit
-    end
-    
     # All good
     debug("Local control IP address: #{@@IPaddr}")
-    # quick hack for testing
-    # return "10.0.0.5"
     return @@IPaddr
   end
   
@@ -246,8 +266,8 @@ class AgentPubSubCommunicator < MObject
     # Re-subscribe to the System Pubsub node for this node
     sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
     while (!@@service.join_pubsub_node(sysNode))
-       debug "Resetting - System node '#{sysNode}' does not exist (yet) on the PubSub server - retrying in 10s"
-       sleep 10
+       debug "Resetting - System node '#{sysNode}' does not exist (yet) on the PubSub server - retrying in #{RETRY_INTERVAL} sec"
+       sleep RETRY_INTERVAL
        start(NodeAgent.instance.config('comm')['xmpp_server'])
     end
   end

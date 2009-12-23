@@ -132,7 +132,6 @@ class WirelessDevice < EthernetDevice
       end
       info("Loaded #{driver} driver")
       @@driverLoaded[driver] = true
-      postActivate()
     end
   end
 

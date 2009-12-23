@@ -35,8 +35,8 @@ require 'omf-resctl/omf_driver/wireless'
 #
 class AtherosDevice < WirelessDevice
 
-  # Version number of older madwifi driver for which some commands are different
-  OLD_MADWIFI_VERSION = 27
+  # Default version of the supported wireless tools
+  DEFAULT_WIFI_TOOL_VERSION = 29
 
   #
   # Create and set up a new AtherosDevice instance
@@ -44,6 +44,13 @@ class AtherosDevice < WirelessDevice
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
     @driver = 'ath_pci'
+    # Find the paths to the required tools
+    # In some instances (e.g. winlab's baseline image as of Dec 09) these
+    # tools are not in the default path at boot time.
+    @wlanconfig = `find / -name  wlanconfig`.chomp!
+    @iwconfig = `find / -name  iwconfig`.chomp!
+    @iwpriv = `find / -name  iwpriv`.chomp!
+    @toolVersion = getToolVersion
   end
 
   #
@@ -52,40 +59,16 @@ class AtherosDevice < WirelessDevice
   # [Return] the versions of the madwifi tools
   #
   def getToolVersion()
-    version = `wlanconfig --version | head -n 1 | awk '{print $4}'`
+    cmd = "#{@wlanconfig} --version | head -n 1 | awk '{print $4}'"
+    version = `#{cmd}`
     if !($?.success?) || (version.to_i == 0)
-      return OLD_MADWIFI_VERSION
+      debug "Could not determine Wireless Tool version! Default to version: #{DEFAULT_WIFI_TOOL_VERSION}"
+      return DEFAULT_WIFI_TOOL_VERSION
     else
+      debug "Wireless Tool version: #{version.to_i}"
       return version.to_i
     end
   end
-
-  # 
-  # Execute some tasks after the 'activation' of this device
-  # In this particular case of MADWIFI, the previous versions had a default
-  # interface created after the kernel module was loaded, but the recent versions
-  # dont do this anymore. Thus, we do it manually here.
-  # This is in case some experimenter only want to run applications without any
-  # particular wireless setting (thus we dont want to force them to create it 
-  # themselves)
-  #
-  def postActivate()
-    cmd = "wlanconfig  ath0 destroy ; wlanconfig ath0 create wlandev wifi0  wlanmode adhoc"
-    debug "Post-Activation cmd: #{cmd}"
-    reply = `#{cmd}`
-    if !$?.success?
-      # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
-      cmd = "iwconfig ath0 mode adhoc"
-      debug "Post-Activation cmd: #{cmd}"
-      reply = `#{cmd}`
-      if !$?.success?
-        error("While doing wifi driver post-activation - CMD reply is: '#{reply}'")
-        return
-      end
-    end
-    debug "Wifi driver Post-Activation OK"
-  end
-
 
   #
   # Return the specific command required to configure a given property of this device.
@@ -106,7 +89,7 @@ class AtherosDevice < WirelessDevice
           else
             raise "Unknown type. Should be 'a', 'b', or 'g'."
         end
-        return "iwpriv #{@deviceName} mode #{p}"
+        return "#{@iwpriv} #{@deviceName} mode #{p}"
 
       when "mode"
         p = case
@@ -138,29 +121,29 @@ class AtherosDevice < WirelessDevice
           else
             raise "Unknown device name '#{@deviceName}'."
         end
-        if (getToolVersion() > OLD_MADWIFI_VERSION)
-          return "wlanconfig #{@deviceName} destroy ; wlanconfig #{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
-        else
-          # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
-          return "iwconfig #{@deviceName} mode #{value}"
-        end
 
+        if (@toolVersion < DEFAULT_WIFI_TOOL_VERSION)
+          # Backward compatibility: NodeAgent will run with previous MADWIFI drivers
+          return "#{@iwconfig} #{@deviceName} mode #{value}"
+        else
+          return "#{@wlanconfig} #{@deviceName} destroy ; #{@wlanconfig} #{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
+        end
 
       when "essid"
         @essid = value
-        return "iwconfig #{@deviceName} essid #{value}"
+        return "#{@iwconfig} #{@deviceName} essid #{value}"
 
       when "rts"
-        return "iwconfig #{@deviceName} rts #{value}"
+        return "#{@iwconfig} #{@deviceName} rts #{value}"
 
      when "rate"
-        return "iwconfig #{@deviceName} rate #{value}"
+        return "#{@iwconfig} #{@deviceName} rate #{value}"
 
       when "frequency"
-        return "iwconfig #{@deviceName} freq #{value}"
+        return "#{@iwconfig} #{@deviceName} freq #{value}"
 
      when "channel"
-        return "iwconfig #{@deviceName} channel #{value}"
+        return "#{@iwconfig} #{@deviceName} channel #{value}"
 
      when "tx_power"
         return "echo #{value} > /proc/sys/dev/#{@deviceName}/txpowlimit"
