@@ -12,16 +12,16 @@ frisbee:
   testbed:
     default:
       # Directory images are stored
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
+      imageDir: /var/lib/omf-images-5.2
+      defaultImage: baseline
 
       # max bandwidth for frisbee server
       bandwidth: 50000000
 
       # Multicast address to use for servicing images
-      mcAddress: 224.0.0.3
+      mcAddress: 224.0.0.5
       # Using ports starting at ...
-      startPort: 7300
+      startPort: 7000
 
       # Time out frisbee server if nobody requested it within TIMEOUT sec
       timeout: 3600
@@ -32,113 +32,102 @@ frisbee:
       # Local interface to bind to for frisbee traffic
       multicastIF: 10.10.0.40
 
-    grid:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7300
-      timeout: 3600
+    grid.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7000
       multicastIF: 10.10.0.40
 
-    sb1:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7400
-      timeout: 3600
+    sb1.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7010
       multicastIF: 10.11.0.40
 
-    sb2:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7500
-      timeout: 3600
+    sb2.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7020
       multicastIF: 10.12.0.40
 
-    sb3:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7500
-      timeout: 3600
+    sb3.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7030
       multicastIF: 10.13.0.40
 
-    sb4:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7500
-      timeout: 3600
+    sb4.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7040
       multicastIF: 10.14.0.40
 
-    sb5:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7600
-      timeout: 3600
+    sb5.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7050
       multicastIF: 10.15.0.40
 
-    sb6:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7700
-      timeout: 3600
+    sb6.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7060
       multicastIF: 10.16.0.40
 
-    sb7:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7800
-      timeout: 3600
+    sb7.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7070
       multicastIF: 10.17.0.40
 
-    sb8:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7900
-      timeout: 3600
+    sb8.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7080
       multicastIF: 10.18.0.40
 
-    sb9:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
-      bandwidth: 50000000
-      mcAddress: 224.0.0.3
-      startPort: 7900
-      timeout: 3600
+    sb9.orbit-lab.org:
       frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
+      bandwidth: 50000000
+      mcAddress: 224.0.0.5
+      timeout: 3600
+      startPort: 7090
       multicastIF: 10.19.0.40
 
-    outdoor:
-      imageDir: /export/orbit/image
-      defaultImage: orbit-baseline
+    outdoor.orbit-lab.org:
+      frisbeeBin: /usr/sbin/frisbeed
+      imageDir: /var/lib/omf-images-5.2
       bandwidth: 50000000
       #bandwidth: 500000
-      mcAddress: 224.0.0.3
-      startPort: 7900
+      mcAddress: 224.0.0.5
       timeout: 3600
-      frisbeeBin: /usr/sbin/frisbeed
+      startPort: 7100
       multicastIF: 10.40.0.40
