@@ -376,7 +376,7 @@ class XmppCommunicator < Communicator
         
     # Parse the Message to extract the Command
     # (when parsing, keep the full message to send it up to NA later)
-    argArray = message.split(' ')
+    argArray = LineSerializer.to_a(message)
     if (argArray.length < 1)
       erro "Message too short! '#{message}'"
       return
