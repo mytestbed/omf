@@ -72,7 +72,7 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installmime
 #	dh_python
-	dh_installinit
+	dh_installinit --update-rcd-params='defaults 99'
 #	dh_installcron
 #	dh_installinfo
 	dh_installman
