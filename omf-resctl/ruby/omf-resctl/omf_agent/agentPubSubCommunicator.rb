@@ -220,7 +220,7 @@ class AgentPubSubCommunicator < MObject
         interface = NodeAgent.instance.config('comm')['local_if']
         if AgentPubSubCommunicator.isPlatformArmLinux?
           ## arm-linux is assumed to be android platform
-          lines = IO.popen("ifconfig #{interface}", "r").readlines
+          lines = IO.popen("/sbin/ifconfig #{interface}", "r").readlines
           iplines = "#{lines}"
           ip_index = iplines.index('ip') + 3
           mask_index = iplines.index('mask')
