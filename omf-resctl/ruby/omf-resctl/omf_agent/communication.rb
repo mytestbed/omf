@@ -182,7 +182,7 @@ class Communicator < MObject
       if Communicator.isPlatformLinux?
 	      if(RUBY_PLATFORM.include?('arm-linux'))
 	        ## arm-linux is assumed to be android platform
-	        lines = IO.popen("ifconfig #{@localIF}", "r").readlines
+	        lines = IO.popen("/sbin/ifconfig #{@localIF}", "r").readlines
 	        iplines = "#{lines}"
 	        ip_index = iplines.index('ip') + 3
 	        mask_index = iplines.index('mask')

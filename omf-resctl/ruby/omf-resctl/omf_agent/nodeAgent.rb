@@ -576,7 +576,7 @@ end
 #
 # Discover the available devices
 # 
-IO.popen("lspci | grep 'Network controller: Intel' | wc -l") {|p|
+IO.popen("/usr/bin/lspci | grep 'Network controller: Intel' | /usr/bin/wc -l") {|p|
   if p.gets.to_i > 0
     require 'omf-resctl/omf_driver/intel'
     MObject.info "Have Intel cards"
@@ -584,7 +584,7 @@ IO.popen("lspci | grep 'Network controller: Intel' | wc -l") {|p|
     AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
   end
 }
-IO.popen("lspci | grep 'Ethernet controller: Atheros' | wc -l") {|p|
+IO.popen("/usr/bin/lspci | grep 'Ethernet controller: Atheros' | /usr/bin/wc -l") {|p|
   if p.gets.to_i > 0
     require 'omf-resctl/omf_driver/atheros'
     MObject.info "Have Atheros cards"

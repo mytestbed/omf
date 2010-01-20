@@ -44,12 +44,9 @@ class AtherosDevice < WirelessDevice
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
     @driver = 'ath_pci'
-    # Find the paths to the required tools
-    # In some instances (e.g. winlab's baseline image as of Dec 09) these
-    # tools are not in the default path at boot time.
-    @wlanconfig = `find / -name  wlanconfig`.chomp!
-    @iwconfig = `find / -name  iwconfig`.chomp!
-    @iwpriv = `find / -name  iwpriv`.chomp!
+    @wlanconfig = '/sbin/wlanconfig'
+    @iwconfig = '/sbin/iwconfig'
+    @iwpriv = '/sbin/iwpriv'
     @toolVersion = getToolVersion
   end
 

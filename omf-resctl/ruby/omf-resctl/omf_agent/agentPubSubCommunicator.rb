@@ -228,7 +228,7 @@ class AgentPubSubCommunicator < MObject
           @@IPaddr = iplines.slice(ip_index,ip_length)
           foundIP = true
         else
-          lines = IO.popen("ifconfig | grep -A1 #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
+          lines = IO.popen("/sbin/ifconfig | grep -A1 #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
           if (lines.length > 0)
             @@IPaddr = lines[0].chomp
             foundIP = true

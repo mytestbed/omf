@@ -75,7 +75,7 @@ class WirelessDevice < EthernetDevice
   # [Return] the Cell ID of this Device
   #
   def checkStatus
-    reply = `iwconfig #{deviceName}`
+    reply = `/sbin/iwconfig #{deviceName}`
     if ! $?.success?
       warn "Problems running iwconfig -- #{reply}"
       return
