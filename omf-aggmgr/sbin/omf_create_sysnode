@@ -32,4 +32,4 @@ else
    echo "Cannot find the ruby module location ($APP)."
    exit 1;
 fi
-exec ruby1.8 -I/usr/share/omf-common$VER $PDIR/$APP $*
+exec ruby -I/usr/share/omf-common$VER $PDIR/$APP $*
