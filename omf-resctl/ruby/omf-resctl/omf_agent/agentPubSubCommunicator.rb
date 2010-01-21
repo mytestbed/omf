@@ -44,9 +44,10 @@ require 'omf-common/lineSerializer'
 #
 class AgentPubSubCommunicator < MObject
 
-  DOMAIN = "Domain"
+  DOMAIN = "OMF"
   SYSTEM = "System"
-  SESSION = "Session"
+  SLICE_PREFIX = "Slice_"
+  RESOURCE = "Resource"
   PING_INTERVAL = 3600
   RETRY_INTERVAL = 10
 
@@ -71,7 +72,8 @@ class AgentPubSubCommunicator < MObject
     @@IPaddr = nil
     @@systemNode = nil
     @@expID = nil
-    @@sessionID = nil
+    #@@sessionID = nil
+    @@sliceID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
     @queue = Queue.new
@@ -142,12 +144,12 @@ class AgentPubSubCommunicator < MObject
     # Set some internal attributes...
     @@IPaddr = getControlAddr()
 
-    # Check DNS - DNS is required to connected to PubSub Server 
-    checkDNS = false
-    while !checkDNS
+    # Check if PubSub Server is reachable
+    check = false
+    while !check
       reply = `ping -c 1 #{jid_suffix}`
       if $?.success?
-        checkDNS = true
+        check = true
       else
         info "Could not resolve or contact: '#{jid_suffix}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
         sleep RETRY_INTERVAL
@@ -157,6 +159,7 @@ class AgentPubSubCommunicator < MObject
     # Create a Service Helper to interact with the PubSub Server
     begin
       @@service = OmfPubSubService.new(@@IPaddr, "123", jid_suffix)
+      #@@service = OmfPubSubService.new(NodeAgent.instance.agentName, "123", jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
@@ -244,7 +247,7 @@ class AgentPubSubCommunicator < MObject
 
       # Couldnt get the Mac Address, retry...
       if (@@IPaddr.nil?)
-        error "Cannot determine IP address of the Control Interface"
+        error "Cannot determine IP address of the Control Interface ('#{interface}')"
         error "Waiting #{RETRY_INTERVAL} sec, and retrying..."
         sleep RETRY_INTERVAL
       end
@@ -266,9 +269,9 @@ class AgentPubSubCommunicator < MObject
     # Re-subscribe to the System Pubsub node for this node
     sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
     while (!@@service.join_pubsub_node(sysNode))
-       debug "Resetting - System node '#{sysNode}' does not exist (yet) on the PubSub server - retrying in #{RETRY_INTERVAL} sec"
+       debug "Reset - PubSub Group '#{sysNode}' does not exist on the server - retrying in #{RETRY_INTERVAL} sec"
        sleep RETRY_INTERVAL
-       start(NodeAgent.instance.config('comm')['xmpp_server'])
+       #start(NodeAgent.instance.config('comm')['xmpp_server'])
     end
   end
   

@@ -63,6 +63,10 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
+  attr_reader :agentSlice, :config 
+
+  attr_accessor :allowDisconnection
+
   #
   # Return the singleton instance of the Node Agent class
   #
@@ -75,18 +79,17 @@ class NodeAgent < MObject
     return @@instance
   end
 
-
   #
-  # Run the main execution loop of the Node Agent.
-  # After starting the NA, this method will loop until
-  # SIGINT (CTRL-C) or SIGTERM (init script) is received
+  # Run the main execution loop of the Resource Controller.
+  # After starting the RC, this method will loop indefinitely
   #
   def run
     if (! @running.nil?)
       raise "Already running"
     end
     info(VERSION_STRING)
-    reset
+    resetState
+    communicator.reset
 
     @running = ConditionVariable.new
     if @interactive
@@ -96,17 +99,10 @@ class NodeAgent < MObject
       ARGV << "--noinspect"
       IRB.start()
     else
-      interrupted = false
-      trap("INT") { interrupted = true }
-      trap("TERM") { interrupted = true }
-      loop do
-        if interrupted
-          communicator.quit
-          ExecApp.killAll
-          exit
-        end
-	      sleep 1
-      end
+      @mutex = Mutex.new
+      @mutex.synchronize {
+        @running.wait(@mutex)
+      }
     end
   end
 
@@ -143,11 +139,13 @@ class NodeAgent < MObject
   # - newAlias = a String with the new alias to add
   # - isPrimary = true/false, if true the new alias becomes the NA's primary name 
   #
-  def addAlias(newAlias, isPrimary = false)
-    if @names.length == 1 || isPrimary
-      # the first alias will also become the new agent name
-      @agentName = newAlias
-    end
+  # TDBEUG 5.3 - YOUARE does not set the primary name!
+  #def addAlias(newAlias, isPrimary = false)
+  def addAlias(newAlias)
+    #if @names.length == 1 || isPrimary
+    #  # the first alias will also become the new agent name
+    #  @agentName = newAlias
+    #end
     if (@names.index(newAlias) != nil)
       MObject.debug("Alias '#{newAlias}' already registered.")
     else
@@ -166,7 +164,7 @@ class NodeAgent < MObject
   # - msgArray = an array with the full received command (name, parameters,...)
   #
   def okReply(cmd, id = nil, *msgArray)
-    if allowDisconnection? 
+    if @allowDisconnection 
       communicator.sendRelaxedHeartbeat()
     else
       communicator.sendHeartbeat()
@@ -204,7 +202,7 @@ class NodeAgent < MObject
   # - msgArray = an array with the full text message to send 
   #
   def send(*msgArray)
-    if connected?
+    if @connected
       communicator.send(*msgArray)
     else
       warn("Not sending message because not connected: ", msgArray.join(' '))
@@ -245,10 +243,10 @@ class NodeAgent < MObject
     
     # If this NA allows disconnection, then check if the event is the Done message from 
     # the slave Experiment Controller
-    if ( allowDisconnection? && (appId == AgentCommands.slaveExpCtlID) )
+    if ( @allowDisconnection && (appId == AgentCommands.slaveExpCtlID) )
        if ( eventName.split(".")[0] == "DONE" )
-       expirementDone 
-       debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
+         @expirementDone = true
+         debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
        end
     end
     send(:APP_EVENT, eventName.to_s.upcase, appId, *msg)
@@ -273,15 +271,12 @@ class NodeAgent < MObject
   # started so far, and remove all loaded network modules
   #
   def reset
-    info "\n------------ RESET ------------\n"
+    info "\n\n------------ RESET ------------\n"
     ExecApp.killAll
     Device.unload
-    #### ONLY FOR WINDOWS TESTING
-    #    controlIP = localAddr || "10.10.2.3"
-    #### END OF HACK
-    #rules deletion
+    # Reset Traffic Shapping
+    # This should be better designed...
     cmd = "tc qdisc del dev eth0 root "
-    MObject.debug "Exec: '#{cmd}'"
     result=`#{cmd}`
     resetState
     communicator.reset
@@ -291,39 +286,54 @@ class NodeAgent < MObject
   # Reset all the internat states of this NA
   #
   def resetState
-    @agentName = @defAgentName || "#{communicator.localAddr}"
+    if !@agentName 
+      @agentName = "#{communicator.localAddr}"
+    end
     @connected = false
     @names = [@agentName]
     @allowDisconnection = false
     @expirementDone = false
-    debug "Disconnection Support Disabled."
+    info "Agent Name and Slice: '#{@agentName}'"
+    info "Disconnection Support Disabled."
+  end
+
+  # 
+  # Make sure that we cleaning up before exiting...
+  #
+  def cleanUp
+    if ! @running.nil? 
+      info("Cleaning: Disconnect from the PubSub server")
+      communicator.quit
+      info("Cleaning: Kill all previously started Applications")
+      ExecApp.killAll
+      info("Cleaning: Exit")
+      info("\n\n------------ EXIT ------------\n")
+    end
   end
 
   #
   # Set the 'Disconnection Support' flag to true
   #
-  def allowDisconnection
-    debug "Disconnection Support Enabled."
-    @allowDisconnection = true
-  end
+  #def allowDisconnection
+  #  debug "Disconnection Support Enabled."
+  #  @allowDisconnection = true
+  #end
 
   #
   # Return the value of the 'Disconnection Support'
   #
   # [Return] true/false
   #
-  def allowDisconnection?
-    return @allowDisconnection
-  end 
+  #def allowDisconnection?
+  #  return @allowDisconnection
+  #end 
 
   #
   # Set the 'Experiment Done' flag to true
   # Should be called when the 'slave' EC terminates
   #
-  def expirementDone
-    debug "Expirement is DONE"
-    @expirementDone = true
-  end
+  #def expirementDone
+  #end
 
   #
   # Return the value of the 'Experiment Done' flag
@@ -334,9 +344,9 @@ class NodeAgent < MObject
   #
   # [Return] true/false
   #
-  def expirementDone?
-    return @expirementDone
-  end 
+  #def expirementDone?
+  #  return @expirementDone
+  #end 
 
   #
   # Return the primary name of this NA
@@ -344,7 +354,7 @@ class NodeAgent < MObject
   # [Return] a String with the primary name of this NA
   #
   def agentName
-    @agentName || @defAgentName || "#{communicator.localAddr}"
+    @agentName || "#{communicator.localAddr}"
   end
 
   #
@@ -352,9 +362,9 @@ class NodeAgent < MObject
   #
   # [Return] true/false
   #
-  def connected?
-    @connected
-  end
+  #def connected?
+  #  @connected
+  #end
 
   #
   # Parse the command line arguments which were used when starting this NA
@@ -368,51 +378,31 @@ class NodeAgent < MObject
     @interactive = false
     @logConfigFile = ENV['NODE_AGENT_LOG'] || "/etc/omf-resctl-#{OMF_MM_VERSION}/nodeagent_log.xml"
 
-    # --listen-addr --listen-port --handler-addr --handler-port
     opts = OptionParser.new
     opts.banner = "Usage: nodeAgent [options]"
     @config = {'comm' => {}}
 
-    # This option is relevant only when using a TCP Server Communicator
-    opts.on("--server-port PORT",
-      "Port to wait for handler to connect on") {|port|
-      @config['comm']['server_port'] = port.to_i
-    }
-
-    # The following options are relevant only when using a Multicast Communicator or a TCPClient (broken?) one
-    opts.on("--handler-addr ADDR",
-      "Address of handler [#{@handlerAddr}]") {|addr|
-      @config['comm']['handler_addr'] = addr
-    }
-    opts.on("--handler-port PORT",
-      "Port handler is listening [#{@handlerPort}]") {|port|
-      @config['comm']['handler_port'] = port.to_i
-    }
-    opts.on("--local-addr ADDR",
-      "Address of local interface to use for multicast sockets") {|addr|
-      @config['comm']['local_addr'] = addr
-    }
-
-    # The following options are relevant only when using a Multicast Communicator
-    opts.on("--listen-addr ADDR",
-      "Address to listen for handler commands [#{@listenAddr}]") {|addr|
-      @config['comm']['listen_addr'] = addr
-    }
-    opts.on("--listen-port PORT",
-      "Port to listen for handler commands [#{@listenPort}]") {|port|
-      @config['comm']['listen_port'] = port.to_i
-    }
+    # Communication Options 
     opts.on("--local-if IF",
       "Name of local interface to use for multicast sockets [#{@localIF}]") {|name|
       @config['comm']['local_if'] = name
     }
-
-    # General options
     opts.on("--xmpp-server HOST",
       "Hostname or IP address of the XMPP server to connect to") {|name|
       @config['comm']['xmpp_server'] = name
     }
     
+    # Instance Options
+    opts.on('--name NAME',
+      "Initial checkin name of agent") {|name|
+      @agentName = name
+    }
+    opts.on('--slice NAME',
+      "Initial checkin slice of agent") {|name|
+      @agentSlice = name
+    }
+
+    # General Options
     opts.on("-i", "--interactive",
       "Run the agent in interactive mode") {
       @interactive = true
@@ -424,10 +414,6 @@ class NodeAgent < MObject
     opts.on("--log FILE",
       "File containing logging configuration information") {|file|
       @logConfigFile = file
-    }
-    opts.on('--name NAME',
-      "Initial checkin name of agent") {|name|
-      @defAgentName = name
     }
     opts.on("-n", "--just-print",
       "Print the commands that would be executed, but do not execute them") {
@@ -566,6 +552,8 @@ class NodeAgent < MObject
   # Start this Node Agent
   #
   def initialize
+    @agentName = nil
+    @agentSlice = nil
     # Name of image we booted into
     @imageName = nil
     @running = nil
@@ -597,12 +585,12 @@ IO.popen("/usr/bin/lspci | grep 'Ethernet controller: Atheros' | /usr/bin/wc -l"
 # Execution Entry point 
 #
 begin
- 
   NodeAgent.instance.parseOptions(ARGV)
   NodeAgent.instance.run
-rescue SystemExit
-rescue Interrupt
-  # ignore
+# Exit when SIGTERM or INTERRUPT signal are received
+# Or when an runtime exception occured
+rescue SystemExit # ignore
+rescue Interrupt # ignore
 rescue Exception => ex
   begin
     bt = ex.backtrace.join("\n\t")
@@ -610,5 +598,7 @@ rescue Exception => ex
   rescue Exception
   end
 end
-MObject.info("sys", "Exiting")
-ExecApp.killAll
+#
+# Make sure we clean up before exiting...
+#
+NodeAgent.instance.cleanUp

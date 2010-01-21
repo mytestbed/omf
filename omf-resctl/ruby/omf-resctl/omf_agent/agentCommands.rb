@@ -349,7 +349,8 @@ end
   #              OML Server, the port of the OML server
   #
   def AgentCommands.SET_DISCONNECT(agent, argArray)
-    agent.allowDisconnection
+    agent.allowDisconnection = true
+    debug "Disconnection Support Enabled."
     
     # Fetch the Experiment ID from the EC
     expID = getArg(argArray, "Experiment ID")
@@ -685,7 +686,7 @@ end
   def AgentCommands.RETRY(agent, argArray)
     # If this NA is operating with support for temporary disconnection, 
     # then ignore any RETRY requests from the EC.
-    if agent.allowDisconnection?
+    if agent.allowDisconnection
       MObject.debug "Ignore RETRY (Disconnection Support ON)"
       return
     end

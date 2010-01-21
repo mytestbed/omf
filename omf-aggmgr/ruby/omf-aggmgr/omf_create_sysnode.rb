@@ -24,19 +24,32 @@
 
 require "omf-common/omfPubSubService"
 
+PUBSUB_USER = "aggmgr"
+PUBSUB_PWD = "123"
+
 if ARGV.length != 2
-  puts "Usage: #{$0} <IP address of XMPP server> <IP address of node to add>"
+  puts "Usage: #{$0} <IP address of XMPP server> <Name or HRN of the resource to add>"
   exit 0
 end
 
 begin
-  @@service = OmfPubSubService.new("aggmgr", "123", ARGV[0])
+  service = OmfPubSubService.new(PUBSUB_USER, PUBSUB_PWD, ARGV[0])
 rescue Exception => ex
   puts "ERROR Creating ServiceHelper - '#{ex}'"
 end
 
 puts "Connected to PubSub Server: '#{ARGV[0]}'"
-    
-@@service.create_pubsub_node("/Domain")
-@@service.create_pubsub_node("/Domain/System")
-@@service.create_pubsub_node("/Domain/System/#{ARGV[1]}")
+
+toCreate = ["/OMF", "/OMF/System", "/OMF/System/#{ARGV[1]}"]     
+
+toCreate.each { |node|
+  success = service.create_pubsub_node(node)
+  if !success 
+    puts "Error while creating the PubSub node: '#{node}'"
+    exit 1
+  end
+}
+
+puts "Created a PubSub node under /OMF/System for: '#{ARGV[1]}'"
+
+
