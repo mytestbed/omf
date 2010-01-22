@@ -40,7 +40,7 @@ end
 
 puts "Connected to PubSub Server: '#{ARGV[0]}'"
 
-toCreate = ["/OMF", "/OMF/System", "/OMF/System/#{ARGV[1]}"]     
+toCreate = ["/OMF", "/OMF/system", "/OMF/system/#{ARGV[1]}"]     
 
 toCreate.each { |node|
   success = service.create_pubsub_node(node)
@@ -48,8 +48,8 @@ toCreate.each { |node|
     puts "Error while creating the PubSub node: '#{node}'"
     exit 1
   end
+  puts "Created PubSub group: '#{node}'"
 }
 
-puts "Created a PubSub node under /OMF/System for: '#{ARGV[1]}'"
 
 

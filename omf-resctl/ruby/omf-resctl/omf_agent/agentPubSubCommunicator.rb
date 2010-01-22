@@ -45,9 +45,8 @@ require 'omf-common/lineSerializer'
 class AgentPubSubCommunicator < MObject
 
   DOMAIN = "OMF"
-  SYSTEM = "System"
-  SLICE_PREFIX = "Slice_"
-  RESOURCE = "Resource"
+  SYSTEM = "system"
+  RESOURCE = "resource"
   PING_INTERVAL = 3600
   RETRY_INTERVAL = 10
 
@@ -67,13 +66,13 @@ class AgentPubSubCommunicator < MObject
   # Create a new Communicator 
   #
   def initialize ()
-    @@myName = nil
+    @@myName = NodeAgent.instance.config[:agent][:name]
+    @@mySlice = NodeAgent.instance.config[:agent][:slice]
     @@service = nil
     @@IPaddr = nil
     @@systemNode = nil
     @@expID = nil
     #@@sessionID = nil
-    @@sliceID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
     @queue = Queue.new
@@ -82,7 +81,7 @@ class AgentPubSubCommunicator < MObject
         execute_command(event)
       end
     }
-    start(NodeAgent.instance.config('comm')['xmpp_server'])
+    start(NodeAgent.instance.config[:comm][:xmpp_server])
   end
 
   # 
@@ -142,7 +141,7 @@ class AgentPubSubCommunicator < MObject
     
     debug "Connecting to PubSub Server: '#{jid_suffix}'"
     # Set some internal attributes...
-    @@IPaddr = getControlAddr()
+    #@@IPaddr = getControlAddr()
 
     # Check if PubSub Server is reachable
     check = false
@@ -158,7 +157,7 @@ class AgentPubSubCommunicator < MObject
 
     # Create a Service Helper to interact with the PubSub Server
     begin
-      @@service = OmfPubSubService.new(@@IPaddr, "123", jid_suffix)
+      @@service = OmfPubSubService.new("#{@@mySlice}-#{@@myName}", "123", jid_suffix)
       #@@service = OmfPubSubService.new(NodeAgent.instance.agentName, "123", jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
@@ -167,6 +166,7 @@ class AgentPubSubCommunicator < MObject
       }
     rescue Exception => ex
       error "Failed to create ServiceHelper for PubSub Server '#{jid_suffix}' - Error: '#{ex}'"
+      exit # No need to cleanUp, as this RC has not done anything yet...
     end
     
     # keep the connection to the PubSub server alive by sending a ping every hour
@@ -220,7 +220,7 @@ class AgentPubSubCommunicator < MObject
     while !foundIP
       # If we are on a Linux Box, we parse the output of 'ifconfig' 
       if AgentPubSubCommunicator.isPlatformLinux?
-        interface = NodeAgent.instance.config('comm')['local_if']
+        interface = NodeAgent.instance.config[:comm][:control_if]
         if AgentPubSubCommunicator.isPlatformArmLinux?
           ## arm-linux is assumed to be android platform
           lines = IO.popen("/sbin/ifconfig #{interface}", "r").readlines
@@ -266,13 +266,14 @@ class AgentPubSubCommunicator < MObject
   def reset
     # Leave all Pubsub nodes that we might have joined previously 
     @@service.leave_all_pubsub_nodes
-    # Re-subscribe to the System Pubsub node for this node
-    sysNode = "/#{DOMAIN}/#{SYSTEM}/#{@@IPaddr}"
-    while (!@@service.join_pubsub_node(sysNode))
-       debug "Reset - PubSub Group '#{sysNode}' does not exist on the server - retrying in #{RETRY_INTERVAL} sec"
+    # Re-subscribe to the 'Slice/Resource' Pubsub group for this node
+    group = "/#{DOMAIN}/#{@@mySlice}/#{RESOURCE}/#{@@myName}"
+    while (!@@service.join_pubsub_node(group))
+       debug "PubSub group '#{group}' does not exist on the server - retrying in #{RETRY_INTERVAL} sec"
        sleep RETRY_INTERVAL
        #start(NodeAgent.instance.config('comm')['xmpp_server'])
     end
+    debug "Joined PubSub group: '#{group}'"
   end
   
   #

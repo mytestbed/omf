@@ -63,7 +63,7 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentSlice, :config 
+  attr_reader :agentName, :agentSlice, :config 
 
   attr_accessor :allowDisconnection
 
@@ -286,14 +286,11 @@ class NodeAgent < MObject
   # Reset all the internat states of this NA
   #
   def resetState
-    if !@agentName 
-      @agentName = "#{communicator.localAddr}"
-    end
     @connected = false
     @names = [@agentName]
     @allowDisconnection = false
     @expirementDone = false
-    info "Agent Name and Slice: '#{@agentName}'"
+    info "Agent Name / Slice: '#{@agentName}' / '#{@agentSlice}'"
     info "Disconnection Support Disabled."
   end
 
@@ -301,7 +298,7 @@ class NodeAgent < MObject
   # Make sure that we cleaning up before exiting...
   #
   def cleanUp
-    if ! @running.nil? 
+    if @running != nil
       info("Cleaning: Disconnect from the PubSub server")
       communicator.quit
       info("Cleaning: Kill all previously started Applications")
@@ -353,9 +350,9 @@ class NodeAgent < MObject
   #
   # [Return] a String with the primary name of this NA
   #
-  def agentName
-    @agentName || "#{communicator.localAddr}"
-  end
+  #def agentName
+  #  @agentName || "#{communicator.localAddr}"
+  #end
 
   #
   # Return the connection status of this NA (i.e. is it connected to the EC?)
@@ -376,30 +373,30 @@ class NodeAgent < MObject
 
     cfgFile = nil
     @interactive = false
-    @logConfigFile = ENV['NODE_AGENT_LOG'] || "/etc/omf-resctl-#{OMF_MM_VERSION}/nodeagent_log.xml"
+    @logConfigFile = ENV['NODE_AGENT_LOG'] || "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
 
     opts = OptionParser.new
     opts.banner = "Usage: nodeAgent [options]"
-    @config = {'comm' => {}}
+    @config = {:comm => {}, :agent => {}}
 
     # Communication Options 
-    opts.on("--local-if IF",
-      "Name of local interface to use for multicast sockets [#{@localIF}]") {|name|
-      @config['comm']['local_if'] = name
+    opts.on("--control-if IF",
+      "Name of interface attached to the control and management network [#{@localIF}]") {|name|
+      @config[:comm][:control_if] = name
     }
     opts.on("--xmpp-server HOST",
       "Hostname or IP address of the XMPP server to connect to") {|name|
-      @config['comm']['xmpp_server'] = name
+      @config[:comm][:xmpp_server] = name
     }
     
     # Instance Options
     opts.on('--name NAME',
-      "Initial checkin name of agent") {|name|
-      @agentName = name
+      "Initial checkin name of agent (unique HRN for this resource)") {|name|
+      @config[:agent][:name] = name
     }
     opts.on('--slice NAME',
-      "Initial checkin slice of agent") {|name|
-      @agentSlice = name
+      "Initial checkin slice of agent (unique HRN for the slice)") {|name|
+      @config[:agent][:slice] = name
     }
 
     # General Options
@@ -433,7 +430,7 @@ class NodeAgent < MObject
 
     # read optional config file
     if cfgFile.nil?
-      name = "nodeagent.yaml"
+      name = "omf-resctl.yaml"
       path = ["../etc/omf-resctl/#{name}", "/etc/omf-resctl-#{OMF_MM_VERSION}/#{name}"]
       cfgFile = path.detect {|f|
         File.readable?(f)
@@ -444,15 +441,24 @@ class NodeAgent < MObject
       end
     end
     if (cfgFile.nil?)
-      raise 'Can\'t find a configuration file'
+      raise "Can't find a configuration file"
     else
       require 'yaml'
       h = YAML::load_file(cfgFile)
-      if ((p = h['nodeagent']) == nil)
-        raise "Missing 'nodeagent' root in '#{cfgFile}'"
+      if ((p = h[:rcontroller]) == nil)
+        raise "Missing ':rcontroller' root in '#{cfgFile}'"
       end
       @config = p.merge_deep!(@config)
     end
+
+    # At this point, we should now have a name and a slice
+    if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
+      raise "Agent's Name and Slice are not defined in config file or as arguments!"
+    else
+      @agentName = @config[:agent][:name] 
+      @agentSlice =  @config[:agent][:slice] 
+    end	    
+    
   end
 
   #
@@ -460,9 +466,9 @@ class NodeAgent < MObject
   #
   # - key =  a String with the name of the parameter to retrieve
   #
-  def config(key)
-    @config[key]
-  end
+  #def config(key)
+  #  @config[key]
+  #end
 
   #
   # Return the instance of the Communicator module associated to this NA

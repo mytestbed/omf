@@ -28,27 +28,24 @@
 # This is the Config file for the NodeAgent4 on the NICTA platform
 #
 ---
-nodeagent:
+:rcontroller:
   # Communication settings 
-  comm:
+  :comm:
 
-    # How many seconds can we go without a message from the node handler
-    # before we assume we have lost connectivity and need to reset
-    handler_timeout: 40
-  
-    # Number of consecutive handler timeouts before a 'handler lost'
-    # will be declared.
-    timeout_count: 2
-  
-    # Number of seconds to wait between consecutive RETRY requests
-    retry_interval: 3
-  
     # Number of seconds between consecutive HEARTBEAT messages
-    heartbeat_interval: 10
+    :heartbeat_interval: 10
   
-    # Pause between resending previous messages
-    resend_interval: 0.1
-  
-    # local_if: Control Interface used for XMPP communication
-    local_if: control
-    xmpp_server: 10.0.0.200
+    # Interface to the control network from which this resource can be controlled and managed
+    :control_if: control
+
+    # Address of the XMPP server to use for PubSub communication
+    :xmpp_server: 10.0.0.200
+
+  # Agent settings
+  :agent:
+
+    # Name (i.e. unique HRN ID) of this resource
+    :name: foo
+
+    # Name (i.e. unique HRN ID) of the slice to which this resource is assigned
+    :slice: bar
