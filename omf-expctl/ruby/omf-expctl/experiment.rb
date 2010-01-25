@@ -239,7 +239,7 @@ class Experiment
   def Experiment.start()
     TraceState.experiment(:id, @@expID)
     # If -r flag was set on the command line
-    # Reset the nodes before starting the experiment if -R flag was set
+    # Reset the nodes before starting the experiment if -r flag was set
     if NodeHandler.NODE_RESET
       MObject.info "Reset flag is set - Resetting the resources"
       allGroups.powerReset

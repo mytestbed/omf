@@ -107,7 +107,7 @@ bbox: 	get_bbox
 
 omf:
 	sudo apt-get clean; sudo apt-get update
-	apt-get -d --reinstall --force-yes -y --print-uris install omf-common-$(OMF_RELEASE) omf-resctl-$(OMF_RELEASE) libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools netcat-traditional | grep http | awk '{print $$1}' | tr -d "'" > $(TEMP)/omf-packages
+	apt-get -d --reinstall --force-yes -y --print-uris install omf-common-$(OMF_RELEASE) omf-resctl-$(OMF_RELEASE) libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools netcat-traditional libdbus-1-3| grep http | awk '{print $$1}' | tr -d "'" > $(TEMP)/omf-packages
 	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../$(TEMP)/omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	mv $(ROOTFS)/bin/nc.traditional $(ROOTFS)/bin/nc

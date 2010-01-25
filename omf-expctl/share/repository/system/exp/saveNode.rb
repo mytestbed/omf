@@ -78,7 +78,7 @@ everyNS('save', 10) { |ns|
         prop.started = "true"
 	info " "
         info "- Saving process started at: #{Time.now}"
-	info "  (this may take a while depending of the size of your image)"
+	info "  (this may take a while depending on the size of your image)"
       end
     end
   }
