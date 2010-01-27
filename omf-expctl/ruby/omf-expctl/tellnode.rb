@@ -36,6 +36,12 @@ require 'net/http'
 require 'omf-common/mobject'
 require 'omf-expctl/nodeHandler.rb'
 
+# Stub Class for the NodeHandler
+# The current OMF classe/module are so tighly coupled that nothing can be
+# done without a NodeHandler object.
+# TODO: "clean" the entire OMF design to remove this non-relevant dependencies
+# 
+
 #
 # Return a Topology object from a given topology declaration
 #
@@ -85,10 +91,10 @@ def tellNode(cmd, topo, domain)
   puts " Testbed : #{d} - Command: #{command}"
   topo.eachNode { |n|
     url = "#{OConfig[:tb_config][:default][:cmc_url]}/#{command}?x=#{n[0]}&y=#{n[1]}&domain=#{d}"
-    response = NodeHandler.service_call(url, "Can't send command to CMC")
-    if (response.kind_of? Net::HTTPOK)
+    begin
+      response = NodeHandler.service_call(url, "Can't send command to CMC")
       puts " Node n_#{n[0]}_#{n[1]} - Ok"
-    else
+    rescue Exception => ex
       puts " Node n_#{n[0]}_#{n[1]} - Error (node state: 'Not Available')"
     end
   }
