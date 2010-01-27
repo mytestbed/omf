@@ -59,9 +59,8 @@ class CmcStubService < GridService
   #       - if node is already ON do nothing
   #       - if node is OFF then turn it ON
   #
-  s_info 'Switch on a node at a specific coordinate'
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_info 'Switch ON a resource'
+  s_param :name, 'name', 'name of the resource'
   service 'on' do |req, res|
     self.responseOK(res)
   end
@@ -84,15 +83,13 @@ class CmcStubService < GridService
   #       - if node is already ON, then reset/reboot it
   #       - if node is OFF then turn it ON
   #
-  s_info 'Reset a node at a specific coordinate'
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_info 'Reset a resource'
+  s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'reset' do |req, res|
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
+    name = getParam(req, 'name')
     domain = getParam(req, 'domain')
-    reboot(x,y,domain,req)
+    reboot(name, domain, req)
     self.responseOK(res)
   end
 
@@ -105,14 +102,12 @@ class CmcStubService < GridService
   # We use the NA's 'REBOOT' command to implement a 'offHard'
   #
   s_info 'Switch off a node HARD (immediately) at a specific coordinate'
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offHard' do |req, res|
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
+    name = getParam(req, 'name')
     domain = getParam(req, 'domain')
-    reboot(x,y,domain,req)
+    reboot(name, domain, req)
     self.responseOK(res)
   end
   
@@ -124,14 +119,12 @@ class CmcStubService < GridService
   # We use the NA's 'REBOOT' command to implement a 'offSoft'
   #
   s_info 'Switch off a node SOFT (execute halt) at a specific coordinate'
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |req, res|
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
+    name = getParam(req, 'name')
     domain = getParam(req, 'domain')
-    reboot(x,y,domain,req)
+    reboot(name, domain, req)
     self.responseOK(res)
   end
 
@@ -222,11 +215,11 @@ class CmcStubService < GridService
     @@config = config
   end
   
-  def self.reboot(x,y,domain,req)
-    MObject.debug("cmcstub", "Sending REBOOT cmd to [#{x},#{y}]")
+  def self.reboot(name, domain, req)
+    MObject.debug("cmcstub", "Sending REBOOT cmd to '#{name}'")
     tb = getTestbedConfig(req, @@config)
     inventoryURL = tb['inventory_url']
-    ip = getControlIP(inventoryURL, x, y, domain)
+    ip = getControlIP(inventoryURL, name, domain)
     begin
       cmd = `nmap #{ip} -p22-23`
       #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
@@ -240,7 +233,21 @@ class CmcStubService < GridService
         #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
       end      
     rescue Exception => ex
-      MObject.debug("CMCSTUB - Failed to send REBOOT to [#{x},#{y}] at #{ip} - Exception: #{ex}")
+      MObject.debug("CMCSTUB - Failed to send REBOOT to '#{name}' at #{ip} - Exception: #{ex}")
     end
   end
+
+  # TR: 
+  # This should not be needed, once we have fully implemented OMF-PL integration
+  #
+  def self.listAllNodes(url, domain)
+    allNodes = []
+    xMax, yMax = getXYMax(url, domain)
+    (1..yMax).each {|y|
+      (1..xMax).each {|x|
+        allNodes << [x,y]
+      }
+    }
+    allNodes
+
 end

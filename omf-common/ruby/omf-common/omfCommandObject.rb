@@ -119,6 +119,10 @@ class OmfCommandObject < MObject
   #
   def init_from_xml(xmlDoc)
     @type = xmlDoc.expanded_name
+
+    # If Type = JOIN_EXP
+
+    # If Type = EXECUTE
     xmlDoc.each_element("ID") { |e| @procID = e.text }
     xmlDoc.each_element("GROUP") { |e| @group = e.text }
     xmlDoc.each_element("PATH") { |e| @path = e.text }

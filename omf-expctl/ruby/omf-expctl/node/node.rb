@@ -58,16 +58,8 @@ class Node < MObject
   REBOOT_TIME = 8 # in sec
   
 
-  @@nodes = ArrayMD.new
-
-  #
-  # Return the instance of the Communicator module associated to this NA
-  #
-  # [Return] a Communicator object 
-  #
-#  def communicator()
-#    XmppCommunicator.instance
-#  end
+  @@nodes = Hash
+  #@@nodes = ArrayMD.new
 
   #
   # Return the node at location 'x'@'y'. If no node exists, return nil.
@@ -76,10 +68,11 @@ class Node < MObject
   #
   # [Return] a Node object or 'nil' if no node exits at that location
   #
-  def Node.[] (x, y)
-    n = @@nodes[x][y]
-    # take care of ArrayMD elements
-    return n.kind_of?(Node) ? n : nil
+  def Node.[] (name)
+    #n = @@nodes[x][y]
+    ## take care of ArrayMD elements
+    #return n.kind_of?(Node) ? n : nil
+    return @@nodes[name]
   end
 
   #
@@ -89,13 +82,13 @@ class Node < MObject
   #
   # [Return] an existing or a new Node object 
   #
-  def Node.at! (x, y)
-    n = @@nodes[x][y]
+  def Node.at! (name)
+    n = @@nodes[name]
     if !n.kind_of?(Node)
-      if CMC::nodeActive?(x, y)
-        n = Node.new(x, y)
+      if CMC::nodeActive?(name)
+        n = Node.new(name)
       else
-        raise ResourceException.new("Node #{x}@#{y} is NOT active")
+        raise ResourceException.new("Node #{name} is NOT active")
       end
     end
     return n
@@ -145,7 +138,7 @@ class Node < MObject
     return true
   end
 
-  attr_reader :x, :y, :MAC
+  attr_reader :nodeID, :MAC
 
   # True if node is up, false otherwise
   #attr_reader :isUp
@@ -208,12 +201,12 @@ class Node < MObject
     end
 
     # Query the Inventory GridService for the Control IP address of this node
-    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?x=#{x}&y=#{y}&domain=#{OConfig.domain}"
-    response = NodeHandler.service_call(url, "Can't get Control IP for x: #{x} y: #{y} on '#{OConfig.domain}' from INVENTORY")
+    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?name=#{@nodeID}&domain=#{OConfig.domain}"
+    response = NodeHandler.service_call(url, "Can't get Control IP for '#{@nodeID}' on domain '#{OConfig.domain}' from INVENTORY")
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the control IP address
     doc.root.elements.each("ERROR") { |e|
-      error "OConfig - No Control IP found for x: #{x} y: #{y} - val: #{e.get_text.value}"
+      error "OConfig - No Control IP found for '#{@nodeID}' - val: #{e.get_text.value}"
       raise "OConfig - #{e.get_text.value}"
     }
     doc.root.elements.each("/CONTROL_IP") { |v|
@@ -226,15 +219,15 @@ class Node < MObject
   # 
   # [Return] a String holding the Node's name
   #
-  def getNodeName()
-    return "node"+x.to_s+"-"+y.to_s
-  end
+  #def getNodeName()
+  #  return "node"+x.to_s+"-"+y.to_s
+  #end
   #
   # Same as getNodeName
   #
-  def name()
-    return "node"+x.to_s+"-"+y.to_s
-  end
+  #def name()
+  #  return "node"+x.to_s+"-"+y.to_s
+  #end
 
   #
   # Set a MAC address attribute for this node
@@ -271,7 +264,7 @@ class Node < MObject
  # - macAddr = the MAC address to remove
  #
   def printBlockedMACList()
-    info "Node [#{@x},#{@y}] - Blocked MAC(s):"
+    info "Node '#{@nodeID}' - Blocked MAC(s):"
     @blockedMACList.each { |mac|
       info " - #{mac}"
     }
@@ -445,7 +438,7 @@ class Node < MObject
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
-      imgName = ENV['USER']+"-node-#{x}-#{y}-#{ts}.ndz".split(':').join('-')
+      imgName = ENV['USER']+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
     end
         
     url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
@@ -527,7 +520,7 @@ class Node < MObject
   def powerOn()
     # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
     if !NodeHandler.SLAVE_MODE()
-      CMC.nodeOn(x, y)
+      CMC.nodeOn(@nodeID)
     end
     @poweredAt = Time.now
     #if !@isUp
@@ -548,9 +541,9 @@ class Node < MObject
     # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE_MODE()
       if hard
-        CMC.nodeOffHard(x, y)
+        CMC.nodeOffHard(@nodeID)
       else
-        CMC.nodeOffSoft(x, y)
+        CMC.nodeOffSoft(@nodeID)
       end
     end
     @poweredAt = -1
@@ -582,7 +575,7 @@ class Node < MObject
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)
       debug("Resetting node")
-      CMC::nodeReset(x, y)
+      CMC::nodeReset(@nodeID)
       @checkedInAt = -1
       @poweredAt = Time.now
       changed
@@ -794,8 +787,8 @@ class Node < MObject
   #
   # Create a new Node object
   #
-  def initialize(x, y)
-    @nodeId = "n_#{x}_#{y}"
+  def initialize(name)
+    @nodeId = name
     super("node::#{@nodeId}")
     @rulesId = 1
     @rulesList = []
@@ -812,14 +805,14 @@ class Node < MObject
     @MAC = nil
     @deferred = []
 
-    @@nodes[x][y] = self
+    @@nodes[name] = self
     @image = nil
     @poweredAt = -1
     @checkedInAt = -1
 
     @properties = Hash.new
-    TraceState.nodeAdd(self, @nodeId, x, y)
-    debug "Created node #{x}@#{y}"
+    TraceState.nodeAdd(self, @nodeId)
+    debug "Created node '#{name}'"
      
     # This flag is 'false' when this node is in a temporary disconnected (from 
     # the Contorl Network) state, and is 'true' when this node reconnects to 

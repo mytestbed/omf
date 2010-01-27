@@ -84,8 +84,8 @@ class NodeHandler < MObject
   # Where to find the default config files
   #
   DEFAULT_CONFIG_PATH = "/etc/omf-expctl"
-  DEFAULT_CONFIG_FILE = "nodehandler.yaml"
-  DEFAULT_CONFIG_LOG = "nodehandler_log.xml"
+  DEFAULT_CONFIG_FILE = "omf-expctl.yaml"
+  DEFAULT_CONFIG_LOG = "omf-expctl.xml"
 
   #
   # XML Doc to hold all the experiment states

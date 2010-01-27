@@ -603,24 +603,52 @@ class Topology < MObject
   # - *params = the definition of the node to add 
   # 
   def addNode(*params)
-    # - addNode(x, y)
-    if (params.size() == 2) && (params[0].kind_of?(Integer)) && (params[1].kind_of?(Integer))
-      x = params[0]
-      y = params[1]
-      addMapping(["[#{x},#{y}]","[#{x},#{y}]"])
-      addNodeByCoordinate(x, y)
-    # - addNode("name", [x,y])
-    elsif (params.size() == 2) && (params[0].kind_of?(String)) && (params[1].kind_of?(Array))
-      coord = params[1]
-      addMapping([params[0],"[#{coord[0]},#{coord[1]}]"])
-      addNodeByCoordinate(coord[0], coord[1])
-    # - addNode(aNode)
+    ## - addNode(x, y)
+    #if (params.size() == 2) && (params[0].kind_of?(Integer)) && (params[1].kind_of?(Integer))
+    #  x = params[0]
+    #  y = params[1]
+    #  addMapping(["[#{x},#{y}]","[#{x},#{y}]"])
+    #  addNodeByCoordinate(x, y)
+    ## - addNode("name", [x,y])
+    #elsif (params.size() == 2) && (params[0].kind_of?(String)) && (params[1].kind_of?(Array))
+    #  coord = params[1]
+    #  addMapping([params[0],"[#{coord[0]},#{coord[1]}]"])
+    #  addNodeByCoordinate(coord[0], coord[1])
+    ## - addNode(aNode)
+    if (params.size() == 1) && (params[0].kind_of?(String))
+      name = params[0]
+      addMapping(["#{name}","#{name}"])
+      addNodeByName(name)
     elsif (params.size() == 1) && (params[0].kind_of?(Node))
       node = params[0]
-      addMapping(["[#{node.x},#{node.y}]","[#{node.x},#{node.y}]"])
-      addNodeByCoordinate(node.x, node.y)
+      #addMapping(["[#{node.x},#{node.y}]","[#{node.x},#{node.y}]"])
+      addMapping(["#{node.name}","#{node.name}"])
+      addNodeByName(node.name)
     else
       raise("addNode() - Syntax error, unknown argument '#{params}'")
+    end
+  end
+
+  def addNodeByName(name)
+    begin
+      # Check if EC is in 'Slave Mode' - If so, only add the node on which this EC is running as slave
+      if NodeHandler.SLAVE_MODE() 
+        if (name != NodeHandler.instance.slaveNodeName)  
+          info "Slave Mode on '#{NodeHandler.instance.slaveNodeName}', thus ignoring node '#{name}'"
+          return 
+        end
+      end
+      # When Topology is not used with a NodeHandler, do not use the Node class
+      n = (@@useNodeClass) ? Node.at!(name) : name
+      @nodes.add(n)
+      #@nodesArr[x][y] = n
+      #@nodeSetDecl = nil
+    rescue ResourceException => re
+      if strict?
+        raise "Topology - failed to add node [#{x},#{y}] to topology #{uri} ('strict=true', no change allowed) - #{re}"
+      else
+        warn("Ignoring missing node '#{name}'")
+      end
     end
   end
 
@@ -812,6 +840,11 @@ attr_reader :nodesArr
         addNodes(selector)
       end
       #@nodeSetDecl = selector.inspect.gsub(/ /, '') # remove spaces
+    elsif selector.kind_of?(Set)
+      info "TDEBUG - Topology - Add Set - '#{selector}'"
+      selector.each {|node|
+        addNode(node)
+      }
     elsif selector.kind_of?(ExperimentProperty)
       s = selector.value
       add(s)

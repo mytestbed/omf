@@ -597,6 +597,7 @@ begin
 # Or when an runtime exception occured
 rescue SystemExit # ignore
 rescue Interrupt # ignore
+rescue SignalException # ignore
 rescue Exception => ex
   begin
     bt = ex.backtrace.join("\n\t")

@@ -105,11 +105,10 @@ class TraceState < MObject
   # Add a new node to the TraceState instance
   #
   # - node = the node Object to add
-  # - nodeId = the ID of the node to add
-  # - x,y = the coordinates of the node to add
+  # - name = the ID of the node to add
   #
-  def self.nodeAdd(node, nodeId, x, y)
-    self.instance.nodeAdd(node, nodeId, x, y)
+  def self.nodeAdd(node, name)
+    self.instance.nodeAdd(node, name)
   end
 
   #
@@ -264,7 +263,7 @@ class TraceState < MObject
   end
 
 
-  def nodeAdd(node, nodeId, x, y)
+  def nodeAdd(node, name)
     # maintain XML shadow of node state
 #    rowEl = @@nodeColsEl[x]
 #    if rowEl == nil
@@ -278,7 +277,7 @@ class TraceState < MObject
     #n[:root] = el = NodeElement.new(node, nodeId, rowEl, nil, nodeId)
 
     nodesEl = NodeHandler::NODES_EL
-    n[:root] = el = NodeElement.new(node, nodeId, nodesEl, nil, nodeId)
+    n[:root] = el = NodeElement.new(node, name, nodesEl, nil, name)
     n[:status] = el.add_element("status", {'value' => Node::STATUS_DOWN})
 
     n[:image] = imgEl = el.add_element("image")
@@ -376,8 +375,6 @@ class NodeElement < REXML::Element
       # direct element
       add_attribute('id', "#{id}")
       add_attribute('name', "#{name}");
-      add_attribute('x', "#{node.x}");
-      add_attribute('y', "#{node.y}");
     else
       @elements = refEl.elements
       #p @elements

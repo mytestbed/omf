@@ -46,16 +46,16 @@ module CMC
   # - x = X coordinate of node
   # - y = Y coordinate of node
   #
-  def CMC.nodeOn(x, y)
+  def CMC.nodeOn(name)
     if NodeHandler.JUST_PRINT
-      puts ">> CMC: Switch on node #{x}@#{y}"
+      puts ">> CMC: Switch on node '#{name}'"
     else
-      url = "#{CMC.URL}/on?x=#{x}&y=#{y}"
+      url = "#{CMC.URL}/on?name=#{name}"
       MObject.debug("CMC", "up ", url)
       begin
-        NodeHandler.service_call(url, "Can't switch on node #{x}:#{y}")
+        NodeHandler.service_call(url, "Can't switch on node '#{name}'")
       rescue Exception => ex
-        MObject.debug("CMC", "Can't switch ON node #{x}:#{y} ", url)
+        MObject.debug("CMC", "Can't switch ON node '#{name}'", url)
       end
     end
   end
@@ -82,13 +82,13 @@ module CMC
   # - x = X coordinate of node
   # - y = Y coordinate of node
   #
-  def CMC.nodeOffHard(x, y)
+  def CMC.nodeOffHard(name)
     if NodeHandler.JUST_PRINT
-      puts "CMC: Switch of node #{x}@#{y}"
+      puts "CMC: Switch of node #{name}"
     else
-      url = "#{CMC.URL}/offHard?x=#{x}&y=#{y}"
+      url = "#{CMC.URL}/offHard?name=#{name}"
       MObject.debug("CMC", "down ", url)
-      NodeHandler.service_call(url, "Can't switch off node #{x}:#{y}")
+      NodeHandler.service_call(url, "Can't switch off node #{name}")
     end
   end
 
@@ -99,13 +99,13 @@ module CMC
   # - x = X coordinate of node
   # - y = Y coordinate of node
   #
-  def CMC.nodeOffSoft(x, y)
+  def CMC.nodeOffSoft(name)
     if NodeHandler.JUST_PRINT
-      puts "CMC: Switch of node #{x}@#{y}"
+      puts "CMC: Switch of node #{name}"
     else
-      url = "#{CMC.URL}/offSoft?x=#{x}&y=#{y}&domain=#{OConfig.domain}"
+      url = "#{CMC.URL}/offSoft?name=#{name}&domain=#{OConfig.domain}"
       MObject.debug("CMC", "down ", url)
-      NodeHandler.service_call(url, "Can't switch off node #{x}:#{y}")
+      NodeHandler.service_call(url, "Can't switch off node #{name}")
     end
   end
 
@@ -155,11 +155,10 @@ module CMC
       @@activeNodes = {}
       doc.root.elements.each('//detail/*') { |e|
         attr = e.attributes
-        x = attr['x'].to_i
-        y = attr['y'].to_i
+        name = attr['name']
         state = attr['state']
         if state.match(/^POWER/)
-          @@activeNodes[[x,y]] = true
+          @@activeNodes[name] = true
         end
       }
     end
@@ -173,7 +172,7 @@ module CMC
   #
   # [Return] true/false
   #  
-  def CMC.nodeActive?(x, y)
+  def CMC.nodeActive?(name)
     # Check if EC is running in 'Just Print' or 'Slave mode'
     if ( NodeHandler.JUST_PRINT || NodeHandler.SLAVE_MODE )
       # Yes - Then always say that a node is active!
@@ -182,7 +181,7 @@ module CMC
     if (@@activeNodes == nil)
       CMC.getAllActiveNodes
     end
-    @@activeNodes.has_key?([x,y])
+    @@activeNodes.has_key?([name])
   end
 
   #
@@ -219,16 +218,16 @@ module CMC
   # - x = X coordinate of node
   # - y = Y coordinate of node
   #
-  def CMC.nodeReset(x, y)
+  def CMC.nodeReset(name)
     if NodeHandler.JUST_PRINT
-      puts "CMC: Reset node #{x}@#{y} (#{response})"
+      puts "CMC: Reset node #{name} (#{response})"
     else
       #CMC.nodeOn(x,y)
-      url = "#{CMC.URL}/reset?x=#{x}&y=#{y}&domain=#{OConfig.domain}"
+      url = "#{CMC.URL}/reset?name=#{name}&domain=#{OConfig.domain}"
       begin
-        response = NodeHandler.service_call(url, "Can't reset node #{x}:#{y}")
+        response = NodeHandler.service_call(url, "Can't reset node #{name}")
       rescue Exception => ex
-        MObject.debug("CMC", "Can't reset node #{x}:#{y} ", url)
+        MObject.debug("CMC", "Can't reset node #{name} ", url)
       end
     end
   end

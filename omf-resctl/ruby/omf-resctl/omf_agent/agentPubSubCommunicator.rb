@@ -395,7 +395,9 @@ class AgentPubSubCommunicator < MObject
       # the OML configuration from the EC to the RC. In the future, all comms should use XML
       # and this should be cleaner.
       if message == nil
-        xmlMessage = event.first_element("items").first_element("item").first_element("message").first_element("body").first_element("EXECUTE")
+        info "TDEBUG - Received XML: '#{message.to_s}'"
+        #xmlMessage = event.first_element("items").first_element("item").first_element("message").first_element("body").first_element("EXECUTE")
+        xmlMessage = event.first_element("items").first_element("item").first_element("message").first_element("body").each_element()
         NodeAgent.instance.execCommand2(xmlMessage)
         return
       end
