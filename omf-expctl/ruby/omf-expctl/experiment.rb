@@ -43,6 +43,7 @@ class Experiment
   @@name = "UNKNOWN"  # name of experiment
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
+  @@sliceID = nil
   @@domain = nil
 
   #
@@ -65,6 +66,23 @@ class Experiment
   def Experiment.ID=(id)
     @@expID = "#{id}"
   end
+
+  #
+  # Return the Slice of this Experiment
+  #
+  # [Return] the experiment's ID (String)
+  #
+  def Experiment.Slice
+    return @@sliceID
+  end
+
+  #
+  # Set the Slice for this Experiment
+  #
+  def Experiment.Slice=(id)
+    @@sliceID = "#{id}"
+  end
+
 
   #
   # Load an Experiment definition

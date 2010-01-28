@@ -45,14 +45,13 @@ require 'omf-expctl/agentCommands'
 #
 class XmppCommunicator < Communicator
 
-  DOMAIN = "Domain"
-  SYSTEM = "System"
-  SESSION = "Session"
-  VALID_EC_COMMANDS = Set.new ["EXEC", "WRONG_IMAGE", "KILL", "STDIN", 
-	                "PM_INSTALL", "APT_INSTALL", "RESET", "RESTART",
-                        "REBOOT", "MODPROBE", "CONFIGURE", "LOAD_IMAGE",
-                        "SAVE_IMAGE", "RETRY", "SET_MACTABLE", "ALIAS",
-                        "YOUARE", "EXIT"]
+  DOMAIN = "OMF"
+  RESOURCE = "resource"
+  VALID_EC_COMMANDS = Set.new [:EXEC, :WRONG_IMAGE, :KILL, :STDIN, 
+	                :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
+                        :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
+                        :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
+                        :ENROLL, :EXIT]
 
   @@instance = nil
     
@@ -65,7 +64,7 @@ class XmppCommunicator < Communicator
     return @@instantiated
   end   
   
-  def self.init(opts)
+  def self.init(opts, slice, expID)
     raise "XMPPCommunicator already started" if @@instance
 
     server = opts[:server]
@@ -73,7 +72,7 @@ class XmppCommunicator < Communicator
     password = opts[:password] || "123"
     
     @@instance = self.new()
-    @@instance.start(server, server, password)
+    @@instance.start(server, password, slice, expID)
     @@instance
   end
       
@@ -91,7 +90,7 @@ class XmppCommunicator < Communicator
     @@systemNode = nil
     @@expID = nil
     @@expNode = nil
-    @@sessionID = nil
+    @@sliceID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
     @queue = Queue.new
@@ -118,16 +117,16 @@ class XmppCommunicator < Communicator
   # - password = [String], password to use for this PubSud client
   # - control_interface = [String], the interface connected to Control Network
   #
-  def start(jid_suffix, password, sessionID = "SessionID", expID = Experiment.ID)
+  def start(jid_suffix, password, slice, expID)
     
     debug "Connecting to PubSub Server: '#{jid_suffix}'"
     # Set some internal attributes...
-    @@sessionID = sessionID
+    @@sliceID = slice
     @@expID = expID
     
     # Create a Service Helper to interact with the PubSub Server
     begin
-      @@service = OmfPubSubService.new(expID, "123", jid_suffix)
+      @@service = OmfPubSubService.new(expID, password, jid_suffix)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
@@ -150,9 +149,9 @@ class XmppCommunicator < Communicator
     #@@service.create_pubsub_node("/#{DOMAIN}")
     #@@service.create_pubsub_node("/#{DOMAIN}/#{SYSTEM}")
         
-    @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}")
-    @@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}/#{sessionID}")    
-    @@expNode = "/#{DOMAIN}/#{SESSION}/#{sessionID}/#{expID}"
+    #@@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}")
+    #@@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}/#{sessionID}")    
+    @@expNode = "/#{DOMAIN}/#{@@sliceID}/#{@@expID}"
     @@service.create_pubsub_node("#{@@expNode}")
     
   end
@@ -208,15 +207,19 @@ class XmppCommunicator < Communicator
   # - ipAddress = IP address of the node to enroll 
   # - desiredImage = the name of the desired disk image on that node
   #
-  def enrollNode(node, name, ipAddress, desiredImage)
+  def enrollNode(node, name, desiredImage)
     @name2node[name] = node
     # create the experiment pubsub node so the node can subscribe to it
     # after receiving the YOUARE message
     psNode = "#{@@expNode}/#{name}"
     @@service.create_pubsub_node(psNode)
-    # send the YOUARE to the system pubsub node
-    psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
-    send!("YOUARE #{@@sessionID} #{@@expID} #{desiredImage} #{name}",psNode)
+    # send the ENROLL to the system pubsub node
+    enroll_cmd = getCmdObject(:ENROLL)
+    enroll_cmd.expID = @@expID 
+    enroll_cmd.image = desiredImage
+
+    psNode = "/#{DOMAIN}/#{@@sliceID}/#{RESOURCE}/#{name}"
+    send!("YOUARE #{@@sliceID} #{@@expID} #{desiredImage} #{name}",psNode)
   end
 
   #
@@ -268,9 +271,9 @@ class XmppCommunicator < Communicator
   #
   # This method sends a command to one or multiple nodes.
   # The command to send is passed as a Command Object.
-  # This implementation of an XMPP communicator uses the default Struct 
-  # format from the super-class Communicator as the type of the Command Object
-  # (see Communicator.getCmdObject for more details)
+  # This implementation of an XMPP communicator uses the OmfCommandObject 
+  # class as the type of the Command Object
+  # (see OmfCommandObject in omf-common package for more details)
   #
   # - cmdObj = the Command Object to format and send
   #

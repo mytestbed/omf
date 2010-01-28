@@ -126,15 +126,14 @@ class MySQLInventory < MObject
   #
   # [Return] the Control IP address of the node matching the query
   #	
-  def getControlIP(x, y, domain = "grid") 
+  def getControlIP(name, domain = "grid") 
     qs = <<CONTROL_QS
 SELECT nodes.control_ip
   FROM nodes 
   LEFT JOIN locations ON nodes.location_id = locations.id 
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
 WHERE testbeds.node_domain='#{domain}' 
-  AND locations.x=#{x} 
-  AND locations.y=#{y};
+  AND locations.name='#{name}';
 CONTROL_QS
 
     addr = nil

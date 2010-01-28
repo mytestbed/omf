@@ -648,6 +648,7 @@ class Topology < MObject
         raise "Topology - failed to add node [#{x},#{y}] to topology #{uri} ('strict=true', no change allowed) - #{re}"
       else
         warn("Ignoring missing node '#{name}'")
+        info("TDEBUG - '#{re}'")
       end
     end
   end
@@ -832,16 +833,7 @@ attr_reader :nodesArr
     if (selector.kind_of?(String))
       error "Unexpected selector declaration '#{selector}'. Please report as bug"
     elsif selector.kind_of?(Array)
-      # now lets check if the array just describes a single
-      # node [x, y] a set of nodes [[a, b], [[c..d], f]]
-      if (selector.length == 2 && selector[0].kind_of?(Integer) && selector[1].kind_of?(Integer))
-        n = addNode(selector[0], selector[1])
-      else
-        addNodes(selector)
-      end
-      #@nodeSetDecl = selector.inspect.gsub(/ /, '') # remove spaces
-    elsif selector.kind_of?(Set)
-      info "TDEBUG - Topology - Add Set - '#{selector}'"
+      info "TDEBUG - Topology - Add Resources - '#{selector}'"
       selector.each {|node|
         addNode(node)
       }

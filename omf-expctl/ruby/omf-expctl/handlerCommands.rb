@@ -167,11 +167,18 @@ def defGroup(groupName, selector = nil, &block)
 
   if (selector != nil)
     # Selector is a name of an existing Topology (e.g. "myTopo")
+    # or a comma-separated list of existing resources
     if selector.kind_of?(String)
-      if ((topo = Topology[selector]) == nil)
-        raise "Unknown topology '#{selector}' in node set '#{groupName}'"
+      begin
+        # Selector is the name of an existing Topology
+        topo = Topology[selector]
+        ns = BasicNodeSet.new(groupName, topo)
+      rescue
+        # Selector is a comma-separated list of existing resources
+        tname = "-:topo:#{groupName}"
+        topo = Topology.create(tname, selector.split(","))
+        ns = BasicNodeSet.new(groupName, topo)
       end
-      ns = BasicNodeSet.new(groupName, topo)
     # Selector is an Array of existing groups
     elsif selector.kind_of?(Array)
       # Selector is an Array of names of existing groups (e.g. ["group1","group2"])
@@ -186,11 +193,6 @@ def defGroup(groupName, selector = nil, &block)
         #ns = BasicNodeSet.new(groupName, topo)
       end
     # Selector is a Set of existing resource names (HRNs)
-    elsif selector.kind_of?(Set)
-	info "TDEBUG - HandlerCommand - defGroup with Set - '#{selector}'"
-        tname = "-:topo:#{groupName}"
-        topo = Topology.create(tname, selector)
-        ns = BasicNodeSet.new(groupName, topo)
     else
       raise "Unknown node set declaration '#{selector}: #{selector.class}'"
     end

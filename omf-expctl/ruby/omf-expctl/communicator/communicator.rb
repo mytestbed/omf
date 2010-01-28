@@ -39,13 +39,13 @@ class Communicator < MObject
     @@instance
   end
   
-  def self.init(opts)
+  def self.init(opts, slice, expID)
     raise "Communicator already started" if @@instance
 
     case type = opts[:type]
     when 'xmpp'
       require 'omf-expctl/communicator/xmppCommunicator.rb'
-      @@instance = XmppCommunicator.init(opts[:xmpp])
+      @@instance = XmppCommunicator.init(opts[:xmpp], slice, expID)
     when 'mock'
       @@instance = MockCommunicator.new()
     else
@@ -63,7 +63,7 @@ class Communicator < MObject
   # The returned Command Object should have the following public accessors:
   # - type = type of the command
   # - group = name of the group to which this command is addressed
-  # - procID = name of this command
+  # - procID = name of this command (optional)
   # - env = a Hash with the optional environment to set for this command (optional)
   # - path = the full path to the application for this command
   # - cmdLineArgs = an Array with the full command line arguments to append to this command (optional)

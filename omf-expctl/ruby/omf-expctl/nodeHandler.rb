@@ -85,7 +85,7 @@ class NodeHandler < MObject
   #
   DEFAULT_CONFIG_PATH = "/etc/omf-expctl"
   DEFAULT_CONFIG_FILE = "omf-expctl.yaml"
-  DEFAULT_CONFIG_LOG = "omf-expctl.xml"
+  DEFAULT_CONFIG_LOG = "omf-expctl_log.xml"
 
   #
   # XML Doc to hold all the experiment states
@@ -493,6 +493,8 @@ class NodeHandler < MObject
 
     opts.on("-r", "--reset", "If set, then reset (reboot) the nodes before the experiment") { @@reset = true }
 
+    opts.on("-S", "--slice NAME", "Name of the Slice where this EC should operate") { |name| Experiment.Slice = name }
+
     opts.on("-s", "--shutdown", "If set, then shut down resources at the end of an experiment") { @@shutdown = true }
 
     opts.on("--tutorial", "Run a tutorial experiment (usage: '--tutorial -- --tutorialName tutorial-1a')") { runTutorial = true }
@@ -566,7 +568,7 @@ class NodeHandler < MObject
     end
 
     # Now start the Communiator
-    Communicator.init(OConfig[:ec_config][:communicator])
+    Communicator.init(OConfig[:ec_config][:communicator], Experiment.Slice, Experiment.ID)
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"

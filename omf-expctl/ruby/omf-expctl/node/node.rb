@@ -58,7 +58,7 @@ class Node < MObject
   REBOOT_TIME = 8 # in sec
   
 
-  @@nodes = Hash
+  @@nodes = Hash.new
   #@@nodes = ArrayMD.new
 
   #
@@ -118,7 +118,8 @@ class Node < MObject
   # - &block = the code-block to execute
   #
   def Node.each(&block)
-    @@nodes.each(&block)
+    #@@nodes.each(&block)
+    @@nodes.each_value(&block)
   end
 
   #
@@ -138,7 +139,7 @@ class Node < MObject
     return true
   end
 
-  attr_reader :nodeID, :MAC
+  attr_reader :nodeId, :MAC
 
   # True if node is up, false otherwise
   #attr_reader :isUp
@@ -201,12 +202,12 @@ class Node < MObject
     end
 
     # Query the Inventory GridService for the Control IP address of this node
-    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?name=#{@nodeID}&domain=#{OConfig.domain}"
-    response = NodeHandler.service_call(url, "Can't get Control IP for '#{@nodeID}' on domain '#{OConfig.domain}' from INVENTORY")
+    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?name=#{@nodeId}&domain=#{OConfig.domain}"
+    response = NodeHandler.service_call(url, "Can't get Control IP for '#{@nodeId}' on domain '#{OConfig.domain}' from INVENTORY")
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the control IP address
     doc.root.elements.each("ERROR") { |e|
-      error "OConfig - No Control IP found for '#{@nodeID}' - val: #{e.get_text.value}"
+      error "OConfig - No Control IP found for '#{@nodeId}' - val: #{e.get_text.value}"
       raise "OConfig - #{e.get_text.value}"
     }
     doc.root.elements.each("/CONTROL_IP") { |v|
@@ -264,7 +265,7 @@ class Node < MObject
  # - macAddr = the MAC address to remove
  #
   def printBlockedMACList()
-    info "Node '#{@nodeID}' - Blocked MAC(s):"
+    info "Node '#{@nodeId}' - Blocked MAC(s):"
     @blockedMACList.each { |mac|
       info " - #{mac}"
     }
@@ -438,7 +439,7 @@ class Node < MObject
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
-      imgName = ENV['USER']+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
+      imgName = ENV['USER']+"-node-#{@nodeId}-#{ts}.ndz".split(':').join('-')
     end
         
     url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
@@ -520,7 +521,7 @@ class Node < MObject
   def powerOn()
     # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
     if !NodeHandler.SLAVE_MODE()
-      CMC.nodeOn(@nodeID)
+      CMC.nodeOn(@nodeId)
     end
     @poweredAt = Time.now
     #if !@isUp
@@ -541,9 +542,9 @@ class Node < MObject
     # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE_MODE()
       if hard
-        CMC.nodeOffHard(@nodeID)
+        CMC.nodeOffHard(@nodeId)
       else
-        CMC.nodeOffSoft(@nodeID)
+        CMC.nodeOffSoft(@nodeId)
       end
     end
     @poweredAt = -1
@@ -556,7 +557,7 @@ class Node < MObject
   def enroll()
     ipAddress = getControlIP()
     desiredImage = @image.nil? ? "*" : @image
-    Communicator.instance.enrollNode(self, @nodeId, ipAddress, desiredImage)
+    Communicator.instance.enrollNode(self, @nodeId, desiredImage)
   end
 
   #
@@ -575,7 +576,7 @@ class Node < MObject
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)
       debug("Resetting node")
-      CMC::nodeReset(@nodeID)
+      CMC::nodeReset(@nodeId)
       @checkedInAt = -1
       @poweredAt = Time.now
       changed
@@ -792,8 +793,6 @@ class Node < MObject
     super("node::#{@nodeId}")
     @rulesId = 1
     @rulesList = []
-    @x = x
-    @y = y
     @groups = Hash.new  # name of nodeSet groups this node belongs to
     @groups["_ALL_"] = false
     #@apps = Hash.new

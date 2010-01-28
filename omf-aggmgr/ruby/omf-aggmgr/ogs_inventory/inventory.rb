@@ -256,7 +256,7 @@ class InventoryService < GridService
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getControlIP' do |req, res|
     # Retrieve the request parameter
-    x = getParam(req, 'name')
+    name = getParam(req, 'name')
     domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
     # Query the inventory

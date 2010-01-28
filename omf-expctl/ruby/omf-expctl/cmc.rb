@@ -181,7 +181,7 @@ module CMC
     if (@@activeNodes == nil)
       CMC.getAllActiveNodes
     end
-    @@activeNodes.has_key?([name])
+    @@activeNodes.has_key?(name)
   end
 
   #
