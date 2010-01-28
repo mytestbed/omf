@@ -152,8 +152,7 @@ class CmcStubService < GridService
     inventoryURL = tb['inventory_url']
     nodes = listAllNodes(inventoryURL, domain)
     nodes.each { |n|
-      x = n[0]; y = n[1]
-      reboot(x,y,domain,req)
+      reboot(n, domain, req)
     }
     self.responseOK(res)
   end
@@ -199,8 +198,7 @@ class CmcStubService < GridService
     detail = root.add_element('detail')
     nodes = listAllNodes(inventoryURL, domain)
     nodes.each { |n|
-      x = n[0]; y = n[1]
-      attr = {'name' => "n_#{x}_#{y}", 'x' => x.to_s, 'y' => y.to_s, 'state' => 'POWERON' }
+      attr = {'name' => "#{n}", 'state' => 'POWERON' }
       detail.add_element('node', attr)
     }
     setResponse(res, root)
@@ -236,18 +234,5 @@ class CmcStubService < GridService
       MObject.debug("CMCSTUB - Failed to send REBOOT to '#{name}' at #{ip} - Exception: #{ex}")
     end
   end
-
-  # TR: 
-  # This should not be needed, once we have fully implemented OMF-PL integration
-  #
-  def self.listAllNodes(url, domain)
-    allNodes = []
-    xMax, yMax = getXYMax(url, domain)
-    (1..yMax).each {|y|
-      (1..xMax).each {|x|
-        allNodes << [x,y]
-      }
-    }
-    allNodes
 
 end

@@ -258,18 +258,18 @@ class GridService < AbstractService
   # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query
   #
-  def self.getControlIP(url, x, y, domain)
-    queryURL = "#{url}/getControlIP?x=#{x}&y=#{y}&domain=#{domain}"
+  def self.getControlIP(url, name, domain)
+    queryURL = "#{url}/getControlIP?name=#{name}&domain=#{domain}"
     debug "GridService - QueryURL: #{queryURL}"
     response = nil
     response = Net::HTTP.get_response(URI.parse(queryURL))
     if (! response.kind_of? Net::HTTPSuccess)
-          error "GridService - No Control IP found for x: #{x} y: #{y} - Bad Response from Inventory"
+          error "GridService - No Control IP found for '#{name}' - Bad Response from Inventory"
           error "GridService - QueryURL: #{queryURL}"
           raise Exception.new()
     end
     if (response == nil)
-      error "GridService - No Control IP found for x: #{x} y: #{y} - Response from Inventory is NIL"
+      error "GridService - No Control IP found for '#{name}' - Response from Inventory is NIL"
       error "GridService - QueryURL: #{queryURL}"
       raise Exception.new()
     end 
@@ -282,7 +282,7 @@ class GridService < AbstractService
     # If no IP found in the reply... raise an error
     if (ip == nil)
       doc.root.elements.each('/ERROR') { |e|
-        error "GridService - No Control IP found for x: #{x} y: #{y} - val: #{e.get_text.value}"
+        error "GridService - No Control IP found for '#{name}' - val: #{e.get_text.value}"
       }
     end
     return ip
@@ -298,13 +298,34 @@ class GridService < AbstractService
   #
   def self.listAllNodes(url, domain)
     allNodes = []
-    xMax, yMax = getXYMax(url, domain)
-    (1..yMax).each {|y|
-      (1..xMax).each {|x|
-        allNodes << [x,y]
-      }
+    queryURL = "#{url}/getListOfResources?domain=#{domain}"
+    debug "QueryURL: #{queryURL}"
+    response = nil
+    response = Net::HTTP.get_response(URI.parse(queryURL))
+    if (! response.kind_of? Net::HTTPSuccess)
+          error "No Resources found for t: #{domain} - Bad Response from Inventory"
+          error "QueryURL: #{queryURL}"
+          raise Exception.new()
+    end
+    if (response == nil)
+      error "No Resources found for t: #{domain} - Response from Inventory is NIL"
+      error "QueryURL: #{queryURL}"
+      raise Exception.new()
+    end
+    doc = REXML::Document.new(response.body)
+    # Parse the Reply to retrieve the PXE Image name
+    doc.root.elements.each("/RESOURCES/NODE") { |v|
+      resourceName = v.get_text.value
+      allNodes << resourceName
     }
-    allNodes
+    # If no resource name found in the reply... raise an error
+    if allNodes.empty? 
+      doc.root.elements.each('/ERROR') { |e|
+        error "No Resource info found for t: #{domain} - val: #{e.get_text.value}"
+      }
+    end
+    info "TDEBUG - GS - AllNodes - [ #{allNodes.join(" - ")} ]"
+    return allNodes
   end
 
   #

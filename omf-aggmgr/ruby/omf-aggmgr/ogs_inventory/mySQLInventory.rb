@@ -530,5 +530,28 @@ END_QS2
     result
   end
 
+  # 
+  # Query the Inventory database for the names of all resources, which 
+  # are available for a given testbed.
+  #
+  # - domain = name of the testbed to query (default=grid)
+  #
+  # [Return] a Set with the names of all the resources 
+  #	
+  def getAllResources(domain = "grid")
+  qs = <<ALLRESOURCES_QS
+SELECT locations.name 
+  FROM locations 
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.node_domain='#{domain}'; 
+ALLRESOURCES_QS
+
+    resources = Set.new
+    runQuery(qs) { |name| 
+      resources.add(name)
+    }
+    return resources
+  end
+
 end
 

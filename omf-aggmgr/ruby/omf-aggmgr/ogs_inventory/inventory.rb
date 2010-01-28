@@ -221,29 +221,55 @@ class InventoryService < GridService
   end
 
   #
-  # Implement 'getControlIP' service using the 'service' method of AbstractService
-  #  
-  s_info "Get the Control IP address of a given node for a given domain"
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
-  s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getControlIP' do |req, res|
+  # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
+  #
+  s_info "Get a list of the names of all available resources on a given domain"
+  s_param :domain, 'domain', 'testbed/domain for this query'
+  service 'getListOfResources' do |req, res|
     # Retrieve the request parameter
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
     domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
     # Query the inventory
     result = nil
     begin
       inv = getInv(tb)
-      result = inv.getControlIP(x, y, domain)
+      result = inv.getAllResources(domain)
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      return :Error
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no info for any resources on the domain: #{domain}"
+    replyXML = buildXMLReply("RESOURCES", result, msgEmpty) { |root,node|
+      node.each { |name|
+        addXMLElement(root, "NODE", "#{name}")
+      }
+    }
+    setResponse(res, replyXML)
+  end
+
+  #
+  # Implement 'getControlIP' service using the 'service' method of AbstractService
+  #  
+  s_info "Get the Control IP address of a given resource for a given domain"
+  s_param :name, 'name', 'name of the resource'
+  s_param :domain, 'domain', 'testbed/domain for this given node'
+  service 'getControlIP' do |req, res|
+    # Retrieve the request parameter
+    x = getParam(req, 'name')
+    domain = getParam(req, 'domain')
+    tb = getTestbedConfig(req, @@config)
+    # Query the inventory
+    result = nil
+    begin
+      inv = getInv(tb)
+      result = inv.getControlIP(name, domain)
     rescue Exception => ex
       error "Inventory - getControlIP() - Cannot connect to the Inventory Database - #{ex}"
       result = :Error
     end
     # Build and Set the XML response
-    msgEmpty = "Inventory has no control IP for node [#{x},#{y}] (domain: #{domain})"
+    msgEmpty = "Inventory has no control IP for node '#{name}' (domain: #{domain})"
     replyXML = buildXMLReply("CONTROL_IP", result, msgEmpty) { |root,ip|
       root.text = ip
     }
