@@ -447,7 +447,7 @@ end
   #               execute the program (e.g. command line, path, etc...)
   #
   def AgentCommands.EXECUTE(agent, cmdObject)
-    id = cmdObject.procID
+    id = cmdObject.appID
     fullCmdLine = "env -i #{cmdObject.env} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
     MObject.debug "Executing: '#{fullCmdLine}'"
     ExecApp.new(id, agent, fullCmdLine)

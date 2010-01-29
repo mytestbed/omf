@@ -484,7 +484,7 @@ class NodeAgent < MObject
   #
   # - argArray = an array holding the full command to execute (name, parameters,...)
   #
-  def execCommand(argArray)
+  def execCommand2(argArray)
     command = argArray.delete_at(0).upcase
     if (command == 'REBOOT')
       debug "Exec REBOOT cmd!"
@@ -528,14 +528,14 @@ class NodeAgent < MObject
   # future, all comms between EC and RC should use this scheme, and this should
   # be more clean.
   #
-  def execCommand2(cmdObj)
+  def execCommand(cmdObj)
   
     cmd = OmfCommandObject.new(cmdObj)
 
-    debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.procID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
+    debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.appID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
     method = nil
     begin
-      method = AgentCommands.method(cmd.type)
+      method = AgentCommands.method(cmd.type.to_s)
     rescue Exception
       error "Unknown command '#{cmd.type}'"
       send(:ERROR, :UNKNOWN_CMD, cmd.type)

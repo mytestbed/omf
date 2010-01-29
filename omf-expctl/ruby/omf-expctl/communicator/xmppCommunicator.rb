@@ -81,7 +81,6 @@ class XmppCommunicator < Communicator
   #
   def initialize ()
     super('xmppCommunicator')
-    @name2node = Hash.new
     @handlerCommands = Hash.new
     @@myName = nil
     @@service = nil
@@ -89,7 +88,9 @@ class XmppCommunicator < Communicator
     @@controlIF = nil
     @@systemNode = nil
     @@expID = nil
-    @@expNode = nil
+    @@psGroupSlice = nil
+    @@psGroupResource = nil
+    @@psGroupExperiment = nil
     @@sliceID = nil
     @@pubsubNodePrefix = nil
     @@instantiated = true
@@ -145,14 +146,10 @@ class XmppCommunicator < Communicator
       exit!
     end
         
-    # let the gridservice do this:
-    #@@service.create_pubsub_node("/#{DOMAIN}")
-    #@@service.create_pubsub_node("/#{DOMAIN}/#{SYSTEM}")
-        
-    #@@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}")
-    #@@service.create_pubsub_node("/#{DOMAIN}/#{SESSION}/#{sessionID}")    
-    @@expNode = "/#{DOMAIN}/#{@@sliceID}/#{@@expID}"
-    @@service.create_pubsub_node("#{@@expNode}")
+    @@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created upon slice instantiation
+    @@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created upon slice instantiation
+    @@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
+    @@service.create_pubsub_node("#{@@psGroupExperiment}")
     
   end
 
@@ -180,12 +177,12 @@ class XmppCommunicator < Communicator
   def send(target, command, msgArray = [])
     msg = "#{command} #{LineSerializer.to_s(msgArray)}"
     if (target == "*")
-      send!(msg, "#{@@expNode}")
+      send!(msg, "#{@@psGroupExperiment}")
     else
       target.gsub!(/^"(.*?)"$/,'\1')
       targets = target.split(' ')
       targets.each {|tgt|
-        send!(msg, "#{@@expNode}/#{tgt}")
+        send!(msg, "#{@@psGroupExperiment}/#{tgt}")
       }
     end
    end
@@ -194,32 +191,7 @@ class XmppCommunicator < Communicator
   # This method sends a reset message to all connected nodes
   #
   def sendReset()
-    send!("RESET", "#{@@expNode}")
-  end
-
-  #
-  # This method enrolls 'node' with 'ipAddress' and 'name'
-  # When this node checks in, it will automatically
-  # get 'name' assigned.
-  #
-  # - node =  id of the node to enroll
-  # - name = name to give to the node once enrolled
-  # - ipAddress = IP address of the node to enroll 
-  # - desiredImage = the name of the desired disk image on that node
-  #
-  def enrollNode(node, name, desiredImage)
-    @name2node[name] = node
-    # create the experiment pubsub node so the node can subscribe to it
-    # after receiving the YOUARE message
-    psNode = "#{@@expNode}/#{name}"
-    @@service.create_pubsub_node(psNode)
-    # send the ENROLL to the system pubsub node
-    enroll_cmd = getCmdObject(:ENROLL)
-    enroll_cmd.expID = @@expID 
-    enroll_cmd.image = desiredImage
-
-    psNode = "/#{DOMAIN}/#{@@sliceID}/#{RESOURCE}/#{name}"
-    send!("YOUARE #{@@sliceID} #{@@expID} #{desiredImage} #{name}",psNode)
+    send!("RESET", "#{@@psGroupExperiment}")
   end
 
   #
@@ -229,9 +201,7 @@ class XmppCommunicator < Communicator
   # - name = name of the node to receive the NOOP
   #
   def sendNoop(name)
-    node = @name2node[name]
-    ipAddress = node.getControlIP()
-    psNode = "/#{DOMAIN}/#{SYSTEM}/#{ipAddress}"
+    psNode = "/#{DOMAIN}/#{SYSTEM}/#{name}"
     send!("NOOP", psNode)
   end
 
@@ -244,9 +214,8 @@ class XmppCommunicator < Communicator
   # - name = name of the node to remove
   #
   def removeNode(name)
-    @name2node[name] = nil
-    send!("RESET", "#{@@expNode}/#{name}")
-    @@service.remove_pubsub_node("#{@@expNode}/#{name}")
+    send!("RESET", "#{@@psGroupExperiment}/#{name}")
+    @@service.remove_pubsub_node("#{@@psGroupExperiment}/#{name}")
   end
 
   #
@@ -257,7 +226,7 @@ class XmppCommunicator < Communicator
   # - groupName =  name (or an array or names) of the group(s) to add the node to
   #
   def addToGroup(nodeName, groupName)
-    @@service.create_pubsub_node("#{@@expNode}/#{groupName}")
+    @@service.create_pubsub_node("#{@@psGroupExperiment}/#{groupName}")
   end
 
   #
@@ -277,24 +246,29 @@ class XmppCommunicator < Communicator
   #
   # - cmdObj = the Command Object to format and send
   #
-  # The Command Object should have the following public accessors:
-  # - group = name of the group to which this command is addressed
-  # - procID = name of this command
-  # - env = a Hash with the optional environment to set for this command (optional)
-  # - path = the full path to the application for this command
-  # - cmdLineArgs = an Array with the full command line arguments to append to this command (optional)
-  # - omlConfig =  an XML configuration element for OML (optional)
+  # Refer to OmfCommandObject for a full description of the Command Object
+  # parameters.
   #
   def sendCmdObject(cmdObj)
-    target = cmdObj.group
+    group = cmdObj.group
+    type = cmdObj.type
     msg = cmdObj.to_xml
-    if (target == "*")
-      send!(msg.to_s, "#{@@expNode}")
+    if type == :ENROLL  # ENROLL messages are sent to the branch psGroupResource
+      # create the experiment pubsub node so the node can subscribe to it
+      # after receiving the ENROLL message
+      psGroup = "#{@@psGroupExperiment}/#{group}"
+      @@service.create_pubsub_node(psGroup)
+      send!(msg, "#{@@psGroupResource}/#{group}")
     else
-      targets = target.split(' ')
-      targets.each {|tgt|
-        send!(msg, "#{@@expNode}/#{tgt}")
-      }
+      if (group == "*")
+        send!(msg, "#{@@psGroupExperiment}")
+        #send!(msg.to_s, "#{@@psGroupExperiment}")
+      else
+        targets = group.split(' ')
+        targets.each {|tgt|
+          send!(msg, "#{@@psGroupExperiment}/#{tgt}")
+        }
+      end
     end
   end
   
@@ -428,7 +402,7 @@ class XmppCommunicator < Communicator
        raise "Command is too short '#{argArray.join(' ')}'"
      end
      senderId = argArray.delete_at(0)
-     sender = @name2node[senderId]
+     #sender = @name2node[senderId]
      
      if (sender == nil)
        debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"

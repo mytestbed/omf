@@ -36,8 +36,14 @@ class OmfCommandObject < MObject
   # The group to which this Command Object is addressed to (optional, e.g. 'the_senders')
   attr_accessor :group
 
+  # The ID of the experiment for this Command Object (optional, e.g. 'myExp123')
+  attr_accessor :expID
+
+  # The Name of the desired disk image on a resource receiving this Command Object (optional)
+  attr_accessor :image
+
   # The ID of the application for this Command Object (optional, e.g. 'otg2')
-  attr_accessor :procID
+  attr_accessor :appID
 
   # The Environment to set for this Command Object (optional)
   attr_accessor :env
@@ -53,7 +59,9 @@ class OmfCommandObject < MObject
 
   def initialize (initValue)
     @group = nil
-    @procID = nil
+    @expID = nil
+    @image = nil
+    @appID = nil
     @env = nil
     @path = nil
     @cmdLineArgs = nil
@@ -63,7 +71,7 @@ class OmfCommandObject < MObject
     elsif initValue.kind_of?(REXML::Parent)
       init_from_xml(initValue)
     else
-      raise "Trying to create a OmfCommandObject with unknown initial value"
+      raise "Trying to create a OmfCommandObject with unknown initial value (type: '#{initValue.class}')"
     end
   end
 	  
@@ -73,7 +81,7 @@ class OmfCommandObject < MObject
   #
   # <EXECUTE>
   #   <GROUP>source</GROUP>
-  #   <ID>test_app_otg2</ID>
+  #   <PROCID>test_app_otg2</ID>
   #   <PATH>/usr/bin/otg2</PATH>
   #   <ARGSLINE>--udp:dst_host 192.168.0.3 --udp:local_host 192.168.0.2</ARGSLINE>
   #   <ENV>OML_SERVER=tcp:10.0.0.200:3003 OML_EXP_ID=sandbox1 OML_NAME=source </ENV>
@@ -92,11 +100,13 @@ class OmfCommandObject < MObject
     msg = REXML::Document.new
     msg << REXML::Element.new("#{@type.to_s}")
     msg.root << REXML::Element.new("GROUP").add_text("#{@group}") if @group != nil
-    msg.root << REXML::Element.new("ID").add_text("#{@procID}") if @procID != nil
+    msg.root << REXML::Element.new("EXPID").add_text("#{@expID}") if @expID != nil
+    msg.root << REXML::Element.new("IMAGE").add_text("#{@image}") if @image != nil
+    msg.root << REXML::Element.new("APPID").add_text("#{@appID}") if @appID != nil
     msg.root << REXML::Element.new("PATH").add_text("#{@path}") if @path != nil
     msg.root << REXML::Element.new("ARGSLINE").add_text("#{@cmdLineArgs.join(" ")}") if @cmdLineArgs != nil
     # Build the <ENV> child element
-    if !@env.empty? 
+    if (@env != nil) && (!@env.empty?) 
       line = ""
       @env.each { |k,v|
         line << "#{k.to_s}=#{v.to_s} "  
@@ -118,13 +128,17 @@ class OmfCommandObject < MObject
   # - xmlDoc = an xml document (REXML::Document) object 
   #
   def init_from_xml(xmlDoc)
-    @type = xmlDoc.expanded_name
+    @type = xmlDoc.expanded_name.to_sym
 
-    # If Type = JOIN_EXP
-
-    # If Type = EXECUTE
-    xmlDoc.each_element("ID") { |e| @procID = e.text }
+    # Common Tags
     xmlDoc.each_element("GROUP") { |e| @group = e.text }
+    
+    # If Type = :ENROLL
+    xmlDoc.each_element("EXPID") { |e| @expID = e.text }
+    xmlDoc.each_element("IMAGE") { |e| @image = e.text }
+
+    # If Type = :EXECUTE
+    xmlDoc.each_element("APPID") { |e| @appID = e.text }
     xmlDoc.each_element("PATH") { |e| @path = e.text }
     xmlDoc.each_element("ARGSLINE") { |e| @cmdLineArgs = e.text }
     xmlDoc.each_element("ENV") { |e| @env = e.text }
@@ -132,7 +146,7 @@ class OmfCommandObject < MObject
     xmlDoc.each_element("OML_CONFIG") { |config|
       configPath = nil
       config.each_element("omlc") { |omlc|
-        configPath = "/tmp/#{omlc.attributes['exp_id']}-#{@procID}.xml"
+        configPath = "/tmp/#{omlc.attributes['exp_id']}-#{@appID}.xml"
       }
       f = File.new(configPath, "w+")
       config.each_element {|el|

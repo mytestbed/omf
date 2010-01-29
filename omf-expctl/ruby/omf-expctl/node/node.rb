@@ -555,9 +555,12 @@ class Node < MObject
   # Enrol this Node into the experiment
   #
   def enroll()
-    ipAddress = getControlIP()
     desiredImage = @image.nil? ? "*" : @image
-    Communicator.instance.enrollNode(self, @nodeId, desiredImage)
+    enroll_cmd = Communicator.instance.getCmdObject(:ENROLL)
+    enroll_cmd.expID = Experiment.ID
+    enroll_cmd.image = desiredImage
+    enroll_cmd.group = @nodeId
+    Communicator.instance.sendCmdObject(enroll_cmd)
   end
 
   #
