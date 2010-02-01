@@ -47,11 +47,14 @@ class XmppCommunicator < Communicator
 
   DOMAIN = "OMF"
   RESOURCE = "resource"
-  VALID_EC_COMMANDS = Set.new [:EXEC, :WRONG_IMAGE, :KILL, :STDIN, 
+  VALID_EC_COMMANDS = Set.new [:EXEC, :KILL, :STDIN, 
 	                :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                         :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
                         :ENROLL, :EXIT]
+
+  VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :HB, :WARN, 
+                        :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
 
   @@instance = nil
     
@@ -250,21 +253,21 @@ class XmppCommunicator < Communicator
   # parameters.
   #
   def sendCmdObject(cmdObj)
-    group = cmdObj.group
+    target = cmdObj.target
     type = cmdObj.type
     msg = cmdObj.to_xml
     if type == :ENROLL  # ENROLL messages are sent to the branch psGroupResource
       # create the experiment pubsub node so the node can subscribe to it
       # after receiving the ENROLL message
-      psGroup = "#{@@psGroupExperiment}/#{group}"
+      psGroup = "#{@@psGroupExperiment}/#{target}"
       @@service.create_pubsub_node(psGroup)
-      send!(msg, "#{@@psGroupResource}/#{group}")
+      send!(msg, "#{@@psGroupResource}/#{target}")
     else
-      if (group == "*")
+      if (target == "*")
         send!(msg, "#{@@psGroupExperiment}")
         #send!(msg.to_s, "#{@@psGroupExperiment}")
       else
-        targets = group.split(' ')
+        targets = target.split(' ')
         targets.each {|tgt|
           send!(msg, "#{@@psGroupExperiment}/#{tgt}")
         }
@@ -278,28 +281,8 @@ class XmppCommunicator < Communicator
       
   private
      
-  #
-  # Subscribe to some PubSub nodes (i.e. nodes = groups = message boards)
-  #
-  # - groups = an Array containing the name (Strings) of the group to subscribe to
-  #
-  def join_groups (groups)
-    # First check if we already have received the session and experiment IDs
-    # If not something went wrong!
-    if (@@pubsubNodePrefix == nil)
-      error "Session and Exp IDs are NIL"
-      raise "ERROR - Session / Exp IDs are NIL"
-      return 
-    end
-    # Now subscribe to all the groups (i.e. the PubSub nodes)  
-    groups.each { |group|
-      fullNodeName = "#{@@pubsubNodePrefix}/#{group.to_s}"
-      @@service.join_pubsub_node(fullNodeName)
-      debug "Subscribed to PubSub node: '#{fullNodeName}'"
-    }
-  end
-        
   def send!(message, dst)
+    # Sanity checks...
     if (message.length == 0) then
       error "send! - detected attempt to send an empty message"
       return
@@ -308,13 +291,18 @@ class XmppCommunicator < Communicator
       error "send! - empty destination"
       return
     end
+    # Build Message
     item = Jabber::PubSub::Item.new
     msg = Jabber::Message.new(nil, message)
     item.add(msg)
   
     # Send it
     debug("Send to '#{dst}' - msg: '#{message}'")
-    @@service.publish_to_node("#{dst}", item)        
+    begin
+      @@service.publish_to_node("#{dst}", item)        
+    rescue Exception => ex
+      error "Failed sending to '#{dst}' - msg: '#{message}' - error: '#{ex}'"
+    end
   end
       
   #

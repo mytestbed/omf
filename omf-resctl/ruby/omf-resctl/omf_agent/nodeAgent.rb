@@ -63,9 +63,9 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentName, :agentSlice, :config 
+  attr_reader :agentName, :agentSlice, :agentAliases, :config 
 
-  attr_accessor :allowDisconnection
+  attr_accessor :allowDisconnection, :enrolled
 
   #
   # Return the singleton instance of the Node Agent class
@@ -111,17 +111,17 @@ class NodeAgent < MObject
   #
   # [Return] x coordinate of this NA
   #
-  def x
-    return @x = communicator.x
-  end
+  #def x
+  #  return @x = communicator.x
+  #end
   #
   # Return the y coordinate for this NA
   #
   # [Return] x coordinate of this NA
   #
-  def y
-    return @y = communicator.y
-  end
+  #def y
+  #  return @y = communicator.y
+  #end
   #
   # Return the Control IP address of this NA
   #
@@ -146,12 +146,12 @@ class NodeAgent < MObject
     #  # the first alias will also become the new agent name
     #  @agentName = newAlias
     #end
-    if (@names.index(newAlias) != nil)
-      MObject.debug("Alias '#{newAlias}' already registered.")
+    if (@agentAliases.index(newAlias) != nil)
+      debug("Alias '#{newAlias}' already registered.")
     else
-      @names.insert(0, newAlias)
+      @agentAliases.insert(0, newAlias)
     end
-    MObject.debug("Agent names #{@names.join(', ')}")
+    debug("Agent names #{@agentAliases.join(', ')}")
   end
 
   #
@@ -179,8 +179,17 @@ class NodeAgent < MObject
   # - aliasArray = an array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
-  def enrollReply(aliasArray)
-    communicator.send(:ENROLLED, *aliasArray)
+  def enrollReply()
+    enroll_reply = Communicator.instance.getCmdObject(:ENROLLED)
+    enroll_reply.target = @myName
+    communicator.sendCmdObject(enroll_reply)
+  end
+
+  def wrongImageReply()
+    image_reply = Communicator.instance.getCmdObject(:WRONG_IMAGE)
+    image_reply.target = @myName
+    image_reply.image = imageName()
+    communicator.sendCmdObject(image_reply)
   end
 
   #
@@ -202,7 +211,7 @@ class NodeAgent < MObject
   # - msgArray = an array with the full text message to send 
   #
   def send(*msgArray)
-    if @connected
+    if @enrolled
       communicator.send(*msgArray)
     else
       warn("Not sending message because not connected: ", msgArray.join(' '))
@@ -286,8 +295,8 @@ class NodeAgent < MObject
   # Reset all the internat states of this NA
   #
   def resetState
-    @connected = false
-    @names = [@agentName]
+    @enrolled = false
+    @agentAliases = [@agentName]
     @allowDisconnection = false
     @expirementDone = false
     info "Agent Name / Slice: '#{@agentName}' / '#{@agentSlice}'"
@@ -360,7 +369,7 @@ class NodeAgent < MObject
   # [Return] true/false
   #
   #def connected?
-  #  @connected
+  #  @enrolled
   #end
 
   #
@@ -488,7 +497,7 @@ class NodeAgent < MObject
     command = argArray.delete_at(0).upcase
     if (command == 'REBOOT')
       debug "Exec REBOOT cmd!"
-    elsif (!@connected && command != 'YOUARE')
+    elsif (!@enrolled && command != 'YOUARE')
       # it's for us but ignore because we aren't in a connected state
       return
     end
@@ -512,8 +521,8 @@ class NodeAgent < MObject
     end
     # Thierry: moved that code here 
     # to avoid sending 'HB' msg with source field set to IP addr instead of "n_x_y" to EC
-    if (!@connected && command == 'YOUARE')
-      @connected = true  # the nodeAgent knows us!
+    if (!@enrolled && command == 'YOUARE')
+      @enrolled = true  # the nodeAgent knows us!
     end
   end
 
@@ -528,10 +537,8 @@ class NodeAgent < MObject
   # future, all comms between EC and RC should use this scheme, and this should
   # be more clean.
   #
-  def execCommand(cmdObj)
+  def execCommand(cmd)
   
-    cmd = OmfCommandObject.new(cmdObj)
-
     debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.appID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
     method = nil
     begin

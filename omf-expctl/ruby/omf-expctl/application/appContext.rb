@@ -126,7 +126,7 @@ class AppContext < MObject
 
     # Get a new Command Object and starting adding info to it
     app_cmd = Communicator.instance.getCmdObject(:EXECUTE)
-    app_cmd.group = nodeSet.groupName
+    app_cmd.target = nodeSet.groupName
     app_cmd.appID = @id
     appDefinition = @app.appDefinition
     app_cmd.path = appDefinition.path

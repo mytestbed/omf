@@ -34,7 +34,7 @@
 # TODO: Remove or Comment debug messages marked as 'TDEBUG'
 #
 require "omf-common/omfPubSubService"
-require 'omf-common/lineSerializer'
+require "omf-common/omfCommandObject"
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
@@ -49,11 +49,14 @@ class AgentPubSubCommunicator < MObject
   PING_INTERVAL = 3600
   RETRY_INTERVAL = 10
 
-  VALID_EC_COMMANDS = Set.new [:EXEC, :WRONG_IMAGE, :KILL, :STDIN, 
+  VALID_EC_COMMANDS = Set.new [:EXEC, :KILL, :STDIN, 
                       :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
                       :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                       :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
                       :ENROLL, :EXIT]
+
+  VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :HB, :WARN, 
+                      :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
 
   include Singleton
   @@instantiated = false
@@ -90,6 +93,10 @@ class AgentPubSubCommunicator < MObject
     }
     start(NodeAgent.instance.config[:comm][:xmpp_server])
   end
+  
+  def getCmdObject(type)
+    return OmfCommandObject.new(type)
+  end
 
   # 
   # Return the x coordinate for this NA 
@@ -97,42 +104,42 @@ class AgentPubSubCommunicator < MObject
   #
   # [Return] x coordinate
   #
-  def x
-    if (@@x.nil?)
-      raise "Cannot determine X coordinate"
-    end
-    return @@x
-  end
+  #def x
+  #  if (@@x.nil?)
+  #    raise "Cannot determine X coordinate"
+  #  end
+  #  return @@x
+  #end
 
   # 
   # Set the x coordinate for this NA 
   #
   # - x = value for the X coordinate
   #
-  def setX(x)
-    @@x = x
-  end
+  #def setX(x)
+  #  @@x = x
+  #end
   # 
   # Return the y coordinate for this NA 
   # Raises an error message if the coordinate is not set/available
   #
   # [Return] y coordinate
   #
-  def y
-    if (@@y.nil?)
-      raise "Cannot determine X coordinate"
-    end
-    return @@y
-  end
+  #def y
+  #  if (@@y.nil?)
+  #    raise "Cannot determine X coordinate"
+  #  end
+  #  return @@y
+  #end
 
   # 
   # Set the y coordinate for this NA 
   #
   # - y = value for the Y coordinate
   #
-  def setY(y)
-    @@y = y
-  end      
+  #def setY(y)
+  #  @@y = y
+  #end      
       
   #
   # Configure and start the Communicator.
@@ -312,17 +319,21 @@ class AgentPubSubCommunicator < MObject
   end
 
   #
-  # This method is just here for backward compatibility with the original TCP Server 
-  # communicator.Previously (TCP Server Comm), each message had a sequence number, 
-  # and the comms had to ignore duplicate messages already received. Using a PubSub 
-  # communication scheme, this is no longer required. However, since we don't want 
-  # to modify the NA's code yet (will do in the future!), we need this here to keep 
-  # it happy.
+  # This method sends a command to one or multiple nodes.
+  # The command to send is passed as a Command Object.
+  # This implementation of an XMPP communicator uses the OmfCommandObject 
+  # class as the type of the Command Object
+  # (see OmfCommandObject in omf-common package for more details)
   #
-  def ignoreUpTo(number)
-    # do nothing...
+  # - cmdObj = the Command Object to format and send
+  #
+  # Refer to OmfCommandObject for a full description of the Command Object
+  # parameters.
+  #
+  def sendCmdObject(cmdObj)
+    msg = cmdObj.to_xml
+    send!(msg)
   end
-
       
   private
      
@@ -332,31 +343,33 @@ class AgentPubSubCommunicator < MObject
   # - groups = an Array containing the name (Strings) of the group to subscribe to
   #
   def join_groups (groups)
-
-              error "ENROLL - PubSub Group #{@@psGroupExperiment} does not exist!"
+    
+    toAdd = Array.new
+    
+    # Subscribe to a particular PubSub Group
     if groups.kind_of?(String)
+      toAdd << groups
+    # Subscribe to a list of PubSub sub-Groups under the Experiment Group
     elsif groups.kind_of?(Array)
       if (@@psGroupExperiment == nil)
-        error "Exp IDs are NIL"
-        raise "ERROR - Session and Exp IDs are NIL"
+        error "Tried to join a list of PubSub group, but the Experiment ID has not been set yet!"
+	return false
+      else
+        groups.each { |g| toAdd << "#{@@psGroupExperiment}/#{group.to_s}" }
       end
     else
+      error "Unknown type of PubSub groups to join!"
+      return false
     end
-    # First check if we already have received the session and experiment IDs
-    # If not something went wrong!
-    if (@@psGroupExperiment == nil)
-      error "Session and Exp IDs are NIL"
-      # TODO: Shall we return some error message back to the controller?
-      raise "ERROR - Session and Exp IDs are NIL"
-      return 
-    end
-    # Now subscribe to all the groups (i.e. the PubSub nodes)  
-    groups.each { |group|
-      fullNodeName = "#{@@psGroupExperiment}/#{group.to_s}"
-      if @@service.join_pubsub_node(fullNodeName)
-        debug "Subscribed to PubSub node: '#{fullNodeName}'"
+
+    # Now subscribe to all the PubSub groups 
+    toAdd.each { |psGroup|
+      if @@service.join_pubsub_node(psGroup)
+        debug "Subscribed to PubSub node: '#{psGroup}'"
+	return true
       else
-        debug "Failed to subscribe to PubSub node: '#{fullNodeName}'"
+        error "Failed to subscribe to PubSub node: '#{psGroup}'"
+	return false
       end
     }
   end
@@ -367,9 +380,17 @@ class AgentPubSubCommunicator < MObject
   # - seqNo = sequence number of the message to send
   # - msgArray = the array of text to send
   #
-  def send!(seqNo, *msgArray)
+  def send!(message)
+    # Sanity checks...
+    if (message.length == 0) then
+      error "send! - detected attempt to send an empty message"
+      return
+    end
+    if (dst.length == 0 ) then
+      error "send! - empty destination"
+      return
+    end
     # Build Message  
-    message = "#{@@myName} 0 #{LineSerializer.to_s(msgArray)}"
     item = Jabber::PubSub::Item.new
     msg = Jabber::Message.new(nil, message)
     item.add(msg)
@@ -380,7 +401,7 @@ class AgentPubSubCommunicator < MObject
     begin
       @@service.publish_to_node("#{dst}", item)        
     rescue Exception => ex
-      error "Failed sending to '#{dst} - msg: '#{message}' - error: '#{ex}'"
+      error "Failed sending to '#{dst}' - msg: '#{message}' - error: '#{ex}'"
     end
   end
       
@@ -404,205 +425,74 @@ class AgentPubSubCommunicator < MObject
   #       TODO: in the future, we will phase out the <target> field.
   #
   def execute_command (event)
-    # Extract the Message from the PubSub Event
     begin
-      message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
+      # Retrieve the incoming PubSub Group of this message 
       incomingPubSubNode =  event.first_element("items").attributes['node']
 
-      # TODO: this is the initial support for XML messages between EC and RC
-      # Currently this is only used for EXECUTE, due to the need of XML support to pass 
-      # the OML configuration from the EC to the RC. In the future, all comms should use XML
-      # and this should be cleaner.
-      if message == nil
+      # Retrieve the Command Object from the received message
+      eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
+      xmlMessage = nil
+      eventBody.each_element { |e| xmlMessage = e }
+      debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
+      cmdObj = OmfCommandObject.new(xmlMessage)
 
-        # Retrieve the Command Object from the received message
-        eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
-	xmlMessage = nil
-	eventBody.each_element { |e| xmlMessage = e }
-    	cmdObj = OmfCommandObject.new(xmlMessage)
+      # Sanity checks...
+      if VALID_RC_COMMANDS.include?(cmdObj.type)
+        debug "Command from a Resource Controller (type: '#{cmdObj.type}') - ignoring it!" 
+        return
+      end
+      if !VALID_EC_COMMANDS.include?(cmdObj.type)
+        debug "Unknown command type: '#{cmdObj.type}' - ignoring it!" 
+        return
+      end
+      if NodeAgent.instance.agentAliases.index(cmdObj.target) == nil
+        debug "Unknown command target: '#{cmdObj.target}' - ignoring it!" 
+        return
+      end
 
-	# Sanity check...
-	if VALID_EC_COMMANDS.include?(cmdObj.type)
-           debug "Unknown command type: '#{cmdObj.type}' - ignoring it!" 
-          return
-        end
-
-	# Some commands need to trigger actions on the Communicator level
-	# before being passed on to the Resource Controller
-        begin
-          case cmdObj.type
-          when :ENROLL
-            debug "Processing ENROLL - ExpID: '#{cmdObj.expID}'"
-	    # Subscribe to the Experiment PubSub group
-	    @@psGroupExperiment = "#{@@psGroupSlice}/#{cmdObj.expID}"
-            #if !@@service.join_pubsub_node(@@psGroupExperiment) 
-            if !join_groups(@@psGroupExperiment) 
-              error "ENROLL - PubSub Group #{@@psGroupExperiment} does not exist!"
+      # Some commands need to trigger actions on the Communicator level
+      # before being passed on to the Resource Controller
+      begin
+        case cmdObj.type
+        when :ENROLL
+          # Subscribe to the Experiment PubSub group 
+          # and the Node's PubSub group under the experiment
+	  if !NodeAgent.instance.enrolled
+            @@expID = cmdObj.expID
+            debug "Processing ENROLL - ExpID: '#{@@expID}'"
+	    @@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
+            if !join_groups(@@psGroupExperiment) || !join_groups("#{@@psGroupExperiment}/#{@@myName}") 
+              error "ENROLL - PubSub Group #{@@psGroupExperiment} or #{@@psGroupExperiment}/#{@@myName} don't exist!"
               error "ENROLL - Maybe this is an ENROLL from a previous experiment, thus ignoring it!"
               return
             end
-	    # Subscribe to the Node's PubSub group under the experiment
-	    if @@myName == cmdObj.group
-              join_groups(list)
-
-            else
-            end
-
-
-        # YOUARE format (see AgentCommands): YOUARE <sessionID> <expID> <desiredImage> <name> <aliases>
-        # <sessionID> Session ID
-        # <expID> Experiment ID
-        # <desiredImage> the name of the image that this node should have
-        # <name> becomes the Agent Name for this Session/Experiment.
-        # <aliases> optional aliases for this NA
-        if (argArray.length < 5)
-         error "YOUARE message too short: '#{message}'"
-         return
-        end
-        # Store the Session and Experiment IDs given by the EC's communicator
-        @@sessionID = argArray[1]
-        @@expID = argArray[2]
-        # Join the global PubSub nodes for this session / experiment
-        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
-        m = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
-        if (!@@service.join_pubsub_node(n) || !@@service.join_pubsub_node(m)) then
-          error "YOUARE message node does not exist: '#{n}'"
-          error "Possibly received an old YOUARE message from a previous experiment - discarding"
-          return
-        end
-        # Store this node ID and full PubSub path for this session / experiment
-        @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
-        @@myName = argArray[4]
-        list = Array.[](argArray[4])
-        # Check if the desired image is installed on that node, 
-	# if yes or if a desired image is not required, then continue
-	# if not, then ignore this YOUARE
-	desiredImage = argArray[3]
-	if (desiredImage != NodeAgent.instance.imageName() && desiredImage != '*')
-          debug "Processing YOUARE - Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
-	  send("WRONG_IMAGE", NodeAgent.instance.imageName())
-	  return
-	end
-        # If there are some optional aliases, add them to the list of groups to join
-        if (argArray.length > 1)
-          argArray[4,(argArray.length-1)].each { |name|
-            list.push(name)
-          }
-        end
-        join_groups(list)
-
-
-
-          when :ALIAS
-          when :JOIN
           end
-        rescue
+        when :ALIAS
+        when :JOIN
         end
-	
-        debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
-	NodeAgent.instance.execCommand(xmlMessage)
-        return
+      rescue Exception => ex 
+        error "Failed to process XML message: '#{xmlMessage}' - Error: '#{ex}'"
       end
+
+      # Now pass this command to the Resource Controller
+      NodeAgent.instance.execCommand(cmdObj)
+      return
+
     rescue Exception => ex
+      error "Unknown/Wrong incoming message: '#{xmlMessage}' - Error: '#{ex}'"
+      error "(Received on '#{incomingPubSubNode}')" 
       return
     end
-        
-    # Parse the Message to extract the Command
-    # (when parsing, keep the full message to send it up to NA later)
-    argArray = LineSerializer.to_a(message)
-    if (argArray.length < 1)
-      error "Message too short! '#{message}'"
-      return
-    end
-    cmd = argArray[0].upcase
         
     # First Check if we sent that message ourselves, if so do nothing
-    if (@@myName != nil) && (cmd == @@myName.upcase) 
-        return
-    end
+    #if (@@myName != nil) && (cmd == @@myName.upcase) 
+    #    return
+    #end
 
-    # Then - We check if this Command should trigger any specific task within this Communicator
-    debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
-    begin
-      case cmd
-      when "EXEC"
-      when "KILL"
-      when "STDIN"
-      when "EXIT"
-      when "PM_INSTALL"
-      when "APT_INSTALL"
-      when "RESET"
-      when "RESTART"
-      when "REBOOT"
-      when "MODPROBE"
-      when "CONFIGURE"
-      when "LOAD_IMAGE"
-      when "SAVE_IMAGE"
-      when "RETRY"
-      when "LIST"
-      when "SET_MACTABLE"
-      when "SET_TRAFFICRULES"
-      when "NOOP"
-        return
-      when "JOIN"
-        join_groups(argArray[1, (argArray.length-1)])
-      when "ALIAS"
-        join_groups(argArray[1, (argArray.length-1)])
-      when "YOUARE"
-        # YOUARE format (see AgentCommands): YOUARE <sessionID> <expID> <desiredImage> <name> <aliases>
-        # <sessionID> Session ID
-        # <expID> Experiment ID
-        # <desiredImage> the name of the image that this node should have
-        # <name> becomes the Agent Name for this Session/Experiment.
-        # <aliases> optional aliases for this NA
-        if (argArray.length < 5)
-         error "YOUARE message too short: '#{message}'"
-         return
-        end
-        # Store the Session and Experiment IDs given by the EC's communicator
-        @@sessionID = argArray[1]
-        @@expID = argArray[2]
-        debug "Processing YOUARE - SessionID: '#{@@sessionID}' - ExpID: '#{@@expID}'"
-        # Join the global PubSub nodes for this session / experiment
-        n = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"
-        m = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}"
-        if (!@@service.join_pubsub_node(n) || !@@service.join_pubsub_node(m)) then
-          error "YOUARE message node does not exist: '#{n}'"
-          error "Possibly received an old YOUARE message from a previous experiment - discarding"
-          return
-        end
-        # Store this node ID and full PubSub path for this session / experiment
-        @@pubsubNodePrefix = "/#{DOMAIN}/#{SESSION}/#{@@sessionID}/#{@@expID}"        
-        @@myName = argArray[4]
-        list = Array.[](argArray[4])
-        # Check if the desired image is installed on that node, 
-	# if yes or if a desired image is not required, then continue
-	# if not, then ignore this YOUARE
-	desiredImage = argArray[3]
-	if (desiredImage != NodeAgent.instance.imageName() && desiredImage != '*')
-          debug "Processing YOUARE - Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
-	  send("WRONG_IMAGE", NodeAgent.instance.imageName())
-	  return
-	end
-        # If there are some optional aliases, add them to the list of groups to join
-        if (argArray.length > 1)
-          argArray[4,(argArray.length-1)].each { |name|
-            list.push(name)
-          }
-        end
-        join_groups(list)
-      # ELSE CASE -  We don't know this command, log that and discard it.
-      else
-        debug "Unsupported command: '#{cmd}' - not passing it to NA" 
-        return
-      end # END CASE
-    rescue Exception => ex
-      error "Failed to process message: '#{message}' - Error: '#{ex}'"
-      return
-    end
-    
-    # Finally - We can pass the full message up to the NodeAgent
-    NodeAgent.instance.execCommand(argArray)
+     # when "JOIN"
+     #   join_groups(argArray[1, (argArray.length-1)])
+     # when "ALIAS"
+     #   join_groups(argArray[1, (argArray.length-1)])
   end
 
 end #class

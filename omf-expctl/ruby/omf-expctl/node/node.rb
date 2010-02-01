@@ -559,7 +559,7 @@ class Node < MObject
     enroll_cmd = Communicator.instance.getCmdObject(:ENROLL)
     enroll_cmd.expID = Experiment.ID
     enroll_cmd.image = desiredImage
-    enroll_cmd.group = @nodeId
+    enroll_cmd.target = @nodeId
     Communicator.instance.sendCmdObject(enroll_cmd)
   end
 

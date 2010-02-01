@@ -313,24 +313,26 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the optional enroll parameters
   #
-  def AgentCommands.YOUARE(agent, argArray)
-    # delete session ID, experiment ID, and desired image name
-    argArray.delete_at(0)
-    argArray.delete_at(0)    
-    argArray.delete_at(0)    
-    agentId = getArg(argArray, "Name of agent")
-    agent.addAlias(agentId, true)
-    aliasArray = argArray
-    aliasArray.each{ |name|
-      agent.addAlias(name)
-    }
-    # The ID of a node (for the moment [x,y]) should be taken form here, and not from the IP address of the Control Interface!
-    x = agentId.split("_")[1]
-    y = agentId.split("_")[2]
-    agent.communicator.setX(eval(x))
-    agent.communicator.setY(eval(y))
-    aliasArray << agentId
-    agent.enrollReply(aliasArray)
+  def AgentCommands.ENROLL(agent, cmd)
+
+    # Check if we are already 'enrolled' or not
+    if agent.enrolled
+      debug "Resource Controller already enrolled! - ignoring this ENROLL command!"
+      return
+    end
+    # Check if the desired image is installed on that node, 
+    # if yes or if a desired image is not required, then continue
+    # if not, then ignore this YOUARE
+    desiredImage = cmd.image
+    if (desiredImage != agent.imageName() && desiredImage != '*')
+      debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
+      agent.wrongImageReply()
+      #send("WRONG_IMAGE", NodeAgent.instance.imageName())
+      return
+    end
+    # All is good, enroll this Resource Controller
+    agent.enrolled = true
+    agent.enrollReply()
   end
 
   #
