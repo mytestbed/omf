@@ -179,16 +179,19 @@ class NodeAgent < MObject
   # - aliasArray = an array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
-  def enrollReply()
-    enroll_reply = Communicator.instance.getCmdObject(:ENROLLED)
-    enroll_reply.target = @myName
-    communicator.sendCmdObject(enroll_reply)
+  def enrollReply(aliases = nil)
+    enroll_reply = communicator.getCmdObject(:ENROLLED)
+    enroll_reply.target = @agentName
+    enroll_reply.alias = aliases if aliases != nil
+    send(enroll_reply)
   end
 
   def wrongImageReply()
-    image_reply = Communicator.instance.getCmdObject(:WRONG_IMAGE)
-    image_reply.target = @myName
+    image_reply = communicator.getCmdObject(:WRONG_IMAGE)
+    image_reply.target = @agentName
     image_reply.image = imageName()
+    # 'WRONG_IMAGE' message goes even though the node is not enrolled!
+    # Thus we make a direct call to the communicator here.
     communicator.sendCmdObject(image_reply)
   end
 
@@ -201,8 +204,15 @@ class NodeAgent < MObject
   # - id = the ID of this NA (default = nil)
   # - msgArray = an array with the full received command (name, parameters,...)
   #
-  def errorReply(cmd, id = nil, *msgArray)
-    send(:ERROR, cmd, id, *msgArray)
+  def errorReply(message, cmdObj)
+    error_reply = communicator.getCmdObject(:ERROR)
+    error_reply.target = @agentName
+    error_reply.message = message
+    error_reply.cmd = cmdObj.to_xml.to_s
+    # 'ERROR' message goes even though the node is not enrolled!
+    # Thus we make a direct call to the communicator here.
+    communicator.sendCmdObject(error_reply)
+    #send(:ERROR, cmd, id, *msgArray)
   end
 
   #
@@ -210,11 +220,11 @@ class NodeAgent < MObject
   #
   # - msgArray = an array with the full text message to send 
   #
-  def send(*msgArray)
+  def send(cmdObj)
     if @enrolled
-      communicator.send(*msgArray)
+      communicator.sendCmdObject(cmdObj)
     else
-      warn("Not sending message because not connected: ", msgArray.join(' '))
+      warn("Not enrolled! Not sending message: '#{cmdObj.to_xml_to.s}'")
     end
   end
 
@@ -296,7 +306,7 @@ class NodeAgent < MObject
   #
   def resetState
     @enrolled = false
-    @agentAliases = [@agentName]
+    @agentAliases = [@agentName, "*"]
     @allowDisconnection = false
     @expirementDone = false
     info "Agent Name / Slice: '#{@agentName}' / '#{@agentSlice}'"
@@ -489,44 +499,6 @@ class NodeAgent < MObject
   end
 
   #
-  # Execute a command received from the EC
-  #
-  # - argArray = an array holding the full command to execute (name, parameters,...)
-  #
-  def execCommand2(argArray)
-    command = argArray.delete_at(0).upcase
-    if (command == 'REBOOT')
-      debug "Exec REBOOT cmd!"
-    elsif (!@enrolled && command != 'YOUARE')
-      # it's for us but ignore because we aren't in a connected state
-      return
-    end
-
-    debug "Exec cmd '#{command}' with '#{argArray.join(' ')}'"
-    fullcmd = "'#{command}' with '#{argArray.join(' ')}'"
-    method = nil
-    begin
-      method = AgentCommands.method(command)
-    rescue Exception
-      error "Unknown command '#{command}'"
-      send(:ERROR, :UNKNOWN_CMD, command)
-      return
-    end
-    begin
-      reply = method.call(self, argArray)
-    rescue Exception => err
-      error "While executing #{fullcmd}: #{err}"
-      send(:ERROR, :EXECUTION, fullcmd, err)
-      return
-    end
-    # Thierry: moved that code here 
-    # to avoid sending 'HB' msg with source field set to IP addr instead of "n_x_y" to EC
-    if (!@enrolled && command == 'YOUARE')
-      @enrolled = true  # the nodeAgent knows us!
-    end
-  end
-
-  #
   # Execute a command received from the Eexperiment Controller
   #
   # - cmdObj = an Object holding all the information to execute a 
@@ -539,20 +511,22 @@ class NodeAgent < MObject
   #
   def execCommand(cmd)
   
-    debug "Exec cmd (2) '#{cmd.type}' - '#{cmd.appID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
+    debug "Processing '#{cmd.type}' - '#{cmd.target}'"
     method = nil
     begin
       method = AgentCommands.method(cmd.type.to_s)
     rescue Exception
-      error "Unknown command '#{cmd.type}'"
-      send(:ERROR, :UNKNOWN_CMD, cmd.type)
+      error "Unknown method for command '#{cmd.type}'"
+      errorReply("Unknown command", cmd) 
+      #send(:ERROR, :UNKNOWN_CMD, cmd.type)
       return
     end
     begin
       reply = method.call(self, cmd)
     rescue Exception => err
       error "While executing #{cmd.type}: #{err}"
-      send(:ERROR, :EXECUTION, cmd.type, err)
+      errorReply("Execution Error (#{err})", cmd) 
+      #send(:ERROR, :EXECUTION, cmd.type, err)
       return
     end
   end

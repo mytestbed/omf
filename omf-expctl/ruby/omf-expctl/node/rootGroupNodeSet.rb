@@ -126,6 +126,7 @@ class DefinedGroupNodeSet < RootGroupNodeSet
     super()
     sel = ""
     eachGroup {|g| sel = sel + "#{g.to_s} " }
-    @nodeSelector = "\"#{sel}\""
+    #@nodeSelector = "\"#{sel}\""
+    @nodeSelector = "#{sel}"
   end
 end

@@ -192,40 +192,6 @@ class NodeSet < MObject
     ctxt = @applications[name]
     raise OEDLIllegalArgumentException.new(:group, :name) unless ctxt
     ctxt.startApplication(self)
-    
-#    raise "SHOULDN'T #{ctxt}"
-#    debug("Starting application '", name, "'")
-#    if (ctxt == nil)
-#      raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
-#    end
-#
-#    # With OMLv2 the collection server can be started as soon as EC is running
-#    # Thus we comment this line and start the OML Server in the main nodehandler.rb file
-#    #OmlApp.startCollectionServer
-#
-#    app = ctxt[:app]
-#    bindings = ctxt[:bindings]
-#    env = ctxt[:env]
-#    appDef = app.appDefinition
-#    procName = "app:#{name}"
-#    cmd = [procName, 'env', '-i']
-#    if (env != nil)
-#      env.each {|name, value|
-#        cmd << "#{name}=#{value}"
-#      }
-#    end
-#
-#    cmd << appDef.path
-#    pdef = appDef.properties
-#    # check if bindings contain unknown parameters
-#    if (bindings != nil)
-#      if (diff = bindings.keys - pdef.keys) != []
-#        raise "Unknown parameters '#{diff.join(', ')}'" \
-#          + " not in '#{pdef.keys.join(', ')}'."
-#      end
-#      cmd = appDef.getCommandLineArgs(procName, bindings, self, cmd)
-#    end
-#    send(:exec, *cmd)
   end
 
   #
@@ -251,7 +217,10 @@ class NodeSet < MObject
     if (ctxt == nil)
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
-    send(:EXIT, name)
+    exit_cmd = Communicator.instance.getCmdObject(:EXIT)
+    exit_cmd.target = @nodeSelector
+    exit_cmd.appID = name
+    send(exit_cmd)
   end
 
   #
@@ -294,31 +263,41 @@ class NodeSet < MObject
         end
       end
     end
-    
     # TODO: check for blocks arity.
+    
     eachNode { |n|
       n.exec(procName, cmdName, args, env, &block)
     }
-    cmd = [procName]
 
-    if (env != nil)
-      cmd += ['env', '-i']
-      env.each {|name, value|
-        cmd << "#{name}=#{value}"
-      }
-    end
-    cmd << cmdName
-    
+    #if (env != nil)
+    #  cmd << "env -i "
+    #  env.each {|name, value|
+    #    cmd << "#{name}=#{value} "
+    #  }
+    #end
+    #cmd << "#{cmdName} "
+    #
+    cmd = Array.new
+    info "TDEBUG - ARGS: #{args}"
     if (args != nil)
       args.each {|arg|
         if arg.kind_of?(ExperimentProperty)
-          cmd << arg.value
+          info "TDEBUG - 1: #{arg.value}"
+          cmd << "#{arg.value}"
         else
-          cmd << arg.to_s
+          info "TDEBUG - 2: #{arg.to_s}"
+          cmd << "#{arg.to_s}"
         end
+        info "TDEBUG - CMD: #{cmd}"
       }
     end
-    send(:exec, *cmd)
+    exec_cmd = Communicator.instance.getCmdObject(:EXECUTE)
+    exec_cmd.target = @nodeSelector
+    exec_cmd.appID = procName
+    exec_cmd.path = cmdName
+    exec_cmd.env = env
+    exec_cmd.cmdLineArgs = cmd
+    send(exec_cmd)
   end
 
   #
@@ -397,7 +376,12 @@ class NodeSet < MObject
     eachNode {|n|
       n.configure(path, value)
     }
-    send(:CONFIGURE, path.join('/'), valueToSend.to_s)
+    #send(:CONFIGURE, path.join('/'), valueToSend.to_s)
+    conf_cmd = Communicator.instance.getCmdObject(:CONFIGURE)
+    conf_cmd.target = @nodeSelector
+    conf_cmd.path = path.join('/')
+    conf_cmd.value = valueToSend.to_s
+    send(conf_cmd)
   end
 
   #
@@ -556,7 +540,13 @@ class NodeSet < MObject
       n.loadImage(image, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
-    send('LOAD_IMAGE', mcAddress, mcPort, disk)
+    #send('LOAD_IMAGE', mcAddress, mcPort, disk)
+    load_cmd = Communicator.instance.getCmdObject(:LOAD_IMAGE)
+    load_cmd.target = @nodeSelector
+    load_cmd.address = mcAddress
+    load_cmd.port = mcPort
+    load_cmd.disk = disk
+    send(load_cmd)
   end
 
   #
@@ -592,18 +582,19 @@ class NodeSet < MObject
   # - command = Command to send
   # - args = Array of parameters
   #
-  def send(command, *args)
-    debug("send: args(#{args.length})'#{args.join('#')}")
+  def send(cmdObj)
     notQueued = true
     @mutex.synchronize do
       if (!up?)
-        debug "Deferred message: #{command} #{@nodeSelector} #{args.join(' ')}"
-        @deferred << [command, args]
+        debug "Deferred message ('#{@nodeSelector}') - '#{cmdObj.to_s}'" 
+        @deferred << cmdObj
         notQueued = false
       end
     end
     if (up? && notQueued)
-      Communicator.instance.send(@nodeSelector, command, args)
+      debug "Send ('#{@nodeSelector}') - '#{cmdObj.to_s}'"
+      Communicator.instance.sendCmdObject(cmdObj)
+      #Communicator.instance.send(@nodeSelector, command, args)
       return
     end
   end
@@ -652,11 +643,9 @@ class NodeSet < MObject
     if (thesize > 0 && up?)
       da = @deferred
       @deferred = []
-      da.each { |e|
-        command = e[0]
-        args = e[1]
-        debug "send_deferred(#{args.class}:#{args.length}):#{args.join('#')}"
-        send(command, *args)
+      da.each { |cmdObj|
+	debug "send_deferred '#{cmdObj.to_s}'"
+        send(cmdObj)
       }
     end
   end

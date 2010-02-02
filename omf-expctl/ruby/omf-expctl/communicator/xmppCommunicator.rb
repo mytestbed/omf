@@ -33,7 +33,6 @@
 
 require "omf-common/omfPubSubService"
 require "omf-common/omfCommandObject"
-require 'omf-common/lineSerializer'
 require 'omf-common/mobject'
 require 'omf-expctl/agentCommands'
 
@@ -47,7 +46,7 @@ class XmppCommunicator < Communicator
 
   DOMAIN = "OMF"
   RESOURCE = "resource"
-  VALID_EC_COMMANDS = Set.new [:EXEC, :KILL, :STDIN, 
+  VALID_EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
 	                :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                         :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
@@ -194,7 +193,9 @@ class XmppCommunicator < Communicator
   # This method sends a reset message to all connected nodes
   #
   def sendReset()
-    send!("RESET", "#{@@psGroupExperiment}")
+    reset_cmd = getCmdObject(:RESET)
+    reset_cmd.target = "*"
+    sendCmdObject(reset_cmd)
   end
 
   #
@@ -204,8 +205,9 @@ class XmppCommunicator < Communicator
   # - name = name of the node to receive the NOOP
   #
   def sendNoop(name)
-    psNode = "/#{DOMAIN}/#{SYSTEM}/#{name}"
-    send!("NOOP", psNode)
+    noop_cmd = getCmdObject(:NOOP)
+    noop_cmd.target = name
+    sendCmdObject(noop_cmd)
   end
 
   #
@@ -256,22 +258,36 @@ class XmppCommunicator < Communicator
     target = cmdObj.target
     type = cmdObj.type
     msg = cmdObj.to_xml
-    if type == :ENROLL  # ENROLL messages are sent to the branch psGroupResource
-      # create the experiment pubsub node so the node can subscribe to it
+
+    # Some commands need to trigger actions on the Communicator level
+    # before being sent to the Resource Controllers
+    case type
+    when :ENROLL
+      # ENROLL messages are sent to the branch psGroupResource
+      # create the experiment pubsub group so the node can subscribe to it
       # after receiving the ENROLL message
       psGroup = "#{@@psGroupExperiment}/#{target}"
       @@service.create_pubsub_node(psGroup)
       send!(msg, "#{@@psGroupResource}/#{target}")
+      return
+    when :NOOP
+      # NOOP are also sent to the branch psGroupResource
+      send!(msg, "#{@@psGroupResource}/#{target}")
+      return
+    when :ALIAS
+      # create the pubsub group for this alias 
+      @@service.create_pubsub_node("#{@@psGroupExperiment}/#{cmdObj.alias}")
+    end
+	    
+    # Now send this command to the relevant PubSub group in the experiment branch
+    if (target == "*")
+      send!(msg, "#{@@psGroupExperiment}")
+      #send!(msg.to_s, "#{@@psGroupExperiment}")
     else
-      if (target == "*")
-        send!(msg, "#{@@psGroupExperiment}")
-        #send!(msg.to_s, "#{@@psGroupExperiment}")
-      else
-        targets = target.split(' ')
-        targets.each {|tgt|
-          send!(msg, "#{@@psGroupExperiment}/#{tgt}")
-        }
-      end
+      targets = target.split(' ')
+      targets.each {|tgt|
+        send!(msg, "#{@@psGroupExperiment}/#{tgt}")
+      }
     end
   end
   
@@ -326,57 +342,61 @@ class XmppCommunicator < Communicator
   #
   def execute_command (event)
 
-    # Extract the Message from the PubSub Event
     begin
-      message = event.first_element("items").first_element("item").first_element("message").first_element("body").text
-      if message.nil?
+      # Ignore this 'event' if it doesnt have any 'items' element
+      # These are notification messages from the PubSub server
+      return if event.first_element("items") == nil
+
+      # Retrieve the incoming PubSub Group of this message 
+      incomingPubSubNode =  event.first_element("items").attributes['node']
+
+      # Retrieve the Command Object from the received message
+      eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
+      xmlMessage = nil
+      eventBody.each_element { |e| xmlMessage = e }
+      cmdObj = OmfCommandObject.new(xmlMessage)
+
+      # Sanity checks...
+      if VALID_EC_COMMANDS.include?(cmdObj.type)
+        #debug "Command from a Experiment Controller (type: '#{cmdObj.type}') - ignoring it!" 
         return
       end
+      if !VALID_RC_COMMANDS.include?(cmdObj.type)
+        debug "Unknown command type: '#{cmdObj.type}' - ignoring it!" 
+        return
+      end
+      if (Node[cmdObj.target] == nil)
+        debug "Message from unknown sender '#{cmdObj.target}' - ignoring it!"
+        return
+      end
+
+      debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
+      # Some commands need to trigger actions on the Communicator level
+      # before being passed on to the Experiment Controller
+      begin
+        case cmdObj.type
+        when :ENROLLED
+          # when we receive the first ENROLL, send a NOOP message to the NA. This is necessary
+          # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
+          # would receive the last command sent via this node (which is ENROLL if we don't send NOOP)
+          # from the PubSub server (at least openfire works this way). It would then potentially
+          # try to subscribe to nodes from a past experiment.
+          sendNoop(cmdObj.target) if !Node[cmdObj.target].isUp
+        end
+      rescue Exception => ex 
+        error "Failed to process XML message: '#{xmlMessage.to_s}' - Error: '#{ex}'"
+      end
+
+      # Now pass this command to the Resource Controller
+      processCommand(cmdObj)
+      return
+
     rescue Exception => ex
-      # received a XMPP fragment that is not a text message, such as an (un)subscribe notification
-      # we're ignoring those
-      return
-    end
-    #debug "message received: '#{message}'"
-        
-    # Parse the Message to extract the Command
-    # (when parsing, keep the full message to send it up to NA later)
-    argArray = LineSerializer.to_a(message)
-    if (argArray.length < 1)
-      erro "Message too short! '#{message}'"
-      return
-    end
-        
-    # First - Here we check if this Command came from ourselves, if so then do nothing
-    cmd = argArray[0].upcase
-    if VALID_EC_COMMANDS.include?(cmd)
+      error "Unknown/Wrong incoming message: '#{xmlMessage}' - Error: '#{ex}'"
+      error "(Received on '#{incomingPubSubNode}')" 
       return
     end
 
-    # Now, this command came from a Node, check if we have to do anything on the communicator side
-    incomingPubSubNode =  event.first_element("items").attributes['node']
-    debug "Received on '#{incomingPubSubNode}' - msg: '#{message}'"
-    begin
-      cmd = argArray[2].upcase
-      case cmd
-      when "HB"
-      when "ENROLLED"
-      when "WRONG_IMAGE"
-      when "APP_EVENT"
-      when "DEV_EVENT"
-      when "ERROR"                
-      # When nothing else matches - We don't know this command, log that and discard it.
-      else
-        debug "Unsupported command: '#{cmd}' - not passing it to EC" 
-        return
-      end
-    rescue Exception => ex
-      error "Failed to process message: '#{message}' - Error: '#{ex}'"
-      return
-    end
-
-    # Finally pass the command up
-    processCommand(argArray)
   end
 
    #
@@ -384,38 +404,27 @@ class XmppCommunicator < Communicator
    #
    #  - argArray = command line parsed into an array
    #
-   def processCommand(argArray)
-     #debug "Process message '#{argArray.join(' ')}'"
-     if argArray.size < 2
-       raise "Command is too short '#{argArray.join(' ')}'"
-     end
-     senderId = argArray.delete_at(0)
-     #sender = @name2node[senderId]
-     
-     if (sender == nil)
-       debug "Received message from unknown sender '#{senderId}': '#{argArray.join(' ')}'"
-       return
-     end
-     # get rid of the sequence number
-     argArray.delete_at(0)
-     command = argArray.delete_at(0)
-     # First lookup this comand within the list of handler's Commands
-     method = @handlerCommands[command]
-     # Then, if it's not a handler's command, lookup it up in the list of agent's commands
-     if (method == nil)
-       begin
-         method = @handlerCommands[command] = AgentCommands.method(command)
-       rescue Exception
-         warn "Unknown command '#{command}' received from '#{senderId}'"
-         return
-       end
-     end
-     begin
-       # Execute the command
-       reply = method.call(self, sender, senderId, argArray)
-     rescue Exception => ex
-       error "('#{ex.backtrace.join("\n")}') - While processing agent command '#{argArray.join(' ')}'"
-     end
+   def processCommand(cmdObj)
+
+    debug "Processing '#{cmdObj.type}' - '#{cmdObj.target}'"
+
+    # Retrieve the command
+    method = nil
+    begin
+      method = AgentCommands.method(cmdObj.type.to_s)
+    rescue Exception
+      error "Unknown command '#{cmdObj.type}'"
+      return
+    end
+    # Execute the command
+    begin
+      reply = method.call(self, Node[cmdObj.target], cmdObj)
+    rescue Exception => err
+      error "While processing command '#{cmdObj.type}': #{err}"
+      error "Trace: #{err.backtrace.join("\n")}" 
+      return
+    end
+
    end
     
 end #class

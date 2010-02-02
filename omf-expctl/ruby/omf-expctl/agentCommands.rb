@@ -54,8 +54,8 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.ENROLLED(handler, sender, senderId, argArray)
-    sender.enrolled(argArray)
+  def AgentCommands.ENROLLED(communicator, sender, cmdObj)
+    sender.enrolled(cmdObj)
   end
 
 

@@ -365,8 +365,11 @@ class Node < MObject
     debug("Added to group '#{group}'")
     @groups[group] = false 
     TraceState.nodeAddGroup(self, group)
-    Communicator.instance.addToGroup(@nodeId, group)
-    send('ALIAS', group)
+
+    alias_cmd = Communicator.instance.getCmdObject(:ALIAS)
+    alias_cmd.target = @nodeId
+    alias_cmd.alias = group
+    send(alias_cmd)
   end
 
   #
@@ -685,11 +688,11 @@ class Node < MObject
   # - groupArray = an Array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
-  def enrolled(groupArray)
+  def enrolled(cmdObj)
     # First, If this is the first ENROLLED that we received, set the state to UP
     # and perform the associated tasks
     if @nodeStatus != STATUS_UP
-      @isUp = true
+      #@isUp = true
       setStatus(STATUS_UP)
       @checkedInAt = Time.now
       debug "Node #{self} is Up and Enrolled"
@@ -701,12 +704,13 @@ class Node < MObject
       # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
       # from the PubSub server (at least openfire works this way). It would then potentially
       # try to subscribe to nodes from a past experiment.
-      Communicator.instance.sendNoop(@nodeId)
+      #Communicator.instance.sendNoop(@nodeId)
     end
+    
     # Now, if this ENROLL specifies a list of group this NA has enrolled to
     # then process them
-    if groupArray != nil
-      groupArray.each { |group|
+    if cmdObj.alias != nil
+      cmdObj.alias.split(' ').each { |group|
         if @groups.has_key?("#{group}")
           if !@groups[group] 
             @groups[group] = true
@@ -717,6 +721,7 @@ class Node < MObject
         end
       }
     end
+
     # Finally, check if this node is enrolled in all its group
     # If so, then set it as enrolled for the _ALL_ group too!
     allEnrolled = true
@@ -840,14 +845,13 @@ class Node < MObject
   # - command = Command to send
   # - args = Array of parameters for this command
   #
-  def send(command, *args)
-    #debug("node#send: args(#{args.length})'#{args.join('#')}")
-    #if (@isUp)
+  def send(cmdObj)
     if @nodeStatus == STATUS_UP
-      Communicator.instance.send(nodeId, command, args)
+      cmdObj.target = @nodeId
+      Communicator.instance.sendCmdObject(cmdObj)
     else
-      debug "Deferred message: #{command} #{@nodeId} #{args.join(' ')}"
-      @deferred << [command, args]
+      debug "Deferred message: '#{cmdObj.to_s}'"
+      @deferred << cmdObj
     end
   end
 
@@ -859,11 +863,9 @@ class Node < MObject
     if (@deferred.size > 0 && @nodeStatus == STATUS_UP)
       da = @deferred
       @deferred = []
-      da.each { |e|
-        command = e[0]
-        args = e[1]
-        debug "send_deferred(#{args.class}:#{args.length}):#{args.join('#')}"
-        send(command, *args)
+      da.each { |cmdObj|
+        debug "send_deferred '#{cmdObj.to_s}'"
+        send(cmdObj)
       }
     end
   end

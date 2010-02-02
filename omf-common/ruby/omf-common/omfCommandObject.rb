@@ -33,8 +33,8 @@ class OmfCommandObject < MObject
   # The type of this Command Object (e.g. 'EXECUTE')
   attr_accessor :type
 
-  # The group to which this Command Object is addressed to (optional, e.g. 'the_senders')
-  attr_accessor :group
+  # The destination or group to which this Command Object is addressed to (optional, e.g. 'the_senders')
+  attr_accessor :target
 
   # The ID of the experiment for this Command Object (optional, e.g. 'myExp123')
   attr_accessor :expID
@@ -42,13 +42,35 @@ class OmfCommandObject < MObject
   # The Name of the desired disk image on a resource receiving this Command Object (optional)
   attr_accessor :image
 
+  # The message conveyed by this Command Object (optional)
+  attr_accessor :message
+
+  # The command line associated this Command Object (optional)
+  attr_accessor :cmd
+
+  # The list of aliases for the resource sending this Command Object (optional)
+  attr_accessor :alias
+
+  # The value associated with this Command Object (optional)
+  attr_accessor :value
+
+  # The MC Address associated with this Command Object (optional)
+  attr_accessor :address
+
+  # The MC Port associated with this Command Object (optional)
+  attr_accessor :port
+
+  # The disk device associated with this Command Object (optional)
+  attr_accessor :disk
+
   # The ID of the application for this Command Object (optional, e.g. 'otg2')
   attr_accessor :appID
 
   # The Environment to set for this Command Object (optional)
   attr_accessor :env
 
-  # The Path where the application for this Command Object is located (optional)
+  # The Path where the application for this EXECUTE Command Object is located (optional)
+  # The Resource Path (XPath) associated with this CONFIGURE Command Object (optional)
   attr_accessor :path
 
   # The command line arguments of the application for this Command Object (optional)
@@ -58,9 +80,16 @@ class OmfCommandObject < MObject
   attr_accessor :omlConfig
 
   def initialize (initValue)
-    @group = nil
+    @target = nil
     @expID = nil
     @image = nil
+    @message = nil
+    @cmd = nil
+    @alias = nil
+    @value = nil
+    @address = nil
+    @port = nil
+    @disk = nil
     @appID = nil
     @env = nil
     @path = nil
@@ -80,7 +109,7 @@ class OmfCommandObject < MObject
   # An example of a returned XML is: 
   #
   # <EXECUTE>
-  #   <GROUP>source</GROUP>
+  #   <TARGET>source</TARGET>
   #   <PROCID>test_app_otg2</ID>
   #   <PATH>/usr/bin/otg2</PATH>
   #   <ARGSLINE>--udp:dst_host 192.168.0.3 --udp:local_host 192.168.0.2</ARGSLINE>
@@ -99,9 +128,16 @@ class OmfCommandObject < MObject
   def to_xml()
     msg = REXML::Document.new
     msg << REXML::Element.new("#{@type.to_s}")
-    msg.root << REXML::Element.new("GROUP").add_text("#{@group}") if @group != nil
+    msg.root << REXML::Element.new("TARGET").add_text("#{@target}") if @target != nil
     msg.root << REXML::Element.new("EXPID").add_text("#{@expID}") if @expID != nil
     msg.root << REXML::Element.new("IMAGE").add_text("#{@image}") if @image != nil
+    msg.root << REXML::Element.new("MESSAGE").add_text("#{@message}") if @message != nil
+    msg.root << REXML::Element.new("CMD").add_text("#{@cmd}") if @cmd != nil
+    msg.root << REXML::Element.new("ALIAS").add_text("#{@alias}") if @alias != nil
+    msg.root << REXML::Element.new("VALUE").add_text("#{@value}") if @value != nil
+    msg.root << REXML::Element.new("ADDRESS").add_text("#{@address}") if @address != nil
+    msg.root << REXML::Element.new("PORT").add_text("#{@port}") if @port != nil
+    msg.root << REXML::Element.new("DISK").add_text("#{@disk}") if @disk != nil
     msg.root << REXML::Element.new("APPID").add_text("#{@appID}") if @appID != nil
     msg.root << REXML::Element.new("PATH").add_text("#{@path}") if @path != nil
     msg.root << REXML::Element.new("ARGSLINE").add_text("#{@cmdLineArgs.join(" ")}") if @cmdLineArgs != nil
@@ -122,6 +158,10 @@ class OmfCommandObject < MObject
     return msg
   end
 
+  def to_s
+    return to_xml.to_s
+  end
+
   #
   # Create a new Command Object from a valid XML representation
   #
@@ -131,15 +171,32 @@ class OmfCommandObject < MObject
     @type = xmlDoc.expanded_name.to_sym
 
     # Common Tags
-    xmlDoc.each_element("GROUP") { |e| @group = e.text }
+    xmlDoc.each_element("TARGET") { |e| @target = e.text }
     
     # If Type = :ENROLL
     xmlDoc.each_element("EXPID") { |e| @expID = e.text }
     xmlDoc.each_element("IMAGE") { |e| @image = e.text }
 
+    # If Type = :ENROLLED
+    xmlDoc.each_element("ALIAS") { |e| @alias = e.text }
+
+    # If Type = :ERROR
+    xmlDoc.each_element("MESSAGE") { |e| @message = e.text }
+    xmlDoc.each_element("CMD") { |e| @cmd = e.text }
+
+    # If Type = :LOAD_IMAGE
+    xmlDoc.each_element("ADDRESS") { |e| @address = e.text }
+    xmlDoc.each_element("PORT") { |e| @port = e.text }
+    xmlDoc.each_element("DISK") { |e| @disk = e.text }
+
+    # If Type = :CONFIGURE
+    xmlDoc.each_element("VALUE") { |e| @value = e.text }
+
+    # If Type = :EXECUTE or :CONFIGURE
+    xmlDoc.each_element("PATH") { |e| @path = e.text }
+
     # If Type = :EXECUTE
     xmlDoc.each_element("APPID") { |e| @appID = e.text }
-    xmlDoc.each_element("PATH") { |e| @path = e.text }
     xmlDoc.each_element("ARGSLINE") { |e| @cmdLineArgs = e.text }
     xmlDoc.each_element("ENV") { |e| @env = e.text }
     # Dump the XML description of the OML configuration into a file

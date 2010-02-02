@@ -49,7 +49,7 @@ class AgentPubSubCommunicator < MObject
   PING_INTERVAL = 3600
   RETRY_INTERVAL = 10
 
-  VALID_EC_COMMANDS = Set.new [:EXEC, :KILL, :STDIN, 
+  VALID_EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP,
                       :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
                       :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                       :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
@@ -355,7 +355,7 @@ class AgentPubSubCommunicator < MObject
         error "Tried to join a list of PubSub group, but the Experiment ID has not been set yet!"
 	return false
       else
-        groups.each { |g| toAdd << "#{@@psGroupExperiment}/#{group.to_s}" }
+        groups.each { |g| toAdd << "#{@@psGroupExperiment}/#{g.to_s}" }
       end
     else
       error "Unknown type of PubSub groups to join!"
@@ -384,10 +384,6 @@ class AgentPubSubCommunicator < MObject
     # Sanity checks...
     if (message.length == 0) then
       error "send! - detected attempt to send an empty message"
-      return
-    end
-    if (dst.length == 0 ) then
-      error "send! - empty destination"
       return
     end
     # Build Message  
@@ -426,6 +422,10 @@ class AgentPubSubCommunicator < MObject
   #
   def execute_command (event)
     begin
+      # Ignore this 'event' if it doesnt have any 'items' element
+      # These are notification messages from the PubSub server
+      return if event.first_element("items") == nil
+
       # Retrieve the incoming PubSub Group of this message 
       incomingPubSubNode =  event.first_element("items").attributes['node']
 
@@ -433,23 +433,26 @@ class AgentPubSubCommunicator < MObject
       eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
       xmlMessage = nil
       eventBody.each_element { |e| xmlMessage = e }
-      debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
       cmdObj = OmfCommandObject.new(xmlMessage)
 
       # Sanity checks...
       if VALID_RC_COMMANDS.include?(cmdObj.type)
-        debug "Command from a Resource Controller (type: '#{cmdObj.type}') - ignoring it!" 
+        #debug "Command from a Resource Controller (type: '#{cmdObj.type}') - ignoring it!" 
         return
       end
       if !VALID_EC_COMMANDS.include?(cmdObj.type)
         debug "Unknown command type: '#{cmdObj.type}' - ignoring it!" 
         return
       end
-      if NodeAgent.instance.agentAliases.index(cmdObj.target) == nil
+      targets = cmdObj.target.split(' ') # There may be multiple space-separated targets
+      isForMe = false
+      targets.each { |t| isForMe = true if NodeAgent.instance.agentAliases.include?(t) }
+      if !isForMe
         debug "Unknown command target: '#{cmdObj.target}' - ignoring it!" 
         return
       end
 
+      debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
       # Some commands need to trigger actions on the Communicator level
       # before being passed on to the Resource Controller
       begin
@@ -459,16 +462,18 @@ class AgentPubSubCommunicator < MObject
           # and the Node's PubSub group under the experiment
 	  if !NodeAgent.instance.enrolled
             @@expID = cmdObj.expID
-            debug "Processing ENROLL - ExpID: '#{@@expID}'"
+            debug "Experiment ID: '#{@@expID}'"
 	    @@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
             if !join_groups(@@psGroupExperiment) || !join_groups("#{@@psGroupExperiment}/#{@@myName}") 
-              error "ENROLL - PubSub Group #{@@psGroupExperiment} or #{@@psGroupExperiment}/#{@@myName} don't exist!"
-              error "ENROLL - Maybe this is an ENROLL from a previous experiment, thus ignoring it!"
+              error "Failed to Process ENROLL command!"
+              error "Maybe this is an ENROLL from a previous experiment, thus ignoring it!"
               return
             end
           end
         when :ALIAS
-        when :JOIN
+          join_groups(cmdObj.alias.split(' '))
+        when :NOOP
+          return # NOOP is not sent to the Resource Controller
         end
       rescue Exception => ex 
         error "Failed to process XML message: '#{xmlMessage}' - Error: '#{ex}'"
@@ -479,20 +484,10 @@ class AgentPubSubCommunicator < MObject
       return
 
     rescue Exception => ex
-      error "Unknown/Wrong incoming message: '#{xmlMessage}' - Error: '#{ex}'"
+      error "Unknown incoming message: '#{xmlMessage.to_s}' - Error: '#{ex}'"
       error "(Received on '#{incomingPubSubNode}')" 
       return
     end
-        
-    # First Check if we sent that message ourselves, if so do nothing
-    #if (@@myName != nil) && (cmd == @@myName.upcase) 
-    #    return
-    #end
-
-     # when "JOIN"
-     #   join_groups(argArray[1, (argArray.length-1)])
-     # when "ALIAS"
-     #   join_groups(argArray[1, (argArray.length-1)])
   end
 
 end #class

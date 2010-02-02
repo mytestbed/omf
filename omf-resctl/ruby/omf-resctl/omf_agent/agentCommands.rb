@@ -297,12 +297,12 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the list of name to add as aliases
   #
-  def AgentCommands.ALIAS(agent, argArray)
-    aliasArray = argArray
+  def AgentCommands.ALIAS(agent, cmd)
+    aliasArray = cmd.alias.split(' ')
     aliasArray.each{ |name|
       agent.addAlias(name)
     }
-    agent.enrollReply(aliasArray)
+    agent.enrollReply(cmd.alias)
   end
 
   #
@@ -317,7 +317,7 @@ end
 
     # Check if we are already 'enrolled' or not
     if agent.enrolled
-      debug "Resource Controller already enrolled! - ignoring this ENROLL command!"
+      MObject.debug "Resource Controller already enrolled! - ignoring this ENROLL command!"
       return
     end
     # Check if the desired image is installed on that node, 
@@ -325,7 +325,7 @@ end
     # if not, then ignore this YOUARE
     desiredImage = cmd.image
     if (desiredImage != agent.imageName() && desiredImage != '*')
-      debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
+      MObject.debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
       agent.wrongImageReply()
       #send("WRONG_IMAGE", NodeAgent.instance.imageName())
       return
@@ -352,7 +352,7 @@ end
   #
   def AgentCommands.SET_DISCONNECT(agent, argArray)
     agent.allowDisconnection = true
-    debug "Disconnection Support Enabled."
+    MObject.debug "Disconnection Support Enabled."
     
     # Fetch the Experiment ID from the EC
     expID = getArg(argArray, "Experiment ID")
@@ -417,8 +417,6 @@ end
       if (arg[0] == ?%)
         # if arg starts with "%" perform certain substitutions
         arg = arg[1..-1]  # strip off leading '%'
-        arg.sub!(/%x/, agent.x.to_s)
-        arg.sub!(/%y/, agent.y.to_s)
         arg.sub!(/%n/, agent.agentName)
       end
       if arg =~ /^OML_CONFIG=.*:/
@@ -449,6 +447,7 @@ end
   #               execute the program (e.g. command line, path, etc...)
   #
   def AgentCommands.EXECUTE(agent, cmdObject)
+    #debug "EXECUTE - '#{cmd.type}' - '#{cmd.appID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
     id = cmdObject.appID
     fullCmdLine = "env -i #{cmdObject.env} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
     MObject.debug "Executing: '#{fullCmdLine}'"
@@ -562,7 +561,7 @@ end
   # - agent = the instance of this NA
   # - argArray = an empty array 
   #
-  def AgentCommands.RESET(agent, argArray)
+  def AgentCommands.RESET(agent, cmdObj)
     agent.reset
   end
 
