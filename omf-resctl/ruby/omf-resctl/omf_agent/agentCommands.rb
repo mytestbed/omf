@@ -297,12 +297,12 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the list of name to add as aliases
   #
-  def AgentCommands.ALIAS(agent, cmdObj)
-    aliasArray = cmdObj.alias.split(' ')
+  def AgentCommands.ALIAS(agent, cmdObject)
+    aliasArray = cmdObject.alias.split(' ')
     aliasArray.each{ |name|
       agent.addAlias(name)
     }
-    agent.enrollReply(cmdObj.alias)
+    agent.enrollReply(cmdObject.alias)
   end
 
   #
@@ -313,7 +313,7 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the optional enroll parameters
   #
-  def AgentCommands.ENROLL(agent, cmdObj)
+  def AgentCommands.ENROLL(agent, cmdObject)
 
     # Check if we are already 'enrolled' or not
     if agent.enrolled
@@ -323,7 +323,7 @@ end
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
     # if not, then ignore this YOUARE
-    desiredImage = cmdObj.image
+    desiredImage = cmdObject.image
     if (desiredImage != agent.imageName() && desiredImage != '*')
       MObject.debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
       agent.wrongImageReply()
@@ -560,7 +560,7 @@ end
   # - agent = the instance of this NA
   # - argArray = an empty array 
   #
-  def AgentCommands.RESET(agent, cmdObj)
+  def AgentCommands.RESET(agent, cmdObject)
     agent.reset
   end
 
@@ -633,12 +633,13 @@ end
       raise "Unknown resource '#{type}/#{id}' in 'configure'"
     end
 
-    result = device.configure(agent, prop, value)
+    #result = device.configure(agent, prop, value)
+    result = device.configure(prop, value)
 
     if result[:success]
-      agent.okReply(result[:msg], cmdObj)
+      agent.okReply(result[:msg], cmdObject)
     else
-      agent.errorReply(result[:msg], cmdObj) 
+      agent.errorReply(result[:msg], cmdObject) 
     end
   end
 

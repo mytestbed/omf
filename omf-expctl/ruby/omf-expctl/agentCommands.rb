@@ -157,6 +157,7 @@ module AgentCommands
     case command
       when 'CONFIGURE'
         path = cmdObj.path
+	reason = "Couldn't configure '#{path}'"
         message = cmdObj.message
         id = NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(path.split("/"), reason, "error")
@@ -168,6 +169,7 @@ module AgentCommands
         app = cmdObj.appID
         MObject.error("agentCmd::EXECUTION_ERROR on '#{sender}' - App: '#{app}'- msg: #{message}")
       else
+        reason = "Unknown error caused by '#{command}'"
         message =  cmdObj.message
         NodeHandler.instance.logError(sender, reason, {:details => message})
         MObject.error("agentCmd::UNKNOWN_ERROR on '#{sender}' - cmd: '#{command}' - msg: #{message}")

@@ -73,32 +73,37 @@ class Device < MObject
   # - prop = Property to configure
   # - value = Value to set property to
   #
-  def configure(agent, prop, value)
+  #def configure(agent, prop, value)
+  def configure(prop, value)
     info "configure #{@logicalName}/#{prop} = #{value}"
     activate() # make sure that the device is actually loaded
 
-    if (value != nil) && (value[0] == '%'[0])
-      # if value starts with "%" perform certain substitutions
-      value = value[1..-1]  # strip off leading '%'
-      value.sub!(/%x/, agent.x.to_s)
-      value.sub!(/%y/, agent.y.to_s)
-    end
+    #if (value != nil) && (value[0] == '%'[0])
+    #  # if value starts with "%" perform certain substitutions
+    #  value = value[1..-1]  # strip off leading '%'
+    #  value.sub!(/%x/, agent.x.to_s)
+    #  value.sub!(/%y/, agent.y.to_s)
+    #end
 
     path = "#{logicalName}/#{prop}"
+    result = Hash.new
     begin
       cmd = getConfigCmd(prop, value)
       debug "configure cmd: #{cmd}"
       reply = `#{cmd}`
       if $?.success?
-        return [:success => true, :msg => reply]
+        result[:success] = true
       else
         error("While configuring '#{prop}' with '#{value}' - Error: '#{reply}'")
-        return [:success => false, :msg => reply]
+        result[:success] = false
       end
+      result[:msg] = reply
     rescue => err
       error("While configuring '#{prop}' with '#{value}' \n\t#{err}")
-      return [:success => false, :msg => err]
+      result[:success] = false
+      result[:msg] = err
     end
+    return result
   end
 
   #
