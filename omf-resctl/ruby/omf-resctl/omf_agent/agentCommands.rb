@@ -644,7 +644,6 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the frisbee address+port to use, and the name of the disk device to image
   #
-  def AgentCommands.LOAD_IMAGE(agent, argArray)
   def AgentCommands.LOAD_IMAGE(agent, cmdObject)
     mcAddress = cmdObject.address
     mcPort = cmdObject.port
@@ -666,10 +665,10 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the host and port of the file server, and the name of the disk device to save
   #
-  def AgentCommands.SAVE_IMAGE(agent, argArray)
-    imgHost = getArg(argArray, "Image Host")
-    imgPort = getArg(argArray, "Image Port") 
-    disk = getArgDefault(argArray, "/dev/hda")
+  def AgentCommands.SAVE_IMAGE(agent, cmdObject)
+    imgHost = cmdObject.address
+    imgPort = cmdObject.port
+    disk = cmdObject.disk
     
     cmd = "imagezip #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
     MObject.debug "AgentCommands", "Image save command: #{cmd}"
