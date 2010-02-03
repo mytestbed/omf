@@ -269,26 +269,14 @@ class NodeSet < MObject
       n.exec(procName, cmdName, args, env, &block)
     }
 
-    #if (env != nil)
-    #  cmd << "env -i "
-    #  env.each {|name, value|
-    #    cmd << "#{name}=#{value} "
-    #  }
-    #end
-    #cmd << "#{cmdName} "
-    #
     cmd = Array.new
-    info "TDEBUG - ARGS: #{args}"
     if (args != nil)
       args.each {|arg|
         if arg.kind_of?(ExperimentProperty)
-          info "TDEBUG - 1: #{arg.value}"
           cmd << "#{arg.value}"
         else
-          info "TDEBUG - 2: #{arg.to_s}"
           cmd << "#{arg.to_s}"
         end
-        info "TDEBUG - CMD: #{cmd}"
       }
     end
     exec_cmd = Communicator.instance.getCmdObject(:EXECUTE)
@@ -376,7 +364,6 @@ class NodeSet < MObject
     eachNode {|n|
       n.configure(path, value)
     }
-    #send(:CONFIGURE, path.join('/'), valueToSend.to_s)
     conf_cmd = Communicator.instance.getCmdObject(:CONFIGURE)
     conf_cmd.target = @nodeSelector
     conf_cmd.path = path.join('/')
@@ -540,7 +527,6 @@ class NodeSet < MObject
       n.loadImage(image, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
-    #send('LOAD_IMAGE', mcAddress, mcPort, disk)
     load_cmd = Communicator.instance.getCmdObject(:LOAD_IMAGE)
     load_cmd.target = @nodeSelector
     load_cmd.address = mcAddress

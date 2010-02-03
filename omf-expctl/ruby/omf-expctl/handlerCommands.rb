@@ -166,33 +166,23 @@ def defGroup(groupName, selector = nil, &block)
   end
 
   if (selector != nil)
-    # Selector is a name of an existing Topology (e.g. "myTopo")
-    # or a comma-separated list of existing resources
+    # What kind of selector do we have?
     if selector.kind_of?(String)
       begin
-        # Selector is the name of an existing Topology
+        # Selector is the name of an existing Topology (e.g. "myTopo")
         topo = Topology[selector]
         ns = BasicNodeSet.new(groupName, topo)
       rescue
         # Selector is a comma-separated list of existing resources
+        # These resources are identified by their HRNs
+        # e.g. "node1, node2, node3"
         tname = "-:topo:#{groupName}"
         topo = Topology.create(tname, selector.split(","))
         ns = BasicNodeSet.new(groupName, topo)
       end
-    # Selector is an Array of existing groups
-    elsif selector.kind_of?(Array)
-      # Selector is an Array of names of existing groups (e.g. ["group1","group2"])
-      if selector[0].kind_of?(String)
+    # Selector is an Array of names of existing groups (e.g. ["group1","group2"])
+    elsif selector.kind_of?(Array) && selector[0].kind_of?(String)
         ns = GroupNodeSet.new(groupName, selector)
-      # Selector is an Array of node descriptions (e.g. [2, 9, 5])
-      else
-        raise "Unknown node set declaration '#{selector}: #{selector.class}'"
-	# Old (x,y) naming scheme
-        #tname = "-:topo:#{groupName}"
-        #topo = Topology.create(tname, selector)
-        #ns = BasicNodeSet.new(groupName, topo)
-      end
-    # Selector is a Set of existing resource names (HRNs)
     else
       raise "Unknown node set declaration '#{selector}: #{selector.class}'"
     end

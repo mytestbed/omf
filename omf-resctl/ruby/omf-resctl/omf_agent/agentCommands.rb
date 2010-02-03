@@ -297,12 +297,12 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the list of name to add as aliases
   #
-  def AgentCommands.ALIAS(agent, cmd)
-    aliasArray = cmd.alias.split(' ')
+  def AgentCommands.ALIAS(agent, cmdObj)
+    aliasArray = cmdObj.alias.split(' ')
     aliasArray.each{ |name|
       agent.addAlias(name)
     }
-    agent.enrollReply(cmd.alias)
+    agent.enrollReply(cmdObj.alias)
   end
 
   #
@@ -313,7 +313,7 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the optional enroll parameters
   #
-  def AgentCommands.ENROLL(agent, cmd)
+  def AgentCommands.ENROLL(agent, cmdObj)
 
     # Check if we are already 'enrolled' or not
     if agent.enrolled
@@ -323,7 +323,7 @@ end
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
     # if not, then ignore this YOUARE
-    desiredImage = cmd.image
+    desiredImage = cmdObj.image
     if (desiredImage != agent.imageName() && desiredImage != '*')
       MObject.debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
       agent.wrongImageReply()
@@ -409,33 +409,33 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the complete command line of the program to execute
   #
-  def AgentCommands.EXEC(agent, argArray)
-    id = getArg(argArray, "ID of install")
-
-    args = [] # potentially substitute arguments
-    argArray.each { |arg|
-      if (arg[0] == ?%)
-        # if arg starts with "%" perform certain substitutions
-        arg = arg[1..-1]  # strip off leading '%'
-        arg.sub!(/%n/, agent.agentName)
-      end
-      if arg =~ /^OML_CONFIG=.*:/
-        # OML can't fetch config file over the net, need to download it first
-        url = arg.split('=')[1..-1].join('=')
-        # this is overkill, but so what
-        require 'digest/md5'
-        fileName = "/tmp/#{Digest::MD5.hexdigest(url)}.xml"
-        MObject.debug("Fetching oml definition file ", url)
-        if (! system("wget -m -nd -q -O #{fileName} #{url}"))
-          raise "Couldn't fetch OML config file #{url}"
-        end
-        arg = "OML_CONFIG=#{fileName}"
-      end
-      args << arg
-    }
-    cmd = args.join(' ')
-    ExecApp.new(id, agent, cmd)
-  end
+  #def AgentCommands.EXEC(agent, argArray)
+  #  id = getArg(argArray, "ID of install")
+  #
+  #  args = [] # potentially substitute arguments
+  #  argArray.each { |arg|
+  #    if (arg[0] == ?%)
+  #      # if arg starts with "%" perform certain substitutions
+  #      arg = arg[1..-1]  # strip off leading '%'
+  #      arg.sub!(/%n/, agent.agentName)
+  #    end
+  #    if arg =~ /^OML_CONFIG=.*:/
+  #      # OML can't fetch config file over the net, need to download it first
+  #      url = arg.split('=')[1..-1].join('=')
+  #      # this is overkill, but so what
+  #      require 'digest/md5'
+  #      fileName = "/tmp/#{Digest::MD5.hexdigest(url)}.xml"
+  #      MObject.debug("Fetching oml definition file ", url)
+  #      if (! system("wget -m -nd -q -O #{fileName} #{url}"))
+  #        raise "Couldn't fetch OML config file #{url}"
+  #      end
+  #      arg = "OML_CONFIG=#{fileName}"
+  #    end
+  #    args << arg
+  #  }
+  #  cmd = args.join(' ')
+  #  ExecApp.new(id, agent, cmd)
+  #end
 
   #
   # Command 'EXECUTE'
@@ -447,7 +447,6 @@ end
   #               execute the program (e.g. command line, path, etc...)
   #
   def AgentCommands.EXECUTE(agent, cmdObject)
-    #debug "EXECUTE - '#{cmd.type}' - '#{cmd.appID}' - '#{cmd.group}' - '#{cmd.path}' - '#{cmd.cmdLineArgs}' - '#{cmd.env}'"
     id = cmdObject.appID
     fullCmdLine = "env -i #{cmdObject.env} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
     MObject.debug "Executing: '#{fullCmdLine}'"
@@ -462,9 +461,9 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the ID of the process and the type of signal to send
   #
-  def AgentCommands.KILL(agent, argArray)
-    id = getArg(argArray, "ID of process")
-    signal = getArgDefault(argArray, "KILL")
+  def AgentCommands.KILL(agent, cmdObject)
+    id = cmdObject.appID
+    signal = cmdObject.value
     ExecApp[id].kill(signal)
   end
 
@@ -478,8 +477,8 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the ID of the process 
   #
-  def AgentCommands.EXIT(agent, argArray)
-    id = getArg(argArray, "ID of process")
+  def AgentCommands.EXIT(agent, cmdObject)
+    id = cmdObject.appID
     begin
       # First try sending 'exit' on the app's STDIN
       MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
@@ -503,10 +502,10 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the ID of the process and the texxt to send
   #
-  def AgentCommands.STDIN(agent, argArray)
+  def AgentCommands.STDIN(agent, cmdObject)
     begin
-      id = getArg(argArray, "ID of process")
-      line = argArray.join(' ')
+      id = cmdObject.appID
+      line = cmdObject.value
       ExecApp[id].stdin(line)
     rescue Exception => err
       raise Exception.new("- Error while writing to standard-IN of application '#{id}' \
@@ -524,10 +523,10 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the install ID (for reporting progress), the URL of the tar file, and the destination path
   #
-  def AgentCommands.PM_INSTALL(agent, argArray)
-    id = getArg(argArray, "ID of install")
-    url = getArg(argArray, "URL of program to install")
-    installRoot = getArgDefault(argArray, "/")
+  def AgentCommands.PM_INSTALL(agent, cmdObject)
+    id = cmdObject.appID
+    url = cmdObject.image
+    installRoot = cmdObject.path
 
     MObject.debug "Installing #{url} into #{installRoot}"
     cmd = "cd /tmp;wget -m -nd -q #{url};"
@@ -544,10 +543,10 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the install ID (for reporting progress), the apt-get parameters, and the package name
   #
-  def AgentCommands.APT_INSTALL(agent, argArray)
-    id = getArg(argArray, "ID of install")
-    command = getArg(argArray, "Command to apt-get")
-    pkgName = getArg(argArray, "Name of package to install")
+  def AgentCommands.APT_INSTALL(agent, cmdObject)
+    id = cmdObject.appID
+    command = cmdObject.cmd
+    pkgName = cmdObject.value
 
     cmd = "apt-get -q -y #{argArray.join(' ')} #{command} #{pkgName}"
     ExecApp.new(id, agent, cmd)
@@ -574,7 +573,7 @@ end
   # - agent = the instance of this NA
   # - argArray = an empty array 
   #
-  def AgentCommands.RESTART(agent, argArray)
+  def AgentCommands.RESTART(agent, cmdObject)
     agent.communicator.quit
     ExecApp.killAll
     system("/etc/init.d/omf-resctl-#{OMF_MM_VERSION} restart")
@@ -589,7 +588,7 @@ end
   # - agent = the instance of this NA
   # - argArray = an empty array 
   #
-  def AgentCommands.REBOOT(agent, argArray)
+  def AgentCommands.REBOOT(agent, cmdObject)
     agent.send(:STATUS, SYSTEM_ID, "REBOOTING")
     agent.communicator.quit
     cmd = `sudo /sbin/reboot`
@@ -607,8 +606,8 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the name of the module to load
   #
-  def AgentCommands.MODPROBE(agent, argArray)
-    moduleName = getArg(argArray, "Name of module to probe")
+  def AgentCommands.MODPROBE(agent, cmdObject)
+    moduleName = cmdObject.appID
     id = "module/#{moduleName}"
     ExecApp.new(id, agent, "/sbin/modprobe #{argArray.join(' ')} #{moduleName}")
   end
@@ -621,20 +620,20 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the name (as a Path) of the parameter to configure and its value
   #
-  def AgentCommands.CONFIGURE(agent, argArray)
-    path = getArg(argArray, "Name of parameter as path")
-    value = getArgDefault(argArray)
+  def AgentCommands.CONFIGURE(agent, cmdObject)
+    path = cmdObject.path
+    value = cmdObject.value
 
-   if (type, id, prop = path.split("/")).length != 3
-     raise "Expected path '#{path}' to contain three levels"
-   end
+    if (type, id, prop = path.split("/")).length != 3
+      raise "Expected path '#{path}' to contain three levels"
+    end
 
-   device = DEV_MAPPINGS["#{type}/#{id}"]
-   if (device == nil)
-     raise "Unknown resource '#{type}/#{id}' in 'configure'"
-   end
+    device = DEV_MAPPINGS["#{type}/#{id}"]
+    if (device == nil)
+      raise "Unknown resource '#{type}/#{id}' in 'configure'"
+    end
 
-   device.configure(agent, prop, value)
+    device.configure(agent, prop, value)
   end
 
   #
@@ -646,9 +645,10 @@ end
   # - argArray = an array with the frisbee address+port to use, and the name of the disk device to image
   #
   def AgentCommands.LOAD_IMAGE(agent, argArray)
-    mcAddress = getArg(argArray, "Multicast address")
-    mcPort = getArg(argArray, "Multicast port")
-    disk = getArgDefault(argArray, "/dev/hda")
+  def AgentCommands.LOAD_IMAGE(agent, cmdObject)
+    mcAddress = cmdObject.address
+    mcPort = cmdObject.port
+    disk = cmdObject.disk
 
     MObject.info "AgentCommands", "Frisbee image from ", mcAddress, ":", mcPort
     ip = agent.localAddr

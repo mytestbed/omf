@@ -46,6 +46,9 @@ class Experiment
   @@sliceID = nil
   @@domain = nil
 
+  attr_reader :domain
+  attr_accessor :sliceID
+
   #
   # Return the ID of this Experiment
   #
@@ -66,23 +69,6 @@ class Experiment
   def Experiment.ID=(id)
     @@expID = "#{id}"
   end
-
-  #
-  # Return the Slice of this Experiment
-  #
-  # [Return] the experiment's ID (String)
-  #
-  def Experiment.Slice
-    return @@sliceID
-  end
-
-  #
-  # Set the Slice for this Experiment
-  #
-  def Experiment.Slice=(id)
-    @@sliceID = "#{id}"
-  end
-
 
   #
   # Load an Experiment definition
@@ -142,13 +128,6 @@ class Experiment
   end
 
   #
-  # Return the name of this Experiment
-  #
-  def Experiment.name ()
-    @@name
-  end
-
-  #
   # Set the project for this Experiment
   #
   def Experiment.project=(name)
@@ -163,24 +142,6 @@ class Experiment
     MObject.debug('Experiment', "Domain: #{domain}")
     @@domain = domain
     TraceState.experiment(:domain, domain)
-  end
-
-  #
-  # Return the domain of this Experiment
-  #
-  def Experiment.domain()
-    @@domain
-  end
-
-  #
-  # Return the domain of this Experiment
-  #
-  def Experiment.getDomain()
-    if @@domain != nil 
-       return @@domain
-    else
-       return OConfig.domain
-    end
   end
 
   #

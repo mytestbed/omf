@@ -41,7 +41,7 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.HB(handler, sender, senderId, argArray)
+  def AgentCommands.HB(communicator, sender, cmdObj)
     sender.heartbeat(0, 0, "00:00")
   end
 
@@ -68,8 +68,8 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.WARN(handler, sender, senderId, argArray)
-    MObject.warn("agentCmd::warning", sender, ": ", sender, " senderId: ", senderId, ":" , argArray.join(','))
+  def AgentCommands.WARN(communicator, sender, cmdObj)
+    MObject.warn("agentCmd::WARN from: '#{cmdObj.target}' ('#{sender}') - msg: '#{cmdObj.message}'")
   end
 
   #
@@ -90,8 +90,8 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.WRONG_IMAGE(handler, sender, senderId, argArray)
-    MObject.debug("Received WRONG_IMAGE from '#{senderId}' - Desired: '#{sender.image}' - Installed: '#{argArray}'")
+  def AgentCommands.WRONG_IMAGE(communicator, sender, cmdObj)
+    MObject.debug("agentCmd::WRONG_IMAGE from: '#{cmdObj.target}' - Desired: '#{sender.image}' - Installed: '#{cmdObj.image}'")
     sender.reset()
   end
 
@@ -105,12 +105,11 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.APP_EVENT(handler, sender, senderId, argArray)
-    eventName = getArg(argArray, "Name of event")
-    appId = getArg(argArray, "Application ID")
-    message = argArray.join(' ')
-    MObject.debug("agentCmd::APP_EVENT", eventName, "' from '", appId, \
-        "' executing on ", sender, ": '", message, "'")
+  def AgentCommands.APP_EVENT(communicator, sender, cmdObj)
+    eventName = cmdObj.value
+    appId = cmdObj.appID
+    message = cmdObj.message
+    MObject.debug("agentCmd::APP_EVENT #{eventName} from: '#{appId}' (#{sender}) - msg: '#{message}'")
     sender.onAppEvent(eventName, appId, message)
     return nil
   end
@@ -125,12 +124,11 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.DEV_EVENT(handler, sender, senderId, argArray)
-    eventName = getArg(argArray, "Name of event")
-    devName = getArg(argArray, "Device name")
-    message = getArgDefault(argArray, nil)
-    MObject.debug("agentCmd::DEV_EVENT", eventName, "' from '", devName, \
-        "' executing on ", sender, ": '", message, "'")
+  def AgentCommands.DEV_EVENT(communicator, sender, cmdObj)
+    eventName = cmdObj.value
+    devName = cmdObj.appID
+    message = cmdObj.message
+    MObject.debug("agentCmd::DEV_EVENT #{eventName} from: '#{devName}' (#{sender}) - msg: '#{message}'")
     sender.onDevEvent(eventName, devName, message)
     return nil
   end
@@ -150,24 +148,25 @@ module AgentCommands
   # - path  Id of resource to have been configured
   # - msg   Message describing error condition
   #
-  def AgentCommands.ERROR(handler, sender, senderId, argArray)
-    command = getArg(argArray, "Command causing error")
+  def AgentCommands.ERROR(communicator, sender, cmdObj)
+    command = cmdObj.cmd
     case command
       when 'CONFIGURE'
-        path = getArg(argArray, "Name of resource")
+        path = cmdObj.path
+        message = cmdObj.message
         reason = "Couldn't configure '#{path}'"
-        message = argArray.join(' ')
         id = NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(path.split("/"), reason, "error")
         MObject.error("agentCmd::CONFIGURE_ERROR ('#{path}')", " #{reason} on '#{sender}': #{message}")
       when 'LOST_HANDLER'
         MObject.error("agentCmd::LOST_HANDLER_ERROR", "'#{sender}' lost us")
-      when 'EXECUTION'
-        message = argArray.join(' ')
-        MObject.error("agentCmd::EXECUTION_ERROR", "Execution Error on node: '#{sender}' - Error Message: #{message}")
+      when 'EXECUTE'
+        message = cmdObj.message
+        app = cmdObj.appID
+        MObject.error("agentCmd::EXECUTION_ERROR", "Execution Error on: '#{sender}' - App: '#{app}'- Message: #{message}")
       else
         reason = "Unknown error caused by '#{command}'"
-        message = argArray.join(' ')
+        message =  cmdObj.message
         NodeHandler.instance.logError(sender, reason, {:details => message})
         MObject.error("agentCmd::UNKNOWN_ERROR", "#{reason} on '#{sender}': #{message}")
     end
@@ -191,7 +190,7 @@ module AgentCommands
   # - senderId = the sender ID 
   # - argArray = an array holding the arguments for this command
   #
-  def AgentCommands.END_EXPERIMENT(handler, sender, senderId, argArray)
+  def AgentCommands.END_EXPERIMENT(communicator, sender, cmdObj)
     if NodeHandler.disconnectionMode?
       sender.setReconnected()
       info "Received End of Experiment from node '#{sender}' (reconnected)." 
@@ -217,13 +216,13 @@ module AgentCommands
   # [Return] First element in 'argArray' or raise exception
   # [Raise] Exception if the first element is nil
   #
-  def AgentCommands.getArg(argArray, excepString)
-    arg = argArray.delete_at(0)
-    if (arg == nil)
-      raise excepString
-    end
-    return arg
-  end
+  #def AgentCommands.getArg(argArray, excepString)
+  #  arg = argArray.delete_at(0)
+  #  if (arg == nil)
+  #    raise excepString
+  #  end
+  #  return arg
+  #end
 
   #
   # This methods perform useful sub-routine task for the message processing commands.
@@ -236,12 +235,12 @@ module AgentCommands
   #
   # [Return] First element in 'argArray' or 'default' if nil
   #
-  def AgentCommands.getArgDefault(argArray, default = nil)
-    arg = argArray.delete_at(0)
-    if (arg == nil)
-      arg = default
-    end
-    return arg
-  end
+  #def AgentCommands.getArgDefault(argArray, default = nil)
+  #  arg = argArray.delete_at(0)
+  #  if (arg == nil)
+  #    arg = default
+  #  end
+  #  return arg
+  #end
 
 end

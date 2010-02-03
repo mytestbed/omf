@@ -393,7 +393,7 @@ class AgentPubSubCommunicator < MObject
 
     # Send it
     dst = "#{@@psGroupExperiment}/#{@@myName}"
-    debug("Send to '#{dst}' - msg: '#{message}'")
+    debug("Send (#{dst}) - msg: '#{message}'")
     begin
       @@service.publish_to_node("#{dst}", item)        
     rescue Exception => ex
@@ -452,7 +452,7 @@ class AgentPubSubCommunicator < MObject
         return
       end
 
-      debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
+      debug "Received (#{incomingPubSubNode}) - '#{xmlMessage.to_s}'"
       # Some commands need to trigger actions on the Communicator level
       # before being passed on to the Resource Controller
       begin

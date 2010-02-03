@@ -208,7 +208,9 @@ class NodeAgent < MObject
     error_reply = communicator.getCmdObject(:ERROR)
     error_reply.target = @agentName
     error_reply.message = message
-    error_reply.cmd = cmdObj.to_xml.to_s
+    error_reply.cmd = cmdObj.type.to_s
+    error_reply.path = cmdObj.path if cmdObj.path != nil
+    error_reply.appID = cmdObj.appID if cmdObj.appID != nil
     # 'ERROR' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
     communicator.sendCmdObject(error_reply)
@@ -258,7 +260,7 @@ class NodeAgent < MObject
   # - msg = a String with optional message from the application 
   #
   def onAppEvent(eventName, appId, *msg)
-    debug("onAppEvent(#{eventName}:#{appId}): '#{msg}'")
+    debug("onAppEvent(event: #{eventName} - app: #{appId}) - '#{msg}'")
     
     # If this NA allows disconnection, then check if the event is the Done message from 
     # the slave Experiment Controller
@@ -268,7 +270,13 @@ class NodeAgent < MObject
          debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
        end
     end
-    send(:APP_EVENT, eventName.to_s.upcase, appId, *msg)
+    app_event = communicator.getCmdObject(:APP_EVENT)
+    app_event.target = @agentName
+    app_event.value = eventName.to_s.upcase
+    app_event.appID = appId
+    app_event.message = "#{msg}"
+    send(app_event)
+    #send(:APP_EVENT, eventName.to_s.upcase, appId, *msg)
   end
 
   #
@@ -282,7 +290,13 @@ class NodeAgent < MObject
   #
   def onDevEvent(eventName, deviceName, *msg)
     debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    send(:DEV_EVENT, eventName.to_s.upcase, deviceName, *msg)
+    dev_event = communicator.getCmdObject(:DEV_EVENT)
+    dev_event.target = @agentName
+    dev_event.value = eventName.to_s.upcase
+    dev_event.appID = deviceName
+    dev_event.message = "#{msg}"
+    send(dev_event)
+    #send(:DEV_EVENT, eventName.to_s.upcase, deviceName, *msg)
   end
 
   #
@@ -309,7 +323,7 @@ class NodeAgent < MObject
     @agentAliases = [@agentName, "*"]
     @allowDisconnection = false
     @expirementDone = false
-    info "Agent Name / Slice: '#{@agentName}' / '#{@agentSlice}'"
+    info "Agent: '#{@agentName}' - Slice: '#{@agentSlice}'"
     info "Disconnection Support Disabled."
   end
 
@@ -509,23 +523,23 @@ class NodeAgent < MObject
   # future, all comms between EC and RC should use this scheme, and this should
   # be more clean.
   #
-  def execCommand(cmd)
+  def execCommand(cmdObj)
   
-    debug "Processing '#{cmd.type}' - '#{cmd.target}'"
+    debug "Processing '#{cmdObj.type}' - '#{cmdObj.target}'"
     method = nil
     begin
-      method = AgentCommands.method(cmd.type.to_s)
+      method = AgentCommands.method(cmdObj.type.to_s)
     rescue Exception
-      error "Unknown method for command '#{cmd.type}'"
-      errorReply("Unknown command", cmd) 
+      error "Unknown method for command '#{cmdObj.type}'"
+      errorReply("Unknown command", cmdObj) 
       #send(:ERROR, :UNKNOWN_CMD, cmd.type)
       return
     end
     begin
-      reply = method.call(self, cmd)
+      reply = method.call(self, cmdObj)
     rescue Exception => err
-      error "While executing #{cmd.type}: #{err}"
-      errorReply("Execution Error (#{err})", cmd) 
+      error "While executing #{cmdObj.type}: #{err}"
+      errorReply("Execution Error (#{err})", cmdObj) 
       #send(:ERROR, :EXECUTION, cmd.type, err)
       return
     end

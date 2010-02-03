@@ -453,8 +453,13 @@ class Node < MObject
     info " "
     info("- Saving image of '#{disk}' on node '#{@nodeId}'")
     info("  to the file '#{imgName}' on host '#{imgHost}'")
-    send('SAVE_IMAGE', imgHost, imgPort, disk)
     info " "
+    save_cmd = Communicator.instance.getCmdObject(:SAVE_IMAGE)
+    save_cmd.target = @nodeId
+    save_cmd.address = imgHost
+    save_cmd.port = imgPort
+    save_cmd.disk = disk
+    send(save_cmd)
   end
 
   #
@@ -464,7 +469,11 @@ class Node < MObject
   #
   def setMACTable(toolToUse)
     @blockedMACList.each{ |mac|
-      send('SET_MACTABLE', toolToUse, mac)
+      mac_cmd = Communicator.instance.getCmdObject(:SET_MACTABLE)
+      mac_cmd.target = @nodeId
+      mac_cmd.cmd = toolToUse
+      mac_cmd.address = mac
+      send(mac_cmd)
     }
   end
 

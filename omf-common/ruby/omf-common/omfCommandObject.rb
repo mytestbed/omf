@@ -133,7 +133,7 @@ class OmfCommandObject < MObject
     msg.root << REXML::Element.new("IMAGE").add_text("#{@image}") if @image != nil
     msg.root << REXML::Element.new("MESSAGE").add_text("#{@message}") if @message != nil
     msg.root << REXML::Element.new("CMD").add_text("#{@cmd}") if @cmd != nil
-    msg.root << REXML::Element.new("ALIAS").add_text("#{@alias}") if @alias != nil
+    msg.root << REXML::Element.new("NAME").add_text("#{@alias}") if @alias != nil
     msg.root << REXML::Element.new("VALUE").add_text("#{@value}") if @value != nil
     msg.root << REXML::Element.new("ADDRESS").add_text("#{@address}") if @address != nil
     msg.root << REXML::Element.new("PORT").add_text("#{@port}") if @port != nil
@@ -178,7 +178,7 @@ class OmfCommandObject < MObject
     xmlDoc.each_element("IMAGE") { |e| @image = e.text }
 
     # If Type = :ENROLLED
-    xmlDoc.each_element("ALIAS") { |e| @alias = e.text }
+    xmlDoc.each_element("NAME") { |e| @alias = e.text }
 
     # If Type = :ERROR
     xmlDoc.each_element("MESSAGE") { |e| @message = e.text }

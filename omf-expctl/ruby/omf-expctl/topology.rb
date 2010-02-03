@@ -648,7 +648,6 @@ class Topology < MObject
         raise "Topology - failed to add node [#{x},#{y}] to topology #{uri} ('strict=true', no change allowed) - #{re}"
       else
         warn("Ignoring missing node '#{name}'")
-        info("TDEBUG - '#{re}'")
       end
     end
   end
@@ -833,7 +832,6 @@ attr_reader :nodesArr
     if (selector.kind_of?(String))
       error "Unexpected selector declaration '#{selector}'. Please report as bug"
     elsif selector.kind_of?(Array)
-      info "TDEBUG - Topology - Add Resources - '#{selector}'"
       selector.each {|node|
         addNode(node)
       }

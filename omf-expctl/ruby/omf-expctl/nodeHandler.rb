@@ -493,7 +493,7 @@ class NodeHandler < MObject
 
     opts.on("-r", "--reset", "If set, then reset (reboot) the nodes before the experiment") { @@reset = true }
 
-    opts.on("-S", "--slice NAME", "Name of the Slice where this EC should operate") { |name| Experiment.Slice = name }
+    opts.on("-S", "--slice NAME", "Name of the Slice where this EC should operate") { |name| Experiment.sliceID = name }
 
     opts.on("-s", "--shutdown", "If set, then shut down resources at the end of an experiment") { @@shutdown = true }
 
@@ -568,7 +568,7 @@ class NodeHandler < MObject
     end
 
     # Now start the Communiator
-    Communicator.init(OConfig[:ec_config][:communicator], Experiment.Slice, Experiment.ID)
+    Communicator.init(OConfig[:ec_config][:communicator], Experiment.sliceID, Experiment.ID)
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
