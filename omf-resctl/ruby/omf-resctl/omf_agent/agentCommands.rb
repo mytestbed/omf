@@ -633,7 +633,13 @@ end
       raise "Unknown resource '#{type}/#{id}' in 'configure'"
     end
 
-    device.configure(agent, prop, value)
+    result = device.configure(agent, prop, value)
+
+    if result[:success]
+      agent.okReply(result[:msg], cmdObj)
+    else
+      agent.errorReply(result[:msg], cmdObj) 
+    end
   end
 
   #

@@ -52,7 +52,7 @@ class XmppCommunicator < Communicator
                         :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
                         :ENROLL, :EXIT]
 
-  VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :HB, :WARN, 
+  VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
                         :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
 
   @@instance = nil

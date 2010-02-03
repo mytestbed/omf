@@ -90,15 +90,15 @@ class Device < MObject
       debug "configure cmd: #{cmd}"
       reply = `#{cmd}`
       if $?.success?
-        agent.okReply(:CONFIGURE, path, reply)
+        return [:success => true, :msg => reply]
       else
-        error("While configuring #{prop} with #{value} - CMD reply is: '#{reply}'")
-        agent.errorReply(:CONFIGURE, path, reply)
+        error("While configuring '#{prop}' with '#{value}' - Error: '#{reply}'")
+        return [:success => false, :msg => reply]
       end
     rescue => err
-      error("While configuring #{prop} with #{value} \n\t#{err}")
-      agent.errorReply(:CONFIGURE, path, err)
-  end
+      error("While configuring '#{prop}' with '#{value}' \n\t#{err}")
+      return [:success => false, :msg => err]
+    end
   end
 
   #

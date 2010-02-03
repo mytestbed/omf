@@ -47,7 +47,6 @@ class Experiment
   @@domain = nil
 
   attr_reader :domain
-  attr_accessor :sliceID
 
   #
   # Return the ID of this Experiment
@@ -68,6 +67,20 @@ class Experiment
   #
   def Experiment.ID=(id)
     @@expID = "#{id}"
+  end
+
+  #
+  # Set the slice ID for this Experiment
+  #
+  def Experiment.sliceID=(id)
+    @@sliceID = "#{id}"
+  end
+
+  #
+  # Return the slice ID of this Experiment
+  #
+  def Experiment.sliceID
+    return @@sliceID 
   end
 
   #

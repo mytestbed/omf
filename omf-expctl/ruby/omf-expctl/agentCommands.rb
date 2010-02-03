@@ -45,6 +45,10 @@ module AgentCommands
     sender.heartbeat(0, 0, "00:00")
   end
 
+  def AgentCommands.OK(communicator, sender, cmdObj)
+    MObject.debug("agentCmd::OK from: '#{cmdObj.target}' - cmd: '#{cmdObj.cmd}' - msg: '#{cmdObj.message}'")
+  end
+
   #
   # Process 'ENROLLED' message from a Node Agent. 
   # The EC receives such a message when a NA has enrolled in a group of the experiment.
@@ -154,21 +158,19 @@ module AgentCommands
       when 'CONFIGURE'
         path = cmdObj.path
         message = cmdObj.message
-        reason = "Couldn't configure '#{path}'"
         id = NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(path.split("/"), reason, "error")
-        MObject.error("agentCmd::CONFIGURE_ERROR ('#{path}')", " #{reason} on '#{sender}': #{message}")
+        MObject.error("agentCmd::CONFIGURE_ERROR '#{path}' on '#{sender}' - msg: #{message}")
       when 'LOST_HANDLER'
         MObject.error("agentCmd::LOST_HANDLER_ERROR", "'#{sender}' lost us")
       when 'EXECUTE'
         message = cmdObj.message
         app = cmdObj.appID
-        MObject.error("agentCmd::EXECUTION_ERROR", "Execution Error on: '#{sender}' - App: '#{app}'- Message: #{message}")
+        MObject.error("agentCmd::EXECUTION_ERROR on '#{sender}' - App: '#{app}'- msg: #{message}")
       else
-        reason = "Unknown error caused by '#{command}'"
         message =  cmdObj.message
         NodeHandler.instance.logError(sender, reason, {:details => message})
-        MObject.error("agentCmd::UNKNOWN_ERROR", "#{reason} on '#{sender}': #{message}")
+        MObject.error("agentCmd::UNKNOWN_ERROR on '#{sender}' - cmd: '#{command}' - msg: #{message}")
     end
   end
 

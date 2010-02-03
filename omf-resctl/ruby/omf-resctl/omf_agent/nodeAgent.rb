@@ -163,13 +163,24 @@ class NodeAgent < MObject
   # - id = the ID of this NA (default = nil)
   # - msgArray = an array with the full received command (name, parameters,...)
   #
-  def okReply(cmd, id = nil, *msgArray)
+  def old_okReply(cmd, id = nil, *msgArray)
     if @allowDisconnection 
       communicator.sendRelaxedHeartbeat()
     else
       communicator.sendHeartbeat()
     end
   end
+
+  def okReply(message, cmdObj)
+    ok_reply = communicator.getCmdObject(:OK)
+    ok_reply.target = @agentName
+    ok_reply.message = message
+    ok_reply.cmd = cmdObj.type.to_s
+    ok_reply.path = cmdObj.path if cmdObj.path != nil
+    ok_reply.value = cmdObj.value if cmdObj.value != nil
+    send(ok_reply)
+  end
+
 
   #
   # Send an ENROLL reply to the Node Handler (EC). When a YOUARE or ALIAS 
@@ -211,6 +222,7 @@ class NodeAgent < MObject
     error_reply.cmd = cmdObj.type.to_s
     error_reply.path = cmdObj.path if cmdObj.path != nil
     error_reply.appID = cmdObj.appID if cmdObj.appID != nil
+    error_reply.value = cmdObj.value if cmdObj.value != nil
     # 'ERROR' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
     communicator.sendCmdObject(error_reply)
