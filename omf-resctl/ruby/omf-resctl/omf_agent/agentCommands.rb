@@ -536,19 +536,17 @@ end
   end
 
   #
-  # Command 'APT'
+  # Command 'APT_INSTALL'
   #
   # Execute apt-get command on node
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the install ID (for reporting progress), the apt-get parameters, and the package name
+  # - argArray = an array with the install ID (for reporting progress) and the package name
   #
-  def AgentCommands.APT_INSTALL(agent, cmdObject)
-    id = cmdObject.appID
-    command = cmdObject.cmd
-    pkgName = cmdObject.value
-
-    cmd = "apt-get -q -y #{argArray.join(' ')} #{command} #{pkgName}"
+  def AgentCommands.APT_INSTALL(agent, argArray)
+    id = getArg(argArray, "ID of install")
+    pkgName = getArg(argArray, "Name of package to install")
+    cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install --reinstall -qq #{pkgName}"
     ExecApp.new(id, agent, cmd)
   end
 
