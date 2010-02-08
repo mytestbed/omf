@@ -562,6 +562,18 @@ class NodeHandler < MObject
     # And this will not be there, but rather provided by the resource provisioning
     OConfig.loadTestbedConfiguration()
 
+    if Experiment.sliceID != nil
+      info "Slice ID: #{Experiment.sliceID}"
+    else
+      if (Experiment.sliceID = OConfig[:ec_config][:slice]) != nil
+        warn "Using default Slice ID (from config file): #{Experiment.sliceID}"
+      else
+        error "No slice ID defined on command line or config file! Exiting now!\n"
+	exit
+      end
+    end
+    info " Experiment ID: #{Experiment.ID}"
+
     if listTutorial
       OConfig.load("test:exp:tutorial-list" , true)
       exit
@@ -597,7 +609,6 @@ class NodeHandler < MObject
       exit -1
     end
 
-    info('init', " Experiment ID: #{Experiment.ID}")
     Experiment.expArgs = rest - [@expFile]
   end
 
@@ -821,11 +832,7 @@ class NodeHandler < MObject
         confirmedPort = i
       rescue
         #info "Port #{i} is in use!"
-        OMF::ExperimentController::Web::start(i, {:Logger => Logger.new("/tmp/#{Experiment.ID}.w_internal.log"),
-           :DocumentRoot => NodeHandler.WEB_ROOT(),
-           :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
-      rescue
-        #info "Port #{i} is in use!"
+        # Ignore this exception, 'i' will be incremented in the next loop
       end
       break if confirmedPort != 0   
     end

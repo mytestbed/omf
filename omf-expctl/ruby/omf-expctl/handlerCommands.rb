@@ -135,14 +135,6 @@ def defPrototype(refName, name = nil, &block)
 end
 
 #
-# Deprecated, 'defGroup' should be used instead
-#
-def defNodes(groupName, selector = nil, &block)
-  MObject.warn "'defNodes()' is deprecated - please use defGroup() instead"
-  defGroup(groupName, selector, &block)
-end
-
-#
 # Define a set of nodes to be used in the experiment.
 # This can either be a specific declaration of nodes to
 # use, or a set combining other sets.
@@ -172,6 +164,7 @@ def defGroup(groupName, selector = nil, &block)
         # Selector is the name of an existing Topology (e.g. "myTopo")
         topo = Topology[selector]
         ns = BasicNodeSet.new(groupName, topo)
+	# This raises an exception if Selector does not refer to an existing Topology
       rescue
         # Selector is a comma-separated list of existing resources
         # These resources are identified by their HRNs
@@ -212,14 +205,6 @@ def group(groupName, &block)
 end
 
 #
-# Deprecated, 'group()' should be used instead
-#
-def nodes(groupName, &block)
-  MObject.warn "'nodes()' is deprecated - please use group() instead"
-  group(groupName, &block)
-end
-
-#
 # Evaluate a code-block over all nodes in all groups of the experiment.
 #
 # - &block = the code-block to evaluate/execute on all the groups of nodes
@@ -230,14 +215,6 @@ def allGroups(&block)
   NodeSet.freeze
   ns = DefinedGroupNodeSet.instance
   return RootNodeSetPath.new(ns, nil, nil, block)
-end
-
-#
-# Deprecated, 'AllGroups()' should be used instead
-#
-def allNodes(&block)
-  MObject.warn "'allNodes()' is deprecated - please use allGroups() instead"
-  allGroups(&block)
 end
 
 #
@@ -293,8 +270,10 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
         # then stop the experiment!
         if (ns.to_s == "*") && ns.empty?
           info " "
-          info "-- All the defined groups are empty (they do not include any nodes)!"
+          info "-- All the groups in your experiment are empty!"
+	  info "-- Or they do not include any available nodes!"
           info "-- Stopping the Experiment now."
+          info " "
           Experiment.done
           sleep 2 # otherwise this loops again before the experiment stops, annoyingly reprinting the above msg
         end

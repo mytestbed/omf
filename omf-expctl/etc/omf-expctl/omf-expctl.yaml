@@ -41,6 +41,7 @@
       # You need a corresponding entry in the testbed table of your inventory that has this name
       # set in the 'node_domain' column
       :domain: 'sandbox2'
+      :slice: 'testing_slice'
 
       # This is the Path where EC should look for its repository of built in experiments
       # (e.g. example experiments, maintenance experiments, etc...)

@@ -108,7 +108,11 @@ class Application < MObject
   def install(nodeSet)
     if (aptName = @appDefinition.aptName) != nil
       # Install App from DEB package using apt-get 
-      nodeSet.send(:APT_INSTALL, "#{appDefinition.uri}/install", aptName)
+      install_cmd = Communicator.instance.getCmdObject(:APT_INSTALL)
+      install_cmd.appID = "#{appDefinition.uri}/install"
+      install_cmd.package = aptName
+      nodeSet.send(install_cmd)
+      #nodeSet.send(:APT_INSTALL, "#{appDefinition.uri}/install", aptName)
     elsif (rep = @appDefinition.binaryRepository) != nil
       # Install App from TAR archive using wget + tar 
       # We first have to mount the local TAR file to a URL on our webserver
@@ -116,7 +120,12 @@ class Application < MObject
       url_dir="/install/#{rep.gsub('/', '_')}"
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
       OMF::ExperimentController::Web.mapFile(url_dir, rep)
-      nodeSet.send(:PM_INSTALL, "#{appDefinition.uri}/install", url, '/')
+      install_cmd = Communicator.instance.getCmdObject(:PM_INSTALL)
+      install_cmd.appID = "#{appDefinition.uri}/install"
+      install_cmd.image = url
+      install_cmd.path = '/'
+      nodeSet.send(install_cmd)
+      #nodeSet.send(:PM_INSTALL, "#{appDefinition.uri}/install", url, '/')
     end
   end
 

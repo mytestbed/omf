@@ -63,6 +63,9 @@ class OmfCommandObject < MObject
   # The disk device associated with this Command Object (optional)
   attr_accessor :disk
 
+  # The name of the package or archive associated with this Command Object (optional)
+  attr_accessor :package
+
   # The ID of the application for this Command Object (optional, e.g. 'otg2')
   attr_accessor :appID
 
@@ -90,6 +93,7 @@ class OmfCommandObject < MObject
     @address = nil
     @port = nil
     @disk = nil
+    @package = nil
     @appID = nil
     @env = nil
     @path = nil
@@ -138,6 +142,7 @@ class OmfCommandObject < MObject
     msg.root << REXML::Element.new("ADDRESS").add_text("#{@address}") if @address != nil
     msg.root << REXML::Element.new("PORT").add_text("#{@port}") if @port != nil
     msg.root << REXML::Element.new("DISK").add_text("#{@disk}") if @disk != nil
+    msg.root << REXML::Element.new("PACKAGE").add_text("#{@package}") if @package != nil
     msg.root << REXML::Element.new("APPID").add_text("#{@appID}") if @appID != nil
     msg.root << REXML::Element.new("PATH").add_text("#{@path}") if @path != nil
     msg.root << REXML::Element.new("ARGSLINE").add_text("#{@cmdLineArgs.join(" ")}") if @cmdLineArgs != nil
@@ -194,6 +199,9 @@ class OmfCommandObject < MObject
 
     # If Type = :EXECUTE or :CONFIGURE
     xmlDoc.each_element("PATH") { |e| @path = e.text }
+
+    # If Type = :APT_INSTALL 
+    xmlDoc.each_element("PACKAGE") { |e| @package = e.text }
 
     # If Type = :EXECUTE
     xmlDoc.each_element("APPID") { |e| @appID = e.text }

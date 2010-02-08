@@ -543,9 +543,9 @@ end
   # - agent = the instance of this NA
   # - argArray = an array with the install ID (for reporting progress) and the package name
   #
-  def AgentCommands.APT_INSTALL(agent, argArray)
-    id = getArg(argArray, "ID of install")
-    pkgName = getArg(argArray, "Name of package to install")
+  def AgentCommands.APT_INSTALL(agent, cmdObject)
+    id = cmdObject.appID
+    pkgName = cmdObject.package
     cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install --reinstall -qq #{pkgName}"
     ExecApp.new(id, agent, cmd)
   end

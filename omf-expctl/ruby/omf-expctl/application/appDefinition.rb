@@ -224,7 +224,10 @@ class AppDefinition < MObject
         # This Property is a Dynamic Experiment Property...
         if value.kind_of?(ExperimentProperty)
           value.onChange { |v|
-            nodeSet.send(:STDIN, appId, prop.name, v)
+            stdin_cmd = Communicator.instance.getCmdObject(:STDIN)
+            stdin_cmd.appID = appId
+            stdin_cmd.value = "#{prop.name} #{v}"
+            nodeSet.send(stdin_cmd)
           }
           if (value = value.value) == nil
             next # continue with the next property
@@ -365,7 +368,7 @@ class AppDefinition < MObject
   #   :dynamic => true|false -- Id true property can be changed at run-time
   #   :order => int   -- Uses the int to order the properties when forming
   #                        command line
-  #   :use_name => true|false -- If false only use value, not name or mnemonic
+  #   :use_name => true|false -- If false only use value, not name (important mnemonic must be se to 'nil')
   #
   def defProperty(name = :mandatory, description = :mandatory, mnemonic = nil, options = {})
     raise OEDLMissingArgumentException.new(:defProperty, :name) if name == :mandatory

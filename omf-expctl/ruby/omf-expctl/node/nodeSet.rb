@@ -218,7 +218,6 @@ class NodeSet < MObject
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
     exit_cmd = Communicator.instance.getCmdObject(:EXIT)
-    exit_cmd.target = @nodeSelector
     exit_cmd.appID = name
     send(exit_cmd)
   end
@@ -280,7 +279,6 @@ class NodeSet < MObject
       }
     end
     exec_cmd = Communicator.instance.getCmdObject(:EXECUTE)
-    exec_cmd.target = @nodeSelector
     exec_cmd.appID = procName
     exec_cmd.path = cmdName
     exec_cmd.env = env
@@ -365,7 +363,6 @@ class NodeSet < MObject
       n.configure(path, value)
     }
     conf_cmd = Communicator.instance.getCmdObject(:CONFIGURE)
-    conf_cmd.target = @nodeSelector
     conf_cmd.path = path.join('/')
     conf_cmd.value = valueToSend.to_s
     send(conf_cmd)
@@ -528,7 +525,6 @@ class NodeSet < MObject
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
     load_cmd = Communicator.instance.getCmdObject(:LOAD_IMAGE)
-    load_cmd.target = @nodeSelector
     load_cmd.address = mcAddress
     load_cmd.port = mcPort
     load_cmd.disk = disk
@@ -570,6 +566,7 @@ class NodeSet < MObject
   #
   def send(cmdObj)
     notQueued = true
+    cmdObj.target = @nodeSelector
     @mutex.synchronize do
       if (!up?)
         debug "Deferred message ('#{@nodeSelector}') - '#{cmdObj.to_s}'" 
