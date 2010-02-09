@@ -15,6 +15,9 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
+# Source function library.
+. /etc/rc.d/init.d/functions
+
 NAME=omf-resctl-5.3
 
 test -x /usr/sbin/$NAME || exit 0
@@ -29,16 +32,19 @@ fi
 
 start(){
     echo -n "Starting OMF Resource Controller: $NAME"
-	if [ -f /var/log/$NAME.log ]; then
-	    mv /var/log/$NAME.log /var/log/$NAME.log.1
-	fi
-	start-stop-daemon --start --quiet --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
+    if [ -f /var/log/$NAME.log ]; then
+       mv /var/log/$NAME.log /var/log/$NAME.log.1
+    fi
+    $NAME > /dev/null 2>&1 &
+    echo $! > /var/run/$NAME.pid
+    sleep 2
     echo "."
 }
 
 stop(){
     echo -n "Stopping OMF Resource Controller: $NAME"
-	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/$NAME.pid
+    kill `cat /var/run/$NAME.pid`
+    sleep 2
     echo "."
 }
 
@@ -49,16 +55,14 @@ case "$1" in
   stop)
     stop
 	;;
-
   restart)
     stop
-	start
+    start
 	;;
 
   *)
-	echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
-	exit 1
+    echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
+    exit 1
 esac
 
 exit 0
-
