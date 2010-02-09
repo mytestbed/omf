@@ -46,14 +46,14 @@ class SlicemgrService < GridService
   name 'slicemgr'
   info 'XML-RPC interface to the PubSub server for slice creation'
 
-  s_info 'Create PubSub groups for a new slice.'
+  s_info 'Create PubSub nodes for a new slice.'
   service 'createSlice' do |slice|
-    if self.check_slice_name(slice) then
-      sliceid = self.slice_id(slice)
-      resourcesid = self.resources_id(slice)
+    if check_slice_name(slice) then
+      sliceid = slice_pubsub_id(slice)
+      resources_node = resources_node_pubsub_id(slice)
       MObject.debug(serviceName, "Adding a slice named '#{sliceid}'")
       @@pubsub.create_pubsub_node("#{sliceid}")
-      @@pubsub.create_pubsub_node("#{resourcesid}")
+      @@pubsub.create_pubsub_node("#{resources_node}")
       {
         :result => "OK",
         :name => sliceid
@@ -61,53 +61,53 @@ class SlicemgrService < GridService
     end
   end
 
-  s_info 'Create PubSub groups for a new node in a given slice.'
-  service 'createNode' do |slice, node|
-    if self.check_slice_name(slice) then
-      sliceid = self.slice_id(slice)
-      resourcesid = self.resources_id(slice)
-      nodeid = self.node_id(slice, node)
-      MObject.debug(serviceName, "Create a new node #{node} under #{resourcesid}")
-      @@pubsub.create_pubsub_node(nodeid);
+  s_info 'Create PubSub node for a new resource in a given slice.'
+  service 'addResource' do |slice, resource|
+    if check_slice_name(slice) then
+      sliceid = slice_pubsub_id(slice)
+      resources_node = resources_node_pubsub_id(slice)
+      resourceid = resource_pubsub_id(slice, resource)
+      MObject.debug(serviceName, "Create a new node #{resource} under #{resources_node}")
+      @@pubsub.create_pubsub_node(resourceid);
       {
         :result => "OK",
         :slice => sliceid,
-        :node => nodeid
+        :resource => resourceid
       }
     end
   end
 
-  s_info 'Remove a PubSub group for a node in a slice.'
-  service 'removeNode' do |slice, node|
-    if self.check_slice_name(slice) then
-      sliceid = self.slice_id(slice)
-      nodeid = self.node_id(slice, node)
-      MObject.debug(serviceName, "Remove node #{node} from slice #{slice}")
-      @@pubsub.remove_pubsub_node(nodeid)
+  s_info 'Delete the PubSub node for a resource in a slice.'
+  service 'removeResource' do |slice, resource|
+    if check_slice_name(slice) then
+      sliceid = slice_pubsub_id(slice)
+      resourceid = resource_pubsub_id(slice, resource)
+      MObject.debug(serviceName, "Remove node #{resource} from slice #{slice}")
+      @@pubsub.remove_pubsub_node(resourceid)
       {
         :result => "OK",
         :slice => sliceid,
-        :node => nodeid
+        :resource => resourceid
       }
     end
   end
 
-  s_info 'Remove the PubSub group for a given slice.'
-  service 'removeSlice' do |slice|
-    if self.check_slice_name(slice) then
-      sliceid = self.slice_id(slice)
-      resourcesid = self.resources_id(slice)
-      slice_nodes = self.get_nodes_for_slice(slice)
-      slice_nodes.each do |node|
-        MObject.debug(serviceName, "Removing node #{node} (belongs to #{sliceid})")
-        @@pubsub.remove_pubsub_node(node)
+  s_info 'Delete the PubSub node for a given slice.'
+  service 'deleteSlice' do |slice|
+    if check_slice_name(slice) then
+      sliceid = slice_pubsub_id(slice)
+      resources_node = resources_node_pubsub_id(slice)
+      slice_resources = get_resources_for_slice(slice)
+      slice_resources.each do |resource|
+        MObject.debug(serviceName, "Removing resource #{resource} (belongs to #{sliceid})")
+        @@pubsub.remove_pubsub_node(resource)
       end
       MObject.debug(serviceName, "Remove slice #{sliceid}")
       @@pubsub.remove_pubsub_node(sliceid)
-      @@pubsub.remove_pubsub_node(resourcesid)
+      @@pubsub.remove_pubsub_node(resources_node)
       result = { :result => "OK", :slice => sliceid }
-      if not slice_nodes.empty? then
-        result[:nodes] = slice_nodes
+      if not slice_resources.empty? then
+        result[:resources] = slice_resources
       end
       result
     end
@@ -141,19 +141,19 @@ class SlicemgrService < GridService
     @@pubsubjid = "pubsub.#{@@config['server']}"
   end
 
-  def self.slice_id(slice_name)
+  def self.slice_pubsub_id(slice_name)
     "OMF/#{slice_name}"
   end
 
-  def self.resources_id(slice_name)
-    "#{self.slice_id(slice_name)}/#{RESOURCES}"
+  def self.resources_node_pubsub_id(slice_name)
+    "#{slice_pubsub_id(slice_name)}/#{RESOURCES}"
   end
 
-  def self.node_id(slice_name, node_name)
-    "#{self.resources_id(slice_name)}/#{node_name}"
+  def self.resource_pubsub_id(slice_name, resource_name)
+    "#{resources_node_pubsub_id(slice_name)}/#{resource_name}"
   end
 
-  def self.list_all_nodes
+  def self.list_all_pubsub_nodes
     @@browser.nodes(@@pubsubjid)
   end
 
@@ -166,10 +166,10 @@ class SlicemgrService < GridService
       end
   end
 
-  def self.get_nodes_for_slice(slice)
-    slice_resources_prefix = "#{self.resources_id(slice)}/"
+  def self.get_resources_for_slice(slice)
+    slice_resources_prefix = "#{resources_node_pubsub_id(slice)}/"
     prefix_length = slice_resources_prefix.length
-    all = self.list_all_nodes
+    all = list_all_pubsub_nodes
     all.delete_if do |node|
       prefix = node[0..prefix_length-1]
       prefix != slice_resources_prefix
