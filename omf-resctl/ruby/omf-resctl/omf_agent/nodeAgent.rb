@@ -577,22 +577,35 @@ end
 #
 # Discover the available devices
 # 
-IO.popen("/usr/bin/lspci | grep 'Network controller: Intel' | /usr/bin/wc -l") {|p|
-  if p.gets.to_i > 0
-    require 'omf-resctl/omf_driver/intel'
-    MObject.info "Have Intel cards"
-    AgentCommands::DEV_MAPPINGS['net/w0'] = IntelDevice.new('net/w0', 'eth2')
-    AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
-  end
-}
-IO.popen("/usr/bin/lspci | grep 'Ethernet controller: Atheros' | /usr/bin/wc -l") {|p|
-  if p.gets.to_i > 0
-    require 'omf-resctl/omf_driver/atheros'
-    MObject.info "Have Atheros cards"
-    AgentCommands::DEV_MAPPINGS['net/w0'] = AtherosDevice.new('net/w0', 'ath0')
-    AgentCommands::DEV_MAPPINGS['net/w1'] = AtherosDevice.new('net/w1', 'ath1')
-  end
-}
+
+if (File.exist?("/usr/bin/lspci"))
+  # Debian/Ubuntu
+  LSPCI="/usr/bin/lspci"
+elsif (File.exist?("/sbin/lspci"))
+  # Fedora
+  LSPCI="/sbin/lspci"
+else
+  error "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
+end
+
+if (LSPCI)
+  IO.popen("#{LSPCI} | grep 'Network controller: Intel' | /usr/bin/wc -l") {|p|
+    if p.gets.to_i > 0
+      require 'omf-resctl/omf_driver/intel'
+      MObject.info "Have Intel cards"
+      AgentCommands::DEV_MAPPINGS['net/w0'] = IntelDevice.new('net/w0', 'eth2')
+      AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
+    end
+  }
+  IO.popen("#{LSPCI} | grep 'Ethernet controller: Atheros' | /usr/bin/wc -l") {|p|
+    if p.gets.to_i > 0
+      require 'omf-resctl/omf_driver/atheros'
+      MObject.info "Have Atheros cards"
+      AgentCommands::DEV_MAPPINGS['net/w0'] = AtherosDevice.new('net/w0', 'ath0')
+      AgentCommands::DEV_MAPPINGS['net/w1'] = AtherosDevice.new('net/w1', 'ath1')
+    end
+  }
+end
 
 #
 # Execution Entry point 
