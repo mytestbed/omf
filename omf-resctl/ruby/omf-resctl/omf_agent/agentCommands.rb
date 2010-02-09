@@ -298,11 +298,11 @@ end
   # - argArray = an array with the list of name to add as aliases
   #
   def AgentCommands.ALIAS(agent, cmdObject)
-    aliasArray = cmdObject.alias.split(' ')
-    aliasArray.each{ |name|
-      agent.addAlias(name)
+    aliasArray = cmdObject.name.split(' ')
+    aliasArray.each{ |n|
+      agent.addAlias(n)
     }
-    agent.enrollReply(cmdObject.alias)
+    agent.enrollReply(cmdObject.name)
   end
 
   #

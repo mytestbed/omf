@@ -94,8 +94,8 @@ class AgentPubSubCommunicator < MObject
     start(NodeAgent.instance.config[:comm][:xmpp_server])
   end
   
-  def getCmdObject(type)
-    return OmfCommandObject.new(type)
+  def getCmdObject(cmdType)
+    return OmfCommandObject.new(cmdType)
   end
 
   # 
@@ -322,7 +322,7 @@ class AgentPubSubCommunicator < MObject
   # This method sends a command to one or multiple nodes.
   # The command to send is passed as a Command Object.
   # This implementation of an XMPP communicator uses the OmfCommandObject 
-  # class as the type of the Command Object
+  # class as the cmdType of the Command Object
   # (see OmfCommandObject in omf-common package for more details)
   #
   # - cmdObj = the Command Object to format and send
@@ -358,7 +358,7 @@ class AgentPubSubCommunicator < MObject
         groups.each { |g| toAdd << "#{@@psGroupExperiment}/#{g.to_s}" }
       end
     else
-      error "Unknown type of PubSub groups to join!"
+      error "Unknown cmdType of PubSub groups to join!"
       return false
     end
 
@@ -436,12 +436,12 @@ class AgentPubSubCommunicator < MObject
       cmdObj = OmfCommandObject.new(xmlMessage)
 
       # Sanity checks...
-      if VALID_RC_COMMANDS.include?(cmdObj.type)
-        #debug "Command from a Resource Controller (type: '#{cmdObj.type}') - ignoring it!" 
+      if VALID_RC_COMMANDS.include?(cmdObj.cmdType)
+        #debug "Command from a Resource Controller (cmdType: '#{cmdObj.cmdType}') - ignoring it!" 
         return
       end
-      if !VALID_EC_COMMANDS.include?(cmdObj.type)
-        debug "Unknown command type: '#{cmdObj.type}' - ignoring it!" 
+      if !VALID_EC_COMMANDS.include?(cmdObj.cmdType)
+        debug "Unknown command cmdType: '#{cmdObj.cmdType}' - ignoring it!" 
         return
       end
       targets = cmdObj.target.split(' ') # There may be multiple space-separated targets
@@ -456,7 +456,7 @@ class AgentPubSubCommunicator < MObject
       # Some commands need to trigger actions on the Communicator level
       # before being passed on to the Resource Controller
       begin
-        case cmdObj.type
+        case cmdObj.cmdType
         when :ENROLL
           # Subscribe to the Experiment PubSub group 
           # and the Node's PubSub group under the experiment
@@ -471,7 +471,7 @@ class AgentPubSubCommunicator < MObject
             end
           end
         when :ALIAS
-          join_groups(cmdObj.alias.split(' '))
+          join_groups(cmdObj.name.split(' '))
         when :NOOP
           return # NOOP is not sent to the Resource Controller
         end

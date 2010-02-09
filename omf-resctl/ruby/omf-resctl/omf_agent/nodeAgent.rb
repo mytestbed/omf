@@ -175,7 +175,7 @@ class NodeAgent < MObject
     ok_reply = communicator.getCmdObject(:OK)
     ok_reply.target = @agentName
     ok_reply.message = message
-    ok_reply.cmd = cmdObj.type.to_s
+    ok_reply.cmd = cmdObj.cmdType.to_s
     ok_reply.path = cmdObj.path if cmdObj.path != nil
     ok_reply.value = cmdObj.value if cmdObj.value != nil
     send(ok_reply)
@@ -219,7 +219,7 @@ class NodeAgent < MObject
     error_reply = communicator.getCmdObject(:ERROR)
     error_reply.target = @agentName
     error_reply.message = message
-    error_reply.cmd = cmdObj.type.to_s
+    error_reply.cmd = cmdObj.cmdType.to_s
     error_reply.path = cmdObj.path if cmdObj.path != nil
     error_reply.appID = cmdObj.appID if cmdObj.appID != nil
     error_reply.value = cmdObj.value if cmdObj.value != nil
@@ -537,22 +537,22 @@ class NodeAgent < MObject
   #
   def execCommand(cmdObj)
   
-    debug "Processing '#{cmdObj.type}' - '#{cmdObj.target}'"
+    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
     method = nil
     begin
-      method = AgentCommands.method(cmdObj.type.to_s)
+      method = AgentCommands.method(cmdObj.cmdType.to_s)
     rescue Exception
-      error "Unknown method for command '#{cmdObj.type}'"
+      error "Unknown method for command '#{cmdObj.cmdType}'"
       errorReply("Unknown command", cmdObj) 
-      #send(:ERROR, :UNKNOWN_CMD, cmd.type)
+      #send(:ERROR, :UNKNOWN_CMD, cmd.cmdType)
       return
     end
     begin
       reply = method.call(self, cmdObj)
     rescue Exception => err
-      error "While executing #{cmdObj.type}: #{err}"
+      error "While executing #{cmdObj.cmdType}: #{err}"
       errorReply("Execution Error (#{err})", cmdObj) 
-      #send(:ERROR, :EXECUTION, cmd.type, err)
+      #send(:ERROR, :EXECUTION, cmd.cmdType, err)
       return
     end
   end

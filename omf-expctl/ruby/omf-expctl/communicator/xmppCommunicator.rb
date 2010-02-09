@@ -104,8 +104,8 @@ class XmppCommunicator < Communicator
     }
   end  
 
-  def getCmdObject(type)
-    return OmfCommandObject.new(type)
+  def getCmdObject(cmdType)
+    return OmfCommandObject.new(cmdType)
   end
 
   #
@@ -246,7 +246,7 @@ class XmppCommunicator < Communicator
   # This method sends a command to one or multiple nodes.
   # The command to send is passed as a Command Object.
   # This implementation of an XMPP communicator uses the OmfCommandObject 
-  # class as the type of the Command Object
+  # class as the cmdType of the Command Object
   # (see OmfCommandObject in omf-common package for more details)
   #
   # - cmdObj = the Command Object to format and send
@@ -256,12 +256,12 @@ class XmppCommunicator < Communicator
   #
   def sendCmdObject(cmdObj)
     target = cmdObj.target
-    type = cmdObj.type
+    cmdType = cmdObj.cmdType
     msg = cmdObj.to_xml
 
     # Some commands need to trigger actions on the Communicator level
     # before being sent to the Resource Controllers
-    case type
+    case cmdType
     when :ENROLL
       # ENROLL messages are sent to the branch psGroupResource
       # create the experiment pubsub group so the node can subscribe to it
@@ -276,7 +276,7 @@ class XmppCommunicator < Communicator
       return
     when :ALIAS
       # create the pubsub group for this alias 
-      @@service.create_pubsub_node("#{@@psGroupExperiment}/#{cmdObj.alias}")
+      @@service.create_pubsub_node("#{@@psGroupExperiment}/#{cmdObj.name}")
     end
 	    
     # Now send this command to the relevant PubSub group in the experiment branch
@@ -357,12 +357,12 @@ class XmppCommunicator < Communicator
       cmdObj = OmfCommandObject.new(xmlMessage)
 
       # Sanity checks...
-      if VALID_EC_COMMANDS.include?(cmdObj.type)
-        #debug "Command from a Experiment Controller (type: '#{cmdObj.type}') - ignoring it!" 
+      if VALID_EC_COMMANDS.include?(cmdObj.cmdType)
+        #debug "Command from a Experiment Controller (cmdType: '#{cmdObj.cmdType}') - ignoring it!" 
         return
       end
-      if !VALID_RC_COMMANDS.include?(cmdObj.type)
-        debug "Unknown command type: '#{cmdObj.type}' - ignoring it!" 
+      if !VALID_RC_COMMANDS.include?(cmdObj.cmdType)
+        debug "Unknown command cmdType: '#{cmdObj.cmdType}' - ignoring it!" 
         return
       end
       if (Node[cmdObj.target] == nil)
@@ -374,7 +374,7 @@ class XmppCommunicator < Communicator
       # Some commands need to trigger actions on the Communicator level
       # before being passed on to the Experiment Controller
       begin
-        case cmdObj.type
+        case cmdObj.cmdType
         when :ENROLLED
           # when we receive the first ENROLL, send a NOOP message to the NA. This is necessary
           # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
@@ -406,21 +406,21 @@ class XmppCommunicator < Communicator
    #
    def processCommand(cmdObj)
 
-    debug "Processing '#{cmdObj.type}' - '#{cmdObj.target}'"
+    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
 
     # Retrieve the command
     method = nil
     begin
-      method = AgentCommands.method(cmdObj.type.to_s)
+      method = AgentCommands.method(cmdObj.cmdType.to_s)
     rescue Exception
-      error "Unknown command '#{cmdObj.type}'"
+      error "Unknown command '#{cmdObj.cmdType}'"
       return
     end
     # Execute the command
     begin
       reply = method.call(self, Node[cmdObj.target], cmdObj)
     rescue Exception => err
-      error "While processing command '#{cmdObj.type}': #{err}"
+      error "While processing command '#{cmdObj.cmdType}': #{err}"
       error "Trace: #{err.backtrace.join("\n")}" 
       return
     end

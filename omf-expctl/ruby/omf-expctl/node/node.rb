@@ -368,7 +368,7 @@ class Node < MObject
 
     alias_cmd = Communicator.instance.getCmdObject(:ALIAS)
     alias_cmd.target = @nodeId
-    alias_cmd.alias = group
+    alias_cmd.name = group
     send(alias_cmd)
   end
 
