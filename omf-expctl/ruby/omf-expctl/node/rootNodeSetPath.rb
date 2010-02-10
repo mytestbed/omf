@@ -242,8 +242,8 @@ class RootNodeSetPath < NodeSetPath
     @nodeSet.exec(cmdName, args, env, &block)
   end
 
-  def loadData(filepath)
-    @nodeSet.loadData(filepath)
+  def loadData(srcPath, dstPath = '/')
+    @nodeSet.loadData(srcPath, dstPath)
   end
 
   #

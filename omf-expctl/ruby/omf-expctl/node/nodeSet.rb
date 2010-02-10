@@ -552,17 +552,34 @@ class NodeSet < MObject
     end
   end
 
-  def loadData(filepath)
+  def loadData(srcPath, dstPath = '/')
       # Mount the local file to a URL on our webserver
       # ALERT: Should check if +rep+ actually exists
-      url_dir="/data/#{rep.gsub('/', '_')}"
+      url_dir="/data/#{srcPath.gsub('/', '_')}"
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
-      OMF::ExperimentController::Web.mapFile(url_dir, filepath)
+      OMF::ExperimentController::Web.mapFile(url_dir, srcPath)
       load_cmd = Communicator.instance.getCmdObject(:LOAD_DATA)
+      procName = "exec:#{@@execsCount += 1}"
       load_cmd.appID = "loadData"
       load_cmd.image = url
-      load_cmd.path = '/'
-      nodeSet.send(load_cmd)
+      load_cmd.path = dstPath
+      send(load_cmd)
+
+      block = Proc.new do |node, op, eventName, message|
+          case eventName
+          when 'STDOUT'
+            debug "Message (from #{prompt}):  #{message}"
+          when 'STARTED'
+            # ignore 
+          else
+            debug "Event '#{eventName}' (from loadData on '#{node}'): '#{message}'"
+          end
+        end
+      # TODO: check for blocks arity.
+    
+      eachNode { |n|
+        n.exec(procName, 'loadData', nil, nil, &block)
+      }
   end
 
   #
@@ -584,7 +601,6 @@ class NodeSet < MObject
     if (up? && notQueued)
       debug "Send ('#{@nodeSelector}') - '#{cmdObj.to_s}'"
       Communicator.instance.sendCmdObject(cmdObj)
-      #Communicator.instance.send(@nodeSelector, command, args)
       return
     end
   end
