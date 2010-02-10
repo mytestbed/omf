@@ -498,8 +498,11 @@ class NodeAgent < MObject
 
     # At this point, we should now have a name and a slice
     if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
-      raise "Agent's Name and Slice are not defined in config file or as arguments!"
+      raise "Agent's Name or Slice are not defined in config file or as arguments!"
     else
+      if @config[:agent][:name] == 'default' 
+        @config[:agent][:name] = `/bin/hostname`
+      end
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
     end	    
