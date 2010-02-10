@@ -26,6 +26,7 @@ sudo cp ../omf-resctl/debian/init.d.fedora omf-resctl-5.3-1/etc/rc.d/init.d/omf-
 sudo chmod +x omf-resctl-5.3-1/etc/rc.d/init.d/omf-resctl-5.3
 sudo sed -i 's/etc\/init.d/etc\/rc.d\/init.d/g' omf-resctl-5.3-1/omf-resctl-*.spec
 sudo sed -i '/^Group: /a Requires: ruby wireless-tools wget pciutils imagezip libcoderay-ruby1.8 liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3 omf-resctl-5.3' omf-resctl-5.3-1/omf-resctl-*.spec
+sudo sed -i '/^(Converted /a %post\n/sbin/chkconfig --add omf-resctl-5.3\n/etc/init.d/omf-resctl-5.3 restart' omf-resctl-5.3-1/omf-resctl-*.spec
 sudo rpmbuild -bb --buildroot `pwd`/omf-resctl-5.3-1 omf-resctl-5.3-1/omf-resctl-*.spec
 sudo rm -rf omf-resctl-5.3-1
 cd $TOPDIR

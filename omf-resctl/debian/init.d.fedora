@@ -5,20 +5,14 @@
 #     Modified by Christoph Dwertmann
 #
 
-### BEGIN INIT INFO
-# Provides:          omf-resctl
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Start daemon at boot time
-# Description:       Enable service provided by daemon.
-### END INIT INFO
+# chkconfig: 2345 99 01
+# description: OMF Resource Controller
 
 # Source function library.
 . /etc/rc.d/init.d/functions
 
 NAME=omf-resctl-5.3
+PIDFILE=/var/run/$NAME.pid
 
 test -x /usr/sbin/$NAME || exit 0
 
@@ -36,15 +30,20 @@ start(){
        mv /var/log/$NAME.log /var/log/$NAME.log.1
     fi
     $NAME > /dev/null 2>&1 &
-    echo $! > /var/run/$NAME.pid
+    echo $! > $PIDFILE
     sleep 2
     echo "."
 }
 
 stop(){
     echo -n "Stopping OMF Resource Controller: $NAME"
-    kill `cat /var/run/$NAME.pid`
-    sleep 2
+    if [ -f $PIDFILE ]; then
+	    kill `cat $PIDFILE`
+		rm $PIDFILE
+	    sleep 2
+	else
+		echo "No pidfile found. Is $NAME running?"
+	fi
     echo "."
 }
 
