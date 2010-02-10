@@ -83,7 +83,6 @@ class RootNodeSetPath < NodeSetPath
   #
   def pxeImage(domain, pxeFlag)
     @nodeSet.pxeImage(domain, pxeFlag)
-    #@nodeSet.pxeImage(image, imageName, domain)
   end
 
   #
@@ -243,6 +242,10 @@ class RootNodeSetPath < NodeSetPath
     @nodeSet.exec(cmdName, args, env, &block)
   end
 
+  def loadData(filepath)
+    @nodeSet.loadData(filepath)
+  end
+
   #
   # Return true if all nodes in the NodeSet of this Root Path are in 'UP' state.
   #
@@ -264,18 +267,4 @@ class RootNodeSetPath < NodeSetPath
       super()
     end
   end
-end
-
-#####################################
-#
-# Testing Code
-#
-# Create _ALL_ group
-#RootGroupNodeSet.new()
-if $0 == __FILE__
-  MObject.initLog 'test'
-#  n = NodeSet.new([1, 2..3])
-#  n = NodeSet.new([1..2, 2..3])
-#  n = NodeSet.new([[1..2, 2..3], [6..8, 5]])
-  n = NodeSet.new([[2, 1..3], [3, [1, 3]]])
 end

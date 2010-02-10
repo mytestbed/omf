@@ -496,7 +496,6 @@ end
     end
   end
 
-
   #
   # Command 'PM_INSTALL'
   #
@@ -512,7 +511,7 @@ end
     url = cmdObject.image
     installRoot = cmdObject.path
 
-    MObject.debug "Installing #{url} into #{installRoot}"
+    MObject.debug "Installing '#{url}' into '#{installRoot}'"
     cmd = "cd /tmp;wget -m -nd -q #{url};"
     file = url.split('/')[-1]
     cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
@@ -668,6 +667,29 @@ end
     MObject.debug "AgentCommands", "Image save command: #{cmd}"
     ExecApp.new('builtin:save_image', agent, cmd, true)
   end
+
+  #
+  # Command 'PM_INSTALL'
+  #
+  # Poor man's installer. Fetch a tar file and
+  # extract it into a specified directory
+  #
+  # - agent = the instance of this NA
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
+  #
+  def AgentCommands.LOAD_DATA(agent, cmdObject)
+    id = cmdObject.appID
+    url = cmdObject.image
+    installRoot = cmdObject.path
+
+    MObject.debug "Loading '#{url}' into '#{installRoot}'"
+    cmd = "cd /tmp;wget -m -nd -q #{url};"
+    file = url.split('/')[-1]
+    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
+    ExecApp.new(id, agent, cmd)
+  end
+
 
   # 
   # Remove the first element from 'argArray' and

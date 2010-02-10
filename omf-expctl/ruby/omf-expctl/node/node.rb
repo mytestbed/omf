@@ -316,7 +316,6 @@ class Node < MObject
   # - message = Explanatory message
   #
   def onAppEvent(eventName, appId, message)
-    #debug("Message for app '#{appId}' - '#{message}'")
     appName, op = appId.split('/')
     if (eventName.upcase == "STDOUT") && NodeHandler.SHOW_APP_OUTPUT()
        # When requested by user, print SDOUT events on our own standard-out
@@ -718,8 +717,8 @@ class Node < MObject
     
     # Now, if this ENROLL specifies a list of group this NA has enrolled to
     # then process them
-    if cmdObj.alias != nil
-      cmdObj.alias.split(' ').each { |group|
+    if cmdObj.name != nil
+      cmdObj.name.split(' ').each { |group|
         if @groups.has_key?("#{group}")
           if !@groups[group] 
             @groups[group] = true

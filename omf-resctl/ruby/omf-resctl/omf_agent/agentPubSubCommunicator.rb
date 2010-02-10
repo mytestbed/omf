@@ -52,7 +52,7 @@ class AgentPubSubCommunicator < MObject
   VALID_EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP,
                       :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
                       :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
-                      :SAVE_IMAGE, :SET_MACTABLE, :ALIAS,
+                      :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
                       :ENROLL, :EXIT]
 
   VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 

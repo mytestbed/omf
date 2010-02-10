@@ -112,7 +112,6 @@ class Application < MObject
       install_cmd.appID = "#{appDefinition.uri}/install"
       install_cmd.package = aptName
       nodeSet.send(install_cmd)
-      #nodeSet.send(:APT_INSTALL, "#{appDefinition.uri}/install", aptName)
     elsif (rep = @appDefinition.binaryRepository) != nil
       # Install App from TAR archive using wget + tar 
       # We first have to mount the local TAR file to a URL on our webserver
@@ -125,7 +124,6 @@ class Application < MObject
       install_cmd.image = url
       install_cmd.path = '/'
       nodeSet.send(install_cmd)
-      #nodeSet.send(:PM_INSTALL, "#{appDefinition.uri}/install", url, '/')
     end
   end
 

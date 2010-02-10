@@ -326,18 +326,6 @@ class NodeSet < MObject
       flag
     }
   end
-  #def up?
-  #  return inject(true) { |flag, n|
-  #    #debug "Checking if #{n} is up"
-  #    if flag
-  #      if ! n.isUp
-  #        debug n, " is not up yet."
-  #        flag = false
-  #      end
-  #    end
-  #    flag
-  #  }
-  #end
 
   #
   # This method set the resource 'path' on all nodes in this
@@ -562,6 +550,19 @@ class NodeSet < MObject
         error "GridService's response to stop call: '#{response.body}'"
       end
     end
+  end
+
+  def loadData(filepath)
+      # Mount the local file to a URL on our webserver
+      # ALERT: Should check if +rep+ actually exists
+      url_dir="/data/#{rep.gsub('/', '_')}"
+      url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
+      OMF::ExperimentController::Web.mapFile(url_dir, filepath)
+      load_cmd = Communicator.instance.getCmdObject(:LOAD_DATA)
+      load_cmd.appID = "loadData"
+      load_cmd.image = url
+      load_cmd.path = '/'
+      nodeSet.send(load_cmd)
   end
 
   #
