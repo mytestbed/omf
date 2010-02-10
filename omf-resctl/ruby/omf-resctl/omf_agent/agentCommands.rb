@@ -295,7 +295,8 @@ end
   # Set additional alias names for this node
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the list of name to add as aliases
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command 
   #
   def AgentCommands.ALIAS(agent, cmdObject)
     aliasArray = cmdObject.name.split(' ')
@@ -311,7 +312,8 @@ end
   # Initial enroll message received from the EC
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the optional enroll parameters
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.ENROLL(agent, cmdObject)
 
@@ -327,7 +329,6 @@ end
     if (desiredImage != agent.imageName() && desiredImage != '*')
       MObject.debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
       agent.wrongImageReply()
-      #send("WRONG_IMAGE", NodeAgent.instance.imageName())
       return
     end
     # All is good, enroll this Resource Controller
@@ -402,53 +403,32 @@ end
   end
 
   #
-  # Command 'EXEC'
-  #
-  # Execute a program on the machine running this NA
-  #
-  # - agent = the instance of this NA
-  # - argArray = an array with the complete command line of the program to execute
-  #
-  #def AgentCommands.EXEC(agent, argArray)
-  #  id = getArg(argArray, "ID of install")
-  #
-  #  args = [] # potentially substitute arguments
-  #  argArray.each { |arg|
-  #    if (arg[0] == ?%)
-  #      # if arg starts with "%" perform certain substitutions
-  #      arg = arg[1..-1]  # strip off leading '%'
-  #      arg.sub!(/%n/, agent.agentName)
-  #    end
-  #    if arg =~ /^OML_CONFIG=.*:/
-  #      # OML can't fetch config file over the net, need to download it first
-  #      url = arg.split('=')[1..-1].join('=')
-  #      # this is overkill, but so what
-  #      require 'digest/md5'
-  #      fileName = "/tmp/#{Digest::MD5.hexdigest(url)}.xml"
-  #      MObject.debug("Fetching oml definition file ", url)
-  #      if (! system("wget -m -nd -q -O #{fileName} #{url}"))
-  #        raise "Couldn't fetch OML config file #{url}"
-  #      end
-  #      arg = "OML_CONFIG=#{fileName}"
-  #    end
-  #    args << arg
-  #  }
-  #  cmd = args.join(' ')
-  #  ExecApp.new(id, agent, cmd)
-  #end
-
-  #
   # Command 'EXECUTE'
   #
   # Execute a program on the machine running this NA
   #
   # - agent = the instance of this NA
   # - cmdObject = a Command Object holding all the information required to 
-  #               execute the program (e.g. command line, path, etc...)
+  #               execute this command 
   #
   def AgentCommands.EXECUTE(agent, cmdObject)
     id = cmdObject.appID
-    fullCmdLine = "env -i #{cmdObject.env} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
+
+    # Dump the XML description of the OML configuration into a file, if any
+    if (xmlDoc = cmdObject.omlConfig) != nil
+      configPath = nil
+      xmlDoc.each_element("omlc") { |omlc|
+        configPath = "/tmp/#{omlc.attributes['exp_id']}-#{id}.xml"
+      }
+      f = File.new(configPath, "w+")
+      xmlDoc.each_element {|el|
+        f << el.to_s
+      }
+      f.close
+    end
+
+    # Set the full command line and execute it
+    fullCmdLine = "env -i #{cmdObject.env} OML_CONFIG=#{configPath} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
     MObject.debug "Executing: '#{fullCmdLine}'"
     ExecApp.new(id, agent, fullCmdLine)
   end
@@ -459,7 +439,8 @@ end
   # Send a signal to a process running on this node
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the ID of the process and the type of signal to send
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.KILL(agent, cmdObject)
     id = cmdObject.appID
@@ -475,7 +456,8 @@ end
   # If no succes, then send a Kill signal to the process
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the ID of the process 
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.EXIT(agent, cmdObject)
     id = cmdObject.appID
@@ -500,7 +482,8 @@ end
   # Send a line of text to the STDIN of a process
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the ID of the process and the texxt to send
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.STDIN(agent, cmdObject)
     begin
@@ -521,7 +504,8 @@ end
   # extract it into a specified directory
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the install ID (for reporting progress), the URL of the tar file, and the destination path
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.PM_INSTALL(agent, cmdObject)
     id = cmdObject.appID
@@ -541,7 +525,8 @@ end
   # Execute apt-get command on node
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the install ID (for reporting progress) and the package name
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.APT_INSTALL(agent, cmdObject)
     id = cmdObject.appID
@@ -556,7 +541,8 @@ end
   # Reset this node agent
   #
   # - agent = the instance of this NA
-  # - argArray = an empty array 
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.RESET(agent, cmdObject)
     agent.reset
@@ -569,7 +555,8 @@ end
   # Restart this node agent
   #
   # - agent = the instance of this NA
-  # - argArray = an empty array 
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.RESTART(agent, cmdObject)
     agent.communicator.quit
@@ -584,7 +571,8 @@ end
   # Reboot this node
   #
   # - agent = the instance of this NA
-  # - argArray = an empty array 
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.REBOOT(agent, cmdObject)
     agent.send(:STATUS, SYSTEM_ID, "REBOOTING")
@@ -602,7 +590,8 @@ end
   # Load a kernel module on this node
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the name of the module to load
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.MODPROBE(agent, cmdObject)
     moduleName = cmdObject.appID
@@ -616,7 +605,8 @@ end
   # Configure a system parameter on this node
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the name (as a Path) of the parameter to configure and its value
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.CONFIGURE(agent, cmdObject)
     path = cmdObject.path
@@ -625,15 +615,12 @@ end
     if (type, id, prop = path.split("/")).length != 3
       raise "Expected path '#{path}' to contain three levels"
     end
-
     device = DEV_MAPPINGS["#{type}/#{id}"]
     if (device == nil)
       raise "Unknown resource '#{type}/#{id}' in 'configure'"
     end
 
-    #result = device.configure(agent, prop, value)
     result = device.configure(prop, value)
-
     if result[:success]
       agent.okReply(result[:msg], cmdObject)
     else
@@ -647,7 +634,8 @@ end
   # Load a specified disk image onto this node through frisbee
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the frisbee address+port to use, and the name of the disk device to image
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.LOAD_IMAGE(agent, cmdObject)
     mcAddress = cmdObject.address
@@ -668,7 +656,8 @@ end
   # it to the image server.
   #
   # - agent = the instance of this NA
-  # - argArray = an array with the host and port of the file server, and the name of the disk device to save
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
   #
   def AgentCommands.SAVE_IMAGE(agent, cmdObject)
     imgHost = cmdObject.address
@@ -679,34 +668,6 @@ end
     MObject.debug "AgentCommands", "Image save command: #{cmd}"
     ExecApp.new('builtin:save_image', agent, cmd, true)
   end
-
-  #
-  # Command 'RETRY'
-  # 
-  # Resend a command to the EC
-  #
-  # - agent = the instance of this NA
-  # - argArray = an array with the sequence number of the commands to resend
-  #
-  def AgentCommands.RETRY(agent, argArray)
-    # If this NA is operating with support for temporary disconnection, 
-    # then ignore any RETRY requests from the EC.
-    if agent.allowDisconnection
-      MObject.debug "Ignore RETRY (Disconnection Support ON)"
-      return
-    end
-    first = getArg(argArray, "Id of first message to resend").to_i
-    last = getArgDefault(argArray, -1).to_i
-    if (last < 0)
-      last = first
-    end
-    MObject.debug "AgentCommands", "RETRY message #{first}-#{last}"
-    (first..last).each {|i|
-      agent.communicator.resend(i)
-    }
-  end
-
-  private
 
   # 
   # Remove the first element from 'argArray' and
@@ -720,13 +681,13 @@ end
   # [Return] First element in 'argArray' or raise exception if nil
   # [Raise] Exception if arg is nil
   #
-  def AgentCommands.getArg(argArray, exepString)
-    arg = argArray.delete_at(0)
-    if (arg == nil)
-      raise exepString
-    end
-    return arg
-  end
+  #def AgentCommands.getArg(argArray, exepString)
+  #  arg = argArray.delete_at(0)
+  #  if (arg == nil)
+  #    raise exepString
+  #  end
+  #  return arg
+  #end
 
   #
   # Remove the first element from 'argArray' and
@@ -737,12 +698,12 @@ end
   #
   # [Return] First element in 'argArray' or 'default' if nil
   #
-  def AgentCommands.getArgDefault(argArray, default = nil)
-    arg = argArray.delete_at(0)
-    if (arg == nil)
-      arg = default
-    end
-    return arg
-  end
+  #def AgentCommands.getArgDefault(argArray, default = nil)
+  #  arg = argArray.delete_at(0)
+  #  if (arg == nil)
+  #    arg = default
+  #  end
+  #  return arg
+  #end
 
 end

@@ -38,8 +38,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.HB(communicator, sender, cmdObj)
     sender.heartbeat(0, 0, "00:00")
@@ -55,8 +54,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.ENROLLED(communicator, sender, cmdObj)
     sender.enrolled(cmdObj)
@@ -69,8 +67,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.WARN(communicator, sender, cmdObj)
     MObject.warn("agentCmd::WARN from: '#{cmdObj.target}' ('#{sender}') - msg: '#{cmdObj.message}'")
@@ -91,8 +88,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.WRONG_IMAGE(communicator, sender, cmdObj)
     MObject.debug("agentCmd::WRONG_IMAGE from: '#{cmdObj.target}' - Desired: '#{sender.image}' - Installed: '#{cmdObj.image}'")
@@ -106,8 +102,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.APP_EVENT(communicator, sender, cmdObj)
     eventName = cmdObj.value
@@ -125,8 +120,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.DEV_EVENT(communicator, sender, cmdObj)
     eventName = cmdObj.value
@@ -144,13 +138,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
-  #
-  # When the error resulted from a previous 'CONFIGURE' message issued by the EC,
-  # the argument array contains the two following fields:
-  # - path  Id of resource to have been configured
-  # - msg   Message describing error condition
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.ERROR(communicator, sender, cmdObj)
     command = cmdObj.cmd
@@ -191,8 +179,7 @@ module AgentCommands
   #
   # - handler = the communicator that called this method
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - senderId = the sender ID 
-  # - argArray = an array holding the arguments for this command
+  # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.END_EXPERIMENT(communicator, sender, cmdObj)
     if NodeHandler.disconnectionMode?

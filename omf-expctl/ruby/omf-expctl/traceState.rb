@@ -478,7 +478,7 @@ class NodeBuiltin < MObject
       addLine(getStdoutEl, message)
     when 'STDERR'
       addLine(getStderrEl, message)
-      error("Application #{@name} on #{node} reported '#{message}'")
+      error("Application '#{@name}' on '#{node}' reported '#{message}'")
     else
       setStatus "UNKNOWN.EVENT: #{eventName} #{message}"
     end
@@ -486,7 +486,7 @@ class NodeBuiltin < MObject
 end
 
 #
-# HElper class for loading image
+# Helper class for loading image
 #
 class ImageNodeApp < NodeBuiltin
 

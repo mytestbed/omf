@@ -193,7 +193,7 @@ class NodeAgent < MObject
   def enrollReply(aliases = nil)
     enroll_reply = communicator.getCmdObject(:ENROLLED)
     enroll_reply.target = @agentName
-    enroll_reply.alias = aliases if aliases != nil
+    enroll_reply.name = aliases if aliases != nil
     send(enroll_reply)
   end
 
@@ -507,15 +507,6 @@ class NodeAgent < MObject
   end
 
   #
-  # Return the configuration parameter for 'key'
-  #
-  # - key =  a String with the name of the parameter to retrieve
-  #
-  #def config(key)
-  #  @config[key]
-  #end
-
-  #
   # Return the instance of the Communicator module associated to this NA
   #
   # [Return] a Communicator object 
@@ -544,7 +535,6 @@ class NodeAgent < MObject
     rescue Exception
       error "Unknown method for command '#{cmdObj.cmdType}'"
       errorReply("Unknown command", cmdObj) 
-      #send(:ERROR, :UNKNOWN_CMD, cmd.cmdType)
       return
     end
     begin
@@ -552,7 +542,6 @@ class NodeAgent < MObject
     rescue Exception => err
       error "While executing #{cmdObj.cmdType}: #{err}"
       errorReply("Execution Error (#{err})", cmdObj) 
-      #send(:ERROR, :EXECUTION, cmd.cmdType, err)
       return
     end
   end

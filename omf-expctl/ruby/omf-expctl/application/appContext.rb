@@ -111,6 +111,8 @@ class AppContext < MObject
       @env['OML_EXP_ID'] = Experiment.ID
       @env['OML_NAME'] = "#{nodeSet}" if nodeSet != nil
     end
+    # If we ever have any other ENV parameters, this is where
+    # we should process them...
     return @env
   end
 
@@ -136,7 +138,10 @@ class AppContext < MObject
     app_cmd.omlConfig = omlconf if omlconf != nil
 
     # Add the environment info...
-    app_cmd.env = getENVConfig(nodeSet)
+    app_cmd.env = ""
+    getENVConfig(nodeSet).each { |k,v|
+      app_cmd.env << "#{k}=#{v} "
+    }
 
     # Add the bindings...
     pdef = appDefinition.properties
@@ -145,7 +150,7 @@ class AppContext < MObject
       raise "Unknown parameters '#{diff.join(', ')}'" \
             + " not in '#{pdef.keys.join(', ')}'."
     end
-    app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet)
+    app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
     
     # Ask the Communicator to send the Command Object 
     Communicator.instance.sendCmdObject(app_cmd)

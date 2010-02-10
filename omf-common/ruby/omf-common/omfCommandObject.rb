@@ -32,10 +32,28 @@ require 'rexml/element.rb'
 #
 class OmfCommandObject 
 
+  #
+  # Return the value of an attribute of this Command Object
+  # 
+  # - key = the name of the attribut 
+  #
+  # [Return] the value of the attribute
+  #
   def [](key)
-    return @attributs[key.upcase]
+    return @attributes[key.upcase]
   end
 
+  #
+  # Return or Set the value of an attribute of this Command Object
+  # But do so via the use of method_missing, so one can query or set
+  # the attribute using a 'dot' syntax.
+  # E.g. myCmd.myAttribute = 123
+  # E.g. var = myCmd.myAttribute 
+  # 
+  # - name = the name of the attribut 
+  #
+  # [Return] the value of the attribute, if called as a query
+  #
   def method_missing(name, *args, &blocks)
     method = name.to_s.upcase
     if method[-1,1] == "="
@@ -46,62 +64,44 @@ class OmfCommandObject
     end
   end
 
-  # The type of this Command Object (e.g. 'EXECUTE')
-  #attr_accessor :type
+  # NOTE: This is a list of currently used attributes, depending on the command type 
+  #
+  # cmdType - The type of this Command Object (e.g. 'EXECUTE')
+  # target - The destination or group to which this Command Object is addressed to (e.g. 'the_senders')
+  # expID - The ID of the experiment for this Command Object (e.g. 'myExp123')
+  # image - The Name of the desired disk image on a resource receiving this Command Object 
+  # message - The message conveyed by this Command Object 
+  # cmd - The command line associated this Command Object
+  # name - The list of aliases for the resource sending this Command Object
+  # value - The value associated with this Command Object
+  # address - The MC Address associated with this Command Object
+  # port - The MC Port associated with this Command Object
+  # disk - The disk device associated with this Command Object
+  # package - The name of the package or archive associated with this Command Object
+  # appID - The ID of the application for this Command Object
+  # env - The Environment to set for this Command Object
+  # path - The Path where the application for this EXECUTE Command Object is located (optional)
+  # path - The Resource Path (XPath) associated with this CONFIGURE Command Object (optional)
+  # cmdLineArgs - The command line arguments of the application for this Command Object (optional)
+  # omlConfig - The XML definition for the OML configuration of the application for this Command Object (optional)
 
-  # The destination or group to which this Command Object is addressed to (optional, e.g. 'the_senders')
-  #attr_accessor :target
-
-  # The ID of the experiment for this Command Object (optional, e.g. 'myExp123')
-  #attr_accessor :expID
-
-  # The Name of the desired disk image on a resource receiving this Command Object (optional)
-  #attr_accessor :image
-
-  # The message conveyed by this Command Object (optional)
-  #attr_accessor :message
-
-  # The command line associated this Command Object (optional)
-  #attr_accessor :cmd
-
-  # The list of aliases for the resource sending this Command Object (optional)
-  #attr_accessor :alias
-
-  # The value associated with this Command Object (optional)
-  #attr_accessor :value
-
-  # The MC Address associated with this Command Object (optional)
-  #attr_accessor :address
-
-  # The MC Port associated with this Command Object (optional)
-  #attr_accessor :port
-
-  # The disk device associated with this Command Object (optional)
-  #attr_accessor :disk
-
-  # The name of the package or archive associated with this Command Object (optional)
-  #attr_accessor :package
-
-  # The ID of the application for this Command Object (optional, e.g. 'otg2')
-  #attr_accessor :appID
-
-  # The Environment to set for this Command Object (optional)
-  #attr_accessor :env
-
-  # The Path where the application for this EXECUTE Command Object is located (optional)
-  # The Resource Path (XPath) associated with this CONFIGURE Command Object (optional)
-  #attr_accessor :path
-
-  # The command line arguments of the application for this Command Object (optional)
-  #attr_accessor :cmdLineArgs
-
-  # The XML definition for the OML configuration of the application for this Command Object (optional)
-  #attr_accessor :omlConfig
-
+  #
+  # Create a new Command Object
+  #
+  # - initValue = if a String or Symbol, then create an empty Command Object, with its
+  #               command type set to the String/Symbol
+  #               if an XML stanza, then create a new Command Object based on the 
+  #               XML description 
+  #
+  #  [Return] a new Command Object
+  #
   def initialize (initValue)
+    # Create a new Hash to hold the attributes of this Command Object
     @attributes = Hash.new
+    # Set the Command Type
     if initValue.kind_of?(String) || initValue.kind_of?(Symbol)
       @attributes[:CMDTYPE] = initValue
+    # Or build a new Command Object from an XML stanza
     elsif initValue.kind_of?(REXML::Parent)
       init_from_xml(initValue)
     else
@@ -115,7 +115,7 @@ class OmfCommandObject
   #
   # <EXECUTE>
   #   <TARGET>source</TARGET>
-  #   <PROCID>test_app_otg2</ID>
+  #   <APPID>test_app_otg2</APPID>
   #   <PATH>/usr/bin/otg2</PATH>
   #   <ARGSLINE>--udp:dst_host 192.168.0.3 --udp:local_host 192.168.0.2</ARGSLINE>
   #   <ENV>OML_SERVER=tcp:10.0.0.200:3003 OML_EXP_ID=sandbox1 OML_NAME=source </ENV>
@@ -132,35 +132,21 @@ class OmfCommandObject
   #
   def to_xml()
     msg = REXML::Document.new
+    # Set the Type of the XML to return
     msg << REXML::Element.new("#{@attributes[:CMDTYPE].to_s}")
+    # For each attribute of this Command Object, create the required XML element
     @attributes.each { |k,v|
+      # For the OML Config attribute, add the value as an XML element to the XML to return
       if (k == :OMLCONFIG) && (v != nil)
         el = REXML::Element.new("#{k.to_s.upcase}")
         el.add_element(v)
         msg.root << el
+      # For all other attributes, add the value as a text to the XML to return
       elsif k != :CMDTYPE
         msg.root << REXML::Element.new("#{k.to_s.upcase}").add_text("#{v}") if v != nil
       end
     }
     return msg
-    # Build the <ENV> child element
-    #if (@env != nil) && (!@env.empty?) 
-    #  line = ""
-    #  @env.each { |k,v|
-    #    line << "#{k.to_s}=#{v.to_s} "  
-    #  }
-    #  msg.root << REXML::Element.new("ENV").add_text("#{line}")
-    #end
-    # Build the <OML_CONFIG> child element
-    #if @omlConfig != nil
-    #  el = REXML::Element.new("OML_CONFIG")
-    #  el.add_element(@omlConfig)
-    #  msg.root << el
-    #end
-  end
-
-  def to_s
-    return to_xml.to_s
   end
 
   #
@@ -169,29 +155,28 @@ class OmfCommandObject
   # - xmlDoc = an xml document (REXML::Document) object 
   #
   def init_from_xml(xmlDoc)
+    # Set the Type
     @attributes[:CMDTYPE] = xmlDoc.expanded_name.to_sym
+    # Parse the XML object
     xmlDoc.each_element { |e| 
+      # For the OMLCONFIG tag, add the XML value to this Command Object
       if e.expanded_name.upcase.to_sym == :OMLCONFIG
         @attributes[e.expanded_name.upcase.to_sym] = e
+      # For the other tags, add the text value to this Command Object
       else
         @attributes[e.expanded_name.upcase.to_sym] = e.text
       end
     }
+  end
 
-    # Dump the XML description of the OML configuration into a file
-    #xmlDoc.each_element("OML_CONFIG") { |config|
-    #  configPath = nil
-    #  config.each_element("omlc") { |omlc|
-    #    configPath = "/tmp/#{omlc.attributes['exp_id']}-#{@appID}.xml"
-    #  }
-    #  f = File.new(configPath, "w+")
-    #  config.each_element {|el|
-    #    f << el.to_s
-    #  }
-    #  f.close
-    #  # Set the OML_CONFIG environment with the path to the XML file
-    #  @env << " OML_CONFIG=#{configPath} "
-    #}
+  # 
+  # Return a String representation of the XML tree describing this
+  # Command Object.
+  #
+  # [Return] a String
+  #
+  def to_s
+    return to_xml.to_s
   end
 
 end

@@ -248,6 +248,9 @@ class NodeSet < MObject
   def exec(cmdName, args = nil, env = nil, &block)
     debug("Running application '", cmdName, "'")
     procName = "exec:#{@@execsCount += 1}"
+    exec_cmd = Communicator.instance.getCmdObject(:EXECUTE)
+    exec_cmd.appID = procName
+    exec_cmd.path = cmdName
     
     if (block.nil?)
       block = Proc.new do |node, op, eventName, message|
@@ -268,21 +271,24 @@ class NodeSet < MObject
       n.exec(procName, cmdName, args, env, &block)
     }
 
-    cmd = Array.new
+    # Add the environment info...
+    if env != nil
+      exec_cmd.env = ""
+      env.each { |k,v|
+        exec_cmd.env << "#{k}=#{v} "
+      }
+    end
+    # Add the command line arguments...
     if (args != nil)
+      exec_cmd.cmdLineArgs = ""
       args.each {|arg|
         if arg.kind_of?(ExperimentProperty)
-          cmd << "#{arg.value}"
+          exec_cmd.cmdLineArgs << "#{arg.value} "
         else
-          cmd << "#{arg.to_s}"
+          exec_cmd.cmdLineArgs << "#{arg.to_s} "
         end
       }
     end
-    exec_cmd = Communicator.instance.getCmdObject(:EXECUTE)
-    exec_cmd.appID = procName
-    exec_cmd.path = cmdName
-    exec_cmd.env = env
-    exec_cmd.cmdLineArgs = cmd
     send(exec_cmd)
   end
 

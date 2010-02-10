@@ -49,7 +49,7 @@ class XmppCommunicator < Communicator
   VALID_EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
 	                :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
-                        :SAVE_IMAGE, :RETRY, :SET_MACTABLE, :ALIAS,
+                        :SAVE_IMAGE, :SET_MACTABLE, :ALIAS,
                         :ENROLL, :EXIT]
 
   VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
@@ -164,10 +164,6 @@ class XmppCommunicator < Communicator
     return RUBY_PLATFORM.include?('linux')
   end
 
-  #############################################################################################################  
-  #############################################################################################################  
-  #############################################################################################################
-  
   #
   # This method sends a message to one or multiple nodes
   # Format: <command arg1 arg2 ...>
@@ -324,21 +320,12 @@ class XmppCommunicator < Communicator
   #
   # Process an incoming message from the EC. This method is called by the
   # callback hook, which was set up in the 'start' method of this Communicator.
-  # First, we parse the message to extract the command and its arguments.
-  # Then, we check if this command should trigger some Communicator-specific actions.
-  # Finally, we pass this command up to the Node Agent for further processing.
+  # First, we parse the PubSub event to extract the XML message.
+  # Then, we check if this message contains a command which should trigger some
+  # Communicator-specific actions.
+  # Finally, we pass this command up to the Resource Controller for further processing.
   #
   # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
-  #
-  # NOTE: The Payload of the received message should be of the form:
-  #       <target> <command> <argument1> <argument2> etc...
-  #
-  #       This was the format also documented in the original TCP server communicator.
-  #       However, <target> is no longer relevant in a pub/sub communication scheme.
-  #       Thus, we can still currently keep this message format for backward compatibility
-  #       (i.e. that way we don't modify the NA code, which can still use the old TCP server
-  #       if required). Here we just ignore the <target> field. 
-  #       TODO: in the future, we will phase out the <target> field.
   #
   def execute_command (event)
 
@@ -357,8 +344,7 @@ class XmppCommunicator < Communicator
       cmdObj = OmfCommandObject.new(xmlMessage)
 
       # Sanity checks...
-      if VALID_EC_COMMANDS.include?(cmdObj.cmdType)
-        #debug "Command from a Experiment Controller (cmdType: '#{cmdObj.cmdType}') - ignoring it!" 
+      if VALID_EC_COMMANDS.include?(cmdObj.cmdType) # ignore command from ourselves
         return
       end
       if !VALID_RC_COMMANDS.include?(cmdObj.cmdType)
