@@ -11,7 +11,7 @@ function build {
 	done	
 }
 
-for i in external/frisbee/frisbee external/frisbee/imagezip external/coderay-0.8.3 external/log4r-1.0.5 external/xmpp4r-0.4 omf-common ; do
+for i in external/frisbee/imagezip external/log4r-1.0.5 external/xmpp4r-0.4 omf-common ; do
 	cd $i
 	build
 	cd $TOPDIR
@@ -19,16 +19,20 @@ done
 
 cd omf-resctl
 DEB=`bash -c "$BUILD"`
-sudo alien -r -g ../$DEB
-sudo rm -rf omf-resctl-5.3-1/etc/init.d
-sudo mkdir -p omf-resctl-5.3-1/etc/rc.d/init.d
-sudo cp ../omf-resctl/debian/init.d.fedora omf-resctl-5.3-1/etc/rc.d/init.d/omf-resctl-5.3
-sudo chmod +x omf-resctl-5.3-1/etc/rc.d/init.d/omf-resctl-5.3
-sudo sed -i 's/etc\/init.d/etc\/rc.d\/init.d/g' omf-resctl-5.3-1/omf-resctl-*.spec
-sudo sed -i '/^Group: /a Requires: ruby wireless-tools wget pciutils imagezip libcoderay-ruby1.8 liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3 omf-resctl-5.3' omf-resctl-5.3-1/omf-resctl-*.spec
-sudo sed -i '/^(Converted /a %post\n/sbin/chkconfig --add omf-resctl-5.3\n/etc/init.d/omf-resctl-5.3 restart' omf-resctl-5.3-1/omf-resctl-*.spec
-sudo rpmbuild -bb --buildroot `pwd`/omf-resctl-5.3-1 omf-resctl-5.3-1/omf-resctl-*.spec
-sudo rm -rf omf-resctl-5.3-1
+RPM=`sudo alien -r -g ../$DEB | grep Directory | awk -F ' ' '{print $2}'`
+if [ x$RPM == x ]; then
+	echo "Error generating RPM package in `pwd`. Exiting."
+	exit
+fi
+sudo rm -rf `pwd`/$RPM/etc/init.d
+sudo mkdir -p $RPM/etc/rc.d/init.d
+sudo cp ../omf-resctl/debian/init.d.fedora $RPM/etc/rc.d/init.d/omf-resctl-5.3
+sudo chmod +x $RPM/etc/rc.d/init.d/omf-resctl-5.3
+sudo sed -i 's/etc\/init.d/etc\/rc.d\/init.d/g' $RPM/$RPM*.spec
+sudo sed -i '/^Group: /a Requires: ruby wireless-tools wget pciutils imagezip liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3 omf-resctl-5.3' $RPM/$RPM*.spec
+sudo sed -i '/^(Converted /a %post\n/sbin/chkconfig --add omf-resctl-5.3\n/etc/init.d/omf-resctl-5.3 restart' $RPM/$RPM*.spec
+sudo rpmbuild -bb --buildroot `pwd`/$RPM $RPM/omf-resctl-*.spec
+sudo rm -rf `pwd`/$RPM
 cd $TOPDIR
 
 rm -f liblog4r-ruby-1*rpm libxmpp4r-ruby-1*rpm
