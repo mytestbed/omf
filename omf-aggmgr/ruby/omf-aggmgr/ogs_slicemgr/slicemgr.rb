@@ -42,6 +42,7 @@ class SlicemgrService < GridService
   @@config = nil
   @@pubsub = nil
   @@browser = nil
+  @@dryrun_nodes = nil
 
   name 'slicemgr'
   info 'XML-RPC interface to the PubSub server for slice creation'
@@ -52,8 +53,8 @@ class SlicemgrService < GridService
       sliceid = slice_pubsub_id(slice)
       resources_node = resources_node_pubsub_id(slice)
       MObject.debug(serviceName, "Adding a slice named '#{sliceid}'")
-      @@pubsub.create_pubsub_node("#{sliceid}")
-      @@pubsub.create_pubsub_node("#{resources_node}")
+      create_pubsub_node("#{sliceid}")
+      create_pubsub_node("#{resources_node}")
       {
         :result => "OK",
         :name => sliceid
@@ -68,7 +69,7 @@ class SlicemgrService < GridService
       resources_node = resources_node_pubsub_id(slice)
       resourceid = resource_pubsub_id(slice, resource)
       MObject.debug(serviceName, "Create a new node #{resource} under #{resources_node}")
-      @@pubsub.create_pubsub_node(resourceid);
+      create_pubsub_node(resourceid);
       {
         :result => "OK",
         :slice => sliceid,
@@ -83,7 +84,7 @@ class SlicemgrService < GridService
       sliceid = slice_pubsub_id(slice)
       resourceid = resource_pubsub_id(slice, resource)
       MObject.debug(serviceName, "Remove node #{resource} from slice #{slice}")
-      @@pubsub.remove_pubsub_node(resourceid)
+      remove_pubsub_node(resourceid)
       {
         :result => "OK",
         :slice => sliceid,
@@ -100,11 +101,11 @@ class SlicemgrService < GridService
       slice_resources = get_resources_for_slice(slice)
       slice_resources.each do |resource|
         MObject.debug(serviceName, "Removing resource #{resource} (belongs to #{sliceid})")
-        @@pubsub.remove_pubsub_node(resource)
+        remove_pubsub_node(resource)
       end
       MObject.debug(serviceName, "Remove slice #{sliceid}")
-      @@pubsub.remove_pubsub_node(sliceid)
-      @@pubsub.remove_pubsub_node(resources_node)
+      remove_pubsub_node(sliceid)
+      remove_pubsub_node(resources_node)
       result = { :result => "OK", :slice => sliceid }
       if not slice_resources.empty? then
         result[:resources] = slice_resources
@@ -128,17 +129,22 @@ class SlicemgrService < GridService
   def self.configure(config)
     @@config = config
     ['server', 'username', 'password'].each do |cfg|
-      error("Missing configuration item #{cfg}") if @@config[cfg] == nil
+      error("Missing mandatory configuration item #{cfg}") if @@config[cfg] == nil
     end
-    @@pubsub = OmfPubSubService.new(@@config['username'].to_s,
-                                    @@config['password'].to_s,
-                                    @@config['server'])
-    client = Client.new(JID::new("#{@@config['username']}@#{@@config['server']}"))
-    client.connect
-    client.auth("#{@@config['password']}")
-    client.send(Presence.new)
-    @@browser = PubSub::NodeBrowser.new(client)
-    @@pubsubjid = "pubsub.#{@@config['server']}"
+
+    if @@config['dry-run'] == nil or ['no', 'false'].include?(@@config['dry-run']) then
+      @@pubsub = OmfPubSubService.new(@@config['username'].to_s,
+                                      @@config['password'].to_s,
+                                      @@config['server'])
+      client = Client.new(JID::new("#{@@config['username']}@#{@@config['server']}"))
+      client.connect
+      client.auth("#{@@config['password']}")
+      client.send(Presence.new)
+      @@browser = PubSub::NodeBrowser.new(client)
+      @@pubsubjid = "pubsub.#{@@config['server']}"
+    else
+      MObject.info(serviceName, "This is a dry run:  no PubSub nodes will be added/removed on the XMPP server.")
+    end
   end
 
   def self.slice_pubsub_id(slice_name)
@@ -154,7 +160,29 @@ class SlicemgrService < GridService
   end
 
   def self.list_all_pubsub_nodes
-    @@browser.nodes(@@pubsubjid)
+    if @@browser == nil then
+      @@dryrun_nodes.dup
+    else
+      @@browser.nodes(@@pubsubjid)
+    end
+  end
+
+  def self.create_pubsub_node(name)
+    if @@pubsub == nil then
+      @@dryrun_nodes = @@dryrun_nodes || []
+      @@dryrun_nodes += [name]
+    else
+      @@pubsub.create_pubsub_node(name)
+    end
+  end
+
+  def self.remove_pubsub_node(name)
+    if @@pubsub == nil then
+      @@dryrun_nodes = @@dryrun_nodes || []
+      @@dryrun_nodes.delete(name)
+    else
+      @@pubsub.remove_pubsub_node(name)
+    end
   end
 
   def self.check_slice_name(slice)

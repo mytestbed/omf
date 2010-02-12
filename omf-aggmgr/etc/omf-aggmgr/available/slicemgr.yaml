@@ -4,3 +4,4 @@ slicemgr:
   server: 10.0.0.200
   username: aggmgr
   password: 123
+#  dry-run: true
