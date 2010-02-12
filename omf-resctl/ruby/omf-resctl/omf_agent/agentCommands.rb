@@ -535,6 +535,22 @@ end
   end
 
   #
+  # Command 'RPM_INSTALL'
+  #
+  # Execute yum command on node
+  #
+  # - agent = the instance of this NA
+  # - cmdObject = a Command Object holding all the information required to 
+  #               execute this command
+  #
+  def AgentCommands.RPM_INSTALL(agent, cmdObject)
+    id = cmdObject.appID
+    pkgName = cmdObject.package
+    cmd = "/usr/bin/yum -y install #{pkgName}"
+    ExecApp.new(id, agent, cmd)
+  end
+
+  #
   # Command 'RESET'
   #
   # Reset this node agent

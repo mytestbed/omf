@@ -162,6 +162,9 @@ class AppDefinition < MObject
   # Name to use for apt-get install (nil if packet is not in apt)
   attr_accessor :aptName
 
+  # Name to use for rpm install (nil if packet is not in rpm)
+  attr_accessor :rpmName
+
   # Location of binary on installed machine
   attr_accessor :path
 

@@ -50,10 +50,10 @@ class AgentPubSubCommunicator < MObject
   RETRY_INTERVAL = 10
 
   VALID_EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP,
-                      :PM_INSTALL, :APT_INSTALL, :RESET, :RESTART,
+                      :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
                       :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                       :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
-                      :ENROLL, :EXIT]
+                      :RESTART, :ENROLL, :EXIT]
 
   VALID_RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
                       :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]

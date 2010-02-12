@@ -19,6 +19,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 \f0\fs26 \cf0 Please make sure that you edit the configuration file\
 \
-/etc/omf-expctl-5.3/nodehandler.yaml\
+/etc/omf-expctl-5.3/omf-expctl.yaml\
 \
-to set the correct configuration parameters for your Experiment Controller.}]]></resource></locale></resources><requirements><requirement id="kilo" operator="ge" value="10"><message>Insufficient Disk Space (Test)</message></requirement><requirement id="tosv" operator="ge" value="'10.6'"><message>Too old!</message></requirement></requirements><flags/><item type="file">01trunk.xml</item><mod>description</mod><mod>properties.title</mod><mod>postinstallActions.actions</mod><mod>properties.customizeOption</mod><mod>preinstallActions.actions</mod><mod>properties.systemDomain</mod><mod>properties.anywhereDomain</mod></pkmkdoc>
+to set the correct configuration parameters for your Experiment Controller.}]]></resource></locale></resources><requirements><requirement id="kilo" operator="ge" value="10"><message>Insufficient Disk Space (Test)</message></requirement><requirement id="tosv" operator="ge" value="'10.6'"><message>Too old!</message></requirement></requirements><flags/><item type="file">01trunk.xml</item><mod>description</mod><mod>properties.title</mod><mod>properties.anywhereDomain</mod><mod>properties.customizeOption</mod><mod>preinstallActions.actions</mod><mod>properties.systemDomain</mod><mod>postinstallActions.actions</mod></pkmkdoc>

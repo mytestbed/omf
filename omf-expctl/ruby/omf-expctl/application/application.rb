@@ -97,7 +97,7 @@ class Application < MObject
   #
   def installable?
     d = appDefinition
-    return d.aptName != nil || d.binaryRepository != nil
+    return d.aptName != nil || d.binaryRepository != nil || d.rpmName != nil
   end
 
   #
@@ -123,6 +123,12 @@ class Application < MObject
       install_cmd.appID = "#{appDefinition.uri}/install"
       install_cmd.image = url
       install_cmd.path = '/'
+      nodeSet.send(install_cmd)
+    elsif (rpmName = @appDefinition.rpmName) != nil
+      # Install App from RPM package using apt-get 
+      install_cmd = Communicator.instance.getCmdObject(:RPM_INSTALL)
+      install_cmd.appID = "#{appDefinition.uri}/install"
+      install_cmd.package = rpmName
       nodeSet.send(install_cmd)
     end
   end
