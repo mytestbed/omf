@@ -45,7 +45,7 @@ require 'omf-expctl/agentCommands'
 class XmppCommunicator < Communicator
 
   DOMAIN = "OMF"
-  RESOURCE = "resource"
+  RESOURCE = "resources"
   VALID_EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
 	                :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
@@ -338,6 +338,7 @@ class XmppCommunicator < Communicator
       incomingPubSubNode =  event.first_element("items").attributes['node']
 
       # Retrieve the Command Object from the received message
+      info "TDEBUG - EVENT - #{event.to_s}"
       eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
       xmlMessage = nil
       eventBody.each_element { |e| xmlMessage = e }

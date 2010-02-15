@@ -45,7 +45,7 @@ require "omf-common/omfCommandObject"
 class AgentPubSubCommunicator < MObject
 
   DOMAIN = "OMF"
-  RESOURCE = "resource"
+  RESOURCE = "resources"
   PING_INTERVAL = 3600
   RETRY_INTERVAL = 10
 

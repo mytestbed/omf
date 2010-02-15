@@ -35,6 +35,7 @@ include Jabber
 
 ERR_INVALID_SLICE_NAME = 1
 
+DOMAIN = 'OMF'
 RESOURCES = 'resources'
 
 class SlicemgrService < GridService
@@ -148,7 +149,7 @@ class SlicemgrService < GridService
   end
 
   def self.slice_pubsub_id(slice_name)
-    "OMF/#{slice_name}"
+    "#{DOMAIN}/#{slice_name}"
   end
 
   def self.resources_node_pubsub_id(slice_name)
