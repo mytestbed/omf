@@ -35,7 +35,7 @@ include Jabber
 
 ERR_INVALID_SLICE_NAME = 1
 
-DOMAIN = 'OMF'
+DOMAIN = '/OMF'
 RESOURCES = 'resources'
 
 class SlicemgrService < GridService
