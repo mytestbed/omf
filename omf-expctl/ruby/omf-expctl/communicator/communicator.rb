@@ -55,26 +55,19 @@ class Communicator < MObject
   
   #
   # Return an Object which will hold all the information required to send 
-  # a command to the resources.
+  # a command to another OMF entity.
   # By default this Object is a structure. However, different type of 
   # communicators (i.e. sub-classes of this class) can define their own type
   # for the Command Object.
   # 
-  # The returned Command Object should have the following public accessors:
+  # The returned Command Object should have at least the following public accessors:
   # - type = type of the command
-  # - group = name of the group to which this command is addressed
-  # - procID = name of this command (optional)
-  # - env = a Hash with the optional environment to set for this command (optional)
-  # - path = the full path to the application for this command
-  # - cmdLineArgs = an Array with the full command line arguments to append to this command (optional)
-  # - omlConfig =  an XML configuration element for OML (optional)
   #
-  # [Return] an Object holding all the information to execute an application 
+  # [Return] a Command Object holding all the information related to a given command
   #
   def getCmdObject()
-    @cmdStruct ||= Struct.new(:type, :group, :procID, :env, :path, :cmdLineArgs, :omlConfig)
+    @cmdStruct ||= Struct.new(:type)
     cmd = @cmdStruct.new()
-    cmd.env = {}
     cmd
   end
   

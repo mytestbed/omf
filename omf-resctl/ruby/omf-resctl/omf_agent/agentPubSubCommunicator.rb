@@ -94,52 +94,20 @@ class AgentPubSubCommunicator < MObject
     start(NodeAgent.instance.config[:comm][:xmpp_server])
   end
   
+  #
+  # Return an Object which will hold all the information required to send 
+  # a command to another OMF entity.
+  # This Communicator uses the OMF Command Object class.
+  # 
+  # The returned Command Object have at least the following public accessors:
+  # - type = type of the command
+  # and a variable list of other accessors, depending on the type of the command
+  #
+  # [Return] a Command Object holding all the information related to a given command
+  #
   def getCmdObject(cmdType)
     return OmfCommandObject.new(cmdType)
   end
-
-  # 
-  # Return the x coordinate for this NA 
-  # Raises an error message if the coordinate is not set/available
-  #
-  # [Return] x coordinate
-  #
-  #def x
-  #  if (@@x.nil?)
-  #    raise "Cannot determine X coordinate"
-  #  end
-  #  return @@x
-  #end
-
-  # 
-  # Set the x coordinate for this NA 
-  #
-  # - x = value for the X coordinate
-  #
-  #def setX(x)
-  #  @@x = x
-  #end
-  # 
-  # Return the y coordinate for this NA 
-  # Raises an error message if the coordinate is not set/available
-  #
-  # [Return] y coordinate
-  #
-  #def y
-  #  if (@@y.nil?)
-  #    raise "Cannot determine X coordinate"
-  #  end
-  #  return @@y
-  #end
-
-  # 
-  # Set the y coordinate for this NA 
-  #
-  # - y = value for the Y coordinate
-  #
-  #def setY(y)
-  #  @@y = y
-  #end      
       
   #
   # Configure and start the Communicator.
@@ -382,7 +350,7 @@ class AgentPubSubCommunicator < MObject
   #
   def send!(message)
     # Sanity checks...
-    if (message.length == 0) then
+    if (message == nil) || (message.length == 0) 
       error "send! - detected attempt to send an empty message"
       return
     end
@@ -407,18 +375,10 @@ class AgentPubSubCommunicator < MObject
   # First, we parse the message to extract the command and its arguments.
   # Then, we check if this command should trigger some Communicator-specific actions.
   # Finally, we pass this command up to the Node Agent for further processing.
+  # The Payload of the received message should be an XML representation of an 
+  # OMF Command Object
   #
   # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
-  #
-  # NOTE: The Payload of the received message should be of the form:
-  #       <target> <command> <argument1> <argument2> etc...
-  #
-  #       This was the format also documented in the original TCP server communicator.
-  #       However, <target> is no longer relevant in a pub/sub communication scheme.
-  #       Thus, we can still currently keep this message format for backward compatibility
-  #       (i.e. that way we don't modify the NA code, which can still use the old TCP server
-  #       if required). Here we just ignore the <target> field. 
-  #       TODO: in the future, we will phase out the <target> field.
   #
   def execute_command (event)
     begin

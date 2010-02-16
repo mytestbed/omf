@@ -104,6 +104,17 @@ class XmppCommunicator < Communicator
     }
   end  
 
+  #
+  # Return an Object which will hold all the information required to send 
+  # a command to another OMF entity.
+  # This Communicator uses the OMF Command Object class.
+  # 
+  # The returned Command Object have at least the following public accessors:
+  # - type = type of the command
+  # and a variable list of other accessors, depending on the type of the command
+  #
+  # [Return] a Command Object holding all the information related to a given command
+  #
   def getCmdObject(cmdType)
     return OmfCommandObject.new(cmdType)
   end
@@ -324,6 +335,8 @@ class XmppCommunicator < Communicator
   # Then, we check if this message contains a command which should trigger some
   # Communicator-specific actions.
   # Finally, we pass this command up to the Resource Controller for further processing.
+  # The Payload of the received message should be an XML representation of an 
+  # OMF Command Object
   #
   # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
   #
