@@ -24,6 +24,8 @@
 #
 #
 
+export LANG=c
+
 VER=5.3
 APP=omf-aggmgr/ogs.rb
 if [ -e /usr/share/omf-aggmgr-$VER/$APP ]; then

@@ -24,6 +24,8 @@
 #
 #
 
+export LANG=c
+
 # determine OMF version
 if [ ${0#*-} != $0 ]; then VER=-${0#*-}; fi
 

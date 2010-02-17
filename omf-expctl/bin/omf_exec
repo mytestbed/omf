@@ -24,8 +24,9 @@
 #
 #
 
-VER=-5.3
-	
+export LANG=c
+
+VER=-5.3	
 APP=omf-expctl.rb
 if [ -e /usr/share/omf-expctl$VER/$APP ]; then
    PDIR=/usr/share/omf-expctl$VER

@@ -24,6 +24,8 @@
 #
 #
 
+export LANG=c
+
 VER=-5.3
 APP=omf_create_sysnode.rb
 if [ -e /usr/share/omf-aggmgr$VER/omf-aggmgr/$APP ]; then

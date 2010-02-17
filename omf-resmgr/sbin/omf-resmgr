@@ -24,6 +24,8 @@
 #
 #
 
+export LANG=c
+
 VER=5.3
 APP=omf-resctl/nodeAgent.rb
 if [ -e /usr/share/omf-resctl-$VER/$APP ]; then

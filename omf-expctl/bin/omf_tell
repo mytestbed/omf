@@ -24,8 +24,9 @@
 #
 #
 
-VER=-5.3
+export LANG=c
 
+VER=-5.3
 APP=omf-expctl/tellnode.rb
 TOPO_ALL=system:topo:all
 MY_NAME="$ROOTAPP tell"
