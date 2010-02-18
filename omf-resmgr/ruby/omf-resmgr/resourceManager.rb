@@ -103,22 +103,13 @@ class ResourceManager < MObject
   end
 
   #
-  # Send an OK reply to the Node Handler (EC). When a command has been 
-  # successfully completed, the NA sends an 'HeartBeat' OK message
-  # to the EC
+  # Send an OK reply to our PubSub group. 
+  # When a command has been successfully completed, the RM sends an 
+  # OK message to the PubSub group from which it got that command.
   #
-  # - cmd = a String with the command that completed successfully
-  # - id = the ID of this NA (default = nil)
-  # - msgArray = an array with the full received command (name, parameters,...)
+  # - message = a String with some information about the successful command
+  # - cmdObj = the original Command Object holding the command we processed 
   #
-  def old_okReply(cmd, id = nil, *msgArray)
-    if @allowDisconnection 
-      communicator.sendRelaxedHeartbeat()
-    else
-      communicator.sendHeartbeat()
-    end
-  end
-
   def okReply(message, cmdObj)
     ok_reply = communicator.getCmdObject(:OK)
     ok_reply.target = @managerName
@@ -126,42 +117,16 @@ class ResourceManager < MObject
     ok_reply.cmd = cmdObj.cmdType.to_s
     ok_reply.path = cmdObj.path if cmdObj.path != nil
     ok_reply.value = cmdObj.value if cmdObj.value != nil
-    send(ok_reply)
-  end
-
-
-  #
-  # Send an ENROLL reply to the Node Handler (EC). When a YOUARE or ALIAS 
-  # command has been successfully completed, the NA sends this message
-  # to the EC
-  #
-  # - aliasArray = an array with the names of all the groups within the 
-  #              original YOAURE/ALIAS message with which this NA has enrolled
-  #
-  def enrollReply(aliases = nil)
-    enroll_reply = communicator.getCmdObject(:ENROLLED)
-    enroll_reply.target = @managerName
-    enroll_reply.name = aliases if aliases != nil
-    send(enroll_reply)
-  end
-
-  def wrongImageReply()
-    image_reply = communicator.getCmdObject(:WRONG_IMAGE)
-    image_reply.target = @managerName
-    image_reply.image = imageName()
-    # 'WRONG_IMAGE' message goes even though the node is not enrolled!
-    # Thus we make a direct call to the communicator here.
-    communicator.sendCmdObject(image_reply)
+    communicator.sendCmdObject(ok_reply)
   end
 
   #
-  # Send an ERROR reply to the Node Handler (EC). When an error occured
-  # while executing a command, the NA sends an 'ERROR' message
-  # to the EC
+  # Send an ERROR reply to our PubSub group. 
+  # When a command has been completed with some errors, the RM sends an 
+  # ERROR message to the PubSub group from which it got that command.
   #
-  # - cmd = a String with the command that produced the error
-  # - id = the ID of this NA (default = nil)
-  # - msgArray = an array with the full received command (name, parameters,...)
+  # - message = a String with some information about the command
+  # - cmdObj = the original Command Object holding the command we processed 
   #
   def errorReply(message, cmdObj)
     error_reply = communicator.getCmdObject(:ERROR)
@@ -170,24 +135,7 @@ class ResourceManager < MObject
     error_reply.cmd = cmdObj.cmdType.to_s
     error_reply.path = cmdObj.path if cmdObj.path != nil
     error_reply.appID = cmdObj.appID if cmdObj.appID != nil
-    error_reply.value = cmdObj.value if cmdObj.value != nil
-    # 'ERROR' message goes even though the node is not enrolled!
-    # Thus we make a direct call to the communicator here.
     communicator.sendCmdObject(error_reply)
-    #send(:ERROR, cmd, id, *msgArray)
-  end
-
-  #
-  # Send a text message to the Node Handler (EC). 
-  #
-  # - msgArray = an array with the full text message to send 
-  #
-  def send(cmdObj)
-    if @enrolled
-      communicator.sendCmdObject(cmdObj)
-    else
-      warn("Not enrolled! Not sending message: '#{cmdObj.to_xml_to.s}'")
-    end
   end
 
   #
@@ -210,10 +158,9 @@ class ResourceManager < MObject
   end
 
   #
-  # Send a message to the Node Handler (EC) when an event related
-  # to a particular application has happened. This method is
-  # usually called by ExecApp which monitors the application 
-  # identified by 'id'.
+  # Log an event coming from a particular application that this RM 
+  # has launched. This method is usually called by ExecApp which 
+  # monitors the launched application identified by 'id'.
   #
   # - eventName = a String with the name of event that occured
   # - appID = a String with the ID of the application raising the event 
@@ -221,42 +168,6 @@ class ResourceManager < MObject
   #
   def onAppEvent(eventName, appId, *msg)
     debug("onAppEvent(event: #{eventName} - app: #{appId}) - '#{msg}'")
-    
-    # If this NA allows disconnection, then check if the event is the Done message from 
-    # the slave Experiment Controller
-    if ( @allowDisconnection && (appId == AgentCommands.slaveExpCtlID) )
-       if ( eventName.split(".")[0] == "DONE" )
-         @expirementDone = true
-         debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
-       end
-    end
-    app_event = communicator.getCmdObject(:APP_EVENT)
-    app_event.target = @managerName
-    app_event.value = eventName.to_s.upcase
-    app_event.appID = appId
-    app_event.message = "#{msg}"
-    send(app_event)
-    #send(:APP_EVENT, eventName.to_s.upcase, appId, *msg)
-  end
-
-  #
-  # Send a message to the Node Handler (EC) when an event related
-  # to a particular device has happened. This method is
-  # usually called by a Device instance reporting its state change
-  #
-  # - eventName = a String with the name of event that occured
-  # - deviceName = a String with the name of the device raising the event 
-  # - msg = a String with optional message from the device 
-  #
-  def onDevEvent(eventName, deviceName, *msg)
-    debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    dev_event = communicator.getCmdObject(:DEV_EVENT)
-    dev_event.target = @managerName
-    dev_event.value = eventName.to_s.upcase
-    dev_event.appID = deviceName
-    dev_event.message = "#{msg}"
-    send(dev_event)
-    #send(:DEV_EVENT, eventName.to_s.upcase, deviceName, *msg)
   end
 
   #

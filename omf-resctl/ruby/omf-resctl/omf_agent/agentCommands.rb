@@ -39,9 +39,6 @@ require 'omf-resctl/omf_driver/ethernet'
 
 module AgentCommands
 
-  # Version of the communication protocol between the EC and the NAs
-  PROTOCOL_VERSION = "4.2"
-  
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
 
   # TODO:
@@ -75,10 +72,6 @@ module AgentCommands
     'net/e1' => EthernetDevice.new('net/e1', 'exp1'),
     #'net/w2' => AironetDevice.new('net/w2', 'exp2')
   }
-
-  # Code Version of this NA
-  VERSION = "$Revision: 1273 $".split(":")[1].chomp("$").strip
-  SYSTEM_ID = :system
 
   # 
   # Return the Application ID for the OML Proxy Collection Server
@@ -590,7 +583,6 @@ end
   #               execute this command
   #
   def AgentCommands.REBOOT(agent, cmdObject)
-    agent.send(:STATUS, SYSTEM_ID, "REBOOTING")
     agent.communicator.quit
     cmd = `sudo /sbin/reboot`
     if !$?.success?

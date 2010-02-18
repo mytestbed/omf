@@ -47,9 +47,9 @@ class XMPPCommunicator < MObject
   PING_INTERVAL = 3600
   RETRY_INTERVAL = 10
 
-  VALID_RM_COMMANDS = Set.new [:CREATE_SLIVER]
+  VALID_RM_COMMANDS = Set.new [:CREATE_SLIVER, :DELETE_SLIVER]
 
-  VALID_RM_REPLIES = Set.new [:SLIVER_CREATED] 
+  VALID_RM_REPLIES = Set.new [:OK, :ERROR] 
 
   include Singleton
   @@instantiated = false
@@ -146,7 +146,7 @@ class XMPPCommunicator < MObject
     end
 
     # Set our PubSub group
-    @@myPubSubGroup = "#{DOMAIN}/#{SYSTEM}/#{@@myName}"
+    @@myPubSubGroup = "/#{DOMAIN}/#{SYSTEM}/#{@@myName}"
   end
 
   #
