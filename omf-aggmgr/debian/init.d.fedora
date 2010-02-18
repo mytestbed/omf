@@ -34,7 +34,7 @@ start(){
     $NAME $OPTS > /dev/null 2>&1 &
     echo $! > $PIDFILE
     while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
-	   sleep 3
+	   sleep 1
 	done	
     echo "."
 }
@@ -42,14 +42,14 @@ start(){
 stop(){
     echo -n "Stopping OMF Aggregate Manager: $NAME"
     if [ -f $PIDFILE ]; then
-	    kill `cat $PIDFILE`
-		rm $PIDFILE
+	    kill -9 `cat $PIDFILE`
 		while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
-		   sleep 3
-		done	
+		   sleep 1
+		done
+		rm $PIDFILE
 	    echo "."
 	else
-		echo "No pidfile found. Is $NAME running?"
+		echo "\nNo pidfile found. Is $NAME running?"
 	fi
 }
 

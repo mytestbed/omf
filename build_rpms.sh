@@ -33,7 +33,7 @@ sudo mkdir -p $RPM/etc/rc.d/init.d
 sudo cp ../omf-aggmgr/debian/init.d.fedora $RPM/etc/rc.d/init.d/omf-aggmgr-5.3
 sudo chmod +x $RPM/etc/rc.d/init.d/omf-aggmgr-5.3
 sudo sed -i 's/etc\/init.d/etc\/rc.d\/init.d/g' $RPM/$RPM*.spec
-sudo sed -i '/^Group: /a Requires: ruby frisbee libmysql-ruby, libldap-ruby1.8 libsqlite3-ruby psmisc nmap netcat liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3' $RPM/$RPM*.spec
+sudo sed -i '/^Group: /a Requires: ruby frisbee ruby-mysql, ruby-ldap ruby-sqlite3 psmisc nmap nc liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3' $RPM/$RPM*.spec
 sudo sed -i '/^(Converted /a %post\n/sbin/chkconfig --add omf-aggmgr-5.3\n/etc/init.d/omf-aggmgr-5.3 restart' $RPM/$RPM*.spec
 sudo rpmbuild -bb --target noarch-none-linux --buildroot `pwd`/$RPM $RPM/omf-aggmgr-*.spec
 sudo rm -rf `pwd`/$RPM
@@ -48,7 +48,8 @@ if [ x$RPM == x ]; then
 	echo "Error generating RPM package in `pwd`. Exiting."
 	exit
 fi
-sudo sed -i '/^Group: /a Requires: ruby liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3 libcoderay-ruby1.8 libmarkaby-ruby' $RPM/$RPM*.spec
+sudo sed -i '/^Group: /a Requires: ruby liblog4r-ruby1.8 libxmpp4r-ruby1.8 omf-common-5.3 libcoderay-ruby1.8 rubygem-markaby' $RPM/$RPM*.spec
+sudo sed -i '/conf_room_demo/d' $RPM/$RPM*.spec
 sudo rpmbuild -bb --target noarch-none-linux --buildroot `pwd`/$RPM $RPM/omf-expctl-*.spec
 sudo rm -rf `pwd`/$RPM
 cd $TOPDIR
