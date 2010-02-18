@@ -1,13 +1,13 @@
-Source: omf-resctl-5.3
+Source: omf-resmgr-5.3
 Section: omf
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
 Build-Depends: debhelper (>= 5)
 Standards-Version: 3.7.2
 
-Package: omf-resctl-5.3
+Package: omf-resmgr-5.3
 Architecture: all
-Depends: wget, ruby1.8, omf-common-5.3, wireless-tools, pciutils
-Description: OMF Resource Controller
- Client application for the OMF Experiment Controller.
+Depends: ruby1.8, omf-common-5.3
+Description: OMF Resource Manager
+ OMF entity managing slivers on shared virtualised resources.
 

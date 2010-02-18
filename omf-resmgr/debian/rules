@@ -9,7 +9,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PKG_NAME=omf-resctl-5.3
+PKG_NAME=omf-resmgr-5.3
 
 configure: configure-stamp
 configure-stamp:
@@ -45,13 +45,13 @@ install: build
 
 	# Add here commands to install the package into debian/.
 	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	tar -C ruby -cf - --exclude='.svn' omf-resctl | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	svn info | grep Revision | cut -d ' ' -f 2 > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-resctl/omf_agent/REVISION
-	tar -C etc -cf - --exclude='.svn' omf-resctl | tar -xf - -C debian/$(PKG_NAME)/etc/
+	tar -C ruby -cf - --exclude='.svn' omf-resmgr | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
+	svn info | grep Revision | cut -d ' ' -f 2 > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-resmgr/REVISION
+	tar -C etc -cf - --exclude='.svn' omf-resmgr | tar -xf - -C debian/$(PKG_NAME)/etc/
 	tar -cf - --exclude='.svn' sbin | tar -xf - -C debian/$(PKG_NAME)/usr
 	
-	mv debian/$(PKG_NAME)/etc/omf-resctl debian/$(PKG_NAME)/etc/$(PKG_NAME)
-	mv debian/$(PKG_NAME)/usr/sbin/omf-resctl debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
+	mv debian/$(PKG_NAME)/etc/omf-resmgr debian/$(PKG_NAME)/etc/$(PKG_NAME)
+	mv debian/$(PKG_NAME)/usr/sbin/omf-resmgr debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
 	
 # Build architecture-independent files here.
 binary-indep: build install

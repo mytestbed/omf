@@ -1,17 +1,17 @@
 #! /bin/sh
 #
-# starts and stops the Resource Controller Daemon (formerly known as Nodeagent)
+# starts and stops the Resource Manager Daemon 
 #     Written by Maximilian Ott <max@winlab.rutgers.edu>.
-#     Modified by Christoph Dwertmann
+#     Modified by Thierry Rakotoarivelo 
 #
 
 # chkconfig: 2345 99 01
-# description: OMF Resource Controller
+# description: OMF Resource Manager
 
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-NAME=omf-resctl-5.3
+NAME=omf-resmgr-5.3
 PIDFILE=/var/run/$NAME.pid
 
 test -x /usr/sbin/$NAME || exit 0
@@ -25,7 +25,7 @@ if [ -f /etc/default/$NAME ]; then
 fi
 
 start(){
-    echo -n "Starting OMF Resource Controller: $NAME"
+    echo -n "Starting OMF Resource Manager: $NAME"
     if [ -f /var/log/$NAME.log ]; then
        mv /var/log/$NAME.log /var/log/$NAME.log.1
     fi
@@ -36,7 +36,7 @@ start(){
 }
 
 stop(){
-    echo -n "Stopping OMF Resource Controller: $NAME"
+    echo -n "Stopping OMF Resource Manager: $NAME"
     if [ -f $PIDFILE ]; then
 	    kill `cat $PIDFILE`
 		rm $PIDFILE

@@ -1,12 +1,12 @@
 #! /bin/sh
 #
-# starts and stops the Resource Controller Daemon (formerly known as Nodeagent)
+# starts and stops the Resource Manager Daemon 
 #     Written by Maximilian Ott <max@winlab.rutgers.edu>.
-#     Modified by Christoph Dwertmann
+#     Modified by Thierry Rakotoarivelo
 #
 
 ### BEGIN INIT INFO
-# Provides:          omf-resctl
+# Provides:          omf-resmgr
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
@@ -15,7 +15,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-NAME=omf-resctl-5.3
+NAME=omf-resmgr-5.3
 
 test -x /usr/sbin/$NAME || exit 0
 
@@ -28,7 +28,7 @@ if [ -f /etc/default/$NAME ]; then
 fi
 
 start(){
-    echo -n "Starting OMF Resource Controller: $NAME"
+    echo -n "Starting OMF Resource Manager: $NAME"
 	if [ -f /var/log/$NAME.log ]; then
 	    mv /var/log/$NAME.log /var/log/$NAME.log.1
 	fi
@@ -37,7 +37,7 @@ start(){
 }
 
 stop(){
-    echo -n "Stopping OMF Resource Controller: $NAME"
+    echo -n "Stopping OMF Resource Manager: $NAME"
 	start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/$NAME.pid
     echo "."
 }

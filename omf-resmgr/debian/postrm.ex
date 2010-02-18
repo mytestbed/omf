@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for omf-resctl
+# postrm script for omf-resmgr
 #
 # see: dh_installdeb(1)
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for omf-resctl
+# prerm script for omf-resmgr
 #
 # see: dh_installdeb(1)
 

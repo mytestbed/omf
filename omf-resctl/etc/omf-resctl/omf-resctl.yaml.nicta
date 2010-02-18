@@ -25,7 +25,7 @@
 # NOTE: use only 'spaces' to indent !
 # ('tab' indents are not supported by the ruby yaml parser used to read this file)
 #
-# This is the Config file for the NodeAgent4 on the NICTA platform
+# This is the Config file for the Resource Controller on NICTA platforms
 #
 ---
 :rcontroller:

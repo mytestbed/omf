@@ -1,5 +1,5 @@
-omf-resctl-5.3 (1) testing; urgency=low
+omf-resmgr-5.3 (1) testing; urgency=low
 
   * Initial release.
 
- -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 09 Nov 2009 15:00:38 +1100
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Fri, 19 Feb 2010 10:00:38 +1100

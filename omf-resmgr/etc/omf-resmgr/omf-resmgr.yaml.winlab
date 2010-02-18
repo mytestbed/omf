@@ -25,46 +25,20 @@
 # NOTE: use only 'spaces' to indent !
 # ('tab' indents are not supported by the ruby yaml parser used to read this file)
 #
-# This is the Config file for the NodeAgent4 on the WINLAB platform
+# This is the Config file for the Resource Manager on WINLAB platforms
 #
 ---
-nodeagent:
+:rmanager:
   # Communication settings 
-  comm:
+  :comm:
 
-    # How many seconds can we go without a message from the node handler
-    # before we assume we have lost connectivity and need to reset
-    handler_timeout: 40
-  
-    # Number of consecutive handler timeouts before a 'handler lost'
-    # will be declared.
-    timeout_count: 2
-  
-    # Number of seconds to wait between consecutive RETRY requests
-    retry_interval: 3
-  
-    # Number of seconds between consecutive HEARTBEAT messages
-    heartbeat_interval: 10
-  
-    # Pause between resending previous messages
-    resend_interval: 0.1
-  
-    # Currently the node Agent has the choice between two types 
-    # of Communicators to use to talk to the node Handler: 
-    # i)  Multicast Communicator
-    # ii) TCP Server Communicator
-    #
-    # To enable/disable i) uncomment/comment the following lines
-    #
-    listen_addr: 224.4.0.1
-    listen_port: 9006
-    handler_addr: 224.4.0.2
-    handler_port: 9002
-    local_if: eth1 # Control Interface used with Multicast Comm. 
-    #
-    # To enable/disable ii) uncomment/comment the following lines
-    #server_port: 9026
-    # local_if: Control Interface used with TCPServer Comm.
-    #local_if: eth1
-      
-  
+    # Address of the XMPP server to use for PubSub communication
+    :xmpp_server: 10.0.0.200
+
+  # Resource Manager settings
+  :manager:
+
+    # Name (i.e. unique HRN ID) of this resource
+    # Or this could also be passed as a command line parameter "--name"
+    # Or if set to 'default', then the RM will use the output of '/bin/hostname'
+    :name: default
