@@ -23,6 +23,7 @@
 #
 #
 #
+require 'date'
 require 'log4r'
 require 'log4r/configurator'
 #include Log4r

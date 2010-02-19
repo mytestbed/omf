@@ -107,6 +107,7 @@ class OmfPubSubService < MObject
   def initialize(user, password, host)
     # Set internal attributes
     @userJID = "#{user}@#{host}"
+    #@userJID = "#{user}"
     @password = password
     @host = host
     @pubsubjid = "pubsub.#{host}"

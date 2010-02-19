@@ -82,7 +82,7 @@ class XMPPCommunicator < MObject
   # Create a new Communicator 
   #
   def initialize ()
-    @@myName = ResourceManager.managerName
+    @@myName = ResourceManager.instance.managerName
     @@service = nil
     @@IPaddr = nil
     @@systemNode = nil
@@ -160,7 +160,7 @@ class XMPPCommunicator < MObject
        debug "PubSub group '#{@@myPubSubGroup}' does not exist on the server - retrying in #{RETRY_INTERVAL} sec"
        sleep RETRY_INTERVAL
     end
-    debug "Joined PubSub group: '#{group}'"
+    debug "Joined PubSub group: '#{@@myPubSubGroup}'"
   end
   
   #
@@ -253,7 +253,7 @@ class XMPPCommunicator < MObject
         debug "Unknown command cmdType: '#{cmdObj.cmdType}' - ignoring it!" 
         return
       end
-      if cmdObj.target != ResourceManager.managerName
+      if cmdObj.target != ResourceManager.instance.managerName
         debug "Unknown command target: '#{cmdObj.target}' - ignoring it!" 
         return
       end

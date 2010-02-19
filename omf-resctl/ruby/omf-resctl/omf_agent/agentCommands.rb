@@ -352,7 +352,7 @@ end
     expID = getArg(argArray, "Experiment ID")
 
     # Fetch the Experiment Description from the EC
-    ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
+    ts = Time.now.strftime("%F-%T").split(%r{[:-]}).join('_')
     urlED = getArg(argArray, "URL for Experiment Description")
     fileName = "/tmp/exp_#{ts}.rb"
     MObject.debug("Fetching Experiment Description at '#{urlED}'")

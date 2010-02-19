@@ -37,6 +37,7 @@
 # understands.
 #
 
+require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
 require "omf-common/omfCommandObject"
 require 'omf-resmgr/xmppCommunicator'

@@ -61,12 +61,13 @@ module AgentCommands
 
     # Reply to the command
     if success  
-      MObject.debug("Created Sliver for '#{}' on '#{}' ")
-      agent.okReply("Created Sliver for '#{}' on '#{}' ", cmdObject)
+      msg = "Created Sliver for slice '#{sliceName}' on '#{resourceName}'"
+      agent.okReply(msg, cmdObject)
     else
-      MObject.debug("Failed creating Sliver for '#{}' on '#{}' ")
-      agent.errorReply("Failed creating Sliver for '#{}' on '#{}' ", cmdObject)
+      msg = "Failed creating Sliver for slice '#{sliceName}' on '#{resourceName}'"
+      agent.errorReply(msg, cmdObject)
     end
+    MObject.debug(msg)
   end
 
   #
@@ -88,12 +89,13 @@ module AgentCommands
 
     # Reply to the command
     if success  
-      MObject.debug("Deleted Sliver for '#{}' on '#{}' ")
-      agent.okReply("Deleted Sliver for '#{}' on '#{}' ", cmdObject)
+      msg = "Deleted Sliver for '#{sliceName}' on '#{resourceName}'"
+      agent.okReply(msg, cmdObject)
     else
-      MObject.debug("Failed deleteing Sliver for '#{}' on '#{}' ")
-      agent.errorReply("Failed deleting Sliver for '#{}' on '#{}' ", cmdObject)
+      msg = "Failed deleteing Sliver for '#{sliceName}' on '#{resourceName}'"
+      agent.errorReply(msg, cmdObject)
     end
+    MObject.debug(msg)
   end
 
   #
