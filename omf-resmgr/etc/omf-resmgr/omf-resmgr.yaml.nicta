@@ -62,10 +62,10 @@
     :sliver:
 
       # An sliver on a OMF yellow-box node 
-      :omf: /usr/sbin/omf-resctl-5.2 --name %RESOURCE_NAME% --slice %SLICE_NAME%
+      :omf: /usr/sbin/omf-resctl-5.3 --name %RESOURCE_NAME% --slice %SLICE_NAME%
 
       # An sliver on a PlanetLab machine 
       :planetlab: do_some_stuff_here
 
       # An sliver for debugging 
-      :none: /bin/echo Creating a New Sliver for Slice %SLICE_NAME% on resource %RESOURCE_NAME%
+      :debug: /bin/echo Creating a New Sliver for Slice %SLICE_NAME% on resource %RESOURCE_NAME%

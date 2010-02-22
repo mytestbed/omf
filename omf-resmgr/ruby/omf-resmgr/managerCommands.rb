@@ -52,34 +52,32 @@ module AgentCommands
     sliceName = cmdObject.slicename
     resourceName = cmdObject.resname
     sliverType = cmdObject.slivertype
-    commAddress = cmdObject.commaddr
-    commUser = cmdObject.commuser
-    commPassword = cmdObject.commpwd
+    commAddress = cmdObject.commaddr 
+    commUser = cmdObject.commuser 
+    commPassword = cmdObject.commpwd 
     
     # Create the sliver ...
-    success = false
-    if (agent.instance.config[:manager][:sliver] != nil) && 
-       (sliverCmd = agent.instance.config[:manager][:sliver][sliverType.to_sym] != nil) 
-      sliverCmd = sliverCmd.gsub(/%SLICE_NAME%/, sliceName)
-      sliverCmd = sliverCmd.gsub(/%RESOURCE_NAME%/, resourceName)
-      sliverCmd = sliverCmd.gsub(/%PUBSUB_ADDRESS%/, commAddress)
-      sliverCmd = sliverCmd.gsub(/%PUBSUB_USER%/, commUser)
-      sliverCmd = sliverCmd.gsub(/%PUBSUB_PASSWORD%/, commPassword)
-      MObject.debug("Creating a '#{sliverType}' with cmd: '#{sliverCmd}'") 
-      sliverID = "#{sliceName}-#{resourceName}"
-      ExecApp.new(sliverID, agent, sliverCmd)
-      success = true
-    end
-
-    # Reply to the command
-    if success  
-      msg = "Created Sliver for slice '#{sliceName}' on '#{resourceName}'"
-      agent.okReply(msg, cmdObject)
+    if ResourceManager.instance.config[:manager][:sliver] != nil
+      begin
+        sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym] 
+        sliverCmd = sliverCmd.gsub(/%SLICE_NAME%/, sliceName)
+        sliverCmd = sliverCmd.gsub(/%RESOURCE_NAME%/, resourceName)
+        sliverCmd = sliverCmd.gsub(/%PUBSUB_ADDRESS%/, commAddress)
+        sliverCmd = sliverCmd.gsub(/%PUBSUB_USER%/, commUser) if commUser != nil
+        sliverCmd = sliverCmd.gsub(/%PUBSUB_PASSWORD%/, commPassword) if commPassword != nil
+        MObject.debug("Creating a sliver (type: '#{sliverType}') with cmd: '#{sliverCmd}'") 
+        sliverID = "#{sliceName}-#{resourceName}"
+        ExecApp.new(sliverID, agent, sliverCmd)
+        msg = "Created Sliver for slice '#{sliceName}' on '#{resourceName}'"
+        agent.okReply(msg, cmdObject)
+      rescue Exception => ex
+        msg = "Failed creating Sliver for slice '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
+        agent.errorReply(msg, cmdObject)
+      end
+      MObject.debug(msg)
     else
-      msg = "Failed creating Sliver for slice '#{sliceName}' on '#{resourceName}'"
-      agent.errorReply(msg, cmdObject)
+      MObject.debug("Missing :sliver section in config file. Don't know how to create a sliver...")
     end
-    MObject.debug(msg)
   end
 
   #
@@ -101,8 +99,8 @@ module AgentCommands
       ExecApp[sliverID].kill(sliverID, 15)
       msg = "Deleted Sliver for '#{sliceName}' on '#{resourceName}'"
       agent.okReply(msg, cmdObject)
-    rescue
-      msg = "Failed deleteing Sliver for '#{sliceName}' on '#{resourceName}'"
+    rescue Exception => ex
+      msg = "Failed deleting Sliver for '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
       agent.errorReply(msg, cmdObject)
     end
     MObject.debug(msg)

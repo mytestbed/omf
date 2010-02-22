@@ -258,7 +258,7 @@ class ResourceManager < MObject
 
     # Make sure log exists ...
     @logConfigFile = File.exists?(@logConfigFile) ? @logConfigFile : nil
-    MObject.initLog('ResManager', nil, {:configFile => @logConfigFile})
+    MObject.initLog('resourceManager', nil, {:configFile => @logConfigFile})
 
     # Read config file
     if cfgFile.nil?

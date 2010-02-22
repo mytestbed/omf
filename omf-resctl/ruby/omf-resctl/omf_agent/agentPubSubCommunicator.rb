@@ -129,7 +129,7 @@ class AgentPubSubCommunicator < MObject
   def start(pubsub)
     
     #debug "Connecting to PubSub Server: '#{jid_suffix}'"
-    debug "Connecting to PubSub Server: '#{pubusub[:xmpp_server]}'"
+    debug "Connecting to PubSub Server: '#{pubsub[:xmpp_server]}'"
 
     # Set some internal attributes...
     #@@IPaddr = getControlAddr()
@@ -137,23 +137,23 @@ class AgentPubSubCommunicator < MObject
     # Check if PubSub Server is reachable
     check = false
     while !check
-      reply = `ping -c 1 #{pubusub[:xmpp_server]}`
+      reply = `ping -c 1 #{pubsub[:xmpp_server]}`
       if $?.success?
         check = true
       else
-        info "Could not resolve or contact: '#{pubusub[:xmpp_server]}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
+        info "Could not resolve or contact: '#{pubsub[:xmpp_server]}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
         sleep RETRY_INTERVAL
       end
     end
 
     # Create a Service Helper to interact with the PubSub Server
     begin
-      if (pubusub[:xmpp_user] != nil
-        debug "Using PubSub username as provided: '#{pubusub[:xmpp_user]}'"
-        @@service = OmfPubSubService.new(pubusub[:xmpp_user], pubusub[:xmpp_pwd], pubusub[:xmpp_server])
+      if pubsub[:xmpp_user] != nil
+        debug "Using PubSub username as provided: '#{pubsub[:xmpp_user]}'"
+        @@service = OmfPubSubService.new(pubsub[:xmpp_user], pubsub[:xmpp_pwd], pubsub[:xmpp_server])
       else
         debug "Using self-generated PubSub username: '#{@@sliceID}-#{@@myName}'"
-        @@service = OmfPubSubService.new("#{@@sliceID}-#{@@myName}", "123", pubusub[:xmpp_server])
+        @@service = OmfPubSubService.new("#{@@sliceID}-#{@@myName}", "123", pubsub[:xmpp_server])
       end
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
@@ -161,7 +161,7 @@ class AgentPubSubCommunicator < MObject
         @queue << event
       }
     rescue Exception => ex
-      error "Failed to create ServiceHelper for PubSub Server '#{pubusub[:xmpp_server]}' - Error: '#{ex}'"
+      error "Failed to create ServiceHelper for PubSub Server '#{pubsub[:xmpp_server]}' - Error: '#{ex}'"
       exit # No need to cleanUp, as this RC has not done anything yet...
     end
     
