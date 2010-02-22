@@ -42,3 +42,30 @@
     # Or this could also be passed as a command line parameter "--name"
     # Or if set to 'default', then the RM will use the output of '/bin/hostname'
     :name: default
+
+    # This section contains the list of the different types of Slivers that 
+    # this RM can create
+    # For each type, we have to give the full command line that should be executed
+    # by the RM to launch the sliver. You can can use the following built-in variables 
+    # to construct your command line (inside the RM, they will be replaced by their 
+    # corresponding values at run-time) 
+    #
+    # - %SLICE_NAME% : the name of the slice for the sliver to create
+    # - %RESOURCE_NAME% :  the name of this resource
+    # - %PUBSUB_ADDRESS% :  the address of the pubsub server to which the sliver should connect
+    # - %PUBSUB_USER% :  the user on the pubsub server (optional)
+    # - %PUBSUB_PASSWORD% :  the password on the pubsub server (optional)
+    #
+    # Note: If user/password is not set, the default OMF Resource Controller will register 
+    # a new user for itself
+    #
+    :sliver:
+
+      # An sliver on a OMF yellow-box node 
+      :omf: /usr/sbin/omf-resctl-5.2 --name %RESOURCE_NAME% --slice %SLICE_NAME%
+
+      # An sliver on a PlanetLab machine 
+      :planetlab: do_some_stuff_here
+
+      # An sliver for debugging 
+      :none: /bin/echo Creating a New Sliver for Slice %SLICE_NAME% on resource %RESOURCE_NAME%

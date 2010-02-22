@@ -91,7 +91,8 @@ class AgentPubSubCommunicator < MObject
         execute_command(event)
       end
     }
-    start(NodeAgent.instance.config[:comm][:xmpp_server])
+    start(NodeAgent.instance.config[:comm])
+    #start(NodeAgent.instance.config[:comm][:xmpp_server])
   end
   
   #
@@ -116,38 +117,51 @@ class AgentPubSubCommunicator < MObject
   # This method also sets the callback method, which will be called upon incoming
   # messages. 
   #
-  # - jid_suffix = [String], JabberID suffix, this is the full host/domain name of 
-  #                the PubSub server, e.g. 'norbit.npc.nicta.com.au'. 
+  # - pubsub = [Hash], a Hash with the following 3 [key, value]
+  #            -- xmpp_server, JabberID suffix, this is the full host/domain name of 
+  #                         the PubSub server, e.g. 'norbit.npc.nicta.com.au'. 
+  #            -- xmpp_user, the username to use to connect to the server 
+  #            -- xmpp_pwd, the password to use to connect to the server 
+  #            IF user is not set, the RC will register a new user for itself
+  #            (this will only work if the PubSub server is set to accept open registration)
   #
-  def start(jid_suffix)
+  #def start(jid_suffix)
+  def start(pubsub)
     
-    debug "Connecting to PubSub Server: '#{jid_suffix}'"
+    #debug "Connecting to PubSub Server: '#{jid_suffix}'"
+    debug "Connecting to PubSub Server: '#{pubusub[:xmpp_server]}'"
+
     # Set some internal attributes...
     #@@IPaddr = getControlAddr()
 
     # Check if PubSub Server is reachable
     check = false
     while !check
-      reply = `ping -c 1 #{jid_suffix}`
+      reply = `ping -c 1 #{pubusub[:xmpp_server]}`
       if $?.success?
         check = true
       else
-        info "Could not resolve or contact: '#{jid_suffix}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
+        info "Could not resolve or contact: '#{pubusub[:xmpp_server]}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
         sleep RETRY_INTERVAL
       end
     end
 
     # Create a Service Helper to interact with the PubSub Server
     begin
-      @@service = OmfPubSubService.new("#{@@sliceID}-#{@@myName}", "123", jid_suffix)
-      #@@service = OmfPubSubService.new(NodeAgent.instance.agentName, "123", jid_suffix)
+      if (pubusub[:xmpp_user] != nil
+        debug "Using PubSub username as provided: '#{pubusub[:xmpp_user]}'"
+        @@service = OmfPubSubService.new(pubusub[:xmpp_user], pubusub[:xmpp_pwd], pubusub[:xmpp_server])
+      else
+        debug "Using self-generated PubSub username: '#{@@sliceID}-#{@@myName}'"
+        @@service = OmfPubSubService.new("#{@@sliceID}-#{@@myName}", "123", pubusub[:xmpp_server])
+      end
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
         @queue << event
       }
     rescue Exception => ex
-      error "Failed to create ServiceHelper for PubSub Server '#{jid_suffix}' - Error: '#{ex}'"
+      error "Failed to create ServiceHelper for PubSub Server '#{pubusub[:xmpp_server]}' - Error: '#{ex}'"
       exit # No need to cleanUp, as this RC has not done anything yet...
     end
     

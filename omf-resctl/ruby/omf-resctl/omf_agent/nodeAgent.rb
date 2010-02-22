@@ -432,6 +432,14 @@ class NodeAgent < MObject
       "Hostname or IP address of the XMPP server to connect to") {|name|
       @config[:comm][:xmpp_server] = name
     }
+    opts.on("--xmpp-user NAME",
+      "Username for connecting to the XMPP server (if not set, RC will register its own new user)") {|name|
+      @config[:comm][:xmpp_user] = name
+    }
+    opts.on("--xmpp-pwd PWD",
+      "Password for connecting to the XMPP server (if not set, RC will register its own new user)") {|name|
+      @config[:comm][:xmpp_pwd] = name
+    }
     
     # Instance Options
     opts.on('--name NAME',

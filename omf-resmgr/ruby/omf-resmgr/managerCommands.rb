@@ -51,6 +51,7 @@ module AgentCommands
   def AgentCommands.CREATE_SLIVER(agent, cmdObject)
     sliceName = cmdObject.slicename
     resourceName = cmdObject.resname
+    sliverType = cmdObject.slivertype
     commAddress = cmdObject.commaddr
     commUser = cmdObject.commuser
     commPassword = cmdObject.commpwd
