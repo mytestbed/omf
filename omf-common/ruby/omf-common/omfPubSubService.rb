@@ -151,7 +151,9 @@ class OmfPubSubService < MObject
   # Do nothing if the PubSub node already exists
   # Openfire automatically adds the creator of the node
   # to the subscriber list and does not allow it to
-  # unsubscribe.
+  # unsubscribe. Ejabberd does not do that. To stay
+  # compatible with openfire, we replicate its behaviour
+  # by subscribing to the node we create.
   #
   # - node = [String] name of the node to create
   #
@@ -165,12 +167,13 @@ class OmfPubSubService < MObject
         "pubsub#send_item_subscribe" => "1",
         "pubsub#publish_model" => "open"}))
       rescue Exception => ex
-        if ("#{ex}"=="conflict: ")
-          # PubSub node already exists, do nothing
-          return true
+        # if the node exists ("conflict"), do not raise an exception
+        if ("#{ex}"!="conflict: ")
+          raise "OmfPubSubService - create_pubsub_node - Unhandled Exception - '#{ex}'"
         end
-        raise "OmfPubSubService - create_pubsub_node - Unhandled Exception - '#{ex}'"
       end
+      # openfire subscribes us automatically, so this is just for ejabberd:
+      join_pubsub_node(node)
       return true
     end
 
