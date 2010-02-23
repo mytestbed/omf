@@ -38,8 +38,11 @@
     # Interface to the control network from which this resource can be controlled and managed
     :control_if: control
 
-    # Address of the XMPP server to use for PubSub communication
-    :xmpp_server: 10.0.0.200
+    # Address of the local PubSub server to use for PubSub communication
+    :local_pubsub_server: 10.0.0.200
+
+    # Address of the remote PubSub server which host the PubSub groups for my Slice
+    :remote_pubsub_server: 10.0.0.200
 
   # Agent settings
   :agent:

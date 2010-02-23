@@ -428,17 +428,21 @@ class NodeAgent < MObject
       "Name of interface attached to the control and management network [#{@localIF}]") {|name|
       @config[:comm][:control_if] = name
     }
-    opts.on("--xmpp-server HOST",
-      "Hostname or IP address of the XMPP server to connect to") {|name|
-      @config[:comm][:xmpp_server] = name
+    opts.on("--local-pubsub-server HOST",
+      "Hostname of the local PubSub server to connect to") {|name|
+      @config[:comm][:local_pubsub_server] = name
     }
-    opts.on("--xmpp-user NAME",
-      "Username for connecting to the XMPP server (if not set, RC will register its own new user)") {|name|
-      @config[:comm][:xmpp_user] = name
+    opts.on("--local-pubsub-user NAME",
+      "Username for connecting to the local PubSub server (if not set, RC will register its own new user)") {|name|
+      @config[:comm][:local_pubsub_user] = name
     }
-    opts.on("--xmpp-pwd PWD",
-      "Password for connecting to the XMPP server (if not set, RC will register its own new user)") {|name|
-      @config[:comm][:xmpp_pwd] = name
+    opts.on("--local-pubsub-pwd PWD",
+      "Password for connecting to the local PubSub server (if not set, RC will register its own new user)") {|name|
+      @config[:comm][:local_pubsub_pwd] = name
+    }
+    opts.on("--remote-pubsub-server HOST",
+      "Hostname of the remote PubSub server hosting the Slice of this agent") {|name|
+      @config[:comm][:remote_pubsub_server] = name
     }
     
     # Instance Options

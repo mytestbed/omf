@@ -129,39 +129,40 @@ class AgentPubSubCommunicator < MObject
   def start(pubsub)
     
     #debug "Connecting to PubSub Server: '#{jid_suffix}'"
-    debug "Connecting to PubSub Server: '#{pubsub[:xmpp_server]}'"
-
-    # Set some internal attributes...
-    #@@IPaddr = getControlAddr()
+    debug "Connecting to PubSub Server: '#{pubsub[:local_pubsub_server]}'"
 
     # Check if PubSub Server is reachable
     check = false
     while !check
-      reply = `ping -c 1 #{pubsub[:xmpp_server]}`
+      reply = `ping -c 1 #{pubsub[:local_pubsub_server]}`
       if $?.success?
         check = true
       else
-        info "Could not resolve or contact: '#{pubsub[:xmpp_server]}' - Waiting #{RETRY_INTERVAL} sec before retrying..."
+        info "Could not resolve or contact: '#{pubsub[:local_pubsub_server]}' - \
+	      Waiting #{RETRY_INTERVAL} sec before retrying..."
         sleep RETRY_INTERVAL
       end
     end
 
     # Create a Service Helper to interact with the PubSub Server
     begin
-      if pubsub[:xmpp_user] != nil
-        debug "Using PubSub username as provided: '#{pubsub[:xmpp_user]}'"
-        @@service = OmfPubSubService.new(pubsub[:xmpp_user], pubsub[:xmpp_pwd], pubsub[:xmpp_server])
-      else
-        debug "Using self-generated PubSub username: '#{@@sliceID}-#{@@myName}'"
-        @@service = OmfPubSubService.new("#{@@sliceID}-#{@@myName}", "123", pubsub[:xmpp_server])
+      if pubsub[:local_pubsub_user] == nil
+        pubsub[:local_pubsub_user] = "#{@@sliceID}-#{@@myName}"
+        pubsub[:local_pubsub_pwd] = "123456"
       end
+      debug "Init PubSub Service (local: '#{pubsub[:local_pubsub_server]}' - \
+                                  user: '#{pubsub[:local_pubsub_user]}' - \
+                                  remote: '#{pubsub[:remote_pubsub_server]}')}'"
+      @@service = OmfPubSubService.new(pubsub[:local_pubsub_user], pubsub[:local_pubsub_pwd], 
+                                         pubsub[:local_pubsub_server], 
+                                         pubsub[:remote_pubsub_server])
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
         @queue << event
       }
     rescue Exception => ex
-      error "Failed to create ServiceHelper for PubSub Server '#{pubsub[:xmpp_server]}' - Error: '#{ex}'"
+      error "Failed to initialise PubSub service! - Error: '#{ex}'"
       exit # No need to cleanUp, as this RC has not done anything yet...
     end
     

@@ -100,17 +100,22 @@ class OmfPubSubService < MObject
   # Create a new instance of PubSub Service Helper
   # (JID = Jabber ID)
   # 
-  # - user = [String] username to use to connect to the PubSub Server  
-  # - password = [String], password to use for this PubSub client
-  # - host = [String] hostname (or IP address) of the PubSub Server   
+  # - user = [String] username to connect to the local PubSub Server  
+  # - password = [String], password to connect to the local PubSub client
+  # - host = [String] hostname of the local PubSub Server   
+  # - remote = [String] hostname of the remote PubSub Server   
   #
-  def initialize(user, password, host)
+  def initialize(user, password, host, remote = nil)
     # Set internal attributes
     @userJID = "#{user}@#{host}"
     #@userJID = "#{user}"
     @password = password
     @host = host
-    @pubsubjid = "pubsub.#{host}"
+    if remote == nil
+      @pubsubjid = "pubsub.#{host}"
+    else
+      @pubsubjid = "pubsub.#{remote}"
+    end
 
     # First open a connection for this Helper to interact with the PubSub Server
     # Any exception raised here will be caught by the Communicator
