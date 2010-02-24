@@ -129,7 +129,7 @@ class AgentPubSubCommunicator < MObject
   def start(pubsub)
     
     #debug "Connecting to PubSub Server: '#{jid_suffix}'"
-    debug "Connecting to PubSub Server: '#{pubsub[:local_pubsub_server]}'"
+    #debug "Connecting to PubSub Server: '#{pubsub[:local_pubsub_server]}'"
 
     # Check if PubSub Server is reachable
     check = false
@@ -150,9 +150,7 @@ class AgentPubSubCommunicator < MObject
         pubsub[:local_pubsub_user] = "#{@@sliceID}-#{@@myName}"
         pubsub[:local_pubsub_pwd] = "123456"
       end
-      debug "Init PubSub Service (local: '#{pubsub[:local_pubsub_server]}' - \
-                                  user: '#{pubsub[:local_pubsub_user]}' - \
-                                  remote: '#{pubsub[:remote_pubsub_server]}')}'"
+      debug "Init PubSub Service (local: '#{pubsub[:local_pubsub_server]}' - user: '#{pubsub[:local_pubsub_user]}' - remote: '#{pubsub[:remote_pubsub_server]}')"
       @@service = OmfPubSubService.new(pubsub[:local_pubsub_user], pubsub[:local_pubsub_pwd], 
                                          pubsub[:local_pubsub_server], 
                                          pubsub[:remote_pubsub_server])

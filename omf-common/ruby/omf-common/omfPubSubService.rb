@@ -169,7 +169,9 @@ class OmfPubSubService < MObject
       @service.create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
         "pubsub#title" => "#{node}",
         "pubsub#node_type" => "leaf",
-        "pubsub#send_item_subscribe" => "1",
+        "pubsub#persist_items" => "1",
+        "pubsub#max_items" => "1",
+        "pubsub#notify_retract" => "0",
         "pubsub#publish_model" => "open"}))
       rescue Exception => ex
         # if the node exists ("conflict"), do not raise an exception

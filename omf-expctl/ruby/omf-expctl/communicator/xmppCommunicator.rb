@@ -147,13 +147,15 @@ class XmppCommunicator < Communicator
         @queue << event
       }         
     rescue Exception => ex
-      error "Failed to create ServiceHelper for PubSub Server '#{jid_suffix}' - Error: '#{ex}'"
+      error "Failed to initialise PubSub service ('#{jid_suffix}')!"
+      error "Error: '#{ex}'"
     end
 
     begin
       @@service.remove_all_pubsub_nodes
     rescue Exception => ex
-      error "Failed to remove old PubSub nodes - Error: '#{ex}'"
+      error "Failed to remove old PubSub nodes"
+      error "Error: '#{ex}'"
       error "Most likely reason: Cannot connect to PubSubServer: '#{jid_suffix}'"
       error "Exiting!"
       exit!
