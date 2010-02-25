@@ -559,8 +559,8 @@ class NodeSet < MObject
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
       OMF::ExperimentController::Web.mapFile(url_dir, srcPath)
       load_cmd = Communicator.instance.getCmdObject(:LOAD_DATA)
-      procName = "exec:#{@@execsCount += 1}"
-      load_cmd.appID = "loadData"
+      procName = "exec:#{@@execsCount += 1}:loadData"
+      load_cmd.appID = procName
       load_cmd.image = url
       load_cmd.path = dstPath
       send(load_cmd)

@@ -523,7 +523,7 @@ end
   def AgentCommands.APT_INSTALL(agent, cmdObject)
     id = cmdObject.appID
     pkgName = cmdObject.package
-    cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install --reinstall -qq #{pkgName}"
+    cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install --reinstall --allow-unauthenticated -qq #{pkgName}"
     ExecApp.new(id, agent, cmd)
   end
 
