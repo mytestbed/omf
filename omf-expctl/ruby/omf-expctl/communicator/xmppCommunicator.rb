@@ -347,40 +347,41 @@ class XmppCommunicator < Communicator
   def execute_command (event)
 
     begin
-      # Ignore this 'event' if it doesnt have any 'items' element
+      # CHECK - Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server
       return if event.first_element("items") == nil
       return if event.first_element("items").first_element("item") == nil
       
-
       # Retrieve the incoming PubSub Group of this message 
       incomingPubSubNode =  event.first_element("items").attributes['node']
 
       # Retrieve the Command Object from the received message
-      info "TDEBUG - EVENT - #{event.to_s}"
       eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
       xmlMessage = nil
       eventBody.each_element { |e| xmlMessage = e }
+      # CHECK - Ignore events without XML payloads
+      return if xmlMessage == nil 
       cmdObj = OmfCommandObject.new(xmlMessage)
 
-      # Sanity checks...
-      if VALID_EC_COMMANDS.include?(cmdObj.cmdType) # ignore command from ourselves
+      # CHECK - Ignore commands from ourselves or another EC
+      if VALID_EC_COMMANDS.include?(cmdObj.cmdType) 
         return
       end
+      # CHECK - Ignore commands that are not known RC commands
       if !VALID_RC_COMMANDS.include?(cmdObj.cmdType)
         debug "Received command with unknown type: '#{cmdObj.cmdType}' - ignoring it!" 
         return
       end
-      if (Node[cmdObj.target] == nil)
-        debug "Received command with unknown target: '#{cmdObj.target}' - ignoring it!"
-        return
-      end
-      # Final check: is this command for this slice and experiment?
+      # CHECK - Ignore commands for/from unknown Slice and Experiment ID
       if (cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID)
         debug "Received command with unknown slice/exp IDs: '#{cmdObj.sliceID}/#{cmdObj.expID}' - ignoring it!" 
         return
       end
-
+      # CHECK - Ignore commands from unknown RCs
+      if (Node[cmdObj.target] == nil)
+        debug "Received command with unknown target: '#{cmdObj.target}' - ignoring it!"
+        return
+      end
 
       debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
       # Some commands need to trigger actions on the Communicator level
