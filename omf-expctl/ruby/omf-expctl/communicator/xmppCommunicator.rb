@@ -264,6 +264,8 @@ class XmppCommunicator < Communicator
   # parameters.
   #
   def sendCmdObject(cmdObj)
+    cmdObj.sliceID = @@sliceID
+    cmdObj.expID = @@expID
     target = cmdObj.target
     cmdType = cmdObj.cmdType
     msg = cmdObj.to_xml
@@ -348,6 +350,8 @@ class XmppCommunicator < Communicator
       # Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server
       return if event.first_element("items") == nil
+      return if event.first_element("items").first_element("item") == nil
+      
 
       # Retrieve the incoming PubSub Group of this message 
       incomingPubSubNode =  event.first_element("items").attributes['node']
@@ -364,13 +368,19 @@ class XmppCommunicator < Communicator
         return
       end
       if !VALID_RC_COMMANDS.include?(cmdObj.cmdType)
-        debug "Unknown command cmdType: '#{cmdObj.cmdType}' - ignoring it!" 
+        debug "Received command with unknown type: '#{cmdObj.cmdType}' - ignoring it!" 
         return
       end
       if (Node[cmdObj.target] == nil)
-        debug "Message from unknown sender '#{cmdObj.target}' - ignoring it!"
+        debug "Received command with unknown target: '#{cmdObj.target}' - ignoring it!"
         return
       end
+      # Final check: is this command for this slice and experiment?
+      if (cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID)
+        debug "Received command with unknown slice/exp IDs: '#{cmdObj.sliceID}/#{cmdObj.expID}' - ignoring it!" 
+        return
+      end
+
 
       debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
       # Some commands need to trigger actions on the Communicator level

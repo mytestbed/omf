@@ -312,6 +312,8 @@ class AgentPubSubCommunicator < MObject
   # parameters.
   #
   def sendCmdObject(cmdObj)
+    cmdObj.sliceID = @@sliceID
+    cmdObj.expID = @@expID
     msg = cmdObj.to_xml
     send!(msg)
   end
@@ -398,6 +400,7 @@ class AgentPubSubCommunicator < MObject
       # Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server
       return if event.first_element("items") == nil
+      return if event.first_element("items").first_element("item") == nil
 
       # Retrieve the incoming PubSub Group of this message 
       incomingPubSubNode =  event.first_element("items").attributes['node']
@@ -414,14 +417,19 @@ class AgentPubSubCommunicator < MObject
         return
       end
       if !VALID_EC_COMMANDS.include?(cmdObj.cmdType)
-        debug "Unknown command cmdType: '#{cmdObj.cmdType}' - ignoring it!" 
+        debug "Received command with unknown type: '#{cmdObj.cmdType}' - ignoring it!" 
         return
       end
       targets = cmdObj.target.split(' ') # There may be multiple space-separated targets
       isForMe = false
       targets.each { |t| isForMe = true if NodeAgent.instance.agentAliases.include?(t) }
       if !isForMe
-        debug "Unknown command target: '#{cmdObj.target}' - ignoring it!" 
+        debug "Received command with unknown target: '#{cmdObj.target}' - ignoring it!" 
+        return
+      end
+      # Final check: is this command for this slice and experiment?
+      if (cmdObj.cmdType != :ENROLL) && ((cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID))
+        debug "Received command with unknown slice/exp IDs: '#{cmdObj.sliceID}/#{cmdObj.expID}' - ignoring it!" 
         return
       end
 
