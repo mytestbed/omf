@@ -1,3 +1,15 @@
+omf-resctl-5.3 (1ubuntu2) testing; urgency=low
+
+  * Development release of first sort-of stable version with support for federation 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Mon, 15 Feb 2010 11:36:50 +1100
+
+omf-resctl-5.3 (1ubuntu1) testing; urgency=low
+
+  * Testing new naming scheme and pubsub tree 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 03 Feb 2010 15:21:58 +1100
+
 omf-resctl-5.3 (1) testing; urgency=low
 
   * Initial release.

@@ -60,7 +60,11 @@ class AppContext < MObject
       end
       @bindings[name] = value
     }
-    @env = Hash.new
+    if app.appDefinition.environment == nil
+      @env = Hash.new
+    else
+      @env = app.appDefinition.environment.clone
+    end
   end
 
   #

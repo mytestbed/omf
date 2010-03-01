@@ -1,3 +1,21 @@
+omf-common-5.3 (1ubuntu3) testing; urgency=low
+
+  * Dev release, testing federation 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 17 Feb 2010 13:24:17 +1100
+
+omf-common-5.3 (1ubuntu2) testing; urgency=low
+
+  * Development release of first sort-of stable version with support for federation
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Mon, 15 Feb 2010 11:32:19 +1100
+
+omf-common-5.3 (1ubuntu1) testing; urgency=low
+
+  * Testing new naming scheme and pubsub tree
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 03 Feb 2010 15:23:51 +1100
+
 omf-common-5.3 (1) testing; urgency=low
 
   * Initial release

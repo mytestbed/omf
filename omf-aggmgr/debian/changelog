@@ -1,3 +1,21 @@
+omf-aggmgr-5.3 (1ubuntu3) testing; urgency=low
+
+  * Dev release, testing federation 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 17 Feb 2010 13:23:30 +1100
+
+omf-aggmgr-5.3 (1ubuntu2) testing; urgency=low
+
+  * Development release of first sort-of stable version with support for federation 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Mon, 15 Feb 2010 11:35:45 +1100
+
+omf-aggmgr-5.3 (1ubuntu1) karmic; urgency=low
+
+  * - D testing
+
+ -- Christoph Dwertmann <Thierry.Rakotoarivelo@nicta.com.au>  Mon, 15 Feb 2010 11:35:41 +1100
+
 omf-aggmgr-5.3 (1) testing; urgency=low
 
   * Initial release.
