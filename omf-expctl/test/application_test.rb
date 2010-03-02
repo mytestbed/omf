@@ -1,7 +1,6 @@
 $:.unshift((d= File.dirname(__FILE__)) + '/../ruby').unshift(d + '/../../omf-common/ruby')
 
 require 'test/unit'
-require 'rubygems'
 require 'omf-expctl/appDefinition.rb'
 require 'omf-expctl/application.rb'
 require 'omf-expctl/oconfig.rb'

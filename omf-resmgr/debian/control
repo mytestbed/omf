@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: omf-resmgr-5.3
 Architecture: all
-Depends: ruby1.8, omf-common-5.3
+Depends: omf-common-5.3
 Description: OMF Resource Manager
  OMF entity managing slivers on shared virtualised resources.
 

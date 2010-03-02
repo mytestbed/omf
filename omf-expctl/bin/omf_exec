@@ -34,4 +34,4 @@ else
    echo "Cannot find the ruby module location ($APP)."
    exit 1;
 fi
-exec ruby -I$PDIR -I/usr/share/omf-common$VER $PDIR/$APP $*
+exec ruby1.8 -I$PDIR -I/usr/share/omf-common$VER $PDIR/$APP $*

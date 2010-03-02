@@ -8,6 +8,6 @@ Section: omf
 Package: omf-common-5.3
 Section: omf
 Architecture: all
-Depends: liblog4r-ruby, libxmpp4r-ruby (>=1.0-bugfix1)
+Depends: ruby1.8, liblog4r-ruby, libxmpp4r-ruby
 Description: Common ruby classes for OMF
  Ruby classes commonly required by OMF Experiment Controller, Resource Controller and Aggregate Manager

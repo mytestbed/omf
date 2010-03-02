@@ -22,5 +22,4 @@
 # THE SOFTWARE.
 #
 #
-require 'rubygems'
 require 'omf-expctl/nodeHandler'

@@ -88,4 +88,4 @@ else
    exit 1;
 fi
 
-exec ruby -I$PDIR -I/usr/share/omf-common$VER $PDIR/$APP $cmd "[$topo]" $domain
+exec ruby1.8 -I$PDIR -I/usr/share/omf-common$VER $PDIR/$APP $cmd "[$topo]" $domain

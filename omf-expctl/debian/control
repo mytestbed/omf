@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: omf-expctl-5.3
 Architecture: all
-Depends: libmarkaby-ruby, rubygems, omf-common-5.3, libcoderay-ruby1.8
+Depends: libmarkaby-ruby, omf-common-5.3, libcoderay-ruby
 Description: OMF Experiment Controller
  Controls experiments in the OMF testbed.
 

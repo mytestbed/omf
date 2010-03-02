@@ -9,7 +9,7 @@ function build {
 	for x in $arr
 	do
 	    echo "Converting $x to rpm"
-		sudo alien -r ../$x | awk -F ' ' '{print $1}' | xargs -I xx mv xx $TOPDIR
+	    sudo alien -r ../$x | awk -F ' ' '{print $1}' | xargs -I xx mv xx $TOPDIR
 	done	
 }
 
@@ -76,6 +76,5 @@ cd $TOPDIR
 
 rm -f liblog4r-ruby-1*rpm libxmpp4r-ruby-1*rpm
 
-ssh mytestbed.net rm -rf /var/www/packages/yum/base/8/i386/*
 scp *.rpm mytestbed.net:/var/www/packages/yum/base/8/i386
 ssh mytestbed.net createrepo /var/www/packages/yum/base/8/i386
