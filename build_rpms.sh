@@ -13,11 +13,25 @@ function build {
 	done	
 }
 
-for i in external/frisbee/imagezip external/frisbee/frisbee external/coderay-0.8.3 external/log4r-1.0.5 external/xmpp4r-0.4 omf-common ; do
+for i in external/frisbee/imagezip external/frisbee/frisbee external/coderay-0.8.3 external/log4r-1.0.5 external/xmpp4r-0.4 omf-resmgr ; do
 	cd $i
 	build
 	cd $TOPDIR
 done
+
+# OMF common
+cd omf-common
+DEB=`bash -c "$BUILD"`
+echo "Converting $DEB to rpm"
+RPM=`sudo alien -r -g ../$DEB | grep Directory | awk -F ' ' '{print $2}'`
+if [ x$RPM == x ]; then
+	echo "Error generating RPM package in `pwd`. Exiting."
+	exit
+fi
+sudo sed -i '/^(Converted /a %post\nln -s /usr/bin/ruby /usr/bin/ruby1.8' $RPM/$RPM*.spec
+sudo rpmbuild -bb --target noarch-none-linux --buildroot `pwd`/$RPM $RPM/omf-common-*.spec
+sudo rm -rf `pwd`/$RPM
+cd $TOPDIR
 
 # OMF aggmgr
 cd omf-aggmgr
