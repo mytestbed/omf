@@ -47,6 +47,8 @@ module OConfig
   @@domainName = nil
   @@configName = nil  
   @@observers = []
+  @@loadHistory = []
+  
   TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
                          :pxe_url, :cmc_url, :result_url, 
                          :frisbee_url, :frisbee_default_disk, 
@@ -226,11 +228,26 @@ module OConfig
       require file
     end
     
+    state = {:uri => uri, :location => file, :content => str, :mime_type => '/text/ruby'}
+    @@loadHistory << state
     @@observers.each { |proc|
-      proc.call(:load, uri, str, '/text/ruby')
+      proc.call(:load, state)
     }
 
     [str, 'text/ruby']
+  end
+  
+  #
+  # Return an array where each entry describes a script loaded in the order they were loaded.
+  # Each entry is a hash with the following keys:
+  #
+  #  * :uri - Script URI 
+  #  * :location - Where it was fetched from
+  #  * :content - Content of loaded script
+  #  * :mime_type - Mime type of script
+  #
+  def self.getLoadHistory()
+    @@loadHistory    
   end
 
   #

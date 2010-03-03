@@ -18,7 +18,7 @@ div.page_nav do
 	    @klass = i == @show_id ? 'selected' : nil
 
       li :class => @klass do
-  	    a @s[:url], :href => "/code/show?id=#{i}"
+  	    a @s[:uri], :href => "/code/show?id=#{i}"
     	end
    	end
   end
@@ -28,7 +28,7 @@ div.page do
   #p "BEFORE"
   @script = @scripts[@show_id]
   if @script
-    render_code @script[:content], @script[:mime]
+    render_code @script[:content], @script[:mime_type]
   end
   #p "AFTER"
 end

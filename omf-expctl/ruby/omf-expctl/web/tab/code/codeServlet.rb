@@ -18,9 +18,17 @@ module OMF
           server.addTab(VIEW, "/code/show", :name => 'Scripts', 
               :title => "Browse all scripts involved in this experiment")
 
-          OConfig.add_observer() { |action, url, content, mimeType| 
-            @@scripts << {:url => url, :content => content, :mime => mimeType}
+          
+          OConfig.add_observer() { |action, opts|
+            if action == :load
+              self.addScript(opts)
+            end 
           }
+          OConfig.getLoadHistory.each do |sopts| addScript(sopts) end
+        end
+
+        def self.addScript(opts)
+          @@scripts << opts
         end
 
         class CodeServlet < WEBrick::HTTPServlet::AbstractServlet

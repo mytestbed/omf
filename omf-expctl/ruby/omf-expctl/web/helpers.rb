@@ -13,7 +13,12 @@ module OMF
         @@exp_id = nil
         
         def self.exp_id
-          "outdoor-#{Experiment.ID}"
+          sliceID = Experiment.sliceID
+          if sliceID
+            "#{sliceID}: #{Experiment.ID}"              
+          else
+            "#{Experiment.ID}"
+          end
         end
         
         def self.javascript_include_tag(name)
