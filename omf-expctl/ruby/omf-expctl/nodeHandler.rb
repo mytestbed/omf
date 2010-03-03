@@ -454,7 +454,10 @@ class NodeHandler < MObject
       OConfig.config = name
     }
     
-    opts.on("-d", "--debug", "Operate in debug mode") { @debug = true }
+    opts.on("-d", "--debug", "Operate in debug mode") { 
+      @debug = true 
+      OConfig.config = 'debug'
+    }
 
     opts.on("-i", "--interactive", "Run the nodehandler in interactive mode") { @interactive = true }
 
@@ -648,7 +651,7 @@ class NodeHandler < MObject
   #
   def startLogger()
     # First look for log config file from the command line or the environment 
-    log = @logConfigFile || ENV['NODEHANDLER_LOG']
+    log = @logConfigFile || ENV['NODEHANDLER_LOG'] || OConfig[:ec_config][:log] 
     if log != nil
       if ! File.exists?(log)
         raise "Can't find cfg file '#{log}' (for the EC logs)"
@@ -672,8 +675,8 @@ class NodeHandler < MObject
     # Now start the logger
     @logConfigFile = log
     MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
-    debug('init', "Using Log config file: #{@logConfigFile}")
-    info('init', " #{VERSION_STRING}")
+    debug("Using Log config file: #{@logConfigFile}")
+    info(" #{VERSION_STRING}")
   end
 
   private
@@ -813,25 +816,27 @@ class NodeHandler < MObject
   # configuration info, e.g. OML configs  
   #
   def startWebServer(port = @webPort)
-    accLog = Logger.new("/tmp/#{Experiment.ID}.w_access.log")
+    accLog = MObject.logger('web::access')
     accLog.instance_eval {
+      # Webrick only calls '<<' to log access information
       def << (msg)
-        debug('web::access', msg.strip)
+        info(msg.strip)
       end
     }
     
     confirmedPort = 0
-    for i in port..port+MAXWEBTRY do
+    for i in port..port + MAXWEBTRY do
       begin
         #info "Checking port #{i}..."
         serv = TCPServer.new(i)
         serv.close
-        OMF::ExperimentController::Web::start(i, {:Logger => Logger.new("/tmp/#{Experiment.ID}.w_internal.log"),
+        OMF::ExperimentController::Web::start(i, {
+           :Logger => MObject.logger('web::server'),
            :DocumentRoot => NodeHandler.WEB_ROOT(),
            :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
         confirmedPort = i
-      rescue
-        #info "Port #{i} is in use!"
+      rescue Exception => ex
+        #info "Port #{i} is in use! (#{ex})"
         # Ignore this exception, 'i' will be incremented in the next loop
       end
       break if confirmedPort != 0   

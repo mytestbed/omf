@@ -53,16 +53,10 @@ include WEBrick
 module OMF
   module ExperimentController
     module Web
-#      SERVICES = [
-#        Dashboard,
-#        Code,
-#        Graph,
-#        Log,
-#        State
-#      ]
 
       @@server = nil
-      @@services = []
+      @@available_services = []
+      @@enabled_services = []
       @@tabs = []
     
       #
@@ -78,19 +72,10 @@ module OMF
         mimeTable = HTTPUtils::DefaultMimeTypes
         mimeTable.update({ "xsl" => "text/xml" })
         args[:MimeTypes] = mimeTable
-    
-#        MObject.debug(:web, "Configuring internal web server: #{args}")
         @@server = HTTPServer.new(args)
-        
-        
-        
-#        options = {:params => {}, :flash => {}, :server => self}
-#        SERVICES.each { |s|
-#          s.configure(self, options)
-#        }
-        
+
         tabDir = "#{File.dirname(__FILE__)}/tab"
-        Dir.foreach(tabDir) {|d| 
+        Dir.foreach(tabDir) do |d| 
           if d =~ /^[a-z]/
             initF = "#{tabDir}/#{d}/init.rb"
             if File.readable?(initF)
@@ -98,18 +83,13 @@ module OMF
               load(initF)
             end
           end
-        }
-
-        options = {:params => {}, :flash => {}, :server => self}
-        services = @@services.sort {|a, b| a[0] <=> b[0] }
-        services.each { |priority, serviceClass|
-          serviceClass.configure(self, options)
-        }
+        end
 
         @@server.mount_proc('/exp_id') do |req, resp|
           resp.body = Experiment.ID
         end
-
+          
+        # To keep Flash happy
         @@server.mount_proc('/crossdomain.xml') do |req, res|
           res.body = %{
 <cross-domain-policy>
@@ -119,27 +99,64 @@ module OMF
           res['content-type'] = 'text/xml'
         end    
         
-        OConfig[:ec_config][:repository][:path].each { |rep|
+        OConfig[:ec_config][:repository][:path].each do |rep|
           public = "#{rep}/public_html"
           if File.directory?(public)
             MObject.debug(:web, "Mounting /resource to #{public}")
             @@server.mount("/resource", HTTPServlet::FileHandler, public, true)
             break
           end
-        }
+        end
     
-        Thread.new {
+        Thread.new do
           begin
+            sleep 2
+              
+            services = @@enabled_services
+            if services.empty?
+              services = @@available_services.select do |opts| opts[:def_enabled] end
+            else
+              
+            end 
+            
+            #puts services.inspect
+
+            options = {:params => {}, :flash => {}, :server => self}
+            services.sort do |a, b| a[:priority] <=> b[:priority] end.each do |sopts|
+              sopts[:serviceClass].configure(self, options)
+            end
+            
             MObject.debug(:web, "Starting web server on port #{port}")
             @@server.start
           rescue => ex
             MObject.error(:web, "Internal web server died. #{ex}")
+            puts ex.backtrace
           end
-        }
+        end
       end
       
-      def self.registerService(serviceClass, priority = 999)
-        @@services << [priority, serviceClass]
+      def self.registerService(serviceClass, opts)
+        opts = opts.clone
+        opts[:serviceClass] = serviceClass
+        @@available_services << opts
+      end
+      
+      def self.enableService(serviceName, opts = {})
+        if serviceName.to_sym == :defaults
+          services = @@available_services.select do |opts| opts[:def_enabled] end
+          @@enabled_services.concat(services)
+          return  
+        end
+        
+        service = @@available_services.find do | sopts |
+          sopts[:name] == serviceName.to_sym
+        end
+        if service.nil?
+          MObject.warn(:web, "Unknown portal service '#{serviceName}'")
+          return 
+        end
+        opts = opts.merge(service)
+        @@enabled_services << opts 
       end
       
       def self.mount(path, servlet, options = {})

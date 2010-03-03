@@ -16,18 +16,15 @@ module OMF
             :builder => builder, :content => name
           }
 
-          MObject.debug :renderer, "Rendering #{name}"
+          #MObject.debug :renderer, "Rendering #{name}"
           return builder.capture_string(content)
-          #return builder.to_s
-          #t = Markaby::Template.new(content)
-          #t.render(assigns, helpers)
         end
         
         def self.render_content()
           p = Thread.current[:MabRenderer][:content]
           return unless content = read_content(p)          
           builder = Thread.current[:MabRenderer][:builder]
-          MObject.debug :renderer, "Rendering #{p}"
+          #MObject.debug :renderer, "Rendering #{p}"
           return builder.capture_string(content)
         end
         
@@ -40,7 +37,7 @@ module OMF
           end
           return unless content = read_content(p)          
           builder = Thread.current[:MabRenderer][:builder]
-          MObject.debug :renderer, "Rendering #{path}"
+          #MObject.debug :renderer, "Rendering #{path}"
           return builder.capture_string(content)
         end
         

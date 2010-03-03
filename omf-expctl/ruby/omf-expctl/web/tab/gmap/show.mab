@@ -1,0 +1,47 @@
+
+
+script :language => "JavaScript", :type => "text/javascript" do
+	text %{
+    function initialize() {
+      if (GBrowserIsCompatible()) {
+        var map = new GMap2(document.getElementById("map_canvas"));
+        map.addControl(new GSmallMapControl());
+        map.addControl(new GMapTypeControl());
+        map.setCenter(new GLatLng(37.4219, -122.1419), 13);
+        var polyline = new GPolyline([
+  		  new GLatLng(37.4419, -122.1419),
+ 		  new GLatLng(37.4519, -122.1519),
+  		  new GLatLng(37.4419, -122.1519)
+  		  
+		], "#ff0000", 7);
+        map.addOverlay(polyline);
+        setTimeout(function later() {
+          var loc = new GLatLng(37.4419, -122.1419);
+          polyline.insertVertex(polyline.getVertexCount(), loc);
+          map.setCenter(loc);
+        }, 3000);
+     }
+    }  
+
+  }
+end
+
+style %{
+}
+
+div.page_header do
+	div.page_header_links do
+#    link_to 'Edit', {:action => 'edit', :id => @publication}, :class => 'admin'
+	end
+
+	h1 "Experiment Area"
+end
+
+div.page do
+  div.map_canvas!(:style => "width: 800px; height: 500px")
+  div.message!
+end
+
+
+
+

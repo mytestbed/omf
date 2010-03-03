@@ -1,18 +1,18 @@
 
-This package deals with the integration of OML (the measurment library) into OMF.
+This package deals with the integration of OML (the measurement library) into OMF.
 
-We distinguish two concepts. Measurment points are instrumentation points inside an application. 
+We distinguish two concepts. Measurement points are instrumentation points inside an application. 
 They are defined and coded by the application developer. In the OMF context, they are defined
 inside a +defApplication+ block through the +defMeasurment+ construct.
 
-The second concept is that of a measurment stream. A experimenter defines what sub-set of
-available measurments s/he is interested and what additional pre-processing (filter) should
-be applied to the tuple stream originiating from a measurement point.
+The second concept is that of a measurement stream. A experimenter defines what sub-set of
+available measurements s/he is interested and what additional pre-processing (filter) should
+be applied to the tuple stream originating from a measurement point.
 
-Measurment streams are threfore defined inside the +application+ commands of a node set of prototype
+Measurement streams are therefore defined inside the +application+ commands of a node set of prototype
 definition.
 
-All the defined measurment streams and their associated filter definitions need to be combined into
+All the defined measurement streams and their associated filter definitions need to be combined into
 a single configuration file for each application.
 
 IMPLEMENTATION

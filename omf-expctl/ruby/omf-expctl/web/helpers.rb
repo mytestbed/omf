@@ -1,6 +1,7 @@
 require 'coderay'
 require 'ftools'
 require 'net/http'
+require 'omf-expctl/web/renderer'
 
 module OMF
   module ExperimentController
@@ -30,7 +31,10 @@ module OMF
         end
 
         def self.javascript_include_file(name)
-          "<script src='/resource/js/#{name}' type='text/javascript'></script>"
+          unless name =~ /http:\/\//
+            name = "/resource/js/#{name}"
+          end
+          "<script src='#{name}' type='text/javascript'></script>"
         end
 
         def self.stylesheet_link_tag(name)
@@ -44,14 +48,14 @@ module OMF
 
         def self.render(opts)
           if partial = opts[:partial]
-            MabRenderer.render_partial(partial)
+            OMF::ExperimentController::Web::MabRenderer.render_partial(partial)
           else
             "====UNKNONW RENDER(#{opts.inspect})===="
           end
         end
       
         def self.render_content()
-          MabRenderer.render_content
+          OMF::ExperimentController::Web::MabRenderer.render_content
         end
         
         def self.render_code_file(fname)

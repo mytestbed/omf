@@ -4,7 +4,6 @@ html do
     title "OMF Portal: #{exp_id}"
     javascript_include_tag :defaults
     javascript_include_tag 'lightbox'
-    javascript_include_tag 'foo'
     
 
     if (extra_includes = @helpers.instance_variable_get('@javascript_includes'))
@@ -27,7 +26,8 @@ html do
   if params[:action] == 'xxxlogin'
     render :partial => 'shared/login'
   else
-    body.publication do
+    body.publication(@body_attr || {}) do
+#    body.publication() do
       div.header! do
         h3.top_menu do
 #          if User.current.nil?

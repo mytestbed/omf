@@ -45,7 +45,7 @@ module AgentCommands
   end
 
   def AgentCommands.OK(communicator, sender, cmdObj)
-    MObject.debug("agentCmd::OK from: '#{cmdObj.target}' - cmd: '#{cmdObj.cmd}' - msg: '#{cmdObj.message}'")
+    MObject.debug("agentcmds", "OK from: '#{cmdObj.target}' - cmd: '#{cmdObj.cmd}' - msg: '#{cmdObj.message}'")
   end
 
   #
@@ -70,7 +70,7 @@ module AgentCommands
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.WARN(communicator, sender, cmdObj)
-    MObject.warn("agentCmd::WARN from: '#{cmdObj.target}' ('#{sender}') - msg: '#{cmdObj.message}'")
+    MObject.warn("agentcmds", "sender: '#{cmdObj.target}' ('#{sender}') - msg: '#{cmdObj.message}'")
   end
 
   #
@@ -91,7 +91,7 @@ module AgentCommands
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
   def AgentCommands.WRONG_IMAGE(communicator, sender, cmdObj)
-    MObject.debug("agentCmd::WRONG_IMAGE from: '#{cmdObj.target}' - Desired: '#{sender.image}' - Installed: '#{cmdObj.image}'")
+    MObject.debug("agentcmds", "WRONG_IMAGE from: '#{cmdObj.target}' - Desired: '#{sender.image}' - Installed: '#{cmdObj.image}'")
     sender.reset()
   end
 
@@ -108,7 +108,7 @@ module AgentCommands
     eventName = cmdObj.value
     appId = cmdObj.appID
     message = cmdObj.message
-    MObject.debug("agentCmd::APP_EVENT #{eventName} from: '#{appId}' (#{sender}) - msg: '#{message}'")
+    MObject.debug("agentcmds", "APP_EVENT #{eventName} from: '#{appId}' (#{sender}) - msg: '#{message}'")
     sender.onAppEvent(eventName, appId, message)
     return nil
   end
@@ -126,7 +126,7 @@ module AgentCommands
     eventName = cmdObj.value
     devName = cmdObj.appID
     message = cmdObj.message
-    MObject.debug("agentCmd::DEV_EVENT #{eventName} from: '#{devName}' (#{sender}) - msg: '#{message}'")
+    MObject.debug("agentcmds", "DEV_EVENT #{eventName} from: '#{devName}' (#{sender}) - msg: '#{message}'")
     sender.onDevEvent(eventName, devName, message)
     return nil
   end
@@ -145,22 +145,22 @@ module AgentCommands
     case command
       when 'CONFIGURE'
         path = cmdObj.path
-	reason = "Couldn't configure '#{path}'"
+        reason = "Couldn't configure '#{path}'"
         message = cmdObj.message
         id = NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(path.split("/"), reason, "error")
-        MObject.error("agentCmd::CONFIGURE_ERROR '#{path}' on '#{sender}' - msg: #{message}")
+        MObject.error("agentcmds", "CONFIGURE_ERROR '#{path}' on '#{sender}' - msg: #{message}")
       when 'LOST_HANDLER'
-        MObject.error("agentCmd::LOST_HANDLER_ERROR", "'#{sender}' lost us")
+        MObject.error("agentcmds", "LOST_HANDLER_ERROR", "'#{sender}' lost us")
       when 'EXECUTE'
         message = cmdObj.message
         app = cmdObj.appID
-        MObject.error("agentCmd::EXECUTION_ERROR on '#{sender}' - App: '#{app}'- msg: #{message}")
+        MObject.error("agentcmds", "EXECUTION_ERROR on '#{sender}' - App: '#{app}'- msg: #{message}")
       else
         reason = "Unknown error caused by '#{command}'"
         message =  cmdObj.message
         NodeHandler.instance.logError(sender, reason, {:details => message})
-        MObject.error("agentCmd::UNKNOWN_ERROR on '#{sender}' - cmd: '#{command}' - msg: #{message}")
+        MObject.error("agentcmds", "UNKNOWN_ERROR on '#{sender}' - cmd: '#{command}' - msg: #{message}")
     end
   end
 

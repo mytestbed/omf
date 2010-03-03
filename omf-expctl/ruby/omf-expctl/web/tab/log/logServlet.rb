@@ -39,7 +39,7 @@ module OMF
             opts[:view] = :log
             
             session_id = req.query['session'] || 'unknown'
-            MObject.debug(:web, "upate for #{session_id}")
+            #MObject.debug(:web, "update for #{session_id}")
             unless session = @@sessions[session_id]
               session = @@sessions[session_id] = {:index => 0}
             end
@@ -115,10 +115,11 @@ module OMF
         class WebFormatter < Log4r::BasicFormatter
           def format(event)
             lname = Log4r::LNAMES[event.level]
-            fs = "<tr><td class='%s'>%s</td><td class='name'>%s"
+            fs = "<tr class=\"log_#{lname.downcase}\"><td class='%s'>%s</td><td class='name'>%s"
             buff = sprintf(fs, lname.downcase, lname, event.name)
             buff += (event.tracer.nil? ? "" : "(#{event.tracer[0]})") + ":</td>"
-            buff += sprintf("<td class='data'>%*s</td></tr>", Log4r::MaxLevelLength, format_object(event.data))
+            data = format_object(event.data).gsub(/</, '&lt;')
+            buff += sprintf("<td class='data'>%*s</td></tr>", Log4r::MaxLevelLength, data)
             buff
           end
         end
