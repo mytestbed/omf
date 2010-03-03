@@ -15,7 +15,11 @@
 
   <!-- loggers -->
   <logger name="nodeHandler" outputters="log, console, web" level="DEBUG" trace="true"/>
-  <logger name="web" outputters="log, console, web" level="WARN"/>
+  
+  <logger name="nodeHandler::web" outputters="log, console, web" level="WARN"/>
+  <logger name="nodeHandler::web::access" outputters="log" level="INFO"/>
+  <logger name="nodeHandler::web::access" outputters="console, web" level="WARN"/>
+  
   <!--
   <logger name="client" level="INFO" outputters="client, console"/>
   <logger name="client::gui" trace="true">

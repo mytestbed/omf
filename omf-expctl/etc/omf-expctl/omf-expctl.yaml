@@ -51,7 +51,7 @@
 
       # This is the Url where EC can contact the Inventory Service
       :inventory:
-        :url: 'http://localhost:5053/inventory'
+        :url: 'http://norbit.npc.nicta.com.au:5053/inventory'
 
       # This should be the IP address of the local interface that is accessible from
       # the nodes. This address will be given to the nodes so they can retrieve
@@ -64,6 +64,25 @@
         :xmpp:
           :server: 'norbit.npc.nicta.com.au'
           :password: '123'
+    #####
+    :planetlab:
+      :domain: 'planetlab'
+
+      :repository:
+        :path: [".", "../share/repository", "/usr/share/omf-expctl-5.3/repository"]
+
+      :inventory:
+        :url: 'http://planetlab-europe-07.ipv6.lip6.fr:5053/inventory'
+
+      :web:
+        :host: '203.143.170.38'
+
+      :communicator:
+        :type: 'xmpp'
+        :xmpp:
+          :server: planetlab-europe-07.ipv6.lip6.fr
+          :password: '123'
+    
         
     # "debug" configuration
     #
@@ -74,6 +93,10 @@
     # relevant parameters
     :debug:
       :repository:
-        :path: ['../repository']
+        :path: ['.', '../share/repository']
       :communicator:
         :type: 'mock'
+      :log: '../etc/omf-expctl/debug_log.xml'
+      :inventory:
+        :url: 'http://norbit.npc.nicta.com.au:5053/inventory'
+

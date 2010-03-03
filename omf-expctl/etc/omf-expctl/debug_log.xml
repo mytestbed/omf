@@ -8,7 +8,11 @@
 	
   <!-- loggers -->
   <logger name="nodeHandler" outputters="console, web" level="DEBUG" trace="true"/>
-  <logger name="web" outputters="console, web" level="DEBUG"/>
+  <logger name="nodeHandler::web" outputters="console, web" level="INFO"/>
+  
+  <logger name="nodeHandler::web::access" outputters="web" level="INFO"/>
+  <logger name="nodeHandler::web::access" outputters="console" level="WARN"/>
+
   <logger name="nodeHandler::comm" outputters="console, web" level="INFO"/>
   <logger name="nodeHandler::commServer" outputters="console, web" level="INFO"/>
 </log4r_config>
