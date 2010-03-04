@@ -35,7 +35,7 @@ then
 fi 
 
 $IP_CONFIG link set $CONTROL up
-$UDHCPC -i $CONTROL -s $UDHCPC_SCRIPT
+$UDHCPC -o -i $CONTROL -s $UDHCPC_SCRIPT
 
 # enable logging (if the feature is built into busybox):
 # Note that nodeagent doesn't use syslog anyway so you don't
@@ -48,7 +48,7 @@ fi
 
 # You don't need this if you have serial access ;)
 if [ -f /usr/sbin/telnetd ]; then
-	/usr/sbin/telnetd
+	/usr/sbin/telnetd -l /bin/sh
 else
 	echo "telnet daemon not found"
 fi

@@ -2,9 +2,9 @@
 # Build the Orbit PXE kernel image and initramfs
 #
 NAME = omf-pxe
-VER = 5.2.1
+VER = 5.3.1
 
-OMF_RELEASE=5.2
+OMF_RELEASE=5.3
 DEB_REP=debian
 KORG_URL = http://mirror.aarnet.edu.au/pub/ftp.kernel.org/linux/kernel/v
 KERNEL_VERSION = 2
@@ -18,9 +18,9 @@ KERNEL_TAR = $(KERNEL_DIR).tar.gz
 KERNEL_BASE_URL = $(KORG_URL)$(KERNEL_VERSION).$(KERNEL_PATCHLEVEL)
 KERNEL_TAR_URL = $(KERNEL_BASE_URL)/$(KERNEL_TAR)
 KERNEL_NAME = linux-$(NAME)-$(KVER)
-BBOX_VERSION = 1.10.1
+BBOX_VERSION = 1.16.1
 BBOX_DIR = busybox-$(BBOX_VERSION)
-BBOX_TAR = busybox-$(BBOX_VERSION).tar.gz
+BBOX_TAR = busybox-$(BBOX_VERSION).tar.bz2
 BBOX_URL = http://busybox.net/downloads
 BBOX_TAR_URL = $(BBOX_URL)/$(BBOX_TAR)
 
@@ -98,7 +98,7 @@ dirs:
 
 bbox: 	get_bbox
 	if [ ! -r $(SOURCE)/$(BBOX_DIR) ] ; then \
-	  tar -xzf $(SOURCE)/$(BBOX_TAR) -C $(SOURCE); \
+	  tar -xjf $(SOURCE)/$(BBOX_TAR) -C $(SOURCE); \
 	fi
 	cp $(CONFIG)/$(BBOX_CONFIG_FILE) $(SOURCE)/$(BBOX_DIR)/.config
 	sed 's|CONFIG_PREFIX=.*|CONFIG_PREFIX=\"../../$(ROOTFS)/\"|'  \
@@ -111,7 +111,7 @@ omf:
 	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../$(TEMP)/omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	mv $(ROOTFS)/bin/nc.traditional $(ROOTFS)/bin/nc
-	sed -i 's/local_if: control/local_if: eth0/g' $(ROOTFS)/etc/omf-resctl-$(OMF_RELEASE)/nodeagent.yaml
+	sed -i 's/local_if: control/local_if: eth0/g' $(ROOTFS)/etc/omf-resctl-$(OMF_RELEASE)/omf-resctl.yaml
 	sed -i 's/omf-resctl/omf-resctl-$(OMF_RELEASE)/g' $(ROOTFS)/etc/init.d/rcS.actual
 
 syslinux: omf

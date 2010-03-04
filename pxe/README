@@ -1,3 +1,6 @@
+IMPORTANT: to build the PXE kernel and image, make sure you run Ubuntu
+9.10 32bit with the pkg.mytestbed.net apt source enabled in
+/etc/apt/sources.list !
 
 The purpose of this is to get get you a small PXE busybox frisbee image you 
 can use to then image nodes and then kexec() to the respective desired

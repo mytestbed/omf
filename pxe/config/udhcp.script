@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (C) 2007 Luis R. Rodriguez <mcgrof@winlab.rutgers.edu>
+# Modified 2010 by Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -67,4 +68,38 @@ if [ -n "$dns" ]; then
 		echo "$SCRIPT: adding dns $i to $RESOLV_CONF"
 		echo nameserver $i >> $RESOLV_CONF
 	done
-fi 
+fi
+
+[ -n "$staticroutes" ] && {
+	# This defines how many static routes can be assigned so that we do not enter
+	# an endless loop on malformed data
+	MAXSTATICROUTES=24;
+	while [ ${MAXSTATICROUTES} -gt "0" ]; do
+		NW=$(echo $staticroutes | awk '{ print $1 }' )
+		GW=$(echo $staticroutes | awk '{ print $2 }' )
+		echo [$ROUTECOUNTER] Route Network: $NW Gateway: $GW on $interface
+
+		[ -n "$NW" ] && [ -n "$GW" ] && {
+			route add $NW gw $GW dev $interface
+		}
+
+		# Clear the strings incase they don't get set next time around
+		if [ ${NW} = "0" ]; then
+			NW=""
+		fi
+		NW=""
+		GW=""
+
+		# Remove the previous entry from staticroutes
+		staticroutes=$(echo $staticroutes | awk '{ $1 = ""; $2 = ""; print }')
+
+		# Add to counter
+		let ROUTECOUNTER=$ROUTECOUNTER+1;
+		let MAXSTATICROUTES=$MAXSTATICROUTES-1;
+		
+		if [ X`echo $staticroutes | awk '{ print $1 }'` == X ]; then
+			break
+		fi
+	done
+}
+ 
