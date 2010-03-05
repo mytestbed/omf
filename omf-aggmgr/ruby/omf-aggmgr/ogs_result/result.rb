@@ -29,7 +29,7 @@
 # This file defines the ResultService class.
 #
 
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 require 'sqlite3'
 #require 'omf-aggmgr/ogs_result/resultSQLite3'
 
@@ -46,7 +46,7 @@ require 'sqlite3'
 # refer to the description of the AbstractService class
 #
 #
-class ResultService < GridService
+class ResultService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'result' 

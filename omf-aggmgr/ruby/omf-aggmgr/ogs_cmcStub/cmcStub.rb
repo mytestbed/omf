@@ -29,7 +29,7 @@
 #
 
 require 'net/telnet'
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 
 #
 # This class defines the CMC (Chassis Manager Controller) Stub Service.
@@ -37,17 +37,17 @@ require 'omf-aggmgr/ogs/gridService'
 # A CMC Service normally provides information on the available nodes in a given
 # testbed and basic functionality to switch them on and off.
 # However, this particular CMC service is just a 'stub' that does not implement
-# most CMC features, but instead answer 'OK' to most of the received requests. 
+# most CMC features, but instead answer 'OK' to most of the received requests.
 # It is temporarily needed to allow the NodeHandler to run on the NICTA platform
 # where the experimental nodes have currently no CM functionalities.
 #
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class CmcStubService < GridService
+class CmcStubService < LegacyGridService
 
   # name used to register/mount the service, the service's url will be based on it
-  name 'cmc' 
+  name 'cmc'
   info 'Information on available testbed resources and simple control functionality'
   @@config = nil
 
@@ -64,7 +64,7 @@ class CmcStubService < GridService
   service 'on' do |req, res|
     self.responseOK(res)
   end
-  
+
   #
   # Implement 'nodeSetOn' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return HTTP OK
@@ -74,7 +74,7 @@ class CmcStubService < GridService
   service 'nodeSetOn' do |req, res|
     self.responseOK(res)
   end
-  
+
   #
   # Implement 'reset' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return HTTP OK
@@ -96,8 +96,8 @@ class CmcStubService < GridService
   #
   # Implement 'offHard' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return HTTP OK
-  # 
-  # NOTE: 
+  #
+  # NOTE:
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the NA's 'REBOOT' command to implement a 'offHard'
   #
@@ -110,11 +110,11 @@ class CmcStubService < GridService
     reboot(name, domain, req)
     self.responseOK(res)
   end
-  
+
   #
   # Implement 'offSoft' service using the 'service' method of AbstractService
   #
-  # NOTE: 
+  # NOTE:
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the NA's 'REBOOT' command to implement a 'offSoft'
   #
@@ -136,11 +136,11 @@ class CmcStubService < GridService
   service 'allOffHard' do |req, res|
     self.responseOK(res)
   end
-  
+
   #
   # Implement 'allOffSoft' service using the 'service' method of AbstractService
   #
-  # NOTE: 
+  # NOTE:
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the NA's 'REBOOT' command to implement a 'allOffSoft'
   #
@@ -160,11 +160,11 @@ class CmcStubService < GridService
   #
   # Implement 'getAllNodes' service using the 'service' method of AbstractService
   #
-  # NOTE: 
+  # NOTE:
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the information in the CMC Stub config file to implement a 'getAllNodes'
   #
-  # TODO: if still not CM card operational after a while, then this should 
+  # TODO: if still not CM card operational after a while, then this should
   # really use information from the Inventory instead
   #
   s_info 'Returns a list of all nodes in the testbed'
@@ -181,11 +181,11 @@ class CmcStubService < GridService
   #
   # Implement 'allStatus' service using the 'service' method of AbstractService
   #
-  # NOTE: 
+  # NOTE:
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the information in the CMC Stub config file to implement a 'allStatus'
   #
-  # TODO: if still not CM card operational after a while, then this should 
+  # TODO: if still not CM card operational after a while, then this should
   # really use information from the Inventory instead
   #
   s_info 'Returns the status of all nodes in the testbed'
@@ -203,7 +203,7 @@ class CmcStubService < GridService
     }
     setResponse(res, root)
   end
-  
+
   #
   # Configure the service through a hash of options
   #
@@ -212,7 +212,7 @@ class CmcStubService < GridService
   def self.configure(config)
     @@config = config
   end
-  
+
   def self.reboot(name, domain, req)
     MObject.debug("cmcstub", "Sending REBOOT cmd to '#{name}'")
     tb = getTestbedConfig(req, @@config)
@@ -229,7 +229,7 @@ class CmcStubService < GridService
         tn.login "root"
         tn.cmd "reboot"
         #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
-      end      
+      end
     rescue Exception => ex
       MObject.debug("CMCSTUB - Failed to send REBOOT to '#{name}' at #{ip} - Exception: #{ex}")
     end

@@ -38,7 +38,7 @@ ERR_INVALID_SLICE_NAME = 1
 DOMAIN = '/OMF'
 RESOURCES = 'resources'
 
-class SlicemgrService < GridService
+class SlicemgrService < LegacyGridService
 
   @@config = nil
   @@pubsub = nil

@@ -29,7 +29,7 @@
 # This file defines the InventoryService class.
 #
 
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 
 #
@@ -50,7 +50,7 @@ require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 # refer to the description of the AbstractService class
 #
 #
-class InventoryService < GridService
+class InventoryService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'inventory' 

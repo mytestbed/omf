@@ -29,7 +29,7 @@
 # This file defines GridService and HTTPResponse classes.
 #
 
-require 'omf-aggmgr/ogs/abstractService'
+require 'omf-aggmgr/ogs/legacyHTTPService'
 
 #
 # This class defines the GridService class a sub-class of AbstractService.
@@ -37,7 +37,7 @@ require 'omf-aggmgr/ogs/abstractService'
 # configuration parameters for a particular testbed, and also provides access to
 # testbed and node related parameters from the HTTP request sent to the Service.
 #
-class GridService < AbstractService
+class LegacyGridService < LegacyHTTPService
 
   #
   # Return the set of configuration parameters for a given domain.
@@ -46,12 +46,13 @@ class GridService < AbstractService
   # /testbed/'domain' or the config file, or if not found the ones within the
   # section /testbed/default. If both are not found, an exception is raised.
   #
-  # - domain = The domain to query.
+  # - req =  the HTTP request sent to this Service, with the 'domain' field set
   # - serviceConfig = Hash with all the parsed entries from the config file
   #
   # [Return] a Hash with the configuration parameters for a given domain
   #
-  def self.getTestbedConfig(domain, serviceConfig)
+  def self.getTestbedConfig(req, serviceConfig)
+    domain = getParam(req, 'domain')
     if ((dc = serviceConfig['testbed']) == nil)
       raise HTTPStatus::ServerError, "Missing 'testbed' configuration"
     end
@@ -99,17 +100,21 @@ class GridService < AbstractService
   end
 
   #
-  # Given a Node Set declaration string, parse the string into a Node
-  # Set declaration, which is an array of Node Sets.
+  # Parse a given parameter inside a HTTP request (sent to this Service) into
+  # a Node Set declaration, which is an array of Node Sets. If this parameter is
+  # not present in the request, then parse the 'default' argument instead.
   #
-  # - node_set = string containing the Node Set declaration string.
+  # - req =  the HTTP request sent to this Service, with the 'name' field set
+  # - name = name of the parameter to parse inside the HTTP request
+  # - default = a default parameter if 'name' is not present in the request
   #
   # [Return] a Node Set declaration (array of Node Sets), or nil, or []
   #
-  def self.getNodeSetParam(node_set)
-    if (node_set == nil)
-      nil
-    elsif (node_set == "[]")
+  def self.getNodeSetParamDef(req, name, default)
+    str = req.query[name] || default
+    if (str == nil)
+      return nil
+    elsif (str == "[]")
       res = []
       return res
     end
@@ -118,13 +123,13 @@ class GridService < AbstractService
     begin
       Thread.new() {
         $SAFE = 4
-        res = eval(node_set)
+        res = eval(str)
       }.join
     rescue Exception => ex
-      raise HTTPStatus::BadRequest, "Error while parsing '#{node_set}'\n\t#{ex}"
+      raise HTTPStatus::BadRequest, "Error while parsing '#{str}'\n\t#{ex}"
     end
     if (! res.kind_of?(Array))
-      raise HTTPStatus::BadRequest, "Illegal node set declaration '#{node_set}'"
+      raise HTTPStatus::BadRequest, "Illegal node set declaration '#{str}'"
     end
     if (! res[0].kind_of?(Array))
       # seems to be a single set declaration
@@ -139,6 +144,44 @@ class GridService < AbstractService
         raise HTTPStatus::BadRequest, "Illegal node set declaration '#{ns}'"
       end
     }
+  end
+
+  #
+  # Parse a given parameter inside a HTTP request (sent to this Service) into
+  # a Node Set declaration, which is an array of Node Sets. If this parameter is
+  # not present in the request, then raise an error.
+  #
+  # - req =  the HTTP request sent to this Service, with the 'name' field set
+  # - name = name of the parameter to parse inside the HTTP request
+  #
+  # [Return] a Node Set declaration (array of Node Sets)
+  #
+  def self.getNodeSetParam(req, name)
+    res = getNodeSetParamDef(req, name, nil)
+    if (res == nil)
+      raise HTTPStatus::BadRequest, "Missing parameter '#{name}'"
+    end
+    res
+  end
+
+  #
+  # Parse the 'x' and 'y' parameters inside a HTTP request (sent to this
+  # Service) into x,y integers. Raise an error if 'x' and 'y' parameters are not
+  # present in the request.
+  #
+  # - req =  the HTTP request sent to this Service, with the 'x' & 'y' field set
+  #
+  # [Return] a integer couple [x,y]
+  #
+  def self.getCoords(req)
+    q = req.query
+    x = q['x']
+    y = q['y']
+    # Do we have everything?
+    if (x == nil || y == nil)
+      raise HTTPStatus::BadRequest, "Missing argument 'x', or 'y'"
+    end
+    return [x.to_i, y.to_i]
   end
 
   #
@@ -212,7 +255,7 @@ class GridService < AbstractService
   # method makes use of the Inventory GridService
   #
   # - url = URL to the Inventory GridService
-  # - name = HRN of the node to query
+  # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query
   #
   def self.getControlIP(url, name, domain)
@@ -246,12 +289,12 @@ class GridService < AbstractService
   end
 
   #
-  # Return an Array of Human Readable Names (HRN's) of all resources in a testbed.
+  # Return an Array of node coordinates for a a given testbed [(1..xMax),(1..yMax)]
   #
   # - url = URL to the Inventory GridService
-  # - domain = the name of the testbed to query.
+  # - domain = the name of the testbed to considere
   #
-  # [Return] an Array of node HRN's
+  # [Return] an Array of node coordinates [x,y]
   #
   def self.listAllNodes(url, domain)
     allNodes = []
@@ -283,6 +326,48 @@ class GridService < AbstractService
     end
     info "TDEBUG - GS - AllNodes - [ #{allNodes.join(" - ")} ]"
     return allNodes
+  end
+
+  #
+  # Return the XMax and YMax values for all the nodes on a given testbed. This
+  # method makes use of the Inventory GridService
+  #
+  # - url = URL to the Inventory GridService
+  # - domain = name of the testbed to query
+  #
+  #
+  def self.getXYMax(url, domain)
+    queryURL = "#{url}/getConfig?domain=#{domain}"
+    debug "QueryURL: #{queryURL}"
+    response = nil
+    response = Net::HTTP.get_response(URI.parse(queryURL))
+    if (! response.kind_of? Net::HTTPSuccess)
+          error "No XMax/YMax info found for t: #{domain} - Bad Response from Inventory"
+          error "QueryURL: #{queryURL}"
+          raise Exception.new()
+    end
+    if (response == nil)
+      error "No XMax/YMax info found for t: #{domain} - Response from Inventory is NIL"
+      error "QueryURL: #{queryURL}"
+      raise Exception.new()
+    end
+    doc = REXML::Document.new(response.body)
+    # Parse the Reply to retrieve the PXE Image name
+    xmax = nil
+    ymax = nil
+    doc.root.elements.each("/CONFIG/x_max") { |v|
+      xmax = v.get_text.value
+    }
+    doc.root.elements.each("/CONFIG/y_max") { |v|
+      ymax = v.get_text.value
+    }
+    # If no name found in the reply... raise an error
+    if (xmax == nil || ymax == nil)
+      doc.root.elements.each('/ERROR') { |e|
+        error "No XMax/YMax info found for t: #{domain} - val: #{e.get_text.value}"
+      }
+    end
+    return xmax.to_i, ymax.to_i
   end
 
 end # class

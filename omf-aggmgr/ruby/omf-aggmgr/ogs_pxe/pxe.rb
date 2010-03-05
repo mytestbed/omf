@@ -30,7 +30,7 @@
 #
 
 require 'net/http'
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 require 'omf-aggmgr/ogs/timer'
 
 #
@@ -40,7 +40,7 @@ require 'omf-aggmgr/ogs/timer'
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class PxeService < GridService
+class PxeService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'pxe'

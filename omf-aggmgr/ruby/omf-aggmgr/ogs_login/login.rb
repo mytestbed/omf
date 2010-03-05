@@ -1,12 +1,12 @@
 # $Id: $
 
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 require 'openwfe/util/scheduler'
 require 'omf-aggmgr/ogs_login/logind'
 
 include OpenWFE
 
-class LoginService < GridService
+class LoginService < LegacyGridService
   
   name 'login' # used to register/mount the service, the service's url will be based on it
   info 'Service to facilitate scheduling'

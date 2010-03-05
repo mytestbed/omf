@@ -28,12 +28,12 @@
 #
 
 require 'omf-common/websupp'
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 require 'omf-aggmgr/ogs_cmc/cmcTestbed'
 require 'omf-aggmgr/ogs_cmc/cmcNode'
 
 
-class CmcService < GridService
+class CmcService < LegacyGridService
   
   name 'cmc' # used to register/mount the service, the service's url will be based on it
   info 'Information on available testbed resources and simple control functionality'

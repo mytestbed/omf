@@ -187,48 +187,6 @@ class AbstractService < MObject
   end
 
   #
-  # Associate this Service to the GridService Server, i.e. mount the handlers
-  # for this service as sub-nodes of the GS Server URI.
-  #
-  # - server = instance of the Web Server that runs in the GS Server
-  # - prefix = optional, prefix where this Service should be 'mounted'
-  #            (default = '/serviceName')
-  #  
-  def self.mount(server, prefix = "/#{self.serviceName}")
-    services = @@services[self] || {}
-    services.each { |name, params|
-      mountPoint = "#{prefix}/#{name}"
-      MObject.debug(serviceName, "Mounting #{mountPoint}")
-      if (auth = params[:auth])
-        m = self.method(auth)
-        #puts "Auth #{m}:#{m.class}"
-        server.mount_proc(mountPoint) {|req,res|
-          if m.call(req,res)
-            params[:proc].call(req,res)
-          else
-            raise WEBrick::HTTPStatus::Unauthorized.new()
-          end
-        }
-      else
-        server.mount_proc(mountPoint, params[:proc])
-      end
-    }
-
-    server.mount_proc(prefix) {|req, res|
-      res['ContentType'] = "text/xml"
-      ss = StringIO.new()
-      ss.write("<?xml version='1.0'?>\n")
-      doc = REXML::Document.new
-      root = doc.add(REXML::Element.new("services"))
-      el = to_xml(root)
-      el.attributes['prefix'] = prefix
-      formatter = REXML::Formatters::Default.new
-      formatter.write(doc,ss)
-      res.body = ss.string
-    }
-  end
-
-  #
   # Configure this Service instance through a hash of options.
   # This will defined by the Service sub-classes.
   #

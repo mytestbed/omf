@@ -2,9 +2,9 @@
 # Implements a service to manage the resources on multiple heterogenous testbeds
 #
 
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 
-class MasterService < GridService
+class MasterService < LegacyGridService
   
   name 'master' # used to register/mount the service, the service's url will be based on it
   info 'Service to manage the resources on multiple heterogenous testbeds'

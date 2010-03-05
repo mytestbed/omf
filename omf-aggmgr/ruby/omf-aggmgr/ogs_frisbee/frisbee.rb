@@ -29,7 +29,7 @@
 # This file defines the FrisbeeService class.
 #
 
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/legacyGridService'
 require 'omf-aggmgr/ogs_frisbee/frisbeed'
 
 #
@@ -40,7 +40,7 @@ require 'omf-aggmgr/ogs_frisbee/frisbeed'
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class FrisbeeService < GridService
+class FrisbeeService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'frisbee'  
