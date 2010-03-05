@@ -29,7 +29,7 @@
 #
 
 require 'net/telnet'
-require 'omf-aggmgr/ogs/legacyGridService'
+require 'omf-aggmgr/ogs/gridService'
 
 #
 # This class defines the CMC (Chassis Manager Controller) Stub Service.
@@ -44,7 +44,7 @@ require 'omf-aggmgr/ogs/legacyGridService'
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class CmcStubService < LegacyGridService
+class CmcStubService < GridService
 
   # name used to register/mount the service, the service's url will be based on it
   name 'cmc'
@@ -53,7 +53,7 @@ class CmcStubService < LegacyGridService
 
   #
   # Implement 'on' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return HTTP OK
+  # In this Stub CMC, this will always return true (OK)
   #
   # Note: Correct behaviour of 'on' is
   #       - if node is already ON do nothing
@@ -61,23 +61,23 @@ class CmcStubService < LegacyGridService
   #
   s_info 'Switch ON a resource'
   s_param :name, 'name', 'name of the resource'
-  service 'on' do |req, res|
-    self.responseOK(res)
+  service 'on' do |name|
+    true
   end
 
   #
   # Implement 'nodeSetOn' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return HTTP OK
+  # In this Stub CMC, this will always return true (OK)
   #
   s_info 'Switch on a set of nodes'
   s_param :nodes, 'setDecl', 'set of nodes to switch on'
-  service 'nodeSetOn' do |req, res|
-    self.responseOK(res)
+  service 'nodeSetOn' do |nodes|
+    true
   end
 
   #
   # Implement 'reset' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return HTTP OK
+  # In this Stub CMC, this will always return true (OK)
   #
   # Note: Correct behaviour of 'reset' is
   #       - if node is already ON, then reset/reboot it
@@ -86,16 +86,14 @@ class CmcStubService < LegacyGridService
   s_info 'Reset a resource'
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'reset' do |req, res|
-    name = getParam(req, 'name')
-    domain = getParam(req, 'domain')
-    reboot(name, domain, req)
-    self.responseOK(res)
+  service 'reset' do |name, domain|
+    reboot(name, domain)
+    true
   end
 
   #
   # Implement 'offHard' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return HTTP OK
+  # In this Stub CMC, this will always return true (OK)
   #
   # NOTE:
   # At NICTA, we do not have the CM card operational on our nodes yet...
@@ -104,11 +102,9 @@ class CmcStubService < LegacyGridService
   s_info 'Switch off a node HARD (immediately) at a specific coordinate'
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'offHard' do |req, res|
-    name = getParam(req, 'name')
-    domain = getParam(req, 'domain')
-    reboot(name, domain, req)
-    self.responseOK(res)
+  service 'offHard' do |name, domain|
+    reboot(name, domain)
+    true
   end
 
   #
@@ -121,20 +117,20 @@ class CmcStubService < LegacyGridService
   s_info 'Switch off a node SOFT (execute halt) at a specific coordinate'
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'offSoft' do |req, res|
+  service 'offSoft' do |name, domain|
     name = getParam(req, 'name')
     domain = getParam(req, 'domain')
-    reboot(name, domain, req)
-    self.responseOK(res)
+    reboot(name, domain)
+    true
   end
 
   #
   # Implement 'allOffHard' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return HTTP OK
+  # In this Stub CMC, this will always return true (OK)
   #
   s_info 'Switch off ALL nodes HARD (immediately)'
-  service 'allOffHard' do |req, res|
-    self.responseOK(res)
+  service 'allOffHard' do
+    true
   end
 
   #
@@ -146,15 +142,14 @@ class CmcStubService < LegacyGridService
   #
   s_info 'Switch off ALL nodes SOFT (execute halt)'
   s_param :domain, '[domain]', 'domain for request.'
-  service 'allOffSoft' do |req, res|
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+  service 'allOffSoft' do |domain|
+    tb = getTestbedConfig(domain, @@config)
     inventoryURL = tb['inventory_url']
     nodes = listAllNodes(inventoryURL, domain)
     nodes.each { |n|
-      reboot(n, domain, req)
+      reboot(n, domain)
     }
-    self.responseOK(res)
+    true
   end
 
   #
@@ -169,13 +164,11 @@ class CmcStubService < LegacyGridService
   #
   s_info 'Returns a list of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
-  service 'getAllNodes' do |req, res|
-    tb = getTestbedConfig(req, @@config)
+  service 'getAllNodes' do |domain|
+    tb = getTestbedConfig(domain, @@config)
     inventoryURL = tb['inventory_url']
-    domain = getParam(req, 'domain')
     nodes = listAllNodes(inventoryURL, domain)
-    res.body = nodes.inspect
-    res['Content-Type'] = "text"
+    nodes.inspect
   end
 
   #
@@ -190,10 +183,9 @@ class CmcStubService < LegacyGridService
   #
   s_info 'Returns the status of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
-  service 'allStatus' do |req, res|
-    tb = getTestbedConfig(req, @@config)
+  service 'allStatus' do |domain|
+    tb = getTestbedConfig(domain, @@config)
     inventoryURL = tb['inventory_url']
-    domain = getParam(req, 'domain')
     root = REXML::Element.new('TESTBED_STATUS')
     detail = root.add_element('detail')
     nodes = listAllNodes(inventoryURL, domain)
@@ -201,7 +193,7 @@ class CmcStubService < LegacyGridService
       attr = {'name' => "#{n}", 'state' => 'POWERON' }
       detail.add_element('node', attr)
     }
-    setResponse(res, root)
+    root
   end
 
   #
@@ -213,9 +205,9 @@ class CmcStubService < LegacyGridService
     @@config = config
   end
 
-  def self.reboot(name, domain, req)
-    MObject.debug("cmcstub", "Sending REBOOT cmd to '#{name}'")
-    tb = getTestbedConfig(req, @@config)
+  def self.reboot(name, domain)
+    MObject.debug("Sending REBOOT cmd to '#{name}'")
+    tb = getTestbedConfig(domain, @@config)
     inventoryURL = tb['inventory_url']
     ip = getControlIP(inventoryURL, name, domain)
     begin

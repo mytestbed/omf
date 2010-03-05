@@ -148,7 +148,7 @@ class InventoryService < LegacyGridService
       result = inv.getMacAddrByName(x, y, ifname, domain)
     rescue Exception => ex
       error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      return :Error
+      raise HTTPStatus::InternalServerError
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no info on [#{ifname}] for node [#{x},#{y}] (domain: #{domain})"
@@ -178,7 +178,7 @@ class InventoryService < LegacyGridService
       result = inv.getNodePXEImage(x, y, domain)
     rescue Exception => ex
       error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      return :Error
+      raise HTTPStatus::InternalServerError
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no PXE Image info for node [#{x},#{y}] (domain: #{domain})"
@@ -208,7 +208,7 @@ class InventoryService < LegacyGridService
       result = inv.getAllMacAddr(x, y, domain)
     rescue Exception => ex
       error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      return :Error
+      raise HTTPStatus::InternalServerError
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no info for interfaces of node [#{x},#{y}] (domain: #{domain})"
@@ -236,7 +236,7 @@ class InventoryService < LegacyGridService
       result = inv.getAllResources(domain)
     rescue Exception => ex
       error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      return :Error
+      raise HTTPStatus::InternalServerError
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no info for any resources on the domain: #{domain}"
@@ -480,7 +480,7 @@ class InventoryService < LegacyGridService
       inv.open()
     rescue Exception => ex
       error "Inventory - getAllWirelessDevices() - Cannot connect to the Inventory Database #{d} on #{h} as #{u} - #{ex}"
-      return :Error
+      raise HTTPStatus::InternalServerError
     end
     wds = inv.getAllPCIID(x, y, domainName)
     inv.close()

@@ -1,0 +1,14 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the config file for global configuration items for the OMF Aggregate Manager.
+#
+---
+:xmpp:
+  :server: "10.0.0.200"
+  :user: "aggmgr"
+  :password: "123"
+
+:http:
+  :port: 5053
+  

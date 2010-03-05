@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 - WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 - WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,14 +35,24 @@ require 'stringio'
 require 'base64'
 require 'omf-common/mobject'
 
+# JW 2010-03-05: The design notes below are no longer accurate because
+# the AbstractService class has been modified to be more abstract, and
+# not HTTP-specific.  It can now be used with any transport, including
+# XMPP.  These design notes must be updated to reflect the changes.
+# In the current implementation of the servers (see server.rb and
+# serviceMounter.rb), the s_auth methods are ignored, because
+# differences between XMPP and HTTP make it difficult to offer a
+# uniform authorization interface (at least, given the existing use of
+# s_auth in the cmc service).
+
 #
-# This class defines the general Service class. A Service implements the set of 
-# servlets, which are used to process a given HTTP request to the GridService 
-# Server. A Service is loaded by the GS Server (i.e. essentially a web server 
+# This class defines the general Service class. A Service implements the set of
+# servlets, which are used to process a given HTTP request to the GridService
+# Server. A Service is loaded by the GS Server (i.e. essentially a web server
 # defined in 'ogs'rb'.
 # This class is meant to be sub-classed for a particular type of Service.
-# This class not only represent a single Service instance (i.e. a set of 
-# servlets), but it also provides a class-wide array of all the Service 
+# This class not only represent a single Service instance (i.e. a set of
+# servlets), but it also provides a class-wide array of all the Service
 # instances currently associated with the GS Server.
 #
 # Some design notes on how Service handles HTTP request processing:
@@ -74,9 +84,9 @@ class AbstractService < MObject
   @@services = Hash.new
   @@serviceName = {} # contains a list of the various services mounted in the GridService daemon
   @@info = {} # contains a list of info related to the services in the serviceName list
-  #@@info = nil
   @@__info = nil
   @@__param = nil
+  @@__param_list = nil
   @@__auth = nil
 
   #
@@ -104,7 +114,7 @@ class AbstractService < MObject
   def self.s_info(str)
     @@__info = str
   end
-  
+
   #
   # Set a particular parameter for a given sub-service for this Service.
   # See the design notes in this class's description for more details
@@ -116,16 +126,18 @@ class AbstractService < MObject
   #
   def self.s_param(name, value, info, default = nil)
     p = @@__param ||= {}
+    p_list = @@__param_list ||= []
     p[name] = {
       :info => info,
       :value => value,
       :isReq => (value =~ /\[/) != 0, # optional param start with '['
       :default => default
     }
+    p_list << name
   end
 
   #
-  # Set a particular authentication method for a given sub-service for this 
+  # Set a particular authentication method for a given sub-service for this
   # Service. See the design notes in this class's description for more details
   #
   # - methodName = authentication to use
@@ -152,11 +164,13 @@ class AbstractService < MObject
       :proc => proc,
       :info => @@__info,
       :param => @@__param,
+      :param_list => @@__param_list,
       :auth => @@__auth
     }
     @@services[self] = services
     @@__info = nil
     @@__param = nil
+    @@__param_list = nil
     @@__auth = nil
   end
 
@@ -168,7 +182,7 @@ class AbstractService < MObject
   def self.name(serviceName)
     @@serviceName[self] = serviceName
   end
-  
+
   #
   # Return the name of this Service
   #
@@ -184,6 +198,10 @@ class AbstractService < MObject
       @@serviceName[self] = s[/(.*)service/,  1] || s
     end
     @@serviceName[self]
+  end
+
+  def self.serviceCalls
+    @@services[self]
   end
 
   #
@@ -210,7 +228,7 @@ class AbstractService < MObject
     end
     p
   end
-  
+
   #
   # Return the value of a given configuration parameter for this Service,
   # if this parameter is not present in the request, return a default value
@@ -225,15 +243,15 @@ class AbstractService < MObject
     req.query[name] || default
   end
 
-  # 
+  #
   # Return an XML element with the description of this Service
   #
   # [Return] an XML element describing this Service
-  #  
+  #
   def self.to_xml(parentEl)
     topEl = parentEl.add_element('serviceGroup', {'name' => self.serviceName})
     # Table @@info contains info for each class of Services
-    #if ((info = self.info) != nil) 
+    #if ((info = self.info) != nil)
     if ((info = @@info[self]) != nil)
       topEl.add_element('info').text = info
     end
@@ -319,7 +337,7 @@ if $0 == __FILE__
     doc = REXML::Document.new
     services = doc.add(REXML::Element.new("services"))
     Service1.to_xml(services)
-    Service2.to_xml(services)    
+    Service2.to_xml(services)
     formatter = REXML::Formatters::Default.new
     formatter.write(doc,$stdout)
   end

@@ -63,42 +63,6 @@ class GridService < AbstractService
   end
 
   #
-  # Configure the HTTP Response ('res') from this Service so it returns an OK
-  # response
-  #
-  # - res = the HTTP Response message to update
-  #
-  def self.responseOK(res)
-    res['Content-Type'] = "text"
-    res.body = "OK"
-  end
-
-  #
-  # Make this Service return a 'resXml' as a 'text/xml'
-  #
-  # - res = the HTTP Response message to update
-  # - resXML =  the resXML to turn into text/XML
-  #
-  def self.setResponse(res, resXml)
-    s = StringIO.new
-    formatter = REXML::Formatters::Default.new
-    formatter.write(resXml,s)
-    res.body = s.string
-    res['Content-Type'] = "text/xml"
-  end
-
-  #
-  # Make this Service return a plain text as a 'text/plain'
-  #
-  # - res = the HTTP Response message to update
-  # - resXML =  the plain text to return
-  #
-  def self.setResponsePlainText(res, resTxt)
-    res.body = resTxt
-    res['Content-Type'] = "text/plain"
-  end
-
-  #
   # Given a Node Set declaration string, parse the string into a Node
   # Set declaration, which is an array of Node Sets.
   #
@@ -139,72 +103,6 @@ class GridService < AbstractService
         raise HTTPStatus::BadRequest, "Illegal node set declaration '#{ns}'"
       end
     }
-  end
-
-  #
-  # Call a block of command on this Service, after a given timer as expired
-  # for this Service. This given timer can be reset by multiple calls to this
-  # function with the same 'key'
-  #
-  # - key =  the key associated with the Timer
-  # - timeout = the timeout duration in sec
-  # - &block =  the block of commands to execute after 'timeout'
-  #
-  def self.timeout(key, timeout, &block)
-    @@timeoutMutex.synchronize {
-    # should put inside monitor to make thread safe
-    @@timeouts[key] = [Time.now + timeout, key, block]
-    if (@@timeoutThreads != nil)
-      @@timeoutThreads.wakeup
-    else
-      @@timeoutThreads = Thread.new() {
-        while (! @@timeouts.empty?)
-          tasks = @@timeouts.values.sort { |a, b| a[0] <=> b[0] }
-          now = Time.now
-          nextTask = tasks.detect { |t|
-            if (t[0] <= now)
-              debug "Timing out #{t[1]}"
-              t[2].call
-              @@timeouts.delete(t[1])
-              false
-            else
-              # return the first job in the future
-              true
-            end
-          }
-          if (nextTask != nil)
-            delta = nextTask[0] - now
-            debug "Check for time out in '#{delta}'"
-            sleep delta
-          end
-        end
-        @@timeoutThreads = nil
-      }
-    end
-    }
-  end
-
-  #
-  # Cancel a previously set Timer
-  #
-  # - key = the key associated with the previously set Timer to cancel
-  #
-  def self.cancelTimeout(key)
-    @@timeouts.delete(key)
-  end
-
-  #
-  # Assert if a given value is within a given range. Raise an error message
-  # otherwise
-  #
-  # - value = the value to assert
-  # - range = the range to test the value with
-  # - errMessage = the text error message to raise if 'value' is not in 'range'
-  #
-  # [Return] true if 'value' is within 'range'
-  #
-  def self.assertRange(value, range, errMessage)
-    range === value || raise(HTTPStatus::BadRequest, errMessage)
   end
 
   #
@@ -285,6 +183,58 @@ class GridService < AbstractService
     return allNodes
   end
 
+  #
+  # Call a block of command on this Service, after a given timer as expired
+  # for this Service. This given timer can be reset by multiple calls to this
+  # function with the same 'key'
+  #
+  # - key =  the key associated with the Timer
+  # - timeout = the timeout duration in sec
+  # - &block =  the block of commands to execute after 'timeout'
+  #
+  def self.timeout(key, timeout, &block)
+    @@timeoutMutex.synchronize {
+    # should put inside monitor to make thread safe
+    @@timeouts[key] = [Time.now + timeout, key, block]
+    if (@@timeoutThreads != nil)
+      @@timeoutThreads.wakeup
+    else
+      @@timeoutThreads = Thread.new() {
+        while (! @@timeouts.empty?)
+          tasks = @@timeouts.values.sort { |a, b| a[0] <=> b[0] }
+          now = Time.now
+          nextTask = tasks.detect { |t|
+            if (t[0] <= now)
+              debug "Timing out #{t[1]}"
+              t[2].call
+              @@timeouts.delete(t[1])
+              false
+            else
+              # return the first job in the future
+              true
+            end
+          }
+          if (nextTask != nil)
+            delta = nextTask[0] - now
+            debug "Check for time out in '#{delta}'"
+            sleep delta
+          end
+        end
+        @@timeoutThreads = nil
+      }
+    end
+    }
+  end
+
+  #
+  # Cancel a previously set Timer
+  #
+  # - key = the key associated with the previously set Timer to cancel
+  #
+  def self.cancelTimeout(key)
+    @@timeouts.delete(key)
+  end
+
 end # class
 
 #
@@ -302,6 +252,6 @@ class HTTPResponse
       self.status = HTTPStatus::RC_INTERNAL_SERVER_ERROR
       @body = "internal error"
     end
-    @header['content-type'] = "text"
+    @header['content-type'] = "text/plain"
   end
 end

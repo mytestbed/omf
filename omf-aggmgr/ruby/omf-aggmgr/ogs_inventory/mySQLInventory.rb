@@ -33,14 +33,14 @@ require 'mysql' # Always use the latest 'default' MySQL Ruby library (we need 'r
 require 'set'
 
 #
-# This class implements an interface to the MySQL database which holds the 
-# Inventory information for the available testbeds. This class is used by the 
+# This class implements an interface to the MySQL database which holds the
+# Inventory information for the available testbeds. This class is used by the
 # Inventory GridServices as a 'query engine' over the MySQL database.
 # Some specific queries to the Inventory have their methods implemented here.
-# 
-# NOTE: this class opens a connection to the MySQL database, with the 
-# MySQL 'reconnect' set to true. Only one connection to the database exists at 
-# anytime, re-connection occurs automatically after the default MySQL idle 
+#
+# NOTE: this class opens a connection to the MySQL database, with the
+# MySQL 'reconnect' set to true. Only one connection to the database exists at
+# anytime, re-connection occurs automatically after the default MySQL idle
 # timeout. Therefore, this class requires a recent MySQL Ruby Library (support
 # 'reconnect' flag).
 #
@@ -61,10 +61,6 @@ class MySQLInventory < MObject
     @pw    = password
     @db    =  database
     open()
-    #@host  = "internal1.orbit-lab.org"
-    #@user  = "orbit"
-    #@pw    = "orbit"
-    #@db    = "inventory"
   end
 
   #
@@ -74,30 +70,30 @@ class MySQLInventory < MObject
   def open()
     begin
       @my = Mysql.connect(@host, @user, @pw, @db)
-      # Set the MySQL 'reconnect' flag -> Connection to the database will be 
+      # Set the MySQL 'reconnect' flag -> Connection to the database will be
       # automatically maintained even if the Server closes it due to timed-out idle period
       @my.reconnect = true
       debug " -  Open Connection to MYSQL server - reconnect=#{@my.reconnect}"
     rescue MysqlError => e
       debug "SQL error message: #{e.error}."
-    end	
+    end
   end
 
   #
   # Close a previously opened connection to the MySQL server
   #
-  def close() 
+  def close()
     @my.close()
     @my = nil
   end
-  
+
   #
-  # Run a given Query against the MySQL Inventory database, and execute a given 
+  # Run a given Query against the MySQL Inventory database, and execute a given
   # block of command on the result of this query
   #
   # - query = a String with the MySQL query to run
   # - &block = the block of command, which will process the result of this query
-  #  
+  #
   def runQuery(query, &block)
     begin
       debug "SQL Query: '#{query}'"
@@ -117,22 +113,22 @@ class MySQLInventory < MObject
     end
   end
 
-  # 
+  #
   # Query the Inventory database for the Control IP address of a specific node
   # on a testbed.
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the Control IP address of the node matching the query
-  #	
-  def getControlIP(name, domain = "grid") 
+  #
+  def getControlIP(name, domain = "grid")
     qs = <<CONTROL_QS
 SELECT nodes.control_ip
-  FROM nodes 
-  LEFT JOIN locations ON nodes.location_id = locations.id 
+  FROM nodes
+  LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}' 
+WHERE testbeds.node_domain='#{domain}'
   AND locations.name='#{name}';
 CONTROL_QS
 
@@ -142,27 +138,27 @@ CONTROL_QS
     }
     return addr
   end
-  
-  # 
+
+  #
   # Query the Inventory database for the MAC address corresponding to a
   # specific interface name of a given node on a testbed.
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - cname = name of the interface to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the MAC address of the interface on the node matching the query
   #
-  def getMacAddrByName(x, y, cname = "ath0", domain = "grid") 
+  def getMacAddrByName(x, y, cname = "ath0", domain = "grid")
     qs = <<MAC_QS
-SELECT devices.mac 
-  FROM devices 
-  LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id 
-  LEFT JOIN locations ON nodes.location_id = locations.id 
+SELECT devices.mac
+  FROM devices
+  LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id
+  LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}' 
-  AND locations.x=#{x} 
-  AND locations.y=#{y} 
+WHERE testbeds.node_domain='#{domain}'
+  AND locations.x=#{x}
+  AND locations.y=#{y}
   AND canonical_name='#{cname}';
 MAC_QS
 
@@ -172,92 +168,92 @@ MAC_QS
     }
     return addr
   end
-  
-  # 
+
+  #
   # Query the Inventory database for all MAC addresses corresponding to all
   # the interfaces of a given node on a testbed.
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query (default=grid)
   #
-  # [Return] a Set with the MAC address of the interfaces on the node matching 
+  # [Return] a Set with the MAC address of the interfaces on the node matching
   #          the query
-  #	
+  #
   def getAllMacAddr(x, y, domain = "grid")
   qs = <<ALLMAC_QS
 SELECT devices.mac , devices.canonical_name
-  FROM devices 
-  LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id 
-  LEFT JOIN locations ON nodes.location_id = locations.id 
+  FROM devices
+  LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id
+  LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}' 
-  AND locations.x=#{x} 
+WHERE testbeds.node_domain='#{domain}'
+  AND locations.x=#{x}
   AND locations.y=#{y};
 ALLMAC_QS
 
     addr = Set.new
-    runQuery(qs) { |mac, cnm| 
+    runQuery(qs) { |mac, cnm|
       couple = [cnm, mac]
       addr.add(couple)
     }
     return addr
   end
 
-  # 
-  # Query the Inventory database for a specific configuration parameter of a 
+  #
+  # Query the Inventory database for a specific configuration parameter of a
   # given testbed
   #
-  # - key = name of the configuration parameter to query 
+  # - key = name of the configuration parameter to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the value of the configuration parameter matching the query
-  #	
-  def getConfigByKey(key, domain = "grid") 
+  #
+  def getConfigByKey(key, domain = "grid")
     qs = <<CONFIG_Q
-SELECT testbeds.#{key} 
+SELECT testbeds.#{key}
   FROM testbeds
 WHERE testbeds.node_domain='#{domain}';
 CONFIG_Q
-    
+
     value = nil
-    runQuery(qs) { |v| 
+    runQuery(qs) { |v|
       value = v
     }
     return value
   end
 
-  # 
+  #
   # Query the Inventory database for the name of the PXE image being that should
   # be used for a given node on a testbed.
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query (default=grid)
   #
-  # [Return] a String with the name of PXE image to use for the node matching 
+  # [Return] a String with the name of PXE image to use for the node matching
   #          the query
-  #	
+  #
   def getNodePXEImage(x, y, domain = "grid")
   qs = <<PXEIMAGE_QS
 SELECT pxeimages.image_name
   FROM pxeimages
-  LEFT JOIN nodes ON pxeimages.id = nodes.pxeimage_id 
-  LEFT JOIN locations ON nodes.location_id = locations.id 
+  LEFT JOIN nodes ON pxeimages.id = nodes.pxeimage_id
+  LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}' 
-  AND locations.x=#{x} 
+WHERE testbeds.node_domain='#{domain}'
+  AND locations.x=#{x}
   AND locations.y=#{y};
 PXEIMAGE_QS
 
     imageName = nil
-    runQuery(qs) { |name| 
+    runQuery(qs) { |name|
       imageName = name
     }
     return imageName
   end
-  
-  # 
-  # Query the Inventory database for all the nodes of a testbeds, which have an 
-  # inteface belonging to a given tag 
+
+  #
+  # Query the Inventory database for all the nodes of a testbeds, which have an
+  # inteface belonging to a given tag
   #
   # - domain = name of the testbed to query (default=grid)
   #
@@ -269,30 +265,30 @@ SELECT x_max, y_max, z_max
   FROM testbeds
 WHERE node_domain = '#{domain}'
 END_QS1
-    
+
     result = Array.new
-    runQuery(qs) { |x, y, z| 
-      result.push(x) 
-      result.push(y) 
+    runQuery(qs) { |x, y, z|
+      result.push(x)
+      result.push(y)
       result.push(z)
     }
     return result
   end
-  
-  # 
+
+  #
   # Query the Inventory database for the ID of the motherboard at x/y/domain.
   # This is used for generating other more interesting queries.
   #
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
   #       if so please fix it so it follows the same pattern as previous getXXX
   #       (i.e. make use of the runQuery() routine)
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the motherboard ID of the node matching the query
   #
-  def getMotherboardID(x, y, domain = "grid") 
+  def getMotherboardID(x, y, domain = "grid")
     motherboardID = nil
     qs = "SELECT nodes.motherboard_id " \
          "FROM testbeds " \
@@ -303,7 +299,7 @@ END_QS1
            "AND locations.y = #{y} "
     begin
       results=@my.query(qs)
-      if results.each() { |mid| 
+      if results.each() { |mid|
           motherboardID = mid
         }
       end
@@ -314,20 +310,20 @@ END_QS1
     motherboardID
   end
 
-  # 
+  #
   # Query the Inventory database for the MAC address corresponding to all the
   # interfaces of a given node on a testbed, which have a certain type.
   #
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
   #       if so please fix it so it follows the same pattern as previous getXXX
   #       (i.e. make use of the runQuery() routine)
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - type = type of the interface to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the MAC addresses of the interfaces on the node matching the query
-  #	
+  #
   def getMacAddrByType(x, y, type = 1, domain = "grid")
     # This method should be considered deprecated because it exposes
     # device_id numbers to higher levels of abstraction.  device_id
@@ -336,7 +332,7 @@ END_QS1
     # only expose PCI ID numbers.  See getMacAddrByOUI().
     p "Warning - getMacAddrByType() probably isn't what you want.  See getMacAddrByOUI()."
     MObject.warn "Inventory - getMacAddrByType() is deprecated."
-    cards = []    
+    cards = []
     # First, find out the Motherboard ID of the requested node
     moid = getMotherboardID(x, y, domain)
     # Second, find out the MAC address of the interfaces with the required type on that Motherboard
@@ -347,10 +343,10 @@ END_QS1
 	   "AND device_id = #{type} "
     begin
       results=@my.query(qs)
-      if results.each() { |mac, did| 
+      if results.each() { |mac, did|
           p "  Got for ["+x.to_s+","+y.to_s+"] type="+type+" mac=["+mac+"]"
-          cards |= mac         
-          MObject.debug " Inventory - T:#{domain} - X:#{x} - Y:#{y} - MAC:#{mac} - TYPE:#{did}" 
+          cards |= mac
+          MObject.debug " Inventory - T:#{domain} - X:#{x} - Y:#{y} - MAC:#{mac} - TYPE:#{did}"
         }
       end
     rescue MysqlError => e
@@ -359,21 +355,21 @@ END_QS1
     end
     cards
   end
-  
-  # 
+
+  #
   # Query the Inventory database for the MAC address corresponding to a
   # specific interface of a given node on a testbed.
   #
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
   #       if so please fix it so it follows the same pattern as previous getXXX
   #       (i.e. make use of the runQuery() routine)
   #
-  # - x,y = coordinate of the node to query 
+  # - x,y = coordinate of the node to query
   # - oui = OUI of the interface to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the MAC address of the interface on the node matching the query
-  #	
+  #
   def getMacAddrByOUI(x, y, oui, domain = "grid")
     cards = []
     # XXX should start transaction here?
@@ -388,7 +384,7 @@ END_QS1
       results = @my.query(qs)
       if results.each() { | mac |
           cards |= mac
-          MObject.debug " Inventory - T:#{domain} - X:#{x} - Y:#{y} - MAC:#{mac} - OUI:#{oui}" 
+          MObject.debug " Inventory - T:#{domain} - X:#{x} - Y:#{y} - MAC:#{mac} - OUI:#{oui}"
         }
       end
     rescue MysqlError => e
@@ -418,19 +414,19 @@ TeH_KWIRRY
     result
   end
 
-  # 
-  # Query the Inventory database for all the nodes having
-  # an inteface with a given OUI 
   #
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
+  # Query the Inventory database for all the nodes having
+  # an inteface with a given OUI
+  #
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
   #       if so please fix it so it follows the same pattern as previous getXXX
   #       (i.e. make use of the runQuery() routine)
   #
-  # - oui = oui to query 
+  # - oui = oui to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] an Array with all the nodes matching the query
-  #	
+  #
   def getNodesWithOUIInterfaces(oui, domain = "grid")
     result = Array.new
     exists = Hash.new
@@ -442,15 +438,15 @@ SELECT locations.x, locations.y
   LEFT JOIN devices ON devices.motherboard_id = nodes.motherboard_id
   LEFT JOIN device_kinds ON device_kinds.id = devices.device_kind_id
   LEFT JOIN device_ouis ON device_ouis.device_kind_id = device_kinds.id
-  WHERE device_ouis.oui = '#{oui}' 
+  WHERE device_ouis.oui = '#{oui}'
     AND testbeds.node_domain = '#{domain}'
   ORDER BY locations.x, locations.y
 END_QS
     begin
-      @my.query(qs).each() { | x, y | 
-          if (exists["#{x},#{y}"] == nil) 
+      @my.query(qs).each() { | x, y |
+          if (exists["#{x},#{y}"] == nil)
             exists["#{x},#{y}"] = "A"
-           result.push([x,y]) 
+           result.push([x,y])
           end
     }
     rescue MysqlError => e
@@ -461,25 +457,25 @@ END_QS
     result
   end
 
-  # 
+  #
   # Query the Inventory database for all the aliases (tags) defined
   # in the tag table
   #
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
   #       if so please fix it so it follows the same pattern as previous getXXX
   #       (i.e. make use of the runQuery() routine)
   #
   # [Return] an Array with all the aliases from the Tag table
-  #	
+  #
   def getDeviceAliases()
     result = Array.new
     qs = <<END_QS1
 SELECT DISTINCT tag
-FROM `device_tags` 
+FROM `device_tags`
 END_QS1
     begin
-      @my.query(qs).each() { | t | 
-           result.push(t) 
+      @my.query(qs).each() { | t |
+           result.push(t)
       }
     rescue MysqlError => e
       err_str = "Inventory - Could not execute query in getDeviceAliases"
@@ -490,19 +486,19 @@ END_QS1
     result
   end
 
-  # 
-  # Query the Inventory database for all the nodes having
-  # an inteface belonging to a given tag 
   #
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
+  # Query the Inventory database for all the nodes having
+  # an inteface belonging to a given tag
+  #
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
   #       if so please fix it so it follows the same pattern as previous getXXX
   #       (i.e. make use of the runQuery() routine)
   #
-  # - tag = tag to query 
+  # - tag = tag to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] an Array with all the nodes matching the query
-  #	
+  #
   def getNodesWithTagInterfaces(tag, domain = "grid")
     result = Array.new
     qs = <<END_QS2
@@ -518,8 +514,8 @@ WHERE device_tags.tag = '#{tag}'
 ORDER BY locations.x, locations.y
 END_QS2
     begin
-      @my.query(qs).each() { | x, y | 
-           result.push([x,y]) 
+      @my.query(qs).each() { | x, y |
+           result.push([x,y])
     }
     rescue MysqlError => e
       err_str = "Inventory - Could not execute query in getNodesWithOIUInterfaces; OUI:#{oui}, T:#{domain}"
@@ -529,24 +525,24 @@ END_QS2
     result
   end
 
-  # 
-  # Query the Inventory database for the names of all resources, which 
+  #
+  # Query the Inventory database for the names of all resources, which
   # are available for a given testbed.
   #
   # - domain = name of the testbed to query (default=grid)
   #
-  # [Return] a Set with the names of all the resources 
-  #	
+  # [Return] a Set with the names of all the resources
+  #
   def getAllResources(domain = "grid")
   qs = <<ALLRESOURCES_QS
-SELECT locations.name 
-  FROM locations 
+SELECT locations.name
+  FROM locations
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}'; 
+WHERE testbeds.node_domain='#{domain}';
 ALLRESOURCES_QS
 
     resources = Set.new
-    runQuery(qs) { |name| 
+    runQuery(qs) { |name|
       resources.add(name)
     }
     return resources

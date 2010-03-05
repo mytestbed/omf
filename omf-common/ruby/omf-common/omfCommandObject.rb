@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +30,14 @@ require 'rexml/element.rb'
 #
 # A class implementing a Command Object (see the Command design pattern)
 #
-class OmfCommandObject 
+class OmfCommandObject
+
+  attr_reader :attributes
 
   #
   # Return the value of an attribute of this Command Object
-  # 
-  # - key = the name of the attribut 
+  #
+  # - key = the name of the attribut
   #
   # [Return] the value of the attribute
   #
@@ -48,9 +50,9 @@ class OmfCommandObject
   # But do so via the use of method_missing, so one can query or set
   # the attribute using a 'dot' syntax.
   # E.g. myCmd.myAttribute = 123
-  # E.g. var = myCmd.myAttribute 
-  # 
-  # - name = the name of the attribut 
+  # E.g. var = myCmd.myAttribute
+  #
+  # - name = the name of the attribut
   #
   # [Return] the value of the attribute, if called as a query
   #
@@ -64,13 +66,13 @@ class OmfCommandObject
     end
   end
 
-  # NOTE: This is a list of currently used attributes, depending on the command type 
+  # NOTE: This is a list of currently used attributes, depending on the command type
   #
   # cmdType - The type of this Command Object (e.g. 'EXECUTE')
   # target - The destination or group to which this Command Object is addressed to (e.g. 'the_senders')
   # expID - The ID of the experiment for this Command Object (e.g. 'myExp123')
-  # image - The Name of the desired disk image on a resource receiving this Command Object 
-  # message - The message conveyed by this Command Object 
+  # image - The Name of the desired disk image on a resource receiving this Command Object
+  # message - The message conveyed by this Command Object
   # cmd - The command line associated this Command Object
   # name - The list of aliases for the resource sending this Command Object
   # value - The value associated with this Command Object
@@ -90,8 +92,8 @@ class OmfCommandObject
   #
   # - initValue = if a String or Symbol, then create an empty Command Object, with its
   #               command type set to the String/Symbol
-  #               if an XML stanza, then create a new Command Object based on the 
-  #               XML description 
+  #               if an XML stanza, then create a new Command Object based on the
+  #               XML description
   #
   #  [Return] a new Command Object
   #
@@ -108,10 +110,10 @@ class OmfCommandObject
       raise "Trying to create a OmfCommandObject with unknown initial value (type: '#{initValue.class}')"
     end
   end
-	  
+
   #
   # Return the XML representation for this Command Object
-  # An example of a returned XML is: 
+  # An example of a returned XML is:
   #
   # <EXECUTE>
   #   <TARGET>source</TARGET>
@@ -152,13 +154,13 @@ class OmfCommandObject
   #
   # Create a new Command Object from a valid XML representation
   #
-  # - xmlDoc = an xml document (REXML::Document) object 
+  # - xmlDoc = an xml document (REXML::Document) object
   #
   def init_from_xml(xmlDoc)
     # Set the Type
     @attributes[:CMDTYPE] = xmlDoc.expanded_name.to_sym
     # Parse the XML object
-    xmlDoc.each_element { |e| 
+    xmlDoc.each_element { |e|
       # For the OMLCONFIG tag, add the XML value to this Command Object
       if e.expanded_name.upcase.to_sym == :OMLCONFIG
         @attributes[e.expanded_name.upcase.to_sym] = e
@@ -169,7 +171,7 @@ class OmfCommandObject
     }
   end
 
-  # 
+  #
   # Return a String representation of the XML tree describing this
   # Command Object.
   #

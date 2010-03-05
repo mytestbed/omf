@@ -1,8 +1,8 @@
 #!/usr/bin/ruby
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 - WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 - WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,19 +41,12 @@ require 'omf-common/omfVersion'
 # We need to find a better way of adding the dependencies of the
 # individual services.
 require 'stringio'
-#require 'omf-common/websupp'
-#require 'omf-common/arrayMD'
-#require 'omf-common/parseNodeSet'
-#require 'net/http'
 require 'date'
 require 'rexml/document'
-#require 'external/mysql'
-#require 'webrick/httpstatus'
-#require 'ldap'
 require 'yaml'
 require 'optparse'
 #####
-require 'omf-aggmgr/ogs/gridService'
+require 'omf-aggmgr/ogs/serviceMounter'
 
 # PACKAGING HACK -
 # Hack to force services to be included in the distribution - need to remove that
@@ -66,12 +59,12 @@ require 'omf-aggmgr/ogs_inventory/inventory'
 require 'omf-aggmgr/ogs_result/result'
 # Two CMC alternatives:
 # - 'cmc', which is the full CMC implementation (currently under dev/debug)
-# - 'cmcStub', which is just a stub to temporary make the EC happy on the NICTA 
+# - 'cmcStub', which is just a stub to temporary make the EC happy on the NICTA
 #    platform which currently does not have CMC functionalities
 #
 # Both will be installed with the package.
 # BUT only ONE should be ENABLED at any given time! (using symlinks in '/etc/enabled')
-require 'omf-aggmgr/ogs_cmcStub/cmcStub' # use the stub 
+require 'omf-aggmgr/ogs_cmcStub/cmcStub' # use the stub
 require 'omf-aggmgr/ogs_cmc/cmc' # use real cmc
 end
 
@@ -85,12 +78,11 @@ OMF_MM_VERSION = OMF::Common::MM_VERSION()
 OMF_VERSION_STRING = "OMF Aggregate Manager #{OMF_VERSION}"
 
 DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr-#{OMF_MM_VERSION}", "/etc/omf-aggmgr-#{OMF_MM_VERSION}"]
-DEF_CONFIG_FILE = 'gridservice_cfg.yaml'
+DEF_CONFIG_FILE = 'omf-aggmgr.yaml'
 DEF_WEB_PORT = 5012
 
 #---------
 
-@@registeredServices = {}
 @@serviceDir = nil
 
 #
@@ -104,30 +96,31 @@ def register(service,configFileName)
   # 'service' is the service name given by the calling run() method
   # This new design allows us to avoid calling 'register' from the service .rb file
   #
-  # name = service.serviceName
-  # path = "/#{name}"
-  # @@registeredServices[path] = service
-  # service.mount(@@server, path)
   serviceClass = Class::class_eval("#{service}")
   name = serviceClass.serviceName
   path = "/#{name}"
-  @@registeredServices[path] = serviceClass
-  serviceClass.mount(@@server, path)
 
-  # configFile = "#{findServiceDir}/#{name}.yaml"
   configFile = "#{findServiceDir}/#{configFileName}"
-  MObject.debug(:register, "Loading service config file '#{configFile}'")
+  MObject.debug(:gridservices, "Loading service config file '#{configFile}'")
   if (File.readable?(configFile))
-    #params = YAML::load(File.open(configFile))
-    params = YAML::parse(File.open(configFile)).transform
+    f = File.open(configFile)
+    params = YAML::parse(f).transform
+    f.close
 
     if (cfg = params[name]).nil?
       raise "Missing configuration for service '#{name}'"
     end
-    # service.configure(params[name])
     serviceClass.configure(cfg)
   else
-    MObject.error("Service config file '#{configFile}' is not readable")
+    MObject.error(:gridservices, "Service config file '#{configFile}' is not readable")
+  end
+
+  if serviceClass.respond_to?(:mount) then
+    MObject.debug(:gridservices, "Mounting legacy service #{serviceClass}")
+    serviceClass.mount(ServiceMounter.server(:http), path)
+  else
+    MObject.debug(:gridservices, "Mounting service #{serviceClass}")
+    ServiceMounter.mount(serviceClass)
   end
 end
 
@@ -149,7 +142,7 @@ def run(params)
     exit -1
   end
 
-  startServer(params)
+  ServiceMounter.init(params)
 
   if ((services = params[:services]) != nil)
     services.each { |name|
@@ -182,45 +175,13 @@ def run(params)
         rescue Exception => ex
           MObject.error(:gridservices, "Failed loading #{file}: #{ex}")
           bt = ex.backtrace.join("\n\t")
-          MObject.debug("Exception: #{ex} (#{ex.class})\n\t#{bt}")
+          MObject.debug(:gridservices, "Exception: #{ex} (#{ex.class})\n\t#{bt}")
         end
       end
     }
   end
-
-  @@server.start
-end
-
-#
-# Start the Web Server, which will accept requests for Services
-# 
-# - params = a Hash containing the configuration parameters for this Web Server
-#
-def startServer(params)
-  @@server = HTTPServer.new(
-    :Port => params[:webPort] || DEF_WEB_PORT,
-    :Logger => Log4r::Logger.new("#{MObject.logger.fullname}::web"),
-    :RequestHandler => lambda {|req, resp|
-      beforeRequestHook(req, resp)
-    }
-  )
-  trap("INT") { @@server.shutdown }
-
-  path = File.dirname(params[:configDir]) + "/favicon.ico"
-  @@server.mount("/favicon.ico", HTTPServlet::FileHandler, path) {
-    raise HTTPStatus::NotFound, "#{path} not found."
-  }
-  @@server.mount_proc('/') {|req, res|
-    res['Content-Type'] = "text/xml"
-    body = [%{<?xml version='1.0'?><serviceGroups>}]
-    @@registeredServices.each {|path, service|
-      info = service.info
-      name = service.serviceName
-      body << "<serviceGroup path='#{path}' name='#{name}'><info>#{info}</info></serviceGroup>"
-    }
-    body << "</serviceGroups>"
-    res.body = body.to_s
-  }
+  ["INT", "TERM"].each { |sig| trap(sig) { ServiceMounter.stop_services } }
+  ServiceMounter.start_services
 end
 
 #
@@ -252,7 +213,7 @@ def findServiceDir(params = @@params)
 end
 
 #
-# Load the configuration file for this Server. It is assumed to be in the directory 
+# Load the configuration file for this Server. It is assumed to be in the directory
 # above the ':serviceDir' if not specifically specified on the command line.
 #
 # - params = a Hash containing the configuration parameters for this Web Server
@@ -262,10 +223,12 @@ def loadConfig(params)
   optional = false
   if (configFile == nil)
     optional = true
-    configFile = "../#{params[:serviceDir]}/#{DEF_CONFIG_FILE}"
+    configFile = "#{params[:configDir]}/#{DEF_CONFIG_FILE}"
   end
   if (File.readable?(configFile))
-    YAML::load(File.open(configFile)).each {|k, v|
+    MObject.debug(:gridservices, "Reading configuration file #{configFile}")
+    tree = YAML::parse(File.open(configFile)).transform
+    tree.each_pair {|k, v|
       if (! params.has_key?(k))
         params[k.to_sym] = v
       end
@@ -273,34 +236,11 @@ def loadConfig(params)
   elsif (! optional)
     MObject.error('services', "Can't find config file '#{configFile}")
     return false
+  else
+    MObject.info('services', "Config file '#{configFile}' not readable")
   end
   return true
 end
-
-#
-# Do some pre-conditions before processing an incoming request. 
-# Obsolete, this code is not used anymore... shall we remove it?
-#
-def beforeRequestHook(req, resp)
-  q = req.query
-  q['domain'] ||= 'default'
-#  domain = req.query['domain']
-#  q['peerdomain'] = Websupp.getPeerSubDomain(req)
-#  address = req.peeraddr[2]
-#  ip = Websupp.getAddress(address.rstrip)
-#  
-#  index = ip.rindex(".")
-#  ip = ip.slice(0..(index-1))
-#  index = ip.rindex(".")
-#  ip = ip.slice(0..(index-1))
-#  if domain == nil || domain == ""
-#    domain = subDomain
-#  end
-#  
-#  req.query['domain'] = domain
-#  q['peerip'] = ip
-end
-
 
 #################################
 #
@@ -337,7 +277,7 @@ opts.on_tail("-v", "--version", "Show the version") {
 
 #################################
 #
-# Program Entry Point 
+# Program Entry Point
 #
 begin
   rest = opts.parse(ARGV)
