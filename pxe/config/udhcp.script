@@ -77,26 +77,25 @@ fi
 	while [ ${MAXSTATICROUTES} -gt "0" ]; do
 		NW=$(echo $staticroutes | awk '{ print $1 }' )
 		GW=$(echo $staticroutes | awk '{ print $2 }' )
-		echo [$ROUTECOUNTER] Route Network: $NW Gateway: $GW on $interface
-
+		echo [$ROUTECOUNTER] Route Network or Host: $NW Gateway: $GW on $interface
+		
+		# add the route
 		[ -n "$NW" ] && [ -n "$GW" ] && {
 			route add $NW gw $GW dev $interface
 		}
 
-		# Clear the strings incase they don't get set next time around
-		if [ ${NW} = "0" ]; then
-			NW=""
-		fi
+		# Clear the strings in case they don't get set next time around
 		NW=""
 		GW=""
 
 		# Remove the previous entry from staticroutes
 		staticroutes=$(echo $staticroutes | awk '{ $1 = ""; $2 = ""; print }')
 
-		# Add to counter
+		# Increment counters
 		let ROUTECOUNTER=$ROUTECOUNTER+1;
 		let MAXSTATICROUTES=$MAXSTATICROUTES-1;
 		
+		# if staticroutes is empty stop here
 		if [ X`echo $staticroutes | awk '{ print $1 }'` == X ]; then
 			break
 		fi

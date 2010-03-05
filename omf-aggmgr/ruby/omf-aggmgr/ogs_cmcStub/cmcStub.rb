@@ -218,8 +218,8 @@ class CmcStubService < GridService
       #MObject.debug("TDEBUG - SSH - '#{ssh}'")
       elsif cmd.include? "23/tcp open"
         tn = Net::Telnet::new('Host' => ip)
-        tn.login "root"
-        tn.cmd "reboot"
+        tn.puts "root"
+        tn.puts "reboot"
         #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
       end
     rescue Exception => ex
