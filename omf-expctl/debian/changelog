@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu3) testing; urgency=low
+
+  * latest upstream version
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 09 Mar 2010 15:18:15 +1100
+
 omf-expctl-5.3 (1ubuntu2) testing; urgency=low
 
   * Development release of first sort-of stable version with support for federation 

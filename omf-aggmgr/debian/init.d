@@ -36,7 +36,7 @@ start(){
 	fi
 	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
 	while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
-	   sleep 3
+	   sleep 1
 	done
     echo "."
 }
@@ -45,7 +45,7 @@ stop(){
     echo -n "Stopping OMF Aggregate Manager: $NAME"
 	start-stop-daemon --stop --signal 2 --oknodo --pidfile /var/run/$NAME.pid
 	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
-	   sleep 3
+	   sleep 1
 	done
     echo "."
 }

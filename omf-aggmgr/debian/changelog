@@ -1,3 +1,9 @@
+omf-aggmgr-5.3 (1ubuntu4) testing; urgency=low
+
+  * latest upstream version
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 09 Mar 2010 15:17:17 +1100
+
 omf-aggmgr-5.3 (1ubuntu3) testing; urgency=low
 
   * Dev release, testing federation 
