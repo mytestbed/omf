@@ -408,6 +408,7 @@ end
     id = cmdObject.appID
 
     # Dump the XML description of the OML configuration into a file, if any
+    useOML = false
     if (xmlDoc = cmdObject.omlConfig) != nil
       configPath = nil
       xmlDoc.each_element("omlc") { |omlc|
@@ -417,11 +418,15 @@ end
       xmlDoc.each_element {|el|
         f << el.to_s
       }
+      useOML = true
       f.close
     end
 
     # Set the full command line and execute it
-    fullCmdLine = "env -i #{cmdObject.env} OML_CONFIG=#{configPath} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
+    fullCmdLine = ""
+    fullCmdLine = fullCmdLine + "env -i #{cmdObject.env} " if cmdObject.env != nil
+    fullCmdLine = fullCmdLine + "OML_CONFIG=#{configPath} " if useOML
+    fullCmdLine = fullCmdLine + "#{cmdObject.path} #{cmdObject.cmdLineArgs}"
     MObject.debug "Executing: '#{fullCmdLine}'"
     ExecApp.new(id, agent, fullCmdLine)
   end

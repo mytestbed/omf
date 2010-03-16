@@ -30,7 +30,6 @@
 # This PubSub communicator is based on XMPP. 
 # This current implementation uses the library XMPP4R.
 #
-
 require "omf-common/omfPubSubService"
 require "omf-common/omfCommandObject"
 require 'omf-common/mobject'

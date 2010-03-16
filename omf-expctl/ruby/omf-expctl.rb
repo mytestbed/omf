@@ -29,6 +29,7 @@ cleanExit = false
 
 # Initialize the state tracking, Parse the command line options, and Run the EC
 begin
+  puts ""
   TraceState.init()
   NodeHandler.instance.parseOptions(ARGV)
   NodeHandler.instance.run(self)
@@ -48,7 +49,13 @@ rescue ServiceException => sex
 rescue Exception => ex
   begin
     bt = ex.backtrace.join("\n\t")
-    MObject.fatal('run', "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+    MObject.fatal('run', "----------")
+    MObject.fatal('run', "Exception: #{ex.class}")
+    MObject.fatal('run', "Exception: #{ex}")
+    MObject.fatal('run', "For more information (e.g. trace) see the log file: /tmp/#{Experiment.ID}.log")
+    MObject.fatal('run', "(or see EC's config files to find the log's location)")
+    MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
+    MObject.fatal('run', "----------")
   rescue Exception
   end
 end
@@ -69,6 +76,6 @@ end
 if (NodeHandler.instance.running?)
   NodeHandler.instance.shutdown
   duration = (Time.now - startTime).to_i
-  MObject.info('run', "Experiment #{Experiment.ID} finished after #{duration / 60}:#{duration % 60}")
+  MObject.info('run', "Experiment #{Experiment.ID} finished after #{duration / 60}:#{duration % 60}\n")
 end
 

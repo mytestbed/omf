@@ -195,7 +195,7 @@ class ResultService < LegacyGridService
   s_info "Get the Schema of a given experiment measurement database"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'
   s_param :query, 'SQLquery', 'An SQLite query to run against the database'
-  s_param :format, 'xml | json', 'Format to return result in.', "xml"
+  s_param :format, 'raw | xml | json | cvs | merged', 'Format to return result in.', "xml"
   service 'queryDatabase' do |req, res|
     # Retrieve the request parameter
     id = getParam(req, 'expID')
@@ -215,6 +215,10 @@ class ResultService < LegacyGridService
     # Build and Set the XML response
     msgEmpty = "No Result from Query against this experiment measurement database --- ID: #{id} --- QUERY: #{sqlQuery} --- #{ex} "
     case format
+      when 'raw'
+        reply = formatResultRAW(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+        res.body = reply
+        res['Content-Type'] = "text/plain"
       when 'xml'
         reply = formatResultXML(id, sqlQuery, resultColumns, resultRows, msgEmpty)
         setResponse(res, reply)
@@ -235,6 +239,15 @@ class ResultService < LegacyGridService
     end
   end
   
+  def self.formatResultRAW(id, sqlQuery, resultColumns, resultRows, msgEmpty)
+    reply = ""
+    lineNum = 1
+    resultRows.each { |row|
+      reply = reply + "#{lineNum} #{row.join(" ")}\n"
+      lineNum = lineNum + 1
+    }
+    reply
+  end
   
   def self.formatResultXML(id, sqlQuery, resultColumns, resultRows, msgEmpty)
     # XMLRoot is 'DATABASE'

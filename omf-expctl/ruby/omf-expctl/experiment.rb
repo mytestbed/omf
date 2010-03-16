@@ -296,7 +296,7 @@ class PropertyContext < MObject
     p = ExperimentProperty[name]
     if (p == nil)
       raise "Unknown experiment property '#{name}', " + \
-            "should be '#{ExperimentProperty.names.join(', ')}'"
+            "\n\tKnown properties are '#{ExperimentProperty.names.join(', ')}'"
     end
     if setter
       p.set(args)
