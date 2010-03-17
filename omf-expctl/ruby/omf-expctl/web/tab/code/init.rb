@@ -1,4 +1,11 @@
 require 'omf-expctl/web/tab/code/codeServlet'
 
 include OMF::ExperimentController
-Web.registerService Web::Code, :name => :code, :priority => 200, :def_enabled => true
+
+opts = {
+    :name => :code, 
+    :priority => 200, 
+    :def_enabled => true, 
+    :view_dir => File.dirname(__FILE__)
+}
+OMF::Common::Web::registerService Web::Code, opts

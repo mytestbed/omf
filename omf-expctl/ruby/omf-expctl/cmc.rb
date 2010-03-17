@@ -38,7 +38,10 @@ module CMC
   # Syntactic sugar...
   # Return the URL of the CMC service from OConfig
   #
-  def CMC.URL() return OConfig[:tb_config][:default][:cmc_url] end
+  def CMC.URL() 
+    OConfig[:tb_config][:default][:cmc_url] 
+    #OConfig.CMC_SERVICE()
+  end
 
   #
   # Switch a given node ON

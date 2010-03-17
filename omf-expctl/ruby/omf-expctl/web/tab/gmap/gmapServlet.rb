@@ -14,6 +14,82 @@ module OMF
           server.addTab(VIEW, "/gmap/show", :name => 'Map',
               :title => "Map of experiment area")
         end
+        
+        class MapContext
+          @@sessions = {}
+          
+          def addPath(name = nil, &block)
+            unless name
+              name = "p#{@paths.length}"
+            end
+            p = @paths[name] = PathContext.new
+            if block
+              block.call(p)
+            end
+          end
+          
+          def initialize()
+            @paths = {}
+          end
+
+#          attr_reader :lines, :sessionID
+          
+#          def addLine(data, lopts = {})
+#            l = lopts.dup
+#            l[:data] = data
+#            @lines << l
+#          end      
+#          
+#          def session()
+#            unless session = @@sessions[@sessionID]
+#              session = @@sessions[@sessionID] = {}
+#            end
+#            session
+#          end    
+#          
+#          def opts()
+#            @opts[:gopts]
+#          end
+#          
+#          def initialize(sessionID, opts)
+#            @sessionID = sessionID
+#            @opts = opts
+#            @lines = []
+#            if (dataProc = opts[:dataProc])
+#              dataProc.call(self)
+##              g[:ldata] = graph.lines.to_json 
+#            end
+#          end
+        end # MapContext 
+        
+        class PathContext
+
+          attr_accessor :color, :width  # can that be dynamically changed?
+          
+          # register the update function which is called 
+          # every +interval+
+          #
+          def update(interval = 3.0, &updateProc)
+            @updateInterval = interval
+            @updateProc = updateProc
+          end 
+
+          # Support path specific session state
+          def [](k)
+            @session[k]
+          end
+
+          def []=(k, v)
+            @session[k] = v
+          end
+          
+          def initialize()
+            @session = {}            
+          end
+        end # PathContext 
+          
+
+ 
 
         class GMapServlet  < WEBrick::HTTPServlet::AbstractServlet
           
@@ -38,29 +114,38 @@ module OMF
             opts[:flash].clear
             opts[:view] = :gmap
             
-            session_id = req.query['session'] || 'unknown'
+            res['Content-Type'] = "text/json"
+            opts = @options[0]
+            gid = (req.query['id'] || 0).to_i
+            
+            res['Content-Type'] = "application/ecmascript"
+            if gx = opts[:graphs][gid]
+              sessionID = req.query['sid'] || 'unknown'
+              gd = GraphDescription.new(sessionID, gx)
+              res.body = "plot(#{gd.lines.to_json});"
+            else
+              res.body('');
+            end
+            
+            
+            body = []
+            session_id = req.query['sid'] || 'unknown'
             #MObject.debug(:web, "update for #{session_id}")
             unless session = @@sessions[session_id]
               session = @@sessions[session_id] = {:index => 0}
+              body << "createPolyline('foo', '#0000ff', 8);"
             end
             index = session[:index]
             
-            unless (lout = GMapOutputter.instance)
-            MObject.debug(:web, "NO OUTPUTTER")
-              return
-            end
-            rem = lout.remaining_events(index)
-            if (size = rem.size) == 0
-              res.body = ''
-              return
-            end
+            #res.body = "{'method': 'foo'}"
+            lat, lng = session[:last] || [37.4419, -122.1419]
+            lat += 0.01 * (rand - 0.5)
+            lng += 0.01 * (rand - 0.5)
+            body << "addWayPoint2('foo', #{lat}, #{lng});"
             
-            session[:index] = index + size
-            arr = []
-            rem.reverse_each do |m|
-              arr << m[0]
-            end
-            res.body = arr.join
+            res['Content-Type'] = "application/ecmascript"
+            res.body = body.join('')
+            session[:last] = [lat, lng]
           end
         end
                 

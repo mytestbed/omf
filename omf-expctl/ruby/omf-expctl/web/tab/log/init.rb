@@ -1,4 +1,10 @@
 require 'omf-expctl/web/tab/log/logServlet'
 
 include OMF::ExperimentController
-Web.registerService Web::Log, :name => :log, :priority => 400, :def_enabled => true
+opts = {
+    :name => :log, 
+    :priority => 400, 
+    :def_enabled => true, 
+    :view_dir => File.dirname(__FILE__)
+}
+OMF::Common::Web.registerService Web::Log, opts

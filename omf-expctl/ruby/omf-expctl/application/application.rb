@@ -62,6 +62,12 @@ class Application < MObject
 
   # Measurement points used and their configurations/filter
   attr_reader :measurements
+  
+  # The names for the tables in the OML database are constructed by 
+  # combining an application sepcific prefix and a measurement 
+  # stream specific identifier separated by '_' 
+  attr_accessor :omlPrefix
+
 
   #
   # @param appRef Reference to appliciation definition
@@ -154,7 +160,7 @@ class Application < MObject
     if (mDef == nil)
       raise "Unknown measurement point '#{name}'"
     end
-    m = OMF::ExperimentController::OML::MStream.new(name, opts, self, &block)
+    m = OMF::ExperimentController::OML::MStream.new(name, @appRef, opts, self, &block)
     @measurements << m
     return m
   end

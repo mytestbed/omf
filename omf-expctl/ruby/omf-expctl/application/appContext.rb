@@ -67,6 +67,17 @@ class AppContext < MObject
     end
   end
 
+#  def getOMLTablePrefix()
+#    unless @omlPrefix
+#      unless (p = @app.omlPrefix)
+#        p = app.appDefinition.path.split('/')[-1]
+#      end
+#      @omlPrefix = p
+#    end
+#    puts ">>> OML PREFIX"
+#    @omlPrefix
+#  end
+  
   #
   # Return the OML Configuration associated with this Application Context
   #
@@ -91,7 +102,7 @@ class AppContext < MObject
       # Second - build the entry for each measurement point
       @app.measurements.each do |m|
         # add mstream configurations
-	el << m.to_xml
+	      el << m.to_xml
       end
       omlXML.root << el 
       return omlXML

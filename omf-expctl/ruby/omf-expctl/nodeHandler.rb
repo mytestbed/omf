@@ -54,11 +54,13 @@ require 'omf-expctl/node/rootGroupNodeSet'
 require 'omf-expctl/node/rootNodeSetPath'
 require 'rexml/document'
 require 'rexml/element'
-require 'omf-expctl/web/webServer'
+require 'omf-common/web/webServer'
 require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
-require 'omf-expctl/web/tab/log/logServlet'
+require 'omf-expctl/web/tab/log/logOutputter'
+
+#require 'omf-expctl/web/tab/log/logServlet'
 
 Project = nil
 
@@ -284,10 +286,12 @@ class NodeHandler < MObject
   # Release the lock on @@blocker, this will wake up the main loop thread
   # and terminate the Node Handler execution
   #
-  def NodeHandler.exit()
-    @@mutex.synchronize {
-      @@blocker.signal
-    }
+  def NodeHandler.exit(hard = true)
+    if (hard || !interactive?) 
+      @@mutex.synchronize do
+        @@blocker.signal
+      end
+    end
   end
 
   #
@@ -378,7 +382,7 @@ class NodeHandler < MObject
     Profiler__::start_profile if @doProfiling
 
     startWebServer()
-    info "Web interface available at: #{OMF::ExperimentController::Web::url}"
+    info "Web interface available at: #{OMF::Common::Web::url}"
 
     begin 
       require 'omf-expctl/handlerCommands'      
@@ -411,7 +415,7 @@ class NodeHandler < MObject
   
     if interactive?
       require 'omf-expctl/console'
-      OMF::ExperimentController::Console.instance.run
+      OMF::ExperimentController::Console.start
     end
 
     # Now block until the Experiment is Done...
@@ -825,18 +829,22 @@ class NodeHandler < MObject
     }
     
     confirmedPort = 0
-    for i in port..port + MAXWEBTRY do
+    #for i in port..port + MAXWEBTRY do
+    for i in port..port do
       begin
         #info "Checking port #{i}..."
         serv = TCPServer.new(i)
         serv.close
-        OMF::ExperimentController::Web::start(i, {
+        OMF::Common::Web::start(i, {
            :Logger => MObject.logger('web::server'),
            :DocumentRoot => NodeHandler.WEB_ROOT(),
-           :AccessLog => [[accLog, "%h \"%r\" %s %b"]]})
+           :AccessLog => [[accLog, "%h \"%r\" %s %b"]],
+           :TabDir => "#{File.dirname(__FILE__)}/web/tab",
+           :PublicHtml => OConfig[:ec_config][:repository][:path]
+        })
         confirmedPort = i
       rescue Exception => ex
-        #info "Port #{i} is in use! (#{ex})"
+        info "Port #{i} is in use! (#{ex})"
         # Ignore this exception, 'i' will be incremented in the next loop
       end
       break if confirmedPort != 0   

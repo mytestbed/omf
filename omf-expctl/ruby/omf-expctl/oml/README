@@ -27,7 +27,7 @@ AppDefinition Class
    - metrix = the metric to use 
    - block = an optional block to execute with this measurement point
 
-This method creates an OML::MPoint and adds it to its set of avaialble measurment points. The
+This method creates an OML::MPoint and adds it to its set of available measurement points. The
 block will be executed in the context of the newly created MPoint to define the elements
 of the measurement tuple offered by the application.
 
@@ -53,7 +53,7 @@ Application Class
  
  In the process of declaring and configuring node sets, +Application+ instances are added to node sets
  either directly or via prototypes. Because of the prototype indirection, a specific +Application+ instance
- can be associated with multipe +NodeSet+ instances. However, the final configuration, it's command line arguments,
+ can be associated with multiple +NodeSet+ instances. However, the final configuration, it's command line arguments,
  environment, and OML settings depend on the context of the specific node set. Therefore, when adding 
  an +Application+ instance to a node set through a call to +Application#instantiate+ the application
  instance is creating an +ApplicationContext+ instance and adds that to the specified node set.

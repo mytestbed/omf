@@ -1,4 +1,7 @@
 
+require 'omf-common/web/renderer'
+require 'omf-expctl/web/helpers'
+include OMF::Common::Web
 
 #
 # A servlet to display scripts
@@ -43,6 +46,8 @@ module OMF
             else
               opts[:flash][:alert] = "Missing 'id'"
             end
+            
+            #puts "OPTS >>>> #{opts.inspect}"
   
             #MObject.debug :web_code_servlet, "OPTS: #{opts.inspect}"
             #opts[:flash][:notice] = opts.inspect

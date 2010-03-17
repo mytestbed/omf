@@ -45,6 +45,7 @@ class Experiment
   @@expID = nil
   @@sliceID = nil
   @@domain = nil
+  @@is_running = true
 
   attr_reader :domain
 
@@ -229,18 +230,19 @@ class Experiment
   # Start the Experiment
   #
   def Experiment.start()
+    @@is_running = true
     TraceState.experiment(:id, @@expID)
     # If -r flag was set on the command line
     # Reset the nodes before starting the experiment if -r flag was set
     if NodeHandler.NODE_RESET
       MObject.info "Reset flag is set - Resetting the resources"
-      allGroups.powerReset
+      OMF::ExperimentController::CmdContext.instance.allGroups.powerReset
     # If not, just make sure the nodes are ON
     else
-      allGroups.powerOn
+      OMF::ExperimentController::CmdContext.instance.allGroups.powerOn
     end
     # Now we can Enroll the nodes!
-    allGroups.enroll()
+    OMF::ExperimentController::CmdContext.instance.allGroups.enroll()
     # In case we're in Just Print mode, then fake the Heartbeat
     if NodeHandler.JUST_PRINT
       Thread.new() {
@@ -260,9 +262,15 @@ class Experiment
   # Stop an Experiment and do some clean up
   #
   def Experiment.done
+    @@is_running = false
     MObject.info "Experiment", "DONE!"
     TraceState.experiment(:status, "DONE")
-    NodeHandler.exit
+    NodeHandler.exit(false)
+  end
+  
+  # Return true if experiment is on, otherwise return false
+  def self.running?
+    @@is_running    
   end
 end
 

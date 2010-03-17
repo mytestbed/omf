@@ -69,6 +69,9 @@ class OEDLIllegalCommandException < OEDLException
   end   
 end
 
+module OMF
+  module ExperimentController
+    module Commands
 
 #
 # Define an experiment property which can be used to bind
@@ -264,14 +267,14 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
     raise "WhenAll: Unknown node set '#{nodesSelector}"
   end
   Thread.new(ns) { |ns|
-    while true
+    while Experiment.running?
       begin
         # If the NodeSet is ALL (i.e. selector "*") and it is empty,
         # then stop the experiment!
         if (ns.to_s == "*") && ns.empty?
           info " "
           info "-- All the groups in your experiment are empty!"
-	  info "-- Or they do not include any available nodes!"
+	        info "-- Or they do not include any available nodes!"
           info "-- Stopping the Experiment now."
           info " "
           Experiment.done
@@ -285,15 +288,15 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
             if flag
               match = node.match(nodeTest)
               #match.each{|e| e.write($stdout, 2)}
-	      if triggerValue == nil
+	            if triggerValue == nil
                 flag = (match != nil && match.length > 0)
               else
-                 match.each{ |e|
+                 match.each do |e|
                    if (e.to_s != triggerValue.to_s) 
-		     flag = false
-		   end
-	         }
-	      end
+		                 flag = false
+		               end
+                 end
+	            end
               MObject.debug("whenAll::internal", "Not true for ", node) if !flag
               #p "FLAG: #{flag}"
             end
@@ -473,15 +476,49 @@ def defGraph(uri = nil, &block)
   OMF::ExperimentController::Graph::Graph.new(uri, &block)
 end
 
-def mstream(uri = nil)
-  require 'omf-expctl/oml/mstream'
-  if uri
-    OMF::ExperimentController::OML::MStream[uri]
-  else
-    OMF::ExperimentController::OML::MStream
+def mstream(uri = :mandatory)
+  raise OEDLMissingArgumentException.new(:mstream, :uri) if uri == :mandatory
+
+  require 'omf-expctl/oml/oml_mstream'
+  unless (ms = OMF::ExperimentController::OML::MStream[uri])
+    puts OMF::ExperimentController::OML::MStream.collect do |name, ms| [name, ms.tableName] end.inspect
+    raise OEDLIllegalArgumentException.new(:mstream, uri)
+  end
+  ms.arelTable
+end
+alias :ms :mstream
+
+#
+# Add a tab to the built-in web gui
+#
+# - tName = Name of registered tab types
+# - opts = Options specific to the tab type
+# - &block = Further customisation in the context of the tab instance
+# 
+def addTab(tName, opts = {}, &initProc)
+  OMF::Common::Web.enableService(tName, opts, &initProc)
+end
+      
+      
+def t1()
+#  require 'uri'
+#  
+#  sql = mstream('trace_oml2_radiotap').to_sql
+#  puts "SQL: #{sql}"
+#  url = OConfig.RESULT_SERVICE
+#  puts "RESULT_URI: #{url}"
+#  url = url + "/queryDatabase?format=csv&query=#{URI.escape(sql)}&expID=#{Experiment.ID}"
+#  puts "SERVICE_URI: #{url}"
+#  resp = NodeHandler.service_call(url, "Can't query result service")
+#  resp.body.each_line do |l|
+#    puts l.strip.split(';').inspect      
+#  end
+  ms('trace_oml2_radiotap').project(:oml_ts_server, :rate_avg).each do |row|
+    #puts "ts_server: #{row.relation[:oml_ts_server].inspect}"
+    #puts "#{row.type_cast.inspect}"
+    puts row.tuple.inspect   
   end
 end
-alias :mStream :mstream
 
 #
 # Wait for some time before issuing more commands
@@ -574,6 +611,29 @@ def ls2(xpath = nil)
   '' # supress additional output from IRB
 end
 
+      
+def quit()
+  NodeHandler.exit(true)
+  "Going to exit in a sec" 
+end
+
+    end
+  end
+end
+
+module OMF
+  module ExperimentController
+    class CmdContext
+      include OMF::ExperimentController::Commands
+      include Singleton
+      
+
+      def _binding()
+        binding
+      end
+    end
+  end
+end            
 #def _load(file)
 #  eval "require('#{file}')", self.binding
 #end

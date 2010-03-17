@@ -84,6 +84,6 @@ TEXT
     m.defMetric('foreign_address', :string)
     m.defMetric('foreign_port', :long)
  }
-
+  a.omlPrefix = 'iperf'
 }
 

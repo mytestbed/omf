@@ -170,7 +170,10 @@ class AppDefinition < MObject
 
   # Environment settings required for running this application
   attr_accessor :environment
-
+  
+  # Prefix used for creating OML table names
+  attr_accessor :omlPrefix
+  
   protected :initialize
 
   #

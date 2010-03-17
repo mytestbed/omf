@@ -25,10 +25,8 @@ div.page_nav do
 end
 
 div.page do
-  #p "BEFORE"
   @script = @scripts[@show_id]
   if @script
     render_code @script[:content], @script[:mime_type]
   end
-  #p "AFTER"
 end

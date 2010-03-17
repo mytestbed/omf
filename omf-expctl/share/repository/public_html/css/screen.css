@@ -196,7 +196,7 @@ ul#mainTabs a.current:visited {
 ul#mainTabs a.current:link, 
 ul#mainTabs a.current:visited {
 /*
-    background:#E5E5E5 url(/images/tab-bg.gif) repeat-x scroll center top;
+    background:#E5E5E5 url(/resource/image/tab-bg.gif) repeat-x scroll center top;
 */
     background:#E5E5E5;
     border-bottom:1px solid #E5E5E5;
@@ -327,7 +327,7 @@ body .right h1 {
 }
 
 div.left .bottom {
-    background:transparent url(/images/bottom-bg.gif) no-repeat scroll right top;
+    background:transparent url(/resource/image/bottom-bg.gif) no-repeat scroll right top;
     font-size:8px;
 }
 
@@ -341,7 +341,7 @@ div.left .bottom {
 }
 
 div.left .col {
-    background:#FFFFFF url(/images/right-bg.gif) repeat-y scroll right center;
+    background:#FFFFFF url(/resource/image/right-bg.gif) repeat-y scroll right center;
     padding:0pt 8px 0pt 0pt;
     position:relative;
 }
@@ -402,13 +402,13 @@ input {
 }
 
 .flash_notice {
-    background:#E2F9E3 url(/images/alertgood_icon.gif) no-repeat scroll left center;
+    background:#E2F9E3 url(/resource/image/alertgood_icon.gif) no-repeat scroll left center;
     border-color:#99CC99;
     color:#006600;
 }
 
 .flash_alert {
-    background:#CC0000 url(/images/alertbad_icon.gif) no-repeat scroll left center;
+    background:#CC0000 url(/resource/image/alertbad_icon.gif) no-repeat scroll left center;
     border-color:#CC9999;
     color:#FFFFFF;
 }

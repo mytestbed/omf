@@ -88,6 +88,7 @@ module OConfig
     # Retrieve the testbed-specific configuration parameters from the Inventory
     url = "#{@@config[:ec_config][:inventory][:url]}/getConfig?&domain=#{@@domainName}"
     response = NodeHandler.service_call(url, "Can't get config for domain '#{@@domainName}' from INVENTORY")
+
     configFromInventory = REXML::Document.new(response.body)
     # Extract the information from the REXML, and store them in a Hash 
     tb_hash = Hash.new
@@ -171,9 +172,20 @@ module OConfig
   # [Return] an URL string
   #
   def self.RESULT_SERVICE()
-    return self.getConfigFromInventoryByKey('result_url')
+    #return self.getConfigFromInventoryByKey('result_url')
+    # TODO: This is most likely looking in the wrong place
+    @@config[:ec_config][:result][:url]
   end
 
+  #
+  # Return the URL of the RESULT service
+  #
+  # [Return] an URL string
+  #
+  def self.CMC_SERVICE()
+    return self.getConfigFromInventoryByKey('cmc_url')
+  end
+  
   #
   # Find a file at a given URI and return it
   #
@@ -224,8 +236,8 @@ module OConfig
     # Found the file, read it and optionally evaluate the ruby code inside
     str = File.new(file).read()
     if evalRuby
-      #OMF::ExperimentController::Commands._load(file)
-      require file
+      eval(str, OMF::ExperimentController::CmdContext.instance._binding())
+      #require file
     end
     
     state = {:uri => uri, :location => file, :content => str, :mime_type => '/text/ruby'}

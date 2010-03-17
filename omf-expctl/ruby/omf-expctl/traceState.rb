@@ -352,10 +352,19 @@ class TraceState < MObject
   end
 
   def setValue(el, value, historyAttr = {})
-    el.attributes['value'] = value
+    if value.kind_of? ExperimentProperty
+      el.attributes['value'] = historyAttr['value'] = value.value
+      el.attributes['value_ref'] = value.id
+    else
+      el.attributes['value'] = historyAttr['value'] = value
+    end
+
     historyAttr['ts'] = NodeHandler.getTS()
-    historyAttr['value'] = value
     el.add_element('history', historyAttr)
+  end
+  
+  def setValueAttr(el, value)
+    
   end
 end
 
