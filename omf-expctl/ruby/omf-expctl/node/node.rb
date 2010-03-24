@@ -707,12 +707,6 @@ class Node < MObject
       send_deferred
       changed
       notify_observers(self, :node_is_up)
-      # when we receive the first ENROLL, send a NOOP message to the NA. This is necessary
-      # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
-      # would receive the last command sent via this node (which is YOUARE if we don't send NOOP)
-      # from the PubSub server (at least openfire works this way). It would then potentially
-      # try to subscribe to nodes from a past experiment.
-      #Communicator.instance.sendNoop(@nodeId)
     end
     
     # Now, if this ENROLL specifies a list of group this NA has enrolled to

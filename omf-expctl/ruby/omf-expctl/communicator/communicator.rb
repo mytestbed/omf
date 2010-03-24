@@ -71,7 +71,7 @@ class Communicator < MObject
     cmd
   end
   
-  def sendAppCmd(cmd)
+  def sendCmdObject(cmd)
     raise "Not implemented by '#{self.class}'"
   end
   
@@ -100,7 +100,7 @@ class MockCommunicator < Communicator
     @cmds << "#{ns}|#{command}|#{args.join('#')}"
   end
   
-  def sendAppCmd(cmd)
+  def sendCmdObject(cmd)
     @cmdActions << cmd
 #    pp cmd
   end
