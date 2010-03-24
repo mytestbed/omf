@@ -50,10 +50,11 @@ rescue Exception => ex
   begin
     bt = ex.backtrace.join("\n\t")
     MObject.fatal('run', "----------")
-    MObject.fatal('run', "Exception: #{ex.class}")
-    MObject.fatal('run', "Exception: #{ex}")
-    MObject.fatal('run', "For more information (e.g. trace) see the log file: /tmp/#{Experiment.ID}.log")
-    MObject.fatal('run', "(or see EC's config files to find the log's location)")
+    MObject.fatal('run', "  A fatal error was encountered while running your experiment.")
+    MObject.fatal('run', "  Exception: #{ex.class}")
+    MObject.fatal('run', "  Exception: #{ex}")
+    MObject.fatal('run', "  For more information (e.g. trace) see the log file: /tmp/#{Experiment.ID}.log")
+    MObject.fatal('run', "  (or see EC's config files to find the log's location)")
     MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
     MObject.fatal('run', "----------")
   rescue Exception

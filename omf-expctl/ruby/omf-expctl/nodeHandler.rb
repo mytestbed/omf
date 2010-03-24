@@ -276,7 +276,11 @@ class NodeHandler < MObject
         end
         response
       rescue Exception => ex
-        fatal('service_call', "Exception: #{ex} (#{url})")
+        fatal('service_call', "------------")
+        fatal('service_call', "  A fatal error was encountered while making a request to an AM Service.")
+        fatal('service_call', "  Request: '#{url}'")
+        fatal('service_call', "  Exception: '#{ex}'")
+        fatal('service_call', "------------")
         raise ServiceException.new(nil, ex)
       end
     end

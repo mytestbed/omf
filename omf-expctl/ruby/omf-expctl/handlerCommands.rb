@@ -273,9 +273,9 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
         # then stop the experiment!
         if (ns.to_s == "*") && ns.empty?
           info " "
-          info "-- All the groups in your experiment are empty!"
-	        info "-- Or they do not include any available nodes!"
-          info "-- Stopping the Experiment now."
+          info "  All the groups in your experiment are empty!"
+          info "  Or they do not include any available nodes!"
+          info "  Stopping the Experiment now."
           info " "
           Experiment.done
           sleep 2 # otherwise this loops again before the experiment stops, annoyingly reprinting the above msg
@@ -307,15 +307,6 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
           MObject.info("whenAll", nodesSelector, ": '", nodeTest, "' fires")
           begin
             RootNodeSetPath.new(ns, nil, nil, block)
-          rescue ServiceException => sex
-            begin
-              if (sex.response)
-                MObject.error('run', "ServiceException: #{sex.message}\n\t#{sex.response.body}")
-              else
-                MObject.error('run', "ServiceException: #{sex.message}")
-              end
-            rescue Exception
-            end
           rescue Exception => ex
             bt = ex.backtrace.join("\n\t")
             MObject.error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
