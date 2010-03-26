@@ -42,7 +42,7 @@ function usage()
   echo -e "\nRun a command on the testbed(s)\n"
   echo -e "Usage: $MY_NAME [COMMAND] [ARGUMENT]...\n" >&2
   echo -e "  Available COMMANDs:\n" >&2
-  echo -e "    help   Print this help message or a specif command usage" >&2
+  echo -e "    help   Print this help message or a specify command usage" >&2
   echo -e "    exec   Execute an experiment script" >&2
   echo -e "    load   Load a disk image on a given set of nodes" >&2
   echo -e "    save   Save a disk image from a given node into a file" >&2

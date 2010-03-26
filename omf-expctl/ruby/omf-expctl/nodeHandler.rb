@@ -725,6 +725,7 @@ class NodeHandler < MObject
   #
   public
   def shutdown()
+    info "Shutting down experiment, please wait."
     if (! @running)
       # nothing to do
       return
