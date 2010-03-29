@@ -29,25 +29,36 @@ fi
 
 PORT=`echo $OPTS | sed 's/[^0-9]*//g'`
 start(){
-    echo -n "Starting OMF Aggregate Manager: $NAME"
+        echo -n "Starting OMF Aggregate Manager: $NAME"
 	if [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; then
 	   echo "\nPort $PORT is in use. There might already be an AM running on this port."
 	   exit 1
 	fi
 	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
-	while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
+	while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do	   
 	   sleep 1
-	done
-    echo "."
+	done	
+        echo "."
 }
 
 stop(){
-    echo -n "Stopping OMF Aggregate Manager: $NAME"
-	start-stop-daemon --stop --signal 2 --oknodo --pidfile /var/run/$NAME.pid
-	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
+        echo -n "Stopping OMF Aggregate Manager: $NAME"
+	if ! [ -e /var/run/$NAME.pid ]; then
+	  echo "\nNo pidfile found."
+	  return
+	fi
+#	start-stop-daemon --stop --signal 9 --oknodo --pidfile /var/run/$NAME.pid
+	pid=`cat /var/run/$NAME.pid`
+	sid=`ps -p $pid -o sid | awk 'NR==2'`
+	if [ ! -n "$sid" ]; then 
+	  echo "\nCould not determine the SID of $NAME."
+	  return
+	fi
+	pkill -9 -s $sid
+	while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do	   
 	   sleep 1
-	done
-    echo "."
+	done	
+        echo "."
 }
 
 case "$1" in
@@ -57,10 +68,12 @@ case "$1" in
   stop)
         stop
 	;;
+
   restart)
 	stop
 	start
 	;;
+
   *)
 	echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
 	exit 1

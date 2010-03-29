@@ -295,7 +295,7 @@ class AbstractDaemon < MObject
     }
     # Create thread which waits for application to exit
     Thread.new(@pid) {|pid|
-      ret = Process.waitpid2(pid)
+      ret = Process.waitpid2(-pid)
       status = ret[1]
       # app finished
       if ! status.success? && @running
