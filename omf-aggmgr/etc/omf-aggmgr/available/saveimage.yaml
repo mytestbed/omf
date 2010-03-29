@@ -14,8 +14,8 @@ saveimage:
       # Using ports starting at ...
       startPort: 9000
 
-      # Time out frisbee server if nobody requested it within TIMEOUT sec
-      timeout: 600
+      # Time out netcat if image has not been transferred completely within TIMEOUT sec
+      timeout: 1200
       
       # Path to netcat binary
       ncBin: /bin/nc
