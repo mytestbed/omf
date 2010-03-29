@@ -135,7 +135,7 @@ class SaveimageDaemon < AbstractDaemon
     addr = @config['saveimageIF']
     ncBin = @config['ncBin']
     debug("Starting netcat ('#{ncBin}') as user '#{user}' to receive image '#{imgPath}' on '#{port}' interface '#{addr}'")
-    cmd = "su #{user} -c '#{ncBin} -d -l #{addr} -p #{port} > #{imgPath}'"
+    cmd = "su #{user} -c '#{ncBin} -d -l #{addr} #{port} > #{imgPath}'"
   end
 
   #

@@ -676,7 +676,7 @@ end
     imgPort = cmdObject.port
     disk = cmdObject.disk
     
-    cmd = "imagezip #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
+    cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
     MObject.debug "AgentCommands", "Image save command: #{cmd}"
     ExecApp.new('builtin:save_image', agent, cmd, true)
   end
