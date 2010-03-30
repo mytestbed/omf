@@ -493,11 +493,11 @@ class NodeAgent < MObject
       }
     else
       if (!File.readable?(cfgFile))
-        raise "Can't find configuration file '#{cfgFile}'"
+        raise "Can't find configuration file '#{cfgFile}'. You may find an example configuration file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
       end
     end
     if (cfgFile.nil?)
-      raise "Can't find a configuration file"
+      raise "Can't find configuration file '#{cfgFile}'. You may find an example configuration file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
     else
       require 'yaml'
       h = YAML::load_file(cfgFile)

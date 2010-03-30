@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# starts and stops the Resource Controller Daemon (formerly known as Nodeagent)
+# starts and stops the OMF Resource Controller (formerly known as Nodeagent)
 #     Written by Maximilian Ott <max@winlab.rutgers.edu>.
 #     Modified by Christoph Dwertmann
 #
@@ -18,6 +18,12 @@
 NAME=omf-resctl-5.3
 
 test -x /usr/sbin/$NAME || exit 0
+
+if [ ! -f /etc/$NAME/nodeagent.yaml ]; then
+   echo "Missing configuration file: '/etc/$NAME/omf-resctl.yaml'."
+   echo "You may find an example configuration file in '/usr/share/doc/$NAME/examples'."
+   exit 0
+fi
 
 if [ -f /etc/$NAME/$NAME.cfg ]; then
    . /etc/$NAME/$NAME.cfg
@@ -49,12 +55,10 @@ case "$1" in
   stop)
     stop
 	;;
-
   restart)
     stop
 	start
 	;;
-
   *)
 	echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
 	exit 1

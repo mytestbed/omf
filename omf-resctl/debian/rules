@@ -49,7 +49,9 @@ install: build
 	svn info | grep Revision | cut -d ' ' -f 2 > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-resctl/omf_agent/REVISION
 	tar -C etc -cf - --exclude='.svn' omf-resctl | tar -xf - -C debian/$(PKG_NAME)/etc/
 	tar -cf - --exclude='.svn' sbin | tar -xf - -C debian/$(PKG_NAME)/usr
-	
+
+	mkdir -p debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
+	mv debian/$(PKG_NAME)/etc/omf-resctl/*.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples	
 	mv debian/$(PKG_NAME)/etc/omf-resctl debian/$(PKG_NAME)/etc/$(PKG_NAME)
 	mv debian/$(PKG_NAME)/usr/sbin/omf-resctl debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
 	
