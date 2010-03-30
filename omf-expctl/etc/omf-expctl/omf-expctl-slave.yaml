@@ -1,0 +1,47 @@
+# This is the Config file for the EC running in 'Slave Mode' on a node/resource
+# which can potentially be disconnected from the Control Network
+#
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+---
+:econtroller:
+  
+  :config:
+  
+    # Config Parameter for the "default" Testbed
+    #
+    :default:
+    
+      # This is the default name for the default testbed
+      # EC will use this name if NO domain has been given on the command lide ( -d option)
+      # This is optional. When 'name' is not present, the EC will take the first
+      # sub-domain of the host it is executing on as the default testbed name.
+      # (e.g. domain: 'indoor.nicta.com.au' will result in the name 'indoor')
+      # IMPORTANT: 
+      #   Your Inventory database *must* hold information about the testbed you name 
+      #   (e.g. the 'testbeds' table must have an entry corresponding to this name)
+      :name: 'local'
+
+      # This is the Path where EC should look for its repository of built in experiments
+      # (e.g. example experiments, maintenance experiments, etc...)
+      :repository:
+        :path: ["../repository", "/usr/share/omf-expctl-5.3/repository"]
+
+      # This is the Url where EC can contact the Inventory Service
+      :inventory:
+        :url: 'http://localhost:5052/inventory'
+
+      :xmpp-server:
+        :host: '10.0.0.200'
+
+    # Config Parameter for the "debug" Testbed
+    #
+    # To use this testbed, call nodeHandler with the option PRINT_ONLY or "-d debug"
+    # Any parameter settings within this section will override the settings 
+    # done in the "default" section. The nodeHandler fisrt load the "default"
+    # settings, then it uses the "domain" specific settings to override the 
+    # relevant parameters
+    :debug:
+      :repository:
+        :path: ['../repository']

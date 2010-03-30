@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu4) testing; urgency=low
+
+  * moved config files to /usr/share/doc/omf-expctl-5.3/examples
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 30 Mar 2010 17:08:31 +1100
+
 omf-expctl-5.3 (1ubuntu3) testing; urgency=low
 
   * latest upstream version

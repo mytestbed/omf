@@ -54,6 +54,8 @@ install: build
 	tar -C share -cf - --exclude='.svn' repository | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	
 	mv debian/$(PKG_NAME)/etc/omf-expctl debian/$(PKG_NAME)/etc/$(PKG_NAME)
+	mkdir -p debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
+	mv debian/$(PKG_NAME)/etc/$(PKG_NAME)/*.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
 	for FILE in `ls debian/$(PKG_NAME)/usr/bin/`; do mv debian/$(PKG_NAME)/usr/bin/$$FILE debian/$(PKG_NAME)/usr/bin/$$FILE-$(VERSION); done;
 	
 # Build architecture-independent files here.

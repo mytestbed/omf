@@ -1,0 +1,34 @@
+# This is a sample EC configuration for an Android Phone
+#
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+---
+:econtroller:
+  
+  :domain:
+  
+    # Config Parameter for the "default" Testbed
+    #
+    :default:
+    
+      :name: 'ec2-android'
+
+      :repository:
+        :path: ["/Users/max/src/omf/omf-expctl/share/repository"]
+
+      # This is the Url where NH can contact the Inventory Service
+      :inventory:
+        :url: 'http://72.44.37.31:5022/inventory'
+
+      :web:
+        :host: '203.143.170.94'
+        #:host: '10.0.0.200'
+        #:host: 'norbit.npc.nicta.com.au' # Norbit external IP 
+
+      :communicator:
+        :type: 'xmpp'
+        :xmpp:
+          :server: '72.44.37.31'
+          :password: '123'
+        

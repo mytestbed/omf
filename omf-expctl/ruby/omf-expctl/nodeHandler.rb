@@ -646,7 +646,7 @@ class NodeHandler < MObject
       }
       # Still no luck... we cannot continue without a config file
       if cfg == nil
-        raise "Can't find #{DEFAULT_CONFIG_FILE} in #{path.join(':')}"
+        raise "Can't find #{DEFAULT_CONFIG_FILE} in #{path.join(':')}. You may find an example configuration file in '/usr/share/doc/omf-expctl-#{MM_VERSION}/examples'."
       end
     end
     # Now load the config file
