@@ -19,7 +19,7 @@ NAME=omf-resctl-5.3
 
 test -x /usr/sbin/$NAME || exit 0
 
-if [ ! -f /etc/$NAME/nodeagent.yaml ]; then
+if [ ! -f /etc/$NAME/omf-resctl.yaml ]; then
    echo "Missing configuration file: '/etc/$NAME/omf-resctl.yaml'."
    echo "You may find an example configuration file in '/usr/share/doc/$NAME/examples'."
    exit 0
