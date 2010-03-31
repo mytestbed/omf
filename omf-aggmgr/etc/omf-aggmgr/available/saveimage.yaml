@@ -21,6 +21,8 @@ saveimage:
       ncBin: /bin/nc
       
       # default owner of image files
+      # this will only be used if the user who is saving the 
+      # image does not have a local account on this machine
       owner: nobody
 
       # Directory where images are saved to

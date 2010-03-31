@@ -123,6 +123,10 @@ class SaveimageDaemon < AbstractDaemon
         raise HTTPStatus::BadRequest, "Missing configuration 'owner'"
       else
         @user = @config['owner']
+        uid = %x[id -u #{@user}]
+        if uid.to_i == 0
+	  raise HTTPStatus::BadRequest, "User '#{@user}' does not exist on this system! Check the 'owner' setting in the saveimage config file."
+	end
       end
     end
     
