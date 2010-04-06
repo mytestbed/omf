@@ -24,9 +24,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-
 	touch configure-stamp
-
 
 build: build-stamp
 build-stamp: configure-stamp 
@@ -53,7 +51,7 @@ install: build
 
 	# Add here commands to install the package into debian/tmp	
 	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	tar -C ruby -cf - --exclude='.svn' omf-common | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
+	tar -C ruby -cf - --exclude='.svn' `find ruby/* -print | sed 's/^ruby\///'` | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	
 # Build architecture-independent files here.
 binary-indep: build install

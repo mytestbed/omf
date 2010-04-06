@@ -27,15 +27,15 @@
 #++
 
 
-require 'omf-common/gratr/digraph'
-require 'omf-common/gratr/undirected_graph'
-require 'omf-common/gratr/common'
+require 'gratr/digraph'
+require 'gratr/undirected_graph'
+require 'gratr/common'
 
 # Load priority queue classes
 begin
   # Use installed Gem
   require 'priority_queue'
 rescue LoadError # Use local copy
-  require 'omf-common/priority-queue/ruby_priority_queue'
+  require 'priority-queue/ruby_priority_queue'
   PriorityQueue = RubyPriorityQueue
 end

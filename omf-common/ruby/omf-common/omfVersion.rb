@@ -22,8 +22,6 @@
 # THE SOFTWARE.
 #
 #
-# = version.rb
-#
 # == Description
 #
 # This file defines the version of this application

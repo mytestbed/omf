@@ -1,6 +1,5 @@
-
 #
-# IMplements multi-dimensional array.
+# Implements multi-dimensional array.
 #
 # Thanks to Leo
 #

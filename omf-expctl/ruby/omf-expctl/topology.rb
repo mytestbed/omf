@@ -29,8 +29,8 @@
 # This file defines the Topology class that holds information about the nodes in
 # the experiment.
 #
-require 'omf-common/gratr/import.rb'
-require 'omf-common/gratr/dot.rb'
+require 'gratr/import.rb'
+require 'gratr/dot.rb'
 
 #
 # This class describes a topology which can be used by users/experimenters to describe 

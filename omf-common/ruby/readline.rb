@@ -5,7 +5,7 @@
 
 module Readline
 
-   require 'omf-common/readline/rbreadline'
+   require 'readline/rbreadline'
    include RbReadline
    
    @completion_proc = nil
