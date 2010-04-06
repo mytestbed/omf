@@ -184,7 +184,7 @@ module OMF
       #
       def self.url()
         addr = @@server.listeners[0].addr
-	      host = addr[0] ###OConfig[:ec_config][:web][:host]
+	      host = OConfig[:ec_config][:web][:host]
         # Check if EC is running in 'Slave' Mode or has no Host set in its < file
         if NodeHandler.SLAVE_MODE() || host == nil
            # Yes - then other entities should access EC's web server on localhost

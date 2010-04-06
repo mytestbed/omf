@@ -834,8 +834,7 @@ class NodeHandler < MObject
     }
     
     confirmedPort = 0
-    #for i in port..port + MAXWEBTRY do
-    for i in port..port do
+    for i in port..port + MAXWEBTRY do
       begin
         #info "Checking port #{i}..."
         serv = TCPServer.new(i)
