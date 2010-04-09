@@ -202,7 +202,7 @@ class Node < MObject
     end
 
     # Query the Inventory GridService for the Control IP address of this node
-    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?name=#{@nodeId}&domain=#{OConfig.domain}"
+    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?hrn=#{@nodeId}&domain=#{OConfig.domain}"
     response = NodeHandler.service_call(url, "Can't get Control IP for '#{@nodeId}' on domain '#{OConfig.domain}' from INVENTORY")
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the control IP address

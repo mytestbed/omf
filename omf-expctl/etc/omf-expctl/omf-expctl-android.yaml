@@ -17,7 +17,7 @@
       :repository:
         :path: ["/Users/max/src/omf/omf-expctl/share/repository"]
 
-      # This is the Url where NH can contact the Inventory Service
+      # This is the Url where the EC can contact the Inventory Service
       :inventory:
         :url: 'http://72.44.37.31:5022/inventory'
 

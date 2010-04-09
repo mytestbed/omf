@@ -115,21 +115,21 @@ class PxeService < LegacyGridService
   # method makes use of the Inventory GridService
   #
   # - url = URL to the Inventory GridService
-  # - x,y = coordinate of the node to query
+  # - hrn = HRN of the node to query
   # - domain = name of the testbed to query
   #
-  def self.getPXEImageName(url, x, y, domain)
-    queryURL = "#{url}/getPXEImage?x=#{x}&y=#{y}&domain=#{domain}"
+  def self.getPXEImageName(url, hrn, domain)
+    queryURL = "#{url}/getPXEImage?hrn=#{hrn}&domain=#{domain}"
     debug "PXE - QueryURL: #{queryURL}"
     response = nil
     response = Net::HTTP.get_response(URI.parse(queryURL))
     if (! response.kind_of? Net::HTTPSuccess)
-          error "PXE - No PXE Image info found for x: #{x} y: #{y} - Bad Response from Inventory"
+          error "PXE - No PXE Image info found for #{hrn} - Bad Response from Inventory"
           error "PXE - QueryURL: #{queryURL}"
           raise Exception.new()
     end
     if (response == nil)
-      error "PXE - No PXE Image info found for x: #{x} y: #{y} - Response from Inventory is NIL"
+      error "PXE - No PXE Image info found for #{hrn} - Response from Inventory is NIL"
       error "PXE - QueryURL: #{queryURL}"
       raise Exception.new()
     end 
@@ -142,7 +142,7 @@ class PxeService < LegacyGridService
     # If no name found in the reply... raise an error
     if (imageName == nil)
       doc.root.elements.each('/ERROR') { |e|
-        error "PXE - No PXE Image info found for x: #{x} y: #{y} - val: #{e.get_text.value}"
+        error "PXE - No PXE Image info found for #{hrn} - val: #{e.get_text.value}"
       }
     end
     return imageName
@@ -155,7 +155,7 @@ class PxeService < LegacyGridService
   # server hosting the PXE image(s). These symlinks are named based on the 
   # Control IP address of the nodes to PXE boot.
   #
-  # - nodes = an Array with the x,y coordinates of the nodes to PXE boot
+  # - nodes = an Array with the HRNs of the nodes to PXE boot
   # - tb = config parameters of the testbed
   # - domain = name of the testbed for these nodes
   # - res = HTTP message that should be returned as a result
@@ -169,9 +169,9 @@ class PxeService < LegacyGridService
 
     @@mutex.synchronize {
       nodes.each {|x, y|
-        ip = getControlIP(inventoryURL, x, y, domain)
+        ip = getControlIP(inventoryURL, hrn, domain)
         if (image == nil)
-          img = getPXEImageName(inventoryURL, x, y, domain)
+          img = getPXEImageName(inventoryURL, hrn, domain)
         else
           img = image
         end
@@ -188,7 +188,7 @@ class PxeService < LegacyGridService
         nodesHex << hex
         File.symlink(imgPath, hexPath)
         n = nodesEl.add_element('node')
-        n.add_attributes({'x' => x.to_s, 'y' => y.to_s, 'ip' => ip, 'img' => img, 'hex' => hex})
+        n.add_attributes({'hrn' => hrn.to_s, 'ip' => ip, 'img' => img, 'hex' => hex})
       }
     }
     Timer.register(nil, @@config['linkLifetime']) {
@@ -215,7 +215,7 @@ class PxeService < LegacyGridService
   # Following the PXE boot mechanism, this method removes the symlinks 
   # previously created by setImage(...).
   #
-  # - nodes = an Array with the x,y coordinates of the nodes to PXE boot
+  # - nodes = an Array with the HRNs of the nodes to PXE boot
   # - tb = config parameters of the testbed
   # - domain = name of the testbed for these nodes
   # - res = HTTP message that should be returned as a result
@@ -228,8 +228,8 @@ class PxeService < LegacyGridService
  
     @@mutex.synchronize {
       if nodes.length != 0
-        nodes.each {|x, y|
-          ip = getControlIP(inventoryURL, x, y, domain)
+        nodes.each {|hrn|
+          ip = getControlIP(inventoryURL, hrn, domain)
           hex = ip.split('.').map {|e| format "%02X", e} . join()
           hexPath = "#{cfgDir}/#{hex}"
           if File.readable?(hexPath)

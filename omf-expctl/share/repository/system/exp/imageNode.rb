@@ -153,7 +153,7 @@ everyNS('image', 10) { |ns|
 	 message = <<TEXT
 # The following command creates a Topology wih the nodes that have failed the imaging process.
 # On these nodes, the 'frisbee' client did not manage to start the imaging process.
-# Check the nodehandler log file for the 'frisbee' client error message.
+# Check the EC log file for the 'frisbee' client error message.
 #
 TEXT
 	 outputTopologyFile(filename, topoName, message, nodesWithErrorList)
@@ -192,7 +192,7 @@ TEXT
 #
 whenAllUp() {|ns|
   # Only execute imaging if node set is not empty!
-  # (e.g. in rare occasions no node managed to come up and register to NH, when this
+  # (e.g. in rare occasions no node managed to come up and register to EC, when this
   # happens, we need to exit quietly from this 'whenAllUp')
   nodeCount = 0 
   ns.eachNode { |n|

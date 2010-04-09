@@ -205,11 +205,11 @@ class CmcStubService < GridService
     @@config = config
   end
 
-  def self.reboot(name, domain)
-    MObject.debug("Sending REBOOT cmd to '#{name}'")
+  def self.reboot(hrn, domain)
+    MObject.debug("Sending REBOOT cmd to '#{hrn}'")
     tb = getTestbedConfig(domain, @@config)
     inventoryURL = tb['inventory_url']
-    ip = getControlIP(inventoryURL, name, domain)
+    ip = getControlIP(inventoryURL, hrn, domain)
     begin
       cmd = `nmap #{ip} -p22-23`
       #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
@@ -223,7 +223,7 @@ class CmcStubService < GridService
         #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
       end
     rescue Exception => ex
-      MObject.debug("CMCSTUB - Failed to send REBOOT to '#{name}' at #{ip} - Exception: #{ex}")
+      MObject.debug("CMCSTUB - Failed to send REBOOT to '#{hrn}' at #{ip} - Exception: #{ex}")
     end
   end
 

@@ -37,9 +37,9 @@
 
     # Config Parameter for the "debug" Testbed
     #
-    # To use this testbed, call nodeHandler with the option PRINT_ONLY or "-d debug"
+    # To use this testbed, call Experiment Controller with the option PRINT_ONLY or "-d debug"
     # Any parameter settings within this section will override the settings 
-    # done in the "default" section. The nodeHandler fisrt load the "default"
+    # done in the "default" section. The Experiment Controller first loads the "default"
     # settings, then it uses the "domain" specific settings to override the 
     # relevant parameters
     :debug:

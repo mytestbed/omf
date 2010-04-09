@@ -467,7 +467,7 @@ class NodeHandler < MObject
       OConfig.config = 'debug'
     }
 
-    opts.on("-i", "--interactive", "Run the nodehandler in interactive mode") { @interactive = true }
+    opts.on("-i", "--interactive", "Run the experiment controller in interactive mode") { @interactive = true }
 
     opts.on("-l", "--libraries LIST", "Comma separated list of additional files to load [#{@extraLibs}]") {|list|
       @extraLibs = list

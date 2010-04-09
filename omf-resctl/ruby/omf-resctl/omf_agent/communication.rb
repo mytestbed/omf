@@ -516,7 +516,7 @@ class TcpCommunicator < Communicator
     if NodeAgent.instance.connected?
       send!(:HB, -1, -1, -1, -1)
     else
-      # haven't heard from nodeHandler yet, resend initial message
+      # haven't heard from Experiment Controller yet, resend initial message
       sendWHOAMI
     end
   end
@@ -753,17 +753,17 @@ class MCCommunicator < Communicator
         NodeAgent.instance.reset
       end
     else # ---if NodeAgent.instance.connected?---
-      # haven't heard from nodeHandler yet, resend initial message
+      # haven't heard from Experiment Controller yet, resend initial message
       sendWHOAMI
     end
   end
 
   #
-  # Send a heartbeat back to the handler
+  # Send a heartbeat back to the EC
   #
   def sendHeartbeat()
     if NodeAgent.instance.connected?
-      # Check if we still hear from handler
+      # Check if we still hear from EC
       now = Time.now
       delta = now - @handlerTimestamp
       if (delta  > @handlerTimeout)
@@ -782,7 +782,7 @@ class MCCommunicator < Communicator
         }
       end
     else
-    # haven't heard from nodeHandler yet, resend initial message
+    # haven't heard from Experiment Controller yet, resend initial message
     sendWHOAMI
     end
   end

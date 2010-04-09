@@ -117,19 +117,19 @@ class MySQLInventory < MObject
   # Query the Inventory database for the Control IP address of a specific node
   # on a testbed.
   #
-  # - x,y = coordinate of the node to query
+  # - hrn = HRN of the node to query
   # - domain = name of the testbed to query (default=grid)
   #
   # [Return] the Control IP address of the node matching the query
   #
-  def getControlIP(name, domain = "grid")
+  def getControlIP(hrn, domain = "grid")
     qs = <<CONTROL_QS
 SELECT nodes.control_ip
   FROM nodes
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
 WHERE testbeds.node_domain='#{domain}'
-  AND locations.name='#{name}';
+  AND nodes.hrn='#{hrn}';
 CONTROL_QS
 
     addr = nil
@@ -138,6 +138,32 @@ CONTROL_QS
     }
     return addr
   end
+
+    #
+    # Query the Inventory database for the Control IP address of a specific node
+    # on a testbed.
+    #
+    # - hostname = hostname of the node to query
+    # - domain = name of the testbed to query (default=grid)
+    #
+    # [Return] the HRN of the node matching the query
+    #
+    def getHRN(hostname, domain = "grid")
+      qs = <<HRN_QS
+SELECT nodes.hrn
+  FROM nodes
+  LEFT JOIN locations ON nodes.location_id = locations.id
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.node_domain='#{domain}'
+  AND nodes.hostname='#{hostname}';
+HRN_QS
+
+      addr = nil
+      runQuery(qs) { |ip|
+        addr = ip
+      }
+      return addr
+    end
 
   #
   # Query the Inventory database for the MAC address corresponding to a
@@ -548,5 +574,29 @@ ALLRESOURCES_QS
     return resources
   end
 
+
+  def getDHCPConfig(domain)
+  qs = <<DHCP_QS
+SELECT devices.mac, nodes.hostname, nodes.control_ip
+  FROM devices
+  LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id
+  LEFT JOIN locations ON nodes.location_id = locations.id
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.node_domain='#{domain}';
+DHCP_QS
+ 
+    result = Array.new
+    begin
+      @my.query(qs).each() { | m, h, i |
+           result.push([m,h,i])
+    }
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in getDHCPconfig; domain #{domain}"
+      p err_str
+      MObject.debug err_str
+    end
+    result
+  end
+  
 end
 

@@ -252,25 +252,53 @@ class InventoryService < LegacyGridService
   # Implement 'getControlIP' service using the 'service' method of AbstractService
   #  
   s_info "Get the Control IP address of a given resource for a given domain"
-  s_param :name, 'name', 'name of the resource'
+  s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getControlIP' do |req, res|
     # Retrieve the request parameter
-    name = getParam(req, 'name')
+    hrn = getParam(req, 'hrn')
     domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
     # Query the inventory
     result = nil
     begin
       inv = getInv(tb)
-      result = inv.getControlIP(name, domain)
+      result = inv.getControlIP(hrn, domain)
     rescue Exception => ex
       error "Inventory - getControlIP() - Cannot connect to the Inventory Database - #{ex}"
       result = :Error
     end
     # Build and Set the XML response
-    msgEmpty = "Inventory has no control IP for node '#{name}' (domain: #{domain})"
+    msgEmpty = "Inventory has no control IP for HRN '#{hrn}' (domain: #{domain})"
     replyXML = buildXMLReply("CONTROL_IP", result, msgEmpty) { |root,ip|
+      root.text = ip
+    }
+    setResponse(res, replyXML)
+  end
+
+  #
+  # Implement 'getHRN' service using the 'service' method of AbstractService
+  #  
+  s_info "Get the HRN for a certain hostname on a given domain"
+  s_param :hostname, 'hostname', 'hostname of the node'
+  s_param :domain, 'domain', 'testbed/domain for this given node'
+  service 'getHRN' do |req, res|
+    # Retrieve the request parameter
+    hostname = getParam(req, 'hostname')
+    domain = getParam(req, 'domain')
+    tb = getTestbedConfig(req, @@config)
+    # Query the inventory
+    result = nil
+    begin
+      inv = getInv(tb)
+      result = inv.getHRN(hostname, domain)
+    rescue Exception => ex
+      error "Inventory - getHRN() - Cannot connect to the Inventory Database - #{ex}"
+      result = :Error
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no HRN for host '#{hostname}' (domain: #{domain})"
+    replyXML = buildXMLReply("HRN", result, msgEmpty) { |root,ip|
       root.text = ip
     }
     setResponse(res, replyXML)
@@ -410,6 +438,28 @@ class InventoryService < LegacyGridService
     end
     setResponse(res, root)
   end
+  
+  #
+  # add a node to the testbed
+  # creates entries in the inventory tables, adds XMPP system nodes
+  # and reconfigures dnsmasq
+  #
+  s_info "Get list of device aliases defined in the inventory"
+  s_param :domain, 'domain', 'domain for the alias list'
+  service 'addNode' do |req, res|
+    root = REXML::Element.new("result")
+    domain = getParam(req, 'domain')
+    begin
+      tb = getTestbedConfig(req, @@config)
+      inv = getInv(tb)
+      updateDnsMasq(tb, inv, domain)
+    rescue Exception => ex
+      MObject::debug("exception #{ex}")
+      root.add_element("ERROR")
+      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
+    end
+    setResponse(res, root)
+  end
 
   #
   # Implement 'getAllNodesWithAliasDevice' service using the 'service' method of AbstractService
@@ -495,6 +545,33 @@ class InventoryService < LegacyGridService
   def self.configure(config)
     @@config = config
   end
+  
+  #
+  # Write a dnsmasq DHCP configuration file
+  # that is generated from the inventory
+  #
+  # - tb = the testbed configuration
+  # - inv = the inventory
+  # - domain = the domain we want to create a config file for
+  #  
+  def self.updateDnsMasq(tb, inv, domain)
+    MObject::debug("Updating dnsmasq configuration")
+    if !(tb['dnsmasq_config'])
+      MObject::debug("Missing parameter 'dnsmasq_config' in inventory configuration file. Not updating dnsmasq.")
+      return
+    end
+    if (tb['dnsmasq_tag'])
+      tag = "net:#{tb['dnsmasq_tag']},"
+    end
+    File.open(tb['dnsmasq_config'], 'w') do |f|
+      f.puts "# Do NOT modify this file manually!\n# It is auto-generated from the OMF inventory database."
+      inv.getDHCPConfig(domain).each{ | m, h, i | f.puts "dhcp-host=#{tag}#{m},#{h},#{i}" }
+    end
+    # when dnsmasq receives SIGHUP it reloads the contents of files specified with 'dhcp-hostsfile'
+    # in dnsmasq.conf
+    system("killall -s HUP dnsmasq")
+  end
+  
   
   #
   # Easter Egg :-)

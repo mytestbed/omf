@@ -54,7 +54,7 @@ module AgentCommands
   SLAVE_RESCTL_LISTENPORT = 9026
   SLAVE_RESCTL_CMD = "sudo /usr/sbin/omf-resctl-#{OMF_MM_VERSION}"
   SLAVE_RESCTL_LOG = "/etc/omf-resctl-#{OMF_MM_VERSION}/nodeagentSlave_log.xml"
-  # Slave Experimet Controller (aka NodeHandler)
+  # Slave Experiment Controller
   SLAVE_EXPCTL_ID = "SLAVE-EXP-CTL"
   SLAVE_EXPCTL_CMD = "/usr/bin/omf-#{OMF_MM_VERSION} exec"
   SLAVE_EXPCTL_CFG = "/etc/omf-expctl-#{OMF_MM_VERSION}/nodehandlerSlave.yaml"
@@ -85,8 +85,8 @@ module AgentCommands
   end
 
   # 
-  # Return the Application ID for the 'slave' Experiment Controller (aka 
-  # NodeHandler) running on this node/resource.
+  # Return the Application ID for the 'slave' Experiment Controller
+  # running on this node/resource.
   # (This is only set when NA is involved in an experiment that support
   # temporary disconnection of node/resource from the Control Network)
   #
