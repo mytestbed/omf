@@ -22,20 +22,51 @@
 # THE SOFTWARE.
 #
 #
+# = omfCommandObject.rb
+#
+# == Description
+#
+# This file implements the common Command Object that OMF entities use to
+# exchance messages between each other
 #
 require 'rexml/parent.rb'
 require 'rexml/document.rb'
 require 'rexml/element.rb'
 
 #
-# A class implementing a Command Object (see the Command design pattern)
+# A class implementing an OMF Command Object 
 #
 class OmfCommandObject
 
   attr_reader :attributes
 
+  # Valid commands for the EC
+  EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
+	                :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
+                        :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
+                        :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
+                        :RESTART, :ENROLL, :EXIT]
+  def isECCommand?
+    return EC_COMMANDS.include?(@attributes[:CMDTYPE])
+  end
+
+  # Valid commands for the RC
+  RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
+                        :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
+  def isRCCommand?
+    return RC_COMMANDS.include?(@attributes[:CMDTYPE])
+  end    
+
+  # Valid commands for the Inventory AM
+  INVENTORY_COMMANDS = Set.new [:XYZ]
+  def isInventoryCommand?
+    return INVENTORY_COMMANDS.include?(@attributes[:CMDTYPE])
+  end    
+
   #
   # Return the value of an attribute of this Command Object
+  # A list of currently used attributes can be found at the end of
+  # this file
   #
   # - key = the name of the attribut
   #
@@ -51,6 +82,8 @@ class OmfCommandObject
   # the attribute using a 'dot' syntax.
   # E.g. myCmd.myAttribute = 123
   # E.g. var = myCmd.myAttribute
+  # A list of currently used attributes can be found at the end of
+  # this file
   #
   # - name = the name of the attribut
   #
@@ -65,27 +98,6 @@ class OmfCommandObject
       return @attributes[name.to_s.upcase.to_sym]
     end
   end
-
-  # NOTE: This is a list of currently used attributes, depending on the command type
-  #
-  # cmdType - The type of this Command Object (e.g. 'EXECUTE')
-  # target - The destination or group to which this Command Object is addressed to (e.g. 'the_senders')
-  # expID - The ID of the experiment for this Command Object (e.g. 'myExp123')
-  # image - The Name of the desired disk image on a resource receiving this Command Object
-  # message - The message conveyed by this Command Object
-  # cmd - The command line associated this Command Object
-  # name - The list of aliases for the resource sending this Command Object
-  # value - The value associated with this Command Object
-  # address - The MC Address associated with this Command Object
-  # port - The MC Port associated with this Command Object
-  # disk - The disk device associated with this Command Object
-  # package - The name of the package or archive associated with this Command Object
-  # appID - The ID of the application for this Command Object
-  # env - The Environment to set for this Command Object
-  # path - The Path where the application for this EXECUTE Command Object is located (optional)
-  # path - The Resource Path (XPath) associated with this CONFIGURE Command Object (optional)
-  # cmdLineArgs - The command line arguments of the application for this Command Object (optional)
-  # omlConfig - The XML definition for the OML configuration of the application for this Command Object (optional)
 
   #
   # Create a new Command Object
@@ -107,7 +119,7 @@ class OmfCommandObject
     elsif initValue.kind_of?(REXML::Parent)
       init_from_xml(initValue)
     else
-      raise "Trying to create a OmfCommandObject with unknown initial value (type: '#{initValue.class}')"
+      raise "Cannot create a OmfCommandObject! Unknown initial value (type: '#{initValue.class}')"
     end
   end
 
@@ -181,4 +193,27 @@ class OmfCommandObject
     return to_xml.to_s
   end
 
+  # NOTE: 
+  #
+  # This is a list of currently used attributes, depending on the command type
+  #
+  # cmdType - The type of this Command (e.g. 'EXECUTE')
+  # target - The destination or group to which this Command is addressed to 
+  #          (e.g. 'the_senders')
+  # expID - The ID of the experiment for this Command (e.g. 'myExp123')
+  # image - The Name of the desired disk image on a resource receiving this Command 
+  # message - The message conveyed by this Command 
+  # cmd - The command line associated this Command 
+  # name - The list of aliases for the resource sending this Command 
+  # value - The value associated with this Command 
+  # address - The MC Address associated with this Command 
+  # port - The MC Port associated with this Command 
+  # disk - The disk device associated with this Command 
+  # package - The name of the package or archive associated with this Command 
+  # appID - The ID of the application for this Command 
+  # env - The Environment to set for this Command 
+  # path - The Path to the application for this EXECUTE Command 
+  # path - The Resource Path (XPath) associated with this CONFIGURE Command 
+  # cmdLineArgs - The command line arguments of the application for this Command 
+  # omlConfig - The XML definition for the OML configuration of the application for this Command 
 end
