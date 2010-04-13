@@ -251,7 +251,7 @@ class NodeHandler < MObject
   end
 
   # Attribut readers
-  attr_reader :communicator, :expFile, :expFileURL, :omlProxyPort, :omlProxyAddr, :slaveNodeX, :slaveNodeY
+  attr_reader :expFile, :expFileURL, :omlProxyPort, :omlProxyAddr, :slaveNodeX, :slaveNodeY
 
   #
   # NodeHandler's methods...
@@ -362,15 +362,6 @@ class NodeHandler < MObject
     return @running
   end
   
-  #
-  # Return the instance of the Communicator module associated to this NA
-  #
-  # [Return] a Communicator object 
-  #
-  def communicator()
-    Communicator.instance
-  end
-
   #
   # This is the main running loop of Node Handler
   # It is called by the main execution loop located at the end of this file
@@ -591,10 +582,12 @@ class NodeHandler < MObject
     end
 
     # Now start the Communiator
-    Communicator.init(OConfig[:ec_config][:communicator], Experiment.sliceID, Experiment.ID)
+    ECCommunicator.init(OConfig[:ec_config][:communicator], 
+                        Experiment.sliceID, Experiment.ID)
     
     if @@runningSlaveMode
-      info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] - OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
+      info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] "+
+           "- OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
     end
 
     @expFile = nil
@@ -733,10 +726,8 @@ class NodeHandler < MObject
     @processCommands = false
 
     begin
-      communicator.sendReset
-      if XmppCommunicator.instantiated?
-        communicator.quit
-      end
+      ECCommunicator.instance.send_reset_all
+      ECCommunicator.instance.stop
     rescue Exception
       #ignore
     end

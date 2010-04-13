@@ -28,72 +28,75 @@
 #
 
 #
-# This class defines the Communicator interfaces.  This class should
-# be used as a base class for concrete Communicator implementations.
+# This class defines the Communicator interfaces. It is a singleton, and it 
+# should be used as a base class for concrete Communicator implementations.
 # Concrete implementations may use any type of underlying transport
 # (e.g. TCP, XMPP, etc.)
 #
 class OmfCommunicator < MObject
 
+  @@instance = nil
+  @@cmds = []
+
+  def self.instance()
+    @@instance
+  end
+
+  def self.init()
+    raise "Communicator already started" if @@instance
+    @@instance = self.new()
+    @@transport = nil
+  end
+
   #
-  # Return an Object which will hold all the information required to send
-  # a command between two OMF entities.
-  # By default this Object is a structure. However, different type of
-  # communicators (i.e. sub-classes of this class) can define their own type
-  # for the Command Object.
+  # Return a Command Object which will hold all the information required to send
+  # a command to another OMF entity.
+  # If a Transport entity has been defined for this Communicator, then the 
+  # the returned Object is the one defined by the Transport entity. If not,
+  # then the returned Object is a default Hash.
+  # Subclasses of communicators may define their own type of Command Object.
+  # The returned Command Object should have at least the following attribut
+  # and corresponding accessors: :CMDTYPE = type of the command
   #
-  # The returned Command Object should have at least the following attributs
-  # and corresponding accessors:
-  # - :CMDTYPE = type of the command
+  # - type = the type of this Command Object
   #
   # [Return] an Object with the information on a command between OMF entities 
   #
-  def new_command()
-    @cmdStruct ||= Struct.new(:CMDTYPE)
-    cmd = @cmdStruct.new()
-    cmd
+  def new_command(type)
+    if @@transport
+      return  @@transport.new_command(type)
+    else
+      cmd = Hash.new
+      cmd[:CMDTYPE] = type
+      return cmd
+    end
+  end
+
+  def send_command(cmdObject)
+    if @@transport
+      @@transport.send_commamd(cmdObject)
+    else
+      debug "Sending command '#{cmdObject}'"
+      @@cmds << cmdObject
+  end
+
+  def stop
+    if @@transport
+      @@transport.stop
+    end
   end
 
   def start
     raise unimplemented_method_exception("start")
   end
 
-  def stop
-    raise unimplemented_method_exception("stop")
-  end
-
   def process_command(command)
     raise unimplemented_method_exception("process_command")
   end
 
-  def send_command(message, destination)
-    raise unimplemented_method_exception("send")
-  end
 
   def unimplemented_method_exception(method_name)
     "Communicator - Subclass '#{self.class}' must implement #{method_name}()"
   end
-end
-
-class MockCommunicator < Communicator
-  require 'pp'
-
-  attr_reader :cmds, :cmdActions
-
-  def initialize()
-    super('mockCommunicator')
-    @cmds = []
-    @cmdActions = []
-  end
-
-  def send(ns, command, args)
-    @cmds << "#{ns}|#{command}|#{args.join('#')}"
-  end
-
-  def sendAppCmd(cmd)
-    @cmdActions << cmd
-#    pp cmd
-  end
-
 end
 

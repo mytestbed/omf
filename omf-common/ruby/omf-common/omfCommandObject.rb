@@ -46,20 +46,20 @@ class OmfCommandObject
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                         :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
                         :RESTART, :ENROLL, :EXIT]
-  def isECCommand?
+  def ec_cmd?
     return EC_COMMANDS.include?(@attributes[:CMDTYPE])
   end
 
   # Valid commands for the RC
   RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
                         :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
-  def isRCCommand?
+  def rc_cmd?
     return RC_COMMANDS.include?(@attributes[:CMDTYPE])
   end    
 
   # Valid commands for the Inventory AM
   INVENTORY_COMMANDS = Set.new [:XYZ]
-  def isInventoryCommand?
+  def inventory_cmd?
     return INVENTORY_COMMANDS.include?(@attributes[:CMDTYPE])
   end    
 
@@ -151,7 +151,10 @@ class OmfCommandObject
     # For each attribute of this Command Object, create the required XML element
     @attributes.each { |k,v|
       # For the OML Config attribute, add the value as an XML element to the XML to return
-      if (k == :OMLCONFIG) && (v != nil)
+      #if (k == :OMLCONFIG) && (v != nil)
+      # If this attribute value is an XML Element, then add it as is to the 
+      # resulting XML element
+      if (v != nil) && (v.kind_of?(REXML::Element))
         el = REXML::Element.new("#{k.to_s.upcase}")
         el.add_element(v)
         msg.root << el

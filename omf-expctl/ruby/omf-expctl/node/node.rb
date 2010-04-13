@@ -746,7 +746,7 @@ class Node < MObject
   # it belongs to.
   #
   def notifyRemoved()
-    Communicator.instance.removeNode(@nodeId)
+    Communicator.instance.send_reset(@nodeId)
     setStatus(STATUS_DOWN)
     changed
     notify_observers(self, :node_is_removed)

@@ -180,7 +180,6 @@ class NodeAgent < MObject
     send(ok_reply)
   end
 
-
   #
   # Send an ENROLL reply to the Node Handler (EC). When a YOUARE or ALIAS 
   # command has been successfully completed, the NA sends this message
