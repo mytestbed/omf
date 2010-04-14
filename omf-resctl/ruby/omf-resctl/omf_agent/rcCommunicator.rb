@@ -47,10 +47,13 @@ class RCCommunicator < OmfCommunicator
 
   def self.init(opts)
     super()
-    case type = opts[:type]
+    case type = opts[:communicator][:type]
     when 'xmpp'
       require 'omf-resctl/omg_agent/rcPubSubTransport.rb'
-      @@transport = RCPubSubTransport.init(self, opts[:xmpp])
+      @@transport = RCPubSubTransport.init(self, 
+                                           opts[:communicator][:xmpp], 
+                                           opts[:agent][:slice], 
+                                           opts[:agent][:name])
     when 'mock'
       return # Uses the default Mock OmfCommunicator
     else

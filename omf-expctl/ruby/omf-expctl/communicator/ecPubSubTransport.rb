@@ -41,91 +41,28 @@ require "omf-common/omfCommandObject"
 #
 class ECPubSubTransport < OMFPubSubTransport
 
-  def self.init(opts, slice, expID)
-    raise "XMPPCommunicator already started" if @@instance
-
-    server = opts[:server]
-    raise "XMPPCommunicator: Missing 'server'" unless server
-    password = opts[:password] || "123"
-    
-    @@instance = self.new()
-    @@instance.start(server, password, slice, expID)
-    @@instance
+  def self.init(comms, opts, slice, expID)
+    super()
+    # So EC-specific initialisation tasks...
+    @@communicator = comms
+    @@expID = expID
+    @@sliceID = slice
+    @@homeServer = opts[:home_pubsub_server]
+    if !@@homeServer
+      raise "ECPubSubTransport - Missing 'home_pubsub_server' parameter in "+
+            "the EC configuration" 
+    end
+    user = opts[:home_pubsub_user] || "EC-#{@@sliceID}-#{@@expID}"
+    pwd = opts[:home_pubsub_pwd] || DEFAULT_PUBSUB_PWD
+    # Now connect to the Home PubSub Server
+    @@instance.connect(user, pwd, @@homeServer)
   end
       
-  #
-  # Create a new Communicator 
-  #
-  def initialize ()
-    super('xmppCommunicator')
-    @handlerCommands = Hash.new
-    @@myName = nil
-    @@service = nil
-    @@IPaddr = nil
-    @@controlIF = nil
-    @@systemNode = nil
-    @@expID = nil
-    @@psGroupSlice = nil
-    @@psGroupResource = nil
-    @@psGroupExperiment = nil
-    @@sliceID = nil
-    @@pubsubNodePrefix = nil
-    @@instantiated = true
-    @queue = Queue.new
-    Thread.new {
-      while event = @queue.pop
-        execute_command(event)
-      end
-    }
-  end  
+  def connect(user, pwd, server)
+    # Now call our superclass method to do the actual 'connect'
+    super(user, pwd, server)
 
-  #
-  # Return an Object which will hold all the information required to send 
-  # a command to another OMF entity.
-  # This Communicator uses the OMF Command Object class.
-  # 
-  # The returned Command Object have at least the following public accessors:
-  # - type = type of the command
-  # and a variable list of other accessors, depending on the type of the command
-  #
-  # [Return] a Command Object holding all the information related to a given command
-  #
-  def getCmdObject(cmdType)
-    return OmfCommandObject.new(cmdType)
-  end
-
-  #
-  # Configure and start the Communicator.
-  # This method instantiates a PubSub Service Helper, which will connect to the
-  # PubSub server, and handle all the communication from/towards this server.
-  # This method also sets the callback method, which will be called upon incoming
-  # messages. 
-  #
-  # - jid_suffix = [String], JabberID suffix, this is the full host/domain name of 
-  #                the PubSub server, e.g. 'norbit.npc.nicta.com.au'. 
-  # - password = [String], password to use for this PubSud client
-  # - control_interface = [String], the interface connected to Control Network
-  #
-  def start(jid_suffix, password, slice, expID)
-    
-    debug "Connecting to PubSub Server: '#{jid_suffix}'"
-    # Set some internal attributes...
-    @@sliceID = slice
-    @@expID = expID
-    
-    # Create a Service Helper to interact with the PubSub Server
-    begin
-      @@service = OmfPubSubService.new(expID, password, jid_suffix)
-      # Start our Event Callback, which will process Events from
-      # the nodes we will subscribe to
-      @@service.add_event_callback { |event|
-        @queue << event
-      }         
-    rescue Exception => ex
-      error "Failed to initialise PubSub service ('#{jid_suffix}')!"
-      error "Error: '#{ex}'"
-    end
-
+    # Some EC-specific post-connection tasks...
     begin
       @@service.remove_all_pubsub_nodes
     rescue Exception => ex
@@ -133,45 +70,34 @@ class ECPubSubTransport < OMFPubSubTransport
       error "Error: '#{ex}'"
       error "Most likely reason: Cannot connect to PubSubServer: '#{jid_suffix}'"
       error "Exiting!"
-      exit!
+      exit
     end
         
     @@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created upon slice instantiation
     @@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created upon slice instantiation
     @@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
     @@service.create_pubsub_node("#{@@psGroupExperiment}")
+
     
   end
+ 
 
+   #
+  # Create a new Communicator 
   #
-  # Return 'true' if this Communicator is running on a linux platform
-  #
-  # [Return] true/false
-  #
-  def self.isPlatformLinux?
-    return RUBY_PLATFORM.include?('linux')
-  end
+  def initialize ()
+    super('xmppCommunicator')
+    @handlerCommands = Hash.new
+    @@service = nil
+    @@IPaddr = nil
+    @@controlIF = nil
+    @@systemNode = nil
+    @@psGroupSlice = nil
+    @@psGroupResource = nil
+    @@psGroupExperiment = nil
+    @@pubsubNodePrefix = nil
+  end  
 
-  #
-  # This method sends a message to one or multiple nodes
-  # Format: <command arg1 arg2 ...>
-  #
-  # - target =  a String with the name of the group of node(s) that should process this message
-  # - command = the NodeAgent command that should be executed
-  # - msgArray = an Array with the arguments for this NodeAgent command
-  #
-  def send(target, command, msgArray = [])
-    msg = "#{command} #{LineSerializer.to_s(msgArray)}"
-    if (target == "*")
-      send!(msg, "#{@@psGroupExperiment}")
-    else
-      target.gsub!(/^"(.*?)"$/,'\1')
-      targets = target.split(' ')
-      targets.each {|tgt|
-        send!(msg, "#{@@psGroupExperiment}/#{tgt}")
-      }
-    end
-   end
 
   #
   # This method sends a reset message to all connected nodes

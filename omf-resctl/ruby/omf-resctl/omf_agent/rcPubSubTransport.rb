@@ -44,46 +44,58 @@ require "omf-common/omfCommandObject"
 #
 class RCPubSubTransport < OMFPubSubTransport
 
-  #
-  # Create a new Communicator 
-  #
-  def initialize ()
-    @@myName = NodeAgent.instance.config[:agent][:name]
-    @@sliceID = NodeAgent.instance.config[:agent][:slice]
-    @@service = nil
-    @@IPaddr = nil
-    @@systemNode = nil
-    @@expID = nil
-    @@psGroupSlice = nil
-    @@psGroupResource = nil
-    @@psGroupExperiment = nil
-
-    @@instantiated = true
-    @queue = Queue.new
-    Thread.new {
-      while event = @queue.pop
-        execute_command(event)
-      end
-    }
-    start(NodeAgent.instance.config[:comm])
-    #start(NodeAgent.instance.config[:comm][:xmpp_server])
+  def self.init(comms, opts, slice, name)
+    super()
+    # So RC-specific initialisation tasks...
+    @@communicator = comms
+    @@myName = name
+    @@sliceID = slice
+    @@homeServer = opts[:home_pubsub_server]
+    @@remoteServer = opts[:remote_pubsub_server]
+    if !@@homeServer || !@@remoteServer
+      raise "RCPubSubTransport - Missing 'home_pubsub_server' or "+
+            "'remote_pubsub_server' parameter in the RC configuration" 
+    end
+    user = opts[:home_pubsub_user] || "#{@@myName}-#{@@sliceID}-#{@@expID}"
+    pwd = opts[:home_pubsub_pwd] || DEFAULT_PUBSUB_PWD
+    # Now connect to the Home PubSub Server
+    @@instance.connect(user, pwd, @@homeServer)
+    # If the PubSub nodes for our slice is hosted on a Remote PubSub Server
+    # and not on our Home one, then we need to add another PubSub service to 
+    # interact with this remote server
+    #
+    # TODO: IF not we need to do :slice = :home (FIXME)
+    #
+    if @@homeServer != @@remoteServer
+      @@xmppServices.add_new_service(:slice, @@remoteServer) { |event|
+        @@queue << event
+      }         
+    else
   end
   
-  #
-  # Return an Object which will hold all the information required to send 
-  # a command to another OMF entity.
-  # This Communicator uses the OMF Command Object class.
-  # 
-  # The returned Command Object have at least the following public accessors:
-  # - type = type of the command
-  # and a variable list of other accessors, depending on the type of the command
-  #
-  # [Return] a Command Object holding all the information related to a given command
-  #
-  def getCmdObject(cmdType)
-    return OmfCommandObject.new(cmdType)
+  def connect(user, pwd, server)
+    # Some RC-specific pre-connection tasks...
+    # first checks if PubSub Server is reachable, and wait/retry if not
+    check_server_reachability(server)
+    
+    # Now call our superclass method to do the actual 'connect'
+    super(user, pwd, server)
+
+    # Some RC-specific post-connection tasks...
+    # Keep the connection to the PubSub server alive by sending a ping at
+    # regular intervals hour, otherwise clients will be listed as "offline" 
+    # by the PubSub server (e.g. Openfire) after a timeout
+    Thread.new do
+      while true do
+        sleep PING_INTERVAL
+        debug("Sending a ping to the Home PubSub Server (keepalive)")
+        @@xmppServices.ping(:home)        
+      end
+    end
+
   end
-      
+
+
   #
   # Configure and start the Communicator.
   # This method instantiates a PubSub Service Helper, which will connect to the
@@ -100,34 +112,11 @@ class RCPubSubTransport < OMFPubSubTransport
   #            (this will only work if the PubSub server is set to accept open registration)
   #
   #def start(jid_suffix)
-  def start(pubsub)
-    
-    #debug "Connecting to PubSub Server: '#{jid_suffix}'"
-    #debug "Connecting to PubSub Server: '#{pubsub[:local_pubsub_server]}'"
-
-    # Check if PubSub Server is reachable
-    check = false
-    while !check
-      reply = `ping -c 1 #{pubsub[:local_pubsub_server]}`
-      if $?.success?
-        check = true
-      else
-        info "Could not resolve or contact: '#{pubsub[:local_pubsub_server]}' - \
-	      Waiting #{RETRY_INTERVAL} sec before retrying..."
-        sleep RETRY_INTERVAL
-      end
-    end
-
-    # Create a Service Helper to interact with the PubSub Server
+  def start(opts)
+    # Open a connection to the Home PubSub Server
     begin
-      if pubsub[:local_pubsub_user] == nil
-        pubsub[:local_pubsub_user] = "#{@@sliceID}-#{@@myName}"
-        pubsub[:local_pubsub_pwd] = "123456"
-      end
-      debug "Init PubSub Service (local: '#{pubsub[:local_pubsub_server]}' - user: '#{pubsub[:local_pubsub_user]}' - remote: '#{pubsub[:remote_pubsub_server]}')"
-      @@service = OmfPubSubService.new(pubsub[:local_pubsub_user], pubsub[:local_pubsub_pwd], 
-                                         pubsub[:local_pubsub_server], 
-                                         pubsub[:remote_pubsub_server])
+      debug "Connecting to PubSub Server '#{@@homeServer}' as user '#{user}'"
+      @@xmppServices = OmfXMPPServices.new(expID, password, @@homeServer)
       # Start our Event Callback, which will process Events from
       # the nodes we will subscribe to
       @@service.add_event_callback { |event|
@@ -153,84 +142,22 @@ class RCPubSubTransport < OMFPubSubTransport
     @@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created upon slice instantiation
   end
 
+    #
+  # Create a new Communicator 
   #
-  # Return 'true' if this Communicator is running on a linux platform
-  #
-  # [Return] true/false
-  #
-  def self.isPlatformLinux?
-    return RUBY_PLATFORM.include?('linux')
-  end
-  def self.isPlatformArmLinux?
-    return RUBY_PLATFORM.include?('arm-linux')
-  end
+  def initialize ()
+    @@service = nil
+    @@IPaddr = nil
+    @@systemNode = nil
+    @@expID = nil
+    @@psGroupSlice = nil
+    @@psGroupResource = nil
+    @@psGroupExperiment = nil
 
-  #
-  # Return the MAC address of the control interface
-  #
-  # This method assumes that the 'ifconfig' command returns something like:
-  #
-  # eth1      Link encap:Ethernet  HWaddr 00:0D:61:46:1E:E1
-  #           inet addr:10.10.101.101  Bcast:10.10.255.255  Mask:255.255.0.0
-  #           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-  #           RX packets:118965 errors:0 dropped:0 overruns:0 frame:0
-  #           TX packets:10291 errors:0 dropped:0 overruns:0 carrier:0
-  #           collisions:0 txqueuelen:1000
-  #           RX bytes:17394487 (16.5 MiB)  TX bytes:1073233 (1.0 MiB)
-  #           Interrupt:11 Memory:eb024000-0
-  #
-  #  [Return] a String holding a MAC Address
-  #
-  def getControlAddr()
-  
-    # If we already know our IP Address, no need to proceed
-    if @@IPaddr != nil
-      return @@IPaddr
-    end
-
-    foundIP = false
-    while !foundIP
-      # If we are on a Linux Box, we parse the output of 'ifconfig' 
-      if AgentPubSubCommunicator.isPlatformLinux?
-        interface = NodeAgent.instance.config[:comm][:control_if]
-        if AgentPubSubCommunicator.isPlatformArmLinux?
-          ## arm-linux is assumed to be android platform
-          lines = IO.popen("/sbin/ifconfig #{interface}", "r").readlines
-          iplines = "#{lines}"
-          ip_index = iplines.index('ip') + 3
-          mask_index = iplines.index('mask')
-          ip_length = mask_index -1 -ip_index
-          @@IPaddr = iplines.slice(ip_index,ip_length)
-          foundIP = true
-        else
-          lines = IO.popen("/sbin/ifconfig | grep -A1 #{interface} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}'", "r").readlines
-          if (lines.length > 0)
-            @@IPaddr = lines[0].chomp
-            foundIP = true
-  	  end
-        end
-      else
-      # not implemented for other OS
-        error "Cannot determine IP address of the Control Interface For this Platform"
-        @@IPaddr = "0.0.0.0"
-        error "Using fake IP: #{@@IPaddr}"
-        foundIP = true
-      end
-
-      # Couldnt get the Mac Address, retry...
-      if (@@IPaddr.nil?)
-        error "Cannot determine IP address of the Control Interface ('#{interface}')"
-        error "Waiting #{RETRY_INTERVAL} sec, and retrying..."
-        sleep RETRY_INTERVAL
-      end
-    end
-
-    # All good
-    debug("Local control IP address: #{@@IPaddr}")
-    return @@IPaddr
+    start(NodeAgent.instance.config[:comm])
+    #start(NodeAgent.instance.config[:comm][:xmpp_server])
   end
   
-  alias localAddr getControlAddr
 
   #
   # Reset this Communicator
@@ -258,15 +185,6 @@ class RCPubSubTransport < OMFPubSubTransport
     @@service.quit
   end
   
-  #
-  # Send a message to the EC
-  #
-  # -  msgArray = the array of text to send
-  #
-  def send(*msgArray)
-    send!(0, *msgArray)
-  end
-
   #
   # Send a heartbeat back to the EC
   #

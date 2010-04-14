@@ -43,8 +43,15 @@
       :communicator:
         :type: 'xmpp'
         :xmpp:
-          :server: 'norbit.npc.nicta.com.au'
-          :password: '123'
+          :home_pubsub_server: 'norbit.npc.nicta.com.au'
+          # The following 'home_pubsub_user' and 'home_pubsub_pwd' are optional
+          # EC will create a unique user/pwd for itself if this is not provided
+          # In a typical OMF install, you should not uncomment these lines
+          # (uncomment them only if you need to manually set user/password for 
+          # your client to connect to your pubsub server)
+
+          #:home_pubsub_user: 'my_EC_name' 
+          #:home_pubsub_pwd: 'my_EC_password' 
     #####
     :planetlab2:
       :domain: 'planetlab'

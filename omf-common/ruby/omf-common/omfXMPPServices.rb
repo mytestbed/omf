@@ -107,8 +107,10 @@ class OmfXMPPServices < MObject
   #
   # Create a new instance of XMPP Services 
   # This instance will maintain a single connection to a 'home' XMPP server
-  # and potentially multiple 'service helpers' to access other XMPP server
-  # via Server2Server communication.
+  # and will serve as an entry-point into the XMPP world to interact with 
+  # potentially multiple XMPP servers via Server2Server communication.
+  # A 'service helper' will be required for each XMPP server we want to
+  # interact with (see the 'add_new_service' method)
   # 
   # - user = [String] username to connect to the home XMPP server  
   # - password = [String], password to connect to the home XMPP server
@@ -153,16 +155,18 @@ class OmfXMPPServices < MObject
   # Server2Server capability (if it is a remote XMPP server).
   #
   # - serviceID = [String|Symbol] a name for this service
-  # - serverJID = [String] a JID for the server to interact with, following the
-  #               XMPP convention, this JID should start with "pubsub."
+  # - serverID = [String] a ID for the server to interact with, following the
+  #               XMPP convention we will prefix this ID with "pubsub."
   # - &bock = the block of commands that will process any event coming from that
   #           XMPP server
   #
-  def add_new_service(serviceID, serverJID, &block)
+  def add_new_service(serviceID, serverID, &block)
     begin
-      @serviceHelpers[serviceID] = OmfServiceHelper.new(@clientHelper, serverJID)
+      @serviceHelpers[serviceID] = OmfServiceHelper.new(@clientHelper, 
+                                                        "pubsub.#{serverID}")
     rescue  Exception => ex
-      raise "OmfXMPPServices - Failed to create service to '#{serverJID}' - Error: '#{ex}'"
+      raise "OmfXMPPServices - Failed to create service to '#{serverID}' "+
+	    "- Error: '#{ex}'"
     end
     begin
       @serviceHelpers[serviceID].add_event_callback(&block)

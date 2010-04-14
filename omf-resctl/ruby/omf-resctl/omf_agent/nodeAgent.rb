@@ -88,7 +88,8 @@ class NodeAgent < MObject
     end
     info(VERSION_STRING)
     resetState
-    communicator.reset
+    RCCommuniator.init(@config)
+    RCCommuniator.instance.reset
 
     @running = ConditionVariable.new
     if @interactive
@@ -103,31 +104,6 @@ class NodeAgent < MObject
         @running.wait(@mutex)
       }
     end
-  end
-
-  #
-  # Return the x coordinate for this NA
-  #
-  # [Return] x coordinate of this NA
-  #
-  #def x
-  #  return @x = communicator.x
-  #end
-  #
-  # Return the y coordinate for this NA
-  #
-  # [Return] x coordinate of this NA
-  #
-  #def y
-  #  return @y = communicator.y
-  #end
-  #
-  # Return the Control IP address of this NA
-  #
-  # [Return] Control IP address of this NA
-  #
-  def localAddr
-    return @localAddr = communicator.localAddr
   end
 
   #
@@ -164,14 +140,14 @@ class NodeAgent < MObject
   #
   def old_okReply(cmd, id = nil, *msgArray)
     if @allowDisconnection 
-      communicator.sendRelaxedHeartbeat()
+      RCCommuniator.instance.sendRelaxedHeartbeat()
     else
-      communicator.sendHeartbeat()
+      RCCommuniator.instance.sendHeartbeat()
     end
   end
 
   def okReply(message, cmdObj)
-    ok_reply = communicator.getCmdObject(:OK)
+    ok_reply = RCCommuniator.instance.getCmdObject(:OK)
     ok_reply.target = @agentName
     ok_reply.message = message
     ok_reply.cmd = cmdObj.cmdType.to_s
@@ -189,19 +165,19 @@ class NodeAgent < MObject
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
   def enrollReply(aliases = nil)
-    enroll_reply = communicator.getCmdObject(:ENROLLED)
+    enroll_reply = RCCommuniator.instance.getCmdObject(:ENROLLED)
     enroll_reply.target = @agentName
     enroll_reply.name = aliases if aliases != nil
     send(enroll_reply)
   end
 
   def wrongImageReply()
-    image_reply = communicator.getCmdObject(:WRONG_IMAGE)
+    image_reply = RCCommuniator.instance.getCmdObject(:WRONG_IMAGE)
     image_reply.target = @agentName
     image_reply.image = imageName()
     # 'WRONG_IMAGE' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
-    communicator.sendCmdObject(image_reply)
+    RCCommuniator.instance.sendCmdObject(image_reply)
   end
 
   #
@@ -214,7 +190,7 @@ class NodeAgent < MObject
   # - msgArray = an array with the full received command (name, parameters,...)
   #
   def errorReply(message, cmdObj)
-    error_reply = communicator.getCmdObject(:ERROR)
+    error_reply = RCCommuniator.instance.getCmdObject(:ERROR)
     error_reply.target = @agentName
     error_reply.message = message
     error_reply.cmd = cmdObj.cmdType.to_s
@@ -223,7 +199,7 @@ class NodeAgent < MObject
     error_reply.value = cmdObj.value if cmdObj.value != nil
     # 'ERROR' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
-    communicator.sendCmdObject(error_reply)
+    RCCommuniator.instance.sendCmdObject(error_reply)
     #send(:ERROR, cmd, id, *msgArray)
   end
 
@@ -234,7 +210,7 @@ class NodeAgent < MObject
   #
   def send(cmdObj)
     if @enrolled
-      communicator.sendCmdObject(cmdObj)
+      RCCommuniator.instance.sendCmdObject(cmdObj)
     else
       warn("Not enrolled! Not sending message: '#{cmdObj.to_xml_to.s}'")
     end
@@ -280,7 +256,7 @@ class NodeAgent < MObject
          debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
        end
     end
-    app_event = communicator.getCmdObject(:APP_EVENT)
+    app_event = RCCommuniator.instance.getCmdObject(:APP_EVENT)
     app_event.target = @agentName
     app_event.value = eventName.to_s.upcase
     app_event.appID = appId
@@ -300,7 +276,7 @@ class NodeAgent < MObject
   #
   def onDevEvent(eventName, deviceName, *msg)
     debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    dev_event = communicator.getCmdObject(:DEV_EVENT)
+    dev_event = RCCommuniator.instance.getCmdObject(:DEV_EVENT)
     dev_event.target = @agentName
     dev_event.value = eventName.to_s.upcase
     dev_event.appID = deviceName
@@ -322,7 +298,7 @@ class NodeAgent < MObject
     cmd = "tc qdisc del dev eth0 root "
     result=`#{cmd}`
     resetState
-    communicator.reset
+    RCCommuniator.instance.reset
   end
 
   # 
@@ -343,7 +319,7 @@ class NodeAgent < MObject
   def cleanUp
     if @running != nil
       info("Cleaning: Disconnect from the PubSub server")
-      communicator.quit
+      RCCommuniator.instance.quit
       info("Cleaning: Kill all previously started Applications")
       ExecApp.killAll
       info("Cleaning: Exit")
@@ -369,44 +345,6 @@ class NodeAgent < MObject
   #end 
 
   #
-  # Set the 'Experiment Done' flag to true
-  # Should be called when the 'slave' EC terminates
-  #
-  #def expirementDone
-  #end
-
-  #
-  # Return the value of the 'Experiment Done' flag
-  # This is true, when this NA has finished executing all the experiment
-  # tasks for this node, and the node is now connectect to the Control Network,
-  # and any outstanding measurments have been sent to the OML server by the OML 
-  # proxy. 
-  #
-  # [Return] true/false
-  #
-  #def expirementDone?
-  #  return @expirementDone
-  #end 
-
-  #
-  # Return the primary name of this NA
-  #
-  # [Return] a String with the primary name of this NA
-  #
-  #def agentName
-  #  @agentName || "#{communicator.localAddr}"
-  #end
-
-  #
-  # Return the connection status of this NA (i.e. is it connected to the EC?)
-  #
-  # [Return] true/false
-  #
-  #def connected?
-  #  @enrolled
-  #end
-
-  #
   # Parse the command line arguments which were used when starting this NA
   #
   # - args = the command line arguments
@@ -429,15 +367,15 @@ class NodeAgent < MObject
     }
     opts.on("--local-pubsub-server HOST",
       "Hostname of the local PubSub server to connect to") {|name|
-      @config[:comm][:local_pubsub_server] = name
+      @config[:comm][:home_pubsub_server] = name
     }
     opts.on("--local-pubsub-user NAME",
       "Username for connecting to the local PubSub server (if not set, RC will register its own new user)") {|name|
-      @config[:comm][:local_pubsub_user] = name
+      @config[:comm][:home_pubsub_user] = name
     }
     opts.on("--local-pubsub-pwd PWD",
       "Password for connecting to the local PubSub server (if not set, RC will register its own new user)") {|name|
-      @config[:comm][:local_pubsub_pwd] = name
+      @config[:comm][:home_pubsub_pwd] = name
     }
     opts.on("--remote-pubsub-server HOST",
       "Hostname of the remote PubSub server hosting the Slice of this agent") {|name|
@@ -492,11 +430,16 @@ class NodeAgent < MObject
       }
     else
       if (!File.readable?(cfgFile))
-        raise "Can't find configuration file '#{cfgFile}'. You may find an example configuration file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
+        raise "Can't find the configuration file '#{cfgFile}'."+
+              "You may find an example configuration file in "+
+              "'/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
       end
     end
     if (cfgFile.nil?)
-      raise "Can't find configuration file. You may find an example configuration file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
+      raise "Can't find any configuration files in the default paths. "+ 
+	    "Please create a config file at one of the default paths (see install doc)."+
+            "Also, you may find an example configuration file in "+
+            "'/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
     else
       require 'yaml'
       h = YAML::load_file(cfgFile)
@@ -518,15 +461,6 @@ class NodeAgent < MObject
       @agentSlice =  @config[:agent][:slice] 
     end	    
     
-  end
-
-  #
-  # Return the instance of the Communicator module associated to this NA
-  #
-  # [Return] a Communicator object 
-  #
-  def communicator()
-    AgentPubSubCommunicator.instance
   end
 
   #
