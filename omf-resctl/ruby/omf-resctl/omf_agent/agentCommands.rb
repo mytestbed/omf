@@ -572,8 +572,9 @@ end
   #               execute this command
   #
   def AgentCommands.RESTART(agent, cmdObject)
-    agent.communicator.quit
+    RCCommunicator.instance.stop
     ExecApp.killAll
+    sleep 2
     system("/etc/init.d/omf-resctl-#{OMF_MM_VERSION} restart")
     # will be killed by now :(
   end
@@ -588,7 +589,8 @@ end
   #               execute this command
   #
   def AgentCommands.REBOOT(agent, cmdObject)
-    agent.communicator.quit
+    RCCommunicator.instance.stop
+    sleep 2
     cmd = `sudo /sbin/reboot`
     if !$?.success?
       # In case 'sudo' is not installed but we do have root rights (e.g. PXE image)

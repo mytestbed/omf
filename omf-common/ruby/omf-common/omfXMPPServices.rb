@@ -139,7 +139,8 @@ class OmfXMPPServices < MObject
       # if the user already exists at the server side, then we receive an error
       # 409 ("conflict:") which we will ignore, all other errors are reported
       if ("#{ex}" != "conflict: ")
-        then raise "OmfXMPPServices - Failed to register user '#{@userJID}' - Error: '#{ex}'"
+        then raise "OmfXMPPServices - Failed to register user '#{@userJID}' "+
+                   "- Error: '#{ex}'"
       end
     end
     # Now, we authenticate this client to the server
@@ -190,6 +191,17 @@ class OmfXMPPServices < MObject
       raise "OmfXMPPServices - Unknown service '#{serviceID}'"
     end
     return serv
+  end
+
+  #
+  # Create an alias for a give service helper.
+  # This is used for example when the 'home' XMPP server is also the one
+  # that holds the XMPP nodes for the slice. In such case, an alias allows
+  # the user of this Class to still use 'slice' as an ID, thus allowing more
+  # generic code.
+  #
+  def add_service_alias(src, dst)
+    @serviceHelpers[dst] = @serviceHelpers[src]
   end
 
   #
@@ -351,8 +363,9 @@ class OmfXMPPServices < MObject
   # - serviceID = [String|Symbol] the serviceID for the the server on which
   #               we want to remove all nodes
   #
-  def remove_all_pubsub_nodes()
+  def remove_all_pubsub_nodes(serviceID)
     list_all_subscriptions(serviceID).each { |sub|
+      leave_pubsub_node(sub.node, sub.subid, serviceID)
       remove_pubsub_node(sub.node, serviceID)
     }
   end
@@ -371,11 +384,11 @@ class OmfXMPPServices < MObject
   end
 
   #
-  # Remove all PubSub nodes currently subscribed to
+  # Leave all PubSub nodes currently subscribed to
   # Delete the PubSub user
   # Close the connection to the PubSub server
   #
-  def quit()
+  def stop()
     debug "OmfXMPPServices - Cleaning and Exiting!"
     @serviceHelpers.each { |serv|
       leave_all_pubsub_nodes(serv)

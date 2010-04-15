@@ -378,11 +378,4 @@ module OConfig
     @@observers << proc
   end
   
-  def self.reset()
-    @@domainName = nil
-    @@config = nil
-    @@configFromInventory = nil
-    @@observers = nil
-    Communicator.reset()
-  end
 end

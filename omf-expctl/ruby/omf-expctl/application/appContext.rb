@@ -142,7 +142,7 @@ class AppContext < MObject
     debug("Starting application '#@id'")
 
     # Get a new Command Object and starting adding info to it
-    app_cmd = Communicator.instance.getCmdObject(:EXECUTE)
+    app_cmd = ECCommunicator.instance.new_command(:EXECUTE)
     app_cmd.target = nodeSet.groupName
     app_cmd.appID = @id
     appDefinition = @app.appDefinition
@@ -168,7 +168,7 @@ class AppContext < MObject
     app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
     
     # Ask the Communicator to send the Command Object 
-    Communicator.instance.sendCmdObject(app_cmd)
+    ECCommunicator.instance.send_command(app_cmd)
   end
   
 end # ApplicationContext

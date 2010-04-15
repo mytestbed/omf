@@ -88,8 +88,8 @@ class NodeAgent < MObject
     end
     info(VERSION_STRING)
     resetState
-    RCCommuniator.init(@config)
-    RCCommuniator.instance.reset
+    RCCommunicator.init(@config)
+    RCCommunicator.instance.reset
 
     @running = ConditionVariable.new
     if @interactive
@@ -140,14 +140,14 @@ class NodeAgent < MObject
   #
   def old_okReply(cmd, id = nil, *msgArray)
     if @allowDisconnection 
-      RCCommuniator.instance.sendRelaxedHeartbeat()
+      RCCommunicator.instance.sendRelaxedHeartbeat()
     else
-      RCCommuniator.instance.sendHeartbeat()
+      RCCommunicator.instance.sendHeartbeat()
     end
   end
 
   def okReply(message, cmdObj)
-    ok_reply = RCCommuniator.instance.getCmdObject(:OK)
+    ok_reply = RCCommunicator.instance.new_command(:OK)
     ok_reply.target = @agentName
     ok_reply.message = message
     ok_reply.cmd = cmdObj.cmdType.to_s
@@ -165,19 +165,19 @@ class NodeAgent < MObject
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
   def enrollReply(aliases = nil)
-    enroll_reply = RCCommuniator.instance.getCmdObject(:ENROLLED)
+    enroll_reply = RCCommunicator.instance.new_command(:ENROLLED)
     enroll_reply.target = @agentName
     enroll_reply.name = aliases if aliases != nil
     send(enroll_reply)
   end
 
   def wrongImageReply()
-    image_reply = RCCommuniator.instance.getCmdObject(:WRONG_IMAGE)
+    image_reply = RCCommunicator.instance.new_command(:WRONG_IMAGE)
     image_reply.target = @agentName
     image_reply.image = imageName()
     # 'WRONG_IMAGE' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
-    RCCommuniator.instance.sendCmdObject(image_reply)
+    RCCommunicator.instance.send_command(image_reply)
   end
 
   #
@@ -190,7 +190,7 @@ class NodeAgent < MObject
   # - msgArray = an array with the full received command (name, parameters,...)
   #
   def errorReply(message, cmdObj)
-    error_reply = RCCommuniator.instance.getCmdObject(:ERROR)
+    error_reply = RCCommunicator.instance.new_command(:ERROR)
     error_reply.target = @agentName
     error_reply.message = message
     error_reply.cmd = cmdObj.cmdType.to_s
@@ -199,7 +199,7 @@ class NodeAgent < MObject
     error_reply.value = cmdObj.value if cmdObj.value != nil
     # 'ERROR' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
-    RCCommuniator.instance.sendCmdObject(error_reply)
+    RCCommunicator.instance.send_command(error_reply)
     #send(:ERROR, cmd, id, *msgArray)
   end
 
@@ -210,7 +210,7 @@ class NodeAgent < MObject
   #
   def send(cmdObj)
     if @enrolled
-      RCCommuniator.instance.sendCmdObject(cmdObj)
+      RCCommunicator.instance.send_command(cmdObj)
     else
       warn("Not enrolled! Not sending message: '#{cmdObj.to_xml_to.s}'")
     end
@@ -256,13 +256,12 @@ class NodeAgent < MObject
          debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
        end
     end
-    app_event = RCCommuniator.instance.getCmdObject(:APP_EVENT)
+    app_event = RCCommunicator.instance.new_command(:APP_EVENT)
     app_event.target = @agentName
     app_event.value = eventName.to_s.upcase
     app_event.appID = appId
     app_event.message = "#{msg}"
     send(app_event)
-    #send(:APP_EVENT, eventName.to_s.upcase, appId, *msg)
   end
 
   #
@@ -276,13 +275,12 @@ class NodeAgent < MObject
   #
   def onDevEvent(eventName, deviceName, *msg)
     debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    dev_event = RCCommuniator.instance.getCmdObject(:DEV_EVENT)
+    dev_event = RCCommunicator.instance.new_command(:DEV_EVENT)
     dev_event.target = @agentName
     dev_event.value = eventName.to_s.upcase
     dev_event.appID = deviceName
     dev_event.message = "#{msg}"
     send(dev_event)
-    #send(:DEV_EVENT, eventName.to_s.upcase, deviceName, *msg)
   end
 
   #
@@ -298,7 +296,7 @@ class NodeAgent < MObject
     cmd = "tc qdisc del dev eth0 root "
     result=`#{cmd}`
     resetState
-    RCCommuniator.instance.reset
+    RCCommunicator.instance.reset
   end
 
   # 
@@ -319,7 +317,7 @@ class NodeAgent < MObject
   def cleanUp
     if @running != nil
       info("Cleaning: Disconnect from the PubSub server")
-      RCCommuniator.instance.quit
+      RCCommunicator.instance.stop
       info("Cleaning: Kill all previously started Applications")
       ExecApp.killAll
       info("Cleaning: Exit")

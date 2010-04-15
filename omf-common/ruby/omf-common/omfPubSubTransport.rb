@@ -90,6 +90,7 @@ class OMFPubSubTransport < MObject
   def self.init
     raise "PubSub Transport already started" if @@instance
     @@instance = self.new
+    @@communicator = nil
     @@queue = Queue.new
     Thread.new {
       while event = @@queue.pop
@@ -142,6 +143,34 @@ class OMFPubSubTransport < MObject
   end
 
   #
+  # Process an incoming message from the EC. This method is called by the
+  # callback hook, which was set up in the 'start' method of this Communicator.
+  # First, we parse the PubSub event to extract the XML message.
+  # Then, we check if this message contains a command which should trigger some
+  # Communicator-specific actions.
+  # Finally, we pass this command up to the Resource Controller for further 
+  # processing.
+  # The Payload of the received message should be an XML representation of an 
+  # OMF Command Object
+  #
+  # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
+  #
+  def execute_command(event)
+    # Retrieve the command from the event
+    cmdObj = event_to_command(event)
+    return if !cmdObj
+
+    # Perform some specific checks on the command
+    return if !valid_command?(cmdObj)
+
+    # Perform some transport specific tasks associated with this command
+    execute_transport_specific(cmdObj)
+
+    # Pass the command to the communicator
+    @@communicator.process_command(cmdObj)
+  end
+
+  #
   # Send a command to one or multiple Pubsub nodes. 
   # The command to send is passed as an OmfCommandObject.
   # Subclasses MUST override this class to do some subclass-specififc tasks
@@ -156,8 +185,16 @@ class OMFPubSubTransport < MObject
     raise unimplemented_method_exception("send_command")
   end
 
-  def execute_command(cmdObject)
-    raise unimplemented_method_exception("execute_command")
+  def valid_command?(cmdObject)
+    raise unimplemented_method_exception("check_command_validity")
+  end 
+
+  def execute_transport_specific(cmdObject)
+    raise unimplemented_method_exception("execute_transport_specific")
+  end 
+
+  def stop
+    raise unimplemented_method_exception("stop")
   end
 
   #
@@ -203,6 +240,33 @@ class OMFPubSubTransport < MObject
 	      "Waiting #{RETRY_INTERVAL} sec before retrying..."
         sleep RETRY_INTERVAL
       end
+    end
+  end
+
+  def event_source(event)
+    return event.first_element("items").attributes['node']
+  end
+
+  def event_to_command(event)
+    begin
+      # Ignore this 'event' if it doesnt have any 'items' element
+      # These are notification messages from the PubSub server
+      return nil if event.first_element("items") == nil
+      return nil if event.first_element("items").first_element("item") == nil
+      # Retrieve the Command Object from the received message
+      eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
+      xmlMessage = nil
+      eventBody.each_element { |e| xmlMessage = e }
+      # Ignore events without XML payloads
+      return nil if xmlMessage == nil 
+      # All good, return the extracted command
+      debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
+      return OmfCommandObject.new(xmlMessage)
+    rescue Exception => ex
+      error "Cannot extract command from PubSub event '#{eventBody}'"
+      error "Error: '#{ex}'"
+      error "Event was received on '#{event_source(event)}')" 
+      return
     end
   end
 

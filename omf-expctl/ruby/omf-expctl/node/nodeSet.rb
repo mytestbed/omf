@@ -217,7 +217,7 @@ class NodeSet < MObject
     if (ctxt == nil)
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
-    exit_cmd = Communicator.instance.getCmdObject(:EXIT)
+    exit_cmd = ECCommunicator.instance.new_command(:EXIT)
     exit_cmd.appID = name
     send(exit_cmd)
   end
@@ -248,7 +248,7 @@ class NodeSet < MObject
   def exec(cmdName, args = nil, env = nil, &block)
     debug("Running application '", cmdName, "'")
     procName = "exec:#{@@execsCount += 1}"
-    exec_cmd = Communicator.instance.getCmdObject(:EXECUTE)
+    exec_cmd = ECCommunicator.instance.new_command(:EXECUTE)
     exec_cmd.appID = procName
     exec_cmd.path = cmdName
     
@@ -356,7 +356,7 @@ class NodeSet < MObject
     eachNode {|n|
       n.configure(path, value)
     }
-    conf_cmd = Communicator.instance.getCmdObject(:CONFIGURE)
+    conf_cmd = ECCommunicator.instance.new_command(:CONFIGURE)
     conf_cmd.path = path.join('/')
     conf_cmd.value = valueToSend.to_s
     send(conf_cmd)
@@ -518,7 +518,7 @@ class NodeSet < MObject
       n.loadImage(image, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
-    load_cmd = Communicator.instance.getCmdObject(:LOAD_IMAGE)
+    load_cmd = ECCommunicator.instance.new_command(:LOAD_IMAGE)
     load_cmd.address = mcAddress
     load_cmd.port = mcPort
     load_cmd.disk = disk
@@ -558,7 +558,7 @@ class NodeSet < MObject
       url_dir="/data/#{srcPath.gsub('/', '_')}"
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
       OMF::ExperimentController::Web.mapFile(url_dir, srcPath)
-      load_cmd = Communicator.instance.getCmdObject(:LOAD_DATA)
+      load_cmd = ECCommunicator.instance.new_command(:LOAD_DATA)
       procName = "exec:#{@@execsCount += 1}:loadData"
       load_cmd.appID = procName
       load_cmd.image = url
@@ -600,7 +600,7 @@ class NodeSet < MObject
     end
     if (up? && notQueued)
       debug "Send ('#{@nodeSelector}') - '#{cmdObj.to_s}'"
-      Communicator.instance.sendCmdObject(cmdObj)
+      ECCommunicator.instance.send_command(cmdObj)
       return
     end
   end

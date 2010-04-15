@@ -56,6 +56,16 @@ class ECPubSubTransport < OMFPubSubTransport
     pwd = opts[:home_pubsub_pwd] || DEFAULT_PUBSUB_PWD
     # Now connect to the Home PubSub Server
     @@instance.connect(user, pwd, @@homeServer)
+    #
+    # NOTE IMPORTANT
+    #
+    # For now, we assume that the Home PubSub Server is always the one that will
+    # host the PubSub node for our Slice and Experiments.
+    # This should be explicitely mentioned in the EC install/user guide, i.e.
+    # your EC's Home PubSub Server will also be the one that will host your
+    # Slice and Experiment PubSub tree
+    #
+    @@xmppServices.add_service_alias(:home, :slice)
   end
       
   def connect(user, pwd, server)
@@ -63,93 +73,30 @@ class ECPubSubTransport < OMFPubSubTransport
     super(user, pwd, server)
 
     # Some EC-specific post-connection tasks...
+    # 1st make sure that there is no old pubsub nodes lingering
     begin
-      @@service.remove_all_pubsub_nodes
+      @@xmppServices.remove_all_pubsub_nodes(:slice)
     rescue Exception => ex
       error "Failed to remove old PubSub nodes"
       error "Error: '#{ex}'"
-      error "Most likely reason: Cannot connect to PubSubServer: '#{jid_suffix}'"
+      error "Most likely reason: Cannot contact PubSub Server '#{@@homeServer}'"
       error "Exiting!"
       exit
     end
-        
-    @@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created upon slice instantiation
-    @@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created upon slice instantiation
-    @@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
-    @@service.create_pubsub_node("#{@@psGroupExperiment}")
+    # 2nd create a new pubsub node for this experiment
+    @@service.create_pubsub_node(exp_node(@@sliceID, @@expID), :slice)
 
-    
+    #@@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created @ slice 
+    #@@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created @ slice 
+    #@@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
   end
  
-
-   #
-  # Create a new Communicator 
-  #
-  def initialize ()
-    super('xmppCommunicator')
-    @handlerCommands = Hash.new
-    @@service = nil
-    @@IPaddr = nil
-    @@controlIF = nil
-    @@systemNode = nil
-    @@psGroupSlice = nil
-    @@psGroupResource = nil
-    @@psGroupExperiment = nil
-    @@pubsubNodePrefix = nil
-  end  
-
-
-  #
-  # This method sends a reset message to all connected nodes
-  #
-  def sendReset()
-    reset_cmd = getCmdObject(:RESET)
-    reset_cmd.target = "*"
-    sendCmdObject(reset_cmd)
-  end
-
-  #
-  # This sends a NOOP to the /Domain/System/IPaddress
-  # node to overwrite the last buffered YOUARE
-  #
-  # - name = name of the node to receive the NOOP
-  #
-  def sendNoop(name)
-    noop_cmd = getCmdObject(:NOOP)
-    noop_cmd.target = name
-    sendCmdObject(noop_cmd)
-  end
-
-  #
-  # This method is called when a node is removed from
-  # an experiment. First, it resets the node to
-  # unsubscribe it from the experiment-related
-  # PubSub nodes, and then removes its PubSub node.
-  #
-  # - name = name of the node to remove
-  #
-  def removeNode(name)
-    send!("RESET", "#{@@psGroupExperiment}/#{name}")
-    @@service.remove_pubsub_node("#{@@psGroupExperiment}/#{name}")
-  end
-
-  #
-  # This method adds a node to an existing/new group
-  # (a node can belong to multiple groups)
-  #
-  # - nodeName = name of the node 
-  # - groupName =  name (or an array or names) of the group(s) to add the node to
-  #
-  def addToGroup(nodeName, groupName)
-    @@service.create_pubsub_node("#{@@psGroupExperiment}/#{groupName}")
-  end
-
   #
   # This method is called when the experiment is finished or cancelled
   #
-  def quit()
-    @@service.remove_all_pubsub_nodes
-    @@service.quit
+  def stop
+    @@xmppServices.remove_all_pubsub_nodes(:slice)
+    @@xmppServices.stop
   end
 
   #
@@ -164,7 +111,7 @@ class ECPubSubTransport < OMFPubSubTransport
   # Refer to OmfCommandObject for a full description of the Command Object
   # parameters.
   #
-  def sendCmdObject(cmdObj)
+  def send_command(cmdObj)
     cmdObj.sliceID = @@sliceID
     cmdObj.expID = @@expID
     target = cmdObj.target
@@ -175,170 +122,93 @@ class ECPubSubTransport < OMFPubSubTransport
     # before being sent to the Resource Controllers
     case cmdType
     when :ENROLL
-      # ENROLL messages are sent to the branch psGroupResource
-      # create the experiment pubsub group so the node can subscribe to it
-      # after receiving the ENROLL message
-      psGroup = "#{@@psGroupExperiment}/#{target}"
-      @@service.create_pubsub_node(psGroup)
-      send!(msg, "#{@@psGroupResource}/#{target}")
+      # 1st create the pubsub node for this resource under the Experiment branch
+      # (so that the resource can subscribe to it after receiving the ENROLL)
+      newPubSubNode = "#{exp_node(@@sliceID, @@expID)}/#{target}"
+      @@xmppServices.create_pubsub_node(newPubSubNode, :slice)
+      # 2nd send the message to the Resource branch of the Slice branch
+      send(msg, res_node(@@sliceID,target), :slice)
       return
     when :NOOP
-      # NOOP are also sent to the branch psGroupResource
-      send!(msg, "#{@@psGroupResource}/#{target}")
+      # NOOP is also sent to the Resource branch of the Slice branch
+      send(msg, res_node(@@sliceID,target), :slice)
       return
     when :ALIAS
       # create the pubsub group for this alias 
-      @@service.create_pubsub_node("#{@@psGroupExperiment}/#{cmdObj.name}")
+      newPubSubNode = "#{exp_node(@@sliceID, @@expID)}/#{cmdObj.name}"
+      @@xmppServices.create_pubsub_node(newPubSubNode, :slice)
     end
 	    
-    # Now send this command to the relevant PubSub group in the experiment branch
+    # Now send this command to the relevant PubSub Node in the Experiment branch
     if (target == "*")
-      send!(msg, "#{@@psGroupExperiment}")
-      #send!(msg.to_s, "#{@@psGroupExperiment}")
+      send(msg, exp_node(@@sliceID, @@expID), :slice)
     else
       targets = target.split(' ')
       targets.each {|tgt|
-        send!(msg, "#{@@psGroupExperiment}/#{tgt}")
+        send(msg, "#{exp_node(@@sliceID, @@expID)}/#{tgt}", :slice)
       }
     end
   end
-  
-  #############################################################################################################  
-  #############################################################################################################  
-  #############################################################################################################
-      
+
+  #
+  # This sends a NOOP to the resource's node to overwrite the last buffered 
+  # ENROLL message
+  #
+  # - name = name of the node to receive the NOOP
+  #
+  def send_noop(name)
+    noop_cmd = new_command(:NOOP)
+    noop_cmd.target = name
+    send_command(noop_cmd)
+  end
+
   private
-     
-  def send!(message, dst)
-    # Sanity checks...
-    if (message.length == 0) then
-      error "send! - detected attempt to send an empty message"
-      return
+         
+  def valid_command?(cmdObject)
+
+    # Perform some checking...
+    # - Ignore commands from ourselves or another EC
+    return false if cmdObject.ec_cmd?
+    # - Ignore commands that are not known RC commands
+    if !cmdObject.rc_cmd?
+      debug "Received unknown command '#{cmdObject.cmdType}' - ignoring it!" 
+      return false
     end
-    if (dst.length == 0 ) then
-      error "send! - empty destination"
-      return
+    # - Ignore commands for/from unknown Slice and Experiment ID
+    if (cmdObject.sliceID != @@sliceID) || (cmdObject.expID != @@expID)
+      debug "Received command with unknown slice and exp IDs: "+
+            "'#{cmdObject.sliceID}' and '#{cmdObject.expID}' - ignoring it!" 
+      return false
     end
-    # Build Message
-    item = Jabber::PubSub::Item.new
-    msg = Jabber::Message.new(nil, message)
-    item.add(msg)
-  
-    # Send it
-    debug("Send to '#{dst}' - msg: '#{message}'")
-    begin
-      @@service.publish_to_node("#{dst}", item)        
-    rescue Exception => ex
-      error "Failed sending to '#{dst}' - msg: '#{message}' - error: '#{ex}'"
+    # - Ignore commands from unknown RCs
+    if (Node[cmdObject.target] == nil)
+      debug "Received command with unknown target '#{cmdObject.target}'"+
+            " - ignoring it!"
+      return false
     end
+    return true
   end
-      
-  #
-  # Process an incoming message from the EC. This method is called by the
-  # callback hook, which was set up in the 'start' method of this Communicator.
-  # First, we parse the PubSub event to extract the XML message.
-  # Then, we check if this message contains a command which should trigger some
-  # Communicator-specific actions.
-  # Finally, we pass this command up to the Resource Controller for further processing.
-  # The Payload of the received message should be an XML representation of an 
-  # OMF Command Object
-  #
-  # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
-  #
-  def execute_command (event)
-
-    begin
-      # CHECK - Ignore this 'event' if it doesnt have any 'items' element
-      # These are notification messages from the PubSub server
-      return if event.first_element("items") == nil
-      return if event.first_element("items").first_element("item") == nil
-      
-      # Retrieve the incoming PubSub Group of this message 
-      incomingPubSubNode =  event.first_element("items").attributes['node']
-
-      # Retrieve the Command Object from the received message
-      eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
-      xmlMessage = nil
-      eventBody.each_element { |e| xmlMessage = e }
-      # CHECK - Ignore events without XML payloads
-      return if xmlMessage == nil 
-      cmdObj = OmfCommandObject.new(xmlMessage)
-
-      # CHECK - Ignore commands from ourselves or another EC
-      if VALID_EC_COMMANDS.include?(cmdObj.cmdType) 
-        return
-      end
-      # CHECK - Ignore commands that are not known RC commands
-      if !VALID_RC_COMMANDS.include?(cmdObj.cmdType)
-        debug "Received command with unknown type: '#{cmdObj.cmdType}' - ignoring it!" 
-        return
-      end
-      # CHECK - Ignore commands for/from unknown Slice and Experiment ID
-      if (cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID)
-        debug "Received command with unknown slice/exp IDs: '#{cmdObj.sliceID}/#{cmdObj.expID}' - ignoring it!" 
-        return
-      end
-      # CHECK - Ignore commands from unknown RCs
-      if (Node[cmdObj.target] == nil)
-        debug "Received command with unknown target: '#{cmdObj.target}' - ignoring it!"
-        return
-      end
-
-      debug "Received on '#{incomingPubSubNode}' - msg: '#{xmlMessage.to_s}'"
-      # Some commands need to trigger actions on the Communicator level
-      # before being passed on to the Experiment Controller
-      begin
-        case cmdObj.cmdType
-        when :ENROLLED
-          # when we receive the first ENROLL, send a NOOP message to the NA. This is necessary
-          # since if NA is reset or restarted, it would re-subscribe to its system PubSub node and
-          # would receive the last command sent via this node (which is ENROLL if we don't send NOOP)
-          # from the PubSub server (at least openfire works this way). It would then potentially
-          # try to subscribe to nodes from a past experiment.
-          sendNoop(cmdObj.target) if !Node[cmdObj.target].isUp
-        end
-      rescue Exception => ex 
-        error "Failed to process XML message: '#{xmlMessage.to_s}' - Error: '#{ex}'"
-      end
-
-      # Now pass this command to the Resource Controller
-      processCommand(cmdObj)
-      return
-
-    rescue Exception => ex
-      error "Unknown/Wrong incoming message: '#{xmlMessage}' - Error: '#{ex}'"
-      error "(Received on '#{incomingPubSubNode}')" 
-      return
-    end
-
-  end
-
-   #
-   # This method processes the command comming from an agent
-   #
-   #  - argArray = command line parsed into an array
-   #
-   def processCommand(cmdObj)
-
-    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
-
-    # Retrieve the command
-    method = nil
-    begin
-      method = AgentCommands.method(cmdObj.cmdType.to_s)
-    rescue Exception
-      error "Unknown command '#{cmdObj.cmdType}'"
-      return
-    end
-    # Execute the command
-    begin
-      reply = method.call(self, Node[cmdObj.target], cmdObj)
-    rescue Exception => err
-      error "While processing command '#{cmdObj.cmdType}': #{err}"
-      error "Trace: #{err.backtrace.join("\n")}" 
-      return
-    end
-
-   end
     
+  def execute_transport_specific(cmdObject)
+    # Some commands need to trigger actions on the Communicator level
+    # before being passed on to the Experiment Controller
+    begin
+      case cmdObject.cmdType
+      when :ENROLLED
+        # when we receive the first ENROLL, send a NOOP message to the NA. 
+        # This is necessary since if NA is reset or restarted, it would 
+        # re-subscribe to its system PubSub node and would receive the last 
+        # command sent via this node (which is ENROLL if we don't send NOOP)
+        # from the PubSub server (at least openfire works this way). It would 
+        # then potentially try to subscribe to nodes from a past experiment.
+        send_noop(cmdObject.target) if !Node[cmdObject.target].isUp
+      end
+    rescue Exception => ex 
+      error "Failed to execute transport-specific tasks for command: "+
+            "'#{cmdObject.to_s}'"
+      error "Error: '#{ex}'"
+      return
+    end
+  end
+
 end #class

@@ -47,6 +47,7 @@ class RCPubSubTransport < OMFPubSubTransport
   def self.init(comms, opts, slice, name)
     super()
     # So RC-specific initialisation tasks...
+    @@expID = nil
     @@communicator = comms
     @@myName = name
     @@sliceID = slice
@@ -63,14 +64,13 @@ class RCPubSubTransport < OMFPubSubTransport
     # If the PubSub nodes for our slice is hosted on a Remote PubSub Server
     # and not on our Home one, then we need to add another PubSub service to 
     # interact with this remote server
-    #
-    # TODO: IF not we need to do :slice = :home (FIXME)
-    #
     if @@homeServer != @@remoteServer
       @@xmppServices.add_new_service(:slice, @@remoteServer) { |event|
         @@queue << event
       }         
     else
+      @@xmppServices.add_service_alias(:home, :slice)
+    end
   end
   
   def connect(user, pwd, server)
@@ -93,103 +93,8 @@ class RCPubSubTransport < OMFPubSubTransport
       end
     end
 
-  end
-
-
-  #
-  # Configure and start the Communicator.
-  # This method instantiates a PubSub Service Helper, which will connect to the
-  # PubSub server, and handle all the communication from/towards this server.
-  # This method also sets the callback method, which will be called upon incoming
-  # messages. 
-  #
-  # - pubsub = [Hash], a Hash with the following 3 [key, value]
-  #            -- xmpp_server, JabberID suffix, this is the full host/domain name of 
-  #                         the PubSub server, e.g. 'norbit.npc.nicta.com.au'. 
-  #            -- xmpp_user, the username to use to connect to the server 
-  #            -- xmpp_pwd, the password to use to connect to the server 
-  #            IF user is not set, the RC will register a new user for itself
-  #            (this will only work if the PubSub server is set to accept open registration)
-  #
-  #def start(jid_suffix)
-  def start(opts)
-    # Open a connection to the Home PubSub Server
-    begin
-      debug "Connecting to PubSub Server '#{@@homeServer}' as user '#{user}'"
-      @@xmppServices = OmfXMPPServices.new(expID, password, @@homeServer)
-      # Start our Event Callback, which will process Events from
-      # the nodes we will subscribe to
-      @@service.add_event_callback { |event|
-        @queue << event
-      }
-    rescue Exception => ex
-      error "Failed to initialise PubSub service! - Error: '#{ex}'"
-      exit # No need to cleanUp, as this RC has not done anything yet...
-    end
-    
-    # keep the connection to the PubSub server alive by sending a ping every hour
-    # otherwise clients will be listed as "offline" in Openfire after a timeout
-    Thread.new do
-      while true do
-        sleep PING_INTERVAL
-        debug("Sending a ping to the XMPP server (keepalive)")
-        @@service.ping        
-      end
-    end
-    
-    # Set useful PubSub Node Prefixes
-    @@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created upon slice instantiation
-    @@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created upon slice instantiation
-  end
-
-    #
-  # Create a new Communicator 
-  #
-  def initialize ()
-    @@service = nil
-    @@IPaddr = nil
-    @@systemNode = nil
-    @@expID = nil
-    @@psGroupSlice = nil
-    @@psGroupResource = nil
-    @@psGroupExperiment = nil
-
-    start(NodeAgent.instance.config[:comm])
-    #start(NodeAgent.instance.config[:comm][:xmpp_server])
-  end
-  
-
-  #
-  # Reset this Communicator
-  #
-  def reset
-    @@expID = nil
-    # Leave all Pubsub nodes that we might have joined previously 
-    @@service.leave_all_pubsub_nodes
-    # Re-subscribe to the 'Slice/Resource' Pubsub group for this node
-    group = "#{@@psGroupResource}/#{@@myName}"
-    while (!@@service.join_pubsub_node(group))
-       debug "PubSub group '#{group}' does not exist on the server - retrying in #{RETRY_INTERVAL} sec"
-       sleep RETRY_INTERVAL
-    end
-    debug "Joined PubSub group: '#{group}'"
-  end
-  
-  #
-  # Unsubscribe from all nodes
-  # Delete the PubSub user
-  # Disconnect from the PubSub server
-  # This will be called when the node shuts down
-  #
-  def quit
-    @@service.quit
-  end
-  
-  #
-  # Send a heartbeat back to the EC
-  #
-  def sendHeartbeat()
-    send!(0, :HB, -1, -1, -1, -1)
+    #@@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created @ slice 
+    #@@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created @ slice 
   end
 
   #
@@ -204,13 +109,54 @@ class RCPubSubTransport < OMFPubSubTransport
   # Refer to OmfCommandObject for a full description of the Command Object
   # parameters.
   #
-  def sendCmdObject(cmdObj)
+  def send_command(cmdObj)
+    if !@@sliceID || !@@expID || !@@myName
+      raise "Cannot send a command because Slice, ExpID, or Node Name are nil!"
+    end
     cmdObj.sliceID = @@sliceID
     cmdObj.expID = @@expID
     msg = cmdObj.to_xml
-    send!(msg)
+    send(msg, my_node, :slice)
   end
       
+  def my_node
+    return "#{exp_node(@@sliceID,@@expID)}/#{@@myName}"
+  end
+
+  #
+  # Reset this Communicator
+  #
+  def reset
+    @@expID = nil
+    # Leave all Pubsub nodes that we might have joined previously 
+    @@xmppServices.leave_all_pubsub_nodes(:slice)
+    # Re-subscribe to the 'Slice/Resource' Pubsub group for this node
+    group = res_node(@@sliceID, @@myName)
+    while (!@@xmppServices.join_pubsub_node(group, :slice))
+       debug "PubSub group '#{group}' does not exist on the server"+
+	     " - retrying in #{RETRY_INTERVAL} sec"
+       sleep RETRY_INTERVAL
+    end
+    debug "Joined PubSub group '#{group}'"
+  end
+  
+  #
+  # Unsubscribe from all nodes
+  # Delete the PubSub user
+  # Disconnect from the PubSub server
+  # This will be called when the node shuts down
+  #
+  def stop
+    @@xmppServices.stop
+  end
+  
+  #
+  # Send a heartbeat back to the EC
+  #
+  def sendHeartbeat()
+    send!(0, :HB, -1, -1, -1, -1)
+  end
+
   private
      
   #
@@ -218,29 +164,27 @@ class RCPubSubTransport < OMFPubSubTransport
   #
   # - groups = an Array containing the name (Strings) of the group to subscribe to
   #
-  def join_groups (groups)
-    
+  def join_groups(groups)
     toAdd = Array.new
-    
     # Subscribe to a particular PubSub Group
     if groups.kind_of?(String)
       toAdd << groups
     # Subscribe to a list of PubSub sub-Groups under the Experiment Group
     elsif groups.kind_of?(Array)
-      if (@@psGroupExperiment == nil)
-        error "Tried to join a list of PubSub group, but the Experiment ID has not been set yet!"
+      if (@@expID == nil)
+        error "Tried to join a list of PubSub group, but the Experiment ID"+
+	      " has not been set yet!"
 	return false
       else
-        groups.each { |g| toAdd << "#{@@psGroupExperiment}/#{g.to_s}" }
+        groups.each { |g| toAdd << "#{exp_node(@@sliceID,@@expID)}/#{g.to_s}" }
       end
     else
-      error "Unknown cmdType of PubSub groups to join!"
+      error "Unknown type of PubSub node to join!"
       return false
     end
-
     # Now subscribe to all the PubSub groups 
     toAdd.each { |psGroup|
-      if @@service.join_pubsub_node(psGroup)
+      if @@xmppServices.join_pubsub_node(psGroup, :slice)
         debug "Subscribed to PubSub node: '#{psGroup}'"
 	return true
       else
@@ -250,123 +194,69 @@ class RCPubSubTransport < OMFPubSubTransport
     }
   end
       
-  #
-  # Send a message to the EC
-  #
-  # - seqNo = sequence number of the message to send
-  # - msgArray = the array of text to send
-  #
-  def send!(message)
-    # Sanity checks...
-    if (message == nil) || (message.length == 0) 
-      error "send! - detected attempt to send an empty message"
-      return
-    end
-    # Build Message  
-    item = Jabber::PubSub::Item.new
-    msg = Jabber::Message.new(nil, message)
-    item.add(msg)
-
-    # Send it
-    dst = "#{@@psGroupExperiment}/#{@@myName}"
-    debug("Send (#{dst}) - msg: '#{message}'")
-    begin
-      @@service.publish_to_node("#{dst}", item)        
-    rescue Exception => ex
-      error "Failed sending to '#{dst}' - msg: '#{message}' - error: '#{ex}'"
-    end
-  end
       
-  #
-  # Process an incoming message from the EC. This method is called by the
-  # callback hook, which was set up in the 'start' method of this Communicator.
-  # First, we parse the message to extract the command and its arguments.
-  # Then, we check if this command should trigger some Communicator-specific actions.
-  # Finally, we pass this command up to the Node Agent for further processing.
-  # The Payload of the received message should be an XML representation of an 
-  # OMF Command Object
-  #
-  # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
-  #
-  def execute_command (event)
-    begin
-      # CHECK - Ignore this 'event' if it doesnt have any 'items' element
-      # These are notification messages from the PubSub server
-      return if event.first_element("items") == nil
-      return if event.first_element("items").first_element("item") == nil
+  def valid_command?(cmdObject)
+    # Perform some checking...
+    # - Ignore commands from ourselves or another RC
+    return false if cmdObject.rc_cmd?
+    # - Ignore commands that are not known EC commands
+    if !cmdObject.ec_cmd?
+      debug "Received unknown command '#{cmdObject.cmdType}' - ignoring it!" 
+      return false
+    end
+    # - Ignore commands for/from unknown Slice and Experiment ID
+    if (cmdObject.cmdType != :ENROLL) && 
+       ((cmdObject.sliceID != @@sliceID) || (cmdObject.expID != @@expID))
+      debug "Received command with unknown slice and exp IDs: "+
+            "'#{cmdObject.sliceID}' and '#{cmdObject.expID}' - ignoring it!" 
+      return false
+    end
+    # - Ignore commands that are not address to us 
+    # (There may be multiple space-separated targets)
+    targets = cmdObject.target.split(' ') 
+    isForMe = false
+    targets.each { |t| 
+       isForMe = true if NodeAgent.instance.agentAliases.include?(t) 
+     }
+     if !isForMe
+       debug "Received command with unknown target '#{cmdObject.target}'"+
+             " - ignoring it!" 
+       return false
+    end
+    return true
+  end
 
-      # Retrieve the incoming PubSub Group of this message 
-      incomingPubSubNode =  event.first_element("items").attributes['node']
-
-      # Retrieve the Command Object from the received message
-      eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
-      xmlMessage = nil
-      eventBody.each_element { |e| xmlMessage = e }
-      # CHECK - Ignore events without XML payloads
-      return if xmlMessage == nil 
-      cmdObj = OmfCommandObject.new(xmlMessage)
-
-      # CHECK - Ignore commands from ourselves or another RC
-      if VALID_RC_COMMANDS.include?(cmdObj.cmdType)
-        #debug "Command from a Resource Controller (cmdType: '#{cmdObj.cmdType}') - ignoring it!" 
-        return
-      end
-      # CHECK - Ignore commands that are not known EC commands
-      if !VALID_EC_COMMANDS.include?(cmdObj.cmdType)
-        debug "Received command with unknown type: '#{cmdObj.cmdType}' - ignoring it!" 
-        return
-      end
-      # CHECK - Ignore commands for/from unknown Slice and Experiment ID
-      if (cmdObj.cmdType != :ENROLL) && ((cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID))
-        debug "Received command with unknown slice/exp IDs: '#{cmdObj.sliceID}'/'#{cmdObj.expID}' - ignoring it!" 
-        return
-      end
-      # CHECK - Ignore commands that are not address to us 
-      targets = cmdObj.target.split(' ') # There may be multiple space-separated targets
-      isForMe = false
-      targets.each { |t| isForMe = true if NodeAgent.instance.agentAliases.include?(t) }
-      if !isForMe
-        debug "Received command with unknown target: '#{cmdObj.target}' - ignoring it!" 
-        return
-      end
-
-
-      debug "Received (#{incomingPubSubNode}) - '#{xmlMessage.to_s}'"
+  def execute_transport_specific(cmdObject)
       # Some commands need to trigger actions on the Communicator level
       # before being passed on to the Resource Controller
       begin
-        case cmdObj.cmdType
+        case cmdObject.cmdType
         when :ENROLL
           # Subscribe to the Experiment PubSub group 
           # and the Node's PubSub group under the experiment
 	  if !NodeAgent.instance.enrolled
-            @@expID = cmdObj.expID
+            @@expID = cmdObject.expID
             debug "Experiment ID: '#{@@expID}'"
-	    @@psGroupExperiment = "#{@@psGroupSlice}/#{@@expID}"
-            if !join_groups(@@psGroupExperiment) || !join_groups("#{@@psGroupExperiment}/#{@@myName}") 
+            if !join_groups(exp_node(@@sliceID, @@expID)) || 
+	       !join_groups(my_node) 
               error "Failed to Process ENROLL command!"
-              error "Maybe this is an ENROLL from a previous experiment, thus ignoring it!"
+              error "Maybe this is an ENROLL from an old experiment - ignoring it!"
               return
             end
+	  else
+	    debug "Received ENROLL, but I am already ENROLLED! - ignoring it!"
+	    return
           end
         when :ALIAS
-          join_groups(cmdObj.name.split(' '))
+          join_groups(cmdObject.name.split(' '))
         when :NOOP
           return # NOOP is not sent to the Resource Controller
         end
       rescue Exception => ex 
-        error "Failed to process XML message: '#{xmlMessage}' - Error: '#{ex}'"
+        error "Failed to execute transport-specific tasks for command: "+
+              "'#{cmdObject.to_s}'"
+        error "Error: '#{ex}'"
       end
-
-      # Now pass this command to the Resource Controller
-      NodeAgent.instance.execCommand(cmdObj)
-      return
-
-    rescue Exception => ex
-      error "Unknown incoming message: '#{xmlMessage.to_s}' - Error: '#{ex}'"
-      error "(Received on '#{incomingPubSubNode}')" 
-      return
-    end
   end
 
 end #class

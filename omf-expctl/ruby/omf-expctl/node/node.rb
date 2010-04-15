@@ -365,7 +365,7 @@ class Node < MObject
     @groups[group] = false 
     TraceState.nodeAddGroup(self, group)
 
-    alias_cmd = Communicator.instance.getCmdObject(:ALIAS)
+    alias_cmd = ECCommunicator.instance.new_command(:ALIAS)
     alias_cmd.target = @nodeId
     alias_cmd.name = group
     send(alias_cmd)
@@ -453,7 +453,7 @@ class Node < MObject
     info("- Saving image of '#{disk}' on node '#{@nodeId}'")
     info("  to the file '#{imgName}' on host '#{imgHost}'")
     info " "
-    save_cmd = Communicator.instance.getCmdObject(:SAVE_IMAGE)
+    save_cmd = ECCommunicator.instance.new_command(:SAVE_IMAGE)
     save_cmd.target = @nodeId
     save_cmd.address = imgHost
     save_cmd.port = imgPort
@@ -468,7 +468,7 @@ class Node < MObject
   #
   def setMACTable(toolToUse)
     @blockedMACList.each{ |mac|
-      mac_cmd = Communicator.instance.getCmdObject(:SET_MACTABLE)
+      mac_cmd = ECCommunicator.instance.new_command(:SET_MACTABLE)
       mac_cmd.target = @nodeId
       mac_cmd.cmd = toolToUse
       mac_cmd.address = mac
@@ -567,11 +567,11 @@ class Node < MObject
   #
   def enroll()
     desiredImage = @image.nil? ? "*" : @image
-    enroll_cmd = Communicator.instance.getCmdObject(:ENROLL)
+    enroll_cmd = ECCommunicator.instance.new_command(:ENROLL)
     enroll_cmd.expID = Experiment.ID
     enroll_cmd.image = desiredImage
     enroll_cmd.target = @nodeId
-    Communicator.instance.sendCmdObject(enroll_cmd)
+    ECCommunicator.instance.send_command(enroll_cmd)
   end
 
   #
@@ -742,11 +742,11 @@ class Node < MObject
   #
   # When a node is being removed from all topologies, the Topology
   # class calls this method to notify it. The removed node propagates
-  # this notification to the Communicator.instance.instance and also to the NodeSets which
+  # this notification to the ECCommunicator.instance.instance and also to the NodeSets which
   # it belongs to.
   #
   def notifyRemoved()
-    Communicator.instance.send_reset(@nodeId)
+    ECCommunicator.instance.send_reset(@nodeId)
     setStatus(STATUS_DOWN)
     changed
     notify_observers(self, :node_is_removed)
@@ -850,7 +850,7 @@ class Node < MObject
   def send(cmdObj)
     if @nodeStatus == STATUS_UP
       cmdObj.target = @nodeId
-      Communicator.instance.sendCmdObject(cmdObj)
+      ECCommunicator.instance.send_command(cmdObj)
     else
       debug "Deferred message: '#{cmdObj.to_s}'"
       @deferred << cmdObj

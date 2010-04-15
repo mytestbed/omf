@@ -230,7 +230,7 @@ class AppDefinition < MObject
         # This Property is a Dynamic Experiment Property...
         if value.kind_of?(ExperimentProperty)
           value.onChange { |v|
-            stdin_cmd = Communicator.instance.getCmdObject(:STDIN)
+            stdin_cmd = ECCommunicator.instance.new_command(:STDIN)
             stdin_cmd.appID = appId
             stdin_cmd.value = "#{prop.name} #{v}"
             nodeSet.send(stdin_cmd)

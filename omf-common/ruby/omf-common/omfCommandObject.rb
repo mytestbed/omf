@@ -102,10 +102,10 @@ class OmfCommandObject
   #
   # Create a new Command Object
   #
-  # - initValue = if a String or Symbol, then create an empty Command Object, with its
-  #               command type set to the String/Symbol
-  #               if an XML stanza, then create a new Command Object based on the
-  #               XML description
+  # - initValue = if a String or Symbol, then create an empty Command Object, 
+  #               with its command type set to the String/Symbol
+  #               if an XML stanza, then create a new Command Object based on 
+  #               the XML description
   #
   #  [Return] a new Command Object
   #
@@ -119,7 +119,8 @@ class OmfCommandObject
     elsif initValue.kind_of?(REXML::Parent)
       init_from_xml(initValue)
     else
-      raise "Cannot create a OmfCommandObject! Unknown initial value (type: '#{initValue.class}')"
+      raise "Cannot create a OmfCommandObject! Unknown initial value "+
+            "(type: '#{initValue.class}')"
     end
   end
 
@@ -131,8 +132,12 @@ class OmfCommandObject
   #   <TARGET>source</TARGET>
   #   <APPID>test_app_otg2</APPID>
   #   <PATH>/usr/bin/otg2</PATH>
-  #   <ARGSLINE>--udp:dst_host 192.168.0.3 --udp:local_host 192.168.0.2</ARGSLINE>
-  #   <ENV>OML_SERVER=tcp:10.0.0.200:3003 OML_EXP_ID=sandbox1 OML_NAME=source </ENV>
+  #   <ARGSLINE>
+  #     --udp:dst_host 192.168.0.3 --udp:local_host 192.168.0.2
+  #   </ARGSLINE>
+  #   <ENV>
+  #     OML_SERVER=tcp:10.0.0.200:3003 OML_EXP_ID=sandbox1 OML_NAME=source 
+  #   </ENV>
   #   <OML_CONFIG>
   #     <omlc id='source' exp_id='sandbox1_2009_09_07_09_52_10'>
   #     <collect url='tcp:10.0.0.200:3003'>
@@ -150,8 +155,9 @@ class OmfCommandObject
     msg << REXML::Element.new("#{@attributes[:CMDTYPE].to_s}")
     # For each attribute of this Command Object, create the required XML element
     @attributes.each { |k,v|
-      # For the OML Config attribute, add the value as an XML element to the XML to return
-      #if (k == :OMLCONFIG) && (v != nil)
+      ## For the OML Config attribute, add the value as an XML element to the XML 
+      ## to return
+      ## if (k == :OMLCONFIG) && (v != nil)
       # If this attribute value is an XML Element, then add it as is to the 
       # resulting XML element
       if (v != nil) && (v.kind_of?(REXML::Element))
@@ -172,18 +178,22 @@ class OmfCommandObject
   # - xmlDoc = an xml document (REXML::Document) object
   #
   def init_from_xml(xmlDoc)
-    # Set the Type
-    @attributes[:CMDTYPE] = xmlDoc.expanded_name.to_sym
-    # Parse the XML object
-    xmlDoc.each_element { |e|
-      # For the OMLCONFIG tag, add the XML value to this Command Object
-      if e.expanded_name.upcase.to_sym == :OMLCONFIG
-        @attributes[e.expanded_name.upcase.to_sym] = e
-      # For the other tags, add the text value to this Command Object
-      else
-        @attributes[e.expanded_name.upcase.to_sym] = e.text
-      end
-    }
+    begin
+      # Set the Type
+      @attributes[:CMDTYPE] = xmlDoc.expanded_name.to_sym
+      # Parse the XML object
+      xmlDoc.each_element { |e|
+        # For the OMLCONFIG tag, add the XML value to this Command Object
+        if e.expanded_name.upcase.to_sym == :OMLCONFIG
+          @attributes[e.expanded_name.upcase.to_sym] = e
+        # For the other tags, add the text value to this Command Object
+        else
+          @attributes[e.expanded_name.upcase.to_sym] = e.text
+        end
+      }
+    rescue Exception => ex
+      raise "Failed to create new OmfCommandObject from XML"
+    end
   end
 
   #
