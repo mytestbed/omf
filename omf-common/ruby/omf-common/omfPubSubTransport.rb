@@ -45,34 +45,29 @@ class OMFPubSubTransport < MObject
   @@instance = nil
 
   # Names for constant PubSub nodes
-  DOMAIN = "OMF"
+  PUBSUB_ROOT = "OMF"
   RESOURCE = "resources"
   SYSTEM = "system"
   DEFAULT_PUBSUB_PWD = "123456"
   RETRY_INTERVAL = 10
 
   def slice_node(slice)
-    "/#{DOMAIN}/#{slice}"
+    "/#{PUBSUB_ROOT}/#{slice}"
   end
 
-  def exp_node(slice, experiment)
-    "#{slice_node(slice)}/#{experiment}"
+  def exp_node(slice, experiment, name = nil)
+    return "#{slice_node(slice)}/#{experiment}/#{name}" if name
+    return "#{slice_node(slice)}/#{experiment}"
   end
 
   def res_node(slice, resource = nil)
-    if resource == nil
-      "#{slice_node(slice)}/#{RESOURCE}"
-    else
-      "#{resources_node(slice)}/#{resource}"
-    end
+    return "#{resources_node(slice)}/#{resource}" if resource
+    return "#{slice_node(slice)}/#{RESOURCE}"
   end
 
   def sys_node(resource = nil)
-    if resource == nil
-      "/#{DOMAIN}/#{SYSTEM}"
-    else
-      "#{system_node}/#{resource}"
-    end
+    return "#{sys_node}/#{resource}" if resource
+    return "/#{PUBSUB_ROOT}/#{SYSTEM}"
   end
 
   def sys_node?(node_name)
@@ -83,23 +78,22 @@ class OMFPubSubTransport < MObject
     end
   end
 
+  def addr_to_node(addr)
+    node = ""
+    if addr.sliceID && addr.expID 
+      return exp_node(addr.sliceID, addr.expID, addr.name)
+    elsif addr.sliceID 
+      return res_node(addr.sliceID, addr.name)
+    else
+      raise "OMFPubSubTransport - Cannot build node from address '#{addr.to_s}'"
+    end
+  end
+
   def self.instance
     @@instance
   end
 
-  def self.init
-    raise "PubSub Transport already started" if @@instance
-    @@instance = self.new
-    @@communicator = nil
-    @@queue = Queue.new
-    Thread.new {
-      while event = @@queue.pop
-        execute_command(event)
-      end
-    }
-  end
-
-  #
+    #
   # This method instantiates a PubSub Service Helper, which will connect to the
   # PubSub server, and handle all the communication from/towards this server.
   # This method also sets the callback method, which will be called upon incoming
@@ -110,23 +104,80 @@ class OMFPubSubTransport < MObject
   # - password = [String], password to use for this PubSud client
   # - control_interface = [String], the interface connected to Control Network
   #
-  def connect(user, pwd, server)  
-    # Open a connection to the Home PubSub Server
-    begin
-      debug "Connecting to PubSub Server '#{server}' as user '#{user}'"
-      @@xmppServices = OmfXMPPServices.new(user, pwd, server)
-    rescue Exception => ex
-      error "Failed to connect to Home PubSub Server '#{server}'!"
-      error "Error: '#{ex}'"
-      exit
+  def self.init(opts)
+    raise "PubSub Transport already started" if @@instance
+    @@instance = self.new
+    @@queues = Array.new
+    @@threads = Array.new
+    @@qcounter = 0
+    @@forceCreate = opts[:createflag]
+    @@myName = opts[:comms_name]
+    user = opts[:pubsub_user] || "#{@@myName}-#{@@sliceID}-#{@@expID}"
+    pwd = opts[:pubsub_pwd] || DEFAULT_PUBSUB_PWD
+    @@psGateway = opts[:pubsub_gateway]
+    if !@@psGateway
+      raise "OMFPubSubTransport - Missing 'pubsub_gateway' parameter in "+
+            "this OMF entity configuration" 
     end
-    # Create a new Service to interact with our Home PubSub Server
-    # When a new event comes from that server, we push it on our event queue
-    @@xmppServices.add_new_service(:home, server) { |event|
-      @@queue << event
-    }         
+    
+    # Open a connection to the Gateway PubSub Server
+    begin
+      debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
+      check_server_reachability(@@psGateway)
+      @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway)
+    rescue Exception => ex
+      raise "Failed to connect to Gateway PubSub Server '#{@@psGateway}' - "+
+            "Error: '#{ex}'"
+    end
+
+    # Keep the connection to the PubSub server alive by sending a ping at
+    # regular intervals hour, otherwise clients will be listed as "offline" 
+    # by the PubSub server (e.g. Openfire) after a timeout
+    Thread.new do
+      while true do
+        sleep PING_INTERVAL
+        debug("Sending a ping to the PubSub Gateway (keepalive)")
+        @@xmppServices.ping(@@psGateway)        
+      end
+    end
+    
+    return @@instance
   end
 
+  # NOTE: XMPP4R limitation - listening on 2 addr in the same domain - 
+  # the events of the 2 listens will be put in the same Q and process by the 
+  # same block, i.e. the queue and the block of the 1st call to listen!
+  def listen(addr, &block = nil)
+
+    node = addr_to_node(addr)
+    subscribed = false
+    index = 0
+    # When a new event comes from that server, we push it on our event queue
+    # if block has been given, create another queue and another thread 
+    # to process this listening
+    if block
+      index = @@qcounter
+      @@queues[index] << Queue.new
+      @@threads << Thread.new {
+        while event = @@queues[index].pop
+          execute_command(event, &block)
+        end
+      }
+      @@qcounter += 1
+    end      
+    subscribed = @@xmppServices.subscribe_to_node(node, addr.domain) { |event|
+        @@queues[index] << event
+    }         
+    if !subscribed && @@forceCreate
+      if @@xmppServices.create_node(node, addr.domain)
+	subscribed = listen(addr, &block)
+      else
+        raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
+              "on '#{addr.domain}'"
+      end
+    end
+    return subscribed
+  end
 
   #
   # Return a Command Object which will hold all the information required to send
@@ -138,8 +189,14 @@ class OMFPubSubTransport < MObject
   #
   # [Return] an OmfCommandObject of the specified type
   #
-  def new_command(type)
+  def create_command(type)
     return OmfCommandObject.new(type)
+  end
+
+  def create_address(addr = nil)
+    return PubSubAddress.new if !addr
+    return addr.clone if addr.kind_of?(PubSubAddress) 
+    raise "OMFPubSubTransport - Failed to create new address!"
   end
 
   #
@@ -155,19 +212,16 @@ class OMFPubSubTransport < MObject
   #
   # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
   #
-  def execute_command(event)
+  def execute_command(event, &block)
     # Retrieve the command from the event
     cmdObj = event_to_command(event)
     return if !cmdObj
 
-    # Perform some specific checks on the command
-    return if !valid_command?(cmdObj)
+    # Here we can perform some transport specific tasks 
+    # if required... 
 
-    # Perform some transport specific tasks associated with this command
-    execute_transport_specific(cmdObj)
-
-    # Pass the command to the communicator
-    @@communicator.process_command(cmdObj)
+    # Pass the command to our communicator
+    yield cmdObj
   end
 
   #
@@ -181,20 +235,26 @@ class OMFPubSubTransport < MObject
   # Refer to the OmfCommandObject class for a full description of the possible
   # attributes of a Command Object.
   #
-  def send_command(cmdObject)
-    raise unimplemented_method_exception("send_command")
+  def send_command(addr, cmdObject)
+    node = addr_to_node(addr)
+    domain = addr.domain
+    send(node, domain, cmdObject)
   end
 
-  def valid_command?(cmdObject)
-    raise unimplemented_method_exception("check_command_validity")
-  end 
-
-  def execute_transport_specific(cmdObject)
-    raise unimplemented_method_exception("execute_transport_specific")
-  end 
+  def reset
+    @@xmppServices.leave_all_nodes
+    @@threads.each { |t| t.exit }
+    @@queues = nil
+    @@threads = nil
+    @@queues = Array.new
+    @@threads = Array.new
+    @@qcounter = 0
+  end
 
   def stop
-    raise unimplemented_method_exception("stop")
+    @@xmppServices.remove_all_nodes if @@forceCreate
+    reset
+    @@xmppServices.stop
   end
 
   #
@@ -204,13 +264,13 @@ class OMFPubSubTransport < MObject
   # - dst = [String] the pubsub node to send the message to 
   # - serviceID = [String] ID of pubsub server hosting the node to send to 
   #
-  def send(message, dst, pubsubService)
+  def send(dst, domain, message)
     # Sanity checks...
-    if (message == nil) || (message.length == 0) 
+    if !message || (message.length == 0) 
       error "send - Ignore attempt to send an empty message"
       return
     end
-    if (dst == nil) || (dst.length == 0 ) 
+    if !dst || (dst.length == 0 ) 
       error "send - Ignore attempt to send message to nobody"
       return
     end
@@ -221,7 +281,7 @@ class OMFPubSubTransport < MObject
     # Send it
     debug("send - Send to '#{dst}' - msg: '#{message}'")
     begin
-      @@xmppServices.publish_to_node("#{dst}", item, serviceID)        
+      @@xmppServices.publish_to_node("#{dst}", domain, item)        
     rescue Exception => ex
       error "Failed sending to '#{dst}' on '#{serviceID}'"
       error "Failed msg: '#{message}'"
@@ -271,10 +331,17 @@ class OMFPubSubTransport < MObject
   end
 
 
-  def unimplemented_method_exception(method_name)
-    "PubSubTransport - Subclass '#{self.class}' must implement #{method_name}()"
+end
+
+class PubSubAddress 
+  @name = nil
+  @expID = nil
+  @sliceID = nil
+  @domain = nil
+  attr_accessor :name, :expID, :sliceID, :domain
+  def to_s
+    return "[name:'#{@name}', slice:'#{@sliceID}', "+
+            "exp:'#{@expID}', domain:'#{@domain}']"
   end
-
-
 end
 

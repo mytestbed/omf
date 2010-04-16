@@ -161,18 +161,19 @@ class OmfXMPPServices < MObject
   # - &bock = the block of commands that will process any event coming from that
   #           XMPP server
   #
-  def add_new_service(serviceID, serverID, &block)
+  def add_service(domain, &block = nil)
     begin
-      @serviceHelpers[serviceID] = OmfServiceHelper.new(@clientHelper, 
-                                                        "pubsub.#{serverID}")
+      @serviceHelpers[domain] = OmfServiceHelper.new(@clientHelper, 
+                                                     "pubsub.#{domain}")
     rescue  Exception => ex
-      raise "OmfXMPPServices - Failed to create service to '#{serverID}' "+
+      raise "OmfXMPPServices - Failed to create service to '#{domain}' "+
 	    "- Error: '#{ex}'"
     end
     begin
-      @serviceHelpers[serviceID].add_event_callback(&block)
+      @serviceHelpers[domain].add_event_callback(&block) if block
     rescue Exception => ex
-      raise "OmfXMPPServices - Failed to register event callback - Error: '#{ex}'"
+      raise "OmfXMPPServices - Failed to register event callback for domain "+
+            "'#{domain}' - Error: '#{ex}'"
     end
   end
 
@@ -185,23 +186,17 @@ class OmfXMPPServices < MObject
   #
   # [Return] a OmfServiceHelper object
   #
-  def service(serviceID)
-    serv = @serviceHelpers[:serviceID] 
+  def service(domain)
+    serv = @serviceHelpers[domain] 
     if !serv
-      raise "OmfXMPPServices - Unknown service '#{serviceID}'"
+      raise "OmfXMPPServices - Unknown domain '#{domain}'"
     end
     return serv
   end
 
-  #
-  # Create an alias for a give service helper.
-  # This is used for example when the 'home' XMPP server is also the one
-  # that holds the XMPP nodes for the slice. In such case, an alias allows
-  # the user of this Class to still use 'slice' as an ID, thus allowing more
-  # generic code.
-  #
-  def add_service_alias(src, dst)
-    @serviceHelpers[dst] = @serviceHelpers[src]
+  def service?(domain)
+    return true if @serviceHelpers[domain]    
+    return false
   end
 
   #
@@ -217,9 +212,10 @@ class OmfXMPPServices < MObject
   #
   # [Return] True/False
   #
-  def create_pubsub_node(node, serviceID)
+  def create_node(node, domain)
     begin
-      service(serviceID).create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
+      add_service(domain) if !service?(domain)
+      service(domain).create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
         "pubsub#title" => "#{node}",
         "pubsub#node_type" => "leaf",
         "pubsub#persist_items" => "1",
@@ -229,30 +225,8 @@ class OmfXMPPServices < MObject
     rescue Exception => ex
       # if the node exists we ignore the "conflict" exception
       return true if ("#{ex}" == "conflict: ")
-      raise "OmfXMPPServices - Failed creating node '#{node}'- Error: '#{ex}'"
-    end
-    # openfire subscribes us automatically, so this is just for ejabberd:
-    join_pubsub_node(node, serviceID)
-    return true
-  end
-
-  #
-  # Remove a PubSub node. 
-  # Do nothing if the PubSub node doesn't exist
-  #
-  # - node = [String] name of the node to remove
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
-  #               we want to remove this node
-  #
-  # [Return] True/False
-  #
-  def remove_pubsub_node(node, serviceID)
-    begin
-      service(serviceID).delete_node(node)
-    rescue Exception => ex
-      # if the PubSub node does not exist, we ignore the "not found" exception
-      return true if ("#{ex}" == "item-not-found: ")
-      raise "OmfXMPPServices - Failed removing node '#{node}'- Error: '#{ex}'"
+      raise "OmfXMPPServices - Failed creating node '#{node}' on domain "+
+            "#{domain} - Error: '#{ex}'"
     end
     return true
   end
@@ -265,17 +239,18 @@ class OmfXMPPServices < MObject
   # - serviceID = [String|Symbol] the serviceID for the the server on which
   #               we want to publish to this node
   #
-  def publish_to_node(node, item, serviceID)
+  def publish_to_node(node, domain, item)
     begin
-      service(serviceID).publish_item_to(node,item)
+      add_service(domain) if !service?(domain)
+      service(domain).publish_item_to(node, item)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
         debug "OmfXMPPServices - Failed publishing to unknown node '#{node}' "+
-              "on service '#{serviceID}'"
+              "on domain '#{domain}'"
         return false
       end
       raise "OmfXMPPServices - Failed publishing to node '#{node}' "+
-            "on service '#{serviceID}' - Error: '#{ex}'"
+            "on domain '#{domain}' - Error: '#{ex}'"
     end
     return true
   end
@@ -288,40 +263,18 @@ class OmfXMPPServices < MObject
   # - serviceID = [String|Symbol] the serviceID for the the server on which
   #               we want to publish to this node
   #
-  def join_pubsub_node(node, serviceID)
+  def subscribe_to_node(node, domain, &block)
     begin
-      service(serviceID).subscribe_to(node)
+      add_service(domain, &block) if !service?(domain)
+      service(domain).subscribe_to(node)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
         debug "OmfXMPPServices - Failed subscribing to unknown node '#{node}' "+
-              "on service '#{serviceID}'"
+              "on domain '#{domain}'"
         return false
       end
       raise "OmfXMPPServices - Failed subscribing to node '#{node}' "+
-            "on service '#{serviceID}' - Error: '#{ex}'"
-    end
-    return true
-  end
-
-  #
-  # Unsubscribe from a given PubSub node
-  #
-  # - node = [String] name of the PubSub node 
-  # - subid = the subscription ID for this PubSub node
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
-  #               we want to unsubscribe from this node
-  #
-  def leave_pubsub_node(node, subid, serviceID)
-    begin
-      service(serviceID).unsubscribe_from_fixed(node, subid)
-    rescue Exception => ex
-      if ("#{ex}"=="item-not-found: ")
-        debug "OmfXMPPServices - Failed unsubscribing to unknown node '#{node}' "+
-              "on service '#{serviceID}'"
-        return false
-      end
-      raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
-            "on service '#{serviceID}' - Error: '#{ex}'"
+            "on domain '#{domain}' - Error: '#{ex}'"
     end
     return true
   end
@@ -334,15 +287,38 @@ class OmfXMPPServices < MObject
   #
   # [Return] Hash of Strings
   #
-  def list_all_subscriptions(serviceID)
+  def list_all_subscriptions(domain)
     list = []
     begin
-      list = service(serviceID).get_subscriptions_from_all_nodes
+      list = service(domain).get_subscriptions_from_all_nodes
     rescue Exception => ex
       raise "OmfXMPPServices - Failed getting list of all subscribed nodes "+
-            "for service '#{serviceID}' - ERROR - '#{ex}'"
+            "for domain '#{domain}' - ERROR - '#{ex}'"
     end
     list
+  end
+
+  #
+  # Unsubscribe from a given PubSub node
+  #
+  # - node = [String] name of the PubSub node 
+  # - subid = the subscription ID for this PubSub node
+  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  #               we want to unsubscribe from this node
+  #
+  def leave_node(node, subid, domain)
+    begin
+      service(domain).unsubscribe_from_fixed(node, subid)
+    rescue Exception => ex
+      if ("#{ex}"=="item-not-found: ")
+        debug "OmfXMPPServices - Failed unsubscribing to unknown node '#{node}' "+
+              "on domain '#{domain}'"
+        return false
+      end
+      raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
+            "on domain '#{domain}' - Error: '#{ex}'"
+    end
+    return true
   end
 
   #
@@ -351,10 +327,36 @@ class OmfXMPPServices < MObject
   # - serviceID = [String|Symbol] the serviceID for the the server on which
   #               we want to unsubscribe from all nodes
   #
-  def leave_all_pubsub_nodes(serviceID)
-    list_all_subscriptions(serviceID).each { |sub|
-      leave_pubsub_node(sub.node, sub.subid, serviceID)
-    }
+  def leave_all_nodes(domain = nil)
+    if domain
+      list_all_subscriptions(domain).each { |sub|
+        leave_node(sub.node, sub.subid, domain)
+      }
+    else
+      @serviceHelpers.each { |domain| leave_all_nodes(domain) }
+    end
+  end
+
+  #
+  # Remove a PubSub node. 
+  # Do nothing if the PubSub node doesn't exist
+  #
+  # - node = [String] name of the node to remove
+  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  #               we want to remove this node
+  #
+  # [Return] True/False
+  #
+  def remove_node(node, domain)
+    begin
+      service(domain).delete_node(node)
+    rescue Exception => ex
+      # if the PubSub node does not exist, we ignore the "not found" exception
+      return true if ("#{ex}" == "item-not-found: ")
+      error "OmfXMPPServices - Failed removing node '#{node}'- Error: '#{ex}'"
+      return false
+    end
+    return true
   end
 
   #
@@ -363,11 +365,15 @@ class OmfXMPPServices < MObject
   # - serviceID = [String|Symbol] the serviceID for the the server on which
   #               we want to remove all nodes
   #
-  def remove_all_pubsub_nodes(serviceID)
-    list_all_subscriptions(serviceID).each { |sub|
-      leave_pubsub_node(sub.node, sub.subid, serviceID)
-      remove_pubsub_node(sub.node, serviceID)
-    }
+  def remove_all_nodes(domain = nil)
+    if domain
+      list_all_subscriptions(domain).each { |sub|
+        leave_node(sub.node, sub.subid, domain)
+        remove_node(sub.node, domain)
+      }
+    else
+      @serviceHelpers.each { |domain| remove_all_nodes(domain) }
+    end
   end
 
   #
@@ -375,9 +381,9 @@ class OmfXMPPServices < MObject
   #
   # - serviceID = [String|Symbol] the serviceID for the the server to ping
   #
-  def ping(serviceID)
+  def ping(domain)
     begin
-      service(serviceID).ping
+      service(domain).ping
     rescue Exception => ex
       raise "OmfXMPPServices - Failed 'pinging' service '#{serviceID}' - Error: '#{ex}'"
     end
@@ -388,11 +394,8 @@ class OmfXMPPServices < MObject
   # Delete the PubSub user
   # Close the connection to the PubSub server
   #
-  def stop()
-    debug "OmfXMPPServices - Cleaning and Exiting!"
-    @serviceHelpers.each { |serv|
-      leave_all_pubsub_nodes(serv)
-    }
+  def stop
+    debug "OmfXMPPServices - Exiting!"
     @clientHelper.remove_registration
     @clientHelper.close
   end

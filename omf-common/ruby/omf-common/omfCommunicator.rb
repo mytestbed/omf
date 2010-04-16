@@ -45,10 +45,21 @@ class OmfCommunicator < MObject
     @@instance
   end
 
-  def self.init
+  def self.init(opts)
     raise "Communicator already started" if @@instance
     @@instance = self.new
     @@transport = nil
+    case type = opts[:type]
+    when 'xmpp'
+      require 'omf-common/omfPubSubTransport'
+      @@transport = OMFPubSubTransport.init(opts) 
+    when 'mock'
+      @@cmds = Array.new
+      return # Uses the default Mock OmfCommunicator
+    else
+      raise "Unknown transport '#{type}'"
+    end
+
   end
 
   #
@@ -65,23 +76,37 @@ class OmfCommunicator < MObject
   #
   # [Return] an Object with the information on a command between OMF entities 
   #
-  def new_command(type)
+  def create_command(type)
     if @@transport
-      return  @@transport.new_command(type)
+      return @@transport.create_command(type)
     else
-      #cmd = Hash.new
       cmd = HashPlus.new
       cmd[:CMDTYPE] = type
       return cmd
     end
   end
 
-  def send_command(cmdObject)
+  def create_address(addr)
     if @@transport
-      @@transport.send_commamd(cmdObject)
+      return @@transport.create_address(addr)
+    else
+      return HashPlus.new
+    end
+  end
+
+  def send_command(addr, cmdObject)
+    if @@transport
+      @@transport.send_commamd(addr, cmdObject)
     else
       debug "Sending command '#{cmdObject}'"
-      @@cmds << cmdObject
+      @@cmds << [addr, cmdObject]
+    end
+  end  
+
+  def listen(addr, &block)
+    if @@transport
+      @@transport.listen(addr, &block)
+    end
   end
 
   def stop
@@ -90,8 +115,10 @@ class OmfCommunicator < MObject
     end
   end
 
-  def start
-    raise unimplemented_method_exception("start")
+  def reset
+    if @@transport
+      @@transport.reset
+    end
   end
 
   def process_command(command)

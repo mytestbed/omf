@@ -45,19 +45,32 @@ require 'omf-resctl/omf_agent/agentCommands'
 
 class RCCommunicator < OmfCommunicator
 
-  def self.init(opts)
+  def self.init(addr, opts)
+    super(opts)
+    # RC-secific communicator initialisation...
+    # 0 - set some attributes
+    @@myAddr = addr
+    @@myName = addr.name
+    @@sliceID = addr.sliceID
+    @@expID = nil
+    # 1 - listen to my address - wait and try again until successfull
+    listening = false
+    while !listening
+      listening = listen(addr) { |cmd| process_command(cmd) }
+      debug "Cannot listen on '#{addr.to_s}' - retrying in #{RETRY_INTERVAL} s."
+      sleep RETRY_INTERVAL
+    end
+  end
+
+  def reset
     super()
-    case type = opts[:communicator][:type]
-    when 'xmpp'
-      require 'omf-resctl/omg_agent/rcPubSubTransport.rb'
-      @@transport = RCPubSubTransport.init(self, 
-                                           opts[:communicator][:xmpp], 
-                                           opts[:agent][:slice], 
-                                           opts[:agent][:name])
-    when 'mock'
-      return # Uses the default Mock OmfCommunicator
-    else
-      raise "Unknown transport '#{type}'"
+    @@expID = nil
+    # listen to my address - wait and try again until successfull
+    listening = false
+    while !listening
+      listening = listen(@@myAddr) { |cmd| process_command(cmd) }
+      debug "Cannot listen on '#{@@myAddr.to_s}' - retrying in #{RETRY_INTERVAL} s."
+      sleep RETRY_INTERVAL
     end
   end
 
@@ -67,6 +80,7 @@ class RCCommunicator < OmfCommunicator
   #  - argArray = command line parsed into an array
   #
   def process_command(cmdObj)
+    return if !valid_command(cmdObj)
     debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
     # Retrieve the command
     method = nil
@@ -88,5 +102,37 @@ class RCCommunicator < OmfCommunicator
       return
     end
   end
+
+  def valid_command?(cmdObj)
+    # Perform some checking...
+    # - Ignore commands from ourselves or another RC
+    return false if OmfProtocol::rc_cmd?(cmdObj.cmdType)
+    # - Ignore commands that are not known EC commands
+    if !OmfProtocol::ec_cmd?(cmdObj.cmdType)
+      debug "Received unknown command '#{cmdObj.cmdType}' - ignoring it!" 
+      return false
+    end
+    # - Ignore commands for/from unknown Slice and Experiment ID
+    if (cmdObj.cmdType != :ENROLL) && 
+       ((cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID))
+      debug "Received command with unknown slice and exp IDs: "+
+            "'#{cmdObj.sliceID}' and '#{cmdObj.expID}' - ignoring it!" 
+      return false
+    end
+    # - Ignore commands that are not address to us 
+    # (There may be multiple space-separated targets)
+    targets = cmdObj.target.split(' ') 
+    isForMe = false
+    targets.each { |t| 
+       isForMe = true if NodeAgent.instance.agentAliases.include?(t) 
+     }
+     if !isForMe
+       debug "Received command with unknown target '#{cmdObj.target}'"+
+             " - ignoring it!" 
+       return false
+    end
+    return true
+  end
+
 
 end

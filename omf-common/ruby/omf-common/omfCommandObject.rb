@@ -40,29 +40,6 @@ class OmfCommandObject
 
   attr_reader :attributes
 
-  # Valid commands for the EC
-  EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
-	                :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
-                        :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
-                        :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
-                        :RESTART, :ENROLL, :EXIT]
-  def ec_cmd?
-    return EC_COMMANDS.include?(@attributes[:CMDTYPE])
-  end
-
-  # Valid commands for the RC
-  RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
-                        :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
-  def rc_cmd?
-    return RC_COMMANDS.include?(@attributes[:CMDTYPE])
-  end    
-
-  # Valid commands for the Inventory AM
-  INVENTORY_COMMANDS = Set.new [:XYZ]
-  def inventory_cmd?
-    return INVENTORY_COMMANDS.include?(@attributes[:CMDTYPE])
-  end    
-
   #
   # Return the value of an attribute of this Command Object
   # A list of currently used attributes can be found at the end of

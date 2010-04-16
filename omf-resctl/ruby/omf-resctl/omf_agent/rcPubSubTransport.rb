@@ -44,59 +44,6 @@ require "omf-common/omfCommandObject"
 #
 class RCPubSubTransport < OMFPubSubTransport
 
-  def self.init(comms, opts, slice, name)
-    super()
-    # So RC-specific initialisation tasks...
-    @@expID = nil
-    @@communicator = comms
-    @@myName = name
-    @@sliceID = slice
-    @@homeServer = opts[:home_pubsub_server]
-    @@remoteServer = opts[:remote_pubsub_server]
-    if !@@homeServer || !@@remoteServer
-      raise "RCPubSubTransport - Missing 'home_pubsub_server' or "+
-            "'remote_pubsub_server' parameter in the RC configuration" 
-    end
-    user = opts[:home_pubsub_user] || "#{@@myName}-#{@@sliceID}-#{@@expID}"
-    pwd = opts[:home_pubsub_pwd] || DEFAULT_PUBSUB_PWD
-    # Now connect to the Home PubSub Server
-    @@instance.connect(user, pwd, @@homeServer)
-    # If the PubSub nodes for our slice is hosted on a Remote PubSub Server
-    # and not on our Home one, then we need to add another PubSub service to 
-    # interact with this remote server
-    if @@homeServer != @@remoteServer
-      @@xmppServices.add_new_service(:slice, @@remoteServer) { |event|
-        @@queue << event
-      }         
-    else
-      @@xmppServices.add_service_alias(:home, :slice)
-    end
-  end
-  
-  def connect(user, pwd, server)
-    # Some RC-specific pre-connection tasks...
-    # first checks if PubSub Server is reachable, and wait/retry if not
-    check_server_reachability(server)
-    
-    # Now call our superclass method to do the actual 'connect'
-    super(user, pwd, server)
-
-    # Some RC-specific post-connection tasks...
-    # Keep the connection to the PubSub server alive by sending a ping at
-    # regular intervals hour, otherwise clients will be listed as "offline" 
-    # by the PubSub server (e.g. Openfire) after a timeout
-    Thread.new do
-      while true do
-        sleep PING_INTERVAL
-        debug("Sending a ping to the Home PubSub Server (keepalive)")
-        @@xmppServices.ping(:home)        
-      end
-    end
-
-    #@@psGroupSlice = "/#{DOMAIN}/#{@@sliceID}" # ...created @ slice 
-    #@@psGroupResource = "#{@@psGroupSlice}/#{RESOURCE}" # ...created @ slice 
-  end
-
   #
   # This method sends a command to one or multiple nodes.
   # The command to send is passed as a Command Object.
@@ -118,37 +65,8 @@ class RCPubSubTransport < OMFPubSubTransport
     msg = cmdObj.to_xml
     send(msg, my_node, :slice)
   end
-      
-  def my_node
-    return "#{exp_node(@@sliceID,@@expID)}/#{@@myName}"
-  end
-
-  #
-  # Reset this Communicator
-  #
-  def reset
-    @@expID = nil
-    # Leave all Pubsub nodes that we might have joined previously 
-    @@xmppServices.leave_all_pubsub_nodes(:slice)
-    # Re-subscribe to the 'Slice/Resource' Pubsub group for this node
-    group = res_node(@@sliceID, @@myName)
-    while (!@@xmppServices.join_pubsub_node(group, :slice))
-       debug "PubSub group '#{group}' does not exist on the server"+
-	     " - retrying in #{RETRY_INTERVAL} sec"
-       sleep RETRY_INTERVAL
-    end
-    debug "Joined PubSub group '#{group}'"
-  end
   
-  #
-  # Unsubscribe from all nodes
-  # Delete the PubSub user
-  # Disconnect from the PubSub server
-  # This will be called when the node shuts down
-  #
-  def stop
-    @@xmppServices.stop
-  end
+  
   
   #
   # Send a heartbeat back to the EC
@@ -195,36 +113,6 @@ class RCPubSubTransport < OMFPubSubTransport
   end
       
       
-  def valid_command?(cmdObject)
-    # Perform some checking...
-    # - Ignore commands from ourselves or another RC
-    return false if cmdObject.rc_cmd?
-    # - Ignore commands that are not known EC commands
-    if !cmdObject.ec_cmd?
-      debug "Received unknown command '#{cmdObject.cmdType}' - ignoring it!" 
-      return false
-    end
-    # - Ignore commands for/from unknown Slice and Experiment ID
-    if (cmdObject.cmdType != :ENROLL) && 
-       ((cmdObject.sliceID != @@sliceID) || (cmdObject.expID != @@expID))
-      debug "Received command with unknown slice and exp IDs: "+
-            "'#{cmdObject.sliceID}' and '#{cmdObject.expID}' - ignoring it!" 
-      return false
-    end
-    # - Ignore commands that are not address to us 
-    # (There may be multiple space-separated targets)
-    targets = cmdObject.target.split(' ') 
-    isForMe = false
-    targets.each { |t| 
-       isForMe = true if NodeAgent.instance.agentAliases.include?(t) 
-     }
-     if !isForMe
-       debug "Received command with unknown target '#{cmdObject.target}'"+
-             " - ignoring it!" 
-       return false
-    end
-    return true
-  end
 
   def execute_transport_specific(cmdObject)
       # Some commands need to trigger actions on the Communicator level

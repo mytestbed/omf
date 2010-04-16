@@ -41,17 +41,19 @@ require 'omf-expctl/agentCommands'
 #
 class ECCommunicator < OmfCommunicator
 
-  def self.init(opts, slice, expID)
-    super()
-    case type = opts[:type]
-    when 'xmpp'
-      require 'omf-expctl/communicator/ecPubSubTransport.rb'
-      @@transport = ECPubSubTransport.init(self, opts[:xmpp], slice, expID)
-    when 'mock'
-      return # Uses the default Mock OmfCommunicator
-    else
-      raise "Unknown transport '#{type}'"
-    end
+  def self.init(addr, opts)
+    super(opts)
+    # EC-secific communicator initialisation...
+    # 0 - set some attributes
+    @@sliceID = addr.sliceID
+    @@expID = addr.expID
+    # 1 - listen to my address
+    listen(addr) { |cmd| process_command(cmd) }
+    # 2 - listen to the 'experiment' address
+    # (i.e. same as my address but without my name)
+    expAddr = create_address(addr)
+    expAddr.name = nil
+    listen(expAddr) { |cmd| process_command(cmd) }
   end
 
   #
@@ -60,6 +62,7 @@ class ECCommunicator < OmfCommunicator
   #  - argArray = command line parsed into an array
   #
   def process_command(cmdObj)
+    return if !valid_command(cmdObj)
     debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
     # Retrieve the command
     method = nil
@@ -80,6 +83,31 @@ class ECCommunicator < OmfCommunicator
     end
   end
 
+  def valid_command?(cmdObj)
+    # Perform some checking...
+    # - Ignore commands from ourselves or another EC
+    return false if OmfProtocol::ec_cmd?(cmdObj.cmdType)
+    # - Ignore commands that are not known RC commands
+    if !OmfProtocol::rc_cmd?(cmdObj.cmdType)
+      debug "Received unknown command '#{cmdObj.cmdType}' - ignoring it!" 
+      return false
+    end
+    # - Ignore commands for/from unknown Slice and Experiment ID
+    if (cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID)
+      debug "Received command with unknown slice and exp IDs: "+
+            "'#{cmdObj.sliceID}' and '#{cmdObj.expID}' - ignoring it!" 
+      return false
+    end
+    # - Ignore commands from unknown RCs
+    if (Node[cmdObj.target] == nil)
+      debug "Received command with unknown target '#{cmdObj.target}'"+
+            " - ignoring it!"
+      return false
+    end
+    return true
+  end
+
+
   #
   # This method sends a reset command to a given resource
   #
@@ -96,6 +124,18 @@ class ECCommunicator < OmfCommunicator
     reset_cmd = new_command(:RESET)
     reset_cmd.target = "*"
     send_command(reset_cmd)
+  end
+
+  #
+  # This sends a NOOP to the resource's node to overwrite the last buffered 
+  # ENROLL message
+  #
+  # - name = name of the node to receive the NOOP
+  #
+  def send_noop(name)
+    noop_cmd = new_command(:NOOP)
+    noop_cmd.target = name
+    send_command(noop_cmd)
   end
 
 end
