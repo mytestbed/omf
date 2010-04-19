@@ -73,8 +73,11 @@ class AbstractDaemon < MObject
     d = self[daemon_name(req)]
     if (d == nil)
       d = self.new(req)
+    elsif !d.running
+      d = self.new(req)
+    else
+      d.ping  # somebody cares about you
     end
-    d.ping  # somebody cares about you
     return d
   end
 
@@ -221,6 +224,7 @@ class AbstractDaemon < MObject
     # PROBLEM: the children are not terminated when the parent exits
     Process.kill("-TERM", @pid)
     Timer.cancel(@name)
+    @@inst[self.class].delete(@name)
   end
 	
   #
