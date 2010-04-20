@@ -189,14 +189,12 @@ class OMFPubSubTransport < MObject
   #
   # [Return] an OmfCommandObject of the specified type
   #
-  def create_command(type)
-    return OmfCommandObject.new(type)
+  def create_command(opts)
+    return OmfCommandObject.new(opts)
   end
 
-  def create_address(addr = nil)
-    return PubSubAddress.new if !addr
-    return addr.clone if addr.kind_of?(PubSubAddress) 
-    raise "OMFPubSubTransport - Failed to create new address!"
+  def create_address(opts)
+    return PubSubAddress.new(opts) 
   end
 
   #
@@ -339,6 +337,25 @@ class PubSubAddress
   @sliceID = nil
   @domain = nil
   attr_accessor :name, :expID, :sliceID, :domain
+
+  def initialize (opts)
+    if opts.kind_of?(Hash) 
+      @name = opts[:name] || nil
+      @expID = opts[:expID] || nil
+      @sliceID = opts[:sliceID] || nil
+      @domain = opts[:domain] || nil
+    elsif opts.kind_of?(PubSubAddress) 
+      @name = opts.name
+      @expID = opts.expID
+      @sliceID = opts.sliceID
+      @domain = opts.domain
+    else
+      raise "Cannot construct PubSub Address with unknown options "+
+	    "(type: '#{opts.class}')"
+    end
+    return self
+  end
+
   def to_s
     return "[name:'#{@name}', slice:'#{@sliceID}', "+
             "exp:'#{@expID}', domain:'#{@domain}']"

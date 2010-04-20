@@ -76,21 +76,27 @@ class OmfCommunicator < MObject
   #
   # [Return] an Object with the information on a command between OMF entities 
   #
-  def create_command(type)
+  def create_command(opts = nil)
     if @@transport
-      return @@transport.create_command(type)
+      return @@transport.create_command(opts)
     else
       cmd = HashPlus.new
-      cmd[:CMDTYPE] = type
+      if opts
+        opts.each { |k,v| cmd[k] = v}
+      end
       return cmd
     end
   end
 
-  def create_address(addr)
+  def create_address(opts = nil)
     if @@transport
-      return @@transport.create_address(addr)
+      return @@transport.create_address(opts)
     else
-      return HashPlus.new
+      addr = HashPlus.new
+      if opts
+        opts.each { |k,v| addr[k] = v}
+      end
+      return addr
     end
   end
 

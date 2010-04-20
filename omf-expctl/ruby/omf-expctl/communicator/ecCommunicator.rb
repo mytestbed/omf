@@ -47,6 +47,7 @@ class ECCommunicator < OmfCommunicator
     # 0 - set some attributes
     @@sliceID = addr.sliceID
     @@expID = addr.expID
+    @@domain = addr.domain
     # 1 - listen to my address
     listen(addr) { |cmd| process_command(cmd) }
     # 2 - listen to the 'experiment' address
@@ -64,7 +65,9 @@ class ECCommunicator < OmfCommunicator
   def process_command(cmdObj)
     return if !valid_command(cmdObj)
     debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
-    # Retrieve the command
+    # Perform any EC-specific communicator tasks
+    execute_ec_tasks(cmdObj)
+    # Retrieve the method corresponding to this command
     method = nil
     begin
       method = AgentCommands.method(cmdObj.cmdType.to_s)
@@ -72,7 +75,7 @@ class ECCommunicator < OmfCommunicator
       error "Cannot find a method to process the command '#{cmdObj.cmdType}'"
       return
     end
-    # Execute the command
+    # Execute the method corresponding to this command
     begin
       reply = method.call(self, Node[cmdObj.target], cmdObj)
     rescue Exception => err
@@ -107,6 +110,22 @@ class ECCommunicator < OmfCommunicator
     return true
   end
 
+  def execute_ec_tasks(cmdObject)
+    case cmdObject.cmdType
+    when :ENROLLED
+      # when we receive the first ENROLLED, send a NOOP message to the RC. 
+      # This is necessary since if RC is reset or restarted, it might
+      # receive the last ENROLL command again, depending on the kind of 
+      # transport being used. In any case, sending a NOOP would prevent this.
+      if !Node[cmdObject.target].isUp
+        addr = create_address(:sliceID => @@sliceID, 
+                              :domain => @@domain,
+                              :name => cmdObject.target)
+        noop = create_command(:cmdtype => :NOOP, :target => cmdObject.target)
+        send_command(addr, noop)
+      end
+    end
+  end
 
   #
   # This method sends a reset command to a given resource
@@ -124,18 +143,6 @@ class ECCommunicator < OmfCommunicator
     reset_cmd = new_command(:RESET)
     reset_cmd.target = "*"
     send_command(reset_cmd)
-  end
-
-  #
-  # This sends a NOOP to the resource's node to overwrite the last buffered 
-  # ENROLL message
-  #
-  # - name = name of the node to receive the NOOP
-  #
-  def send_noop(name)
-    noop_cmd = new_command(:NOOP)
-    noop_cmd.target = name
-    send_command(noop_cmd)
   end
 
 end

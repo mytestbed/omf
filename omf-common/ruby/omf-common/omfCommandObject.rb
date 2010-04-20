@@ -86,18 +86,21 @@ class OmfCommandObject
   #
   #  [Return] a new Command Object
   #
-  def initialize (initValue)
+  def initialize (initOptions)
     # Create a new Hash to hold the attributes of this Command Object
     @attributes = Hash.new
     # Set the Command Type
-    if initValue.kind_of?(String) || initValue.kind_of?(Symbol)
-      @attributes[:CMDTYPE] = initValue
+    if initOptions.kind_of?(Hash) 
+      initOptions.each { |k,v|
+	kSym = k.to_s.upcase.to_sym
+        @attributes[kSym] = v
+      }
     # Or build a new Command Object from an XML stanza
-    elsif initValue.kind_of?(REXML::Parent)
-      init_from_xml(initValue)
+    elsif initOptions.kind_of?(REXML::Parent)
+      init_from_xml(initOptions)
     else
-      raise "Cannot create a OmfCommandObject! Unknown initial value "+
-            "(type: '#{initValue.class}')"
+      raise "Cannot create a OmfCommandObject! Unknown initial options "+
+            "(type: '#{initOptions.class}')"
     end
   end
 

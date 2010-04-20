@@ -71,10 +71,6 @@ class ECPubSubTransport < OMFPubSubTransport
       # 2nd send the message to the Resource branch of the Slice branch
       send(msg, res_node(@@sliceID,target), :slice)
       return
-    when :NOOP
-      # NOOP is also sent to the Resource branch of the Slice branch
-      send(msg, res_node(@@sliceID,target), :slice)
-      return
     when :ALIAS
       # create the pubsub group for this alias 
       newPubSubNode = "#{exp_node(@@sliceID, @@expID)}/#{cmdObj.name}"
@@ -96,26 +92,5 @@ class ECPubSubTransport < OMFPubSubTransport
   private
          
     
-  def execute_transport_specific(cmdObject)
-    # Some commands need to trigger actions on the Communicator level
-    # before being passed on to the Experiment Controller
-    begin
-      case cmdObject.cmdType
-      when :ENROLLED
-        # when we receive the first ENROLL, send a NOOP message to the NA. 
-        # This is necessary since if NA is reset or restarted, it would 
-        # re-subscribe to its system PubSub node and would receive the last 
-        # command sent via this node (which is ENROLL if we don't send NOOP)
-        # from the PubSub server (at least openfire works this way). It would 
-        # then potentially try to subscribe to nodes from a past experiment.
-        send_noop(cmdObject.target) if !Node[cmdObject.target].isUp
-      end
-    rescue Exception => ex 
-      error "Failed to execute transport-specific tasks for command: "+
-            "'#{cmdObject.to_s}'"
-      error "Error: '#{ex}'"
-      return
-    end
-  end
 
 end #class
