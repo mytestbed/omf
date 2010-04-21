@@ -140,35 +140,32 @@ class AppContext < MObject
   #
   def startApplication(nodeSet)
     debug("Starting application '#@id'")
-
     # Get a new Command Object and starting adding info to it
-    app_cmd = ECCommunicator.instance.new_command(:EXECUTE)
-    app_cmd.target = nodeSet.groupName
-    app_cmd.appID = @id
-    appDefinition = @app.appDefinition
-    app_cmd.path = appDefinition.path
-
+    appDef = @app.appDefinition
+    cmd = ECCommunicator.instance.create_command(:cmdtype => :EXECUTE,
+                                                 :target => nodeSet.groupName,
+                                                 :appID => @id,
+                                                 :path => appDef.path)
     # Add the OML info, if any...
     omlconf = getOMLConfig(nodeSet)
-    app_cmd.omlConfig = omlconf if omlconf != nil
-
+    cmd.omlConfig = omlconf if omlconf != nil
     # Add the environment info...
-    app_cmd.env = ""
+    cmd.env = ""
     getENVConfig(nodeSet).each { |k,v|
-      app_cmd.env << "#{k}=#{v} "
+      cmd.env << "#{k}=#{v} "
     }
-
     # Add the bindings...
-    pdef = appDefinition.properties
+    pdef = appDef.properties
     # check if bindings contain unknown parameters
     if (diff = @bindings.keys - pdef.keys) != []
       raise "Unknown parameters '#{diff.join(', ')}'" \
             + " not in '#{pdef.keys.join(', ')}'."
     end
-    app_cmd.cmdLineArgs = appDefinition.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
-    
+    cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
+    # Build the address where to send that command
+    addr = ECCommunicator.instance.create_address(:name => nodeSet.groupName) 
     # Ask the Communicator to send the Command Object 
-    ECCommunicator.instance.send_command(app_cmd)
+    ECCommunicator.instance.send_command(addr, cmd)
   end
   
 end # ApplicationContext

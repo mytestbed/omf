@@ -45,31 +45,47 @@ require 'omf-resctl/omf_agent/agentCommands'
 
 class RCCommunicator < OmfCommunicator
 
-  def self.init(addr, opts)
+  def self.init(opts)
     super(opts)
     # RC-secific communicator initialisation...
     # 0 - set some attributes
-    @@myAddr = addr
-    @@myName = addr.name
-    @@sliceID = addr.sliceID
+    @@myName = opts[:comms_name]
+    @@sliceID = opts[:sliceID]
+    @@domain = opts[:domain]
     @@expID = nil
-    # 1 - listen to my address - wait and try again until successfull
-    listening = false
-    while !listening
-      listening = listen(addr) { |cmd| process_command(cmd) }
-      debug "Cannot listen on '#{addr.to_s}' - retrying in #{RETRY_INTERVAL} s."
-      sleep RETRY_INTERVAL
+    # 1 - Build my address for this slice 
+    @@myAddr = create_address!(:sliceID => @@sliceID, 
+                              :name => @@myName, 
+                              :domain => @@domain)
+  end
+
+  def create_address(opts = nil)
+    if !@@expID
+      error "Not enrolled in an experiment yet, thus cannot create an address!"
+      return
     end
+    return create_address!(:sliceID => @@sliceID, :expID => @@expID, 
+                           :domain => @@domain, :name => opts[:name])
   end
 
   def reset
     super()
     @@expID = nil
-    # listen to my address - wait and try again until successfull
+    # Listen to my address - wait and try again until successfull
     listening = false
     while !listening
       listening = listen(@@myAddr) { |cmd| process_command(cmd) }
-      debug "Cannot listen on '#{@@myAddr.to_s}' - retrying in #{RETRY_INTERVAL} s."
+      debug "Cannot listen on '#{@@myAddr.to_s}' - "+
+            "retrying in #{RETRY_INTERVAL} sec."
+      sleep RETRY_INTERVAL
+    end
+    # Also listen to the generic resource address for this slice
+    listening = false
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain)) 
+    while !listening
+      listening = listen(addr)
+      debug "Cannot listen on '#{addr.to_s}' - "+
+            "retrying in #{RETRY_INTERVAL} sec."
       sleep RETRY_INTERVAL
     end
   end
@@ -82,6 +98,8 @@ class RCCommunicator < OmfCommunicator
   def process_command(cmdObj)
     return if !valid_command(cmdObj)
     debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
+    # Perform any RC-specific communicator tasks
+    execute_rc_tasks(cmdObj)
     # Retrieve the command
     method = nil
     begin
@@ -134,5 +152,28 @@ class RCCommunicator < OmfCommunicator
     return true
   end
 
+  def execute_rc_tasks(cmdObject)
+    case cmdObject.cmdType
+    when :ENROLL
+      # Set our expID and listen to our addresses for this experiment
+      if !NodeAgent.instance.enrolled
+        @@expID = cmdObject.expID
+        debug "Experiment ID: '#{@@expID}'"
+        addrNode = create_address(:name => cmdObject.target)
+        addrExp = create_address()
+        if !listen(addrNode) || !listen(addrExp)
+          error "Failed to Process ENROLL command!"
+          error "Maybe this is an ENROLL from an old experiment - ignoring it!"
+          return
+        end
+      else
+        debug "Received ENROLL, but I am already ENROLLED! - ignoring it!"
+        return
+      end
+    when :ALIAS
+      addrAlias = create_address(:name => cmdObject.name)
+      listen(addrAlias)
+    end
+  end
 
 end

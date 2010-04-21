@@ -43,15 +43,20 @@
       :communicator:
         :type: 'xmpp'
         :xmpp:
-          :home_pubsub_server: 'norbit.npc.nicta.com.au'
-          # The following 'home_pubsub_user' and 'home_pubsub_pwd' are optional
+          # Address of the PubSub server to use as gateway for PubSub communication
+          :pubsub_gateway: 'norbit.npc.nicta.com.au'
+          # The 'pubsub_domain' is the hostname of the pubsub server on which
+          # you would like to host your slice's communications. Leave this 
+          # commented if you wish to host them on the 'pubsub_gateway' server
+          # which you selected above.
+          #:pubsub_domain: 'norbit.npc.nicta.com.au'
+          # The following 'pubsub_user' and 'pubsub_pwd' are optional
           # EC will create a unique user/pwd for itself if this is not provided
           # In a typical OMF install, you should not uncomment these lines
-          # (uncomment them only if you need to manually set user/password for 
+          # (do so only if you need to manually set user/password for 
           # your client to connect to your pubsub server)
-
-          #:home_pubsub_user: 'my_EC_name' 
-          #:home_pubsub_pwd: 'my_EC_password' 
+          #:pubsub_user: 'my_EC_name' 
+          #:pubsub_pwd: 'my_EC_password' 
     #####
     :planetlab2:
       :domain: 'planetlab'

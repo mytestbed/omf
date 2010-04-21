@@ -11,26 +11,26 @@
     # Number of seconds between consecutive HEARTBEAT messages
     :heartbeat_interval: 10
   
-    # Interface to the control network from which this resource can be controlled 
-    # and managed
+    # Interface to the control network from which this resource can be 
+    # controlled & managed
     :control_if: control
 
     :type: 'xmpp'
     :xmpp:
-      # Address of the home PubSub server to use for PubSub communication
-      :home_pubsub_server: 10.0.0.200
+      # Address of the PubSub server to use as gateway for PubSub communication
+      :pubsub_gateway: 10.0.0.200
 
-      # Address of the remote PubSub server which host the PubSub groups 
-      # for my Slice
-      :remote_pubsub_server: 10.0.0.200
-
+      # Address of the PubSub server which host the communication for my slice
+      # Leave this commented if the pubsub groups for this slice are hosted on 
+      # the same server as the 'pubsub_gateway'
+      #:pubsub_domain: 10.0.0.200
       # The following 'home_pubsub_user' and 'home_pubsub_pwd' are optional
       # RC will create a unique user/pwd for itself if this is not provided
       # In a typical OMF install, you should not uncomment these lines
-      # (uncomment them only if you need to manually set user/password for your 
-      # client to connect to your pubsub server)
-      #:home_pubsub_user: 'my_RC_name' 
-      #:home_pubsub_pwd: 'my_RC_password'
+      # (do so only if you need to manually set user/password for 
+      # your client to connect to your pubsub server)
+      #:pubsub_user: 'my_RC_name' 
+      #:pubsub_pwd: 'my_RC_password'
 
   # Agent settings
   :agent:

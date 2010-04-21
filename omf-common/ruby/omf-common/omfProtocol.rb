@@ -43,7 +43,7 @@ module OmfProtocol
   RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
                         :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
 
-  INVENTORY_COMMANDS = Set.new [:XYZ]
+  OTHER_COMMANDS = Set.new [:XYZ]
 
   def self.ec_cmd?(cmd) 
     return EC_COMMANDS.include?(cmd.to_s.upcase.to_sym) 
@@ -53,7 +53,7 @@ module OmfProtocol
     return RC_COMMANDS.include?(cmd.to_s.upcase.to_sym) 
   end
 
-  def self.inventory_cmd?(cmd)
+  def self.other_cmd?(cmd)
     return INVENTORY_COMMANDS.include?(cmd.to_s.upcase.to_sym)
   end    
 

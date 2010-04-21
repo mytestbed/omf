@@ -81,6 +81,7 @@ class NodeHandler < MObject
   VERSION = OMF::Common::VERSION(__FILE__)
   MM_VERSION = OMF::Common::MM_VERSION()
   VERSION_STRING = "OMF Experiment Controller #{VERSION}"
+  MY_NAME = "EC"
 
   #
   # Where to find the default config files
@@ -582,8 +583,18 @@ class NodeHandler < MObject
     end
 
     # Now start the Communiator
-    ECCommunicator.init(OConfig[:ec_config][:communicator], 
-                        Experiment.sliceID, Experiment.ID)
+    comm =  Hash.new
+    conf = OConfig[:ec_config][:communicator]
+    comm[:comms_name] = MY_NAME
+    comm[:createflag] = true
+    comm[:type] = conf[:type]
+    comm[:pubsub_gateway] = conf[:pubsub_gateway]
+    comm[:pubsub_user] = conf[:pubsub_user]
+    comm[:pubsub_pwd] = conf[:pubsub_pwd]
+    comm[:sliceID] = Experiment.sliceID
+    comm[:expID] = Experiment.expID
+    comm[:domain] = conf[:pubsub_domain] || comm[:pubsub_gateway]  
+    ECCommunicator.init(comm)
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] "+

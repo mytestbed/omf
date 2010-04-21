@@ -148,7 +148,6 @@ class OMFPubSubTransport < MObject
   # the events of the 2 listens will be put in the same Q and process by the 
   # same block, i.e. the queue and the block of the 1st call to listen!
   def listen(addr, &block = nil)
-
     node = addr_to_node(addr)
     subscribed = false
     index = 0
@@ -236,7 +235,7 @@ class OMFPubSubTransport < MObject
   def send_command(addr, cmdObject)
     node = addr_to_node(addr)
     domain = addr.domain
-    send(node, domain, cmdObject)
+    send(node, domain, cmdObject.to_xml)
   end
 
   def reset
@@ -339,19 +338,21 @@ class PubSubAddress
   attr_accessor :name, :expID, :sliceID, :domain
 
   def initialize (opts)
-    if opts.kind_of?(Hash) 
-      @name = opts[:name] || nil
-      @expID = opts[:expID] || nil
-      @sliceID = opts[:sliceID] || nil
-      @domain = opts[:domain] || nil
-    elsif opts.kind_of?(PubSubAddress) 
-      @name = opts.name
-      @expID = opts.expID
-      @sliceID = opts.sliceID
-      @domain = opts.domain
-    else
-      raise "Cannot construct PubSub Address with unknown options "+
-	    "(type: '#{opts.class}')"
+    if opts
+      if opts.kind_of?(Hash) 
+        @name = opts[:name] || nil
+        @expID = opts[:expID] || nil
+        @sliceID = opts[:sliceID] || nil
+        @domain = opts[:domain] || nil
+      elsif opts.kind_of?(PubSubAddress) 
+        @name = opts.name
+        @expID = opts.expID
+        @sliceID = opts.sliceID
+        @domain = opts.domain
+      else
+        raise "Cannot construct PubSub Address with unknown options "+
+              "(type: '#{opts.class}')"
+      end
     end
     return self
   end

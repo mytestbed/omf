@@ -41,20 +41,24 @@ require 'omf-expctl/agentCommands'
 #
 class ECCommunicator < OmfCommunicator
 
-  def self.init(addr, opts)
+  def self.init(opts)
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
-    @@sliceID = addr.sliceID
-    @@expID = addr.expID
-    @@domain = addr.domain
+    @@sliceID = opts[:sliceID]
+    @@domain = opts[:domain]
+    @@expID = opts[:expID]
     # 1 - listen to my address
+    # (i.e. the is the 'experiment' address)
+    addr = create_address!(:sliceID => @@sliceID, 
+                          :expID => @@expID, 
+                          :domain => @@domain)
     listen(addr) { |cmd| process_command(cmd) }
-    # 2 - listen to the 'experiment' address
-    # (i.e. same as my address but without my name)
-    expAddr = create_address(addr)
-    expAddr.name = nil
-    listen(expAddr) { |cmd| process_command(cmd) }
+  end
+
+  def create_address(opts = nil)
+    return create_address!(:sliceID => @@sliceID, :expID => @@expID, 
+                           :domain => @@domain, :name => opts[:name])
   end
 
   #
@@ -118,7 +122,7 @@ class ECCommunicator < OmfCommunicator
       # receive the last ENROLL command again, depending on the kind of 
       # transport being used. In any case, sending a NOOP would prevent this.
       if !Node[cmdObject.target].isUp
-        addr = create_address(:sliceID => @@sliceID, 
+        addr = create_address!(:sliceID => @@sliceID, 
                               :domain => @@domain,
                               :name => cmdObject.target)
         noop = create_command(:cmdtype => :NOOP, :target => cmdObject.target)
@@ -131,18 +135,19 @@ class ECCommunicator < OmfCommunicator
   # This method sends a reset command to a given resource
   #
   def send_reset(resourceID)
-    reset_cmd = new_command(:RESET)
-    reset_cmd.target = "#{resourceID}"
-    send_command(reset_cmd)
+    addr = create_address!(:sliceID => @@sliceID, 
+                           :domain => @@domain,
+                           :name => "#{resourceID}")
+    cmd = create_command(:cmdtype => :RESET, :target => "#{resourceID}")
+    send_command(addr, cmd)
   end
 
   #
   # This method sends a reset command to a given resource
   #
   def send_reset_all
-    reset_cmd = new_command(:RESET)
-    reset_cmd.target = "*"
-    send_command(reset_cmd)
+    send_command(create_address!(:sliceID => @@sliceID, :domain => @@domain),
+                 create_command(:cmdtype => :RESET, :target => "*"))
   end
 
 end

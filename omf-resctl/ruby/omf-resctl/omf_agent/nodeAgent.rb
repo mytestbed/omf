@@ -88,7 +88,16 @@ class NodeAgent < MObject
     end
     info(VERSION_STRING)
     resetState
-    RCCommunicator.init(@config)
+    comm =  Hash.new
+    comm[:comms_name] = @agentName
+    comm[:createflag] = false
+    comm[:type] = @config[:communicator][:type]
+    comm[:pubsub_gateway] = @config[:communicator][:pubsub_gateway]
+    comm[:pubsub_user] = @config[:communicator][:pubsub_user]
+    comm[:pubsub_pwd] = @config[:communicator][:pubsub_pwd]
+    comm[:sliceID] = @agentSlice
+    comm[:domain] = @agentDomain 
+    RCCommunicator.init(comm)
     RCCommunicator.instance.reset
 
     @running = ConditionVariable.new
@@ -129,6 +138,9 @@ class NodeAgent < MObject
     debug("Agent names #{@agentAliases.join(', ')}")
   end
 
+  # TODO: This was used with old Multicast communication scheme to 
+  # implement the disconnection mode... Keep this around until we fix
+  # the disconnection mode for PubSub communication scheme
   #
   # Send an OK reply to the Node Handler (EC). When a command has been 
   # successfully completed, the NA sends an 'HeartBeat' OK message
@@ -138,22 +150,22 @@ class NodeAgent < MObject
   # - id = the ID of this NA (default = nil)
   # - msgArray = an array with the full received command (name, parameters,...)
   #
-  def old_okReply(cmd, id = nil, *msgArray)
-    if @allowDisconnection 
-      RCCommunicator.instance.sendRelaxedHeartbeat()
-    else
-      RCCommunicator.instance.sendHeartbeat()
-    end
-  end
+  #def old_okReply(cmd, id = nil, *msgArray)
+  #  if @allowDisconnection 
+  #    RCCommunicator.instance.sendRelaxedHeartbeat()
+  #  else
+  #    RCCommunicator.instance.sendHeartbeat()
+  #  end
+  #end
 
   def okReply(message, cmdObj)
-    ok_reply = RCCommunicator.instance.new_command(:OK)
-    ok_reply.target = @agentName
-    ok_reply.message = message
-    ok_reply.cmd = cmdObj.cmdType.to_s
-    ok_reply.path = cmdObj.path if cmdObj.path != nil
-    ok_reply.value = cmdObj.value if cmdObj.value != nil
-    send(ok_reply)
+    reply = RCCommunicator.instance.create_command(:cmdtype => :OK,
+                                                   :target => @agentName, 
+                                                   :message => message, 
+                                                   :cmd => cmdObj.cmdType.to_s) 
+    reply.path = cmdObj.path if cmdObj.path != nil
+    reply.value = cmdObj.value if cmdObj.value != nil
+    send(reply)
   end
 
   #
@@ -165,19 +177,22 @@ class NodeAgent < MObject
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
   def enrollReply(aliases = nil)
-    enroll_reply = RCCommunicator.instance.new_command(:ENROLLED)
-    enroll_reply.target = @agentName
-    enroll_reply.name = aliases if aliases != nil
-    send(enroll_reply)
+    reply = RCCommunicator.instance.create_command(:cmdtype => :ENROLLED,
+                                                   :target => @agentName) 
+    reply.name = aliases if aliases != nil
+    send(reply)
   end
 
   def wrongImageReply()
-    image_reply = RCCommunicator.instance.new_command(:WRONG_IMAGE)
-    image_reply.target = @agentName
-    image_reply.image = imageName()
+    reply = RCCommunicator.instance.create_command(:cmdtype => :WRONG_IMAGE,
+                                                   :target => @agentName, 
+                                                   :image => imageName) 
     # 'WRONG_IMAGE' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
-    RCCommunicator.instance.send_command(image_reply)
+    addr = ECCommunicator.instance.create_address!(:name => @agentName,
+                                                   :sliceID => @agentSlice,
+                                                   :domain => @domain)
+    RCCommunicator.instance.send_command(addr, reply)
   end
 
   #
@@ -190,17 +205,19 @@ class NodeAgent < MObject
   # - msgArray = an array with the full received command (name, parameters,...)
   #
   def errorReply(message, cmdObj)
-    error_reply = RCCommunicator.instance.new_command(:ERROR)
-    error_reply.target = @agentName
-    error_reply.message = message
-    error_reply.cmd = cmdObj.cmdType.to_s
-    error_reply.path = cmdObj.path if cmdObj.path != nil
-    error_reply.appID = cmdObj.appID if cmdObj.appID != nil
-    error_reply.value = cmdObj.value if cmdObj.value != nil
+    reply = RCCommunicator.instance.create_command(:cmdtype => :ERROR,
+                                                   :target => @agentName, 
+                                                   :cmd => cmdObj.cmdType.to_s, 
+                                                   :message => message) 
+    reply.path = cmdObj.path if cmdObj.path != nil
+    reply.appID = cmdObj.appID if cmdObj.appID != nil
+    reply.value = cmdObj.value if cmdObj.value != nil
     # 'ERROR' message goes even though the node is not enrolled!
     # Thus we make a direct call to the communicator here.
-    RCCommunicator.instance.send_command(error_reply)
-    #send(:ERROR, cmd, id, *msgArray)
+    addr = ECCommunicator.instance.create_address!(:name => @agentName,
+                                                   :sliceID => @agentSlice,
+                                                   :domain => @domain)
+    RCCommunicator.instance.send_command(addr, reply)
   end
 
   #
@@ -210,7 +227,8 @@ class NodeAgent < MObject
   #
   def send(cmdObj)
     if @enrolled
-      RCCommunicator.instance.send_command(cmdObj)
+      addr = ECCommunicator.instance.create_address(:name => @agentName)
+      RCCommunicator.instance.send_command(addr, cmdObj)
     else
       warn("Not enrolled! Not sending message: '#{cmdObj.to_xml_to.s}'")
     end
@@ -248,20 +266,20 @@ class NodeAgent < MObject
   def onAppEvent(eventName, appId, *msg)
     debug("onAppEvent(event: #{eventName} - app: #{appId}) - '#{msg}'")
     
-    # If this NA allows disconnection, then check if the event is the Done message from 
-    # the slave Experiment Controller
+    # If this NA allows disconnection, then check if the event is the Done 
+    # message from the slave Experiment Controller
     if ( @allowDisconnection && (appId == AgentCommands.slaveExpCtlID) )
        if ( eventName.split(".")[0] == "DONE" )
          @expirementDone = true
-         debug("#{appId} - DONE - EXPERIMENT DONE with status: #{eventName.split(".")[1]}")
+         debug("#{appId} - DONE - EXPERIMENT DONE with status: "+
+               "#{eventName.split(".")[1]}")
        end
     end
-    app_event = RCCommunicator.instance.new_command(:APP_EVENT)
-    app_event.target = @agentName
-    app_event.value = eventName.to_s.upcase
-    app_event.appID = appId
-    app_event.message = "#{msg}"
-    send(app_event)
+    send(RCCommunicator.instance.create_command(:cmdtype => :APP_EVENT,
+                                                :target => @agentName, 
+                                                :value => eventName.to_s.upcase, 
+                                                :appID => appId, 
+                                                :message => "#{msg}")) 
   end
 
   #
@@ -275,12 +293,11 @@ class NodeAgent < MObject
   #
   def onDevEvent(eventName, deviceName, *msg)
     debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    dev_event = RCCommunicator.instance.new_command(:DEV_EVENT)
-    dev_event.target = @agentName
-    dev_event.value = eventName.to_s.upcase
-    dev_event.appID = deviceName
-    dev_event.message = "#{msg}"
-    send(dev_event)
+    send(RCCommunicator.instance.create_command(:cmdtype => :DEV_EVENT,
+                                                :target => @agentName, 
+                                                :value => eventName.to_s.upcase, 
+                                                :appID => appId, 
+                                                :message => "#{msg}")) 
   end
 
   #
@@ -352,60 +369,66 @@ class NodeAgent < MObject
 
     cfgFile = nil
     @interactive = false
-    @logConfigFile = ENV['NODE_AGENT_LOG'] || "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
+    @logConfigFile = ENV['NODE_AGENT_LOG'] || 
+                     "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
 
     opts = OptionParser.new
     opts.banner = "Usage: nodeAgent [options]"
-    @config = {:comm => {}, :agent => {}}
+    @config = {:communicator => {}, :agent => {}}
 
     # Communication Options 
     opts.on("--control-if IF",
-      "Name of interface attached to the control and management network [#{@localIF}]") {|name|
-      @config[:comm][:control_if] = name
+      "Name of interface attached to the control and management network "+
+      "[#{@localIF}]") {|name|
+        @config[:communicator][:control_if] = name
     }
-    opts.on("--local-pubsub-server HOST",
+    opts.on("--pubsub-gateway HOST",
       "Hostname of the local PubSub server to connect to") {|name|
-      @config[:comm][:home_pubsub_server] = name
+        @config[:communicator][:pubsub_gateway] = name
     }
-    opts.on("--local-pubsub-user NAME",
-      "Username for connecting to the local PubSub server (if not set, RC will register its own new user)") {|name|
-      @config[:comm][:home_pubsub_user] = name
+    opts.on("--pubsub-user NAME",
+      "Username for connecting to the local PubSub server (if not set, RC "+
+      "will register its own new user)") {|name|
+        @config[:communicator][:pubsub_user] = name
     }
-    opts.on("--local-pubsub-pwd PWD",
-      "Password for connecting to the local PubSub server (if not set, RC will register its own new user)") {|name|
-      @config[:comm][:home_pubsub_pwd] = name
+    opts.on("--pubsub-pwd PWD",
+      "Password for connecting to the local PubSub server (if not set, RC "+
+      "will register its own new user)") {|name|
+        @config[:communicator][:pubsub_user] = name
     }
-    opts.on("--remote-pubsub-server HOST",
-      "Hostname of the remote PubSub server hosting the Slice of this agent") {|name|
-      @config[:comm][:remote_pubsub_server] = name
+    opts.on("--pubsub-domain HOST",
+      "Hostname of the PubSub server hosting the Slice of this agent (if not "+
+      "set, RC will use the same server as the 'pubsub-gateway'") {|name|
+        @config[:communicator][:pubsub_domain] = name
     }
     
     # Instance Options
     opts.on('--name NAME',
       "Initial checkin name of agent (unique HRN for this resource)") {|name|
-      @config[:agent][:name] = name
+        @config[:agent][:name] = name
     }
     opts.on('--slice NAME',
       "Initial checkin slice of agent (unique HRN for the slice)") {|name|
-      @config[:agent][:slice] = name
+        @config[:agent][:slice] = name
     }
 
     # General Options
     opts.on("-i", "--interactive",
       "Run the agent in interactive mode") {
-      @interactive = true
+        @interactive = true
     }
     opts.on("-l", "--libraries LIST",
-      "Comma separated list of additional files to load [#{@extraLibs}]") {|list|
-      @extraLibs = list
+      "Comma separated list of additional files to load "+
+      "[#{@extraLibs}]") {|list|
+        @extraLibs = list
     }
     opts.on("--log FILE",
       "File containing logging configuration information") {|file|
-      @logConfigFile = file
+        @logConfigFile = file
     }
     opts.on("-n", "--just-print",
       "Print the commands that would be executed, but do not execute them") {
-      NodeAgent.JUST_PRINT = true
+        NodeAgent.JUST_PRINT = true
     }
     opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
     opts.on_tail("-v", "--version", "Show the version") {
@@ -422,7 +445,8 @@ class NodeAgent < MObject
     # read optional config file
     if cfgFile.nil?
       name = "omf-resctl.yaml"
-      path = ["../etc/omf-resctl/#{name}", "/etc/omf-resctl-#{OMF_MM_VERSION}/#{name}"]
+      path = ["../etc/omf-resctl/#{name}", 
+              "/etc/omf-resctl-#{OMF_MM_VERSION}/#{name}"]
       cfgFile = path.detect {|f|
         File.readable?(f)
       }
@@ -435,9 +459,9 @@ class NodeAgent < MObject
     end
     if (cfgFile.nil?)
       raise "Can't find any configuration files in the default paths. "+ 
-	    "Please create a config file at one of the default paths (see install doc)."+
-            "Also, you may find an example configuration file in "+
-            "'/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
+	    "Please create a config file at one of the default paths "+
+	    "(see install doc). Also, you may find an example configuration "+
+	    "file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
     else
       require 'yaml'
       h = YAML::load_file(cfgFile)
@@ -449,7 +473,7 @@ class NodeAgent < MObject
 
     # At this point, we should now have a name and a slice
     if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
-      raise "Agent's Name or Slice are not defined in config file or as arguments!"
+      raise "Name or Slice are not defined in config file or as arguments!"
     else
       if @config[:agent][:name] == 'default' 
         warn "Using Hostname as the default name for this resource"
@@ -457,8 +481,9 @@ class NodeAgent < MObject
       end
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
-    end	    
-    
+      @agentDomain = @config[:communicator][:pubsub_domain] || 
+                     @config[:communicator][:pubsub_gateway]
+    end
   end
 
   #

@@ -352,11 +352,12 @@ class Node < MObject
   end
 
   #
-  # Add a name alias to this Node, i.e. add this node to an additional group of nodes
+  # Add a name alias to this Resource, 
+  # i.e. add this node to an additional group of resources
   #
-  # - group = name of the group to add this Node to
+  # - group = name of the group to add this resource to
   #
-  def addGroupName(group) #, individual = nodeId)
+  def addGroupName(group) 
     group = group.to_s
     if (group[0] == ?/)
       group = group[1..-1]
@@ -364,11 +365,13 @@ class Node < MObject
     debug("Added to group '#{group}'")
     @groups[group] = false 
     TraceState.nodeAddGroup(self, group)
-
-    alias_cmd = ECCommunicator.instance.new_command(:ALIAS)
-    alias_cmd.target = @nodeId
-    alias_cmd.name = group
-    send(alias_cmd)
+    # Send an ALIAS command to this resource
+    send(ECCommunicator.instance.create_command(:cmdtype => :ALIAS,
+                                                :target => @nodeId,
+                                                :name => group))
+    # Now listen for messages on that new ALIAS address
+    addr = ECCommunicator.instance.create_address(:name => group) 
+    ECCommunicator.instance.listen(addr)
   end
 
   #
@@ -444,7 +447,8 @@ class Node < MObject
       imgName = ENV['USER']+"-node-#{@nodeId}-#{ts}.ndz".split(':').join('-')
     end
         
-    url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
+    url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?"+
+          "domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
     response = NodeHandler.service_call(url, "Can't get netcat address/port")
     imgHost, imgPort = response.body.split(':')
     
@@ -453,26 +457,27 @@ class Node < MObject
     info("- Saving image of '#{disk}' on node '#{@nodeId}'")
     info("  to the file '#{imgName}' on host '#{imgHost}'")
     info " "
-    save_cmd = ECCommunicator.instance.new_command(:SAVE_IMAGE)
-    save_cmd.target = @nodeId
-    save_cmd.address = imgHost
-    save_cmd.port = imgPort
-    save_cmd.disk = disk
-    send(save_cmd)
+    # Send an ALIAS command to this resource
+    send(ECCommunicator.instance.create_command(:cmdtype => :SAVE_IMAGE,
+                                                :target => @nodeId,
+                                                :address => imgHost,
+                                                :port => imgPort,
+                                                :disk => disk))
   end
 
   #
-  # Send a message to the physical experiment Node, requesting the activation of the MAC blacklist
+  # Send a message to the physical experiment Node, requesting the activation 
+  # of the MAC blacklist
   #
-  # - toolToUse = the software tool to use to enforce the blacklist (iptable, ebtable, or mackill)
+  # - toolToUse = the software tool to use to enforce the blacklist (iptable, 
+  #               ebtable, or mackill)
   #
   def setMACTable(toolToUse)
     @blockedMACList.each{ |mac|
-      mac_cmd = ECCommunicator.instance.new_command(:SET_MACTABLE)
-      mac_cmd.target = @nodeId
-      mac_cmd.cmd = toolToUse
-      mac_cmd.address = mac
-      send(mac_cmd)
+    send(ECCommunicator.instance.create_command(:cmdtype => :SET_MACTABLE,
+                                                :target => @nodeId,
+                                                :cmd => toolToUse,
+                                                :address => mac))
     }
   end
 
@@ -563,15 +568,22 @@ class Node < MObject
   end
 
   #
-  # Enrol this Node into the experiment
+  # Enrol this Resource into the experiment
   #
   def enroll()
     desiredImage = @image.nil? ? "*" : @image
-    enroll_cmd = ECCommunicator.instance.new_command(:ENROLL)
-    enroll_cmd.expID = Experiment.ID
-    enroll_cmd.image = desiredImage
-    enroll_cmd.target = @nodeId
-    ECCommunicator.instance.send_command(enroll_cmd)
+    # Send an ENROLL command to this resource
+    # First listen for messages on that new resource address
+    addr = ECCommunicator.instance.create_address(:name => @nodeId) 
+    ECCommunicator.instance.listen(addr)
+    # Now, Directly use the Communicator send method as this message needs to
+    # be sent even if the resource is not in the "UP" state
+    cmd = ECCommunicator.instance.create_command(:cmdtype => :ENROLL,
+                                                :expID => Experiment.ID,
+                                                :image => desiredImage,
+                                                :target => @nodeId)
+    addr.expID = nil # Same address as the resource but with no expID set
+    ECCommunicator.instance.send_command(addr, cmd)
   end
 
   #
@@ -850,7 +862,8 @@ class Node < MObject
   def send(cmdObj)
     if @nodeStatus == STATUS_UP
       cmdObj.target = @nodeId
-      ECCommunicator.instance.send_command(cmdObj)
+      addr = ECCommunicator.instance.create_address(:name => @nodeId)
+      ECCommunicator.instance.send_command(addr, cmdObj)
     else
       debug "Deferred message: '#{cmdObj.to_s}'"
       @deferred << cmdObj

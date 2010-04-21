@@ -217,9 +217,8 @@ class NodeSet < MObject
     if (ctxt == nil)
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
-    exit_cmd = ECCommunicator.instance.new_command(:EXIT)
-    exit_cmd.appID = name
-    send(exit_cmd)
+    send(ECCommunicator.instance.create_command(:cmdtype => :EXIT,
+                                                :appID = name))
   end
 
   #
@@ -237,21 +236,23 @@ class NodeSet < MObject
   #
   # - cmdName = the name of the executable. It should be a path if it is not
   #          in the agents search path. 
-  # - args = is an optional array of arguments. If an argument starts with a '%', 
-  #          each node will replace placeholders, such as %x, %y, or %n with the local values. 
-  # - env = is an optional Hash of environment variables and their repsective values which will
-  #          be set before the command is executed. Again, '%' substitution will occur on the values.
-  # - &block = an optional block with arity 4, which will be called whenever a message is received
-  #          from a node executing this command. The arguments of the block are for 
-  #          'node, operation, eventName, message'.
+  # - args = is an optional array of arguments. If an argument starts with a '%' 
+  #   each node will replace the following string, such as %x, %y, or %n with 
+  #   the local corresponding values. 
+  # - env = is an optional Hash of environment variables and their repsective 
+  #   values which will be set before the command is executed. Again, '%' 
+  #   substitution will occur on the values.
+  # - &block = an optional block with arity 4, which will be called whenever a 
+  #   message is received from a node executing this command. The arguments of 
+  #   the block are for 'node, operation, eventName, message'.
   #
   def exec(cmdName, args = nil, env = nil, &block)
     debug("Running application '", cmdName, "'")
     procName = "exec:#{@@execsCount += 1}"
-    exec_cmd = ECCommunicator.instance.new_command(:EXECUTE)
-    exec_cmd.appID = procName
-    exec_cmd.path = cmdName
-    
+
+    cmd = ECCommunicator.instance.create_command(:cmdtype => :EXECUTE,
+                                                :appID = procName,
+                                                :path = cmdName)
     if (block.nil?)
       block = Proc.new do |node, op, eventName, message|
         prompt = "#{cmdName.split(' ')[0]}@#{node}"
@@ -273,23 +274,23 @@ class NodeSet < MObject
 
     # Add the environment info...
     if env != nil
-      exec_cmd.env = ""
+      cmd.env = ""
       env.each { |k,v|
-        exec_cmd.env << "#{k}=#{v} "
+        cmd.env << "#{k}=#{v} "
       }
     end
     # Add the command line arguments...
     if (args != nil)
-      exec_cmd.cmdLineArgs = ""
+      cmd.cmdLineArgs = ""
       args.each {|arg|
         if arg.kind_of?(ExperimentProperty)
-          exec_cmd.cmdLineArgs << "#{arg.value} "
+          cmd.cmdLineArgs << "#{arg.value} "
         else
-          exec_cmd.cmdLineArgs << "#{arg.to_s} "
+          cmd.cmdLineArgs << "#{arg.to_s} "
         end
       }
     end
-    send(exec_cmd)
+    send(cmd)
   end
 
   #
@@ -356,10 +357,9 @@ class NodeSet < MObject
     eachNode {|n|
       n.configure(path, value)
     }
-    conf_cmd = ECCommunicator.instance.new_command(:CONFIGURE)
-    conf_cmd.path = path.join('/')
-    conf_cmd.value = valueToSend.to_s
-    send(conf_cmd)
+    send(ECCommunicator.instance.create_command(:cmdtype => :CONFIGURE,
+                                                :path = path.join('/'),
+                                                :value = valueToSend.to_s))
   end
 
   #
@@ -496,20 +496,22 @@ class NodeSet < MObject
   # node set. This assumed the node booted into a PXE image
   #
   # - image = Image to load onto node's disk
-  # - domain = testbed for this node (optional, default= default testbed for this EC)
+  # - domain = testbed for this node (optional, default= default testbed for 
+  # this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
-  def loadImage(image, domain = '', disk = OConfig[:tb_config][:default][:frisbee_default_disk])
-    if (domain == '')
-      domain = "#{OConfig.domain}"
-    end
+  def loadImage(image, domain = nil, disk = nil)
+
+    domain = "#{OConfig.domain}" if !domain
+    disk = OConfig[:tb_config][:default][:frisbee_default_disk] if !disk
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Prepare image #{image} for set #{self}"
       mcAddress = "Some_MC_address"
       mcPort = "Some_MC_port"
     else
       # get frisbeed address
-      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/getAddress?domain=#{domain}&img=#{image}"
+      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/"+
+            "getAddress?domain=#{domain}&img=#{image}"
       response = NodeHandler.service_call(url, "Can't get frisbee address")
       mcAddress, mcPort = response.body.split(':')
     end
@@ -518,11 +520,10 @@ class NodeSet < MObject
       n.loadImage(image, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
-    load_cmd = ECCommunicator.instance.new_command(:LOAD_IMAGE)
-    load_cmd.address = mcAddress
-    load_cmd.port = mcPort
-    load_cmd.disk = disk
-    send(load_cmd)
+    send(ECCommunicator.instance.create_command(:cmdtype => :LOAD_IMAGE,
+                                                :address = mcAddress,
+                                                :port = mcPort,
+                                                :disk = disk))
   end
 
   #
@@ -531,22 +532,26 @@ class NodeSet < MObject
   # This assumed the node booted into a PXE image
   #
   # - image = Image to load onto node's disk
-  # - domain = testbed for this node (optional, default= default testbed for this EC)
+  # - domain = testbed for this node (optional, default= default testbed for 
+  #   this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
-  def stopImageServer(image, domain = '', disk = OConfig[:tb_config][:default][:frisbee_default_disk])
-    if (domain == '')
-      domain = "#{OConfig.domain}"
-    end
+  def stopImageServer(image, domain = nil, disk = nil
+		     
+    domain = "#{OConfig.domain}" if !domain
+    disk = OConfig[:tb_config][:default][:frisbee_default_disk]) if !disk
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
     else
       # stop the frisbeed server on the Gridservice side
       debug "Stop server of image #{image} for domain #{domain}"
-      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/stop?domain=#{domain}&img=#{image}"
-      response = NodeHandler.service_call(url, "Can't stop frisbee daemon on the GridService")
+      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/"+
+            "stop?domain=#{domain}&img=#{image}"
+      response = NodeHandler.service_call(url, 
+                             "Can't stop frisbee daemon on the GridService")
       if (response.body != "OK")
-        error "Can't stop frisbee daemon on the GridService - image: '#{image}' - domain: '#{domain}'"
+        error "Can't stop frisbee daemon on the GridService - "+
+              "image: '#{image}' - domain: '#{domain}'"
         error "GridService's response to stop call: '#{response.body}'"
       end
     end
@@ -558,12 +563,12 @@ class NodeSet < MObject
       url_dir="/data/#{srcPath.gsub('/', '_')}"
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
       OMF::ExperimentController::Web.mapFile(url_dir, srcPath)
-      load_cmd = ECCommunicator.instance.new_command(:LOAD_DATA)
+
       procName = "exec:#{@@execsCount += 1}:loadData"
-      load_cmd.appID = procName
-      load_cmd.image = url
-      load_cmd.path = dstPath
-      send(load_cmd)
+      send(ECCommunicator.instance.create_command(:cmdtype => :LOAD_DATA,
+                                                :appID = procName,
+                                                :image = url,
+                                                :path = dstPath))
 
       block = Proc.new do |node, op, eventName, message|
           case eventName
@@ -572,11 +577,10 @@ class NodeSet < MObject
           when 'STARTED'
             # ignore 
           else
-            debug "Event '#{eventName}' (from loadData on '#{node}'): '#{message}'"
+            debug "Event '#{eventName}' (from loadData on '#{node}'): "+
+                  "'#{message}'"
           end
-        end
-      # TODO: check for blocks arity.
-    
+        end # TODO: check for blocks arity.
       eachNode { |n|
         n.exec(procName, 'loadData', nil, nil, &block)
       }
@@ -600,7 +604,8 @@ class NodeSet < MObject
     end
     if (up? && notQueued)
       debug "Send ('#{@nodeSelector}') - '#{cmdObj.to_s}'"
-      ECCommunicator.instance.send_command(cmdObj)
+      ECCommunicator.instance.create_address(:name => @nodeSelector)
+      ECCommunicator.instance.send_command(addr, cmdObj)
       return
     end
   end

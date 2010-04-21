@@ -59,7 +59,6 @@ class OmfCommunicator < MObject
     else
       raise "Unknown transport '#{type}'"
     end
-
   end
 
   #
@@ -88,7 +87,7 @@ class OmfCommunicator < MObject
     end
   end
 
-  def create_address(opts = nil)
+  def create_address!(opts = nil)
     if @@transport
       return @@transport.create_address(opts)
     else
@@ -101,6 +100,10 @@ class OmfCommunicator < MObject
   end
 
   def send_command(addr, cmdObject)
+    if !addr
+      error "No address definied! Cannot send message '#{cmdObject}'"
+      return
+    end
     if @@transport
       @@transport.send_commamd(addr, cmdObject)
     else

@@ -220,7 +220,8 @@ class AppDefinition < MObject
   def getCommandLineArgs(bindings, appId, nodeSet)
 
     cmd = []
-    # First sort the properties according to their order (if specified in their options Hash)
+    # First sort the properties according to their order 
+    # (if specified in their options Hash)
     sortedProperties = @properties.sort {|a,b| a[1] <=> b[1]}
     sortedProperties.each {|a|
       name = a[0]
@@ -230,10 +231,10 @@ class AppDefinition < MObject
         # This Property is a Dynamic Experiment Property...
         if value.kind_of?(ExperimentProperty)
           value.onChange { |v|
-            stdin_cmd = ECCommunicator.instance.new_command(:STDIN)
-            stdin_cmd.appID = appId
-            stdin_cmd.value = "#{prop.name} #{v}"
-            nodeSet.send(stdin_cmd)
+            nodeSet.send(ECCommunicator.instance.create_command(
+                                                 :cmdtype => :STDIN,
+                                                 :appID => appId,
+                                                 :value => "#{prop.name} #{v}")
           }
           if (value = value.value) == nil
             next # continue with the next property
@@ -244,15 +245,18 @@ class AppDefinition < MObject
         case type
         when :integer, :int
           if !value.kind_of?(Integer)
-            raise "Wrong type '#{value}' for Property '#{name}' (expecting Integer)"
+            raise "Wrong type '#{value}' for Property '#{name}' "+
+                  "(expecting Integer)"
           end
         when :string
           if !value.kind_of?(String)
-            raise "Wrong type '#{value}' for Property '#{name}' (expecting String)"
+            raise "Wrong type '#{value}' for Property '#{name}' "+
+                  "(expecting String)"
           end
         when :boolean
           if ((value != false) && (value != true)) 
-            raise "Wrong type '#{value}' for Property '#{name}' (expecting Boolean)"
+            raise "Wrong type '#{value}' for Property '#{name}' "+
+                  "(expecting Boolean)"
           end
         when nil
         when ExperimentProperty

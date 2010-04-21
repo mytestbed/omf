@@ -114,10 +114,10 @@ class Application < MObject
   def install(nodeSet)
     if (aptName = @appDefinition.aptName) != nil
       # Install App from DEB package using apt-get 
-      install_cmd = ECCommunicator.instance.new_command(:APT_INSTALL)
-      install_cmd.appID = "#{appDefinition.uri}/install"
-      install_cmd.package = aptName
-      nodeSet.send(install_cmd)
+      nodeSet.send(ECCommunicator.instance.create_command(
+                                  :cmdtype => :APT_INSTALL,
+                                  :appID => "#{@appDefinition.uri}/install",
+                                  :package => aptName))
     elsif (rep = @appDefinition.binaryRepository) != nil
       # Install App from TAR archive using wget + tar 
       # We first have to mount the local TAR file to a URL on our webserver
@@ -125,17 +125,17 @@ class Application < MObject
       url_dir="/install/#{rep.gsub('/', '_')}"
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
       OMF::ExperimentController::Web.mapFile(url_dir, rep)
-      install_cmd = ECCommunicator.instance.new_command(:PM_INSTALL)
-      install_cmd.appID = "#{appDefinition.uri}/install"
-      install_cmd.image = url
-      install_cmd.path = '/'
-      nodeSet.send(install_cmd)
+      nodeSet.send(ECCommunicator.instance.create_command(
+                                  :cmdtype => :PM_INSTALL,
+                                  :appID => "#{@appDefinition.uri}/install",
+                                  :image => url,
+                                  :path => "/"))
     elsif (rpmName = @appDefinition.rpmName) != nil
       # Install App from RPM package using apt-get 
-      install_cmd = ECCommunicator.instance.new_command(:RPM_INSTALL)
-      install_cmd.appID = "#{appDefinition.uri}/install"
-      install_cmd.package = rpmName
-      nodeSet.send(install_cmd)
+      nodeSet.send(ECCommunicator.instance.create_command(
+                                  :cmdtype => :RPM_INSTALL,
+                                  :appID => "#{@appDefinition.uri}/install",
+                                  :package => rpmName))
     end
   end
 

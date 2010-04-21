@@ -312,7 +312,8 @@ end
 
     # Check if we are already 'enrolled' or not
     if agent.enrolled
-      MObject.debug "Resource Controller already enrolled! - ignoring this ENROLL command!"
+      MObject.debug "Resource Controller already enrolled! - "+
+                    "ignoring this ENROLL command!"
       return
     end
     # Check if the desired image is installed on that node, 
@@ -320,7 +321,8 @@ end
     # if not, then ignore this YOUARE
     desiredImage = cmdObject.image
     if (desiredImage != agent.imageName() && desiredImage != '*')
-      MObject.debug "Requested Image: '#{desiredImage}' - Current Image: '#{NodeAgent.instance.imageName()}'"
+      MObject.debug "Requested Image: '#{desiredImage}' - "+
+                    "Current Image: '#{NodeAgent.instance.imageName()}'"
       agent.wrongImageReply()
       return
     end
