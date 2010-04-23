@@ -43,51 +43,9 @@ require 'omf-common/mobject'
 class OMFPubSubTransport < MObject
 
   @@instance = nil
-
-  # Names for constant PubSub nodes
-  PUBSUB_ROOT = "OMF"
-  RESOURCE = "resources"
-  SYSTEM = "system"
   DEFAULT_PUBSUB_PWD = "123456"
   RETRY_INTERVAL = 10
 
-  def slice_node(slice)
-    "/#{PUBSUB_ROOT}/#{slice}"
-  end
-
-  def exp_node(slice, experiment, name = nil)
-    return "#{slice_node(slice)}/#{experiment}/#{name}" if name
-    return "#{slice_node(slice)}/#{experiment}"
-  end
-
-  def res_node(slice, resource = nil)
-    return "#{resources_node(slice)}/#{resource}" if resource
-    return "#{slice_node(slice)}/#{RESOURCE}"
-  end
-
-  def sys_node(resource = nil)
-    return "#{sys_node}/#{resource}" if resource
-    return "/#{PUBSUB_ROOT}/#{SYSTEM}"
-  end
-
-  def sys_node?(node_name)
-    if node_name =~ /#{system_node}\/(.*)/ then
-      $1
-    else
-      nil
-    end
-  end
-
-  def addr_to_node(addr)
-    node = ""
-    if addr.sliceID && addr.expID 
-      return exp_node(addr.sliceID, addr.expID, addr.name)
-    elsif addr.sliceID 
-      return res_node(addr.sliceID, addr.name)
-    else
-      raise "OMFPubSubTransport - Cannot build node from address '#{addr.to_s}'"
-    end
-  end
 
   def self.instance
     @@instance
@@ -148,7 +106,7 @@ class OMFPubSubTransport < MObject
   # the events of the 2 listens will be put in the same Q and process by the 
   # same block, i.e. the queue and the block of the 1st call to listen!
   def listen(addr, &block = nil)
-    node = addr_to_node(addr)
+    node = addr.generate_address
     subscribed = false
     index = 0
     # When a new event comes from that server, we push it on our event queue
@@ -192,10 +150,6 @@ class OMFPubSubTransport < MObject
     return OmfCommandObject.new(opts)
   end
 
-  def create_address(opts)
-    return PubSubAddress.new(opts) 
-  end
-
   #
   # Process an incoming message from the EC. This method is called by the
   # callback hook, which was set up in the 'start' method of this Communicator.
@@ -233,9 +187,9 @@ class OMFPubSubTransport < MObject
   # attributes of a Command Object.
   #
   def send_command(addr, cmdObject)
-    node = addr_to_node(addr)
+    node = addr.generate_address
     domain = addr.domain
-    send(node, domain, cmdObject.to_xml)
+    send(node, domain, cmdObject.serialize)
   end
 
   def reset
@@ -327,39 +281,4 @@ class OMFPubSubTransport < MObject
     end
   end
 
-
 end
-
-class PubSubAddress 
-  @name = nil
-  @expID = nil
-  @sliceID = nil
-  @domain = nil
-  attr_accessor :name, :expID, :sliceID, :domain
-
-  def initialize (opts)
-    if opts
-      if opts.kind_of?(Hash) 
-        @name = opts[:name] || nil
-        @expID = opts[:expID] || nil
-        @sliceID = opts[:sliceID] || nil
-        @domain = opts[:domain] || nil
-      elsif opts.kind_of?(PubSubAddress) 
-        @name = opts.name
-        @expID = opts.expID
-        @sliceID = opts.sliceID
-        @domain = opts.domain
-      else
-        raise "Cannot construct PubSub Address with unknown options "+
-              "(type: '#{opts.class}')"
-      end
-    end
-    return self
-  end
-
-  def to_s
-    return "[name:'#{@name}', slice:'#{@sliceID}', "+
-            "exp:'#{@expID}', domain:'#{@domain}']"
-  end
-end
-

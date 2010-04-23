@@ -36,73 +36,7 @@ require 'rexml/element.rb'
 #
 # A class implementing an OMF Command Object 
 #
-class OmfCommandObject
-
-  attr_reader :attributes
-
-  #
-  # Return the value of an attribute of this Command Object
-  # A list of currently used attributes can be found at the end of
-  # this file
-  #
-  # - key = the name of the attribut
-  #
-  # [Return] the value of the attribute
-  #
-  def [](key)
-    return @attributes[key.upcase]
-  end
-
-  #
-  # Return or Set the value of an attribute of this Command Object
-  # But do so via the use of method_missing, so one can query or set
-  # the attribute using a 'dot' syntax.
-  # E.g. myCmd.myAttribute = 123
-  # E.g. var = myCmd.myAttribute
-  # A list of currently used attributes can be found at the end of
-  # this file
-  #
-  # - name = the name of the attribut
-  #
-  # [Return] the value of the attribute, if called as a query
-  #
-  def method_missing(name, *args, &blocks)
-    method = name.to_s.upcase
-    if method[-1,1] == "="
-      key = method[0..-2]
-      @attributes[key.to_sym] = args[0]
-    else
-      return @attributes[name.to_s.upcase.to_sym]
-    end
-  end
-
-  #
-  # Create a new Command Object
-  #
-  # - initValue = if a String or Symbol, then create an empty Command Object, 
-  #               with its command type set to the String/Symbol
-  #               if an XML stanza, then create a new Command Object based on 
-  #               the XML description
-  #
-  #  [Return] a new Command Object
-  #
-  def initialize (initOptions)
-    # Create a new Hash to hold the attributes of this Command Object
-    @attributes = Hash.new
-    # Set the Command Type
-    if initOptions.kind_of?(Hash) 
-      initOptions.each { |k,v|
-	kSym = k.to_s.upcase.to_sym
-        @attributes[kSym] = v
-      }
-    # Or build a new Command Object from an XML stanza
-    elsif initOptions.kind_of?(REXML::Parent)
-      init_from_xml(initOptions)
-    else
-      raise "Cannot create a OmfCommandObject! Unknown initial options "+
-            "(type: '#{initOptions.class}')"
-    end
-  end
+class OmfPubSubMessage < OmfMessage 
 
   #
   # Return the XML representation for this Command Object
@@ -129,7 +63,7 @@ class OmfCommandObject
   #
   # [Return] an XML element
   #
-  def to_xml()
+  def serialize
     msg = REXML::Document.new
     # Set the Type of the XML to return
     msg << REXML::Element.new("#{@attributes[:CMDTYPE].to_s}")
@@ -157,7 +91,7 @@ class OmfCommandObject
   #
   # - xmlDoc = an xml document (REXML::Document) object
   #
-  def init_from_xml(xmlDoc)
+  def create_from(xmlDoc)
     begin
       # Set the Type
       @attributes[:CMDTYPE] = xmlDoc.expanded_name.to_sym
