@@ -40,11 +40,12 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.HB(communicator, sender, cmdObj)
+  def AgentCommands.HB(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     sender.heartbeat(0, 0, "00:00")
   end
 
-  def AgentCommands.OK(communicator, sender, cmdObj)
+  def AgentCommands.OK(communicator, cmdObj)
     MObject.debug("agentcmds", "OK from: '#{cmdObj.target}' - cmd: '#{cmdObj.cmd}' - msg: '#{cmdObj.message}'")
   end
 
@@ -56,7 +57,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.ENROLLED(communicator, sender, cmdObj)
+  def AgentCommands.ENROLLED(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     sender.enrolled(cmdObj)
   end
 
@@ -69,7 +71,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.WARN(communicator, sender, cmdObj)
+  def AgentCommands.WARN(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     MObject.warn("agentcmds", "sender: '#{cmdObj.target}' ('#{sender}') - msg: '#{cmdObj.message}'")
   end
 
@@ -90,7 +93,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.WRONG_IMAGE(communicator, sender, cmdObj)
+  def AgentCommands.WRONG_IMAGE(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     MObject.debug("agentcmds", "WRONG_IMAGE from: '#{cmdObj.target}' - Desired: '#{sender.image}' - Installed: '#{cmdObj.image}'")
     sender.reset()
   end
@@ -104,7 +108,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.APP_EVENT(communicator, sender, cmdObj)
+  def AgentCommands.APP_EVENT(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     eventName = cmdObj.value
     appId = cmdObj.appID
     message = cmdObj.message
@@ -122,7 +127,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.DEV_EVENT(communicator, sender, cmdObj)
+  def AgentCommands.DEV_EVENT(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     eventName = cmdObj.value
     devName = cmdObj.appID
     message = cmdObj.message
@@ -140,7 +146,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.ERROR(communicator, sender, cmdObj)
+  def AgentCommands.ERROR(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     command = cmdObj.cmd
     case command
       when 'CONFIGURE'
@@ -181,7 +188,8 @@ module AgentCommands
   # - sender = the object that issued this command (i.e. usually a 'Node' object)
   # - cmdObj = an OmfCommandObject holding the information for this command
   #
-  def AgentCommands.END_EXPERIMENT(communicator, sender, cmdObj)
+  def AgentCommands.END_EXPERIMENT(communicator, cmdObj)
+    sender = Node[cmdObj.target]
     if NodeHandler.disconnectionMode?
       sender.setReconnected()
       info "Received End of Experiment from node '#{sender}' (reconnected)." 

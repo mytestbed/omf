@@ -42,93 +42,27 @@ require 'omf-expctl/agentCommands'
 class ECCommunicator < OmfCommunicator
 
   def self.init(opts)
+    opts[:comms_specific_tasks] = [:ENROLLED]
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
     @@sliceID = opts[:sliceID]
     @@domain = opts[:domain]
     @@expID = opts[:expID]
-    # 1 - listen to my address
-    # (i.e. the is the 'experiment' address)
+    # 1 - listen to my address (i.e. the is the 'experiment' address)
     addr = create_address!(:sliceID => @@sliceID, 
                           :expID => @@expID, 
                           :domain => @@domain)
-    listen(addr) { |cmd| process_command(cmd) }
+    listen(addr) { |cmd| dispatch_message(cmd) }
+    # 3 - Set my lists of valid and specific commands
+    OmfProtocol::RC_COMMANDS.each { |cmd|
+      defValidCommand(cmd) { |h, m| AgentCommands.method(cmd.to_s).call(h, m) }	
+    }
   end
 
   def create_address(opts = nil)
     return create_address!(:sliceID => @@sliceID, :expID => @@expID, 
                            :domain => @@domain, :name => opts[:name])
-  end
-
-  #
-  # This method processes the command comming from another OMF entity 
-  #
-  #  - argArray = command line parsed into an array
-  #
-  def process_command(cmdObj)
-    return if !valid_command(cmdObj)
-    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
-    # Perform any EC-specific communicator tasks
-    execute_ec_tasks(cmdObj)
-    # Retrieve the method corresponding to this command
-    method = nil
-    begin
-      method = AgentCommands.method(cmdObj.cmdType.to_s)
-    rescue Exception
-      error "Cannot find a method to process the command '#{cmdObj.cmdType}'"
-      return
-    end
-    # Execute the method corresponding to this command
-    begin
-      reply = method.call(self, Node[cmdObj.target], cmdObj)
-    rescue Exception => err
-      error "While processing the command '#{cmdObj.cmdType}'"
-      error "Error: #{err}"
-      error "Trace: #{err.backtrace.join("\n")}" 
-      return
-    end
-  end
-
-  def valid_command?(cmdObj)
-    # Perform some checking...
-    # - Ignore commands from ourselves or another EC
-    return false if OmfProtocol::ec_cmd?(cmdObj.cmdType)
-    # - Ignore commands that are not known RC commands
-    if !OmfProtocol::rc_cmd?(cmdObj.cmdType)
-      debug "Received unknown command '#{cmdObj.cmdType}' - ignoring it!" 
-      return false
-    end
-    # - Ignore commands for/from unknown Slice and Experiment ID
-    if (cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID)
-      debug "Received command with unknown slice and exp IDs: "+
-            "'#{cmdObj.sliceID}' and '#{cmdObj.expID}' - ignoring it!" 
-      return false
-    end
-    # - Ignore commands from unknown RCs
-    if (Node[cmdObj.target] == nil)
-      debug "Received command with unknown target '#{cmdObj.target}'"+
-            " - ignoring it!"
-      return false
-    end
-    return true
-  end
-
-  def execute_ec_tasks(cmdObject)
-    case cmdObject.cmdType
-    when :ENROLLED
-      # when we receive the first ENROLLED, send a NOOP message to the RC. 
-      # This is necessary since if RC is reset or restarted, it might
-      # receive the last ENROLL command again, depending on the kind of 
-      # transport being used. In any case, sending a NOOP would prevent this.
-      if !Node[cmdObject.target].isUp
-        addr = create_address!(:sliceID => @@sliceID, 
-                              :domain => @@domain,
-                              :name => cmdObject.target)
-        noop = create_command(:cmdtype => :NOOP, :target => cmdObject.target)
-        send_command(addr, noop)
-      end
-    end
   end
 
   #
@@ -138,16 +72,51 @@ class ECCommunicator < OmfCommunicator
     addr = create_address!(:sliceID => @@sliceID, 
                            :domain => @@domain,
                            :name => "#{resourceID}")
-    cmd = create_command(:cmdtype => :RESET, :target => "#{resourceID}")
-    send_command(addr, cmd)
+    cmd = create_message(:cmdtype => :RESET, :target => "#{resourceID}")
+    send_message(addr, cmd)
   end
 
   #
   # This method sends a reset command to a given resource
   #
   def send_reset_all
-    send_command(create_address!(:sliceID => @@sliceID, :domain => @@domain),
-                 create_command(:cmdtype => :RESET, :target => "*"))
+    send_message(create_address!(:sliceID => @@sliceID, :domain => @@domain),
+                 create_message(:cmdtype => :RESET, :target => "*"))
+  end
+
+  private
+
+  def valid_message?(message)
+    # 1 - Perform common validations amoung OMF entities
+    return false if !super(message)
+    # 2 - Perform EC-specific validations
+    # - Ignore messages for/from unknown Slice and Experiment ID
+    if (message.sliceID != @@sliceID) || (message.expID != @@expID)
+      debug "Received message with unknown slice and exp IDs: "+
+            "'#{message.sliceID}' and '#{message.expID}' - ignoring it!" 
+    return false
+    # - Ignore message from unknown RCs
+    if (Node[message.target] == nil)
+      debug "Received command with unknown target '#{message.target}'"+
+            " - ignoring it!"
+      return false
+    end
+    # Accept this message
+    return true
+  end
+
+  def ENROLLED(cmd)
+    # when we receive the first ENROLLED, send a NOOP message to the RC. 
+    # This is necessary since if RC is reset or restarted, it might
+    # receive the last ENROLL command again, depending on the kind of 
+    # transport being used. In any case, sending a NOOP would prevent this.
+    if !Node[cmd.target].isUp
+      addr = create_address!(:sliceID => @@sliceID, 
+                            :domain => @@domain,
+                            :name => cmd.target)
+      noop = create_message(:cmdtype => :NOOP, :target => cmd.target)
+      send_message(addr, noop)
+    end
   end
 
 end

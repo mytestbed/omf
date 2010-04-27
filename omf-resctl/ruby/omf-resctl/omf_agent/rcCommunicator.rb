@@ -46,6 +46,7 @@ require 'omf-resctl/omf_agent/agentCommands'
 class RCCommunicator < OmfCommunicator
 
   def self.init(opts)
+    opts[:comms_specific_tasks] = [:ENROLL, :ALIAS]
     super(opts)
     # RC-secific communicator initialisation...
     # 0 - set some attributes
@@ -57,6 +58,10 @@ class RCCommunicator < OmfCommunicator
     @@myAddr = create_address!(:sliceID => @@sliceID, 
                               :name => @@myName, 
                               :domain => @@domain)
+    # 3 - Set my lists of valid and specific commands
+    OmfProtocol::EC_COMMANDS.each { |cmd|
+      defValidCommand(cmd) { |h, m| AgentCommands.method(cmd.to_s).call(h, m) }	
+    }
   end
 
   def create_address(opts = nil)
@@ -74,7 +79,7 @@ class RCCommunicator < OmfCommunicator
     # Listen to my address - wait and try again until successfull
     listening = false
     while !listening
-      listening = listen(@@myAddr) { |cmd| process_command(cmd) }
+      listening = listen(@@myAddr) { |cmd| dispatch_message(cmd) }
       debug "Cannot listen on '#{@@myAddr.to_s}' - "+
             "retrying in #{RETRY_INTERVAL} sec."
       sleep RETRY_INTERVAL
@@ -90,90 +95,61 @@ class RCCommunicator < OmfCommunicator
     end
   end
 
-  #
-  # This method processes the command comming from another OMF entity
-  #
-  #  - argArray = command line parsed into an array
-  #
-  def process_command(cmdObj)
-    return if !valid_command(cmdObj)
-    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
-    # Perform any RC-specific communicator tasks
-    execute_rc_tasks(cmdObj)
-    # Retrieve the command
-    method = nil
-    begin
-      method = AgentCommands.method(cmdObj.cmdType.to_s)
-    rescue Exception
-      error "Cannot find a method to process the command '#{cmdObj.cmdType}'"
-      errorReply("Cannot find a method to process the command", cmdObj) 
-      return
-    end
-    # Execute the command
-    begin
-      reply = method.call(self, cmdObj)
-    rescue Exception => err
-      error "While processing the command '#{cmdObj.cmdType}'"
-      error "Error: #{err}"
-      error "Trace: #{err.backtrace.join("\n")}" 
-      errorReply("Failed to process the command (#{err})", cmdObj) 
-      return
+  private
+
+  def dispatch_message(message)
+    error_msg = super(message)
+    if result
+       send_error_reply("Failed to process command (Error: '#{error_msg}')", 
+                        eval(@@messageType).create_from(message)) 
     end
   end
 
-  def valid_command?(cmdObj)
-    # Perform some checking...
-    # - Ignore commands from ourselves or another RC
-    return false if OmfProtocol::rc_cmd?(cmdObj.cmdType)
-    # - Ignore commands that are not known EC commands
-    if !OmfProtocol::ec_cmd?(cmdObj.cmdType)
-      debug "Received unknown command '#{cmdObj.cmdType}' - ignoring it!" 
-      return false
-    end
-    # - Ignore commands for/from unknown Slice and Experiment ID
-    if (cmdObj.cmdType != :ENROLL) && 
-       ((cmdObj.sliceID != @@sliceID) || (cmdObj.expID != @@expID))
-      debug "Received command with unknown slice and exp IDs: "+
-            "'#{cmdObj.sliceID}' and '#{cmdObj.expID}' - ignoring it!" 
-      return false
-    end
+  def valid_message?(message)
+    # 1 - Perform common validations amoung OMF entities
+    return false if !super(message) 
+    # 2 - Perform RC-specific validations
+    # - Ignore messages for/from unknown Slice and Experiment ID
+    if (message.cmdType != :ENROLL) &&
+       ((message.sliceID != @@sliceID) || (message.expID != @@expID))
+      debug "Received message with unknown slice and exp IDs: "+
+            "'#{message.sliceID}' and '#{message.expID}' - ignoring it!" 
+    return false
     # - Ignore commands that are not address to us 
     # (There may be multiple space-separated targets)
-    targets = cmdObj.target.split(' ') 
-    isForMe = false
-    targets.each { |t| 
-       isForMe = true if NodeAgent.instance.agentAliases.include?(t) 
-     }
-     if !isForMe
-       debug "Received command with unknown target '#{cmdObj.target}'"+
+    dst = message.target.split(' ') 
+    forMe = false
+    dst.each { |t| forMe = true if NodeAgent.instance.agentAliases.include?(t) }
+     if !forMe
+       debug "Received command with unknown target '#{message.target}'"+
              " - ignoring it!" 
        return false
     end
+    # Accept this message
     return true
   end
 
-  def execute_rc_tasks(cmdObject)
-    case cmdObject.cmdType
-    when :ENROLL
-      # Set our expID and listen to our addresses for this experiment
-      if !NodeAgent.instance.enrolled
-        @@expID = cmdObject.expID
-        debug "Experiment ID: '#{@@expID}'"
-        addrNode = create_address(:name => cmdObject.target)
-        addrExp = create_address()
-        if !listen(addrNode) || !listen(addrExp)
-          error "Failed to Process ENROLL command!"
-          error "Maybe this is an ENROLL from an old experiment - ignoring it!"
-          return
-        end
-      else
-        debug "Received ENROLL, but I am already ENROLLED! - ignoring it!"
+  def ENROLL(cmd)
+    # Set our expID and listen to our addresses for this experiment
+    if !NodeAgent.instance.enrolled
+      @@expID = cmdObject.expID
+      debug "Experiment ID: '#{@@expID}'"
+      addrNode = create_address(:name => cmdObject.target)
+      addrExp = create_address()
+      if !listen(addrNode) || !listen(addrExp)
+        error "Failed to Process ENROLL command!"
+        error "Maybe this is an ENROLL from an old experiment - ignoring it!"
         return
       end
-    when :ALIAS
-      addrAlias = create_address(:name => cmdObject.name)
-      listen(addrAlias)
+    else
+      debug "Received ENROLL, but I am already ENROLLED! - ignoring it!"
+      return
     end
+  end
+
+  def ALIAS(cmd)
+    addrAlias = create_address(:name => cmdObject.name)
+    listen(addrAlias)
   end
 
 end

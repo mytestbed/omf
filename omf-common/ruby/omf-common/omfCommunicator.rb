@@ -39,7 +39,10 @@ require 'omf-common/mobject'
 class OmfCommunicator < MObject
 
   @@instance = nil
-  @@cmds = []
+  @@valid_commands = nil
+  @@communicator_commands = nil
+  @@self_comands = nil
+  @@sent = []
 
   def self.instance
     @@instance
@@ -49,96 +52,132 @@ class OmfCommunicator < MObject
     raise "Communicator already started" if @@instance
     @@instance = self.new
     @@transport = nil
+    # Initiate the required Transport entity
     case type = opts[:type]
     when 'xmpp'
       require 'omf-common/omfPubSubTransport'
+      require "omf-common/omfPubSubMessage"
+      require "omf-common/omfPubSubAddress"
       @@transport = OMFPubSubTransport.init(opts) 
+      @@messageType = "OmfPubSubMessage"
+      @@addressType = "OmfPubSubAddress"
     when 'mock'
-      @@cmds = Array.new
+      @@sent = Array.new
       return # Uses the default Mock OmfCommunicator
     else
       raise "Unknown transport '#{type}'"
     end
+    # Set Communicator-specific tasks, if any
+    if opts[:comms_specific_tasks]
+      opts[:comms_specific_tasks].each { |cmd|
+      defCommunicatorCommand(cmd) { |msg| self.method(cmd.to_s).call(msg) }	
+    }
+    end
   end
 
-  #
-  # Return a Command Object which will hold all the information required to send
-  # a command to another OMF entity.
-  # If a Transport entity has been defined for this Communicator, then the 
-  # the returned Object is the one defined by the Transport entity. 
-  # If not, then the returned Object is a default Hash.
-  # Subclasses of communicators may define their own type of Command Object.
-  # The returned Command Object should have at least the following attribut
-  # and corresponding accessors: :CMDTYPE = type of the command
-  #
-  # - type = the type of this Command Object
-  #
-  # [Return] an Object with the information on a command between OMF entities 
-  #
-  def create_command(opts = nil)
-    if @@transport
-      return @@transport.create_command(opts)
-    else
-      cmd = HashPlus.new
-      if opts
-        opts.each { |k,v| cmd[k] = v}
-      end
-      return cmd
-    end
+  def self.defCommunicatorCommand(command_type, &block)
+    @@communicator_commands[command_type] = block
+  end
+
+  def self.defValidCommand(command_type, &block)
+    @@valid_commands[command_type] = block
+  end
+
+  def create_message(opts = nil)
+    return eval(@@messageType).new(opts) if @@transport
+    cmd = HashPlus.new
+    opts.each { |k,v| cmd[k] = v} if opts
+    return cmd
   end
 
   def create_address!(opts = nil)
-    if @@transport
-      return @@transport.create_address(opts)
-    else
-      addr = HashPlus.new
-      if opts
-        opts.each { |k,v| addr[k] = v}
-      end
-      return addr
-    end
+    return eval(@@addressType).new(opts) if @@transport
+    addr = HashPlus.new
+    opts.each { |k,v| addr[k] = v} if opts
+    return addr
   end
 
-  def send_command(addr, cmdObject)
+  def send_message(addr, message)
     if !addr
-      error "No address definied! Cannot send message '#{cmdObject}'"
+      error "No address defined! Cannot send message '#{message}'"
       return
     end
     if @@transport
-      @@transport.send_commamd(addr, cmdObject)
+      @@transport.send(addr, message.serialize)
     else
-      debug "Sending command '#{cmdObject}'"
-      @@cmds << [addr, cmdObject]
+      debug "Sending command '#{message}'"
+      @@sent << [addr, message]
     end
   end  
 
   def listen(addr, &block)
-    if @@transport
-      @@transport.listen(addr, &block)
-    end
+    @@transport.listen(addr, &block) if @@transport
   end
 
   def stop
-    if @@transport
-      @@transport.stop
-    end
+    @@transport.stop if @@transport
   end
 
   def reset
-    if @@transport
-      @@transport.reset
+    @@transport.reset if @@transport
+  end
+
+  #############################
+  #############################
+  
+  private
+
+  def dispatch_message(message)
+    # 1 - Retrieve and validate the message
+    cmd = eval(@@messageType).create_from(message)
+    return if !valid_message?(cmd) # Silently discard unvalid messages
+    debug "Processing '#{cmd.cmdType}' - '#{cmd.target}'"
+    # 2 - Perform Communicator-specific tasks, if any
+    begin
+      proc = @@communicator_commands[cmd.cmdType]
+      proc.call(cmd) if not proc.nil?
+    rescue Exception => ex
+      error "Failed to process Communicator-specific task '#{cmd.cmdType}'\n" +
+            "Error: '#{ex}'\n" + "Raw message: '#{message.to_s}'"
+      return ex
+    end
+    # 3 - Dispatch the message to the OMF entity
+    begin
+      proc = @@valid_commands[cmd.cmdType]
+      proc.call(self, cmd) if not proc.nil?
+    rescue Exception => ex
+      error "Failed to process the command '#{cmd.cmdType}'\n" +
+            "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" 
+      return ex
     end
   end
 
-  def process_command(command)
-    raise unimplemented_method_exception("process_command")
-  end
+  private
 
+  def valid_message?(message)
+    cmd = message.cmdType
+    # - Ignore commands from ourselves (or another instance of our entity)
+    self_commands = @@self_commands || []
+    return false if self_commands.include?(cmd)
+    # - Ignore commands that are not in our list of acceptable commands
+    valid_commands = @@valid_commands || []
+    if !valid_commands.include?(cmd)
+      debug "Received unknown command '#{cmd}' - ignoring it!" 
+      return false
+    end
+    # - Accept this message
+    return true
+  end
 
   def unimplemented_method_exception(method_name)
     "Communicator - Subclass '#{self.class}' must implement #{method_name}()"
   end
+
 end # END OmfCommunicator Class
+
+
+
+
 
 
 #

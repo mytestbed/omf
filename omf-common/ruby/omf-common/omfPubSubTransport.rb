@@ -30,15 +30,12 @@
 # various OMF entities.
 #
 require "omf-common/omfXMPPServices"
-require "omf-common/omfCommandObject"
 require 'omf-common/mobject'
 
 # 
-# This class defines a generic PubSub Transport  
+# This class defines a PubSub Transport  
 # Currently, this PubSub Transport is done over XMPP, and this class is using
 # the third party library XMPP4R.
-# OMF Entities should subclass this class to customise their transport with 
-# their specific send/receive pre-processing tasks.
 #
 class OMFPubSubTransport < MObject
 
@@ -46,22 +43,10 @@ class OMFPubSubTransport < MObject
   DEFAULT_PUBSUB_PWD = "123456"
   RETRY_INTERVAL = 10
 
-
   def self.instance
     @@instance
   end
 
-    #
-  # This method instantiates a PubSub Service Helper, which will connect to the
-  # PubSub server, and handle all the communication from/towards this server.
-  # This method also sets the callback method, which will be called upon incoming
-  # messages. 
-  #
-  # - jid_suffix = [String], JabberID suffix, this is the full host/domain name of 
-  #                the PubSub server, e.g. 'norbit.npc.nicta.com.au'. 
-  # - password = [String], password to use for this PubSud client
-  # - control_interface = [String], the interface connected to Control Network
-  #
   def self.init(opts)
     raise "PubSub Transport already started" if @@instance
     @@instance = self.new
@@ -70,7 +55,7 @@ class OMFPubSubTransport < MObject
     @@qcounter = 0
     @@forceCreate = opts[:createflag]
     @@myName = opts[:comms_name]
-    user = opts[:pubsub_user] || "#{@@myName}-#{@@sliceID}-#{@@expID}"
+    user = opts[:pubsub_user] || "#{@@myName}-#{rand(Time.now.to_i)}"
     pwd = opts[:pubsub_pwd] || DEFAULT_PUBSUB_PWD
     @@psGateway = opts[:pubsub_gateway]
     if !@@psGateway
@@ -117,7 +102,7 @@ class OMFPubSubTransport < MObject
       @@queues[index] << Queue.new
       @@threads << Thread.new {
         while event = @@queues[index].pop
-          execute_command(event, &block)
+          process_queue(event, &block)
         end
       }
       @@qcounter += 1
@@ -136,62 +121,6 @@ class OMFPubSubTransport < MObject
     return subscribed
   end
 
-  #
-  # Return a Command Object which will hold all the information required to send
-  # a command to another OMF entity.
-  # This PubSub transport uses the OmfCommandObject class as the Command Object
-  # to return
-  #
-  # - type = the type of this Command Object
-  #
-  # [Return] an OmfCommandObject of the specified type
-  #
-  def create_command(opts)
-    return OmfCommandObject.new(opts)
-  end
-
-  #
-  # Process an incoming message from the EC. This method is called by the
-  # callback hook, which was set up in the 'start' method of this Communicator.
-  # First, we parse the PubSub event to extract the XML message.
-  # Then, we check if this message contains a command which should trigger some
-  # Communicator-specific actions.
-  # Finally, we pass this command up to the Resource Controller for further 
-  # processing.
-  # The Payload of the received message should be an XML representation of an 
-  # OMF Command Object
-  #
-  # - event:: [Jabber::PubSub::Event], and XML message send by XMPP server
-  #
-  def execute_command(event, &block)
-    # Retrieve the command from the event
-    cmdObj = event_to_command(event)
-    return if !cmdObj
-
-    # Here we can perform some transport specific tasks 
-    # if required... 
-
-    # Pass the command to our communicator
-    yield cmdObj
-  end
-
-  #
-  # Send a command to one or multiple Pubsub nodes. 
-  # The command to send is passed as an OmfCommandObject.
-  # Subclasses MUST override this class to do some subclass-specififc tasks
-  # before sending the command. Typically, the OMF EC and RC MUST do that.
-  #
-  # - cmdObj = the Command Object to format and send
-  #
-  # Refer to the OmfCommandObject class for a full description of the possible
-  # attributes of a Command Object.
-  #
-  def send_command(addr, cmdObject)
-    node = addr.generate_address
-    domain = addr.domain
-    send(node, domain, cmdObject.serialize)
-  end
-
   def reset
     @@xmppServices.leave_all_nodes
     @@threads.each { |t| t.exit }
@@ -208,14 +137,14 @@ class OMFPubSubTransport < MObject
     @@xmppServices.stop
   end
 
-  #
-  # Send an XML message to a given PubSub destination node
-  #
-  # - message = [REXML::Document] the message to send
-  # - dst = [String] the pubsub node to send the message to 
-  # - serviceID = [String] ID of pubsub server hosting the node to send to 
-  #
-  def send(dst, domain, message)
+  #############################
+  #############################
+  
+  private
+
+  def send(address, message)
+    dst = address.generate_address
+    domain = address.domain
     # Sanity checks...
     if !message || (message.length == 0) 
       error "send - Ignore attempt to send an empty message"
@@ -240,6 +169,15 @@ class OMFPubSubTransport < MObject
     end
   end
 
+  def process_queue(event, &block)
+    # Retrieve the command from the event
+    cmdObj = event_to_message(event)
+    return if !cmdObj
+
+    # Pass the command to our communicator
+    yield cmdObj
+  end
+
   def check_server_reachability(server)
     check = false
     while !check
@@ -258,21 +196,22 @@ class OMFPubSubTransport < MObject
     return event.first_element("items").attributes['node']
   end
 
-  def event_to_command(event)
+  def event_to_message(event)
     begin
       # Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server
       return nil if event.first_element("items") == nil
       return nil if event.first_element("items").first_element("item") == nil
       # Retrieve the Command Object from the received message
-      eventBody = event.first_element("items").first_element("item").first_element("message").first_element("body")
+      eventBody = event.first_element("items").first_element("item").\
+                  first_element("message").first_element("body")
       xmlMessage = nil
       eventBody.each_element { |e| xmlMessage = e }
       # Ignore events without XML payloads
       return nil if xmlMessage == nil 
-      # All good, return the extracted command
+      # All good, return the extracted XML payload
       debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
-      return OmfCommandObject.new(xmlMessage)
+      return xmlMessage
     rescue Exception => ex
       error "Cannot extract command from PubSub event '#{eventBody}'"
       error "Error: '#{ex}'"

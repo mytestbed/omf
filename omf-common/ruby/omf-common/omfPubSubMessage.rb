@@ -79,8 +79,8 @@ class OmfPubSubMessage < OmfMessage
         el.add_element(v)
         msg.root << el
       # For all other attributes, add the value as a text to the XML to return
-      elsif k != :CMDTYPE
-        msg.root << REXML::Element.new("#{k.to_s.upcase}").add_text("#{v}") if v != nil
+      elsif k != :CMDTYPE && v != nil
+        msg.root << REXML::Element.new("#{k.to_s.upcase}").add_text("#{v}") 
       end
     }
     return msg
