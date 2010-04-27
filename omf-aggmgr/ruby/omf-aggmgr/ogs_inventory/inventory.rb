@@ -550,22 +550,20 @@ class InventoryService < LegacyGridService
   # Write a dnsmasq DHCP configuration file
   # that is generated from the inventory
   #
-  # - tb = the testbed configuration
+  # - inventoryConfig = the testbed configuration
   # - inv = the inventory
   # - domain = the domain we want to create a config file for
   #  
-  def self.updateDnsMasq(tb, inv, domain)
+  def self.updateDnsMasq(inventoryConfig, inv, domain)
     MObject::debug("Updating dnsmasq configuration")
-    if !(tb['dnsmasq_config'])
+    if !(inventoryConfig['dnsmasq_config'])
       MObject::debug("Missing parameter 'dnsmasq_config' in inventory configuration file. Not updating dnsmasq.")
       return
     end
-    if (tb['dnsmasq_tag'])
-      tag = "net:#{tb['dnsmasq_tag']},"
-    end
-    File.open(tb['dnsmasq_config'], 'w') do |f|
+    File.open(inventoryConfig['dnsmasq_config'], 'w') do |f|
       f.puts "# Do NOT modify this file manually!\n# It is auto-generated from the OMF inventory database."
-      inv.getDHCPConfig(domain).each{ | m, h, i | f.puts "dhcp-host=#{tag}#{m},#{h},#{i}" }
+      f.puts "# Add the line 'dhcp-hostsfile=#{inventoryConfig['dnsmasq_config']}' to your /etc/dnsmasq.conf to include this file."
+      inv.getDHCPConfig(domain).each{ | m, h, i | f.puts "#{m},#{h},#{i}" }
     end
     # when dnsmasq receives SIGHUP it reloads the contents of files specified with 'dhcp-hostsfile'
     # in dnsmasq.conf
