@@ -1,28 +1,52 @@
+#
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
 # This is the config file for the OMF Experiment Controller
 #
 # NOTE: use only 'spaces' to indent !
-# ('tab' indents are not supported by the ruby yaml parser used to read this file)
-#
+# ('tab' indents are not supported by the ruby yaml parser, which is used to 
+# read this file)
 #
 ---
 :econtroller:
   
   :config:
   
-    # Config Parameter for the "default" Testbed
-    # IMPORTANT: There has to be a default entry. It should contain a complete set of
-    # parameters, so other configurations can fall back to it
+    # Config Parameter for the "default" profile
+    # IMPORTANT: There has to be a default entry. It should contain a complete 
+    # set of parameters, so other profiles can fall back to it
     :default:
     
-      # This is the domain name of the testbed
-      # You need a corresponding entry in the testbed table of your inventory that has this name
-      # set in the 'node_domain' column
+      # This is the domain name of the testbed 
+      # You need a corresponding entry in the testbed table of your inventory 
+      # that has this name set in the 'node_domain' column
       :domain: 'npc'
       #:domain: 'planetlab'
       :slice: 'testing_slice'
 
-      # This is the Path where EC should look for its repository of built in experiments
-      # (e.g. example experiments, maintenance experiments, etc...)
+      # This is the Path where EC should look for its repository of built-in 
+      # experiments (e.g. example experiments, maintenance experiments, etc...)
       :repository:
         :path: ["../share/repository", "/usr/share/omf-expctl-5.3/repository"]
 
@@ -30,20 +54,20 @@
       :inventory:
         :url: 'http://norbit.npc.nicta.com.au:5053/inventory'
 
-
+      # This is the Url where EC can contact the Result Service
       :result:
         :url: 'http://norbit.npc.nicta.com.au:5053/result'
 
       # This should be the IP address of the local interface that is accessible 
-      # from the nodes. This address will be given to the nodes so they can retrieve
-      # applications from the EC via HTTP.
+      # from the nodes. This address will be given to the nodes so they can 
+      # retrieve applications from the EC via HTTP.
       #:web:
         #:host: '10.0.0.200'
 
       :communicator:
         :type: 'xmpp'
         :xmpp:
-          # Address of the PubSub server to use as gateway for PubSub communication
+          # Address of the server to use as gateway for PubSub communication
           :pubsub_gateway: 'norbit.npc.nicta.com.au'
           # The 'pubsub_domain' is the hostname of the pubsub server on which
           # you would like to host your slice's communications. Leave this 
@@ -58,26 +82,7 @@
           #:pubsub_user: 'my_EC_name' 
           #:pubsub_pwd: 'my_EC_password' 
     #####
-    :planetlab2:
-      :domain: 'planetlab'
-      :slice: 'testing_slice'
-      
-      :repository:
-        :path: [".", "../share/repository", "/usr/share/omf-expctl-5.3/repository"]
-
-      :inventory:
-        :url: 'http://norbit.npc.nicta.com.au:5053/inventory'
-
-      #:web:
-      #  :host: '203.143.170.38'
-
-      :communicator:
-        :type: 'xmpp'
-        :xmpp:
-          :server: 'norbit.npc.nicta.com.au'
-          :password: '123'
-    
-    #####
+    #
     :p2p:
       :domain: 'planetlab'
       :repository:
