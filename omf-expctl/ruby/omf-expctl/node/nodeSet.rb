@@ -218,7 +218,7 @@ class NodeSet < MObject
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
     send(ECCommunicator.instance.create_message(:cmdtype => :EXIT,
-                                                :appID = name))
+                                                :appID => name))
   end
 
   #
@@ -251,8 +251,8 @@ class NodeSet < MObject
     procName = "exec:#{@@execsCount += 1}"
 
     cmd = ECCommunicator.instance.create_message(:cmdtype => :EXECUTE,
-                                                :appID = procName,
-                                                :path = cmdName)
+                                                :appID => procName,
+                                                :path => cmdName)
     if (block.nil?)
       block = Proc.new do |node, op, eventName, message|
         prompt = "#{cmdName.split(' ')[0]}@#{node}"
@@ -358,8 +358,8 @@ class NodeSet < MObject
       n.configure(path, value)
     }
     send(ECCommunicator.instance.create_message(:cmdtype => :CONFIGURE,
-                                                :path = path.join('/'),
-                                                :value = valueToSend.to_s))
+                                                :path => path.join('/'),
+                                                :value => valueToSend.to_s))
   end
 
   #
@@ -521,9 +521,9 @@ class NodeSet < MObject
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
     send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
-                                                :address = mcAddress,
-                                                :port = mcPort,
-                                                :disk = disk))
+                                                :address => mcAddress,
+                                                :port => mcPort,
+                                                :disk => disk))
   end
 
   #
@@ -536,10 +536,10 @@ class NodeSet < MObject
   #   this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
-  def stopImageServer(image, domain = nil, disk = nil
+  def stopImageServer(image, domain = nil, disk = nil)
 		     
     domain = "#{OConfig.domain}" if !domain
-    disk = OConfig[:tb_config][:default][:frisbee_default_disk]) if !disk
+    disk = OConfig[:tb_config][:default][:frisbee_default_disk] if !disk
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
     else
@@ -566,9 +566,9 @@ class NodeSet < MObject
 
       procName = "exec:#{@@execsCount += 1}:loadData"
       send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_DATA,
-                                                :appID = procName,
-                                                :image = url,
-                                                :path = dstPath))
+                                                :appID => procName,
+                                                :image => url,
+                                                :path => dstPath))
 
       block = Proc.new do |node, op, eventName, message|
           case eventName

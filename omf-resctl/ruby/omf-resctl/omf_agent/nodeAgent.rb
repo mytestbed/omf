@@ -92,10 +92,7 @@ class NodeAgent < MObject
     comm[:comms_name] = @agentName
     comm[:handler] = self
     comm[:createflag] = false
-    comm[:type] = @config[:communicator][:type]
-    comm[:pubsub_gateway] = @config[:communicator][:pubsub_gateway]
-    comm[:pubsub_user] = @config[:communicator][:pubsub_user]
-    comm[:pubsub_pwd] = @config[:communicator][:pubsub_pwd]
+    comm[:config] = @config[:communicator]
     comm[:sliceID] = @agentSlice
     comm[:domain] = @agentDomain 
     RCCommunicator.init(comm)

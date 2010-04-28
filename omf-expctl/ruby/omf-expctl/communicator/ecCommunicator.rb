@@ -42,12 +42,10 @@ require 'omf-expctl/agentCommands'
 class ECCommunicator < OmfCommunicator
 
   def self.init(opts)
-    opts[:comms_specific_tasks] = [:ENROLLED]
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
     @@sliceID = opts[:sliceID]
-    @@domain = opts[:domain]
     @@expID = opts[:expID]
     # 1 - listen to my address (i.e. the is the 'experiment' address)
     addr = create_address(:sliceID => @@sliceID, 
@@ -105,7 +103,8 @@ class ECCommunicator < OmfCommunicator
     if (message.sliceID != @@sliceID) || (message.expID != @@expID)
       debug "Received message with unknown slice and exp IDs: "+
             "'#{message.sliceID}' and '#{message.expID}' - ignoring it!" 
-    return false
+      return false
+    end
     # - Ignore message from unknown RCs
     if (Node[message.target] == nil)
       debug "Received command with unknown target '#{message.target}'"+

@@ -232,9 +232,9 @@ class AppDefinition < MObject
         if value.kind_of?(ExperimentProperty)
           value.onChange { |v|
             nodeSet.send(ECCommunicator.instance.create_message(
-                                                 :cmdtype => :STDIN,
-                                                 :appID => appId,
-                                                 :value => "#{prop.name} #{v}")
+                                        :cmdtype => :STDIN,
+                                        :appID => appId,
+                                        :value => "#{prop.name} #{v}"))
           }
           if (value = value.value) == nil
             next # continue with the next property

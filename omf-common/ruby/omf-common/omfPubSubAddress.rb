@@ -29,6 +29,8 @@
 # This file implements a specific OMF PubSub Address
 #
 #
+require 'omf-common/omfAddress'
+
 class OmfPubSubAddress < OmfAddress
 
   # Names for constant PubSub nodes

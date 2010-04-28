@@ -161,7 +161,7 @@ class OmfXMPPServices < MObject
   # - &bock = the block of commands that will process any event coming from that
   #           XMPP server
   #
-  def add_service(domain, &block = nil)
+  def add_service(domain, &block)
     begin
       @serviceHelpers[domain] = OmfServiceHelper.new(@clientHelper, 
                                                      "pubsub.#{domain}")

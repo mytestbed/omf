@@ -57,12 +57,13 @@ class OMFPubSubTransport < MObject
     @@qcounter = 0
     @@forceCreate = opts[:createflag]
     @@myName = opts[:comms_name]
-    user = opts[:pubsub_user] || "#{@@myName}-#{rand(Time.now.to_i)}"
-    pwd = opts[:pubsub_pwd] || DEFAULT_PUBSUB_PWD
-    @@psGateway = opts[:pubsub_gateway]
+    user = opts[:config][:xmpp][:pubsub_user] || 
+           "#{@@myName}-#{rand(Time.now.to_i)}"
+    pwd = opts[:config][:xmpp][:pubsub_pwd] || DEFAULT_PUBSUB_PWD
+    @@psGateway = opts[:config][:xmpp][:pubsub_gateway]
     if !@@psGateway
-      raise "OMFPubSubTransport - Missing 'pubsub_gateway' parameter in "+
-            "this OMF entity configuration" 
+      raise "OMFPubSubTransport - Configuration is missing 'pubsub_gateway' "+
+            "parameter!"
     end
     
     # Open a connection to the Gateway PubSub Server
@@ -92,7 +93,7 @@ class OMFPubSubTransport < MObject
   # NOTE: XMPP4R limitation - listening on 2 addr in the same domain - 
   # the events of the 2 listens will be put in the same Q and process by the 
   # same block, i.e. the queue and the block of the 1st call to listen!
-  def listen(addr, &block = nil)
+  def listen(addr, &block)
     node = addr.generate_address
     subscribed = false
     index = 0

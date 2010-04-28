@@ -55,10 +55,12 @@ class OmfCommunicator < MObject
     @@transport = nil
     @@handler = opts[:handler]
     # Initiate the required Transport entity
-    case type = opts[:type]
+    case type = opts[:config][:type]
     when 'xmpp'
       require 'omf-common/omfPubSubTransport'
       @@transport = OMFPubSubTransport.init(opts) 
+      @@domain = opts[:config][:xmpp][:pubsub_domain] || 
+                 opts[:config][:xmpp][:pubsub_gateway] || nil
     when 'mock'
       @@sent = Array.new
       return # Uses the default Mock OmfCommunicator
@@ -87,7 +89,6 @@ class OmfCommunicator < MObject
     opts.each { |k,v| addr[k] = v} if opts
     return addr
   end
-
 
   def create_message(opts = nil)
     return @@transport.get_new_message(opts) if @@transport

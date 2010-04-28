@@ -46,13 +46,11 @@ require 'omf-resctl/omf_agent/agentCommands'
 class RCCommunicator < OmfCommunicator
 
   def self.init(opts)
-    opts[:comms_specific_tasks] = [:ENROLL, :ALIAS]
     super(opts)
     # RC-secific communicator initialisation...
     # 0 - set some attributes
     @@myName = opts[:comms_name]
     @@sliceID = opts[:sliceID]
-    @@domain = opts[:domain]
     @@expID = nil
     # 1 - Build my address for this slice 
     @@myAddr = create_address(:sliceID => @@sliceID, 
@@ -208,7 +206,8 @@ class RCCommunicator < OmfCommunicator
        ((message.sliceID != @@sliceID) || (message.expID != @@expID))
       debug "Received message with unknown slice and exp IDs: "+
             "'#{message.sliceID}' and '#{message.expID}' - ignoring it!" 
-    return false
+      return false
+    end
     # - Ignore commands that are not address to us 
     # (There may be multiple space-separated targets)
     dst = message.target.split(' ') 

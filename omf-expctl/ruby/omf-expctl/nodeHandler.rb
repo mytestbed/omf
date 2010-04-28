@@ -43,7 +43,7 @@ require 'thread'  # Queue class
 require 'net/http'
 require 'omf-expctl/exceptions'
 require 'omf-common/mobject'
-require 'omf-expctl/communicator/communicator.rb'
+require 'omf-expctl/communicator/ecCommunicator'
 require 'omf-expctl/oconfig'
 require 'singleton'
 require 'omf-expctl/traceState'
@@ -584,17 +584,12 @@ class NodeHandler < MObject
 
     # Now start the Communiator
     comm =  Hash.new
-    conf = OConfig[:ec_config][:communicator]
     comm[:comms_name] = MY_NAME
     comm[:handler] = self
     comm[:createflag] = true
-    comm[:type] = conf[:type]
-    comm[:pubsub_gateway] = conf[:pubsub_gateway]
-    comm[:pubsub_user] = conf[:pubsub_user]
-    comm[:pubsub_pwd] = conf[:pubsub_pwd]
+    comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
-    comm[:expID] = Experiment.expID
-    comm[:domain] = conf[:pubsub_domain] || comm[:pubsub_gateway]  
+    comm[:expID] = Experiment.ID
     ECCommunicator.init(comm)
     
     if @@runningSlaveMode
