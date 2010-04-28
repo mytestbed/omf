@@ -40,13 +40,13 @@ class OmfPubSubAddress < OmfAddress
 
   def generate_address
     node = ""
-    if addr.sliceID && addr.expID 
-      return exp_node(addr.sliceID, addr.expID, addr.name)
-    elsif addr.sliceID 
-      return res_node(addr.sliceID, addr.name)
+    if @sliceID && @expID 
+      return exp_node(@sliceID, @expID, @name)
+    elsif @sliceID 
+      return res_node(@sliceID, @name)
     else
       raise "OmfPubSubAddress - Cannot generate pubsub node from address "
-            +"'#{addr.to_s}'"
+            +"'#{self.to_s}'"
     end
   end
 

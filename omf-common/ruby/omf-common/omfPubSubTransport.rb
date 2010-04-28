@@ -102,7 +102,7 @@ class OMFPubSubTransport < MObject
     # to process this listening
     if block
       index = @@qcounter
-      @@queues[index] << Queue.new
+      @@queues[index] = Queue.new
       @@threads << Thread.new {
         while event = @@queues[index].pop
           process_queue(event, &block)
@@ -153,7 +153,7 @@ class OMFPubSubTransport < MObject
   
   private
 
-  def send(address, message)
+  def self.send(address, message)
     dst = address.generate_address
     domain = address.domain
     # Sanity checks...
@@ -180,7 +180,7 @@ class OMFPubSubTransport < MObject
     end
   end
 
-  def process_queue(event, &block)
+  def self.process_queue(event, &block)
     # Retrieve the command from the event
     cmdObj = event_to_message(event)
     return if !cmdObj
@@ -189,7 +189,7 @@ class OMFPubSubTransport < MObject
     yield cmdObj
   end
 
-  def check_server_reachability(server)
+  def self.check_server_reachability(server)
     check = false
     while !check
       reply = `ping -c 1 #{server}`
@@ -203,11 +203,11 @@ class OMFPubSubTransport < MObject
     end
   end
 
-  def event_source(event)
+  def self.event_source(event)
     return event.first_element("items").attributes['node']
   end
 
-  def event_to_message(event)
+  def self.event_to_message(event)
     begin
       # Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server

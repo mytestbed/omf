@@ -39,8 +39,8 @@ require 'omf-common/mobject'
 class OmfCommunicator < MObject
 
   @@instance = nil
-  @@valid_commands = nil
-  @@communicator_commands = nil
+  @@valid_commands = Hash.new
+  @@communicator_commands = Hash.new
   @@self_comands = nil
   @@sent = []
   @@handler = nil
@@ -83,21 +83,21 @@ class OmfCommunicator < MObject
     @@valid_commands[command_type] = block
   end
 
-  def create_address(opts = nil)
+  def self.create_address(opts = nil)
     return @@transport.get_new_address(opts) if @@transport
     addr = HashPlus.new
     opts.each { |k,v| addr[k] = v} if opts
     return addr
   end
 
-  def create_message(opts = nil)
+  def self.create_message(opts = nil)
     return @@transport.get_new_message(opts) if @@transport
     cmd = HashPlus.new
     opts.each { |k,v| cmd[k] = v} if opts
     return cmd
   end
 
-  def send_message(addr, message)
+  def self.send_message(addr, message)
     if !addr
       error "No address defined! Cannot send message '#{message}'"
       return
@@ -110,15 +110,15 @@ class OmfCommunicator < MObject
     end
   end  
 
-  def listen(addr, &block)
+  def self.listen(addr, &block)
     @@transport.listen(addr, &block) if @@transport
   end
 
-  def stop
+  def self.stop
     @@transport.stop if @@transport
   end
 
-  def reset
+  def self.reset
     @@transport.reset if @@transport
   end
 
@@ -127,7 +127,7 @@ class OmfCommunicator < MObject
   
   private
 
-  def dispatch_message(message)
+  def self.dispatch_message(message)
     # 1 - Retrieve and validate the message
     cmd = @@transport.get_new_message.create_from(message)
     return if !valid_message?(cmd) # Silently discard unvalid messages
@@ -154,7 +154,7 @@ class OmfCommunicator < MObject
 
   private
 
-  def valid_message?(message)
+  def self.valid_message?(message)
     cmd = message.cmdType
     # - Ignore commands from ourselves (or another instance of our entity)
     self_commands = @@self_commands || []
@@ -169,7 +169,7 @@ class OmfCommunicator < MObject
     return true
   end
 
-  def unimplemented_method_exception(method_name)
+  def self.unimplemented_method_exception(method_name)
     "Communicator - Subclass '#{self.class}' must implement #{method_name}()"
   end
 
