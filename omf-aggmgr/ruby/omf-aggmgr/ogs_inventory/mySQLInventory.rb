@@ -561,8 +561,9 @@ END_QS2
   #
   def getAllResources(domain = "grid")
   qs = <<ALLRESOURCES_QS
-SELECT locations.name
-  FROM locations
+SELECT nodes.hrn
+  FROM nodes 
+  LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
 WHERE testbeds.node_domain='#{domain}';
 ALLRESOURCES_QS
