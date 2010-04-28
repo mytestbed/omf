@@ -217,7 +217,7 @@ class NodeSet < MObject
     if (ctxt == nil)
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
-    send(ECCommunicator.instance.create_command(:cmdtype => :EXIT,
+    send(ECCommunicator.instance.create_message(:cmdtype => :EXIT,
                                                 :appID = name))
   end
 
@@ -250,7 +250,7 @@ class NodeSet < MObject
     debug("Running application '", cmdName, "'")
     procName = "exec:#{@@execsCount += 1}"
 
-    cmd = ECCommunicator.instance.create_command(:cmdtype => :EXECUTE,
+    cmd = ECCommunicator.instance.create_message(:cmdtype => :EXECUTE,
                                                 :appID = procName,
                                                 :path = cmdName)
     if (block.nil?)
@@ -357,7 +357,7 @@ class NodeSet < MObject
     eachNode {|n|
       n.configure(path, value)
     }
-    send(ECCommunicator.instance.create_command(:cmdtype => :CONFIGURE,
+    send(ECCommunicator.instance.create_message(:cmdtype => :CONFIGURE,
                                                 :path = path.join('/'),
                                                 :value = valueToSend.to_s))
   end
@@ -520,7 +520,7 @@ class NodeSet < MObject
       n.loadImage(image, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
-    send(ECCommunicator.instance.create_command(:cmdtype => :LOAD_IMAGE,
+    send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
                                                 :address = mcAddress,
                                                 :port = mcPort,
                                                 :disk = disk))
@@ -565,7 +565,7 @@ class NodeSet < MObject
       OMF::ExperimentController::Web.mapFile(url_dir, srcPath)
 
       procName = "exec:#{@@execsCount += 1}:loadData"
-      send(ECCommunicator.instance.create_command(:cmdtype => :LOAD_DATA,
+      send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_DATA,
                                                 :appID = procName,
                                                 :image = url,
                                                 :path = dstPath))
@@ -604,8 +604,12 @@ class NodeSet < MObject
     end
     if (up? && notQueued)
       debug "Send ('#{@nodeSelector}') - '#{cmdObj.to_s}'"
-      ECCommunicator.instance.create_address(:name => @nodeSelector)
-      ECCommunicator.instance.send_command(addr, cmdObj)
+      if @nodeSelector == "*"
+        addr = ECCommunicator.instance.make_address
+      else
+        addr = ECCommunicator.instance.make_address(:name => @nodeSelector)
+      end
+      ECCommunicator.instance.send_message(addr, cmdObj)
       return
     end
   end

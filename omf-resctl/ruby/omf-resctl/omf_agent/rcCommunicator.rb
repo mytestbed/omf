@@ -55,7 +55,7 @@ class RCCommunicator < OmfCommunicator
     @@domain = opts[:domain]
     @@expID = nil
     # 1 - Build my address for this slice 
-    @@myAddr = create_address!(:sliceID => @@sliceID, 
+    @@myAddr = create_address(:sliceID => @@sliceID, 
                               :name => @@myName, 
                               :domain => @@domain)
     # 3 - Set my lists of valid and specific commands
@@ -64,13 +64,92 @@ class RCCommunicator < OmfCommunicator
     }
   end
 
-  def create_address(opts = nil)
-    if !@@expID
-      error "Not enrolled in an experiment yet, thus cannot create an address!"
-      return
-    end
-    return create_address!(:sliceID => @@sliceID, :expID => @@expID, 
-                           :domain => @@domain, :name => opts[:name])
+  def set_expID(expID)
+    @@expID = expID
+  end
+
+  #
+  # Send an ENROLLED reply to the EC. 
+  # This is done when a ENROLL or ALIAS command has been successfully 
+  # processed.
+  #
+  # - aliases = a String with the names of all the groups within which we have 
+  #             enrolled
+  #
+  def send_enrolled_reply(aliases = nil)
+    reply = create_message(:cmdtype => :ENROLLED, :target => @@myName) 
+    reply.name = aliases if aliases != nil
+    send_message(make_address(@@myName), reply)
+  end
+
+  #
+  # Send an WRONG_IMAGE reply to the EC. 
+  # This is done when the current disk image of this RC is not the disk
+  # image requested by the EC.
+  #
+  def send_wrong_image_reply
+    reply = create_message(:cmdtype => :WRONG_IMAGE, :target => @@myName, 
+                           :image => imageName) 
+    # 'WRONG_IMAGE' message goes even if we are not part of an Experiment yet!
+    # Thus we create directly the address 
+    addr = create_address(:name => @@myName, :sliceID => @@sliceID,
+                           :domain => @@domain)
+    send_message(addr, reply)
+  end
+
+  #
+  # Send an OK reply to the EC. 
+  # This is done for some received EC commands that were executed successfully
+  # (e.g. a successful CONFIGURE executing)
+  #
+  # - info = a String with more info on the command execution
+  # - command = the command that executed successfully
+  #
+  def send_ok_reply(info, command)
+    reply = create_message(:cmdtype => :OK, :target => @@myName, 
+                           :message => info, :cmd => command.cmdType.to_s) 
+    reply.path = command.path if command.path != nil
+    reply.value = command.value if command.value != nil
+    send_message(make_address(@@myName), reply)
+  end
+
+  #
+  # Send an ERROR reply to the EC. 
+  # This is done when an error occured while executing a received EC command
+  # (e.g. a problem when executing a CONFIGURE command)
+  #
+  # - info = a String with more info on the command execution
+  # - command = the command that failed to execute 
+  #
+  def send_error_reply(info, command)
+    reply = create_message(:cmdtype => :ERROR, :target => @@myName, 
+                           :cmd => command.cmdType.to_s, :message => info) 
+    reply.path = cmdObj.path if cmdObj.path != nil
+    reply.appID = cmdObj.appID if cmdObj.appID != nil
+    reply.value = cmdObj.value if cmdObj.value != nil
+    # 'ERROR' message goes even if we are not part of an Experiment yet!
+    # Thus we create directly the address 
+    addr = create_address(:name => @@myName, :sliceID => @@sliceID,
+                           :domain => @@domain)
+    send_message(addr, reply)
+  end
+
+  #
+  # Send a APP or DEV EVENT message to the EC. 
+  # This is done when an application started on this resource or a device
+  # configured on this resource has a new event to share with the EC
+  # (e.g. a message coming on standard-out of the appliation)
+  # (e.g. a change of configuration for the device)
+  #
+  # - type = type of the event (:APP_EVENT or :DEV_EVENT)
+  # - name = the name of event
+  # - id = the id of the application/device issuing this event
+  # - info = a String with the new event info
+  #
+  def send_event(type, name, id, info)
+    message = create_message(:cmdtype => type, :target => @@myName, 
+                             :value => name, :appID => id, :message => info) 
+    send_message(make_address(@@myName), message)
   end
 
   def reset
@@ -93,6 +172,21 @@ class RCCommunicator < OmfCommunicator
             "retrying in #{RETRY_INTERVAL} sec."
       sleep RETRY_INTERVAL
     end
+  end
+
+  #
+  # Build an address only if this resource has already be enrolled in an 
+  # Experiment.
+  #
+  # - opts = a Hash with the parameters for the address to build
+  #
+  def make_address(opts = nil)
+    if !@@expID || !@@handler.enrolled
+      error "Not enrolled in an experiment yet, thus cannot create an address!"
+      return
+    end
+    return create_address(:sliceID => @@sliceID, :expID => @@expID, 
+                          :domain => @@domain, :name => opts[:name])
   end
 
   private
@@ -127,29 +221,6 @@ class RCCommunicator < OmfCommunicator
     end
     # Accept this message
     return true
-  end
-
-  def ENROLL(cmd)
-    # Set our expID and listen to our addresses for this experiment
-    if !NodeAgent.instance.enrolled
-      @@expID = cmdObject.expID
-      debug "Experiment ID: '#{@@expID}'"
-      addrNode = create_address(:name => cmdObject.target)
-      addrExp = create_address()
-      if !listen(addrNode) || !listen(addrExp)
-        error "Failed to Process ENROLL command!"
-        error "Maybe this is an ENROLL from an old experiment - ignoring it!"
-        return
-      end
-    else
-      debug "Received ENROLL, but I am already ENROLLED! - ignoring it!"
-      return
-    end
-  end
-
-  def ALIAS(cmd)
-    addrAlias = create_address(:name => cmdObject.name)
-    listen(addrAlias)
   end
 
 end

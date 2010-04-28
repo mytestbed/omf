@@ -586,6 +586,7 @@ class NodeHandler < MObject
     comm =  Hash.new
     conf = OConfig[:ec_config][:communicator]
     comm[:comms_name] = MY_NAME
+    comm[:handler] = self
     comm[:createflag] = true
     comm[:type] = conf[:type]
     comm[:pubsub_gateway] = conf[:pubsub_gateway]

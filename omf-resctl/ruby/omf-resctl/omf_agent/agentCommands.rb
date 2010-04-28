@@ -44,9 +44,10 @@ module AgentCommands
   # TODO:
   # For GEC4 demo we use these Constant values.
   # When we will integrate a virtualization scheme, coupled with a 
-  # Resource Manager (RM) and a Resource Controller (RC), we might want to have these
-  # config values passed as parameters (i.e. different RC in different sliver might
-  # need different configs). This will probably depend on the selected virtualization scheme 
+  # Resource Manager (RM) and a Resource Controller (RC), we might want to have
+  # these config values passed as parameters (i.e. different RC in different 
+  # sliver might need different configs). This will probably depend on the 
+  # selected virtualization scheme 
   #
   # Slave Resource Controller (aka NodeAgent)
   SLAVE_RESCTL_ID = "SLAVE-RESOURCE-CTL"
@@ -96,12 +97,371 @@ module AgentCommands
     return SLAVE_EXPCTL_ID
   end
 
+  #
+  # Command 'ENROLL'
+  # Initial enroll message received from the EC, to ask us to join an
+  # Experiment
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.ENROLL(controller, communicator, command)
+    # Check if we are already 'enrolled' or not
+    if controller.enrolled
+      MObject.debug "Resource Controller already enrolled! - "+
+                    "ignoring this ENROLL command!"
+      return
+    end
+    # Check if the desired image is installed on that node, 
+    # if yes or if a desired image is not required, then continue
+    # if not, then ignore this ENROLL
+    desiredImage = command.image
+    if (desiredImage != controller.imageName() && desiredImage != '*')
+      MObject.debug "Requested Image: '#{desiredImage}' - "+
+                    "Current Image: '#{controller.imageName()}'"
+      communicator.send_wrong_image_reply
+      return
+    end
+    # All is good, enroll this Resource Controller
+    controller.enrolled = true
+    communicator.set_expID(command.expID)
+    MObject.debug "Enrolled into Experiment ID: '#{command.expID}'"
+    # Now listen to our new Resource and Experiment address for incoming 
+    # messages
+    addrNode = communicator.make_address(:name => cmdObject.target)
+    addrExp = make_address
+    if !communicator.listen(addrNode) || !communicator.listen(addrExp)
+      MObject.error "Failed to Process ENROLL command!"
+      MObject.error "Maybe it came from an old experiment - ignoring it!"
+      return
+    end
+    communicator.send_enrolled_reply
+  end
+
+  #
+  # Command 'ALIAS'
+  # Set additional alias names for this RC
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.ALIAS(controller, communicator, command)
+    aliasArray = command.name.split(' ')
+    aliasArray.each{ |n| controller.addAlias(n) }
+    # Now listen to our new address for incoming messages
+    addrAlias = communicator.make_address(:name => cmdObject.name)
+    if !communicator.listen(addrAlias)
+      MObject.error "Failed to Process ALIAS command!"
+      MObject.error "Cannot listen on the address for this alias - ignoring it!"
+      return
+    end
+    communicator.send_enrolled_reply(command.name)
+  end
+
+  #
+  # Command 'EXECUTE'
+  # Execute a program on the resource running this RC
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.EXECUTE(controller, communicator, command)
+    id = command.appID
+    # Dump the XML description of the OML configuration into a file, if any
+    useOML = false
+    if (xmlDoc = command.omlConfig) != nil
+      configPath = nil
+      xmlDoc.each_element("omlc") { |omlc|
+        configPath = "/tmp/#{omlc.attributes['exp_id']}-#{id}.xml"
+      }
+      f = File.new(configPath, "w+")
+      xmlDoc.each_element {|el|
+        f << el.to_s
+      }
+      useOML = true
+      f.close
+    end
+    # Set the full command line and execute it
+    cmdLine = ""
+    cmdLine = cmdLine + "env -i #{command.env} " if command.env != nil
+    cmdLine = cmdLine + "OML_CONFIG=#{configPath} " if useOML
+    cmdLine = cmdLine + "#{command.path} #{command.cmdLineArgs}"
+    MObject.debug "Executing: '#{cmdLine}'"
+    ExecApp.new(id, controller, cmdLine)
+  end
+
+  #
+  # Command 'KILL'
+  # Send a signal to a process running on this resource
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.KILL(controller, communicator, command)
+    id = command.appID
+    signal = command.value
+    ExecApp[id].kill(signal)
+  end
+
+  #
+  # Command 'EXIT'
+  # Terminate an application running on this resource
+  # First try to send the message 'exit' on the app's STDIN
+  # If no succes, then send a Kill signal to the process
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.EXIT(controller, communicator, command)
+    id = command.appID
+    begin
+      # First try sending 'exit' on the app's STDIN
+      MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
+      ExecApp[id].stdin('exit')
+      # If apps still exists after 4sec...
+      sleep 4
+      if ExecApp[id] != nil
+        MObject.debug("Sending 'kill' signal to application: #{id}")
+        ExecApp[id].kill('KILL')
+      end
+    rescue Exception => err
+      raise Exception.new("Error while terminating application: '#{id}' -"+
+                          "Error: '#{err}'")
+    end
+  end
+
+  #
+  # Command 'STDIN'
+  # Send a line of text to the STDIN of a process
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.STDIN(controller, communicator, command)
+    begin
+      id = command.appID
+      line = command.value
+      ExecApp[id].stdin(line)
+    rescue Exception => err
+      raise Exception.new("Error while writing to standard-IN of application "+
+                          "'#{id}' (likely caused by a call to 'sendMessage' "+
+                          "or an update to a dynamic property)") 
+    end
+  end
+
+  #
+  # Command 'PM_INSTALL'
+  # Poor man's installer. Fetch a tar file and extract it into a 
+  # specified directory
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.PM_INSTALL(controller, communicator, command)
+    id = command.appID
+    url = command.image
+    installRoot = command.path
+
+    MObject.debug "Installing '#{url}' into '#{installRoot}'"
+    cmd = "cd /tmp;wget -m -nd -q #{url};"
+    file = url.split('/')[-1]
+    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
+    ExecApp.new(id, controller, cmd)
+  end
+
+  #
+  # Command 'APT_INSTALL'
+  # Execute apt-get command to install a package on this resource
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.APT_INSTALL(controller, communicator, command)
+    id = command.appID
+    pkgName = command.package
+    cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install "+
+          "--reinstall --allow-unauthenticated -qq #{pkgName}"
+    ExecApp.new(id, controller, cmd)
+  end
+
+  #
+  # Command 'RPM_INSTALL'
+  # Execute yum command to install a package on this resource
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.RPM_INSTALL(controller, communicator, command)
+    id = command.appID
+    pkgName = command.package
+    cmd = "/usr/bin/yum -y install #{pkgName}"
+    ExecApp.new(id, controller, cmd)
+  end
+
+  #
+  # Command 'RESET'
+  # Reset this Resource Controller
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.RESET(controller, communicator, command)
+    controller.reset
+  end
+
+  #
+  # Command 'RESTART'
+  # Restart this Resource Controller
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.RESTART(controller, communicator, command)
+    communicator.stop
+    ExecApp.killAll
+    sleep 2
+    system("/etc/init.d/omf-resctl-#{OMF_MM_VERSION} restart")
+    # will be killed by now :(
+  end
+
+  #
+  # Command 'REBOOT'
+  # Reboot this resource... might not work on all the resources
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.REBOOT(controller, communicator, command)
+    communicator.stop
+    sleep 2
+    cmd = `sudo /sbin/reboot`
+    if !$?.success?
+      # In case 'sudo' is not installed but we do have root rights 
+      # (e.g. PXE image)
+      cmd = `/sbin/reboot`
+    end
+  end
+
+  #
+  # Command 'MODPROBE'
+  # Load a kernel module on this resource
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.MODPROBE(controller, communicator, command)
+    moduleName = command.appID
+    id = "module/#{moduleName}"
+    ExecApp.new(id, controller, 
+                "/sbin/modprobe #{argArray.join(' ')} #{moduleName}")
+  end
+
+  #
+  # Command 'CONFIGURE'
+  # Configure a system parameter on this resource
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.CONFIGURE(controller, communicator, command)
+    path = command.path
+    value = command.value
+
+    if (type, id, prop = path.split("/")).length != 3
+      raise "Expected path '#{path}' to contain three levels"
+    end
+    device = DEV_MAPPINGS["#{type}/#{id}"]
+    if (device == nil)
+      raise "Unknown resource '#{type}/#{id}' in 'configure'"
+    end
+
+    result = device.configure(prop, value)
+    if result[:success]
+      communicator.send_ok_reply(result[:msg], command)
+    else
+      communicator.send_error_reply(result[:msg], command) 
+    end
+  end
+
+  #
+  # Command 'LOAD_IMAGE'
+  # Load a specified disk image onto this resource 
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.LOAD_IMAGE(controller, communicator, command)
+    mcAddress = command.address
+    mcPort = command.port
+    disk = command.disk
+
+    MObject.info("AgentCommands", "Image from ", mcAddress, ":", mcPort)
+    ip = communicator.localAddr
+    cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
+    MObject.debug("AgentCommands", "Frisbee command: ", cmd)
+    ExecApp.new('builtin:load_image', controller, cmd, true)
+  end
+
+  #
+  # Command 'SAVE_IMAGE'
+  # Save the image of this resource and send it to the image server.
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.SAVE_IMAGE(controller, communicator, command)
+    imgHost = command.address
+    imgPort = command.port
+    disk = command.disk
+    
+    cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
+    MObject.debug("AgentCommands", "Image save command: #{cmd}")
+    ExecApp.new('builtin:save_image', controller, cmd, true)
+  end
+
+  #
+  # Command 'LOAD_DATA'
+  # Fetch a tar file and extract it into a specified directory
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.LOAD_DATA(controller, communicator, command)
+    id = command.appID
+    url = command.image
+    installRoot = command.path
+
+    MObject.debug("Loading '#{url}' into '#{installRoot}'")
+    cmd = "cd /tmp;wget -m -nd -q #{url};"
+    file = url.split('/')[-1]
+    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
+    ExecApp.new(id, controller, cmd)
+  end
+
   # Command 'REMOVE_TRAFFICRULES'
   #
-  # Remove a traffic rule and the filter attached. It not destroys the main class which hosts the rule
-  # - values = values needed to delete a rule an a filter : the Id, and all parameters of the filter
+  # Remove a traffic rule and the filter attached. It not destroys the main 
+  # class which hosts the rule
+  # - values = values needed to delete a rule an a filter : the Id, and all 
+  # parameters of the filter
   #
- 
   def AgentCommands.REMOVE_TRAFFICRULES(agent , argArray)
     #check if the tool is available (Currently, only TC)
     if (!File.exist?("/sbin/tc"))
@@ -130,8 +490,11 @@ module AgentCommands
   end
 
     #  Command 'SET_TRAFFICRULES'
-    #  Add a traffic shaping rules between the node src and the destination and specify a filter either on @dst either on @dst and destination port.
-    #  - values = all the values to set the rules. values =[ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,per,duplication,portDst,portRange,rulesId]
+    #  Add a traffic shaping rules between the node src and the destination and 
+    #  specify a filter either on @dst either on @dst and destination port.
+    #  - values = all the values to set the rules. values =[ipDst,delay,
+    #  delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,per,duplication,
+    #  portDst,portRange,rulesId]
     #
 
   def AgentCommands.SET_TRAFFICRULES(agent , argArray)
@@ -235,7 +598,8 @@ end
   # this node. Any frames from this MAC address will be dropped
   #
   # - agent = the instance of this NA
-  # - cmdToUse = which filtering tool to use, supported options are 'iptable' or 'ebtable' or 'mackill'
+  # - cmdToUse = which filtering tool to use, supported options are 'iptable' 
+  # or 'ebtable' or 'mackill'
   # - mac = MAC address to block
   #
   def AgentCommands.SET_MACTABLE(agent, argArray)
@@ -282,54 +646,6 @@ end
     agent.okReply(:SET_MACTABLE)
   end
 
-  #
-  # Command 'ALIAS'
-  #
-  # Set additional alias names for this node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command 
-  #
-  def AgentCommands.ALIAS(agent, cmdObject)
-    aliasArray = cmdObject.name.split(' ')
-    aliasArray.each{ |n|
-      agent.addAlias(n)
-    }
-    agent.enrollReply(cmdObject.name)
-  end
-
-  #
-  # Command 'YOUARE'
-  # 
-  # Initial enroll message received from the EC
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.ENROLL(agent, cmdObject)
-
-    # Check if we are already 'enrolled' or not
-    if agent.enrolled
-      MObject.debug "Resource Controller already enrolled! - "+
-                    "ignoring this ENROLL command!"
-      return
-    end
-    # Check if the desired image is installed on that node, 
-    # if yes or if a desired image is not required, then continue
-    # if not, then ignore this YOUARE
-    desiredImage = cmdObject.image
-    if (desiredImage != agent.imageName() && desiredImage != '*')
-      MObject.debug "Requested Image: '#{desiredImage}' - "+
-                    "Current Image: '#{NodeAgent.instance.imageName()}'"
-      agent.wrongImageReply()
-      return
-    end
-    # All is good, enroll this Resource Controller
-    agent.enrolled = true
-    agent.enrollReply()
-  end
 
   #
   # Command 'SET_DISCONNECT'
@@ -396,353 +712,5 @@ end
     ExecApp.new(SLAVE_EXPCTL_ID, agent, cmd)
     
   end
-
-  #
-  # Command 'EXECUTE'
-  #
-  # Execute a program on the machine running this NA
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command 
-  #
-  def AgentCommands.EXECUTE(agent, cmdObject)
-    id = cmdObject.appID
-
-    # Dump the XML description of the OML configuration into a file, if any
-    useOML = false
-    if (xmlDoc = cmdObject.omlConfig) != nil
-      configPath = nil
-      xmlDoc.each_element("omlc") { |omlc|
-        configPath = "/tmp/#{omlc.attributes['exp_id']}-#{id}.xml"
-      }
-      f = File.new(configPath, "w+")
-      xmlDoc.each_element {|el|
-        f << el.to_s
-      }
-      useOML = true
-      f.close
-    end
-
-    # Set the full command line and execute it
-    fullCmdLine = ""
-    fullCmdLine = fullCmdLine + "env -i #{cmdObject.env} " if cmdObject.env != nil
-    fullCmdLine = fullCmdLine + "OML_CONFIG=#{configPath} " if useOML
-    fullCmdLine = fullCmdLine + "#{cmdObject.path} #{cmdObject.cmdLineArgs}"
-    MObject.debug "Executing: '#{fullCmdLine}'"
-    ExecApp.new(id, agent, fullCmdLine)
-  end
-
-  #
-  # Command 'KILL'
-  #
-  # Send a signal to a process running on this node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.KILL(agent, cmdObject)
-    id = cmdObject.appID
-    signal = cmdObject.value
-    ExecApp[id].kill(signal)
-  end
-
-  #
-  # Command 'EXIT'
-  #
-  # Terminate an application running on this node
-  # First try to send the message 'exit' on the app's STDIN
-  # If no succes, then send a Kill signal to the process
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.EXIT(agent, cmdObject)
-    id = cmdObject.appID
-    begin
-      # First try sending 'exit' on the app's STDIN
-      MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
-      ExecApp[id].stdin('exit')
-      # If apps still exists after 4sec...
-      sleep 4
-      if ExecApp[id] != nil
-        MObject.debug("Sending 'kill' signal to application: #{id}")
-        ExecApp[id].kill('KILL')
-      end
-    rescue Exception => err
-      raise Exception.new("- Error while terminating application '#{id}' - #{err}")
-    end
-  end
-
-  #
-  # Command 'STDIN'
-  #
-  # Send a line of text to the STDIN of a process
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.STDIN(agent, cmdObject)
-    begin
-      id = cmdObject.appID
-      line = cmdObject.value
-      ExecApp[id].stdin(line)
-    rescue Exception => err
-      raise Exception.new("- Error while writing to standard-IN of application '#{id}' \
-(likely caused by a a call to 'sendMessage' or an update to a dynamic property)") 
-    end
-  end
-
-  #
-  # Command 'PM_INSTALL'
-  #
-  # Poor man's installer. Fetch a tar file and
-  # extract it into a specified directory
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.PM_INSTALL(agent, cmdObject)
-    id = cmdObject.appID
-    url = cmdObject.image
-    installRoot = cmdObject.path
-
-    MObject.debug "Installing '#{url}' into '#{installRoot}'"
-    cmd = "cd /tmp;wget -m -nd -q #{url};"
-    file = url.split('/')[-1]
-    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
-    ExecApp.new(id, agent, cmd)
-  end
-
-  #
-  # Command 'APT_INSTALL'
-  #
-  # Execute apt-get command on node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.APT_INSTALL(agent, cmdObject)
-    id = cmdObject.appID
-    pkgName = cmdObject.package
-    cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install --reinstall --allow-unauthenticated -qq #{pkgName}"
-    ExecApp.new(id, agent, cmd)
-  end
-
-  #
-  # Command 'RPM_INSTALL'
-  #
-  # Execute yum command on node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.RPM_INSTALL(agent, cmdObject)
-    id = cmdObject.appID
-    pkgName = cmdObject.package
-    cmd = "/usr/bin/yum -y install #{pkgName}"
-    ExecApp.new(id, agent, cmd)
-  end
-
-  #
-  # Command 'RESET'
-  #
-  # Reset this node agent
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.RESET(agent, cmdObject)
-    agent.reset
-  end
-
-
-  #
-  # Command 'RESTART'
-  #
-  # Restart this node agent
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.RESTART(agent, cmdObject)
-    RCCommunicator.instance.stop
-    ExecApp.killAll
-    sleep 2
-    system("/etc/init.d/omf-resctl-#{OMF_MM_VERSION} restart")
-    # will be killed by now :(
-  end
-
-  #
-  # Command 'REBOOT'
-  # 
-  # Reboot this node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.REBOOT(agent, cmdObject)
-    RCCommunicator.instance.stop
-    sleep 2
-    cmd = `sudo /sbin/reboot`
-    if !$?.success?
-      # In case 'sudo' is not installed but we do have root rights (e.g. PXE image)
-      cmd = `/sbin/reboot`
-    end
-  end
-
-  #
-  # Command 'MODPROBE'
-  #
-  # Load a kernel module on this node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.MODPROBE(agent, cmdObject)
-    moduleName = cmdObject.appID
-    id = "module/#{moduleName}"
-    ExecApp.new(id, agent, "/sbin/modprobe #{argArray.join(' ')} #{moduleName}")
-  end
-
-  #
-  # Command 'CONFIGURE'
-  #
-  # Configure a system parameter on this node
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.CONFIGURE(agent, cmdObject)
-    path = cmdObject.path
-    value = cmdObject.value
-
-    if (type, id, prop = path.split("/")).length != 3
-      raise "Expected path '#{path}' to contain three levels"
-    end
-    device = DEV_MAPPINGS["#{type}/#{id}"]
-    if (device == nil)
-      raise "Unknown resource '#{type}/#{id}' in 'configure'"
-    end
-
-    result = device.configure(prop, value)
-    if result[:success]
-      agent.okReply(result[:msg], cmdObject)
-    else
-      agent.errorReply(result[:msg], cmdObject) 
-    end
-  end
-
-  #
-  # Command 'LOAD_IMAGE'
-  #
-  # Load a specified disk image onto this node through frisbee
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.LOAD_IMAGE(agent, cmdObject)
-    mcAddress = cmdObject.address
-    mcPort = cmdObject.port
-    disk = cmdObject.disk
-
-    MObject.info "AgentCommands", "Frisbee image from ", mcAddress, ":", mcPort
-    ip = agent.localAddr
-    cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
-    MObject.debug "AgentCommands", "Frisbee command: ", cmd
-    ExecApp.new('builtin:load_image', agent, cmd, true)
-  end
-
-  #
-  # Command 'SAVE_IMAGE'
-  #
-  # Save the image of this node with frisbee and send
-  # it to the image server.
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.SAVE_IMAGE(agent, cmdObject)
-    imgHost = cmdObject.address
-    imgPort = cmdObject.port
-    disk = cmdObject.disk
-    
-    cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
-    MObject.debug "AgentCommands", "Image save command: #{cmd}"
-    ExecApp.new('builtin:save_image', agent, cmd, true)
-  end
-
-  #
-  # Command 'PM_INSTALL'
-  #
-  # Poor man's installer. Fetch a tar file and
-  # extract it into a specified directory
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def AgentCommands.LOAD_DATA(agent, cmdObject)
-    id = cmdObject.appID
-    url = cmdObject.image
-    installRoot = cmdObject.path
-
-    MObject.debug "Loading '#{url}' into '#{installRoot}'"
-    cmd = "cd /tmp;wget -m -nd -q #{url};"
-    file = url.split('/')[-1]
-    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
-    ExecApp.new(id, agent, cmd)
-  end
-
-
-  # 
-  # Remove the first element from 'argArray' and
-  # return it. If it is nil, raise exception
-  # with 'exepString' providing MObject.information about the
-  # missing argument
-  #
-  # - argArray = Array of arguments
-  # - exepString = MObject.information about argument, used for exception
-  # 
-  # [Return] First element in 'argArray' or raise exception if nil
-  # [Raise] Exception if arg is nil
-  #
-  #def AgentCommands.getArg(argArray, exepString)
-  #  arg = argArray.delete_at(0)
-  #  if (arg == nil)
-  #    raise exepString
-  #  end
-  #  return arg
-  #end
-
-  #
-  # Remove the first element from 'argArray' and
-  # return it. If it is nil, return 'default'
-  #
-  # - argArray = Array of arguments
-  # - default = Default value if arg in argArray is nil
-  #
-  # [Return] First element in 'argArray' or 'default' if nil
-  #
-  #def AgentCommands.getArgDefault(argArray, default = nil)
-  #  arg = argArray.delete_at(0)
-  #  if (arg == nil)
-  #    arg = default
-  #  end
-  #  return arg
-  #end
 
 end

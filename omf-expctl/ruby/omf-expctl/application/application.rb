@@ -114,7 +114,7 @@ class Application < MObject
   def install(nodeSet)
     if (aptName = @appDefinition.aptName) != nil
       # Install App from DEB package using apt-get 
-      nodeSet.send(ECCommunicator.instance.create_command(
+      nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :APT_INSTALL,
                                   :appID => "#{@appDefinition.uri}/install",
                                   :package => aptName))
@@ -125,14 +125,14 @@ class Application < MObject
       url_dir="/install/#{rep.gsub('/', '_')}"
       url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
       OMF::ExperimentController::Web.mapFile(url_dir, rep)
-      nodeSet.send(ECCommunicator.instance.create_command(
+      nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :PM_INSTALL,
                                   :appID => "#{@appDefinition.uri}/install",
                                   :image => url,
                                   :path => "/"))
     elsif (rpmName = @appDefinition.rpmName) != nil
       # Install App from RPM package using apt-get 
-      nodeSet.send(ECCommunicator.instance.create_command(
+      nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :RPM_INSTALL,
                                   :appID => "#{@appDefinition.uri}/install",
                                   :package => rpmName))

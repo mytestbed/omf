@@ -366,11 +366,11 @@ class Node < MObject
     @groups[group] = false 
     TraceState.nodeAddGroup(self, group)
     # Send an ALIAS command to this resource
-    send(ECCommunicator.instance.create_command(:cmdtype => :ALIAS,
+    send(ECCommunicator.instance.create_message(:cmdtype => :ALIAS,
                                                 :target => @nodeId,
                                                 :name => group))
     # Now listen for messages on that new ALIAS address
-    addr = ECCommunicator.instance.create_address(:name => group) 
+    addr = ECCommunicator.instance.make_address(:name => group) 
     ECCommunicator.instance.listen(addr)
   end
 
@@ -458,7 +458,7 @@ class Node < MObject
     info("  to the file '#{imgName}' on host '#{imgHost}'")
     info " "
     # Send an ALIAS command to this resource
-    send(ECCommunicator.instance.create_command(:cmdtype => :SAVE_IMAGE,
+    send(ECCommunicator.instance.create_message(:cmdtype => :SAVE_IMAGE,
                                                 :target => @nodeId,
                                                 :address => imgHost,
                                                 :port => imgPort,
@@ -474,7 +474,7 @@ class Node < MObject
   #
   def setMACTable(toolToUse)
     @blockedMACList.each{ |mac|
-    send(ECCommunicator.instance.create_command(:cmdtype => :SET_MACTABLE,
+    send(ECCommunicator.instance.create_message(:cmdtype => :SET_MACTABLE,
                                                 :target => @nodeId,
                                                 :cmd => toolToUse,
                                                 :address => mac))
@@ -574,28 +574,30 @@ class Node < MObject
     desiredImage = @image.nil? ? "*" : @image
     # Send an ENROLL command to this resource
     # First listen for messages on that new resource address
-    addr = ECCommunicator.instance.create_address(:name => @nodeId) 
+    addr = ECCommunicator.instance.make_address(:name => @nodeId) 
     ECCommunicator.instance.listen(addr)
     # Now, Directly use the Communicator send method as this message needs to
     # be sent even if the resource is not in the "UP" state
-    cmd = ECCommunicator.instance.create_command(:cmdtype => :ENROLL,
+    cmd = ECCommunicator.instance.create_message(:cmdtype => :ENROLL,
                                                 :expID => Experiment.ID,
                                                 :image => desiredImage,
                                                 :target => @nodeId)
     addr.expID = nil # Same address as the resource but with no expID set
-    ECCommunicator.instance.send_command(addr, cmd)
+    ECCommunicator.instance.send_message(addr, cmd)
   end
 
   #
   # Reset this Node
   #
-  # If we are already in RESET state, and the last reset was less than REBOOT_TIME ago,
-  # That means that the actual node is more likely still rebooting, thus do nothing here
-  # Once that node will be done rebooting, either we will get in UP state or we will
-  # come back here and do a real reset this time. This avoids us to send many resets 
+  # If we are already in RESET state, and the last reset was less than 
+  # REBOOT_TIME ago, that means that the actual node is more likely still 
+  # rebooting, thus do nothing here. Once that node will be done rebooting, 
+  # either we will get in UP state or we will come back here and do a real 
+  # reset this time. This avoids us to send many resets 
   #
   def reset()
-    if (@nodeStatus == STATUS_RESET) && ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
+    if (@nodeStatus == STATUS_RESET) && 
+       ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
       return
     else
       changed
@@ -862,8 +864,8 @@ class Node < MObject
   def send(cmdObj)
     if @nodeStatus == STATUS_UP
       cmdObj.target = @nodeId
-      addr = ECCommunicator.instance.create_address(:name => @nodeId)
-      ECCommunicator.instance.send_command(addr, cmdObj)
+      addr = ECCommunicator.instance.make_address(:name => @nodeId)
+      ECCommunicator.instance.send_message(addr, cmdObj)
     else
       debug "Deferred message: '#{cmdObj.to_s}'"
       @deferred << cmdObj

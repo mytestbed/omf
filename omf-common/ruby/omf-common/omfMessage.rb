@@ -86,9 +86,10 @@ class OmfMessage
   #
   #  [Return] a new Command Object
   #
-  def initialize (initOptions)
+  def initialize (initOptions = nil)
     # Create a new Hash to hold the attributes of this Command Object
     @attributes = Hash.new
+    return unless initOptions
     # Set the Command Type
     if initOptions.kind_of?(Hash) 
       initOptions.each { |k,v|

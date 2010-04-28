@@ -43,6 +43,7 @@ class OmfCommunicator < MObject
   @@communicator_commands = nil
   @@self_comands = nil
   @@sent = []
+  @@handler = nil
 
   def self.instance
     @@instance
@@ -52,15 +53,12 @@ class OmfCommunicator < MObject
     raise "Communicator already started" if @@instance
     @@instance = self.new
     @@transport = nil
+    @@handler = opts[:handler]
     # Initiate the required Transport entity
     case type = opts[:type]
     when 'xmpp'
       require 'omf-common/omfPubSubTransport'
-      require "omf-common/omfPubSubMessage"
-      require "omf-common/omfPubSubAddress"
       @@transport = OMFPubSubTransport.init(opts) 
-      @@messageType = "OmfPubSubMessage"
-      @@addressType = "OmfPubSubAddress"
     when 'mock'
       @@sent = Array.new
       return # Uses the default Mock OmfCommunicator
@@ -83,18 +81,19 @@ class OmfCommunicator < MObject
     @@valid_commands[command_type] = block
   end
 
-  def create_message(opts = nil)
-    return eval(@@messageType).new(opts) if @@transport
-    cmd = HashPlus.new
-    opts.each { |k,v| cmd[k] = v} if opts
-    return cmd
-  end
-
-  def create_address!(opts = nil)
-    return eval(@@addressType).new(opts) if @@transport
+  def create_address(opts = nil)
+    return @@transport.get_new_address(opts) if @@transport
     addr = HashPlus.new
     opts.each { |k,v| addr[k] = v} if opts
     return addr
+  end
+
+
+  def create_message(opts = nil)
+    return @@transport.get_new_message(opts) if @@transport
+    cmd = HashPlus.new
+    opts.each { |k,v| cmd[k] = v} if opts
+    return cmd
   end
 
   def send_message(addr, message)
@@ -129,7 +128,7 @@ class OmfCommunicator < MObject
 
   def dispatch_message(message)
     # 1 - Retrieve and validate the message
-    cmd = eval(@@messageType).create_from(message)
+    cmd = @@transport.get_new_message.create_from(message)
     return if !valid_message?(cmd) # Silently discard unvalid messages
     debug "Processing '#{cmd.cmdType}' - '#{cmd.target}'"
     # 2 - Perform Communicator-specific tasks, if any
@@ -144,7 +143,7 @@ class OmfCommunicator < MObject
     # 3 - Dispatch the message to the OMF entity
     begin
       proc = @@valid_commands[cmd.cmdType]
-      proc.call(self, cmd) if not proc.nil?
+      proc.call(@@handler, self, cmd) if not proc.nil?
     rescue Exception => ex
       error "Failed to process the command '#{cmd.cmdType}'\n" +
             "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" 

@@ -30,6 +30,8 @@
 # various OMF entities.
 #
 require "omf-common/omfXMPPServices"
+require "omf-common/omfPubSubMessage"
+require "omf-common/omfPubSubAddress"
 require 'omf-common/mobject'
 
 # 
@@ -135,6 +137,14 @@ class OMFPubSubTransport < MObject
     @@xmppServices.remove_all_nodes if @@forceCreate
     reset
     @@xmppServices.stop
+  end
+
+  def get_new_address(opts = nil)
+    return OmfPubSubAddress.new(opts)
+  end
+
+  def get_new_message(opts = nil)
+    return OmfPubSubMessage.new(opts)
   end
 
   #############################

@@ -50,7 +50,7 @@ class ECCommunicator < OmfCommunicator
     @@domain = opts[:domain]
     @@expID = opts[:expID]
     # 1 - listen to my address (i.e. the is the 'experiment' address)
-    addr = create_address!(:sliceID => @@sliceID, 
+    addr = create_address(:sliceID => @@sliceID, 
                           :expID => @@expID, 
                           :domain => @@domain)
     listen(addr) { |cmd| dispatch_message(cmd) }
@@ -60,28 +60,39 @@ class ECCommunicator < OmfCommunicator
     }
   end
 
-  def create_address(opts = nil)
-    return create_address!(:sliceID => @@sliceID, :expID => @@expID, 
-                           :domain => @@domain, :name => opts[:name])
-  end
-
   #
-  # This method sends a reset command to a given resource
+  # Send a NOOP command to a given resource
   #
-  def send_reset(resourceID)
-    addr = create_address!(:sliceID => @@sliceID, 
+  def send_noop(resID)
+    addr = create_address(:sliceID => @@sliceID, 
                            :domain => @@domain,
-                           :name => "#{resourceID}")
-    cmd = create_message(:cmdtype => :RESET, :target => "#{resourceID}")
+                           :name => "#{resID}")
+    cmd = create_message(:cmdtype => :NOOP, :target => "#{resID}")
     send_message(addr, cmd)
   end
 
   #
-  # This method sends a reset command to a given resource
+  # Send a RESET command to a given resource
+  #
+  def send_reset(resID)
+    addr = create_address(:sliceID => @@sliceID, 
+                           :domain => @@domain,
+                           :name => "#{resID}")
+    cmd = create_message(:cmdtype => :RESET, :target => "#{resID}")
+    send_message(addr, cmd)
+  end
+
+  #
+  # Sends a reset command to a given resource
   #
   def send_reset_all
-    send_message(create_address!(:sliceID => @@sliceID, :domain => @@domain),
+    send_message(create_address(:sliceID => @@sliceID, :domain => @@domain),
                  create_message(:cmdtype => :RESET, :target => "*"))
+  end
+
+  def make_address(opts = nil)
+    return create_address(:sliceID => @@sliceID, :expID => @@expID, 
+                           :domain => @@domain, :name => opts[:name])
   end
 
   private
@@ -103,20 +114,6 @@ class ECCommunicator < OmfCommunicator
     end
     # Accept this message
     return true
-  end
-
-  def ENROLLED(cmd)
-    # when we receive the first ENROLLED, send a NOOP message to the RC. 
-    # This is necessary since if RC is reset or restarted, it might
-    # receive the last ENROLL command again, depending on the kind of 
-    # transport being used. In any case, sending a NOOP would prevent this.
-    if !Node[cmd.target].isUp
-      addr = create_address!(:sliceID => @@sliceID, 
-                            :domain => @@domain,
-                            :name => cmd.target)
-      noop = create_message(:cmdtype => :NOOP, :target => cmd.target)
-      send_message(addr, noop)
-    end
   end
 
 end

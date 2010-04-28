@@ -142,7 +142,7 @@ class AppContext < MObject
     debug("Starting application '#@id'")
     # Get a new Command Object and starting adding info to it
     appDef = @app.appDefinition
-    cmd = ECCommunicator.instance.create_command(:cmdtype => :EXECUTE,
+    cmd = ECCommunicator.instance.create_message(:cmdtype => :EXECUTE,
                                                  :target => nodeSet.groupName,
                                                  :appID => @id,
                                                  :path => appDef.path)
@@ -162,10 +162,8 @@ class AppContext < MObject
             + " not in '#{pdef.keys.join(', ')}'."
     end
     cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
-    # Build the address where to send that command
-    addr = ECCommunicator.instance.create_address(:name => nodeSet.groupName) 
-    # Ask the Communicator to send the Command Object 
-    ECCommunicator.instance.send_command(addr, cmd)
+    # Ask the NodeSet to send the Command Object 
+    nodeSet.send(cmd)
   end
   
 end # ApplicationContext

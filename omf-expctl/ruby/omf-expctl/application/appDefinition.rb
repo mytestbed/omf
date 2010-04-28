@@ -213,7 +213,7 @@ class AppDefinition < MObject
   #
   # - bindings = Bindings for the command line arguments
   # - appID = Name of the application
-  # - nodeSet =  Name of the group of resources that will execute this application
+  # - nodeSet =  Name of the group of resources that will execute this app
   #
   # [Return] the complete resulting array of command line arguments
   #
@@ -231,7 +231,7 @@ class AppDefinition < MObject
         # This Property is a Dynamic Experiment Property...
         if value.kind_of?(ExperimentProperty)
           value.onChange { |v|
-            nodeSet.send(ECCommunicator.instance.create_command(
+            nodeSet.send(ECCommunicator.instance.create_message(
                                                  :cmdtype => :STDIN,
                                                  :appID => appId,
                                                  :value => "#{prop.name} #{v}")

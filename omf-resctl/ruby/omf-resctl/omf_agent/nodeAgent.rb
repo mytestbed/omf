@@ -90,6 +90,7 @@ class NodeAgent < MObject
     resetState
     comm =  Hash.new
     comm[:comms_name] = @agentName
+    comm[:handler] = self
     comm[:createflag] = false
     comm[:type] = @config[:communicator][:type]
     comm[:pubsub_gateway] = @config[:communicator][:pubsub_gateway]
@@ -116,122 +117,17 @@ class NodeAgent < MObject
   end
 
   #
-  # Add an alias for this NA. If 'isPrimary' is true, then the provided 
-  # alias will also be set as the NA's primary name. The first alias becomes 
-  # the default name.
+  # Add an alias for this RC. 
   #
   # - newAlias = a String with the new alias to add
-  # - isPrimary = true/false, if true the new alias becomes the NA's primary name 
   #
-  # TDBEUG 5.3 - YOUARE does not set the primary name!
-  #def addAlias(newAlias, isPrimary = false)
   def addAlias(newAlias)
-    #if @names.length == 1 || isPrimary
-    #  # the first alias will also become the new agent name
-    #  @agentName = newAlias
-    #end
     if (@agentAliases.index(newAlias) != nil)
       debug("Alias '#{newAlias}' already registered.")
     else
       @agentAliases.insert(0, newAlias)
     end
     debug("Agent names #{@agentAliases.join(', ')}")
-  end
-
-  # TODO: This was used with old Multicast communication scheme to 
-  # implement the disconnection mode... Keep this around until we fix
-  # the disconnection mode for PubSub communication scheme
-  #
-  # Send an OK reply to the Node Handler (EC). When a command has been 
-  # successfully completed, the NA sends an 'HeartBeat' OK message
-  # to the EC
-  #
-  # - cmd = a String with the command that completed successfully
-  # - id = the ID of this NA (default = nil)
-  # - msgArray = an array with the full received command (name, parameters,...)
-  #
-  #def old_okReply(cmd, id = nil, *msgArray)
-  #  if @allowDisconnection 
-  #    RCCommunicator.instance.sendRelaxedHeartbeat()
-  #  else
-  #    RCCommunicator.instance.sendHeartbeat()
-  #  end
-  #end
-
-  def okReply(message, cmdObj)
-    reply = RCCommunicator.instance.create_command(:cmdtype => :OK,
-                                                   :target => @agentName, 
-                                                   :message => message, 
-                                                   :cmd => cmdObj.cmdType.to_s) 
-    reply.path = cmdObj.path if cmdObj.path != nil
-    reply.value = cmdObj.value if cmdObj.value != nil
-    send(reply)
-  end
-
-  #
-  # Send an ENROLL reply to the Node Handler (EC). When a YOUARE or ALIAS 
-  # command has been successfully completed, the NA sends this message
-  # to the EC
-  #
-  # - aliasArray = an array with the names of all the groups within the 
-  #              original YOAURE/ALIAS message with which this NA has enrolled
-  #
-  def enrollReply(aliases = nil)
-    reply = RCCommunicator.instance.create_command(:cmdtype => :ENROLLED,
-                                                   :target => @agentName) 
-    reply.name = aliases if aliases != nil
-    send(reply)
-  end
-
-  def wrongImageReply()
-    reply = RCCommunicator.instance.create_command(:cmdtype => :WRONG_IMAGE,
-                                                   :target => @agentName, 
-                                                   :image => imageName) 
-    # 'WRONG_IMAGE' message goes even though the node is not enrolled!
-    # Thus we make a direct call to the communicator here.
-    addr = ECCommunicator.instance.create_address!(:name => @agentName,
-                                                   :sliceID => @agentSlice,
-                                                   :domain => @domain)
-    RCCommunicator.instance.send_command(addr, reply)
-  end
-
-  #
-  # Send an ERROR reply to the Node Handler (EC). When an error occured
-  # while executing a command, the NA sends an 'ERROR' message
-  # to the EC
-  #
-  # - cmd = a String with the command that produced the error
-  # - id = the ID of this NA (default = nil)
-  # - msgArray = an array with the full received command (name, parameters,...)
-  #
-  def errorReply(message, cmdObj)
-    reply = RCCommunicator.instance.create_command(:cmdtype => :ERROR,
-                                                   :target => @agentName, 
-                                                   :cmd => cmdObj.cmdType.to_s, 
-                                                   :message => message) 
-    reply.path = cmdObj.path if cmdObj.path != nil
-    reply.appID = cmdObj.appID if cmdObj.appID != nil
-    reply.value = cmdObj.value if cmdObj.value != nil
-    # 'ERROR' message goes even though the node is not enrolled!
-    # Thus we make a direct call to the communicator here.
-    addr = ECCommunicator.instance.create_address!(:name => @agentName,
-                                                   :sliceID => @agentSlice,
-                                                   :domain => @domain)
-    RCCommunicator.instance.send_command(addr, reply)
-  end
-
-  #
-  # Send a text message to the Node Handler (EC). 
-  #
-  # - msgArray = an array with the full text message to send 
-  #
-  def send(cmdObj)
-    if @enrolled
-      addr = ECCommunicator.instance.create_address(:name => @agentName)
-      RCCommunicator.instance.send_command(addr, cmdObj)
-    else
-      warn("Not enrolled! Not sending message: '#{cmdObj.to_xml_to.s}'")
-    end
   end
 
   #
@@ -254,10 +150,9 @@ class NodeAgent < MObject
   end
 
   #
-  # Send a message to the Node Handler (EC) when an event related
-  # to a particular application has happened. This method is
-  # usually called by ExecApp which monitors the application 
-  # identified by 'id'.
+  # Receive an event from one of the application that we have started.
+  # This method is normally called by ExecApp which monitors the applications 
+  # that we started. Applications are identified by 'id'.
   #
   # - eventName = a String with the name of event that occured
   # - appID = a String with the ID of the application raising the event 
@@ -265,7 +160,6 @@ class NodeAgent < MObject
   #
   def onAppEvent(eventName, appId, *msg)
     debug("onAppEvent(event: #{eventName} - app: #{appId}) - '#{msg}'")
-    
     # If this NA allows disconnection, then check if the event is the Done 
     # message from the slave Experiment Controller
     if ( @allowDisconnection && (appId == AgentCommands.slaveExpCtlID) )
@@ -275,17 +169,14 @@ class NodeAgent < MObject
                "#{eventName.split(".")[1]}")
        end
     end
-    send(RCCommunicator.instance.create_command(:cmdtype => :APP_EVENT,
-                                                :target => @agentName, 
-                                                :value => eventName.to_s.upcase, 
-                                                :appID => appId, 
-                                                :message => "#{msg}")) 
+    # Send the event to our EC
+    RCCommunicator.instance.send_event(:APP_EVENT, eventName.to_s.upcase, 
+                                       appID, "#{msg}")
   end
 
   #
-  # Send a message to the Node Handler (EC) when an event related
-  # to a particular device has happened. This method is
-  # usually called by a Device instance reporting its state change
+  # Receive an event from one of the device that we configured. 
+  # This method is normally called by a Device instance reporting its state 
   #
   # - eventName = a String with the name of event that occured
   # - deviceName = a String with the name of the device raising the event 
@@ -293,11 +184,8 @@ class NodeAgent < MObject
   #
   def onDevEvent(eventName, deviceName, *msg)
     debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    send(RCCommunicator.instance.create_command(:cmdtype => :DEV_EVENT,
-                                                :target => @agentName, 
-                                                :value => eventName.to_s.upcase, 
-                                                :appID => appId, 
-                                                :message => "#{msg}")) 
+    RCCommunicator.instance.send_event(:DEV_EVENT, eventName.to_s.upcase, 
+                                       deviceName, "#{msg}")
   end
 
   #
@@ -358,6 +246,28 @@ class NodeAgent < MObject
   #def allowDisconnection?
   #  return @allowDisconnection
   #end 
+
+  # TODO: This was used with old Multicast communication scheme to 
+  # implement the disconnection mode... Keep this around until we fix
+  # the disconnection mode for PubSub communication scheme
+  #
+  # Send an OK reply to the Node Handler (EC). When a command has been 
+  # successfully completed, the NA sends an 'HeartBeat' OK message
+  # to the EC
+  #
+  # - cmd = a String with the command that completed successfully
+  # - id = the ID of this NA (default = nil)
+  # - msgArray = an array with the full received command (name, parameters,...)
+  #
+  #def old_okReply(cmd, id = nil, *msgArray)
+  #  if @allowDisconnection 
+  #    Communicator.instance.sendRelaxedHeartbeat()
+  #  else
+  #    Communicator.instance.sendHeartbeat()
+  #  end
+  #end
+
+
 
   #
   # Parse the command line arguments which were used when starting this NA
@@ -485,38 +395,6 @@ class NodeAgent < MObject
                      @config[:communicator][:pubsub_gateway]
     end
   end
-
-  #
-  # Execute a command received from the Eexperiment Controller
-  #
-  # - cmdObj = an Object holding all the information to execute a 
-  #            given command (name, parameters,...)
-  #
-  # TODO: for the moment this is only used when an XML EXECUTE command is 
-  # received, because we need to get the OML configuration (in XML). In the
-  # future, all comms between EC and RC should use this scheme, and this should
-  # be more clean.
-  #
-  def execCommand(cmdObj)
-  
-    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
-    method = nil
-    begin
-      method = AgentCommands.method(cmdObj.cmdType.to_s)
-    rescue Exception
-      error "Unknown method for command '#{cmdObj.cmdType}'"
-      errorReply("Unknown command", cmdObj) 
-      return
-    end
-    begin
-      reply = method.call(self, cmdObj)
-    rescue Exception => err
-      error "While executing #{cmdObj.cmdType}: #{err}"
-      errorReply("Execution Error (#{err})", cmdObj) 
-      return
-    end
-  end
-
 
   ################################################
   private
