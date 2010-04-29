@@ -55,10 +55,12 @@ class ECCommunicator < OmfCommunicator
     listen(addr) { |cmd| dispatch_message(cmd) }
     # 3 - Set my lists of valid and specific commands
     OmfProtocol::RC_COMMANDS.each { |cmd|
-      define_valid_command(cmd) { |h, m| 
-        AgentCommands.method(cmd.to_s).call(h, m) 
+      define_valid_command(cmd) { |handler, comm, message| 
+        AgentCommands.method(cmd.to_s).call(handler, comm, message) 
       }	
     }
+    # 4 - Set my list of own/self commands
+    OmfProtocol::EC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
   #
@@ -104,14 +106,14 @@ class ECCommunicator < OmfCommunicator
     # 2 - Perform EC-specific validations
     # - Ignore messages for/from unknown Slice and Experiment ID
     if (message.sliceID != @@sliceID) || (message.expID != @@expID)
-      debug "Received message with unknown slice and exp IDs: "+
-            "'#{message.sliceID}' and '#{message.expID}' - ignoring it!" 
+      MObject.debug("ECCommunicator", "Ignoring message with unknown slice "+
+                    "and exp IDs: '#{message.sliceID}' and '#{message.expID}'")
       return false
     end
     # - Ignore message from unknown RCs
     if (Node[message.target] == nil)
-      debug "Received command with unknown target '#{message.target}'"+
-            " - ignoring it!"
+      MObject.debug("ECCommunicator", "Ignoring command with unknown target "+
+                    "'#{message.target}'")
       return false
     end
     # Accept this message

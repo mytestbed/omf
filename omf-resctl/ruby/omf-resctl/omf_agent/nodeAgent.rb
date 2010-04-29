@@ -37,7 +37,7 @@
 require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
 require "omf-common/omfCommandObject"
-require 'omf-resctl/omf_agent/agentPubSubCommunicator'
+require 'omf-resctl/omf_agent/rcCommunicator'
 require 'omf-resctl/omf_agent/agentCommands'
 
 #
@@ -95,7 +95,7 @@ class NodeAgent < MObject
     comm[:config] = @config[:communicator]
     comm[:sliceID] = @agentSlice
     comm[:domain] = @agentDomain 
-    RCCommunicator.init(comm)
+    RCCommunicator.instance.init(comm)
     RCCommunicator.instance.reset
 
     @running = ConditionVariable.new

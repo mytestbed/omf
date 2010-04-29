@@ -31,9 +31,10 @@
 # This current implementation uses the library XMPP4R.
 #
 # NOTE: Extensive modification by TR from the original code from Javid
-# TODO: Remove or Comment debug messages marked as 'TDEBUG'
+# TODO: Remove or Comment MObject.debug messages marked as 'TDEBUG'
 #
 require "omf-common/omfCommunicator"
+require "omf-common/omfProtocol"
 require 'omf-resctl/omf_agent/agentCommands'
 
 #
@@ -56,12 +57,14 @@ class RCCommunicator < OmfCommunicator
     @@myAddr = create_address(:sliceID => @@sliceID, 
                               :name => @@myName, 
                               :domain => @@domain)
-    # 3 - Set my lists of valid and specific commands
+    # 3 - Set my lists of valid commands 
     OmfProtocol::EC_COMMANDS.each { |cmd|
-      define_valid_command(cmd) { |h, m| 
-        AgentCommands.method(cmd.to_s).call(h, m) 
+      define_valid_command(cmd) { |handler, comm, message| 
+        AgentCommands.method(cmd.to_s).call(handler, comm, message) 
       }	
     }
+    # 4 - Set my list of own/self commands
+    OmfProtocol::RC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
   def set_expID(expID)
@@ -159,17 +162,17 @@ class RCCommunicator < OmfCommunicator
     listening = false
     while !listening
       listening = listen(@@myAddr) { |cmd| dispatch_message(cmd) }
-      debug "Cannot listen on '#{@@myAddr.to_s}' - "+
-            "retrying in #{RETRY_INTERVAL} sec."
+      MObject.debug("RCCommunicator", "Cannot listen on '#{@@myAddr.to_s}' - "+
+            "retrying in #{RETRY_INTERVAL} sec.")
       sleep RETRY_INTERVAL
     end
     # Also listen to the generic resource address for this slice
     listening = false
-    addr = create_address(:sliceID => @@sliceID, :domain => @@domain)) 
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain) 
     while !listening
       listening = listen(addr)
-      debug "Cannot listen on '#{addr.to_s}' - "+
-            "retrying in #{RETRY_INTERVAL} sec."
+      MObject.debug("RCCommunicator", "Cannot listen on '#{addr.to_s}' - "+
+            "retrying in #{RETRY_INTERVAL} sec.")
       sleep RETRY_INTERVAL
     end
   end
@@ -206,8 +209,8 @@ class RCCommunicator < OmfCommunicator
     # - Ignore messages for/from unknown Slice and Experiment ID
     if (message.cmdType != :ENROLL) &&
        ((message.sliceID != @@sliceID) || (message.expID != @@expID))
-      debug "Received message with unknown slice and exp IDs: "+
-            "'#{message.sliceID}' and '#{message.expID}' - ignoring it!" 
+      MObject.debug("RCCommunicator", "Ignoring message with unknown slice "+
+                    "and exp IDs: '#{message.sliceID}' and '#{message.expID}'") 
       return false
     end
     # - Ignore commands that are not address to us 
@@ -216,8 +219,8 @@ class RCCommunicator < OmfCommunicator
     forMe = false
     dst.each { |t| forMe = true if NodeAgent.instance.agentAliases.include?(t) }
      if !forMe
-       debug "Received command with unknown target '#{message.target}'"+
-             " - ignoring it!" 
+       MObject.debug("RCCommunicator", "Ignoring command with unknown target "+
+                     "'#{message.target}' - ignoring it!")
        return false
     end
     # Accept this message

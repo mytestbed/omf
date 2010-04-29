@@ -36,13 +36,14 @@ require 'omf-common/mobject'
 # Concrete implementations may use any type of underlying transport
 # (e.g. TCP, XMPP, etc.)
 #
-class OmfCommunicator < MObject
+class OmfCommunicator
 
   include Singleton
+  RETRY_INTERVAL = 10
   @@started = false
   @@valid_commands = Hash.new
   @@communicator_commands = Hash.new
-  @@self_comands = nil
+  @@self_commands = Array.new
   @@sent = []
   @@handler = nil
 
@@ -82,6 +83,10 @@ class OmfCommunicator < MObject
     @@valid_commands[command_type] = block
   end
 
+  def define_self_command(command_type)
+    @@self_commands << command_type
+  end
+
   def create_address(opts = nil)
     return @@transport.get_new_address(opts) if @@transport
     addr = HashPlus.new
@@ -104,7 +109,7 @@ class OmfCommunicator < MObject
     if @@transport
       @@transport.send(addr, message.serialize)
     else
-      debug "Sending command '#{message}'"
+      MObject.debug("Communicator", "Sending command '#{message}'")
       @@sent << [addr, message]
     end
   end  
@@ -128,9 +133,10 @@ class OmfCommunicator < MObject
 
   def dispatch_message(message)
     # 1 - Retrieve and validate the message
-    cmd = @@transport.get_new_message.create_from(message)
+    cmd = @@transport.get_new_message
+    cmd.create_from(message)
     return if !valid_message?(cmd) # Silently discard unvalid messages
-    debug "Processing '#{cmd.cmdType}' - '#{cmd.target}'"
+    MObject.debug("Communicator", "Process '#{cmd.cmdType}' - '#{cmd.target}'")
     # 2 - Perform Communicator-specific tasks, if any
     begin
       proc = @@communicator_commands[cmd.cmdType]
@@ -161,7 +167,7 @@ class OmfCommunicator < MObject
     # - Ignore commands that are not in our list of acceptable commands
     valid_commands = @@valid_commands || []
     if !valid_commands.include?(cmd)
-      debug "Received unknown command '#{cmd}' - ignoring it!" 
+      MObject.debug("Communicator", "Ignoring unknown command '#{cmd}'")
       return false
     end
     # - Accept this message

@@ -18,7 +18,7 @@
     :type: 'xmpp'
     :xmpp:
       # Address of the PubSub server to use as gateway for PubSub communication
-      :pubsub_gateway: 10.0.0.200
+      :pubsub_gateway: 'norbit.npc.nicta.com.au'
 
       # Address of the PubSub server which host the communication for my slice
       # Leave this commented if the pubsub groups for this slice are hosted on 

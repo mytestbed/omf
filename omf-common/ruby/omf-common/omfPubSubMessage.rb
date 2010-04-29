@@ -118,7 +118,7 @@ class OmfPubSubMessage < OmfMessage
   # [Return] a String
   #
   def to_s
-    return to_xml.to_s
+    return serialize.to_s
   end
 
   # NOTE: 

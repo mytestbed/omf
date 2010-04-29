@@ -39,7 +39,7 @@ require 'omf-common/mobject'
 # Currently, this PubSub Transport is done over XMPP, and this class is using
 # the third party library XMPP4R.
 #
-class OMFPubSubTransport < MObject
+class OMFPubSubTransport 
 
   include Singleton
   @@started = false
@@ -64,7 +64,8 @@ class OMFPubSubTransport < MObject
     
     # Open a connection to the Gateway PubSub Server
     begin
-      debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
+      MObject.debug("Transport", "Connecting to PubSub Gateway"+
+                    " '#{@@psGateway}' as user '#{user}'")
       check_server_reachability(@@psGateway)
       @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway)
     rescue Exception => ex
@@ -78,7 +79,7 @@ class OMFPubSubTransport < MObject
     Thread.new do
       while true do
         sleep PING_INTERVAL
-        debug("Sending a ping to the PubSub Gateway (keepalive)")
+        MObject.debug("Transport", "Ping the PubSub Gateway (keepalive)")
         @@xmppServices.ping(@@psGateway)        
       end
     end
@@ -111,7 +112,7 @@ class OMFPubSubTransport < MObject
     }         
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, addr.domain)
-	debug "Creating new node '#{node}'"
+	MObject.debug("Transport", "Creating new node '#{node}'")
 	subscribed = listen(addr, &block)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
@@ -162,7 +163,7 @@ class OMFPubSubTransport < MObject
     msg = Jabber::Message.new(nil, message)
     item.add(msg)
     # Send it
-    debug("send - Send to '#{dst}' - msg: '#{message}'")
+    MObject.debug("Transport", "Send to '#{dst}' - msg: '#{message}'")
     begin
       @@xmppServices.publish_to_node("#{dst}", domain, item)        
     rescue Exception => ex
@@ -179,11 +180,11 @@ class OMFPubSubTransport < MObject
 
   def process_queue(event, &block)
     # Retrieve the command from the event
-    cmdObj = event_to_message(event)
-    return if !cmdObj
+    message = event_to_message(event)
+    return if !message
 
     # Pass the command to our communicator
-    yield cmdObj
+    yield message
   end
 
   def check_server_reachability(server)
@@ -193,8 +194,8 @@ class OMFPubSubTransport < MObject
       if $?.success?
         check = true
       else
-        info "Could not resolve or contact: '#{server}'"+ 
-	      "Waiting #{RETRY_INTERVAL} sec before retrying..."
+        MObject.debug("Transport", "Could not resolve or contact: '#{server}'"+ 
+	      "Waiting #{RETRY_INTERVAL} sec before retrying...")
         sleep RETRY_INTERVAL
       end
     end
@@ -218,7 +219,8 @@ class OMFPubSubTransport < MObject
       # Ignore events without XML payloads
       return nil if xmlMessage == nil 
       # All good, return the extracted XML payload
-      debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
+      MObject.debug("Transport", "Received on '#{event_source(event)}' "+
+                    "- msg: '#{xmlMessage.to_s}'")
       return xmlMessage
     rescue Exception => ex
       error "Cannot extract command from PubSub event '#{eventBody}'"
