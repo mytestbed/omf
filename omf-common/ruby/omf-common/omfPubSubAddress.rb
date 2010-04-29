@@ -41,9 +41,9 @@ class OmfPubSubAddress < OmfAddress
   def generate_address
     node = ""
     if @sliceID && @expID 
-      return exp_node(@sliceID, @expID, @name)
+      return experiment_node(@sliceID, @expID, @name)
     elsif @sliceID 
-      return res_node(@sliceID, @name)
+      return resource_node(@sliceID, @name)
     else
       raise "OmfPubSubAddress - Cannot generate pubsub node from address "
             +"'#{self.to_s}'"
@@ -56,22 +56,22 @@ class OmfPubSubAddress < OmfAddress
     "/#{PUBSUB_ROOT}/#{slice}"
   end
 
-  def exp_node(slice, experiment, name = nil)
+  def experiment_node(slice, experiment, name = nil)
     return "#{slice_node(slice)}/#{experiment}/#{name}" if name
     return "#{slice_node(slice)}/#{experiment}"
   end
 
-  def res_node(slice, resource = nil)
-    return "#{resources_node(slice)}/#{resource}" if resource
+  def resource_node(slice, resource = nil)
+    return "#{resource_node(slice)}/#{resource}" if resource
     return "#{slice_node(slice)}/#{RESOURCE}"
   end
 
-  def sys_node(resource = nil)
-    return "#{sys_node}/#{resource}" if resource
+  def system_node(resource = nil)
+    return "#{system_node}/#{resource}" if resource
     return "/#{PUBSUB_ROOT}/#{SYSTEM}"
   end
 
-  def sys_node?(node_name)
+  def system_node?(node_name)
     if node_name =~ /#{system_node}\/(.*)/ then
       $1
     else

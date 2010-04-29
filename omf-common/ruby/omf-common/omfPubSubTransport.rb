@@ -41,17 +41,13 @@ require 'omf-common/mobject'
 #
 class OMFPubSubTransport < MObject
 
-  @@instance = nil
+  include Singleton
+  @@started = false
   DEFAULT_PUBSUB_PWD = "123456"
   RETRY_INTERVAL = 10
 
-  def self.instance
-    @@instance
-  end
-
-  def self.init(opts)
-    raise "PubSub Transport already started" if @@instance
-    @@instance = self.new
+  def init(opts)
+    raise "PubSub Transport already started" if @@started
     @@queues = Array.new
     @@threads = Array.new
     @@qcounter = 0
@@ -86,8 +82,8 @@ class OMFPubSubTransport < MObject
         @@xmppServices.ping(@@psGateway)        
       end
     end
-    
-    return @@instance
+    @@started = true 
+    return self
   end
 
   # NOTE: XMPP4R limitation - listening on 2 addr in the same domain - 
@@ -148,12 +144,7 @@ class OMFPubSubTransport < MObject
     return OmfPubSubMessage.new(opts)
   end
 
-  #############################
-  #############################
-  
-  private
-
-  def self.send(address, message)
+  def send(address, message)
     dst = address.generate_address
     domain = address.domain
     # Sanity checks...
@@ -180,7 +171,12 @@ class OMFPubSubTransport < MObject
     end
   end
 
-  def self.process_queue(event, &block)
+  #############################
+  #############################
+  
+  private
+
+  def process_queue(event, &block)
     # Retrieve the command from the event
     cmdObj = event_to_message(event)
     return if !cmdObj
@@ -189,7 +185,7 @@ class OMFPubSubTransport < MObject
     yield cmdObj
   end
 
-  def self.check_server_reachability(server)
+  def check_server_reachability(server)
     check = false
     while !check
       reply = `ping -c 1 #{server}`
@@ -203,11 +199,11 @@ class OMFPubSubTransport < MObject
     end
   end
 
-  def self.event_source(event)
+  def event_source(event)
     return event.first_element("items").attributes['node']
   end
 
-  def self.event_to_message(event)
+  def event_to_message(event)
     begin
       # Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server

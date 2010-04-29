@@ -45,7 +45,7 @@ require 'omf-resctl/omf_agent/agentCommands'
 
 class RCCommunicator < OmfCommunicator
 
-  def self.init(opts)
+  def init(opts)
     super(opts)
     # RC-secific communicator initialisation...
     # 0 - set some attributes
@@ -58,7 +58,9 @@ class RCCommunicator < OmfCommunicator
                               :domain => @@domain)
     # 3 - Set my lists of valid and specific commands
     OmfProtocol::EC_COMMANDS.each { |cmd|
-      defValidCommand(cmd) { |h, m| AgentCommands.method(cmd.to_s).call(h, m) }	
+      define_valid_command(cmd) { |h, m| 
+        AgentCommands.method(cmd.to_s).call(h, m) 
+      }	
     }
   end
 

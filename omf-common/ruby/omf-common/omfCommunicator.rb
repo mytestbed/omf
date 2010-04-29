@@ -38,27 +38,23 @@ require 'omf-common/mobject'
 #
 class OmfCommunicator < MObject
 
-  @@instance = nil
+  include Singleton
+  @@started = false
   @@valid_commands = Hash.new
   @@communicator_commands = Hash.new
   @@self_comands = nil
   @@sent = []
   @@handler = nil
 
-  def self.instance
-    @@instance
-  end
-
-  def self.init(opts)
-    raise "Communicator already started" if @@instance
-    @@instance = self.new
+  def init(opts)
+    raise "Communicator already started" if @@started
     @@transport = nil
     @@handler = opts[:handler]
     # Initiate the required Transport entity
     case type = opts[:config][:type]
     when 'xmpp'
       require 'omf-common/omfPubSubTransport'
-      @@transport = OMFPubSubTransport.init(opts) 
+      @@transport = OMFPubSubTransport.instance.init(opts) 
       @@domain = opts[:config][:xmpp][:pubsub_domain] || 
                  opts[:config][:xmpp][:pubsub_gateway] || nil
     when 'mock'
@@ -70,34 +66,37 @@ class OmfCommunicator < MObject
     # Set Communicator-specific tasks, if any
     if opts[:comms_specific_tasks]
       opts[:comms_specific_tasks].each { |cmd|
-      defCommunicatorCommand(cmd) { |msg| self.method(cmd.to_s).call(msg) }	
+        define_communicator_command(cmd) { |msg| 
+          self.method(cmd.to_s).call(msg) 
+        }
     }
     end
+    @@started
   end
 
-  def self.defCommunicatorCommand(command_type, &block)
+  def define_communicator_command(command_type, &block)
     @@communicator_commands[command_type] = block
   end
 
-  def self.defValidCommand(command_type, &block)
+  def define_valid_command(command_type, &block)
     @@valid_commands[command_type] = block
   end
 
-  def self.create_address(opts = nil)
+  def create_address(opts = nil)
     return @@transport.get_new_address(opts) if @@transport
     addr = HashPlus.new
     opts.each { |k,v| addr[k] = v} if opts
     return addr
   end
 
-  def self.create_message(opts = nil)
+  def create_message(opts = nil)
     return @@transport.get_new_message(opts) if @@transport
     cmd = HashPlus.new
     opts.each { |k,v| cmd[k] = v} if opts
     return cmd
   end
 
-  def self.send_message(addr, message)
+  def send_message(addr, message)
     if !addr
       error "No address defined! Cannot send message '#{message}'"
       return
@@ -110,15 +109,15 @@ class OmfCommunicator < MObject
     end
   end  
 
-  def self.listen(addr, &block)
+  def listen(addr, &block)
     @@transport.listen(addr, &block) if @@transport
   end
 
-  def self.stop
+  def stop
     @@transport.stop if @@transport
   end
 
-  def self.reset
+  def reset
     @@transport.reset if @@transport
   end
 
@@ -127,7 +126,7 @@ class OmfCommunicator < MObject
   
   private
 
-  def self.dispatch_message(message)
+  def dispatch_message(message)
     # 1 - Retrieve and validate the message
     cmd = @@transport.get_new_message.create_from(message)
     return if !valid_message?(cmd) # Silently discard unvalid messages
@@ -154,7 +153,7 @@ class OmfCommunicator < MObject
 
   private
 
-  def self.valid_message?(message)
+  def valid_message?(message)
     cmd = message.cmdType
     # - Ignore commands from ourselves (or another instance of our entity)
     self_commands = @@self_commands || []
@@ -169,7 +168,7 @@ class OmfCommunicator < MObject
     return true
   end
 
-  def self.unimplemented_method_exception(method_name)
+  def unimplemented_method_exception(method_name)
     "Communicator - Subclass '#{self.class}' must implement #{method_name}()"
   end
 

@@ -42,7 +42,7 @@ require 'omf-expctl/agentCommands'
 #
 class ECCommunicator < OmfCommunicator
 
-  def self.init(opts)
+  def init(opts)
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
@@ -55,7 +55,9 @@ class ECCommunicator < OmfCommunicator
     listen(addr) { |cmd| dispatch_message(cmd) }
     # 3 - Set my lists of valid and specific commands
     OmfProtocol::RC_COMMANDS.each { |cmd|
-      defValidCommand(cmd) { |h, m| AgentCommands.method(cmd.to_s).call(h, m) }	
+      define_valid_command(cmd) { |h, m| 
+        AgentCommands.method(cmd.to_s).call(h, m) 
+      }	
     }
   end
 
