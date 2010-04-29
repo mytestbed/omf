@@ -43,18 +43,22 @@ rescue IOError => iex
   MObject.fatal('run', iex)
 rescue ServiceException => sex
   begin
-    MObject.fatal('run', "ServiceException: #{sex.message} : #{sex.response.body}")
+    MObject.fatal('run', "Failed to call an Aggregate Manager Service")
+    MObject.fatal('run', "Exception: #{sex.message} : #{sex.response.body}")
   rescue Exception
   end
 rescue Exception => ex
   begin
     bt = ex.backtrace.join("\n\t")
     MObject.fatal('run', "----------")
-    MObject.fatal('run', "  A fatal error was encountered while running your experiment.")
+    MObject.fatal('run', "  A fatal error was encountered while running your"+
+                         " experiment.")
     MObject.fatal('run', "  Exception: #{ex.class}")
     MObject.fatal('run', "  Exception: #{ex}")
-    MObject.fatal('run', "  For more information (e.g. trace) see the log file: /tmp/#{Experiment.ID}.log")
-    MObject.fatal('run', "  (or see EC's config files to find the log's location)")
+    MObject.fatal('run', "  For more information (e.g. trace) see the log "+
+                         "file: /tmp/#{Experiment.ID}.log")
+    MObject.fatal('run', "  (or see EC's config files to find the log's "+
+                         "location)")
     MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
     MObject.fatal('run', "----------")
   rescue Exception

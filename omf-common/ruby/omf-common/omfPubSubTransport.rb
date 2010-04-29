@@ -54,7 +54,7 @@ class OMFPubSubTransport < MObject
     @@forceCreate = opts[:createflag]
     @@myName = opts[:comms_name]
     user = opts[:config][:xmpp][:pubsub_user] || 
-           "#{@@myName}-#{rand(Time.now.to_i)}"
+           "#{@@myName}-#{Time.now.to_i}-#{rand(Time.now.to_i)}"
     pwd = opts[:config][:xmpp][:pubsub_pwd] || DEFAULT_PUBSUB_PWD
     @@psGateway = opts[:config][:xmpp][:pubsub_gateway]
     if !@@psGateway
@@ -111,6 +111,7 @@ class OMFPubSubTransport < MObject
     }         
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, addr.domain)
+	debug "Creating new node '#{node}'"
 	subscribed = listen(addr, &block)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
@@ -165,7 +166,7 @@ class OMFPubSubTransport < MObject
     begin
       @@xmppServices.publish_to_node("#{dst}", domain, item)        
     rescue Exception => ex
-      error "Failed sending to '#{dst}' on '#{serviceID}'"
+      error "Failed sending to '#{dst}' on '#{domain}'"
       error "Failed msg: '#{message}'"
       error "Error msg: '#{ex}'"
     end

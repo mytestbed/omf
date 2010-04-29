@@ -146,7 +146,7 @@ class OmfXMPPServices < MObject
     # Now, we authenticate this client to the server
     @clientHelper.auth(password)
     @clientHelper.send(Jabber::Presence.new)
-    debug "Connection opened to XMPP server: '#{@homeServer}'"
+    debug "Connected as '#{user}' to XMPP server: '#{@homeServer}'"
   end
 
   #
@@ -245,7 +245,7 @@ class OmfXMPPServices < MObject
       service(domain).publish_item_to(node, item)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
-        debug "OmfXMPPServices - Failed publishing to unknown node '#{node}' "+
+        debug "Failed publishing to unknown node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
@@ -269,7 +269,7 @@ class OmfXMPPServices < MObject
       service(domain).subscribe_to(node)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
-        debug "OmfXMPPServices - Failed subscribing to unknown node '#{node}' "+
+        debug "Could not subscribe to unknown node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
@@ -311,7 +311,7 @@ class OmfXMPPServices < MObject
       service(domain).unsubscribe_from_fixed(node, subid)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
-        debug "OmfXMPPServices - Failed unsubscribing to unknown node '#{node}' "+
+        debug "Failed unsubscribing to unknown node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
@@ -333,7 +333,7 @@ class OmfXMPPServices < MObject
         leave_node(sub.node, sub.subid, domain)
       }
     else
-      @serviceHelpers.each { |domain| leave_all_nodes(domain) }
+      @serviceHelpers.each { |dom, helper| leave_all_nodes(dom) }
     end
   end
 
@@ -353,7 +353,7 @@ class OmfXMPPServices < MObject
     rescue Exception => ex
       # if the PubSub node does not exist, we ignore the "not found" exception
       return true if ("#{ex}" == "item-not-found: ")
-      error "OmfXMPPServices - Failed removing node '#{node}'- Error: '#{ex}'"
+      error "Failed removing node '#{node}'- Error: '#{ex}'"
       return false
     end
     return true
@@ -372,7 +372,7 @@ class OmfXMPPServices < MObject
         remove_node(sub.node, domain)
       }
     else
-      @serviceHelpers.each { |domain| remove_all_nodes(domain) }
+      @serviceHelpers.each { |dom, helper| remove_all_nodes(dom) }
     end
   end
 
@@ -395,7 +395,7 @@ class OmfXMPPServices < MObject
   # Close the connection to the PubSub server
   #
   def stop
-    debug "OmfXMPPServices - Exiting!"
+    debug "Exiting!"
     @clientHelper.remove_registration
     @clientHelper.close
   end

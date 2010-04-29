@@ -735,8 +735,8 @@ class NodeHandler < MObject
     begin
       ECCommunicator.instance.send_reset_all
       ECCommunicator.instance.stop
-    rescue Exception
-      #ignore
+    rescue Exception => ex
+      raise "Failed to shutdown the Communicator! - Error: '#{ex}'"
     end
 
     Antenna.each { |a|
