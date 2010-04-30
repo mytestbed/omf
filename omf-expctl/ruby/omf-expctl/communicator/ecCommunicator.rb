@@ -63,35 +63,34 @@ class ECCommunicator < OmfCommunicator
     OmfProtocol::EC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
+  def send_message(addr, message)
+    message.sliceID = @@sliceID
+    message.expID = @@expID
+    super(addr, message)
+  end
+
   #
   # Send a NOOP command to a given resource
+  # if no resource, then send to all
   #
-  def send_noop(resID)
-    addr = create_address(:sliceID => @@sliceID, 
-                           :domain => @@domain,
-                           :name => "#{resID}")
-    cmd = create_message(:cmdtype => :NOOP, :target => "#{resID}")
+  def send_noop(resID = nil)
+    target = resID ? resID : "*"
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain,
+                           :name => resID)
+    cmd = create_message(:cmdtype => :NOOP, :target => "#{target}")
     send_message(addr, cmd)
   end
 
   #
   # Send a RESET command to a given resource
+  # if no resource, then send to all
   #
-  def send_reset(resID)
-    addr = create_address(:sliceID => @@sliceID, 
-                           :domain => @@domain,
-                           :name => "#{resID}")
-    cmd = create_message(:cmdtype => :RESET, :target => "#{resID}", 
-                         :sliceID => @@sliceID, :expID => @@expID)
+  def send_reset(resID = nil)
+    target = resID ? resID : "*"
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain,
+                           :name => resID)
+    cmd = create_message(:cmdtype => :RESET, :target => "#{target}") 
     send_message(addr, cmd)
-  end
-
-  #
-  # Sends a reset command to a given resource
-  #
-  def send_reset_all
-    send_message(create_address(:sliceID => @@sliceID, :domain => @@domain),
-                 create_message(:cmdtype => :RESET, :target => "*"))
   end
 
   def make_address(opts = nil)

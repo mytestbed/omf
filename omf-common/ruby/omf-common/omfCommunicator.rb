@@ -46,7 +46,7 @@ class OmfCommunicator
   @@self_commands = Array.new
   @@sent = []
   @@handler = nil
-  @@queue = Array.new
+  @@queue = Queue.new
   @@already_queueing = false
 
   def init(opts)
@@ -128,10 +128,10 @@ class OmfCommunicator
     # perform parallel processing at the Comm level, we should change the 
     # following (and already_queueing will not be needed anymore)
     if @@transport && @@already_queueing
-        @@transport.listen(addr) 
+      return @@transport.listen(addr) 
     elsif @@transport
-        @@transport.listen(addr) { |message| @@queue << message } 
-	@@already_queueing = true
+      @@already_queueing = true
+      return @@transport.listen(addr) { |message| @@queue << message } 
     end
   end
 
@@ -140,6 +140,8 @@ class OmfCommunicator
   end
 
   def reset
+    @@already_queueing = false
+    @@queue.clear
     @@transport.reset if @@transport
   end
 
@@ -151,7 +153,7 @@ class OmfCommunicator
   def dispatch_message(msg)
     # 1 - Retrieve and validate the message
     return if !valid_message?(msg) # Silently discard unvalid messages
-    MObject.debug("Communicator", "Process '#{msg.cmdType}' - '#{msg.target}'")
+    MObject.debug("Communicator", "Dispatch '#{msg.cmdType}' - '#{msg.target}'")
     # 2 - Perform Communicator-specific tasks, if any
     begin
       proc = @@communicator_commands[msg.cmdType]

@@ -733,7 +733,8 @@ class NodeHandler < MObject
     @processCommands = false
 
     begin
-      ECCommunicator.instance.send_reset_all
+      ECCommunicator.instance.send_reset
+      ECCommunicator.instance.send_noop
       ECCommunicator.instance.stop
     rescue Exception => ex
       raise "Failed to shutdown the Communicator! - Error: '#{ex}'"

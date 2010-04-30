@@ -71,6 +71,12 @@ class RCCommunicator < OmfCommunicator
     @@expID = expID
   end
 
+  def send_message(addr, message)
+    message.sliceID = @@sliceID
+    message.expID = @@expID
+    super(addr, message)
+  end
+
   #
   # Send an ENROLLED reply to the EC. 
   # This is done when a ENROLL or ALIAS command has been successfully 
@@ -80,7 +86,7 @@ class RCCommunicator < OmfCommunicator
   #             enrolled
   #
   def send_enrolled_reply(aliases = nil)
-    reply = create_message(:cmdtype => :ENROLLED, :target => @@myName) 
+    reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
     reply.name = aliases if aliases != nil
     send_message(make_address(@@myName), reply)
   end
@@ -162,18 +168,22 @@ class RCCommunicator < OmfCommunicator
     listening = false
     while !listening
       listening = listen(@@myAddr) 
-      MObject.debug("RCCommunicator", "Cannot listen on address: "+
-              "'#{@@myAddr}' - retry in #{RETRY_INTERVAL} sec.") if !listening
-      sleep RETRY_INTERVAL
+      if !listening
+        MObject.debug("RCCommunicator", "Cannot listen on address: "+
+                      "'#{@@myAddr}' - retry in #{RETRY_INTERVAL} sec.")
+        sleep RETRY_INTERVAL
+      end
     end
     # Also listen to the generic resource address for this slice
     listening = false
     addr = create_address(:sliceID => @@sliceID, :domain => @@domain) 
     while !listening
       listening = listen(addr)
-      MObject.debug("RCCommunicator", "Cannot listen on address: "+
-              "'#{@@myAddr}' - retry in #{RETRY_INTERVAL} sec.") if !listening
-      sleep RETRY_INTERVAL
+      if !listening
+        MObject.debug("RCCommunicator", "Cannot listen on address: "+
+                      "'#{@@myAddr}' - retry in #{RETRY_INTERVAL} sec.")
+        sleep RETRY_INTERVAL
+      end
     end
   end
 
@@ -204,7 +214,7 @@ class RCCommunicator < OmfCommunicator
     return false if !super(message) 
     # 2 - Perform RC-specific validations
     # - Ignore messages for/from unknown Slice and Experiment ID
-    if (message.cmdType != :ENROLL) &&
+    if (message.cmdType != :ENROLL) && (message.cmdType != :RESET) &&
        ((message.sliceID != @@sliceID) || (message.expID != @@expID))
       MObject.debug("RCCommunicator", "Ignoring message with unknown slice "+
                     "and exp IDs: '#{message.sliceID}' and '#{message.expID}'") 

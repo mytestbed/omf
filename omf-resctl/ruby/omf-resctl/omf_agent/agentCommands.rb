@@ -456,6 +456,12 @@ module AgentCommands
     ExecApp.new(id, controller, cmd)
   end
 
+
+  def AgentCommands.NOOP(controller, communicator, command)
+    # Do Nothing...
+  end
+
+
   # Command 'REMOVE_TRAFFICRULES'
   #
   # Remove a traffic rule and the filter attached. It not destroys the main 
