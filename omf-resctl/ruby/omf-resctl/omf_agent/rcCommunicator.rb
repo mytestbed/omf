@@ -67,7 +67,7 @@ class RCCommunicator < OmfCommunicator
     OmfProtocol::RC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
-  def set_expID(expID)
+  def set_expID(expID = nil)
     @@expID = expID
   end
 
@@ -161,9 +161,9 @@ class RCCommunicator < OmfCommunicator
     # Listen to my address - wait and try again until successfull
     listening = false
     while !listening
-      listening = listen(@@myAddr) { |cmd| dispatch_message(cmd) }
-      MObject.debug("RCCommunicator", "Cannot listen on '#{@@myAddr.to_s}' - "+
-            "retrying in #{RETRY_INTERVAL} sec.")
+      listening = listen(@@myAddr) 
+      MObject.debug("RCCommunicator", "Cannot listen on address: "+
+              "'#{@@myAddr}' - retry in #{RETRY_INTERVAL} sec.") if !listening
       sleep RETRY_INTERVAL
     end
     # Also listen to the generic resource address for this slice
@@ -171,8 +171,8 @@ class RCCommunicator < OmfCommunicator
     addr = create_address(:sliceID => @@sliceID, :domain => @@domain) 
     while !listening
       listening = listen(addr)
-      MObject.debug("RCCommunicator", "Cannot listen on '#{addr.to_s}' - "+
-            "retrying in #{RETRY_INTERVAL} sec.")
+      MObject.debug("RCCommunicator", "Cannot listen on address: "+
+              "'#{@@myAddr}' - retry in #{RETRY_INTERVAL} sec.") if !listening
       sleep RETRY_INTERVAL
     end
   end
@@ -184,21 +184,18 @@ class RCCommunicator < OmfCommunicator
   # - opts = a Hash with the parameters for the address to build
   #
   def make_address(opts = nil)
-    if !@@expID || !@@handler.enrolled
-      error "Not enrolled in an experiment yet, thus cannot create an address!"
-      return
-    end
+    name = opts ? opts[:name] : nil
     return create_address(:sliceID => @@sliceID, :expID => @@expID, 
-                          :domain => @@domain, :name => opts[:name])
+                          :domain => @@domain, :name => name)
   end
 
   private
 
   def dispatch_message(message)
-    error_msg = super(message)
+    result = super(message)
     if result
-       send_error_reply("Failed to process command (Error: '#{error_msg}')", 
-                        eval(@@messageType).create_from(message)) 
+       send_error_reply("Failed to process command (Error: '#{result}')", 
+                        message) 
     end
   end
 

@@ -52,7 +52,7 @@ class ECCommunicator < OmfCommunicator
     addr = create_address(:sliceID => @@sliceID, 
                           :expID => @@expID, 
                           :domain => @@domain)
-    listen(addr) { |cmd| dispatch_message(cmd) }
+    listen(addr) 
     # 3 - Set my lists of valid and specific commands
     OmfProtocol::RC_COMMANDS.each { |cmd|
       define_valid_command(cmd) { |handler, comm, message| 
@@ -81,7 +81,8 @@ class ECCommunicator < OmfCommunicator
     addr = create_address(:sliceID => @@sliceID, 
                            :domain => @@domain,
                            :name => "#{resID}")
-    cmd = create_message(:cmdtype => :RESET, :target => "#{resID}")
+    cmd = create_message(:cmdtype => :RESET, :target => "#{resID}", 
+                         :sliceID => @@sliceID, :expID => @@expID)
     send_message(addr, cmd)
   end
 

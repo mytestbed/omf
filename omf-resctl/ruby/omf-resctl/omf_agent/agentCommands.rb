@@ -124,18 +124,19 @@ module AgentCommands
       return
     end
     # All is good, enroll this Resource Controller
-    controller.enrolled = true
     communicator.set_expID(command.expID)
     MObject.debug "Enrolled into Experiment ID: '#{command.expID}'"
     # Now listen to our new Resource and Experiment address for incoming 
     # messages
-    addrNode = communicator.make_address(:name => cmdObject.target)
-    addrExp = make_address
+    addrNode = communicator.make_address(:name => command.target)
+    addrExp = communicator.make_address
     if !communicator.listen(addrNode) || !communicator.listen(addrExp)
       MObject.error "Failed to Process ENROLL command!"
       MObject.error "Maybe it came from an old experiment - ignoring it!"
+      communicator.set_expID # unset the expID
       return
     end
+    controller.enrolled = true
     communicator.send_enrolled_reply
   end
 

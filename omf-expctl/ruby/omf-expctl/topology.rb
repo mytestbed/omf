@@ -98,14 +98,13 @@ class Topology < MObject
   #
   # This method removes a node from ALL topologies
   #
-  # - x = coordinate of the node to remove
-  # - y = coordinate of the node to remove
+  # - node = the Node (object) to remove 
   #
-  def self.removeNode(x, y)
+  def self.removeNode(node)
     @@topologies.values.each {|t|
-      t.removeNode(x, y)
+      t.removeNode(node)
     }
-    if ((n = Node[x, y]) != nil)
+    if ((n = Node[node.nodeId]) != nil)
       n.notifyRemoved()
     end
   end
@@ -692,17 +691,18 @@ class Topology < MObject
 
   #
   # This method removes a node at coordinates x and y
-  # - x = X coordinate of removed node
-  # - y = Y coordinate of removed node
   #
-  def removeNode(x, y)
+  # - node = the Node (object) to remove 
+  #
+  def removeNode(node)
     if strict?
-      raise "Topology - failed to remove node [#{x},#{y}] to topology #{uri} ('strict=true', no change allowed) - #{re}"
+      raise "Topology - failed to remove node '#{node}' from topology "+
+            "'#{uri}'. No topology change allowed (flag 'strict' set)"
     end
-    if ((n = Node[x, y]) != nil)
+    if ((n = Node[node.nodeId]) != nil)
       @nodes.delete(n)
-      @nodesArr[x][y] = nil
-      @nodeSetDecl = nil
+      #@nodesArr[x][y] = nil
+      #@nodeSetDecl = nil
     end
   end
 

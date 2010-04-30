@@ -46,6 +46,8 @@ class OmfCommunicator
   @@self_commands = Array.new
   @@sent = []
   @@handler = nil
+  @@queue = Array.new
+  @@already_queueing = false
 
   def init(opts)
     raise "Communicator already started" if @@started
@@ -72,7 +74,13 @@ class OmfCommunicator
         }
     }
     end
-    @@started
+    # Start the Thread that will process message from Transport
+    Thread.new {
+        while message = @@queue.pop
+          dispatch_message(message)
+        end
+    }
+    @@started = true
   end
 
   def define_communicator_command(command_type, &block)
@@ -87,7 +95,7 @@ class OmfCommunicator
     @@self_commands << command_type
   end
 
-  def create_address(opts = nil)
+  def create_address(opts)
     return @@transport.get_new_address(opts) if @@transport
     addr = HashPlus.new
     opts.each { |k,v| addr[k] = v} if opts
@@ -103,19 +111,28 @@ class OmfCommunicator
 
   def send_message(addr, message)
     if !addr
-      error "No address defined! Cannot send message '#{message}'"
+      MObject.error("Communicator",
+                    "No address defined! Cannot send message '#{message}'")
       return
     end
     if @@transport
-      @@transport.send(addr, message.serialize)
+      @@transport.send(addr, message)
     else
       MObject.debug("Communicator", "Sending command '#{message}'")
       @@sent << [addr, message]
     end
   end  
 
-  def listen(addr, &block)
-    @@transport.listen(addr, &block) if @@transport
+  def listen(addr)
+    # NOTE: if we want to allow multiple queues and threads to 
+    # perform parallel processing at the Comm level, we should change the 
+    # following (and already_queueing will not be needed anymore)
+    if @@transport && @@already_queueing
+        @@transport.listen(addr) 
+    elsif @@transport
+        @@transport.listen(addr) { |message| @@queue << message } 
+	@@already_queueing = true
+    end
   end
 
   def stop
@@ -131,33 +148,31 @@ class OmfCommunicator
   
   private
 
-  def dispatch_message(message)
+  def dispatch_message(msg)
     # 1 - Retrieve and validate the message
-    cmd = @@transport.get_new_message
-    cmd.create_from(message)
-    return if !valid_message?(cmd) # Silently discard unvalid messages
-    MObject.debug("Communicator", "Process '#{cmd.cmdType}' - '#{cmd.target}'")
+    return if !valid_message?(msg) # Silently discard unvalid messages
+    MObject.debug("Communicator", "Process '#{msg.cmdType}' - '#{msg.target}'")
     # 2 - Perform Communicator-specific tasks, if any
     begin
-      proc = @@communicator_commands[cmd.cmdType]
-      proc.call(cmd) if not proc.nil?
+      proc = @@communicator_commands[msg.cmdType]
+      proc.call(msg) if not proc.nil?
     rescue Exception => ex
-      error "Failed to process Communicator-specific task '#{cmd.cmdType}'\n" +
-            "Error: '#{ex}'\n" + "Raw message: '#{message.to_s}'"
+      MObject.error("Communicator",
+            "Failed to process Communicator-specific task '#{msg.cmdType}'\n" +
+            "Error: '#{ex}'\n" + "Raw message: '#{msg.to_s}'")
       return ex
     end
     # 3 - Dispatch the message to the OMF entity
     begin
-      proc = @@valid_commands[cmd.cmdType]
-      proc.call(@@handler, self, cmd) if not proc.nil?
+      proc = @@valid_commands[msg.cmdType]
+      proc.call(@@handler, self, msg) if not proc.nil?
     rescue Exception => ex
-      error "Failed to process the command '#{cmd.cmdType}'\n" +
-            "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" 
+      MObject.error("Communicator",
+            "Failed to process the command '#{msg.cmdType}'\n" +
+            "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" )
       return ex
     end
   end
-
-  private
 
   def valid_message?(message)
     cmd = message.cmdType

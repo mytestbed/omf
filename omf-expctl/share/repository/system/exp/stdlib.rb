@@ -28,21 +28,24 @@
 # This Ruby file contains various general declarations, which the EC will load 
 # before the user's experiment file
 #
-# These declarations implement the process that loop, check and wait that all the 
-# required nodes are UP, before proceeding with the remaining of the experiment
+# These declarations implement the process that loop, check and wait that all 
+# the required nodes are UP, before proceeding with the remaining of the 
+# experiment
 #
 
 # Define some properties that we will use in this 
-defProperty('resetDelay', 210, "Time to wait before assuming that node didn't boot")
-defProperty('resetTries', 1, "Number of reset tries before declaring node dead")
+defProperty('resetDelay', 210, 
+            "Time to wait before assuming that node didn't boot")
+defProperty('resetTries', 1, 
+            "Number of reset tries before declaring node dead")
 # keeps track of how many times a node has been reset
 ResetCount = {}
 
 # 
 # This declaration calls the 'everyNS' loop defined in handlerCommand.rb
-# This declared bloc will be executed for all the existing node sets ('*') every 10sec
-# This loop will stop when the bloc returns 'false', which will happen when all the nodes
-# are UP
+# This declared bloc will be executed for all the existing node sets ('*') 
+# every 10sec. This loop will stop when the bloc returns 'false', which will 
+# happen when all the nodes are UP
 #
 everyNS('*', 10) { |ns|
 
@@ -69,7 +72,7 @@ everyNS('*', 10) { |ns|
               n.reset()
             else
               MObject.warn('stdlib', "Giving up on node ", n)
-              Topology.removeNode(n.x, n.y)
+              Topology.removeNode(n)
             end
           end
         end
@@ -84,7 +87,8 @@ everyNS('*', 10) { |ns|
     # Stop looping if all the ndoes are UP!
     nodesDownCnt > 0
   else
-    # We have not finished adding nodes to this experiment, loop and check again in 10sec
+    # We have not finished adding nodes to this experiment, 
+    # loop and check again in 10sec
     true
   end
 }

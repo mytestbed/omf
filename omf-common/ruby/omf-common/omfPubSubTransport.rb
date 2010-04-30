@@ -125,8 +125,6 @@ class OMFPubSubTransport
   def reset
     @@xmppServices.leave_all_nodes
     @@threads.each { |t| t.exit }
-    @@queues = nil
-    @@threads = nil
     @@queues = Array.new
     @@threads = Array.new
     @@qcounter = 0
@@ -146,16 +144,19 @@ class OMFPubSubTransport
     return OmfPubSubMessage.new(opts)
   end
 
-  def send(address, message)
+  def send(address, msg)
     dst = address.generate_address
     domain = address.domain
+    message = msg.serialize
     # Sanity checks...
     if !message || (message.length == 0) 
-      error "send - Ignore attempt to send an empty message"
+      MObject.error("Transport",
+                    "send - Ignore attempt to send an empty message")
       return
     end
     if !dst || (dst.length == 0 ) 
-      error "send - Ignore attempt to send message to nobody"
+      MObject.error("Transport", 
+                    "send - Ignore attempt to send message to nobody")
       return
     end
     # Build Message
@@ -167,9 +168,9 @@ class OMFPubSubTransport
     begin
       @@xmppServices.publish_to_node("#{dst}", domain, item)        
     rescue Exception => ex
-      error "Failed sending to '#{dst}' on '#{domain}'"
-      error "Failed msg: '#{message}'"
-      error "Error msg: '#{ex}'"
+      MObject.error("Transport", "Failed sending to '#{dst}' on '#{domain}'")
+      MObject.error("Transport", "Failed msg: '#{message}'")
+      MObject.error("Transport", "Error msg: '#{ex}'")
     end
   end
 
@@ -221,11 +222,14 @@ class OMFPubSubTransport
       # All good, return the extracted XML payload
       MObject.debug("Transport", "Received on '#{event_source(event)}' "+
                     "- msg: '#{xmlMessage.to_s}'")
-      return xmlMessage
+      message = get_new_message
+      message.create_from(xmlMessage)
+      return message
     rescue Exception => ex
-      error "Cannot extract command from PubSub event '#{eventBody}'"
-      error "Error: '#{ex}'"
-      error "Event was received on '#{event_source(event)}')" 
+      MObject.error("Transport", 
+                    "Cannot extract message from PubSub event '#{eventBody}'")
+      MObject.error("Transport", "Error: '#{ex}'")
+      MObject.error("Transport", "Event received on '#{event_source(event)}')")
       return
     end
   end
