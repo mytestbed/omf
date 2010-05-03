@@ -36,7 +36,7 @@ require 'omf-common/mobject'
 # Concrete implementations may use any type of underlying transport
 # (e.g. TCP, XMPP, etc.)
 #
-class OmfCommunicator
+class OmfCommunicator < MObject
 
   include Singleton
   RETRY_INTERVAL = 10
@@ -111,14 +111,13 @@ class OmfCommunicator
 
   def send_message(addr, message)
     if !addr
-      MObject.error("Communicator",
-                    "No address defined! Cannot send message '#{message}'")
+      error "No address defined! Cannot send message '#{message}'"
       return
     end
     if @@transport
       @@transport.send(addr, message)
     else
-      MObject.debug("Communicator", "Sending command '#{message}'")
+      debug "Sending command '#{message}'"
       @@sent << [addr, message]
     end
   end  
@@ -153,14 +152,13 @@ class OmfCommunicator
   def dispatch_message(msg)
     # 1 - Retrieve and validate the message
     return if !valid_message?(msg) # Silently discard unvalid messages
-    MObject.debug("Communicator", "Dispatch '#{msg.cmdType}' - '#{msg.target}'")
+    debug "Dispatch '#{msg.cmdType}' - '#{msg.target}'"
     # 2 - Perform Communicator-specific tasks, if any
     begin
       proc = @@communicator_commands[msg.cmdType]
       proc.call(msg) if not proc.nil?
     rescue Exception => ex
-      MObject.error("Communicator",
-            "Failed to process Communicator-specific task '#{msg.cmdType}'\n" +
+      error "Failed to process Communicator-specific task '#{msg.cmdType}'\n" +
             "Error: '#{ex}'\n" + "Raw message: '#{msg.to_s}'")
       return ex
     end
@@ -169,8 +167,7 @@ class OmfCommunicator
       proc = @@valid_commands[msg.cmdType]
       proc.call(@@handler, self, msg) if not proc.nil?
     rescue Exception => ex
-      MObject.error("Communicator",
-            "Failed to process the command '#{msg.cmdType}'\n" +
+      error "Failed to process the command '#{msg.cmdType}'\n" +
             "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" )
       return ex
     end
@@ -184,7 +181,7 @@ class OmfCommunicator
     # - Ignore commands that are not in our list of acceptable commands
     valid_commands = @@valid_commands || []
     if !valid_commands.include?(cmd)
-      MObject.debug("Communicator", "Ignoring unknown command '#{cmd}'")
+      debug "Ignoring unknown command '#{cmd}'"
       return false
     end
     # - Accept this message

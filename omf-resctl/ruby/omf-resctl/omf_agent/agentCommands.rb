@@ -152,7 +152,7 @@ module AgentCommands
     aliasArray = command.name.split(' ')
     aliasArray.each{ |n| controller.addAlias(n) }
     # Now listen to our new address for incoming messages
-    addrAlias = communicator.make_address(:name => cmdObject.name)
+    addrAlias = communicator.make_address(:name => command.name)
     if !communicator.listen(addrAlias)
       MObject.error "Failed to Process ALIAS command!"
       MObject.error "Cannot listen on the address for this alias - ignoring it!"

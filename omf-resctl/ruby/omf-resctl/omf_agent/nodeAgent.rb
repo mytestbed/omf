@@ -155,14 +155,14 @@ class NodeAgent < MObject
   # - appID = a String with the ID of the application raising the event 
   # - msg = a String with optional message from the application 
   #
-  def onAppEvent(eventName, appId, *msg)
-    debug("onAppEvent(event: #{eventName} - app: #{appId}) - '#{msg}'")
+  def onAppEvent(eventName, appID, *msg)
+    debug("onAppEvent(event: #{eventName} - app: #{appID}) - '#{msg}'")
     # If this NA allows disconnection, then check if the event is the Done 
     # message from the slave Experiment Controller
-    if ( @allowDisconnection && (appId == AgentCommands.slaveExpCtlID) )
+    if ( @allowDisconnection && (appID == AgentCommands.slaveExpCtlID) )
        if ( eventName.split(".")[0] == "DONE" )
          @expirementDone = true
-         debug("#{appId} - DONE - EXPERIMENT DONE with status: "+
+         debug("#{appID} - DONE - EXPERIMENT DONE with status: "+
                "#{eventName.split(".")[1]}")
        end
     end

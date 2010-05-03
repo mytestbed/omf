@@ -106,14 +106,13 @@ class ECCommunicator < OmfCommunicator
     # 2 - Perform EC-specific validations
     # - Ignore messages for/from unknown Slice and Experiment ID
     if (message.sliceID != @@sliceID) || (message.expID != @@expID)
-      MObject.debug("ECCommunicator", "Ignoring message with unknown slice "+
-                    "and exp IDs: '#{message.sliceID}' and '#{message.expID}'")
+      debug "Ignoring message with unknown slice "+
+            "and exp IDs: '#{message.sliceID}' and '#{message.expID}'"
       return false
     end
     # - Ignore message from unknown RCs
     if (Node[message.target] == nil)
-      MObject.debug("ECCommunicator", "Ignoring command with unknown target "+
-                    "'#{message.target}'")
+      debug "Ignoring command with unknown target '#{message.target}'"
       return false
     end
     # Accept this message

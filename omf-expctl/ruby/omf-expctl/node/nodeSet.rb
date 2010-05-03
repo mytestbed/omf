@@ -594,20 +594,21 @@ class NodeSet < MObject
   #
   def send(cmdObj)
     notQueued = true
-    cmdObj.target = @nodeSelector
+    target = @nodeSelector.chomp(' ')
+    cmdObj.target = target
     @mutex.synchronize do
       if (!up?)
-        debug "Deferred message ('#{@nodeSelector}') - '#{cmdObj.to_s}'" 
+        debug "Deferred message ('#{target}') - '#{cmdObj.to_s}'" 
         @deferred << cmdObj
         notQueued = false
       end
     end
     if (up? && notQueued)
-      debug "Send ('#{@nodeSelector}') - '#{cmdObj.to_s}'"
-      if @nodeSelector == "*"
+      debug "Send ('#{target}') - '#{cmdObj.to_s}'"
+      if target == "*"
         addr = ECCommunicator.instance.make_address
       else
-        addr = ECCommunicator.instance.make_address(:name => @nodeSelector)
+        addr = ECCommunicator.instance.make_address(:name => target)
       end
       ECCommunicator.instance.send_message(addr, cmdObj)
       return

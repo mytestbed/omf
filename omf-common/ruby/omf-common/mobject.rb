@@ -208,7 +208,8 @@ class MObject
   end
 
   private
-  def logger(category = self.class.to_s)
+  def logger(category = nil)
+    category = self.class.to_s if !category
     if @logger == nil
       @logger = MObject.logger(category)
     end

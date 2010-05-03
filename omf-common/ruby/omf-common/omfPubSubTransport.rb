@@ -39,7 +39,7 @@ require 'omf-common/mobject'
 # Currently, this PubSub Transport is done over XMPP, and this class is using
 # the third party library XMPP4R.
 #
-class OMFPubSubTransport 
+class OMFPubSubTransport < MObject
 
   include Singleton
   @@started = false
@@ -64,8 +64,7 @@ class OMFPubSubTransport
     
     # Open a connection to the Gateway PubSub Server
     begin
-      MObject.debug("Transport", "Connecting to PubSub Gateway"+
-                    " '#{@@psGateway}' as user '#{user}'")
+      debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'")
       check_server_reachability(@@psGateway)
       @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway)
     rescue Exception => ex
@@ -79,7 +78,7 @@ class OMFPubSubTransport
     Thread.new do
       while true do
         sleep PING_INTERVAL
-        MObject.debug("Transport", "Ping the PubSub Gateway (keepalive)")
+        debug "Ping the PubSub Gateway (keepalive)"
         @@xmppServices.ping(@@psGateway)        
       end
     end
@@ -112,13 +111,14 @@ class OMFPubSubTransport
     }         
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, addr.domain)
-	MObject.debug("Transport", "Creating new node '#{node}'")
+	debug "Creating new node '#{node}'" 
 	subscribed = listen(addr, &block)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
               "on '#{addr.domain}'"
       end
     end
+    debug "Listening on '#{node}' at '#{addr.domain}'" if subscribed
     return subscribed
   end
 
@@ -150,13 +150,11 @@ class OMFPubSubTransport
     message = msg.serialize
     # Sanity checks...
     if !message || (message.length == 0) 
-      MObject.error("Transport",
-                    "send - Ignore attempt to send an empty message")
+      error "send - Ignore attempt to send an empty message"
       return
     end
     if !dst || (dst.length == 0 ) 
-      MObject.error("Transport", 
-                    "send - Ignore attempt to send message to nobody")
+      error "send - Ignore attempt to send message to nobody"
       return
     end
     # Build Message
@@ -164,13 +162,12 @@ class OMFPubSubTransport
     msg = Jabber::Message.new(nil, message)
     item.add(msg)
     # Send it
-    MObject.debug("Transport", "Send to '#{dst}' - msg: '#{message}'")
+    debug "Send to '#{dst}' - msg: '#{message}'"
     begin
       @@xmppServices.publish_to_node("#{dst}", domain, item)        
     rescue Exception => ex
-      MObject.error("Transport", "Failed sending to '#{dst}' on '#{domain}'")
-      MObject.error("Transport", "Failed msg: '#{message}'")
-      MObject.error("Transport", "Error msg: '#{ex}'")
+      error "Failed sending to '#{dst}' on '#{domain}'"
+      error "Failed msg: '#{message}'\nError msg: '#{ex}'"
     end
   end
 
@@ -195,8 +192,8 @@ class OMFPubSubTransport
       if $?.success?
         check = true
       else
-        MObject.debug("Transport", "Could not resolve or contact: '#{server}'"+ 
-	      "Waiting #{RETRY_INTERVAL} sec before retrying...")
+        debug "Could not resolve or contact: '#{server}'"+ 
+	      "Waiting #{RETRY_INTERVAL} sec before retrying..."
         sleep RETRY_INTERVAL
       end
     end
@@ -220,16 +217,13 @@ class OMFPubSubTransport
       # Ignore events without XML payloads
       return nil if xmlMessage == nil 
       # All good, return the extracted XML payload
-      MObject.debug("Transport", "Received on '#{event_source(event)}' "+
-                    "- msg: '#{xmlMessage.to_s}'")
+      debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
       message = get_new_message
       message.create_from(xmlMessage)
       return message
     rescue Exception => ex
-      MObject.error("Transport", 
-                    "Cannot extract message from PubSub event '#{eventBody}'")
-      MObject.error("Transport", "Error: '#{ex}'")
-      MObject.error("Transport", "Event received on '#{event_source(event)}')")
+      error "Cannot extract message from PubSub event '#{eventBody}'"
+      error "Error: '#{ex}'\nEvent received on '#{event_source(event)}')"
       return
     end
   end
