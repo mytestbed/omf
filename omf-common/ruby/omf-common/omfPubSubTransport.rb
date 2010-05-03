@@ -64,7 +64,7 @@ class OMFPubSubTransport < MObject
     
     # Open a connection to the Gateway PubSub Server
     begin
-      debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'")
+      debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
       check_server_reachability(@@psGateway)
       @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway)
     rescue Exception => ex

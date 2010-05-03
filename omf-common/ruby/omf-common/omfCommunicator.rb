@@ -159,7 +159,7 @@ class OmfCommunicator < MObject
       proc.call(msg) if not proc.nil?
     rescue Exception => ex
       error "Failed to process Communicator-specific task '#{msg.cmdType}'\n" +
-            "Error: '#{ex}'\n" + "Raw message: '#{msg.to_s}'")
+            "Error: '#{ex}'\n" + "Raw message: '#{msg.to_s}'"
       return ex
     end
     # 3 - Dispatch the message to the OMF entity
@@ -168,7 +168,7 @@ class OmfCommunicator < MObject
       proc.call(@@handler, self, msg) if not proc.nil?
     rescue Exception => ex
       error "Failed to process the command '#{msg.cmdType}'\n" +
-            "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" )
+            "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" 
       return ex
     end
   end
