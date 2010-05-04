@@ -47,7 +47,8 @@ class NodeSet < MObject
   # Return an existing NodeSet
   #
   # - groupName = the name of the group of node to return, if '*' returns 
-  #               the Root NodeSet, i.e. the NodeSet with all the existing NodeSets
+  #               the Root NodeSet, i.e. the NodeSet with all the existing 
+  #               NodeSets
   #
   # [Return] an instance of an existing NodeSet
   #
@@ -77,10 +78,11 @@ class NodeSet < MObject
   end
 
   #
-  # Set the value of the 'frozen' flag. When set, no changes can be done to any NodeSets.
-  # Basically, this is called at the end of the resource description of an experiment, just
-  # before processing the execution steps of the experiment. This prevent experimenters/operators
-  # to modify the set of resources (e.g. nodes) allocated to an experiment, once its execution is
+  # Set the value of the 'frozen' flag. When set, no changes can be done to any 
+  # NodeSets. Basically, this is called at the end of the resource description 
+  # of an experiment, just before processing the execution steps of the 
+  # experiment. This prevent experimenters/operators to modify the set of 
+  # resources (e.g. nodes) allocated to an experiment, once its execution is
   # being staged.
   #
   def self.freeze
@@ -115,9 +117,9 @@ class NodeSet < MObject
 
   #
   # Create a new instance of NodeSet.
-  # The additional 'groupName' parameter will associate a group name with this node set. 
-  # All the nodes defined by the selector can from then on be addressed by 
-  # the selector "/groupName/*".
+  # The additional 'groupName' parameter will associate a group name with this 
+  # node set. All the nodes defined by the selector can from then on be 
+  # addressed by the selector "/groupName/*".
   #
   # - groupName = Optional name for specific node sets
   #
@@ -130,16 +132,16 @@ class NodeSet < MObject
     @applications = Hash.new
     @deferred = [] # store any messages if nodes aren't up yet
     @onUpBlock = nil # Block to execute for every node checking in
-    @groupName = groupName != nil ? groupName.to_s : nil
+    @groupName = groupName != nil ? groupName : nil
     if @groupName == nil
       @groupName = "_#{@@groupCnt += 1}"
     else
-      if @groupName[0] == '/'[0]
+      if @groupName.kind_of?(String) && @groupName[0] == '/'[0]
         @groupName = @groupName[1..-1]
       end
     end
     super("set::#{@groupName}") # set debug name
-    if (groupName == "_ALL_")
+    if (groupName == :ALLGROUPS)
       @nodeSelector = "*"
     else
       @nodeSelector = "#{@groupName}"
@@ -154,14 +156,6 @@ class NodeSet < MObject
     }
   end
 
-#  # Return the application context labeled +appId+
-#  #
-#  # - appId = Application context label
-#  #
-#  def application(id)
-#    return @applications[id]
-#  end
-  
   #
   # This method adds an application which is associated with this node set
   # This application will be started when 'startApplications'
@@ -410,17 +404,19 @@ class NodeSet < MObject
   # webserver), and the contact info for the OML collection server.
   #
   def switchDisconnectionON
-    send(:SET_DISCONNECT, "#{Experiment.ID}", "#{NodeHandler.instance.expFileURL}", "#{OmlApp.getServerAddr}", "#{OmlApp.getServerPort}")
+    send(:SET_DISCONNECT, "#{Experiment.ID}", 
+         "#{NodeHandler.instance.expFileURL}", "#{OmlApp.getServerAddr}", 
+         "#{OmlApp.getServerPort}")
   end
 
   #
   # This method sets the boot image of the nodes in this nodeSet
   # If the 'setPXE' flag is 'true' (default), then the nodes in this set
   # will be configured to boot from their assigned PXE image over the network. 
-  # (the name of the assigned PXE image is hold in the Inventory, the PXE service
-  # is responsible for retrieving this name and setting up the network boot).
-  # If the 'setPXE' flag is 'false' then the node boots from the images on their
-  # local disks.
+  # (the name of the assigned PXE image is hold in the Inventory, the PXE 
+  # service is responsible for retrieving this name and setting up the network 
+  # boot). If the 'setPXE' flag is 'false' then the node boots from the images 
+  # on their local disks.
   #
   # - domain = name of the domain (testbed) of this nodeSet
   # - setPXE = true/false (default 'true') 
@@ -431,15 +427,17 @@ class NodeSet < MObject
     end   
     if NodeHandler.JUST_PRINT
       if setPXE
-        puts ">> PXE: Boot into network PXE image for node set #{self} in #{domain}"
+        puts ">> PXE: Network boot PXE image for node set #{self} in #{domain}"
       else
         puts ">> PXE: Boot from local disk for node set #{self} in #{domain}"
       end
     else
       if setPXE # set PXE
-        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}/setBootImageNS?domain=#{domain}&ns="
+        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}"+
+                     "/setBootImageNS?domain=#{domain}&ns="
       else # clear PXE
-        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}/clearBootImageNS?domain=#{domain}&ns="
+        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}"+
+                     "/clearBootImageNS?domain=#{domain}&ns="
       end
       setPxeEnvMulti()
     end
@@ -594,7 +592,7 @@ class NodeSet < MObject
   #
   def send(cmdObj)
     notQueued = true
-    target = @nodeSelector.chomp(' ')
+    target = @groupName == :ALLGROUPS ? "*" : @nodeSelector.chomp(' ')
     cmdObj.target = target
     @mutex.synchronize do
       if (!up?)

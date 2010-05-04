@@ -472,22 +472,30 @@ class NodeBuiltin < MObject
       setStatus "STARTED"
     when 'DONE.OK'
       setStatus "DONE.OK"
+      msg = "Application '#{@name}' on '#{node}' finished successfully "
       message.delete!("\"")
-      if message == "status: 0"
-        debug("Application #{@name} on #{node} finished successfully (end of application)")
-      elsif message == "status: 9"
-        debug("Application #{@name} on #{node} finished successfully (closed by Resource Controller)")
+      case message
+      when "status: 0"
+        msg = msg + "(end of application)"
+      when "status: 9"
+        msg = msg + "(closed by Resource Controller)"
       else
-        debug("Application #{@name} on #{node} finished successfully (#{message})")
+        msg = msg + "(returned: '#{message}')"
       end
+      debug(msg)
     when 'DONE.ERROR'
       setStatus "DONE.ERROR"
-      debug("Application #{@name} on #{node} finished with error (msg from node: '#{message}')")
+      debug("Application '#{@name}' on '#{node}' finished with error "+
+            "(error message: '#{message}')")
     when 'STDOUT'
       addLine(getStdoutEl, message)
     when 'STDERR'
       addLine(getStderrEl, message)
-      error("Application '#{@name}' on '#{node}' reported '#{message}'")
+      lines = Array.new
+      lines << "The resource '#{node}' reports that an error occured "
+      lines << "while running the application '#{@name}'"
+      lines << "The error message is '#{message}'" if message
+      NodeHandler.instance.display_error_msg(lines)
     else
       setStatus "UNKNOWN.EVENT: #{eventName} #{message}"
     end

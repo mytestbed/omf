@@ -94,8 +94,9 @@ class ECCommunicator < OmfCommunicator
   end
 
   def make_address(opts = nil)
+    name = opts ? opts[:name] : nil
     return create_address(:sliceID => @@sliceID, :expID => @@expID, 
-                           :domain => @@domain, :name => opts[:name])
+                           :domain => @@domain, :name => name)
   end
 
   private

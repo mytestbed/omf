@@ -189,7 +189,8 @@ class Node < MObject
   end
 
   #
-  # Return the IP address of the node's control interface (this method queries the Inventory DB for this IP)
+  # Return the IP address of the node's control interface 
+  # (this method queries the Inventory DB for this IP)
   #
   # [Return] a String holding the IP address
   #
@@ -197,38 +198,27 @@ class Node < MObject
     
     # Check if EC is running in 'Slave Mode'
     if NodeHandler.SLAVE_MODE()
-      # Yes - Then there can only be 1 NA to talk to, it's the 'Slave' NA on localhost
+      # Yes - Then there can only be 1 NA to talk to, 
+      # it's the 'Slave' NA on localhost
       return "127.0.0.1"
     end
 
     # Query the Inventory GridService for the Control IP address of this node
-    url = "#{OConfig[:ec_config][:inventory][:url]}/getControlIP?hrn=#{@nodeId}&domain=#{OConfig.domain}"
-    response = NodeHandler.service_call(url, "Can't get Control IP for '#{@nodeId}' on domain '#{OConfig.domain}' from INVENTORY")
+    url = "#{OConfig[:ec_config][:inventory][:url]}"+
+          "/getControlIP?hrn=#{@nodeId}&domain=#{OConfig.domain}"
+    response = NodeHandler.service_call(url, 
+               "Can't get Control IP for '#{@nodeId}'/'#{OConfig.domain}'")
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the control IP address
     doc.root.elements.each("ERROR") { |e|
-      error "OConfig - No Control IP found for '#{@nodeId}' - val: #{e.get_text.value}"
+      error "OConfig - No Control IP found for '#{@nodeId}' - "+
+            "val: #{e.get_text.value}"
       raise "OConfig - #{e.get_text.value}"
     }
     doc.root.elements.each("/CONTROL_IP") { |v|
        return v.get_text.value
     }
   end
-
-  #
-  # Return the name of this Node object. The current convention is Name(X,Y)="nodeX-Y". However, we will mode to a flat numbering soon...
-  # 
-  # [Return] a String holding the Node's name
-  #
-  #def getNodeName()
-  #  return "node"+x.to_s+"-"+y.to_s
-  #end
-  #
-  # Same as getNodeName
-  #
-  #def name()
-  #  return "node"+x.to_s+"-"+y.to_s
-  #end
 
   #
   # Set a MAC address attribute for this node
@@ -240,7 +230,8 @@ class Node < MObject
   end
 
   #
-  # Set the list of MAC address that this Node object should ignore (MAC filtering)
+  # Set the list of MAC address that this Node object should ignore 
+  # (MAC filtering)
   #
   # - macList =  list of the MAC addresses to ignore/blacklist
   #
@@ -317,13 +308,15 @@ class Node < MObject
   #
   def onAppEvent(eventName, appId, message)
     appName, op = appId.split('/')
-    if (eventName.upcase == "STDOUT") && NodeHandler.SHOW_APP_OUTPUT()
+    if NodeHandler.SHOW_APP_OUTPUT() &&
+       ((eventName.upcase == "STDOUT") || (eventName.upcase == "STDERR")) 
        # When requested by user, print SDOUT events on our own standard-out
-       info("From app '#{appId}' - '#{message}'")
+       info("Output of app '#{appId}' -> '#{message}'")
     end
     if (appName =~ /^exec:/)
       if ! @execs.key?(appName)
-        warn("Received '#{eventName}' for unknown command '#{appName}' - '#{message}'")
+        warn("Received event '#{eventName}' for unknown command '#{appName}' "+
+             "with the message '#{message}'")
         return
       end
       block = @execs[appName]
@@ -336,7 +329,8 @@ class Node < MObject
   end
 
   #
-  # Return 'true' if all the applications on this Node are 'ready', i.e. they are all installed and ready to run
+  # Return 'true' if all the applications on this Node are 'ready', 
+  # i.e. they are all installed and ready to run
   #
   # [Return] true/false
   #
@@ -413,12 +407,12 @@ class Node < MObject
 
 
   #
-  # Set the name of the image, which will be reported by this Node at check-in time.
+  # Set the name of the image, which will be reported by this Node at check-in 
+  # time.
   #
   # - imageName = name of the image to report
   #
   def image= (imageName)
-    #@apps['builtin:save_image'] = NodeBuiltin.new('save_image', params, self, procEl, 'ISSUED')
     @image = imageName
     TraceState.nodeImage(self, imageName)
   end
@@ -535,7 +529,8 @@ class Node < MObject
   # Power this Node on
   #
   def powerOn()
-    # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
+    # Check that EC is NOT in 'Slave Mode' 
+    # - If so call CMC to switch node(s) ON
     if !NodeHandler.SLAVE_MODE()
       CMC.nodeOn(@nodeId)
     end
@@ -555,7 +550,8 @@ class Node < MObject
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) OFF
+    # Check that EC is NOT in 'Slave Mode' 
+    # - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE_MODE()
       if hard
         CMC.nodeOffHard(@nodeId)
@@ -746,7 +742,7 @@ class Node < MObject
     }
     if allEnrolled
       @groups["_ALL_"] = true
-      debug "Node #{self} is Enrolled in ALL the groups"
+      debug "Node #{self} is Enrolled in ALL its groups"
       changed
       notify_observers(self, :node_is_up)
     end
@@ -756,8 +752,8 @@ class Node < MObject
   #
   # When a node is being removed from all topologies, the Topology
   # class calls this method to notify it. The removed node propagates
-  # this notification to the ECCommunicator.instance.instance and also to the NodeSets which
-  # it belongs to.
+  # this notification to the ECCommunicator.instance.instance and also to the 
+  # NodeSets which it belongs to.
   #
   def notifyRemoved()
     ECCommunicator.instance.send_reset(@nodeId)

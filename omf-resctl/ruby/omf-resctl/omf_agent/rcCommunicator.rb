@@ -86,7 +86,7 @@ class RCCommunicator < OmfCommunicator
   def send_enrolled_reply(aliases = nil)
     reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
     reply.name = aliases if aliases != nil
-    send_message(make_address(@@myName), reply)
+    send_message(make_address(:name => @@myName), reply)
   end
 
   #
@@ -117,7 +117,7 @@ class RCCommunicator < OmfCommunicator
                            :message => info, :cmd => command.cmdType.to_s) 
     reply.path = command.path if command.path != nil
     reply.value = command.value if command.value != nil
-    send_message(make_address(@@myName), reply)
+    send_message(make_address(:name => @@myName), reply)
   end
 
   #
@@ -134,11 +134,7 @@ class RCCommunicator < OmfCommunicator
     reply.path = command.path if command.path != nil
     reply.appID = command.appID if command.appID != nil
     reply.value = command.value if command.value != nil
-    # 'ERROR' message goes even if we are not part of an Experiment yet!
-    # Thus we create directly the address 
-    addr = create_address(:name => @@myName, :sliceID => @@sliceID,
-                          :domain => @@domain)
-    send_message(addr, reply)
+    send_message(make_address(:name => @@myName), reply)
   end
 
   #
@@ -156,7 +152,7 @@ class RCCommunicator < OmfCommunicator
   def send_event(type, name, id, info)
     message = create_message(:cmdtype => type, :target => @@myName, 
                              :value => name, :appID => id, :message => info) 
-    send_message(make_address(@@myName), message)
+    send_message(make_address(:name => @@myName), message)
   end
 
   def reset
@@ -198,14 +194,6 @@ class RCCommunicator < OmfCommunicator
   end
 
   private
-
-  def dispatch_message(message)
-    result = super(message)
-    if result
-       send_error_reply("Failed to process command (Error: '#{result}')", 
-                        message) 
-    end
-  end
 
   def valid_message?(message)
     # 1 - Perform common validations amoung OMF entities

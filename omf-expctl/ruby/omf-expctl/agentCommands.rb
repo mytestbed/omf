@@ -42,8 +42,8 @@ module AgentCommands
   # - reply = the reply to process
   #
   def AgentCommands.OK(controller, communicator, reply)
-    MObject.debug("agentcmds", "OK from: '#{command.target}' - "+
-                  "cmd: '#{command.cmd}' - msg: '#{command.message}'")
+    MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
+                  "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")
   end
 
   #
@@ -75,7 +75,7 @@ module AgentCommands
   #
   def AgentCommands.WARN(controller, communicator, reply)
     sender = Node[reply.target]
-    MObject.warn("agentcmds", "sender: '#{reply.target}' ('#{sender}') - "+
+    MObject.warn("AgentCommands", "sender: '#{reply.target}' ('#{sender}') - "+
                  "msg: '#{reply.message}'")
   end
 
@@ -101,7 +101,7 @@ module AgentCommands
   #
   def AgentCommands.WRONG_IMAGE(controller, communicator, reply)
     sender = Node[reply.target]
-    MObject.debug("agentcmds", "WRONG_IMAGE from: '#{reply.target}' - "+
+    MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
                   "Desired: '#{sender.image}' - Installed: '#{reply.image}'")
     sender.reset()
   end
@@ -120,7 +120,7 @@ module AgentCommands
     eventName = command.value
     appId = command.appID
     message = command.message
-    MObject.debug("agentcmds", "APP_EVENT #{eventName} from: '#{appId}' "+
+    MObject.debug("AgentCommands", "APP_EVENT #{eventName} from: '#{appId}' "+
                   "(#{sender}) - msg: '#{message}'")
     sender.onAppEvent(eventName, appId, message)
     return nil
@@ -140,7 +140,7 @@ module AgentCommands
     eventName = command.value
     devName = command.appID
     message = command.message
-    MObject.debug("agentcmds", "DEV_EVENT #{eventName} from: '#{devName}' "+
+    MObject.debug("AgentCommands", "DEV_EVENT #{eventName} from: '#{devName}' "+
                   "(#{sender}) - msg: '#{message}'")
     sender.onDevEvent(eventName, devName, message)
     return nil
@@ -158,6 +158,7 @@ module AgentCommands
   def AgentCommands.ERROR(controller, communicator, reply)
     sender = Node[reply.target]
     command = reply.cmd
+    lines = Array.new
     case command
       when 'CONFIGURE'
         path = reply.path
@@ -165,22 +166,26 @@ module AgentCommands
         message = reply.message
         id = controller.logError(sender, reason, {:details => message})
         sender.configure(path.split("/"), reason, "error")
-        MObject.error("agentcmds", "CONFIGURE ERROR '#{path}' on '#{sender}' "+
-                      "- msg: #{message}")
+        lines << "The resource '#{sender}' reports that it failed to configure "
+        lines << "the path '#{path}'"
+        lines << "The error message is '#{message}'" if message
       when 'LOST_HANDLER'
-        MObject.error("agentcmds", "LOST HANDLER ERROR", "'#{sender}' lost us")
+        lines << "The resource '#{sender}' lost contact with us"
       when 'EXECUTE'
         message = reply.message
         app = reply.appID
-        MObject.error("agentcmds", "EXECUTION ERROR on '#{sender}' - "+
-                      "App: '#{app}'- msg: #{message}")
+        lines << "The resource '#{sender}' reports that it failed to execute"
+        lines << "the application '#{app}'"
+        lines << "The error message is '#{message}'" if message
       else
         reason = "Unknown error caused by '#{command}'"
         message =  reply.message
         controller.logError(sender, reason, {:details => message})
-        MObject.error("agentcmds", "UNKNOWN_ERROR on '#{sender}' - "+
-                      "cmd: '#{command}' - msg: #{message}")
+        lines << "The resource '#{sender}' reports an unknown error while"
+        lines << "executing the command '#{command}'"
+        lines << "The error message is '#{message}'" if message
     end
+    controller.display_error_msg(lines)
   end
 
   #

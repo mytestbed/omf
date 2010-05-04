@@ -156,6 +156,8 @@ module AgentCommands
     if !communicator.listen(addrAlias)
       MObject.error "Failed to Process ALIAS command!"
       MObject.error "Cannot listen on the address for this alias - ignoring it!"
+      communicator.send_error_reply("Failed to process ALIAS command"+
+                              "Cannot listen on the ALIAS address", command) 
       return
     end
     communicator.send_enrolled_reply(command.name)
@@ -231,8 +233,9 @@ module AgentCommands
         ExecApp[id].kill('KILL')
       end
     rescue Exception => err
-      raise Exception.new("Error while terminating application: '#{id}' -"+
-                          "Error: '#{err}'")
+      msg = "Failed to terminate application: '#{id}' - Error: '#{err}'"
+      MObject.debug(msg)
+      communicator.send_error_reply(msg, command) 
     end
   end
 
@@ -250,7 +253,7 @@ module AgentCommands
       line = command.value
       ExecApp[id].stdin(line)
     rescue Exception => err
-      raise Exception.new("Error while writing to standard-IN of application "+
+      MObject.debug "Error while writing to standard-IN of application "+
                           "'#{id}' (likely caused by a call to 'sendMessage' "+
                           "or an update to a dynamic property)") 
     end
@@ -381,20 +384,24 @@ module AgentCommands
   def AgentCommands.CONFIGURE(controller, communicator, command)
     path = command.path
     value = command.value
+    success = false
 
-    if (type, id, prop = path.split("/")).length != 3
-      raise "Expected path '#{path}' to contain three levels"
-    end
-    device = DEV_MAPPINGS["#{type}/#{id}"]
-    if (device == nil)
-      raise "Unknown resource '#{type}/#{id}' in 'configure'"
-    end
-
-    result = device.configure(prop, value)
-    if result[:success]
-      communicator.send_ok_reply(result[:msg], command)
+    if (type, id, prop = path.split("/")).length >= 3
+      if (device = DEV_MAPPINGS["#{type}/#{id}"]) != nil
+        result = device.configure(prop, value)
+	success = result[:success]
+        msg = result[:msg] 
+      else
+	msg = "Unknown resource '#{type}/#{id}' in 'configure'"
+      end
     else
+      msg = "Expected path '#{path}' to contain three levels"
+    end
+    if !success
+      MObject.debug(msg)
       communicator.send_error_reply(result[:msg], command) 
+    else      
+      communicator.send_ok_reply(result[:msg], command)
     end
   end
 

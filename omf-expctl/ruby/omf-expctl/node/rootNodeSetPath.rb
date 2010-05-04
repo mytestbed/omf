@@ -227,16 +227,19 @@ class RootNodeSetPath < NodeSetPath
   #
   # This method runs a command on all nodes in the NodeSet of this Root Path.
   #
-  # - cmdName = name of the executable to run. It should be a full OS path, unless it is
-  #             in the default path of the Node Agents running on the nodes.
-  # - args = an optional array of arguments. If an argument starts with a '%', each node 
-  #             will replace placeholders such as %x, %y, or %n with their own local values. 
-  # - env = an optional Hash of environment variables and their respective values. This will
-  #             be set before the command is executed. Again, '%' substitution will occur
-  #             on these values.
-  # - &block = an optional block of commands with arity 4, which will be called whenever a 
-  #             message is received from a node executing 'cmdName'. The arguments for this block 
-  #             are |node, operation, eventName, message|.
+  # - cmdName = name of the executable to run. It should be a full OS path, 
+  #             unless it is in the default path of the Node Agents running on 
+  #             the nodes.
+  # - args = an optional array of arguments. If an argument starts with a '%', 
+  #             each node will replace placeholders such as %x, %y, or %n with 
+  #             their own local values. 
+  # - env = an optional Hash of environment variables and their respective 
+  #             values. This will be set before the command is executed. Again,
+  #             '%' substitution will occur on these values.
+  # - &block = an optional block of commands with arity 4, which will be called
+  #             whenever a message is received from a node executing 'cmdName'.
+  #             The arguments for this block are 
+  #             |node, operation, eventName, message|.
   #
   def exec(cmdName, args = nil, env = nil, &block)
     @nodeSet.exec(cmdName, args, env, &block)

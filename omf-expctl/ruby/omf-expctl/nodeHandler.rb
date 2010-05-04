@@ -859,6 +859,11 @@ class NodeHandler < MObject
     end
         
   end
+
+  def display_error_msg(lines)
+    error ""
+    lines.each { |line| error "  #{line}" }
+  end
 end 
 #
 # END of the NodeHandler Class Declaration
