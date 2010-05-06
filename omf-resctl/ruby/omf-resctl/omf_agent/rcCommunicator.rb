@@ -46,7 +46,7 @@ class RCCommunicator < OmfCommunicator
 
   def init(opts)
     super(opts)
-    # RC-secific communicator initialisation...
+    # EC-secific communicator initialisation...
     # 0 - set some attributes
     @@myName = opts[:comms_name]
     @@sliceID = opts[:sliceID]
@@ -65,14 +65,24 @@ class RCCommunicator < OmfCommunicator
     OmfProtocol::RC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
-  def set_expID(expID = nil)
-    @@expID = expID
+  def listen_to_group(group)
+    addr = create_address(:sliceID => @@sliceID, :expID => @@expID, 
+                          :domain => @@domain, :name => group)
+    return listen(addr)
   end
 
-  def send_message(addr, message)
-    message.sliceID = @@sliceID
-    message.expID = @@expID
-    super(addr, message)
+  def listen_to_experiment(expID)
+    addr = create_address(:sliceID => @@sliceID, :expID => expID, 
+                          :domain => @@domain)
+    success = listen(addr)
+    @@expID = expID if success    
+    return success
+  end
+
+  def set_EC_address(ec_address = nil)
+    myEC = ec_address ? ec_address : @@myName
+    @@myECAddress = create_address(:sliceID => @@sliceID, :expID => @@expID, 
+                        :domain => @@domain, :name => myEC)
   end
 
   #
@@ -86,7 +96,7 @@ class RCCommunicator < OmfCommunicator
   def send_enrolled_reply(aliases = nil)
     reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
     reply.name = aliases if aliases != nil
-    send_message(make_address(:name => @@myName), reply)
+    send_message(@@myECAddress, reply)
   end
 
   #
@@ -100,7 +110,7 @@ class RCCommunicator < OmfCommunicator
     # 'WRONG_IMAGE' message goes even if we are not part of an Experiment yet!
     # Thus we create directly the address 
     addr = create_address(:name => @@myName, :sliceID => @@sliceID,
-                           :domain => @@domain)
+                          :domain => @@domain)
     send_message(addr, reply)
   end
 
@@ -117,7 +127,7 @@ class RCCommunicator < OmfCommunicator
                            :message => info, :cmd => command.cmdType.to_s) 
     reply.path = command.path if command.path != nil
     reply.value = command.value if command.value != nil
-    send_message(make_address(:name => @@myName), reply)
+    send_message(@@myECAddress, reply)
   end
 
   #
@@ -134,7 +144,7 @@ class RCCommunicator < OmfCommunicator
     reply.path = command.path if command.path != nil
     reply.appID = command.appID if command.appID != nil
     reply.value = command.value if command.value != nil
-    send_message(make_address(:name => @@myName), reply)
+    send_message(@@myECAddress, reply)
   end
 
   #
@@ -152,7 +162,7 @@ class RCCommunicator < OmfCommunicator
   def send_event(type, name, id, info)
     message = create_message(:cmdtype => type, :target => @@myName, 
                              :value => name, :appID => id, :message => info) 
-    send_message(make_address(:name => @@myName), message)
+    send_message(@@myECAddress, message)
   end
 
   def reset
@@ -181,20 +191,22 @@ class RCCommunicator < OmfCommunicator
     end
   end
 
-  #
-  # Build an address only if this resource has already be enrolled in an 
-  # Experiment.
-  #
-  # - opts = a Hash with the parameters for the address to build
-  #
-  def make_address(opts = nil)
-    name = opts ? opts[:name] : nil
-    return create_address(:sliceID => @@sliceID, :expID => @@expID, 
-                          :domain => @@domain, :name => name)
-  end
-
   private
 
+  def send_message(addr, message)
+    message.sliceID = @@sliceID
+    message.expID = @@expID
+    super(addr, message)
+  end
+
+  #def dispatch_message(message)
+  #  result = super(message)
+  #  if !result[:success] || result.kind_of(Exception)
+  #     send_error_reply("Failed to process command (Error: '#{result}')", 
+  #                      message) 
+  #  end
+  #end
+  
   def valid_message?(message)
     # 1 - Perform common validations amoung OMF entities
     return false if !super(message) 

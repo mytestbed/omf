@@ -590,7 +590,7 @@ class NodeHandler < MObject
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
     comm[:expID] = Experiment.ID
-    ECCommunicator.init(comm)
+    ECCommunicator.instance.init(comm)
     
     if @@runningSlaveMode
       info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] "+
@@ -725,7 +725,9 @@ class NodeHandler < MObject
   #
   public
   def shutdown()
-    info "Shutting down experiment, please wait."
+    info ""
+    info "Shutting down experiment, please wait..."
+    info ""
     if (! @running)
       # nothing to do
       return

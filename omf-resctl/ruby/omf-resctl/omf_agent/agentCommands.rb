@@ -121,21 +121,18 @@ module AgentCommands
       MObject.debug "Requested Image: '#{desiredImage}' - "+
                     "Current Image: '#{controller.imageName()}'"
       communicator.send_wrong_image_reply
-      return
     end
-    # All is good, enroll this Resource Controller
-    communicator.set_expID(command.expID)
-    MObject.debug "Enrolled into Experiment ID: '#{command.expID}'"
-    # Now listen to our new Resource and Experiment address for incoming 
-    # messages
-    addrNode = communicator.make_address(:name => command.target)
-    addrExp = communicator.make_address
-    if !communicator.listen(addrNode) || !communicator.listen(addrExp)
+    # Now instruct the communicator to listen for messages addressed to 
+    # our new groups
+    if !communicator.listen_to_group(command.target) || 
+      !communicator.listen_to_experiment(command.expID)
       MObject.error "Failed to Process ENROLL command!"
       MObject.error "Maybe it came from an old experiment - ignoring it!"
-      communicator.set_expID # unset the expID
-      return
+      return 
     end
+    # All is good, enroll this Resource Controller
+    MObject.debug "Enrolled into Experiment ID: '#{command.expID}'"
+    communicator.set_EC_address(command.ecaddress)
     controller.enrolled = true
     communicator.send_enrolled_reply
   end
@@ -149,11 +146,10 @@ module AgentCommands
   # - command = the command to execute
   #
   def AgentCommands.ALIAS(controller, communicator, command)
-    aliasArray = command.name.split(' ')
-    aliasArray.each{ |n| controller.addAlias(n) }
-    # Now listen to our new address for incoming messages
-    addrAlias = communicator.make_address(:name => command.name)
-    if !communicator.listen(addrAlias)
+    controller.addAlias(command.name)
+    # Now instruct the communicator to listen for messages addressed to 
+    # our new group
+    if !communicator.listen_to_group(command.name)
       MObject.error "Failed to Process ALIAS command!"
       MObject.error "Cannot listen on the address for this alias - ignoring it!"
       communicator.send_error_reply("Failed to process ALIAS command"+
@@ -253,9 +249,10 @@ module AgentCommands
       line = command.value
       ExecApp[id].stdin(line)
     rescue Exception => err
-      MObject.debug "Error while writing to standard-IN of application "+
-                          "'#{id}' (likely caused by a call to 'sendMessage' "+
-                          "or an update to a dynamic property)") 
+      msg = "Error while writing to standard-IN of application '#{id}' "+
+            "(cause: a call to 'sendMessage' or a dynamic property update)" 
+      MObject.debug(msg)
+      communicator.send_error_reply(msg, command) 
     end
   end
 
@@ -291,8 +288,8 @@ module AgentCommands
   def AgentCommands.APT_INSTALL(controller, communicator, command)
     id = command.appID
     pkgName = command.package
-    cmd = "DEBIAN_FRONTEND='noninteractive' apt-get install "+
-          "--reinstall --allow-unauthenticated -qq #{pkgName}"
+    cmd = "LANGUAGE='C' LANG='C' LC_ALL='C' DEBIAN_FRONTEND='noninteractive' "+
+          " apt-get install --reinstall --allow-unauthenticated -qq #{pkgName}"
     ExecApp.new(id, controller, cmd)
   end
 

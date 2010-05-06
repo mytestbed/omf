@@ -123,8 +123,8 @@ class Application < MObject
       # We first have to mount the local TAR file to a URL on our webserver
       # ALERT: Should check if +rep+ actually exists
       url_dir="/install/#{rep.gsub('/', '_')}"
-      url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
-      OMF::ExperimentController::Web.mapFile(url_dir, rep)
+      url="#{OMF::Common::Web.url()}#{url_dir}"
+      OMF::Common::Web.mapFile(url_dir, rep)
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :PM_INSTALL,
                                   :appID => "#{@appDefinition.uri}/install",

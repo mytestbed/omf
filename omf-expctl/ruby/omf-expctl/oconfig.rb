@@ -74,10 +74,11 @@ module OConfig
   # a given testbed
   #
   def self.loadTestbedConfiguration()
-    # Check if EC is running in 'Slave' mode. If so, then this EC is actually running
-    # directly on a node/resource and will only be responsible for orchestrating the part
-    # of the experiment which is specific to this node/resource. Thus config parameters
-    # are also specific (most would be turned to 'localhost' and local node ID)
+    # Check if EC is running in 'Slave' mode. If so, then this EC is actually 
+    # running directly on a node/resource and will only be responsible for 
+    # orchestrating the part of the experiment which is specific to this 
+    # node/resource. Thus config parameters are also specific (most would be 
+    # turned to 'localhost' and local node ID)
     if NodeHandler.SLAVE_MODE || NodeHandler.debug?
       return nil 
     end
@@ -86,8 +87,10 @@ module OConfig
       @@config[:tb_config] = Hash.new 
     end
     # Retrieve the testbed-specific configuration parameters from the Inventory
-    url = "#{@@config[:ec_config][:inventory][:url]}/getConfig?&domain=#{@@domainName}"
-    response = NodeHandler.service_call(url, "Can't get config for domain '#{@@domainName}' from INVENTORY")
+    url = "#{@@config[:ec_config][:inventory][:url]}"+
+          "/getConfig?&domain=#{@@domainName}"
+    response = NodeHandler.service_call(url, 
+               "Can't get config for domain '#{@@domainName}' from INVENTORY")
 
     configFromInventory = REXML::Document.new(response.body)
     # Extract the information from the REXML, and store them in a Hash 
@@ -98,7 +101,8 @@ module OConfig
         if (e.get_text != nil)
           tb_hash[key] = e.get_text.value
 	      else
-          raise "OConfig - Missing value for configuration parameter '#{key}' in '#{@@domainName}' domain."
+          raise "OConfig - The configuration parameter '#{key}' has no value "+
+                " assigned to it! (EC config is set to '#{@@domainName}')"
         end
       }
     }
@@ -231,7 +235,8 @@ module OConfig
     end
     if file == nil
       # Still can't find it, give up.
-      raise IOError, "Can't find '#{uri}' in any of '#{@@config[:ec_config][:repository][:path].join(', ')}'"
+      raise IOError, "Cannot find the file to load '#{uri}' at the path(s)"+
+                     "[#{@@config[:ec_config][:repository][:path].join(', ')}]"
     end
     # Found the file, read it and optionally evaluate the ruby code inside
     str = File.new(file).read()
@@ -240,7 +245,8 @@ module OConfig
       #require file
     end
     
-    state = {:uri => uri, :location => file, :content => str, :mime_type => '/text/ruby'}
+    state = {:uri => uri, :location => file, :content => str, 
+             :mime_type => '/text/ruby'}
     @@loadHistory << state
     @@observers.each { |proc|
       proc.call(:load, state)

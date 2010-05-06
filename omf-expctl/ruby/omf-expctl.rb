@@ -39,8 +39,6 @@ begin
 rescue SystemExit
 rescue Interrupt
   # ignore
-rescue IOError => iex
-  MObject.fatal('run', iex)
 rescue ServiceException => sex
   begin
     MObject.fatal('run', "Failed to call an Aggregate Manager Service")
