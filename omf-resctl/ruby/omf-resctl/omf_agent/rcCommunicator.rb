@@ -51,6 +51,7 @@ class RCCommunicator < OmfCommunicator
     @@myName = opts[:comms_name]
     @@sliceID = opts[:sliceID]
     @@expID = nil
+    @@myAliases = [@@myName, "*"]
     # 1 - Build my address for this slice 
     @@myAddr = create_address(:sliceID => @@sliceID, 
                               :name => @@myName, 
@@ -68,6 +69,7 @@ class RCCommunicator < OmfCommunicator
   def listen_to_group(group)
     addr = create_address(:sliceID => @@sliceID, :expID => @@expID, 
                           :domain => @@domain, :name => group)
+    add_alias(group)
     return listen(addr)
   end
 
@@ -93,26 +95,26 @@ class RCCommunicator < OmfCommunicator
   # - aliases = a String with the names of all the groups within which we have 
   #             enrolled
   #
-  def send_enrolled_reply(aliases = nil)
-    reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
-    reply.name = aliases if aliases != nil
-    send_message(@@myECAddress, reply)
-  end
+  #def send_enrolled_reply(aliases = nil)
+  #  reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
+  #  reply.name = aliases if aliases != nil
+  #  send_message(@@myECAddress, reply)
+  #end
 
   #
   # Send an WRONG_IMAGE reply to the EC. 
   # This is done when the current disk image of this RC is not the disk
   # image requested by the EC.
   #
-  def send_wrong_image_reply
-    reply = create_message(:cmdtype => :WRONG_IMAGE, :target => @@myName, 
-                           :image => imageName) 
-    # 'WRONG_IMAGE' message goes even if we are not part of an Experiment yet!
-    # Thus we create directly the address 
-    addr = create_address(:name => @@myName, :sliceID => @@sliceID,
-                          :domain => @@domain)
-    send_message(addr, reply)
-  end
+  #def send_wrong_image_reply
+  #  reply = create_message(:cmdtype => :WRONG_IMAGE, :target => @@myName, 
+  #                         :image => imageName) 
+  #  # 'WRONG_IMAGE' message goes even if we are not part of an Experiment yet!
+  #  # Thus we create directly the address 
+  #  addr = create_address(:name => @@myName, :sliceID => @@sliceID,
+  #                        :domain => @@domain)
+  #  send_message(addr, reply)
+  #end
 
   #
   # Send an OK reply to the EC. 
@@ -122,13 +124,13 @@ class RCCommunicator < OmfCommunicator
   # - info = a String with more info on the command execution
   # - command = the command that executed successfully
   #
-  def send_ok_reply(info, command)
-    reply = create_message(:cmdtype => :OK, :target => @@myName, 
-                           :message => info, :cmd => command.cmdType.to_s) 
-    reply.path = command.path if command.path != nil
-    reply.value = command.value if command.value != nil
-    send_message(@@myECAddress, reply)
-  end
+  #def send_ok_reply(info, command)
+  #  reply = create_message(:cmdtype => :OK, :target => @@myName, 
+  #                         :message => info, :cmd => command.cmdType.to_s) 
+  #  reply.path = command.path if command.path != nil
+  #  reply.value = command.value if command.value != nil
+  #  send_message(@@myECAddress, reply)
+  #end
 
   #
   # Send an ERROR reply to the EC. 
@@ -138,12 +140,21 @@ class RCCommunicator < OmfCommunicator
   # - info = a String with more info on the command execution
   # - command = the command that failed to execute 
   #
-  def send_error_reply(info, command)
-    reply = create_message(:cmdtype => :ERROR, :target => @@myName, 
-                           :cmd => command.cmdType.to_s, :message => info) 
-    reply.path = command.path if command.path != nil
-    reply.appID = command.appID if command.appID != nil
-    reply.value = command.value if command.value != nil
+  #def send_error_reply(info, command)
+  #  reply = create_message(:cmdtype => :ERROR, :target => @@myName, 
+  #                         :cmd => command.cmdType.to_s, :message => info) 
+  #  reply.path = command.path if command.path != nil
+  #  reply.appID = command.appID if command.appID != nil
+  #  reply.value = command.value if command.value != nil
+  #  send_message(@@myECAddress, reply)
+  #end
+
+  def send_reply(type, reason, info, original_request)
+    reply = create_message(:cmdtype => type, :target => @@myName, 
+                           :cmd => reason ,:message => info) 
+    reply.path = original_request.path if original_request.path != nil
+    reply.appID = original_request.appID if original_request.appID != nil
+    reply.value = original_request.value if original_request.value != nil
     send_message(@@myECAddress, reply)
   end
 
@@ -168,6 +179,7 @@ class RCCommunicator < OmfCommunicator
   def reset
     super()
     @@expID = nil
+    @@myAliases = [@@myName, "*"]
     # Listen to my address - wait and try again until successfull
     listening = false
     while !listening
@@ -199,13 +211,14 @@ class RCCommunicator < OmfCommunicator
     super(addr, message)
   end
 
-  #def dispatch_message(message)
-  #  result = super(message)
-  #  if !result[:success] || result.kind_of(Exception)
-  #     send_error_reply("Failed to process command (Error: '#{result}')", 
-  #                      message) 
-  #  end
-  #end
+  def dispatch_message(message)
+    result = super(message)
+    if result && result.kind_of(Hash)
+      send_reply(result[:success], result[:reason], result[:info], message)
+      #send_error_reply("Failed to process command (Error: '#{result}')", 
+      #                 message) 
+    end
+  end
   
   def valid_message?(message)
     # 1 - Perform common validations amoung OMF entities
@@ -222,7 +235,7 @@ class RCCommunicator < OmfCommunicator
     # (There may be multiple space-separated targets)
     dst = message.target.split(' ') 
     forMe = false
-    dst.each { |t| forMe = true if NodeAgent.instance.agentAliases.include?(t) }
+    dst.each { |t| forMe = true if @@myAliases.include?(t) }
      if !forMe
        debug "Ignoring command with unknown target "+
              "'#{message.target}' - ignoring it!"
@@ -230,6 +243,15 @@ class RCCommunicator < OmfCommunicator
     end
     # Accept this message
     return true
+  end
+
+  def add_alias(newAlias)
+    if (@@myAliases.index(newAlias) != nil)
+      debug("Alias '#{newAlias}' already registered.")
+    else
+      @@myAliases.insert(0, newAlias)
+    end
+    debug("Agent names #{@@myAliases.join(', ')}")
   end
 
 end

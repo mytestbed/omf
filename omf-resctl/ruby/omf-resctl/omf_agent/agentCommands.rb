@@ -109,32 +109,39 @@ module AgentCommands
   def AgentCommands.ENROLL(controller, communicator, command)
     # Check if we are already 'enrolled' or not
     if controller.enrolled
-      MObject.debug "Resource Controller already enrolled! - "+
-                    "ignoring this ENROLL command!"
-      return
+      msg = "Resource Controller already enrolled! - "+
+            "ignoring this ENROLL command!"
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg}
+      #return
     end
+    communicator.set_EC_address(command.ecaddress)
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
     # if not, then ignore this ENROLL
     desiredImage = command.image
     if (desiredImage != controller.imageName() && desiredImage != '*')
-      MObject.debug "Requested Image: '#{desiredImage}' - "+
-                    "Current Image: '#{controller.imageName()}'"
-      communicator.send_wrong_image_reply
+      msg = "Requested Image: '#{desiredImage}' - "+
+            "Current Image: '#{controller.imageName()}'"
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :WRONG_IMAGE, :info => msg}
+      #communicator.send_wrong_image_reply
     end
     # Now instruct the communicator to listen for messages addressed to 
     # our new groups
     if !communicator.listen_to_group(command.target) || 
       !communicator.listen_to_experiment(command.expID)
-      MObject.error "Failed to Process ENROLL command!"
-      MObject.error "Maybe it came from an old experiment - ignoring it!"
-      return 
+      msg = "Failed to Process ENROLL command! "+
+            "Maybe it came from an old experiment - ignoring it!"
+      MObject.error("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :OLD_ENROLL, :info => msg}
     end
     # All is good, enroll this Resource Controller
-    MObject.debug "Enrolled into Experiment ID: '#{command.expID}'"
-    communicator.set_EC_address(command.ecaddress)
+    msg = "Enrolled into Experiment ID: '#{command.expID}'"
+    MObject.debug("AgentCommands", msg)
     controller.enrolled = true
-    communicator.send_enrolled_reply
+    return {:success => :OK, :reason => :ENROLLED, :info => msg}
+    #communicator.send_enrolled_reply
   end
 
   #
@@ -146,17 +153,21 @@ module AgentCommands
   # - command = the command to execute
   #
   def AgentCommands.ALIAS(controller, communicator, command)
-    controller.addAlias(command.name)
-    # Now instruct the communicator to listen for messages addressed to 
+    # Instruct the communicator to listen for messages addressed to 
     # our new group
     if !communicator.listen_to_group(command.name)
-      MObject.error "Failed to Process ALIAS command!"
-      MObject.error "Cannot listen on the address for this alias - ignoring it!"
-      communicator.send_error_reply("Failed to process ALIAS command"+
-                              "Cannot listen on the ALIAS address", command) 
-      return
+      msg = "Failed to Process ALIAS command! Cannot listen on the address "+
+            "for this alias '#{command.name}'- ignoring it!"
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :WRONG_ALIAS, :info => msg}
+      #communicator.send_error_reply("Failed to process ALIAS command"+
+      #                        "Cannot listen on the ALIAS address", command) 
+      #return
     end
-    communicator.send_enrolled_reply(command.name)
+    msg = "Enrolled into a new group: '#{command.name}'"
+    MObject.debug("AgentCommands", msg)
+    return {:success => :OK, :reason => :ENROLLED, :info => msg}
+    #communicator.send_enrolled_reply(command.name)
   end
 
   #
@@ -230,8 +241,9 @@ module AgentCommands
       end
     rescue Exception => err
       msg = "Failed to terminate application: '#{id}' - Error: '#{err}'"
-      MObject.debug(msg)
-      communicator.send_error_reply(msg, command) 
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :FAILED_EXIT, :info => msg}
+      #communicator.send_error_reply(msg, command) 
     end
   end
 
@@ -251,8 +263,9 @@ module AgentCommands
     rescue Exception => err
       msg = "Error while writing to standard-IN of application '#{id}' "+
             "(cause: a call to 'sendMessage' or a dynamic property update)" 
-      MObject.debug(msg)
-      communicator.send_error_reply(msg, command) 
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :FAILED_STDIN, :info => msg}
+      #communicator.send_error_reply(msg, command) 
     end
   end
 
@@ -394,11 +407,13 @@ module AgentCommands
     else
       msg = "Expected path '#{path}' to contain three levels"
     end
+      MObject.debug("AgentCommands", msg)
     if !success
-      MObject.debug(msg)
-      communicator.send_error_reply(result[:msg], command) 
+      return {:success => :ERROR, :reason => :FAILED_CONFIGURE, :info => msg}
+      #communicator.send_error_reply(result[:msg], command) 
     else      
-      communicator.send_ok_reply(result[:msg], command)
+      return {:success => :OK, :reason => :CONFIGURED, :info => msg}
+      #communicator.send_ok_reply(result[:msg], command)
     end
   end
 

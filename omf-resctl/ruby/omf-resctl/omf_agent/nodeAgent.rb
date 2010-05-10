@@ -62,7 +62,7 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentName, :agentSlice, :agentAliases, :config 
+  attr_reader :agentName, :agentSlice, :config 
 
   attr_accessor :allowDisconnection, :enrolled
 
@@ -113,19 +113,6 @@ class NodeAgent < MObject
     end
   end
 
-  #
-  # Add an alias for this RC. 
-  #
-  # - newAlias = a String with the new alias to add
-  #
-  def addAlias(newAlias)
-    if (@agentAliases.index(newAlias) != nil)
-      debug("Alias '#{newAlias}' already registered.")
-    else
-      @agentAliases.insert(0, newAlias)
-    end
-    debug("Agent names #{@agentAliases.join(', ')}")
-  end
 
   #
   # Set the name of the disk image found when starting up
@@ -206,7 +193,6 @@ class NodeAgent < MObject
   #
   def resetState
     @enrolled = false
-    @agentAliases = [@agentName, "*"]
     @allowDisconnection = false
     @expirementDone = false
     info "Agent: '#{@agentName}' - Slice: '#{@agentSlice}'"

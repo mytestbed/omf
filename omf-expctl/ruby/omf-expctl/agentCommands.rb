@@ -44,6 +44,15 @@ module AgentCommands
   def AgentCommands.OK(controller, communicator, reply)
     MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
                   "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")
+    if reply.cmd == :ENROLLED
+      sender = Node[reply.target]
+      # when we receive the first ENROLLED, send a NOOP message to the RC. 
+      # This is necessary since if RC is reset or restarted, it might
+      # receive the last ENROLL command again, depending on the kind of 
+      # transport being used. In any case, sending a NOOP would prevent this.
+      communicator.send_noop(reply.target) if !sender.isUp
+      sender.enrolled(reply)
+    end
   end
 
   #
@@ -55,15 +64,15 @@ module AgentCommands
   # - communicator = the instance of this EC's communicator
   # - reply = the reply to process
   #
-  def AgentCommands.ENROLLED(controller, communicator, reply)
-    sender = Node[reply.target]
-    # when we receive the first ENROLLED, send a NOOP message to the RC. 
-    # This is necessary since if RC is reset or restarted, it might
-    # receive the last ENROLL command again, depending on the kind of 
-    # transport being used. In any case, sending a NOOP would prevent this.
-    communicator.send_noop(reply.target) if !sender.isUp
-    sender.enrolled(reply)
-  end
+  #def AgentCommands.ENROLLED(controller, communicator, reply)
+  #  sender = Node[reply.target]
+  #  # when we receive the first ENROLLED, send a NOOP message to the RC. 
+  #  # This is necessary since if RC is reset or restarted, it might
+  #  # receive the last ENROLL command again, depending on the kind of 
+  #  # transport being used. In any case, sending a NOOP would prevent this.
+  #  communicator.send_noop(reply.target) if !sender.isUp
+  #  sender.enrolled(reply)
+  #end
 
   #
   # Process 'WARN' reply from the RC
@@ -99,12 +108,12 @@ module AgentCommands
   # - communicator = the instance of this EC's communicator
   # - reply = the reply to process
   #
-  def AgentCommands.WRONG_IMAGE(controller, communicator, reply)
-    sender = Node[reply.target]
-    MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
-                  "Desired: '#{sender.image}' - Installed: '#{reply.image}'")
-    sender.reset()
-  end
+  #def AgentCommands.WRONG_IMAGE(controller, communicator, reply)
+  #  sender = Node[reply.target]
+  #  MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
+  #                "Desired: '#{sender.image}' - Installed: '#{reply.image}'")
+  #  sender.reset()
+  #end
 
   #
   # Process 'APP_EVENT' command from the RC 
@@ -157,32 +166,35 @@ module AgentCommands
   #
   def AgentCommands.ERROR(controller, communicator, reply)
     sender = Node[reply.target]
-    command = reply.cmd
+    errorType = reply.cmd
+    message = reply.message
     lines = Array.new
-    case command
-      when 'CONFIGURE'
-        path = reply.path
-        reason = "Couldn't configure '#{path}'"
-        message = reply.message
-        id = controller.logError(sender, reason, {:details => message})
-        sender.configure(path.split("/"), reason, "error")
+    case errorType
+      when 'FAILED_CONFIGURE'
+	reason = "Couldn't configure '#{reply.path}'"
+        controller.logError(sender, reason, {:details => message})
+        sender.configure(reply.path.split("/"), reason, "error")
         lines << "The resource '#{sender}' reports that it failed to configure "
-        lines << "the path '#{path}'"
+        lines << "the path '#{reply.path}'"
         lines << "The error message is '#{message}'" if message
+      when 'WRONG_IMAGE'    
+        lines << "The resource '#{sender}' reports that it has the disk image"
+        lines << "'#{reply.image}' while the desired image is '#{sender.image}'"
+        lines << "The resource will now reset and attempt to install the "
+        lines << "required disk image."
+        sender.reset()
       when 'LOST_HANDLER'
         lines << "The resource '#{sender}' lost contact with us"
       when 'EXECUTE'
-        message = reply.message
-        app = reply.appID
         lines << "The resource '#{sender}' reports that it failed to execute"
-        lines << "the application '#{app}'"
+        lines << "the application '#{reply.appID}'"
         lines << "The error message is '#{message}'" if message
       else
-        reason = "Unknown error caused by '#{command}'"
-        message =  reply.message
-        controller.logError(sender, reason, {:details => message})
+        controller.logError(sender,
+                            "Unknown error caused by '#{errorType}'", 
+                            {:details => message})
         lines << "The resource '#{sender}' reports an unknown error while"
-        lines << "executing the command '#{command}'"
+        lines << "executing a command. Error type is '#{errorType}'."
         lines << "The error message is '#{message}'" if message
     end
     controller.display_error_msg(lines)
