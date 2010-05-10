@@ -44,7 +44,7 @@ module AgentCommands
   def AgentCommands.OK(controller, communicator, reply)
     MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
                   "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")
-    if reply.cmd == :ENROLLED
+    if reply.cmd == "ENROLLED"
       sender = Node[reply.target]
       # when we receive the first ENROLLED, send a NOOP message to the RC. 
       # This is necessary since if RC is reset or restarted, it might

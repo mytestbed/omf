@@ -115,7 +115,6 @@ module AgentCommands
       return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg}
       #return
     end
-    communicator.set_EC_address(command.ecaddress)
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
     # if not, then ignore this ENROLL
@@ -129,17 +128,18 @@ module AgentCommands
     end
     # Now instruct the communicator to listen for messages addressed to 
     # our new groups
-    if !communicator.listen_to_group(command.target) || 
-      !communicator.listen_to_experiment(command.expID)
+    if !communicator.listen_to_experiment(command.expID) ||
+       !communicator.listen_to_group(command.target)
       msg = "Failed to Process ENROLL command! "+
             "Maybe it came from an old experiment - ignoring it!"
       MObject.error("AgentCommands", msg)
       return {:success => :ERROR, :reason => :OLD_ENROLL, :info => msg}
     end
     # All is good, enroll this Resource Controller
+    controller.enrolled = true
+    communicator.set_EC_address(command.ecaddress)
     msg = "Enrolled into Experiment ID: '#{command.expID}'"
     MObject.debug("AgentCommands", msg)
-    controller.enrolled = true
     return {:success => :OK, :reason => :ENROLLED, :info => msg}
     #communicator.send_enrolled_reply
   end

@@ -41,7 +41,7 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   # This method creates this singleton 
   #
   def initialize()
-    super(:ALLGROUPS)
+    super("_ALLGROUPS_")
     @nodeSelector = "*"
   end
 

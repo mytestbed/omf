@@ -86,7 +86,7 @@ class OmfMessage
   #
   #  [Return] a new Command Object
   #
-  def initialize (initOptions = nil)
+  def initialize(initOptions = nil)
     # Create a new Hash to hold the attributes of this Command Object
     @attributes = Hash.new
     return unless initOptions
@@ -99,6 +99,23 @@ class OmfMessage
     else
       raise "Cannot create a OmfMessage! Unknown initial options "+
             "(type: '#{initOptions.class}')"
+    end
+  end
+
+  def each(&block)
+    @attributes.each { |k,v|
+      block.call(k,v)
+    }
+  end
+
+  def merge(another)
+    if another.kind_of?(self.class)
+      another.each { |attr, val|
+	@attributes[attr] = val if @attributes[attr] == nil
+      }
+    else
+      raise "Cannot merge with another message! Unknown message type "+
+            "(type: '#{another.class}')"
     end
   end
 

@@ -735,13 +735,13 @@ class Node < MObject
     end
 
     # Finally, check if this node is enrolled in all its group
-    # If so, then set it as enrolled for the _ALL_ group too!
+    # If so, then set it as enrolled for the _ALLGROUPS_ group too!
     allEnrolled = true
     @groups.each { |k,v|
-      if (k != "_ALL_") && (v == false) then allEnrolled = false; end
+      if (k != "_ALLGROUPS_") && (v == false) then allEnrolled = false; end
     }
     if allEnrolled
-      @groups["_ALL_"] = true
+      @groups["_ALLGROUPS_"] = true
       debug "Node #{self} is Enrolled in ALL its groups"
       changed
       notify_observers(self, :node_is_up)
@@ -814,7 +814,7 @@ class Node < MObject
     @rulesId = 1
     @rulesList = []
     @groups = Hash.new  # name of nodeSet groups this node belongs to
-    @groups["_ALL_"] = false
+    @groups["_ALLGROUPS_"] = false
     #@apps = Hash.new
     #@isUp = false
     @nodeStatus = STATUS_DOWN

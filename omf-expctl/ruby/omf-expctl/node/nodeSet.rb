@@ -141,7 +141,7 @@ class NodeSet < MObject
       end
     end
     super("set::#{@groupName}") # set debug name
-    if (groupName == :ALLGROUPS)
+    if (groupName == "_ALLGROUPS_")
       @nodeSelector = "*"
     else
       @nodeSelector = "#{@groupName}"
@@ -559,8 +559,8 @@ class NodeSet < MObject
       # Mount the local file to a URL on our webserver
       # ALERT: Should check if +rep+ actually exists
       url_dir="/data/#{srcPath.gsub('/', '_')}"
-      url="#{OMF::ExperimentController::Web.url()}#{url_dir}"
-      OMF::ExperimentController::Web.mapFile(url_dir, srcPath)
+      url="#{OMF::Common::Web.url()}#{url_dir}"
+      OMF::Common::Web.mapFile(url_dir, srcPath)
 
       procName = "exec:#{@@execsCount += 1}:loadData"
       send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_DATA,
@@ -592,7 +592,7 @@ class NodeSet < MObject
   #
   def send(cmdObj)
     notQueued = true
-    target = @groupName == :ALLGROUPS ? "*" : @nodeSelector.chomp(' ')
+    target = @groupName == "_ALLGROUPS_" ? "*" : @nodeSelector.chomp(' ')
     cmdObj.target = target
     @mutex.synchronize do
       if (!up?)

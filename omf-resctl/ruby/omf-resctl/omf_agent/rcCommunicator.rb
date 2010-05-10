@@ -152,9 +152,7 @@ class RCCommunicator < OmfCommunicator
   def send_reply(type, reason, info, original_request)
     reply = create_message(:cmdtype => type, :target => @@myName, 
                            :cmd => reason ,:message => info) 
-    reply.path = original_request.path if original_request.path != nil
-    reply.appID = original_request.appID if original_request.appID != nil
-    reply.value = original_request.value if original_request.value != nil
+    reply.merge(original_request)
     send_message(@@myECAddress, reply)
   end
 
@@ -213,7 +211,7 @@ class RCCommunicator < OmfCommunicator
 
   def dispatch_message(message)
     result = super(message)
-    if result && result.kind_of(Hash)
+    if result && result.kind_of?(Hash)
       send_reply(result[:success], result[:reason], result[:info], message)
       #send_error_reply("Failed to process command (Error: '#{result}')", 
       #                 message) 
