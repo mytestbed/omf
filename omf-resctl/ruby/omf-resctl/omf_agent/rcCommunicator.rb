@@ -1,7 +1,5 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
-#
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +49,7 @@ class RCCommunicator < OmfCommunicator
     @@myName = opts[:comms_name]
     @@sliceID = opts[:sliceID]
     @@expID = nil
+    @@myECAddress = nil
     @@myAliases = [@@myName, "*"]
     # 1 - Build my address for this slice 
     @@myAddr = create_address(:sliceID => @@sliceID, 

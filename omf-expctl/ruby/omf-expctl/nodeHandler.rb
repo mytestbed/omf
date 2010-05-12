@@ -58,6 +58,7 @@ require 'omf-common/web/webServer'
 require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
+require 'omf-expctl/event'
 require 'omf-expctl/web/tab/log/logOutputter'
 
 #require 'omf-expctl/web/tab/log/logServlet'

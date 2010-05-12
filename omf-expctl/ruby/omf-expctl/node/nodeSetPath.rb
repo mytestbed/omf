@@ -71,9 +71,11 @@ class NodeSetPath < MObject
   }
 
   #
-  # Create a new Path (i.e. NodeSetPath instance) for a given NodeSet, or from an already existing Path
+  # Create a new Path (i.e. NodeSetPath instance) for a given NodeSet, or 
+  # from an already existing Path
   #
-  # - obj = a NodeSet or NodeSetPath instance for/from which to create this new instance
+  # - obj = a NodeSet or NodeSetPath instance for/from which to create this 
+  #         new instance
   # - newLeaf = optional, add a new leaf to the NodeSetPath (default= nil)
   # - value = optional, set a value to this NodeSetPath (default= nil)
   # - block = optional, a block of command to execute (default= nil)

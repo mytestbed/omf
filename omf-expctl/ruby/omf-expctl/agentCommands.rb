@@ -33,7 +33,6 @@
 
 module AgentCommands
 
-
   #
   # Process 'OK' reply from the RC
   #
@@ -42,37 +41,25 @@ module AgentCommands
   # - reply = the reply to process
   #
   def AgentCommands.OK(controller, communicator, reply)
-    MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
-                  "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")
-    if reply.cmd == "ENROLLED"
-      sender = Node[reply.target]
-      # when we receive the first ENROLLED, send a NOOP message to the RC. 
-      # This is necessary since if RC is reset or restarted, it might
-      # receive the last ENROLL command again, depending on the kind of 
-      # transport being used. In any case, sending a NOOP would prevent this.
-      communicator.send_noop(reply.target) if !sender.isUp
-      sender.enrolled(reply)
+    sender = Node[reply.target]
+    okType = reply.cmd
+    message = reply.message
+    case okType
+      when 'ENROLLED'
+        # when we receive the first ENROLLED, send a NOOP message to the RC. 
+        # This is necessary since if RC is reset or restarted, it might
+        # receive the last ENROLL command again, depending on the kind of 
+        # transport being used. In any case, sending a NOOP would prevent this.
+        communicator.send_noop(reply.target) if !sender.isUp
+        sender.enrolled(reply)
+      when 'CONFIGURED'
+	# Reports the good news to our resource object
+        sender.configure(reply.path.split("/"), reply.value, "CONFIGURED.OK")
+      else 
+        MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
+                      "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")
     end
   end
-
-  #
-  # Process 'ENROLLED' reply from the RC
-  # The EC receives such a message when a RC has enrolled in a group for this
-  # experiment.
-  #
-  # - controller = the instance of this EC
-  # - communicator = the instance of this EC's communicator
-  # - reply = the reply to process
-  #
-  #def AgentCommands.ENROLLED(controller, communicator, reply)
-  #  sender = Node[reply.target]
-  #  # when we receive the first ENROLLED, send a NOOP message to the RC. 
-  #  # This is necessary since if RC is reset or restarted, it might
-  #  # receive the last ENROLL command again, depending on the kind of 
-  #  # transport being used. In any case, sending a NOOP would prevent this.
-  #  communicator.send_noop(reply.target) if !sender.isUp
-  #  sender.enrolled(reply)
-  #end
 
   #
   # Process 'WARN' reply from the RC
@@ -87,33 +74,6 @@ module AgentCommands
     MObject.warn("AgentCommands", "sender: '#{reply.target}' ('#{sender}') - "+
                  "msg: '#{reply.message}'")
   end
-
-  #
-  # Process 'WRONG_IMAGE' reply from the RC
-  # The EC receives such a message when a RC has an installed disk image which 
-  # is different from the one requested in the experiment description
-  # For now, the EC reset/reboot that node, and tries to enroll it again. When
-  # called within a LOAD experiment, this would trigger pxe booting and image 
-  # loading.
-  # (in the future, the EC should request AM to install the correct image)
-  #
-  # Note: This assumes that the communication scheme that this OMF deployment
-  # uses is actually keeping the last message addressed to a group for every 
-  # new meember of that group (i.e. subscribers). Thus there is no need to 
-  # send this enrolling message again. 
-  # If the underlying communication scheme does not have this behaviour, then 
-  # another enroll sequence will need to be started here.
-  #
-  # - controller = the instance of this EC
-  # - communicator = the instance of this EC's communicator
-  # - reply = the reply to process
-  #
-  #def AgentCommands.WRONG_IMAGE(controller, communicator, reply)
-  #  sender = Node[reply.target]
-  #  MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
-  #                "Desired: '#{sender.image}' - Installed: '#{reply.image}'")
-  #  sender.reset()
-  #end
 
   #
   # Process 'APP_EVENT' command from the RC 
@@ -173,7 +133,7 @@ module AgentCommands
       when 'FAILED_CONFIGURE'
 	reason = "Couldn't configure '#{reply.path}'"
         controller.logError(sender, reason, {:details => message})
-        sender.configure(reply.path.split("/"), reason, "error")
+        sender.configure(reply.path.split("/"), reason, "CONFIGURED.ERROR")
         lines << "The resource '#{sender}' reports that it failed to configure "
         lines << "the path '#{reply.path}'"
         lines << "The error message is '#{message}'" if message
@@ -243,5 +203,32 @@ module AgentCommands
     sender = Node[cmdObj.target]
     sender.heartbeat(0, 0, "00:00")
   end
+  
+  #
+  # Process 'WRONG_IMAGE' reply from the RC
+  # The EC receives such a message when a RC has an installed disk image which 
+  # is different from the one requested in the experiment description
+  # For now, the EC reset/reboot that node, and tries to enroll it again. When
+  # called within a LOAD experiment, this would trigger pxe booting and image 
+  # loading.
+  # (in the future, the EC should request AM to install the correct image)
+  #
+  # Note: This assumes that the communication scheme that this OMF deployment
+  # uses is actually keeping the last message addressed to a group for every 
+  # new meember of that group (i.e. subscribers). Thus there is no need to 
+  # send this enrolling message again. 
+  # If the underlying communication scheme does not have this behaviour, then 
+  # another enroll sequence will need to be started here.
+  #
+  # - controller = the instance of this EC
+  # - communicator = the instance of this EC's communicator
+  # - reply = the reply to process
+  #
+  #def AgentCommands.WRONG_IMAGE(controller, communicator, reply)
+  #  sender = Node[reply.target]
+  #  MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
+  #                "Desired: '#{sender.image}' - Installed: '#{reply.image}'")
+  #  sender.reset()
+  #end
 
 end

@@ -105,8 +105,8 @@ alias :property :prop
 # single argument.
 #
 # - refName = the name for this new topology
-# - nodeArray = optional, an array that defines the node to add in this topology
-# - &block = optional, a code-block containing commands that define this topology
+# - nodeArray = optional, an array with the node to add in this topology
+# - &block = optional, a block containing commands that define this topology
 #
 # [Return] the newly created Topology object
 #
@@ -143,10 +143,12 @@ end
 # use, or a set combining other sets.
 #
 # - groupName = name of this group of nodes
-# - selector = optional, this can be: a String refering to the name of an existing Topology, 
-#              or an Array with the name of existing Groups to add to this group, 
-#              or an Array explicitly describing the nodes to include in this group 
-# - &block = a code-block with commands, which will be executed on the nodes in this group
+# - selector = optional, this can be: a String refering to the name of an 
+#              existing Topology, or an Array with the name of existing 
+#              Groups to add to this group, or an Array explicitly describing 
+#              the nodes to include in this group 
+# - &block = a code-block with commands, which will be executed on the nodes 
+#            in this group
 #
 # [Return] a RootNodeSetPath object referring to this new group of nodes
 #
@@ -167,7 +169,8 @@ def defGroup(groupName, selector = nil, &block)
         # Selector is the name of an existing Topology (e.g. "myTopo")
         topo = Topology[selector]
         ns = BasicNodeSet.new(groupName, topo)
-	# This raises an exception if Selector does not refer to an existing Topology
+	# This raises an exception if Selector does not refer to an existing 
+        # Topology
       rescue
         # Selector is a comma-separated list of existing resources
         # These resources are identified by their HRNs
@@ -176,7 +179,7 @@ def defGroup(groupName, selector = nil, &block)
         topo = Topology.create(tname, selector.split(","))
         ns = BasicNodeSet.new(groupName, topo)
       end
-    # Selector is an Array of names of existing groups (e.g. ["group1","group2"])
+    # Selector is an Array of existing group names (e.g. ["group1","group2"])
     elsif selector.kind_of?(Array) && selector[0].kind_of?(String)
         ns = GroupNodeSet.new(groupName, selector)
     else
@@ -256,10 +259,13 @@ end
 #   'triggerValue'.
 #
 # - nodesSelector = the name of the group of nodes to test
-# - nodeTest = the test to perform on the nodes (i.e. an XPath to match against the node's state)
+# - nodeTest = the test to perform on the nodes (i.e. an XPath to match against
+#              the node's state)
 # - interval = the interval at which to perform the test (in sec, default=5)
-# - triggerValue = a value to compare any 'nodeTest' match with, see above description (default=nil)
-# - &block = the code-block to execute/evaluate against the nodes when the test returns 'true'
+# - triggerValue = a value to compare any 'nodeTest' match with, see above 
+#                  description (default=nil)
+# - &block = the code-block to execute/evaluate against the nodes when the test 
+#            returns 'true'
 #
 def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
   ns = NodeSet[nodesSelector]
@@ -278,29 +284,28 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
           info "  Stopping the Experiment now."
           info " "
           Experiment.done
-          sleep 2 # otherwise this loops again before the experiment stops, annoyingly reprinting the above msg
+          sleep 2 # otherwise this loops again before the experiment stops, 
+	          # annoyingly reprinting the above msg
         end
         res = false
         isUp = ns.up?
         #MObject.debug("whenAll::internal", "Checking ", ns, " up?: ", isUp)
         if isUp
           res = ns.inject(true) { |flag, node|
-            if flag
-              match = node.match(nodeTest)
-              #match.each{|e| e.write($stdout, 2)}
-	            if triggerValue == nil
-                flag = (match != nil && match.length > 0)
-              else
-                 match.each do |e|
-                   if (e.to_s != triggerValue.to_s) 
-		                 flag = false
-		               end
-                 end
-	            end
-              MObject.debug("whenAll::internal", "Not true for ", node) if !flag
-              #p "FLAG: #{flag}"
+          if flag
+            match = node.match(nodeTest)
+            #match.each{|e| e.write($stdout, 2)}
+            if triggerValue == nil
+              flag = (match != nil && match.length > 0)
+            else
+               match.each do |e|
+                 flag = false if (e.to_s != triggerValue.to_s) 
+               end
             end
-            flag
+            MObject.debug("whenAll::internal", "Not true for ", node) if !flag
+            #p "FLAG: #{flag}"
+          end
+          flag
           }
         end
         if res
@@ -323,6 +328,48 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
   }
 end
 
+def allEqual(array, value)
+  res = true
+  array.each { |v| res = false if v.to_s != value.to_s }
+  res
+end
+
+def oneEqual(array, value)
+  res = false
+  array.each { |v| res = true if v.to_s == value.to_s }
+  res
+end
+
+def defEvent(name, interval = 5, &block)
+  Event.new(name, interval , block)
+end
+
+def onEvent(name, &block)
+  # define some default events for user's convenience
+  case name
+    when :ALL_UP_AND_INSTALLED
+      defEvent(:ALL_UP_AND_INSTALLED) do |event|
+        node_status = allGroups.state("status", "value")
+        app_status = allGroups.state("apps/app/status", "value")
+        if allEqual(node_status, "UP") && allEqual(app_status, "INSTALLED.OK")
+          event.fire 
+	end
+      end
+    when :ALL_UP
+      defEvent(:ALL_UP) do |event|
+        node_status = allGroups.state("status", "value")
+        event.fire if allEqual(node_status, "UP")
+      end
+    when :ALL_INTERFACE_CONFIGURED
+      defEvent(:ALL_UP) do |event|
+        if_status = allGroups.state("net//", "status")
+	info "TDEBUG - #{if_status.join(" ")}"
+        event.fire if allEqual(if_status, "CONFIGURED.OK")
+      end
+  end
+  Event.associate_tasks_to_event(name, block)
+end
+
 #
 # This method is a 'syntactic sugar' around 'whenAll' when it is used if a
 # 'triggerValue' different of nil. See 'whenAll' method desrciption above.
@@ -336,15 +383,18 @@ end
 #
 # The 'nodeTest' argument should contain an XPath to match in the XML state 
 # tree of the nodes. The test for a given node will then return 'true' if no 
-# match is found OR if a match is found and its value is equal to 'triggerValue'. 
-# Thus the test will return 'false' if a match is found but its value is different 
-# from 'triggerValue'.
+# match is found OR if a match is found and its value equals 'triggerValue'. 
+# Thus the test will return 'false' if a match is found but its value is 
+# different from 'triggerValue'.
 #
 # - nodesSelector = the name of the group of nodes to test
-# - nodeTest = the test to perform on the nodes (i.e. an XPath to match against the node's state)
-# - triggerValue = a value to compare any 'nodeTest' match with, see above description 
+# - nodeTest = the test to perform on the nodes (i.e. an XPath to match against 
+#              the node's state)
+# - triggerValue = a value to compare any 'nodeTest' match with, see above 
+#                  description 
 # - interval = the interval at which to perform the test (in sec, default=5)
-# - &block = the code-block to execute/evaluate against the nodes when the test returns 'true'
+# - &block = the code-block to execute/evaluate against the nodes when the test 
+#            returns 'true'
 #
 def whenAllEqual(nodesSelector, nodeTest, triggerValue, interval = 5, &block)
   whenAll(nodesSelector, nodeTest, interval, triggerValue, &block)
@@ -352,17 +402,18 @@ end
 
 #
 # Execute 'block' when all nodes report to be up.
-# When the Node Handler (aka Experiment Controller) is invoked for an experiement that 
-# supports some temporary disconnection, it ignores any 'whenAllUp' command. Instead
-# the 'whenAllUp' commands will be interpreted by the 'slave' Node Handler, which will
-# be executed directly on the potentially disconnected node/resource.
+# When the Node Handler (aka Experiment Controller) is invoked for an 
+# experiement that supports some temporary disconnection, it ignores any 
+# 'whenAllUp' command. Instead the 'whenAllUp' commands will be interpreted 
+# by the 'slave' Node Handler, which will be executed directly on the 
+# potentially disconnected node/resource.
 #
 # - &block = the code-block to execute/evaluate against the nodes in 'up' state 
 #
 def whenAllUp(&block)
   # Check if this EC instance is set to run in Disconnection Mode
-  # If yes, then returned now because whatever is asked from this whenAll should be
-  # executed by the whenAll of the slave EC on the disconnected mode
+  # If yes, then returned now because whatever is asked from this whenAll 
+  # should be executed by the whenAll of the slave EC on the disconnected mode
   if NodeHandler.disconnectionMode?
     return
   end
@@ -371,22 +422,31 @@ end
 
 #
 # Execute 'block' when all nodes report all applications installed.
-# When the Node Handler (aka Experiment Controller) is invoked for an experiement that 
-# supports some temporary disconnection, it ignores any 'whenAllInstalled' command. Instead
-# the 'whenAllInstalled' commands will be interpreted by the 'slave' Node Handler, which will
-# be executed directly on the potentially disconnected node/resource.
+# When the Node Handler (aka Experiment Controller) is invoked for an 
+# experiement that supports some temporary disconnection, it ignores any 
+# 'whenAllInstalled' command. Instead the 'whenAllInstalled' commands will be 
+# interpreted by the 'slave' Node Handler, which will be executed directly on 
+# the potentially disconnected node/resource.
 #
 # - &block = the code-block to execute/evaluate against the 'installed' nodes 
 #
 def whenAllInstalled(&block)
   # Check if this EC instance is set to run in Disconnection Mode
-  # If yes, then returned now because whatever is asked from this whenAll should be
-  # executed by the whenAll of the slave EC on the disconnected mode
-  if NodeHandler.disconnectionMode?
-    return
-  end
+  # If yes, then returned now because whatever is asked from this whenAll 
+  # should be executed by the whenAll of the slave EC on the disconnected mode
+  return if NodeHandler.disconnectionMode?
   whenAllEqual("*", "apps/app/status/@value", "INSTALLED.OK", &block)
 end
+
+def whenAllConfigured(path, &block)
+  # Check if this EC instance is set to run in Disconnection Mode
+  # If yes, then returned now because whatever is asked from this whenAll 
+  # should be executed by the whenAll of the slave EC on the disconnected mode
+  return if NodeHandler.disconnectionMode?
+  pattern = path.gsub('.', '/')
+  whenAll("*", "#{pattern}/[@status='CONFIGURED.OK']", &block)
+end
+
 
 #
 # Periodically execute 'block' every 'interval' seconds until block
@@ -394,8 +454,10 @@ end
 #
 # - name = the name for this periodic action
 # - interval = interval at which to execute the action (in sec, default=60) 
-# - initial = optional, any initial conditions that will be passed to the Thread running this code-block 
-# - &block = the code-block to periodically execute/evaluate. This periodic task is stopped when block returns 'nil'
+# - initial = optional, any initial conditions that will be passed to the 
+#             Thread running this code-block 
+# - &block = the code-block to periodically execute/evaluate. This periodic 
+#            task is stopped when block returns 'nil'
 #
 def every(name, interval = 60, initial = nil, &block)
   Thread.new(initial) { |context|
@@ -408,7 +470,8 @@ def every(name, interval = 60, initial = nil, &block)
         end
       rescue Exception => ex
         bt = ex.backtrace.join("\n\t")
-        MObject.error("every(#{name})", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+        MObject.error("every(#{name})", 
+                      "Exception: #{ex} (#{ex.class})\n\t#{bt}")
       end
     end
     MObject.debug("every(#{name}): finishes")
@@ -450,7 +513,8 @@ end
 #
 # - x = x coordinate of the antenna 
 # - y = y coordinate of the antenna 
-# - precision = optional, how close to (x,y) does the antenna really have to be (default=nil)
+# - precision = optional, how close to (x,y) does the antenna really have to 
+#               be (default=nil)
 #
 # [Return] an Antenna object
 #

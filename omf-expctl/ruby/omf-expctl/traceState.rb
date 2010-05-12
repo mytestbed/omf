@@ -53,11 +53,13 @@ class TraceState < MObject
   # instance
   #
   # - name = name of the property to add or set the value
-  # - command = either ':new' to create a new property or ':set' to set the value of an existing one
-  # - option = a Hash with options. If command is ':new', options are ':id', ':description'. 
-  #            If command is ':set' option is 'value'
+  # - command = either ':new' to create a new property or ':set' to set the 
+  #             value of an existing one
+  # - option = a Hash with options. If command is ':new', options are ':id', 
+  #            ':description'. If command is ':set' option is 'value'
   #
-  # TODO: use ':value' instead of 'value' for the option key... need to modify rest of codes...
+  # TODO: use ':value' instead of 'value' for the option key... 
+  # need to modify rest of codes...
   #
   def self.property(name, command, options = {})
     if (command == :new)
@@ -75,12 +77,13 @@ class TraceState < MObject
   end
 
   #
-  # Log the value(s) of a tag of the TraceState instance status of the experiment. Create the tag if 
-  # it does not exist yet.
+  # Log the value(s) of a tag of the TraceState instance status of the 
+  # experiment. Create the tag if it does not exist yet.
   #
   # - arg = see description of 'command'
   # - command = if ':tags' then add new tags contained in 'arg'
-  #             else add a new tag with the name of 'command' and the values in 'arg'
+  #             else add a new tag with the name of 'command' 
+  #             and the values in 'arg'
   #
   def self.experiment(command, arg)
 
@@ -320,7 +323,8 @@ class TraceState < MObject
         end
         n[name] = comp
       else
-        debug("Tracing unknown node component '#{name}' for node '#{node}' (#{n.keys.join(':')})")
+        debug("Tracing unknown node component '#{name}' for node '#{node}' "+
+              "(#{n.keys.join(':')})")
         return nil
       end
     end
@@ -438,7 +442,8 @@ class NodeBuiltin < MObject
   def setStatus(status)
     TraceState.instance.setValue(@statusEl, status)
 #    @statusEl.text = status
-#    @statusEl.add_element('history', {'ts' => NodeHandler.getTS()}).text = status
+#    @statusEl.add_element('history', 
+#                          {'ts' => NodeHandler.getTS()}).text = status
   end
 
   def getIoEl()
@@ -557,7 +562,9 @@ class NodeApp < NodeBuiltin
   # @param node Node this application belongs to
   # @param procEl 'apps' element in state tree
   #
-  #  appEl = NodeApp.new(appCtxt.app.appDefinition, appCtxt.id, appCtxt.bindings, appCtxt.env, self, procEl)
+  #  appEl = NodeApp.new(appCtxt.app.appDefinition, appCtxt.id, 
+  #          appCtxt.bindings, appCtxt.env, self, procEl)
+  #
   def initialize(appCtxt, node, procEl)
     super(appCtxt.id, appCtxt.bindings, node, procEl,
             appCtxt.app.installable? ? "INSTALL_PENDING" : "INSTALLED.OK")

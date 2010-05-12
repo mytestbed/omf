@@ -383,6 +383,7 @@ class Node < MObject
     end
     ipExp(value)
     ipexp = ipExp?()
+    debug("Configure path '#{path}' with value '#{value}' - status: '#{status}'")
     TraceState.nodeConfigure(self, path, value, status)
   end
 

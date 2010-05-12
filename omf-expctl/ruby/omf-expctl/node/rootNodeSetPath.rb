@@ -41,7 +41,8 @@ class RootNodeSetPath < NodeSetPath
   # Add a new Prototype to the NodeSet associated with this Root Path
   #
   # - name = name of the Prototype to associate with the NodeSet of this Path
-  # - params = optional, a Hash with the bindings to be passed on to the Prototype instance (see Prototype.instantiate)
+  # - params = optional, a Hash with the bindings to be passed on to the 
+  #            Prototype instance (see Prototype.instantiate)
   #
   def prototype(name, params = nil)
     debug "Use prototype #{name}."
@@ -52,6 +53,20 @@ class RootNodeSetPath < NodeSetPath
     end
     p.instantiate(@nodeSet, params)
   end
+
+  def state(path, attribute)
+  result = Array.new
+  pattern = "#{path}/@#{attribute}"
+  @nodeSet.eachNode { |node|
+    match = node.match(pattern)
+    match.each { |e|
+      result << e.to_s
+    }
+  }
+  return nil if result.size == 0
+  return result
+  end
+
   
   #
   # Add a new Application to the NodeSet associated with this Root Path
@@ -72,31 +87,37 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # Trigger boot from PXE Image for the nodes in the NodeSet associated to this Root Path
+  # Trigger boot from PXE Image for the nodes in the NodeSet associated to 
+  # this Root Path
   #
-  # - image = PXE image to boot from. If 'image' is non-nil, then the nodes in the NodeSet will 
-  #           be configured to boot from that PXE image name over the network. If 'image' is set 
-  #           to 'nil' then the nodes will boot from their local disks. 
-  # - imageName = optional, name of image to check for. This optional name allows a node to verify 
-  #           at the time the nodes check in (i.e. after boot and NA-EC contact), if it really booted 
-  #           into the right image. The image name is stored in '/.orbit_image'
+  # - image = PXE image to boot from. If 'image' is non-nil, then the nodes 
+  #           in the NodeSet will be configured to boot from that PXE image 
+  #           name over the network. If 'image' is set to 'nil' then the nodes 
+  #           will boot from their local disks. 
+  # - imageName = optional, name of image to check for. This optional name 
+  #           allows a node to verify at the time the nodes check in (i.e. 
+  #           after boot and NA-EC contact), if it really booted into the right 
+  #           image. The image name is stored in '/.orbit_image'
   #
   def pxeImage(domain, pxeFlag)
     @nodeSet.pxeImage(domain, pxeFlag)
   end
 
   #
-  # Set the disk image to boot the nodes in the NodeSet associated to this Root Path.
+  # Set the disk image to boot the nodes in the NodeSet associated to this Root
+  # Path.
   #
-  # - image = Image to boot from. If it is set to 'nil' then the nodes boot from their local disks.
+  # - image = Image to boot from. If it is set to 'nil' then the nodes boot 
+  #           from their local disks.
   #
   def image=(image)
     @nodeSet.image = image
   end
 
   #
-  # Load an image onto the disk of each node in the NodeSet associated with this Root Path.
-  # This assumed that the nodes previously booted via PXE over the network.
+  # Load an image onto the disk of each node in the NodeSet associated with 
+  # this Root Path. This assumed that the nodes previously booted via PXE over 
+  # the network.
   #
   # - image = name of the disk image to load onto the nodes 
   # - domain = name of the domain of the nodes 
@@ -106,8 +127,9 @@ class RootNodeSetPath < NodeSetPath
   end
   
   #
-  # Stop an Image Server after loading an image onto the disks of each node in the NodeSet of this Root Path. 
-  # This assumed that the nodes previously booted via PXE over the network.
+  # Stop an Image Server after loading an image onto the disks of each node 
+  # in the NodeSet of this Root Path. This assumed that the nodes previously 
+  # booted via PXE over the network.
   #
   # - image = name of the disk image that was loaded onto the nodes 
   # - domain = name of the domain of the nodes 
@@ -117,8 +139,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # When every nodes in the NodeSet associated to this Root Path are in 'UP' state, 
-  # then Execute a block of commands for everyone of them 
+  # When every nodes in the NodeSet associated to this Root Path are in 'UP' 
+  # state, then Execute a block of commands for everyone of them 
   #
   # - &block = the block of commands to execute
   #
@@ -127,7 +149,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # Execute a block of commands for every nodes in the NodeSet associated to this Root Path.
+  # Execute a block of commands for every nodes in the NodeSet associated to 
+  # this Root Path.
   #
   # - &block = the block of commands to execute
   #
@@ -136,7 +159,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method calls inject over the nodes contained in the NodeSet associated to this Root Path.
+  # This method calls inject over the nodes contained in the NodeSet associated 
+  # to this Root Path.
   #
   # - seed = the initial value for the inject 'result'
   # - &block = the block of command to inject
@@ -146,7 +170,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method starts all Applications associated to the nodes in the NodeSet of this Root Path.
+  # This method starts all Applications associated to the nodes in the NodeSet 
+  # of this Root Path.
   #
   def startApplications()
     debug("Start all applications")
@@ -154,7 +179,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method start a given Application associated to the nodes in the NodeSet of this Root Path.
+  # This method start a given Application associated to the nodes in the 
+  # NodeSet of this Root Path.
   #
   # - name = name of the Application to start
   #
@@ -164,7 +190,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method stops all Applications associated to the nodes in the NodeSet of this Root Path.
+  # This method stops all Applications associated to the nodes in the NodeSet 
+  # of this Root Path.
   #
   def stopApplications()
     debug("Stop all applications")
@@ -172,7 +199,8 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method stops a given Application associated to the nodes in the NodeSet of this Root Path.
+  # This method stops a given Application associated to the nodes in the
+  # NodeSet of this Root Path.
   #
   # - name = name of the Application to stop
   #
@@ -192,7 +220,8 @@ class RootNodeSetPath < NodeSetPath
   end
   
   #
-  # This method enroll to the experiment all nodes in the NodeSet of this Root Path.
+  # This method enroll to the experiment all nodes in the NodeSet of this Root 
+  # Path.
   #
   def enroll()
     @nodeSet.eachUniqueNode { |n| n.enroll() }
