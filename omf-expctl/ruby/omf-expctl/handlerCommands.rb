@@ -345,28 +345,6 @@ def defEvent(name, interval = 5, &block)
 end
 
 def onEvent(name, &block)
-  # define some default events for user's convenience
-  case name
-    when :ALL_UP_AND_INSTALLED
-      defEvent(:ALL_UP_AND_INSTALLED) do |event|
-        node_status = allGroups.state("status", "value")
-        app_status = allGroups.state("apps/app/status", "value")
-        if allEqual(node_status, "UP") && allEqual(app_status, "INSTALLED.OK")
-          event.fire 
-	end
-      end
-    when :ALL_UP
-      defEvent(:ALL_UP) do |event|
-        node_status = allGroups.state("status", "value")
-        event.fire if allEqual(node_status, "UP")
-      end
-    when :ALL_INTERFACE_CONFIGURED
-      defEvent(:ALL_UP) do |event|
-        if_status = allGroups.state("net//", "status")
-	info "TDEBUG - #{if_status.join(" ")}"
-        event.fire if allEqual(if_status, "CONFIGURED.OK")
-      end
-  end
   Event.associate_tasks_to_event(name, block)
 end
 

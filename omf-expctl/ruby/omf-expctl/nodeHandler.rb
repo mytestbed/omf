@@ -436,6 +436,7 @@ class NodeHandler < MObject
     @interactive = false
     @doProfiling = false
     @extraLibs = 'system:exp:stdlib'
+    #@extraLibs = 'system:exp:stdlib,system:exp:eventlib'
     @logConfigFile = nil
     @finalStateFile = nil
     @webPort = 4000

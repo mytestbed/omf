@@ -34,28 +34,47 @@
 class Event < MObject
 
   @@events = Hash.new
-  @@eventFired = Hash.new
   @name = nil
-  @options = Hash.new
   attr_reader :name
+
+  def [](key)
+    return @@events[@name][:actionOptions][key]
+  end
+
+  def Event.[] (name)
+    return @@events[name]
+  end
 
   #
   # Event constructor
   #
   def initialize(name, interval = 5, &block)
     super("event::#{name}")
-    @@eventFired[name] = false
+    @name = name
+    @@events[@name] = {:instance => self, :interval = interval,
+                       :running => false, :fired => false, 
+                       :conditionBlock => block, 
+                       :actionBlocks => Queue.new, :actionOptions => Hash.new}
+  end
+
+  def start
     Thread.new(self) { |event|
       lines = Array.new
+      @@events[@name][:running] = true
       while Experiment.running?
         begin 
-          block.call(event)
-          if @@eventFired[name]
+	  conditionBlock = @@events[@name][:conditionBlock]
+          conditionBlock.call(event)
+          if @@events[@name][:fired]
             info "Event triggered. Starting the associated tasks."
             begin
-              taskBlock = @@events[name]
-              taskBlock.call(event) if taskBlock
-              info "No tasks associated to Event '#{name}'" if !taskBlock
+	      if !@@events[@name][:actionBlocks].empty?
+                while block = @@events[@name][:actionBlocks].pop
+                  block.call(event)
+                end
+              else
+                info "No tasks associated to Event '#{name}'" 
+              end
             rescue Exception => ex
               lines << "Failed to execute tasks associated with Event"
               lines << "Error (#{ex.class}): '#{ex}'"
@@ -67,7 +86,7 @@ class Event < MObject
             # done
             break
           end
-          Kernel.sleep(interval)
+          Kernel.sleep(@@events[@name][:interval])
         rescue Exception => ex
           lines << "Failed to create the new Event '#{name}'"
           lines << "Error (#{ex.class}): '#{ex}'"
@@ -81,21 +100,21 @@ class Event < MObject
   end
 
   def fire(options = nil)
-    @@eventFired[name] = true
-    @options = option if (options && options.kind_of?(Hash)) 
+    @@events[@name][:fired] = true
+    if (options && options.kind_of?(Hash)) 
+      @@events[@name][:actionOptions] = options 
+    end
   end
 
   def Event.associate_tasks_to_event(name, &block)
     return if !block
-    if @@events[name] 
-      MObject.warn("Event","Event '#{name}' already has some associated tasks")
-      MObject.warn("Event","The new defined tasks will overwrite the old ones")
+    if !@@events[name] 
+      MObject.warn("Event","Event '#{name}' does not exist! Cannot associate "+
+                   "a block of tasks to it!")
+      return
     end
-    @@events[name] = block
-  end
-
-  def [](key)
-    return @options[key]
+    @@events[@name][:actionBlocks] << block
+    @@events[@name][:instance].start if !@@events[@name][:running] 
   end
 
 end
