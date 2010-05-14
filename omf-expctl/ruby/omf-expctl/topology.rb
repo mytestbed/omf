@@ -438,7 +438,7 @@ class Topology < MObject
                   raise "Topology - #{e.get_text.value}"
                 }
               end
-	      ipDst=nodeDst.ipExp?()
+	      ipDst=nodeDst.ipExp?() #!!!! BROKEN!!!!
 	      values[0]= ipDst
 	      #Port filtered
 	      if (param[:portFilter] != nil)

@@ -51,7 +51,7 @@ class Event < MObject
   def initialize(name, interval = 5, &block)
     super("event::#{name}")
     @name = name
-    @@events[@name] = {:instance => self, :interval = interval,
+    @@events[@name] = {:instance => self, :interval => interval,
                        :running => false, :fired => false, 
                        :conditionBlock => block, 
                        :actionBlocks => Queue.new, :actionOptions => Hash.new}
@@ -113,8 +113,8 @@ class Event < MObject
                    "a block of tasks to it!")
       return
     end
-    @@events[@name][:actionBlocks] << block
-    @@events[@name][:instance].start if !@@events[@name][:running] 
+    @@events[name][:actionBlocks] << block
+    @@events[name][:instance].start if !@@events[name][:running] 
   end
 
 end

@@ -341,11 +341,11 @@ def oneEqual(array, value)
 end
 
 def defEvent(name, interval = 5, &block)
-  Event.new(name, interval , block)
+  Event.new(name, interval , &block)
 end
 
 def onEvent(name, &block)
-  Event.associate_tasks_to_event(name, block)
+  Event.associate_tasks_to_event(name, &block)
 end
 
 #

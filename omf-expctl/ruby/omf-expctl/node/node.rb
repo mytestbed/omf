@@ -150,9 +150,6 @@ class Node < MObject
   # ID of shadow xml node
   attr_reader :nodeId
   
-  # IP of interface for experiment
-  attr_writer :ipExp
-
   # Number of rules for TC
   attr_writer :rulesNb
 
@@ -381,30 +378,29 @@ class Node < MObject
       value.sub!(/%x/, @x.to_s)
       value.sub!(/%y/, @y.to_s)
     end
-    ipExp(value)
-    ipexp = ipExp?()
     debug("Configure path '#{path}' with value '#{value}' - status: '#{status}'")
     TraceState.nodeConfigure(self, path, value, status)
   end
 
+  # TODO - Remove this once Netem integration is fixed!
     #
     # Set the IP of the interface used for experiment.
     #   
     #   - ipExp = @ip of the interface
     #        
-  def ipExp(ip)
-    @ipExp = ip
-  end
-
+#  def ipExp(ip)
+#    @ipExp = ip
+#  end
+#
   #
   #  Return the Ip of the interface used for experiment
   #    
   #  [Return] @Ip
   #
-
-  def ipExp?()
-        return @ipExp
-  end
+#
+#  def ipExp?()
+#        return @ipExp
+#  end
 
 
   #

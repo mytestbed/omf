@@ -45,7 +45,7 @@ TEXT
   a.defProperty('server', 'Client/Server', 's', {:type => :boolean, :dynamic => false})
   a.defProperty('port', 'Sender port number', 'p', {:type => :integer, :dynamic => false})
   a.defProperty('window', 'TCP Send Window Size', nil, {:type => :integer, :dynamic => false})
-  a.defProperty('time', "Duration of traffic generation(secs)", nil, {:type => :integer, :dynamice => false})
+  a.defProperty('time', "Duration of traffic generation(secs)", nil, {:type => :integer, :dynamic => false})
   a.defProperty('bandwidth', "Offered load for UDP", 'b',  {:dynamic => false, :type => :integer})
   a.defProperty('parallel', "Number of parallel flows", nil, {:type => :integer, :dynamic => false})
   a.defProperty('interval', "Interval between reports (sec)", nil, {:type => :integer, :dynamic => false})
