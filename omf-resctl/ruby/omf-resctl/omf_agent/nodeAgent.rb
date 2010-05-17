@@ -36,7 +36,6 @@
 
 require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
-require "omf-common/omfCommandObject"
 require 'omf-resctl/omf_agent/rcCommunicator'
 require 'omf-resctl/omf_agent/agentCommands'
 
