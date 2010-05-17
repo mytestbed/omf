@@ -26,8 +26,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #++
 
-require 'omf-common/gratr/edge'
-require 'omf-common/gratr/graph'
+require 'gratr/edge'
+require 'gratr/graph'
 require 'set'
 
 module GRATR

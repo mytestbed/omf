@@ -25,7 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #++
 
-require 'omf-common/gratr'
+require 'gratr'
 
 # Pull all GRATR classes up into the current namespace
 Arc                  	= GRATR::Arc

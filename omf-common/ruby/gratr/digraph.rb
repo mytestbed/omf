@@ -26,13 +26,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #++
 
-require 'omf-common/gratr/edge'
-require 'omf-common/gratr/graph'
-require 'omf-common/gratr/search'
-require 'omf-common/gratr/adjacency_graph'
-require 'omf-common/gratr/strong_components'
-require 'omf-common/gratr/digraph_distance'
-require 'omf-common/gratr/chinese_postman'
+require 'gratr/edge'
+require 'gratr/graph'
+require 'gratr/search'
+require 'gratr/adjacency_graph'
+require 'gratr/strong_components'
+require 'gratr/digraph_distance'
+require 'gratr/chinese_postman'
 
 module GRATR
   #

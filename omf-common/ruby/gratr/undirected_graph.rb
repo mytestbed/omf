@@ -27,10 +27,10 @@
 #++
 
 
-require 'omf-common/gratr/adjacency_graph'
-require 'omf-common/gratr/search'
-require 'omf-common/gratr/biconnected'
-require 'omf-common/gratr/comparability'
+require 'gratr/adjacency_graph'
+require 'gratr/search'
+require 'gratr/biconnected'
+require 'gratr/comparability'
 require 'set'
 
 module GRATR

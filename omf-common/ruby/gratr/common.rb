@@ -26,8 +26,8 @@
 #++
 
 
-require 'omf-common/gratr/edge'
-require 'omf-common/gratr/graph'
+require 'gratr/edge'
+require 'gratr/graph'
 
 module GRATR
   # This class defines a cycle graph of size n

@@ -27,9 +27,9 @@
 #++
 
 
-require 'omf-common/gratr/edge'
-require 'omf-common/gratr/labels'
-require 'omf-common/gratr/graph_api'
+require 'gratr/edge'
+require 'gratr/labels'
+require 'gratr/graph_api'
 
 module GRATR
   GRATR_VERSION = "0.5.1"

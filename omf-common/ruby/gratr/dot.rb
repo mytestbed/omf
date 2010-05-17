@@ -30,7 +30,7 @@
 # rdot.rb is a modified version which also contains support for undirected
 # graphs.
 
-require 'omf-common/gratr/rdot'
+require 'gratr/rdot'
 
 module GRATR
   class Graph

@@ -26,7 +26,7 @@
 #++
 
 
-require 'omf-common/gratr/digraph_distance'
+require 'gratr/digraph_distance'
 
 module GRATR
 
