@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-# = agentCommands.rb
+# = ManagerCommands.rb
 #
 # == Description
 #
@@ -35,7 +35,7 @@
 require 'omf-common/mobject'
 require 'omf-common/execApp'
 
-module AgentCommands
+module ManagerCommands
 
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
 
@@ -48,7 +48,7 @@ module AgentCommands
   # - cmdObject = a Command Object holding all the information required to 
   #               create a sliver on this resource 
   #
-  def AgentCommands.CREATE_SLIVER(agent, cmdObject)
+  def ManagerCommands.CREATE_SLIVER(agent, cmdObject)
     sliceName = cmdObject.slicename
     resourceName = cmdObject.resname
     sliverType = cmdObject.slivertype
@@ -89,7 +89,7 @@ module AgentCommands
   # - cmdObject = a Command Object holding all the information required to 
   #               delete a sliver on this resource 
   #
-  def AgentCommands.DELETE_SLIVER(agent, cmdObject)
+  def ManagerCommands.DELETE_SLIVER(agent, cmdObject)
     sliceName = cmdObject.slicename
     resourceName = cmdObject.resname
     
@@ -115,7 +115,7 @@ module AgentCommands
   # - cmdObject = a Command Object holding all the information required to 
   #               execute this command 
   #
-  def AgentCommands.EXECUTE(agent, cmdObject)
+  def ManagerCommands.EXECUTE(agent, cmdObject)
     id = cmdObject.appID
 
     # Dump the XML description of the OML configuration into a file, if any
@@ -146,7 +146,7 @@ module AgentCommands
   # - cmdObject = a Command Object holding all the information required to 
   #               execute this command
   #
-  def AgentCommands.KILL(agent, cmdObject)
+  def ManagerCommands.KILL(agent, cmdObject)
     id = cmdObject.appID
     signal = cmdObject.value
     ExecApp[id].kill(signal)
@@ -163,7 +163,7 @@ module AgentCommands
   # - cmdObject = a Command Object holding all the information required to 
   #               execute this command
   #
-  def AgentCommands.EXIT(agent, cmdObject)
+  def ManagerCommands.EXIT(agent, cmdObject)
     id = cmdObject.appID
     begin
       # First try sending 'exit' on the app's STDIN
@@ -181,16 +181,32 @@ module AgentCommands
   end
 
   #
-  # Command 'RESET'
+  # Command 'RMCommunicator'
   #
-  # Reset this node agent
+  # RMCommunicator this node agent
   #
   # - agent = the instance of this NA
   # - cmdObject = a Command Object holding all the information required to 
   #               execute this command
   #
-  def AgentCommands.RESET(agent, cmdObject)
-    agent.reset
+  def ManagerCommands.RMCommunicator(agent, cmdObject)
+    agent.RMCommunicator
   end
 
 end
+
+# creating a sliver using OpenVZ:
+# 
+# echo 1 > /proc/sys/net/ipv4/ip_forward
+# vzctl create 1 --ostemplate ubuntu-10.04-minimal_10.04_i386
+# vzctl start 1
+# vzctl set 1 --ipadd 10.0.1.30
+# vzctl set 1 --nameserver 10.0.0.200
+# vzctl exec 1 omf-resctl-5.3 --name omf.nicta.node1_1 --slice omf.nicta.slice1 &
+# 
+# destroy sliver:
+# vzctl stop 1
+# vzctl destroy 1
+
+
+

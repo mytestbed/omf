@@ -39,15 +39,16 @@
 
 require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
-require "omf-common/omfCommandObject"
-require 'omf-resmgr/xmppCommunicator'
+require 'omf-common/omfCommunicator'
+require 'omf-common/omfProtocol'
+require 'omf-resmgr/rmCommunicator'
 require 'omf-resmgr/managerCommands'
 
 #
 # This class defines the Node Agent (NA) entity, which is a daemon
 # running on an experimental node.The NA listens for commands
 # from the Node Handler, and executes them on the node.
-# The module AgentCommands contains the list of commands that the NA 
+# The module ManagerCommands contains the list of commands that the NA 
 # understands.
 #
 class ResourceManager < MObject
@@ -86,7 +87,13 @@ class ResourceManager < MObject
     end
     info(VERSION_STRING)
     resetState
-    communicator.reset
+    comm =  Hash.new
+    comm[:comms_name] = @managerName
+    comm[:handler] = self
+    comm[:createflag] = false
+    comm[:config] = @config[:communicator]
+    RMCommunicator.instance.init(comm)
+    RMCommunicator.instance.reset
 
     @running = ConditionVariable.new
     if @interactive
@@ -179,7 +186,7 @@ class ResourceManager < MObject
     info "\n\n------------ RESET ------------\n"
     # ExecApp.killAll ## NOTE: do we want to kill of the started RC on reset ???
     resetState
-    communicator.reset
+    RMCommunicator.instance.reset
   end
 
   # 
@@ -195,7 +202,7 @@ class ResourceManager < MObject
   def cleanUp
     if @running != nil
       info("Cleaning: Disconnect from the PubSub server")
-      communicator.quit
+      RMCommunicator.instance.stop
       # info("Cleaning: Kill all previously started Applications")
       # ExecApp.killAll ## NOTE: do we want to kill of the started RC on reset ???
       info("Cleaning: Exit")
@@ -222,12 +229,27 @@ class ResourceManager < MObject
     # Communication Options 
     opts.on("--control-if IF",
       "Name of interface attached to the control and management network [#{@localIF}]") {|name|
-      @config[:comm][:control_if] = name
+      @config[:communicator][:control_if] = name
     }
-    opts.on("--xmpp-server HOST",
-      "Hostname or IP address of the XMPP server to connect to") {|name|
-      @config[:comm][:xmpp_server] = name
-    }
+    opts.on("--pubsub-gateway HOST",
+       "Hostname of the local PubSub server to connect to") {|name|
+         @config[:communicator][:pubsub_gateway] = name
+     }
+     opts.on("--pubsub-user NAME",
+       "Username for connecting to the local PubSub server (if not set, RC "+
+       "will register its own new user)") {|name|
+         @config[:communicator][:pubsub_user] = name
+     }
+     opts.on("--pubsub-pwd PWD",
+       "Password for connecting to the local PubSub server (if not set, RC "+
+       "will register its own new user)") {|name|
+         @config[:communicator][:pubsub_user] = name
+     }
+     opts.on("--pubsub-domain HOST",
+       "Hostname of the PubSub server hosting the Slice of this agent (if not "+
+       "set, RC will use the same server as the 'pubsub-gateway'") {|name|
+         @config[:communicator][:pubsub_domain] = name
+     }
     
     # Instance Options
     opts.on('--name NAME',
@@ -296,45 +318,6 @@ class ResourceManager < MObject
     
   end
 
-  #
-  # Return the instance of the Communicator module associated to this NA
-  #
-  # [Return] a Communicator object 
-  #
-  def communicator()
-    XMPPCommunicator.instance
-  end
-
-  #
-  # Execute a command received from the Eexperiment Controller
-  #
-  # - cmdObj = an Object holding all the information to execute a 
-  #            given command (name, parameters,...)
-  #
-  # TODO: for the moment this is only used when an XML EXECUTE command is 
-  # received, because we need to get the OML configuration (in XML). In the
-  # future, all comms between EC and RC should use this scheme, and this should
-  # be more clean.
-  #
-  def execCommand(cmdObj)
-  
-    debug "Processing '#{cmdObj.cmdType}' - '#{cmdObj.target}'"
-    method = nil
-    begin
-      method = AgentCommands.method(cmdObj.cmdType.to_s)
-    rescue Exception
-      error "Unknown method for command '#{cmdObj.cmdType}'"
-      errorReply("Unknown command", cmdObj) 
-      return
-    end
-    begin
-      reply = method.call(self, cmdObj)
-    rescue Exception => err
-      error "While executing #{cmdObj.cmdType}: #{err}"
-      errorReply("Execution Error (#{err})", cmdObj) 
-      return
-    end
-  end
 
 
   ################################################

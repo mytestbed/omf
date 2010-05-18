@@ -43,7 +43,7 @@ require "xmpp4r"
 require "xmpp4r/pubsub"
 require "xmpp4r/pubsub/helper/servicehelper"
 require 'omf-common/mobject'
-#Jabber::debug = true
+Jabber::debug = true
 
 #
 # This class subclasses 'Jabber::PubSub::ServiceHelper' because its 

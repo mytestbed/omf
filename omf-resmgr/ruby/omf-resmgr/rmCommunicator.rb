@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 #
-# = rcCommunicator.rb
+# = RMCommunicator.rb
 #
 # == Description
 #
@@ -31,7 +31,7 @@
 #
 require "omf-common/omfCommunicator"
 require "omf-common/omfProtocol"
-require 'omf-resctl/omf_agent/agentCommands'
+require "omf-resmgr/managerCommands"
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
@@ -40,113 +40,25 @@ require 'omf-resctl/omf_agent/agentCommands'
 # This Communicator is based on the Singleton design pattern.
 #
 
-class RCCommunicator < OmfCommunicator
+class RMCommunicator < OmfCommunicator
 
   def init(opts)
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
     @@myName = opts[:comms_name]
-    @@sliceID = opts[:sliceID]
-    @@expID = nil
-    @@myECAddress = nil
-    @@myAliases = [@@myName, "*"]
     # 1 - Build my address for this slice 
-    @@myAddr = create_address(:sliceID => @@sliceID, 
-                              :name => @@myName, 
+    @@myAddr = create_address(:name => @@myName, 
                               :domain => @@domain)
     # 3 - Set my lists of valid commands 
-    OmfProtocol::EC_COMMANDS.each { |cmd|
+    OmfProtocol::SLICEMGR_COMMANDS.each { |cmd|
       define_valid_command(cmd) { |handler, comm, message| 
-        AgentCommands.method(cmd.to_s).call(handler, comm, message) 
+        ManagerCommands.method(cmd.to_s).call(handler, comm, message) 
       }	
     }
     # 4 - Set my list of own/self commands
-    OmfProtocol::RC_COMMANDS.each { |cmd| define_self_command(cmd) }
+    OmfProtocol::RM_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
-
-  def listen_to_group(group)
-    addr = create_address(:sliceID => @@sliceID, :expID => @@expID, 
-                          :domain => @@domain, :name => group)
-    add_alias(group)
-    return listen(addr)
-  end
-
-  def listen_to_experiment(expID)
-    addr = create_address(:sliceID => @@sliceID, :expID => expID, 
-                          :domain => @@domain)
-    success = listen(addr)
-    @@expID = expID if success    
-    return success
-  end
-
-  def set_EC_address(ec_address = nil)
-    myEC = ec_address ? ec_address : @@myName
-    @@myECAddress = create_address(:sliceID => @@sliceID, :expID => @@expID, 
-                        :domain => @@domain, :name => myEC)
-  end
-
-  #
-  # Send an ENROLLED reply to the EC. 
-  # This is done when a ENROLL or ALIAS command has been successfully 
-  # processed.
-  #
-  # - aliases = a String with the names of all the groups within which we have 
-  #             enrolled
-  #
-  #def send_enrolled_reply(aliases = nil)
-  #  reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
-  #  reply.name = aliases if aliases != nil
-  #  send_message(@@myECAddress, reply)
-  #end
-
-  #
-  # Send an WRONG_IMAGE reply to the EC. 
-  # This is done when the current disk image of this RC is not the disk
-  # image requested by the EC.
-  #
-  #def send_wrong_image_reply
-  #  reply = create_message(:cmdtype => :WRONG_IMAGE, :target => @@myName, 
-  #                         :image => imageName) 
-  #  # 'WRONG_IMAGE' message goes even if we are not part of an Experiment yet!
-  #  # Thus we create directly the address 
-  #  addr = create_address(:name => @@myName, :sliceID => @@sliceID,
-  #                        :domain => @@domain)
-  #  send_message(addr, reply)
-  #end
-
-  #
-  # Send an OK reply to the EC. 
-  # This is done for some received EC commands that were executed successfully
-  # (e.g. a successful CONFIGURE executing)
-  #
-  # - info = a String with more info on the command execution
-  # - command = the command that executed successfully
-  #
-  #def send_ok_reply(info, command)
-  #  reply = create_message(:cmdtype => :OK, :target => @@myName, 
-  #                         :message => info, :cmd => command.cmdType.to_s) 
-  #  reply.path = command.path if command.path != nil
-  #  reply.value = command.value if command.value != nil
-  #  send_message(@@myECAddress, reply)
-  #end
-
-  #
-  # Send an ERROR reply to the EC. 
-  # This is done when an error occured while executing a received EC command
-  # (e.g. a problem when executing a CONFIGURE command)
-  #
-  # - info = a String with more info on the command execution
-  # - command = the command that failed to execute 
-  #
-  #def send_error_reply(info, command)
-  #  reply = create_message(:cmdtype => :ERROR, :target => @@myName, 
-  #                         :cmd => command.cmdType.to_s, :message => info) 
-  #  reply.path = command.path if command.path != nil
-  #  reply.appID = command.appID if command.appID != nil
-  #  reply.value = command.value if command.value != nil
-  #  send_message(@@myECAddress, reply)
-  #end
 
   def send_reply(type, reason, info, original_request)
     reply = create_message(:cmdtype => type, :target => @@myName, 
@@ -189,7 +101,7 @@ class RCCommunicator < OmfCommunicator
     end
     # Also listen to the generic resource address for this slice
     listening = false
-    addr = create_address(:sliceID => @@sliceID, :domain => @@domain) 
+    addr = create_address(:name => @@myName, :domain => @@domain) 
     while !listening
       listening = listen(addr)
       if !listening
@@ -240,15 +152,6 @@ class RCCommunicator < OmfCommunicator
     end
     # Accept this message
     return true
-  end
-
-  def add_alias(newAlias)
-    if (@@myAliases.index(newAlias) != nil)
-      debug("Alias '#{newAlias}' already registered.")
-    else
-      @@myAliases.insert(0, newAlias)
-    end
-    debug("Agent names #{@@myAliases.join(', ')}")
   end
 
 end

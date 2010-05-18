@@ -44,6 +44,8 @@ class OmfPubSubAddress < OmfAddress
       return experiment_node(@sliceID, @expID, @name)
     elsif @sliceID 
       return resource_node(@sliceID, @name)
+    elsif @name
+      return system_node(@name)
     else
       raise "OmfPubSubAddress - Cannot generate pubsub node from address "
             +"'#{self.to_s}'"

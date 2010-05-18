@@ -28,22 +28,24 @@
 # the OMF entities to communicate with each other
 #
 
-# 
-# This module defines some constants and attributes on the protocols used by
-# the OMF entities to communicate with each other
-#
 module OmfProtocol
 
   # Commands issued by the EC
   EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
-	                :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
+	                      :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                         :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
                         :RESTART, :ENROLL, :EXIT]
 
   # Commands issued by the RC
-  RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :HB, :WARN, 
+  RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :KILL, :WARN, 
                         :APP_EVENT, :DEV_EVENT, :ERROR, :END_EXPERIMENT]
+
+  # Commands issued by the RM
+  RM_COMMANDS = Set.new [:OK, :WARN, :ERROR]
+
+  # Commands issued by the Slice Manager
+  SLICEMGR_COMMANDS = Set.new [:CREATE_SLIVER, :DELETE_SLIVER, :EXECUTE, :KILL, :EXIT]
 
   # Commands issued by the OTHER
   OTHER_COMMANDS = Set.new [:XYZ]
@@ -54,6 +56,14 @@ module OmfProtocol
 
   def self.rc_cmd?(cmd) 
     return RC_COMMANDS.include?(cmd.to_s.upcase.to_sym) 
+  end
+
+  def self.rm_cmd?(cmd) 
+    return RM_COMMANDS.include?(cmd.to_s.upcase.to_sym) 
+  end
+
+  def self.slicemgr_cmd?(cmd) 
+    return SLICEMGR_COMMANDS.include?(cmd.to_s.upcase.to_sym) 
   end
 
   def self.other_cmd?(cmd)
