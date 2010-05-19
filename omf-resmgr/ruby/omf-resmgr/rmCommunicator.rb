@@ -24,7 +24,7 @@
 #
 # == Description
 #
-# This file implements a Publish/Subscribe Communicator for the Node Agent.
+# This file implements a Publish/Subscribe Communicator for the Resource Manager.
 # This PubSub communicator is based on XMPP. 
 # This current implementation uses the library XMPP4R.
 #
@@ -35,8 +35,6 @@ require "omf-resmgr/managerCommands"
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
-# The Node Agent (NA) aka Resource Controller will use this Communicator to 
-# send/receive messages to/from the Node Handler (EC) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
 
@@ -52,9 +50,9 @@ class RMCommunicator < OmfCommunicator
                               :domain => @@domain)
     # 3 - Set my lists of valid commands 
     OmfProtocol::SLICEMGR_COMMANDS.each { |cmd|
-      define_valid_command(cmd) { |handler, comm, message| 
-        ManagerCommands.method(cmd.to_s).call(handler, comm, message) 
-      }	
+      define_valid_command(cmd) { |handler, comm, message|
+        ManagerCommands.method(cmd.to_s).call(handler, comm, message)
+      }
     }
     # 4 - Set my list of own/self commands
     OmfProtocol::RM_COMMANDS.each { |cmd| define_self_command(cmd) }
@@ -87,7 +85,6 @@ class RMCommunicator < OmfCommunicator
 
   def reset
     super()
-    @@expID = nil
     @@myAliases = [@@myName, "*"]
     # Listen to my address - wait and try again until successfull
     listening = false
@@ -99,24 +96,11 @@ class RMCommunicator < OmfCommunicator
         sleep RETRY_INTERVAL
       end
     end
-    # Also listen to the generic resource address for this slice
-    listening = false
-    addr = create_address(:name => @@myName, :domain => @@domain) 
-    while !listening
-      listening = listen(addr)
-      if !listening
-        debug "Cannot listen on address: '#{@@myAddr}' - retry in "+
-              "#{RETRY_INTERVAL} sec."
-        sleep RETRY_INTERVAL
-      end
-    end
   end
 
   private
 
   def send_message(addr, message)
-    message.sliceID = @@sliceID
-    message.expID = @@expID
     super(addr, message)
   end
 
@@ -133,23 +117,17 @@ class RMCommunicator < OmfCommunicator
     # 1 - Perform common validations among OMF entities
     return false if !super(message) 
     # 2 - Perform RC-specific validations
-    # - Ignore messages for/from unknown Slice and Experiment ID
-    if (message.cmdType != :ENROLL) && (message.cmdType != :RESET) &&
-       ((message.sliceID != @@sliceID) || (message.expID != @@expID))
-      debug "Ignoring message with unknown slice "+
-            "and exp IDs: '#{message.sliceID}' and '#{message.expID}'" 
-      return false
-    end
     # - Ignore commands that are not address to us 
     # (There may be multiple space-separated targets)
-    dst = message.target.split(' ') 
-    forMe = false
-    dst.each { |t| forMe = true if @@myAliases.include?(t) }
-     if !forMe
-       debug "Ignoring command with unknown target "+
-             "'#{message.target}' - ignoring it!"
-       return false
-    end
+    # forMe = false
+    # 
+    # dst.each { |t| debug t }
+    # dst.each { |t| forMe = true if @@myName == t }
+    # if !forMe
+    #    debug "Ignoring command with unknown target "+
+    #          "'#{message.target}' - ignoring it!"
+    #    return false
+    # end
     # Accept this message
     return true
   end

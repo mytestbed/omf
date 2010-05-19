@@ -45,10 +45,10 @@ require 'omf-resmgr/rmCommunicator'
 require 'omf-resmgr/managerCommands'
 
 #
-# This class defines the Node Agent (NA) entity, which is a daemon
-# running on an experimental node.The NA listens for commands
-# from the Node Handler, and executes them on the node.
-# The module ManagerCommands contains the list of commands that the NA 
+# This class defines the Resource Manager (RM) entity, which is a daemon
+# running on an node.The RM listens for commands
+# from the Slice Manager, and executes them on the node.
+# The module ManagerCommands contains the list of commands that the RM 
 # understands.
 #
 class ResourceManager < MObject
@@ -268,7 +268,7 @@ class ResourceManager < MObject
     }
     opts.on("-n", "--just-print",
       "Print the commands that would be executed, but do not execute them") {
-      NodeAgent.JUST_PRINT = true
+      ResourceManager.JUST_PRINT = true
     }
     opts.on_tail("-h", "--help", "Show this message") { puts opts; exit }
     opts.on_tail("-v", "--version", "Show the version") {

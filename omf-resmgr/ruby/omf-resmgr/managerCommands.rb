@@ -45,21 +45,25 @@ module ManagerCommands
   # Create a Sliver on this resource for a given Slice 
   #
   # - agent = the instance of this RM
-  # - cmdObject = a Command Object holding all the information required to 
+  # - command = a Command Object holding all the information required to 
   #               create a sliver on this resource 
   #
-  def ManagerCommands.CREATE_SLIVER(agent, cmdObject)
-    sliceName = cmdObject.slicename
-    resourceName = cmdObject.resname
-    sliverType = cmdObject.slivertype
-    commAddress = cmdObject.commaddr 
-    commUser = cmdObject.commuser 
-    commPassword = cmdObject.commpwd 
+  def ManagerCommands.CREATE_SLIVER(controller, communicator, command)
+    sliceName = command.slicename
+    resourceName = command.resname
+    sliverType = command.slivertype
+    commAddress = command.commaddr 
+    commUser = command.commuser 
+    commPassword = command.commpwd 
     
     # Create the sliver ...
     if ResourceManager.instance.config[:manager][:sliver] != nil
       begin
-        sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym] 
+        #sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym] 
+        sliverCmd = 'echo 1 > /proc/sys/net/ipv4/ip_forward; vzctl create %RESOURCE_NAME% --ostemplate omf-5.3; 
+        vzctl start %RESOURCE_NAME%; vzctl set %RESOURCE_NAME% --ipadd 10.0.%RESOURCE_NAME%.30; 
+        vzctl set %RESOURCE_NAME% --nameserver 10.0.0.200; vzctl exec %RESOURCE_NAME% ifconfig venet0:0 10.0.%RESOURCE_NAME%.30; 
+        vzctl exec %RESOURCE_NAME% omf-resctl-5.3 --name omf.nicta.node30_%RESOURCE_NAME% --slice %SLICE_NAME% &'
         sliverCmd = sliverCmd.gsub(/%SLICE_NAME%/, sliceName)
         sliverCmd = sliverCmd.gsub(/%RESOURCE_NAME%/, resourceName)
         sliverCmd = sliverCmd.gsub(/%PUBSUB_ADDRESS%/, commAddress)
@@ -67,12 +71,10 @@ module ManagerCommands
         sliverCmd = sliverCmd.gsub(/%PUBSUB_PASSWORD%/, commPassword) if commPassword != nil
         MObject.debug("Creating a sliver (type: '#{sliverType}') with cmd: '#{sliverCmd}'") 
         sliverID = "#{sliceName}-#{resourceName}"
-        ExecApp.new(sliverID, agent, sliverCmd)
+        ExecApp.new(sliverID, controller, sliverCmd)
         msg = "Created Sliver for slice '#{sliceName}' on '#{resourceName}'"
-        agent.okReply(msg, cmdObject)
       rescue Exception => ex
         msg = "Failed creating Sliver for slice '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
-        agent.errorReply(msg, cmdObject)
       end
       MObject.debug(msg)
     else
@@ -86,25 +88,32 @@ module ManagerCommands
   # Delete a Sliver on this resource for a given Slice 
   #
   # - agent = the instance of this RM
-  # - cmdObject = a Command Object holding all the information required to 
+  # - command = a Command Object holding all the information required to 
   #               delete a sliver on this resource 
   #
-  def ManagerCommands.DELETE_SLIVER(agent, cmdObject)
-    sliceName = cmdObject.slicename
-    resourceName = cmdObject.resname
-    
-    # delete the sliver ...
-    sliverID = "#{sliceName}-#{resourceName}"
-    begin
-      ExecApp[sliverID].kill(sliverID, 15)
-      msg = "Deleted Sliver for '#{sliceName}' on '#{resourceName}'"
-      agent.okReply(msg, cmdObject)
-    rescue Exception => ex
-      msg = "Failed deleting Sliver for '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
-      agent.errorReply(msg, cmdObject)
+  def ManagerCommands.DELETE_SLIVER(controller, communicator, command)
+      sliceName = command.slicename
+      resourceName = command.resname
+      sliverType = command.slivertype
+
+      # Delete the sliver ...
+      if ResourceManager.instance.config[:manager][:sliver] != nil
+        begin
+          #sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym] 
+          sliverCmd = 'vzctl stop %RESOURCE_NAME%; vzctl destroy %RESOURCE_NAME%'
+          sliverCmd = sliverCmd.gsub(/%RESOURCE_NAME%/, resourceName)
+          MObject.debug("Deleting a sliver (type: '#{sliverType}') with cmd: '#{sliverCmd}'") 
+          sliverID = "#{sliceName}-#{resourceName}"
+          ExecApp.new(sliverID, controller, sliverCmd)
+          msg = "Deleted Sliver for slice '#{sliceName}' on '#{resourceName}'"
+        rescue Exception => ex
+          msg = "Failed deleting Sliver for slice '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
+        end
+        MObject.debug(msg)
+      else
+        MObject.debug("Missing :sliver section in config file. Don't know how to delete a sliver...")
+      end
     end
-    MObject.debug(msg)
-  end
 
   #
   # Command 'EXECUTE'
@@ -112,14 +121,14 @@ module ManagerCommands
   # Execute a program on the machine running this NA
   #
   # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
+  # - command = a Command Object holding all the information required to 
   #               execute this command 
   #
-  def ManagerCommands.EXECUTE(agent, cmdObject)
-    id = cmdObject.appID
+  def ManagerCommands.EXECUTE(controller, communicator, command)
+    id = command.appID
 
     # Dump the XML description of the OML configuration into a file, if any
-    if (xmlDoc = cmdObject.omlConfig) != nil
+    if (xmlDoc = command.omlConfig) != nil
       configPath = nil
       xmlDoc.each_element("omlc") { |omlc|
         configPath = "/tmp/#{omlc.attributes['exp_id']}-#{id}.xml"
@@ -132,9 +141,9 @@ module ManagerCommands
     end
 
     # Set the full command line and execute it
-    fullCmdLine = "env -i #{cmdObject.env} OML_CONFIG=#{configPath} #{cmdObject.path} #{cmdObject.cmdLineArgs}"
+    fullCmdLine = "env -i #{command.env} OML_CONFIG=#{configPath} #{command.path} #{command.cmdLineArgs}"
     MObject.debug "Executing: '#{fullCmdLine}'"
-    ExecApp.new(id, agent, fullCmdLine)
+    ExecApp.new(id, controller, fullCmdLine)
   end
 
   #
@@ -143,12 +152,12 @@ module ManagerCommands
   # Send a signal to a process running on this node
   #
   # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
+  # - command = a Command Object holding all the information required to 
   #               execute this command
   #
-  def ManagerCommands.KILL(agent, cmdObject)
-    id = cmdObject.appID
-    signal = cmdObject.value
+  def ManagerCommands.KILL(controller, communicator, command)
+    id = command.appID
+    signal = command.value
     ExecApp[id].kill(signal)
   end
 
@@ -160,11 +169,11 @@ module ManagerCommands
   # If no succes, then send a Kill signal to the process
   #
   # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
+  # - command = a Command Object holding all the information required to 
   #               execute this command
   #
-  def ManagerCommands.EXIT(agent, cmdObject)
-    id = cmdObject.appID
+  def ManagerCommands.EXIT(controller, communicator, command)
+    id = command.appID
     begin
       # First try sending 'exit' on the app's STDIN
       MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
@@ -180,33 +189,23 @@ module ManagerCommands
     end
   end
 
-  #
-  # Command 'RMCommunicator'
-  #
-  # RMCommunicator this node agent
-  #
-  # - agent = the instance of this NA
-  # - cmdObject = a Command Object holding all the information required to 
-  #               execute this command
-  #
-  def ManagerCommands.RMCommunicator(agent, cmdObject)
-    agent.RMCommunicator
-  end
-
 end
 
 # creating a sliver using OpenVZ:
 # 
 # echo 1 > /proc/sys/net/ipv4/ip_forward
-# vzctl create 1 --ostemplate ubuntu-10.04-minimal_10.04_i386
+# vzctl create 1 --ostemplate omf-5.3
 # vzctl start 1
 # vzctl set 1 --ipadd 10.0.1.30
 # vzctl set 1 --nameserver 10.0.0.200
-# vzctl exec 1 omf-resctl-5.3 --name omf.nicta.node1_1 --slice omf.nicta.slice1 &
+# vzctl exec 1 omf-resctl-5.3 --name omf.nicta.node30_1 --slice omf.nicta.slice1 &
 # 
 # destroy sliver:
 # vzctl stop 1
 # vzctl destroy 1
 
+
+
+# echo 1 > /proc/sys/net/ipv4/ip_forward; vzctl create 1 --ostemplate omf-5.3; vzctl start 1; vzctl set 1 --ipadd 10.0.1.30; vzctl set 1 --nameserver 10.0.0.200; vzctl exec 1 omf-resctl-5.3 --name omf.nicta.node30_1 --slice omf.nicta.slice1 &
 
 
