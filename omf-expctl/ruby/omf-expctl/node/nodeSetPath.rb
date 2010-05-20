@@ -88,16 +88,18 @@ class NodeSetPath < MObject
       @nodeSet = obj
       @path = Array.new
     else
-      raise "Argument needs to be either a NodeSet, or a NodeSetPath, but is #{obj.class.to_s}"
+      raise "Argument needs to be either a NodeSet, or a NodeSetPath, "+
+            "but is #{obj.class.to_s}"
     end
 
     if value != nil
-      #if newLeaf == nil || newLeaf[-1] != ?= 
       if newLeaf == nil 
         path = ""
         @path.each {|p| path = path + '/' +p.to_s}
-        raise "Missing assignment operator or argument for path '#{path}/#{newLeaf}'."
-        # NOTE: cannot call 'pathString' here cause @pathSubString has not been set yet!
+        raise "Missing assignment operator or argument for path "+
+              "'#{path}/#{newLeaf}'."
+        # NOTE: cannot call 'pathString' here cause @pathSubString has not 
+	# been set yet!
       end
       if newLeaf[-1] != ?=
         newLeaf = newLeaf[0 .. -1]
@@ -112,7 +114,6 @@ class NodeSetPath < MObject
 
     @pathSubString = @path.join('/')
     super(@pathSubString == "" ? "nodeSetPath" : "nodeSetPath::#{@pathSubString}")
-    #debug("Create nodeSetPath '", pathString, "' obj: #{obj.class}")
 
     if block != nil
       call &block
@@ -120,10 +121,11 @@ class NodeSetPath < MObject
     if value != nil
       if (@path.last.to_s == "enforce_link")
         @nodeSet.setLinkCharacteristics(@path, @value)
-        # If this EC is invoked with support for temporary disconnected node/resource, then 
-        # do not execute any node/resource configuration commands (this will be done by the
-        # slave EC running on the node/resource).
       elsif (NodeHandler.disconnectionMode? == false) 
+        # If this EC is invoked with support for temporary disconnected 
+	# node/resource, then do not execute any node/resource configuration 
+	# commands (this will be done by the slave EC running on the 
+	# node/resource).
         @nodeSet.configure(@path, @value)
       end
     # If the path is one that does not require a value (e.g. ip.down or ip.up)
@@ -135,8 +137,9 @@ class NodeSetPath < MObject
 
   #
   # This method calls a block of commands.
-  # If the block's arity is 1, this method passes this NodeSetPath instance as the argument to the block.
-  # If the block's arity is >1, this method raises an error.
+  # If the block's arity is 1, this method passes this NodeSetPath instance as 
+  # the argument to the block. If the block's arity is >1, this method raises 
+  # an error.
   #
   # - &block = a block of commands
   #
@@ -147,7 +150,8 @@ class NodeSetPath < MObject
       when 1
         block.call(self)
       else
-        raise "Block (#{block.arity}) for '" + pathString + "' requires zero, or one argument (|n|)"
+        raise "Block (#{block.arity}) for '" + pathString + "' requires zero,"+
+              " or one argument (|n|)"
     end
   end
 
@@ -161,19 +165,23 @@ class NodeSetPath < MObject
   end
 
   #
-  # This method parses a String describing a sub-Path to this Path, and create a new corresponding NodeSetPath instance.
-  # Note: We make use of Ruby's 'method_missing' feature to parse 'x.y.z' into a NodeSetPath 
+  # This method parses a String describing a sub-Path to this Path, and create 
+  # a new corresponding NodeSetPath instance.
+  # Note: We make use of Ruby's 'method_missing' feature to parse 'x.y.z' 
+  # into a NodeSetPath 
   #
   # - name = string with the sub-Path to parse
-  # - *args = argument given as value to this Path (always 0 or 1 argument, an error is raised if more arguments) 
-  # - &block = optional, a block of commands to pass on to the new NodeSetPath instance 
+  # - *args = argument given as value to this Path (always 0 or 1 argument, 
+  #           an error is raised if more arguments) 
+  # - &block = optional, a block of commands to pass on to the new NodeSetPath 
+  #            instance 
   #
   # [Return] a new NodeSetPath instance corresponding to the parsed String
   #
   def method_missing(name, *args, &block)
-    # puts "path(" + pathString + ") " + name.to_s + " @ " + args.to_s + " @ " + (block != nil ? block : nil).to_s
     if args.length > 1
-      raise "Assignment to '" + pathString + "/" + name.to_s + "' can only be a single parameter."
+      raise "Assignment to '" + pathString + "/" + name.to_s + "' can only be "+
+            "a single parameter."
     end
     name_s = name.to_s
     re = VALID_PATHS[name_s]
@@ -202,13 +210,13 @@ class NodeSetPath < MObject
   end
 
   # 
-  #  Set the Flag indicating that this Experiment Controller (EC) is invoked for an 
-  #  Experiment that support temporary disconnections
+  #  Set the Flag indicating that this Experiment Controller (EC) is invoked 
+  #  for an Experiment that support temporary disconnections
   #       
   def allowDisconnection
     # Check if EC is NOT in 'Slave Mode'
-    # When is 'Slave Mode' this mean there is already a Master EC which has its 'disconnection mode' set
-    # so we do nothing here
+    # When is 'Slave Mode' this mean there is already a Master EC which has 
+    # its 'disconnection mode' set so we do nothing here
     if !NodeHandler.SLAVE_MODE()
       NodeHandler.setDisconnectionMode()
       @nodeSet.switchDisconnectionON

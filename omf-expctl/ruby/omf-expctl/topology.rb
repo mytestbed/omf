@@ -33,9 +33,9 @@ require 'gratr/import.rb'
 require 'gratr/dot.rb'
 
 #
-# This class describes a topology which can be used by users/experimenters to describe 
-# the nodes used in their experiments. It also provides tools to enable the 
-# topology requested.
+# This class describes a topology which can be used by users/experimenters to 
+# describe the nodes used in their experiments. It also provides tools to 
+# enable the topology requested.
 #
 class Topology < MObject
 
@@ -46,8 +46,8 @@ class Topology < MObject
   #
   # - uri = URI identifying the topology
   #
-  # [Return] a Topology instance, or raise 'Unknown topology' if 'uri' does not identify an
-  #          existing topology
+  # [Return] a Topology instance, or raise 'Unknown topology' if 'uri' does 
+  # not identify an existing topology
   #
   def self.[](uriRaw)
     uri = uriRaw.delete("[]") # remove leading/trailing "[" "]"
@@ -70,8 +70,9 @@ class Topology < MObject
 
   #
   # This flag switch the use of the class Node when defining a topology.
-  # It should be set to 'true' when the Topology class is used with the NodeHandler,
-  # and to 'false' otherwise (e.g. when used in 'tellnode' and 'statnode' tools)
+  # It should be set to 'true' when the Topology class is used with the 
+  # NodeHandler, and to 'false' otherwise (e.g. when used in 'tellnode' and 
+  # 'statnode' tools)
   #
   # - flag = true or false
   #
@@ -158,8 +159,8 @@ class Topology < MObject
   end
 
   #
-  # Return the ith node in this Topology (using the order in which the nodes were
-  # added to this Topology)
+  # Return the ith node in this Topology (using the order in which the 
+  # nodes were added to this Topology)
   #
   # - index = the index of the node to return
   #
@@ -219,12 +220,15 @@ class Topology < MObject
   end
 
   #
-  # This method removes a link between the nodes that have the nodeName 'srcName' and 'dstName'
-  # The removed link may symmetric or asymmetric.
+  # This method removes a link between the nodes that have the nodeName 
+  # 'srcName' and 'dstName' The removed link may symmetric or asymmetric.
   #
-  # - srcName = name of the source node (as given by user when node was added to the Topology)
-  # - dstName = name of the destination node (as given by user when node was added to the Topology)
-  # - spec = optional, a Hash with the unique option { :asymmetric=> true/false } default='false'
+  # - srcName = name of the source node (as given by user when node was added 
+  #             to the Topology)
+  # - dstName = name of the destination node (as given by user when node was 
+  #             added to the Topology)
+  # - spec = optional, a Hash with the unique option 
+  #          { :asymmetric=> true/false } default='false'
   #
   def removeLink(srcName, dstName, spec = {})
     debug "removeLink() #{srcName} -> #{dstName} ('#{spec.to_s}')"
@@ -246,7 +250,8 @@ class Topology < MObject
       }
     end
     # Check if this type of link is compatible with previously added links
-    # i.e. a graph can only contain either symmetric or asymmetric links, not both
+    # i.e. a graph can only contain either symmetric or asymmetric links, 
+    # not both
     if (linkIsAsymmetric != @asymmetric)
       raise "Topology:removeLink() - Link '#{srcName}' to '#{dstName}' is incompatible. A Topology an only contain either symmetric or asymmetric links, not both"
     end
@@ -254,12 +259,17 @@ class Topology < MObject
   end
 
   #
-  # This method adds a link between the nodes that have the nodeName 'srcName' and 'dstName'
-  # The added link may have some specific parameters.
+  # This method adds a link between the nodes that have the nodeName 'srcName' 
+  # and 'dstName'. The added link may have some specific parameters.
   #
-  # - srcName = name of the source node (as given by user when node was added to the Topology)
-  # - dstName = name of the destination node (as given by user when node was added to the Topology)
-  # - spec = optional, a Hash with the link options, such as { :portFilter => 5001 :delay => "54ms", :loss=>"10%", :bw => "50kbit" :asymmetric=>true }, by default links are symmetric  
+  # - srcName = name of the source node (as given by user when node was added 
+  #             to the Topology)
+  # - dstName = name of the destination node (as given by user when node was 
+  #             added to the Topology)
+  # - spec = optional, a Hash with the link options, such as 
+  #          { :portFilter => 5001 :delay => "54ms", :loss=>"10%", 
+  #            :bw => "50kbit" :asymmetric=>true }, 
+  #          by default links are symmetric  
   #
   def addLink(srcName, dstName, spec = {})
     debug "addLink() #{srcName} -> #{dstName} ('#{spec.to_s}')"
@@ -271,7 +281,8 @@ class Topology < MObject
       initGraph()
     end
     # Check if this type of link is compatible with previously added links
-    # i.e. a graph can only contain either symmetric or asymmetric links, not both
+    # i.e. a graph can only contain either symmetric or asymmetric links, 
+    # not both
     if (linkIsAsymmetric != @asymmetric)
       raise "Topology:addLink() - Link '#{srcName}' to '#{dstName}' is incompatible. A Topology an only contain either symmetric or asymmetric links, not both"
     end
@@ -294,7 +305,6 @@ class Topology < MObject
  	  #update of others value in the specs
  	  linkSpec.merge!(spec)
 	  spec = linkSpec
-	  #spec values => flush  means removing all traffic shaping characteristics
 	  if (spec[:values].to_s == "flush")
 	    puts "flush flush"
 	    spec.each_key{|key|
@@ -315,15 +325,22 @@ class Topology < MObject
   end
 
   #
-  # This method selects nodes from this Topology that match a given feature set
+  # This method selects nodes from this Topology that match a given feature 
+  # set
   #
-  # - params = a Hash which contains the feature set to use for selection. Current supported features are
+  # - params = a Hash which contains the feature set to use for selection. 
+  #
+  # Current supported features are
   # - ':number' = number of node to select
-  # - ':name' = string pattern from which to derive each node's nodeName. Here %i% will be replaced by an increment count
-  # - ':method' = how to select the nodes among those with the required feature (only 'random' supported so far)
-  # - ':features' = another Hash which contains the set of features for the selection
+  # - ':name' = string pattern from which to derive each node's nodeName. 
+  #             Here %i% will be replaced by an increment count
+  # - ':method' = how to select the nodes among those with the required 
+  #               feature (only 'random' supported so far)
+  # - ':features' = another Hash which contains the set of features for the 
+  #                 selection
   #
-  # [Return] a list of selected nodes in a Hash, where 'key' is the node name, and 'value' is of the form [x,y]
+  # [Return] a list of selected nodes in a Hash, where 'key' is the node name, 
+  #          and 'value' is of the form [x,y]
   #
   def select(params = {})
     number = params[:number] || 1
@@ -348,16 +365,16 @@ class Topology < MObject
   end
 
   #
-  #This method will will go through all the nodes in this topology and create
-  #the correct rules for our traffic shaper
-  #- device = is the device to on which will be applied the rule
+  # This method will will go through all the nodes in this topology and create
+  # the correct rules for our traffic shaper
+  # - device = is the device to on which will be applied the rule
   #
-  #Until now, the only tool available is NetEM/Tc
-  # values[] = values of parameters for the action : values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange].  Value -1 = not set, 
+  # Until now, the only tool available is NetEM/Tc
+  # values[] = values of parameters for the action : 
+  # values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange].  Value -1 = not set, 
   #   except for portRange, 0 
   #     
   #
-
   def buildTCList(device)
     # Sanity check
     if (@graph == nil)
@@ -466,48 +483,53 @@ class Topology < MObject
     }
   end
 
+  def getNodeMacAddress(node, device)
+  end
 
   #
-  # This method will go through all the nodes in this topology and build/activate 
-  # the correct MAC address blacklists on each of them, according to the links 
-  # defined in the topology graph
+  # This method will go through all the nodes in this topology and 
+  # build/activate the correct MAC address blacklists on each of them, 
+  # according to the links defined in the topology graph
   #
-  # - device = is the device on which MAC blacklist should be set. Currently, we use 
-  #            the actual interface, e.g. "ath0". This will eventually be changed to 
-  #            be consistent with the device names used in the experiment definition
-  #            e.g. "w0" 
+  # - device = is the device on which MAC blacklist should be set. Currently, 
+  #            we use the actual interface, e.g. "ath0". This will eventually 
+  #            be changed to be consistent with the device names used in the 
+  #            experiment definition e.g. "w0" 
   # - tool =  software tool to use to implement the MAC blacklist
   #
   def buildMACBlackList(device, tool)
     # NOTE: When change 'ath0' to 'w0'
-    #       Nothing needs to be changed here, modifications will be in Inventory and nodeSet 
+    #       Nothing needs to be changed here, modifications will be in 
+    #       Inventory and nodeSet 
 
     # Sanity check
-    if (@graph == nil) 
-      raise "Cannot build MAC black-lists, no vertices/edges in this topology '#{@uri}'"
-    end
+    raise "Cannot build MAC black-lists, no vertices/edges in this topology "+
+          "'#{@uri}'" if !@graph 
     # First, we get all the MAC address in this topology
     allMAC = Set.new
     @graph.vertices.each { |source|
-      s   = eval(source[1])
+      s  = eval(source[1])
       # Query the INVENTORY gridservice for information on the source node
       mac = nil
-      url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?x=#{s[0]}&y=#{s[1]}&ifname=#{device}&domain=#{OConfig.domain}"
-      response = NodeHandler.service_call(url, "Can't get node information from INVENTORY")
+      url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?"+
+	    "x=#{s[0]}&y=#{s[1]}&ifname=#{device}&domain=#{OConfig.domain}"
+      response = NodeHandler.service_call(url, 
+                             "Can't get node information from INVENTORY")
       doc = REXML::Document.new(response.body)
       doc.root.elements.each("/MAC_Address/#{device}") { |e|
 	mac = e.get_text.value
       }
       # There are no information on the source node's device in the INVENTORY
-      # It does not make sense to continue, because we cannot physically implement
-      # this topology. Thus, we terminate the experiment.
-      if (mac == nil) 
+      # It does not make sense to continue, because we cannot physically 
+      # implement this topology. Thus, we terminate the experiment.
+      if !mac
         doc.root.elements.each('/MAC_Address/ERROR') { |e|
           error "Topology - #{e.get_text.value}"
-	  raise "Topology - #{e.get_text.value}"
+	  raise "Cannot get MAC addresses to build a Topology - "+
+	        "'#{e.get_text.value}'"
         }
       end
-      MObject.info "From Inventory - x: #{s[0]} - y: #{s[1]} - mac: #{mac}"
+      debug "From Inventory - x: #{s[0]} - y: #{s[1]} - mac: #{mac}"
       allMAC.add(mac)
       node = Node[s[0],s[1]]
       node.setMAC(mac)
@@ -519,7 +541,8 @@ class Topology < MObject
       node = Node[s[0],s[1]]
       node.setBlockedMACList(allMAC)
     }
-    # Then, we build the MAC filtering tables on each Node by removing any allowed MAC
+    # Then, we build the MAC filtering tables on each Node by removing any 
+    # allowed MAC
     @edges = getGraphEdges(@graph)
     @graph.vertices.each { |source|
       s   = eval(source[1])

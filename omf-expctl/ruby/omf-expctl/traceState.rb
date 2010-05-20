@@ -168,10 +168,11 @@ class TraceState < MObject
   # - status = the new status for this attribut
   #
   def self.nodeConfigure(node, name, value, status)
-    name << "status"
-    key = "cfg:#{name}status"
+    key = "cfg:#{name}"
     el = self.instance.getNodeComponent(node, key, name)
-    el.attributes['status'] = status
+    current = el.get_elements("current").first
+    raise "Cannot get '#{name}' state for the resource '#{node}'" if !current
+    current.attributes['status'] = status
     instance.setValue(el, value, {'status' => status})
   end
 
@@ -344,6 +345,7 @@ class TraceState < MObject
       end
       parent = el
     }
+    el.add_element("current")
     return el
   end
 

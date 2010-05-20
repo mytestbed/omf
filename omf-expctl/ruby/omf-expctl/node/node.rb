@@ -139,7 +139,7 @@ class Node < MObject
     return true
   end
 
-  attr_reader :nodeId, :MAC
+  attr_reader :nodeId
 
   # True if node is up, false otherwise
   #attr_reader :isUp
@@ -215,36 +215,6 @@ class Node < MObject
     doc.root.elements.each("/CONTROL_IP") { |v|
        return v.get_text.value
     }
-  end
-
-  #
-  # Set a MAC address attribute for this node
-  #
-  # - mac = mac address to set
-  #
-  def setMAC(mac)
-    @MAC = mac
-  end
-
-  #
-  # Set the list of MAC address that this Node object should ignore 
-  # (MAC filtering)
-  #
-  # - macList =  list of the MAC addresses to ignore/blacklist
-  #
-  def setBlockedMACList(macList)
-    macList.each { |m|
-      @blockedMACList.add(m)
-    }
-  end
-
- #
- # Remove a given MAC address from the blacklist of this Node
- #
- # - macAddr = the MAC address to remove
- #
-  def removeBlockedMAC(macAddr)
-    @blockedMACList.delete(macAddr)
   end
 
  #
@@ -818,7 +788,6 @@ class Node < MObject
     #@senderSeq = 0
     @execs = Hash.new
     @blockedMACList = Set.new
-    @MAC = nil
     @deferred = []
 
     @@nodes[name] = self
