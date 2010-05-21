@@ -111,25 +111,6 @@ class Topology < MObject
   end
   
   #
-  # This method returns 'true' if a given node is in at least one of 
-  # the known topologies
-  #
-  # - x = coordinate of the node to remove
-  # - y = coordinate of the node to remove
-  #
-  # [Return] true or false
-  #
-  def self.hasNode(x, y)
-    response = false
-    @@topologies.values.each {|t|
-      if (t.hasNode(x, y))
-        response = true
-      end
-    }
-    return response
-  end
-
-  #
   # This method is an alias for 'Topology[uri]'
   #
   # - uri = URI identifying the topology
@@ -151,12 +132,9 @@ class Topology < MObject
   # - label = name of the node to return, as given by the user/experimenter 
   #           when it was added to this Topology
   #
-  # [Return] an array of the form [x,y]
+  # [Return] the name of the resource with that label
   #
-  def getNodeByLabel(label)
-    theNode = eval(@mapping[label])
-    return @nodesArr[theNode[0]][theNode[1]] 
-  end
+  def getNodeByLabel(label) return @mapping[label]; end
 
   #
   # Return the ith node in this Topology (using the order in which the 
@@ -164,9 +142,9 @@ class Topology < MObject
   #
   # - index = the index of the node to return
   #
-  # [Return] an array of the form [x,y]
+  # [Return] the name of the resource with that index
   #
-  def getNode(index)
+  def getNodeByIndex(index)
     count = 0
     @nodes.each { |n|
       return n if count == index
@@ -178,23 +156,23 @@ class Topology < MObject
   #
   # Return the first node that was added to this Topology
   #
-  # [Return] an array of the form [x,y]
+  # [Return] the name of the resource
   #
-  def getFirstNode() getNode(0); end
+  def getFirstNode() getNodeByIndex(0); end
 
   #
   # Return the last node that was added to this Topology
   #
-  # [Return] an array of the form [x,y]
+  # [Return] the name of the resource
   #
-  def getLastNode() getNode(size-1); end
+  def getLastNode() getNodeByIndex(size-1); end
 
   #
   # Return a random node from this Topology
   #
-  #2Y [Return] an array of the form [x,y]
+  # [Return] the name of the resource
   #
-  def getRandomNode() r = rand(@nodes.size); getNode(r); end
+  def getRandomNode() r = rand(@nodes.size); getNodeByIndex(r); end
 
   #
   # This method returns a random node that has not been previously drawn and 
@@ -202,19 +180,20 @@ class Topology < MObject
   # method returns nil if there are no more available nodes (i.e. all 
   # selected by previous calls of this method).
   #
-  # [Return] an array of the form [x,y]
+  # [Return] the name of the resource
   #
-  def getUniqueRandomNode()
+  def getUniqueRandomNode
     if ((@randomCount < size()) && (size() > 0))
-        r = getRandomNode()
+        r = getRandomNode
         while @randomSet.include?(r)  
-          r = getRandomNode()
+          r = getRandomNode
         end 
         @randomSet.add(r)
         @randomCount = @randomCount + 1
         return r
     else
-      info "WARNING - Topology: #{@uri} - getUniqueRandomNode() called, but no more available nodes!"
+      warn "Cannot draw any more random resource for the Topology: "+
+           "'#{@uri}'. No more available resources." 
       return nil
     end
   end
@@ -231,7 +210,7 @@ class Topology < MObject
   #          { :asymmetric=> true/false } default='false'
   #
   def removeLink(srcName, dstName, spec = {})
-    debug "removeLink() #{srcName} -> #{dstName} ('#{spec.to_s}')"
+    debug "Removing link '#{srcName}' -> '#{dstName}' (specs '#{spec.to_s}')"
     linkIsAsymmetric = spec[:asymmetric] || false
     # Check if this is the first call to 'removeLink' for this topology
     # If so, then initialize a new graph
@@ -253,9 +232,13 @@ class Topology < MObject
     # i.e. a graph can only contain either symmetric or asymmetric links, 
     # not both
     if (linkIsAsymmetric != @asymmetric)
-      raise "Topology:removeLink() - Link '#{srcName}' to '#{dstName}' is incompatible. A Topology an only contain either symmetric or asymmetric links, not both"
+      raise "Topology:removeLink() - Cannot remove link '#{srcName}' -> "+
+            "'#{dstName}'. Its specifications are incompatible with this "
+            "topology. A Topology can only contain either symmetric or "+
+            "asymmetric links, not both."
     end
-    @graph.remove_edge!([srcName,@mapping[srcName]],[dstName,@mapping[dstName]])
+    @graph.remove_edge!([srcName,@mapping[srcName]],
+                        [dstName,@mapping[dstName]])
   end
 
   #
@@ -272,7 +255,7 @@ class Topology < MObject
   #          by default links are symmetric  
   #
   def addLink(srcName, dstName, spec = {})
-    debug "addLink() #{srcName} -> #{dstName} ('#{spec.to_s}')"
+    debug "Adding link '#{srcName}' -> '#{dstName}' (specs '#{spec.to_s}')"
     linkIsAsymmetric = spec[:asymmetric] || false
     # Check if this is the first call to 'addLink' for this topology
     # If so, then initialize a new graph
@@ -284,25 +267,28 @@ class Topology < MObject
     # i.e. a graph can only contain either symmetric or asymmetric links, 
     # not both
     if (linkIsAsymmetric != @asymmetric)
-      raise "Topology:addLink() - Link '#{srcName}' to '#{dstName}' is incompatible. A Topology an only contain either symmetric or asymmetric links, not both"
+      raise "Topology:addLink() - Cannot add link '#{srcName}' -> "+
+            "'#{dstName}'. Its specifications are incompatible with this "
+            "topology. A Topology can only contain either symmetric or "+
+            "asymmetric links, not both."
     end
     @edges = getGraphEdges(@graph)
     source = [srcName,@mapping[srcName]]
     dstCompare = [dstName,@mapping[dstName]]
     @graph.adjacent(source).each { |dest|
       if (@graph.edge?(source,dest))
-        # check if there is already a link set between this source and this dest
+        # check if there is already a link set between source and dest
         if (dest.to_s == dstCompare.to_s)
-	  #update of the link (spec ...)
+	  # update of the link (spec ...)
 	  linkSpec = @edges[source+dest].label
-	  #update of a rule, which means update of a hash in a hash
+	  # update of a rule, which means update of a hash in a hash
 	  spec.each_key{|key|
 	    if(spec[key].kind_of? Hash and linkSpec[key].kind_of? Hash)
               linkSpec[key] = linkSpec[key].merge!(spec[key])
 	      spec.delete(key)
             end
 	  }
- 	  #update of others value in the specs
+ 	  # update of others value in the specs
  	  linkSpec.merge!(spec)
 	  spec = linkSpec
 	  if (spec[:values].to_s == "flush")
@@ -315,13 +301,14 @@ class Topology < MObject
           end
         end
         if (isSpecificationCompatible(spec, linkSpec) == false)
-          raise "Topology:addLink() - Link '#{srcName}' to '#{dstName}' is incompatible with previous links" 
+          raise "Topology:addLink() - Link '#{srcName}' to '#{dstName}' is "+
+                "incompatible with previous links" 
         end
       end
     }
-    puts spec.to_s
     # This link is OK, add it to the graph of this topology
-    @graph.add_edge!([srcName,@mapping[srcName]],[dstName,@mapping[dstName]],spec)
+    @graph.add_edge!([srcName,@mapping[srcName]],
+                     [dstName,@mapping[dstName]],spec)
   end
 
   #
@@ -347,7 +334,8 @@ class Topology < MObject
     namePattern = params[:name] || "nodeName%i%"
     method = params[:method] || :random
     features = params[:features] || nil
-    debug "select(): number: #{number} - name: #{namePattern} - method: #{method} - features: '#{features}'"
+    debug "select: number: #{number} - name: #{namePattern} - "+
+          "method: #{method} - features: '#{features}'"
     nameList = Set.new
     for i in (1..number)
       nameList << namePattern.gsub(/%i%/, "#{i}")
@@ -359,9 +347,126 @@ class Topology < MObject
       # First generate a sub Topologoy which only has nodes having ':features'
       # Then select nodes from that sub Topology, but with ':feature=>nil'
       topoWithFeature =  subTopologyWithFeatures(features)
-      mapping = topoWithFeature.select( :number => number, :method => method, :name => namePattern )
+      mapping = topoWithFeature.select(:number => number, :method => method, 
+                                       :name => namePattern )
     end
     return mapping
+  end
+
+  #
+  # This method saves this Topology's graph in a '.dot' file, which
+  # is readable by drawing software such as graphViz. The output graph
+  # file is saved with the name: 'ExperimentID-Graph.dot'
+  #
+  def saveGraphToFile()
+    @graph.write_to_graphic_file("jpg","#{Experiment.ID}-Graph")
+    info "Associated Graph saved in: #{Experiment.ID}-Graph"
+  end
+
+  #
+  # This method executes a block of commands for every node in this Topology
+  #
+  # - &block = the block of commands to execute
+  #
+  def eachNode(&block) @nodes.each(&block); end
+
+  #
+  # This method calls inject over the nodes contained in this set
+  #
+  # - seed = optional, default=nil
+  # - &block = a block of commands
+  #
+  def inject(seed = nil, &block) @nodes.inject(seed, &block); end
+
+  #
+  # This method adds a node to this topology. This method supports the 
+  # following syntax option:
+  # 'addNode("name")' will add node with the name 'name'
+  # 'addNode("label", "name")' will add node with name 'name' and give it an 
+  # alias 'label' 
+  # 'addNode(aNode)' will add the node in the object 'aNode' of type Node.
+  #
+  # - *params = the definition of the node to add 
+  # 
+  def addNode(*params)
+    if (params.size == 2) && 
+       params[0].kind_of?(String) && (params[1].kind_of?(String))
+      addMapping(["#{params[0]}","#{params[1]}"])
+      addNodeByName(params[1])
+    elsif (params.size == 1) && (params[0].kind_of?(String))
+      addMapping(["#{params[0]}","#{params[0]}"])
+      addNodeByName(params[0])
+    elsif (params.size == 1) && (params[0].kind_of?(Node))
+      addMapping(["#{params[0].name}","#{params[0].name}"])
+      addNodeByName(params[0].name)
+    else
+      raise("addNode() - Cannot add node, unknown argument '#{params}'")
+    end
+  end
+
+  def addNodeByName(name)
+    begin
+      # Check if EC is in 'Slave Mode' - If so, only add the node on which 
+      # this EC is running as slave
+      if NodeHandler.SLAVE_MODE() 
+        if (name != NodeHandler.instance.slaveNodeName)  
+          info "Slave Mode on '#{NodeHandler.instance.slaveNodeName}', "+
+               "thus ignoring node '#{name}'"
+          return 
+        end
+      end
+      # When Topology is not used with a NodeHandler, do not use the Node class
+      n = (@@useNodeClass) ? Node.at!(name) : name
+      @nodes.add(n)
+    rescue ResourceException => re
+      if @strict
+        raise "Topology - Failed to add resource '#{name}' to topology "+
+              "'#{uri}' ('strict' flag set, thus no change allowed) - #{re}"
+      else
+        warn "Cannot find missing resource '#{name}', ignoring it"
+      end
+    end
+  end
+
+  #
+  # This method removes a node at coordinates x and y
+  #
+  # - node = the Node (object) to remove 
+  #
+  def removeNode(node)
+    if @strict
+      raise "Topology - failed to remove node '#{node}' from topology "+
+            "'#{uri}'. No topology change allowed (flag 'strict' set)"
+    end
+    @nodes.delete(n) if ((n = Node[node.nodeId]) != nil)
+  end
+
+  #
+  # This method adds a group of nodes to this topology.
+  #
+  # - nodes = the group of nodes to add. It can be either: a Hash, 
+  #           which contains the mapping 'node name' to '[x,y]'. Each 
+  #           element of this Hash is of the form key="node name" 
+  #           and value="[x,y]" (with value as a String!). Or: an Array, 
+  #           which contains the declaration of a node or a group of nodes
+  # 
+  def addNodes(nodes)
+    # Option 1: 'nodes' is a Hash
+    if nodes.kind_of?(Hash) 
+      nodes.each { |k,v|
+        addNode(k,eval(v))
+      }
+      return
+    end
+    # Sanity Check
+    if ! nodes.kind_of?(Array)
+      raise "Parameter to 'addNodes' need to be of type Array, but is "+
+            "#{nodes.class.to_s}."
+    end
+    # Option 2: 'nodes' is an Array
+    nodes.each {|n|
+      addNodes(n)
+    }
   end
 
   #
@@ -566,256 +671,9 @@ class Topology < MObject
     }
   end
 
-  #
-  # This method saves this Topology's graph in a '.dot' file, which
-  # is readable by drawing software such as graphViz. The output graph
-  # file is saved with the name: 'ExperimentID-Graph.dot'
-  #
-  def saveGraphToFile()
-    @graph.write_to_graphic_file("jpg","#{Experiment.ID}-Graph")
-    info "Associated Graph saved in: #{Experiment.ID}-Graph"
-  end
-
-  #
-  # This method executes a block of commands for every node in this Topology
-  #
-  # - &block = the block of commands to execute
-  #
-  def eachNode(&block)
-    @nodes.each(&block)
-  end
-
-  #
-  # This method calls inject over the nodes contained in this set
-  #
-  # - seed = optional, default=nil
-  # - &block = a block of commands
-  #
-  def inject(seed = nil, &block)
-    @nodes.inject(seed, &block)
-  end
-
-  #
-  # Return the value of the 'strict' flag for this Topology
-  # If a topology is strict an Exception is called when something
-  # tries to modify it, i.e. by adding/removing nodes. For example,
-  # when a node fails to start up, EC will try to remove it from 
-  # this topology, which will raise an exception if 'strict' is set
-  #
-  # [Return] true/false
-  #
-  def strict?() return @strict; end
-
-  #
-  # Set the 'strict' flag for this Topology. See 'strict?' for more info
-  #
-  def setStrict() @strict = true; end
-
-  #
-  # Unset the 'strict' flag for this Topology. See 'strict?' for more info
-  #
-  def unsetStrict() @strict = false; end
-
-  #
-  # This method adds a node to this topology. This method supports the following syntax option:
-  # 'addNode(x, y)' will add node at coordinate x,y.
-  # 'addNode("name", [x,y])' will add node at coordinate x,y and associates 'name' to it. 
-  # 'addNode(aNode)' will add the node in the object 'aNode' of type Node.
-  #
-  # - *params = the definition of the node to add 
-  # 
-  def addNode(*params)
-    ## - addNode(x, y)
-    #if (params.size() == 2) && (params[0].kind_of?(Integer)) && (params[1].kind_of?(Integer))
-    #  x = params[0]
-    #  y = params[1]
-    #  addMapping(["[#{x},#{y}]","[#{x},#{y}]"])
-    #  addNodeByCoordinate(x, y)
-    ## - addNode("name", [x,y])
-    #elsif (params.size() == 2) && (params[0].kind_of?(String)) && (params[1].kind_of?(Array))
-    #  coord = params[1]
-    #  addMapping([params[0],"[#{coord[0]},#{coord[1]}]"])
-    #  addNodeByCoordinate(coord[0], coord[1])
-    ## - addNode(aNode)
-    if (params.size() == 1) && (params[0].kind_of?(String))
-      name = params[0]
-      addMapping(["#{name}","#{name}"])
-      addNodeByName(name)
-    elsif (params.size() == 1) && (params[0].kind_of?(Node))
-      node = params[0]
-      #addMapping(["[#{node.x},#{node.y}]","[#{node.x},#{node.y}]"])
-      addMapping(["#{node.name}","#{node.name}"])
-      addNodeByName(node.name)
-    else
-      raise("addNode() - Syntax error, unknown argument '#{params}'")
-    end
-  end
-
-  def addNodeByName(name)
-    begin
-      # Check if EC is in 'Slave Mode' - If so, only add the node on which this EC is running as slave
-      if NodeHandler.SLAVE_MODE() 
-        if (name != NodeHandler.instance.slaveNodeName)  
-          info "Slave Mode on '#{NodeHandler.instance.slaveNodeName}', thus ignoring node '#{name}'"
-          return 
-        end
-      end
-      # When Topology is not used with a NodeHandler, do not use the Node class
-      n = (@@useNodeClass) ? Node.at!(name) : name
-      @nodes.add(n)
-      #@nodesArr[x][y] = n
-      #@nodeSetDecl = nil
-    rescue ResourceException => re
-      if strict?
-        raise "Topology - failed to add node [#{x},#{y}] to topology #{uri} ('strict=true', no change allowed) - #{re}"
-      else
-        warn("Ignoring missing node '#{name}'")
-      end
-    end
-  end
-
-  #
-  # This method adds a node at coordinates x and y to this Topology
-  # - x = X coordinate of added node
-  # - y = Y coordinate of added node
-  #
-  def addNodeByCoordinate(xIn, yIn)
-    if xIn.kind_of?(ExperimentProperty)
-      x = xIn.value
-    else
-      x = xIn
-    end
-    if yIn.kind_of?(ExperimentProperty)
-      y = yIn.value
-    else
-      y = yIn
-    end
-    begin
-      # Check if EC is in 'Slave Mode' - If so, only add the node on which this EC is running as slave
-      if NodeHandler.SLAVE_MODE() 
-        if (x != NodeHandler.instance.slaveNodeX) || (y != NodeHandler.instance.slaveNodeY) 
-          info "Slave Mode on [#{NodeHandler.instance.slaveNodeX},#{NodeHandler.instance.slaveNodeY}], thus ignoring node [#{x},#{y}]"
-          return 
-        end
-      end
-      # When Topology is not used with a NodeHandler, do not use the Node class
-      n = (@@useNodeClass) ? Node.at!(x, y) :[x,y] 
-      @nodes.add(n)
-      @nodesArr[x][y] = n
-      @nodeSetDecl = nil
-    rescue ResourceException => re
-      if strict?
-        raise "Topology - failed to add node [#{x},#{y}] to topology #{uri} ('strict=true', no change allowed) - #{re}"
-      else
-        warn("Ignoring missing node '#{x}@#{y}'")
-      end
-    end
-  end
-
-  #
-  # This method removes a node at coordinates x and y
-  #
-  # - node = the Node (object) to remove 
-  #
-  def removeNode(node)
-    if strict?
-      raise "Topology - failed to remove node '#{node}' from topology "+
-            "'#{uri}'. No topology change allowed (flag 'strict' set)"
-    end
-    if ((n = Node[node.nodeId]) != nil)
-      @nodes.delete(n)
-      #@nodesArr[x][y] = nil
-      #@nodeSetDecl = nil
-    end
-  end
-
-  #
-  # Return true if a given node is present in this topology
-  # - x = X coordinate of the node
-  # - y = Y coordinate of the node
-  #
-  # [Return] true/false
-  #
-  def hasNode(x, y)
-    if ((n = Node[x, y]) != nil)
-      if ((@nodes.include?(n)) && (@nodesArr[x][y] == n))
-        return true
-      else 
-        return false
-      end
-    else
-      return false  
-    end
-  end
-
-  #
-  # Return an array containing x,y rectangle declarations of 
-  # nodes used in this topology 
-  #
-  # [Return] an Array of the form [[1,1]], or [[1..20, 2..3], [1..10, 10..20]]
-  #
-  def nodeSetDecl()
-    if @nodeSetDecl.nil?
-      @nodeSetDecl = calculateNodeSetDecl
-    end
-    @nodeSetDecl
-  end
-
-  #
-  # This method adds a group of nodes to this topology.
-  #
-  # - nodes = the group of nodes to add. It can be either: a Hash, which contains the mapping 
-  #           'node name' to '[x,y]'. Each element of this Hash is of the form key="node name" 
-  #           and value="[x,y]" (with value as a String!). Or: an Array, which contains the 
-  #           declaration of a node or a group of nodes
-  # 
-  def addNodes(nodes)
-    # Option 1: 'nodes' is a Hash
-    if nodes.kind_of?(Hash) 
-      nodes.each { |k,v|
-        addNode(k,eval(v))
-      }
-      return
-    end
-    # Sanity Check
-    if ! nodes.kind_of?(Array)
-      raise "Parameter to 'addNodes' need to be of type Array, but is #{nodes.class.to_s}."
-    end
-    # Option 2: 'nodes' is an Array
-    if ! nodes[0].kind_of?(Array)
-      # Array should contain two ranges
-      if nodes.length != 2
-        raise "Expected array with 2 elements denoting x and y, but found #{nodes.join(', ')}."
-      end
-      x = nodes[0]
-      if x.kind_of?(Integer)
-        x = [x]
-      elsif x.kind_of?(ExperimentProperty)
-        x = [x.value]
-      end
-      y = nodes[1]
-      if y.kind_of?(Integer)
-        y = [y]
-      elsif y.kind_of?(ExperimentProperty)
-        y = [y.value]
-      end
-      if ! ((x.kind_of?(Range) || x.kind_of?(Array)) \
-      && (y.kind_of?(Array) || y.kind_of?(Range)))
-        raise "Expected two range declarations, but found #{nodes.join(', ')}."
-      end
-      x.each {|i|
-        y.each {|j|
-          addNode(i, j)
-        }
-      }
-    else
-      nodes.each {|n|
-        addNodes(n)
-      }
-    end
-  end
-
 attr_reader :nodesArr
+
+attr_accessor :strict
 
   private
 
@@ -823,8 +681,8 @@ attr_reader :nodesArr
   # Topology constructor
   #
   # - uri = URI refering to this Topology
-  # - nodeSelector = optional, nodes to add to this Topology (default = nil). This should be
-  #                  an Array of the for[[a, b], or [[c..d], f]]
+  # - nodeSelector = optional, nodes to add to this Topology (default = nil). 
+  #                  This should be an Array of the for[[a, b], or [[c..d], f]]
   #
   def initialize(uri, nodeSelector)
     super(uri)
@@ -841,8 +699,6 @@ attr_reader :nodesArr
     @mapping = Hash.new
     @uri = uri
     @nodes = Set.new
-    @nodesArr = ArrayMD.new
-    @nodeSetDecl = nil
     add(nodeSelector) if nodeSelector != nil
   end
 
@@ -853,7 +709,8 @@ attr_reader :nodesArr
   #
   def add(selector)
     if (selector.kind_of?(String))
-      error "Unexpected selector declaration '#{selector}'. Please report as bug"
+      error "Unexpected selector declaration '#{selector}'. "+
+            "Please report as bug."
     elsif selector.kind_of?(Array)
       selector.each {|node|
         addNode(node)
@@ -864,63 +721,6 @@ attr_reader :nodesArr
     else
       raise "Unrecognized node set selector type '#{selector.class}'."
     end
-  end
-
-  #
-  # This method returns a description of the indices of occupied
-  # elements in the 2D @nodeSetArr array as an array of x,y ranges.
-  #
-  # [Return] an Array of x,y ranges
-  #
-  def calculateNodeSetDecl()
-    arr = @nodesArr
-    result = []
-    xMax = arr.length - 1
-    (0 .. xMax).each {|x|
-      result[x] = lres = {}
-      col = arr[x].to_a
-      first = nil
-      y = 0
-      col.inject(0) {|y, n|
-        #p "#{x}:#{y} '#{n}':#{n.class}"
-        if n.nil?
-          if !first.nil?
-            # end of sequence
-            to = y - 1
-            lres[first == to ? first : first .. to] = nil
-            first = nil
-          end
-        elsif first.nil?
-          # first in sequence
-         # p# "first #{y}"
-          first = y
-        end
-        y + 1
-      }
-      if !first.nil?
-        # sequence runs to end
-        to = col.length - 1
-        lres[first == to ? first : first .. to] = nil
-      end
-    }
-    # collaps hash result into a single array with [x,y], [x,y],.. format
-    result2 = []
-    result.inject(0) {|x, row|
-      row.each_key { |range|
-        xTo = (x + 1 .. xMax).detect {|x2|
-          if result[x2].has_key?(range)
-            result[x2].delete(range)
-            false
-          else
-            true
-          end
-        }
-        xTo = xTo.nil? ? xMax : xTo - 1
-        result2 << [x == xTo ? x : x .. xTo, range]
-      }
-      x + 1
-    }
-    result2.inspect.gsub(/ /, '') # remove spaces
   end
 
   #
@@ -1020,7 +820,8 @@ attr_reader :nodesArr
   #
   # - source = a list of element (i.e. node names) to associate
   # - topo = the Topology containing the nodes to associate 'source' with
-  # - method = the method to use to perform the association (only supported method now is ':random')
+  # - method = the method to use to perform the association 
+  #            (only supported method now is ':random')
   #
   # [Return] a Hash of the form 'key'= source and 'value'= node from Topology
   #
@@ -1034,8 +835,8 @@ attr_reader :nodesArr
         # OR put here any other future selection method...
 	raise("getNodemap - Unknown topology selection method '#{method}'")
       end
-      mapping[orig] = "[#{candidate.x},#{candidate.y}]"
-      addNode(candidate.x, candidate.y)
+      mapping[orig] = "#{candidate.name}"
+      addNode(candidate.name)
     }
     debug "MAP = #{mapping.to_s}"
     mapping

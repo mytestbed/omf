@@ -109,12 +109,12 @@ class BasicNodeSet < NodeSet
   # - hard = true/false (optional, default=false)
   #
   def powerOff(hard = false)
-    ns = @topo.nodeSetDecl
-    if hard
-      CMC.nodeSetOffHard(ns)
-    else
-      CMC.nodeSetOffSoft(ns)
-    end
+    #ns = @topo.nodeSetDecl
+    #if hard
+    #  CMC.nodeSetOffHard(ns)
+    #else
+    #  CMC.nodeSetOffSoft(ns)
+    #end
     eachNode { |n| n.powerOff() }
   end
 
