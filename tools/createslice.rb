@@ -3,28 +3,43 @@
 require 'omf-common/omfPubSubMessage.rb'
 require "pubsubTester"
 
-slice = "omf.nicta.slice1"
-resource = "node30"
+@slice = "omf.nicta.slice1"
+@tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
 
-tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
+def create (node, hrn, ipaddr)
+  msg = @tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "#{node}", :slicename => "#{@slice}", 
+  :resname => "#{hrn}", :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au', 
+  :sliveraddress => "#{ipaddr}", :slivernameserver => '10.0.0.200')
+  @tester.send("/OMF/system/#{node}", msg)
+  msg = @tester.newcmd(:cmdType => "NOOP", :target => "#{node}")
+  @tester.send("/OMF/system/#{node}", msg)
+  # TODO: these nodes will be created by the RM in the future
+  # creating 5 slice nodes per host
+  1.upto(5) { |n|
+    begin
+      @tester.create("/OMF/#{@slice}/resources/#{hrn}_#{n}")
+    rescue
+    end
+  }
+end
 
 begin
-  tester.create("/OMF/#{slice}")
-  tester.create("/OMF/#{slice}/resources")
+  @tester.create("/OMF/#{slice}")
+  @tester.create("/OMF/#{slice}/resources")
 rescue
 end
 
-1.upto(3) { |n|
-  begin
-    tester.create("/OMF/#{slice}/resources/#{n}")
-  rescue
-  end
-  msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au", :slicename => "#{slice}", :resname => "omf.nicta.#{resource}", :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au')
-  tester.send("/OMF/system/#{resource}", msg)
-}
-msg = tester.newcmd(:cmdType => "NOOP", :target => "#{resource}")
-tester.send("/OMF/system/#{resource}", msg)
+# create two slivers on node 30
+create("node30","omf.nicta.node30", "10.0.1.30")
+create("node30","omf.nicta.node30", "10.0.2.30")
 
+# create two slivers on node 29
+create("node29","omf.nicta.node29", "10.0.1.29")
+create("node29","omf.nicta.node29", "10.0.2.29")
+
+# create two slivers on node 28
+create("node28","omf.nicta.node28", "10.0.1.28")
+create("node28","omf.nicta.node28", "10.0.2.28")
 
 #msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au")
 #msg = tester.newcmd(:cmdType => "KILL", :target => "norbit.npc.nicta.com.au", :appID => 0, :value => 9)

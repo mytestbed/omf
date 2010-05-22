@@ -52,11 +52,13 @@ module ManagerCommands
     sliceName = command.slicename
     resourceName = command.resname
     sliverType = command.slivertype
+    sliverAddress = command.sliveraddress
+    sliverNameserver = command.slivernameserver
     commAddress = command.commaddr 
     commUser = command.commuser 
     commPassword = command.commpwd
     ctid = 0
-    sliver = ""
+    sliverName = ""
     
     # Create the sliver ...
     if ResourceManager.instance.config[:manager][:sliver] != nil
@@ -68,35 +70,39 @@ module ManagerCommands
         end
         if (@containerIDs[n] == nil)
           ctid = n
-          sliver = "#{resourceName}_#{n}"
-          @containerIDs[n] = sliver
+          sliverName = "#{resourceName}_#{n}"
         end
       }
+      # Create pubsub node "/OMF/#{slice}/resources/#{sliverName}"
+      # TODO: this doesn't work
+      addr = communicator.create_address(:sliceID => sliceName, :name => sliverName)
       
-      begin
-        # TODO: Create pubsub node "/OMF/#{slice}/resources/#{sliver}"
-        
+       begin  
         #sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym] 
-        sliverCmd = 'echo 1 > /proc/sys/net/ipv4/ip_forward; vzctl create %CTID% --ostemplate omf-5.3; 
-                    vzctl start %CTID%; vzctl set %CTID% --ipadd 10.0.%CTID%.30; 
-                    vzctl set %CTID% --nameserver 10.0.0.200; vzctl exec %CTID% ifconfig venet0:0 10.0.%CTID%.30; 
+        sliverCmd = 'echo 1 > /proc/sys/net/ipv4/ip_forward; echo 1 > /proc/sys/net/ipv4/conf/control/proxy_arp;
+                    echo 1 > /proc/sys/net/ipv4/conf/venet0/proxy_arp; vzctl create %CTID% --ostemplate omf-5.3; 
+                    vzctl start %CTID%; vzctl set %CTID% --ipadd %SLIVER_ADDR%; 
+                    vzctl set %CTID% --nameserver %SLIVER_NS%; vzctl exec %CTID% ifconfig venet0:0 %SLIVER_ADDR%; 
                     vzctl exec %CTID% omf-resctl-5.3 --name %SLIVER_NAME% --slice %SLICE_NAME% &'
         sliverCmd = sliverCmd.gsub(/%CTID%/, "#{ctid}")
-        sliverCmd = sliverCmd.gsub(/%SLIVER_NAME%/, sliver)                    
+        sliverCmd = sliverCmd.gsub(/%SLIVER_NAME%/, sliverName)
+        sliverCmd = sliverCmd.gsub(/%SLIVER_ADDR%/, sliverAddress)
+        sliverCmd = sliverCmd.gsub(/%SLIVER_NS%/, sliverNameserver)           
         sliverCmd = sliverCmd.gsub(/%SLICE_NAME%/, sliceName)
         sliverCmd = sliverCmd.gsub(/%RESOURCE_NAME%/, resourceName)
         sliverCmd = sliverCmd.gsub(/%PUBSUB_ADDRESS%/, commAddress)
         sliverCmd = sliverCmd.gsub(/%PUBSUB_USER%/, commUser) if commUser != nil
         sliverCmd = sliverCmd.gsub(/%PUBSUB_PASSWORD%/, commPassword) if commPassword != nil
         MObject.debug("Creating a sliver (type: '#{sliverType}') with cmd: '#{sliverCmd}'") 
-        ExecApp.new(sliver, controller, sliverCmd)
-        msg = "Created Sliver for slice '#{sliceName}' on '#{resourceName}'"
-      rescue Exception => ex
-        msg = "Failed creating Sliver for slice '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
-      end
-      MObject.debug(msg)
-    else
-      MObject.debug("Missing :sliver section in config file. Don't know how to create a sliver...")
+        ExecApp.new(sliverName, controller, sliverCmd)
+        @containerIDs[ctid] = sliverName
+        msg = "Created Sliver '#{sliverName}' for slice '#{sliceName}' on '#{resourceName}'"
+       rescue Exception => ex
+         msg = "Failed creating Sliver '#{sliverName}' for slice '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
+       end
+       MObject.debug(msg)       
+     else
+       MObject.debug("Missing :sliver section in config file. Don't know how to create a sliver...")
     end
   end
 
@@ -107,27 +113,30 @@ module ManagerCommands
   #
   #
   def ManagerCommands.DELETE_SLIVER(controller, communicator, command)
-      sliceName = command.slicename
-      resourceName = command.resname
-      sliverType = command.slivertype
-      ctid = @containerIDs.index resourceName
-      
-      if (ctid = nil)
-        MObject.debug("Cannot determine container ID of sliver '#{resourceName}'. Aborting.")
-        return
-      end
-
+       sliceName = command.slicename
+       sliverName = command.slivername
+       sliverType = command.slivertype
+       
+       begin
+         ctid = @containerIDs.index sliverName
+         raise if ctid.nil?
+       rescue
+         MObject.debug("Cannot determine container ID of sliver '#{sliverName}'. Ignoring this DELETE_SLIVER request.")
+         return
+       end
+       
       # Delete the sliver ...
       if ResourceManager.instance.config[:manager][:sliver] != nil
         begin
           #sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym]           
           sliverCmd = 'vzctl stop %CTID%; vzctl destroy %CTID%'
-          sliverCmd = sliverCmd.gsub(/%CTID%/, ctid)
+          sliverCmd = sliverCmd.gsub(/%CTID%/, "#{ctid}")
           MObject.debug("Deleting a sliver (type: '#{sliverType}') with cmd: '#{sliverCmd}'") 
-          ExecApp.new(resourceName, controller, sliverCmd)
-          msg = "Deleted Sliver for slice '#{sliceName}' on '#{resourceName}'"
+          ExecApp.new(sliverName, controller, sliverCmd)
+          @containerIDs[ctid] = nil
+          msg = "Deleted Sliver for slice '#{sliceName}' on '#{sliverName}'"
         rescue Exception => ex
-          msg = "Failed deleting Sliver for slice '#{sliceName}' on '#{resourceName}' (error: '#{ex}')"
+          msg = "Failed deleting Sliver '#{sliverName}' on slice '#{sliceName}' (error: '#{ex}')"
         end
         MObject.debug(msg)
       else

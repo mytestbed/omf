@@ -3,25 +3,24 @@
 require 'omf-common/omfPubSubMessage.rb'
 require "pubsubTester"
 
-slice = "omf.nicta.slice1"
-resource = "node30"
+@slice = "omf.nicta.slice1"
+@tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
 
-tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
+def delete(node, sliver)
+  msg = @tester.newcmd(:cmdType => "DELETE_SLIVER", :target => "#{node}", :slicename => "#{@slice}", :slivername => "#{sliver}", 
+  :slivertype => 'openvz')
+  @tester.send("/OMF/system/#{node}", msg)
 
-1.upto(10) { |n|
-   msg = tester.newcmd(:cmdType => "DELETE_SLIVER", :target => "norbit.npc.nicta.com.au", :slicename => "#{slice}", :resname => "omf.nicta.#{resource}_#{n}", :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au')
-   tester.send("/OMF/system/#{resource}", msg)
-}
+  msg = @tester.newcmd(:cmdType => "NOOP", :target => "#{node}")
+  @tester.send("/OMF/system/#{node}", msg)
+end
 
-msg = tester.newcmd(:cmdType => "NOOP", :target => "#{resource}")
-tester.send("/OMF/system/#{resource}", msg)
+delete("node30", "omf.nicta.node30_1")
+delete("node30", "omf.nicta.node30_2")
 
+delete("node29", "omf.nicta.node29_1")
+delete("node29", "omf.nicta.node29_2")
 
-#msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au")
-#msg = tester.newcmd(:cmdType => "KILL", :target => "norbit.npc.nicta.com.au", :appID => 0, :value => 9)
-# msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au", :slicename => 'omf.nicta.slice1', :resname => '8', :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au')
-#msg = tester.newcmd(:cmdType => "DELETE_SLIVER", :target => "norbit.npc.nicta.com.au", :resname => '8', :slicename => 'omf.nicta.slice1', :slivertype => 'openvz')
+delete("node28", "omf.nicta.node28_1")
+delete("node28", "omf.nicta.node28_2")
 
-
-#msg = tester.newcmd(:cmdType => "NOOP", :target => "norbit.npc.nicta.com.au")
-#tester.send("/OMF/system/node30", msg)
