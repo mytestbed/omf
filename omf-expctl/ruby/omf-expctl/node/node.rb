@@ -217,18 +217,6 @@ class Node < MObject
     }
   end
 
- #
- # Print a list of the MAC addresses that are blacklisted by this Node
- #
- # - macAddr = the MAC address to remove
- #
-  def printBlockedMACList()
-    info "Node '#{@nodeId}' - Blocked MAC(s):"
-    @blockedMACList.each { |mac|
-      info " - #{mac}"
-    }
-  end
-
   #
   # Add an application to the states of this Node
   #
@@ -433,12 +421,14 @@ class Node < MObject
   # - toolToUse = the software tool to use to enforce the blacklist (iptable, 
   #               ebtable, or mackill)
   #
-  def setMACTable(toolToUse)
-    @blockedMACList.each{ |mac|
+  def setMACTable(tool, blacklist = nil)
+    return if !blacklist
+    list = ""
+    blacklist.each_value { |v| list << "#{v} "}
     send(ECCommunicator.instance.create_message(:cmdtype => :SET_MACTABLE,
                                                 :target => @nodeId,
-                                                :cmd => toolToUse,
-                                                :address => mac))
+                                                :cmd => tool,
+                                                :list => list.chop!))
     }
   end
 
@@ -787,7 +777,6 @@ class Node < MObject
     @nodeStatus = STATUS_DOWN
     #@senderSeq = 0
     @execs = Hash.new
-    @blockedMACList = Set.new
     @deferred = []
 
     @@nodes[name] = self

@@ -272,7 +272,7 @@ class Topology < MObject
             "topology. A Topology can only contain either symmetric or "+
             "asymmetric links, not both."
     end
-    @edges = getGraphEdges(@graph)
+    edges = getGraphEdges(@graph)
     source = [srcName,@mapping[srcName]]
     dstCompare = [dstName,@mapping[dstName]]
     @graph.adjacent(source).each { |dest|
@@ -280,7 +280,7 @@ class Topology < MObject
         # check if there is already a link set between source and dest
         if (dest.to_s == dstCompare.to_s)
 	  # update of the link (spec ...)
-	  linkSpec = @edges[source+dest].label
+	  linkSpec = edges[source+dest].label
 	  # update of a rule, which means update of a hash in a hash
 	  spec.each_key{|key|
 	    if(spec[key].kind_of? Hash and linkSpec[key].kind_of? Hash)
@@ -481,19 +481,17 @@ class Topology < MObject
   #     
   #
   def buildTCList(device)
-    # Sanity check
-    if (@graph == nil)
-      raise "Cannot build MAC black-lists, no vertices/edges in this topology '#{@uri}'"
-    end
+    raise "Cannot build Traffic Shaping list, no vertices and/or edges were "+
+          "defined in this topology '#{@uri}'" if !@graph 
     #if there is a link we read the spec and create an array with all values : values = [ipDst -1,delay -1,delayvar -1,delayCor -1,loss -1,lossCor -1,bw -1,bwBuffer -1,bwLimit -1,per -1, duplication -1,portDst -1,portRange 0,portProtocol,interface]
-    @edges = getGraphEdges(@graph)
+    edges = getGraphEdges(@graph)
     @graph.vertices.each { |source|
       s   = eval(source[1])
       nodeSrc = Node[s[0],s[1]]
       @graph.adjacent(source).each { |dest|
         if (@graph.edge?(source,dest))
           d = eval(dest[1])
-          spec = @edges[source+dest].label
+          spec = edges[source+dest].label
           spec.each_key{|key|
 	  #if the value is a Hash, it means it is a rule. We use it
 	  if (spec[key].kind_of? Hash)
@@ -589,6 +587,26 @@ class Topology < MObject
   end
 
   def getNodeMacAddress(node, device)
+    # Query the INVENTORY gridservice for information on the source node
+    mac = nil
+    url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?"+
+          "node=#{node}&ifname=#{device}&domain=#{OConfig.domain}"
+    response = NodeHandler.service_call(url, 
+                           "Can't get node information from INVENTORY")
+    doc = REXML::Document.new(response.body)
+    doc.root.elements.each("/MAC_Address/#{device}") { |e|
+	mac = e.get_text.value
+    }
+    # There are no information on the source node's device in the INVENTORY
+    # It does not make sense to continue, because we cannot physically 
+    # implement this topology. Thus, we terminate the experiment.
+    if !mac
+      doc.root.elements.each('/MAC_Address/ERROR') { |e|
+        raise "Cannot get MAC address of '#{device}' for resource '#{node}' "+
+              "to build a Topology - '#{e.get_text.value}'"
+      }
+    end
+    return mac
   end
 
   #
@@ -608,66 +626,41 @@ class Topology < MObject
     #       Inventory and nodeSet 
 
     # Sanity check
-    raise "Cannot build MAC black-lists, no vertices/edges in this topology "+
-          "'#{@uri}'" if !@graph 
+    raise "Cannot build MAC blacklist, no vertices and/or edges were defined "+
+          "in this topology '#{@uri}'" if !@graph 
     # First, we get all the MAC address in this topology
-    allMAC = Set.new
+    allMAC = Hash.new
     @graph.vertices.each { |source|
-      s  = eval(source[1])
-      # Query the INVENTORY gridservice for information on the source node
-      mac = nil
-      url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?"+
-	    "x=#{s[0]}&y=#{s[1]}&ifname=#{device}&domain=#{OConfig.domain}"
-      response = NodeHandler.service_call(url, 
-                             "Can't get node information from INVENTORY")
-      doc = REXML::Document.new(response.body)
-      doc.root.elements.each("/MAC_Address/#{device}") { |e|
-	mac = e.get_text.value
-      }
-      # There are no information on the source node's device in the INVENTORY
-      # It does not make sense to continue, because we cannot physically 
-      # implement this topology. Thus, we terminate the experiment.
-      if !mac
-        doc.root.elements.each('/MAC_Address/ERROR') { |e|
-          error "Topology - #{e.get_text.value}"
-	  raise "Cannot get MAC addresses to build a Topology - "+
-	        "'#{e.get_text.value}'"
-        }
-      end
-      debug "From Inventory - x: #{s[0]} - y: #{s[1]} - mac: #{mac}"
-      allMAC.add(mac)
-      node = Node[s[0],s[1]]
-      node.setMAC(mac)
-      debug "Node: [#{s[0]},#{s[1]}] - MAC: #{mac}"
+      src = source[1]
+      mac = getNodeMacAddress(src, device)
+      debug "From Inventory - node: #{src} - mac: #{mac}"
+      allMAC[src] = mac
     }
+    allBlockedMAC = Hash.new
     # Now, we set the blockedMAC list on each Node to allMAC
     @graph.vertices.each { |source|
-      s = eval(source[1])
-      node = Node[s[0],s[1]]
-      node.setBlockedMACList(allMAC)
+      src = source[1]
+      allBlockedMAC[src] = allMAC
     }
-    # Then, we build the MAC filtering tables on each Node by removing any 
+    # Then, we build the MAC filtering tables for each Node by removing any 
     # allowed MAC
-    @edges = getGraphEdges(@graph)
+    edges = getGraphEdges(@graph)
     @graph.vertices.each { |source|
-      s   = eval(source[1])
-      nodeSrc = Node[s[0],s[1]]
-      nodeSrc.removeBlockedMAC(nodeSrc.MAC)
-      @graph.adjacent(source).each { |dest|
-        if (@graph.edge?(source,dest))
-          d = eval(dest[1])
-          spec = @edges[source+dest].label
-          debug "Link ["+s[0].to_s+","+s[1].to_s+"] -> ["+d[0].to_s+","+d[1].to_s+"] - ("+spec.to_s+")"
-	  # Punch a hole in the blocked MAC table of the Destination Node
-	  nodeDst = Node[d[0],d[1]]
-	  nodeDst.removeBlockedMAC(nodeSrc.MAC)
+      src = source[1]
+      allBlockedMAC[src].delete(src) # whitelist ourselves
+      @graph.adjacent(source).each { |destination|
+        if (@graph.edge?(source,destination))
+          dst = destination[1]
+          spec = edges[source+destination].label
+          debug "Link '#{src}' -> '#{dst}' - ('#{spec.to_s}')"
+          allBlockedMAC[src].delete(dst) # whitelist this destination
         end
       }
     }
     # Finally, we activate the blacklists on each node, using the 
     # 'tool' command (so far either iptable, ebtable, or mackill)
-    eachNode { |n|
-      n.setMACTable(tool)
+    eachNode { |src|
+      src.setMACTable(tool, allBlockedMAC[src])
     }
   end
 

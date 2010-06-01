@@ -851,7 +851,7 @@ class NodeHandler < MObject
         })
         confirmedPort = i
       rescue Exception => ex
-        info "Port #{i} is in use! (#{ex})"
+        debug "Cannot start webserver on port #{i} (#{ex})"
         # Ignore this exception, 'i' will be incremented in the next loop
       end
       break if confirmedPort != 0   

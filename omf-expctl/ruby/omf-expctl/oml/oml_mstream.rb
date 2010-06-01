@@ -73,7 +73,8 @@ module OMF
           @mdef = @name = name
 
           # ALERT: this is a bit of a hack
-          appDef = AppDefinition[application.to_s]
+          #appDef = AppDefinition[application.to_s]
+          appDef = application.appDefinition
           tblPrefix = appDef.omlPrefix || appDef.path.split('/')[-1]
           @tableName = "#{tblPrefix}_#{name}"
           puts ">>> TABLE_NAME: #{@tableName}"
@@ -115,7 +116,8 @@ module OMF
       	  # For each of the metrics...
       	  opts.each do |parameter|
             # Get its detail from the application definition
-            appDef = AppDefinition[@application.to_s]
+            #appDef = AppDefinition[@application.to_s]
+            appDef = @application.appDefinition
       	    measurementDef = appDef.measurements[@mdef]
       	    metricDef = measurementDef.metrics[parameter]
             # Set the default filter based on the metric type
@@ -218,7 +220,8 @@ module OMF
               cols.merge!(f.columns)      	      
       	    end
       	  else
-            appDef = AppDefinition[@application.to_s]
+            #appDef = AppDefinition[@application.to_s]
+            appDef = @application.appDefinition
             appDef.measurements[@mdef].metrics.each do |name, opts|
               #[name] = {:type => type, :description => description, :seqNo => @metrics.length}
               case (type = opts[:type])
