@@ -421,15 +421,19 @@ class Node < MObject
   # - toolToUse = the software tool to use to enforce the blacklist (iptable, 
   #               ebtable, or mackill)
   #
-  def setMACTable(tool, blacklist = nil)
-    return if !blacklist
-    list = ""
-    blacklist.each_value { |v| list << "#{v} "}
-    send(ECCommunicator.instance.create_message(:cmdtype => :SET_MACTABLE,
-                                                :target => @nodeId,
-                                                :cmd => tool,
-                                                :list => list.chop!))
-    }
+  def setLink(tool, parameters = nil)
+    return if !parameters
+    message = ECCommunicator.instance.create_message(:cmdtype => :SET_LINK,
+                                                     :target => @nodeId, 
+                                                     :cmd => tool)
+    if tool == 'tc'
+      parameters.each { |k,v| message[k] = v }
+    else
+      list = ""
+      parameters.each_value { |v| list << "#{v} "}
+      message[:list] = list.chop!
+    end
+    send(message)
   end
 
   #
@@ -451,7 +455,9 @@ class Node < MObject
         #    UPDATE OF A RULE WHILE EXPERIMENT IS RUNNING
         #     
         #     if (@rulesList[i][0] == ipDst)
-        #     send('SET_REMOVERULES',rulesList[i][0],rulesList[i][11],rulesList[i][12],rulesList[i][13])
+        #     send('SET_REMOVERULES',
+	#          rulesList[i][0],rulesList[i][11],
+	#          rulesList[i][12],rulesList[i][13])
         #     j=1
         #     while (j!=13)
         #       if (@rulesList[i][j] != values[j] and values[j] != -1)

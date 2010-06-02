@@ -522,6 +522,8 @@ module AgentCommands
     #  delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,per,duplication,
     #  portDst,portRange,rulesId]
     #
+  def AgentCommands.SET_LINK(controller, communicator, command)
+  end
 
   def AgentCommands.SET_TRAFFICRULES(agent , argArray)
     #check if the tool is available (Currently, only TC)

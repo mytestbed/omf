@@ -259,22 +259,20 @@ class Topology < MObject
     linkIsAsymmetric = spec[:asymmetric] || false
     # Check if this is the first call to 'addLink' for this topology
     # If so, then initialize a new graph
-    if (@graph == nil)
+    if !@graph == nil
       @asymmetric = linkIsAsymmetric
       initGraph()
     end
     # Check if this type of link is compatible with previously added links
     # i.e. a graph can only contain either symmetric or asymmetric links, 
     # not both
-    if (linkIsAsymmetric != @asymmetric)
-      raise "Topology:addLink() - Cannot add link '#{srcName}' -> "+
-            "'#{dstName}'. Its specifications are incompatible with this "
-            "topology. A Topology can only contain either symmetric or "+
-            "asymmetric links, not both."
-    end
+    raise "Topology:addLink() - Cannot add link '#{srcName}' -> "+
+          "'#{dstName}'. Its specifications are incompatible with this "
+          "topology. A Topology can only contain either symmetric or "+
+          "asymmetric links, not both." if (linkIsAsymmetric != @asymmetric)
     edges = getGraphEdges(@graph)
-    source = [srcName,@mapping[srcName]]
-    dstCompare = [dstName,@mapping[dstName]]
+    source = [srcName, @mapping[srcName]]
+    dstCompare = [dstName, @mapping[dstName]]
     @graph.adjacent(source).each { |dest|
       if (@graph.edge?(source,dest))
         # check if there is already a link set between source and dest
@@ -469,6 +467,18 @@ class Topology < MObject
     }
   end
 
+  def buildLinks(tool, interface)
+    raise "Cannot build links for this topology '#{@uri}', no vertices "+
+          "and/or edges were defined" if !@graph 
+    if tool == "tc"
+      setTrafficShaping(interface)
+    else
+      setMACBlacklist(interface)
+    end
+  end
+
+  def setTrafficShaping(device)
+  end
   #
   # This method will will go through all the nodes in this topology and create
   # the correct rules for our traffic shaper
@@ -480,7 +490,7 @@ class Topology < MObject
   #   except for portRange, 0 
   #     
   #
-  def buildTCList(device)
+  def buildTCList_OLD(device)
     raise "Cannot build Traffic Shaping list, no vertices and/or edges were "+
           "defined in this topology '#{@uri}'" if !@graph 
     #if there is a link we read the spec and create an array with all values : values = [ipDst -1,delay -1,delayvar -1,delayCor -1,loss -1,lossCor -1,bw -1,bwBuffer -1,bwLimit -1,per -1, duplication -1,portDst -1,portRange 0,portProtocol,interface]
@@ -544,20 +554,6 @@ class Topology < MObject
  	        values[10] =  ["#{param[:duplication].to_s}"]
               end
               nodeDst = Node[d[0],d[1]]
-              mac = nil
-              url = "#{OConfig[:ec_config][:inventory][:url]}/getMacAddress?x=#{d[0]}&y=#{d[1]}&ifname=#{device}&domain=#{OConfig.domain}"
-              response = NodeHandler.service_call(url, "Can't get node information from INVENTORY")
-              doc = REXML::Document.new(response.body)
-              doc.root.elements.each("/MAC_Address/#{device}") { |e|
-                mac = e.get_text.value
-              }
- 	      puts mac.to_s+"- @mac dst"+d[0].to_s+"-"+d[1].to_s 
-	      if (mac == nil)
-                doc.root.elements.each('/MAC_Address/ERROR') { |e|
-	          error "Topology - #{e.get_text.value}"
-                  raise "Topology - #{e.get_text.value}"
-                }
-              end
 	      ipDst=nodeDst.ipExp?() #!!!! BROKEN!!!!
 	      values[0]= ipDst
 	      #Port filtered
@@ -603,7 +599,7 @@ class Topology < MObject
     if !mac
       doc.root.elements.each('/MAC_Address/ERROR') { |e|
         raise "Cannot get MAC address of '#{device}' for resource '#{node}' "+
-              "to build a Topology - '#{e.get_text.value}'"
+              "to build the topology '#{@uri}' - '#{e.get_text.value}'"
       }
     end
     return mac
@@ -620,7 +616,7 @@ class Topology < MObject
   #            experiment definition e.g. "w0" 
   # - tool =  software tool to use to implement the MAC blacklist
   #
-  def buildMACBlackList(device, tool)
+  def setMACBlacklist(device)
     # NOTE: When change 'ath0' to 'w0'
     #       Nothing needs to be changed here, modifications will be in 
     #       Inventory and nodeSet 
