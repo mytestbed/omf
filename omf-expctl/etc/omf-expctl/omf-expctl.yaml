@@ -41,7 +41,7 @@
       # This is the domain name of the testbed 
       # You need a corresponding entry in the testbed table of your inventory 
       # that has this name set in the 'node_domain' column
-      :domain: 'npc'
+      :domain: 'norbit'
       #:domain: 'planetlab'
       :slice: 'testing_slice'
 
@@ -62,7 +62,7 @@
       # from the nodes. This address will be given to the nodes so they can 
       # retrieve applications from the EC via HTTP.
       :web:
-        :host: '10.0.0.200'
+        :host: 'localhost'
 
       :communicator:
         :type: 'xmpp'
