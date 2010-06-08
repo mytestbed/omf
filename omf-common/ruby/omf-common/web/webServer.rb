@@ -106,7 +106,7 @@ module OMF
     
         Thread.new do
           begin
-            sleep 2
+            sleep 10 # wait a bit so that the user script can define all services requested
               
             services = @@enabled_services
             if services.empty?
@@ -147,6 +147,8 @@ module OMF
       end
       
       def self.enableService(serviceName, opts = {}, &initProc)
+        MObject.debug(:web, "Enable web service '#{serviceName}'")
+
         if serviceName.to_sym == :defaults
           services = @@available_services.select do |opts| opts[:def_enabled] end
           @@enabled_services.concat(services)
@@ -170,6 +172,7 @@ module OMF
       end
       
       def self.addTab(key, path, options = {})
+        MObject.debug(:web, "Adding tab '#{key}'")
         @@tabs << options.merge({:key => key, :path => path})
       end
       
