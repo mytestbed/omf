@@ -1,0 +1,73 @@
+
+javascript_include_tag "jquery"
+javascript_include_tag "jquery.flot", :res_dir => 'flot'
+
+
+div.page_header do
+	div.page_header_links do
+#    link_to 'Edit', {:action => 'edit', :id => @publication}, :class => 'admin'
+	end
+
+	h1 "Results"
+end
+@graphs = graphs
+@show_id = show_graph_id
+div.page_nav do
+  ul do
+    @graphs.each_index do |i| 
+      @g = @graphs[i]
+	    @klass = i == @show_id ? 'selected' : nil
+	    li :class => @klass do
+  	    a @g[:name], :href => "show?id=#{i}"
+    	end
+   	end
+  end
+end
+
+
+if gd
+  div.page do
+  
+    ###p gd.opts.inspect
+    if (prefix = gd.opts[:prefix])
+      p prefix
+    end
+    
+    div.placeholder!(:style => "width:600px;height:300px;") do
+      text %{
+        There should be a graph displayed instead. Sorry, something went wrong, or your
+        browser is too old.
+      }
+    end
+    
+    if (postfix = gd.opts[:postfix])
+      p postfix
+    end
+  
+  end
+  
+  script :language => "JavaScript", :type => "text/javascript" do
+  	text %{
+      jQuery.noConflict();
+  	  function plot(data) {
+        jQuery(document).ready(function ($) {
+          var placeholder = jQuery("#placeholder");
+          var ph = $("#placeholder");
+          $.plot(placeholder, data, #{gd.opts[:gopts].to_json});
+        });
+      }
+      plot(#{gd.lines.to_json});
+    }
+    if @updateInterval = gd.opts[:updateEvery]
+      text %{
+        function update() {
+          new Ajax.Request('update?id=#{@show_id}&sid=#{@session_id}', {method: 'get'});
+        }
+        new PeriodicalExecuter(update , #@updateInterval);
+      }
+    end
+    
+  end
+end # if gd
+
+
