@@ -394,27 +394,26 @@ module AgentCommands
   def AgentCommands.CONFIGURE(controller, communicator, command)
     path = command.path
     value = command.value
-    success = false
+    result = Hash.new
 
     if (type, id, prop = path.split("/")).length >= 3
       if (device = DEV_MAPPINGS["#{type}/#{id}"]) != nil
         result = device.configure(prop, value)
-	success = result[:success]
-        msg = result[:msg] 
       else
-	msg = "Unknown resource '#{type}/#{id}' in 'configure'"
+	result[:info] = "Unknown resource '#{type}/#{id}' in 'configure'"
       end
     else
-      msg = "Expected path '#{path}' to contain three levels"
+      result[:info] = "Expected path '#{path}' to contain three levels"
     end
-      MObject.debug("AgentCommands", msg)
-    if !success
-      return {:success => :ERROR, :reason => :FAILED_CONFIGURE, :info => msg}
-      #communicator.send_error_reply(result[:msg], command) 
+    MObject.debug("AgentCommands", result[:info])
+    if !result[:success]
+      result[:success] = :ERROR
+      result[:reason] = :FAILED_CONFIGURE
     else      
-      return {:success => :OK, :reason => :CONFIGURED, :info => msg}
-      #communicator.send_ok_reply(result[:msg], command)
+      result[:success] = :OK
+      result[:reason] = :CONFIGURED
     end
+    return result
   end
 
   #

@@ -55,6 +55,14 @@ module AgentCommands
       when 'CONFIGURED'
 	# Reports the good news to our resource object
         sender.configure(reply.path.split("/"), reply.value, "CONFIGURED.OK")
+        # HACK!!! Start
+        # while we wait for a better device handling...
+        if reply.macaddr 
+	  path = reply.path.split("/")
+	  path[-1] = "mac"
+          sender.configure(path, reply.macaddr, "CONFIGURED.OK")
+        end
+        # HACK!!! End
       else 
         MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
                       "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")

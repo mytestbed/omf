@@ -139,8 +139,6 @@ class Node < MObject
     return true
   end
 
-  attr_reader :nodeId
-
   # True if node is up, false otherwise
   #attr_reader :isUp
 
@@ -148,7 +146,7 @@ class Node < MObject
   attr_reader :groupMembership
 
   # ID of shadow xml node
-  attr_reader :nodeId
+  attr_reader :nodeID
   
   # Number of rules for TC
   attr_writer :rulesNb
@@ -180,7 +178,7 @@ class Node < MObject
     if @groups.has_key?(group)
       return @groups[group]
     else
-      error "Node '#{@nodeId}' does not belong to group '#{group}'"
+      error "Node '#{@nodeID}' does not belong to group '#{group}'"
       return false
     end
   end
@@ -192,23 +190,21 @@ class Node < MObject
   # [Return] a String holding the IP address
   #
   def getControlIP()
-    
     # Check if EC is running in 'Slave Mode'
     if NodeHandler.SLAVE_MODE()
       # Yes - Then there can only be 1 NA to talk to, 
       # it's the 'Slave' NA on localhost
       return "127.0.0.1"
     end
-
     # Query the Inventory GridService for the Control IP address of this node
     url = "#{OConfig[:ec_config][:inventory][:url]}"+
-          "/getControlIP?hrn=#{@nodeId}&domain=#{OConfig.domain}"
+          "/getControlIP?hrn=#{@nodeID}&domain=#{OConfig.domain}"
     response = NodeHandler.service_call(url, 
-               "Can't get Control IP for '#{@nodeId}'/'#{OConfig.domain}'")
+               "Can't get Control IP for '#{@nodeID}'/'#{OConfig.domain}'")
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the control IP address
     doc.root.elements.each("ERROR") { |e|
-      error "OConfig - No Control IP found for '#{@nodeId}' - "+
+      error "OConfig - No Control IP found for '#{@nodeID}' - "+
             "val: #{e.get_text.value}"
       raise "OConfig - #{e.get_text.value}"
     }
@@ -316,7 +312,7 @@ class Node < MObject
     TraceState.nodeAddGroup(self, group)
     # Send an ALIAS command to this resource
     send(ECCommunicator.instance.create_message(:cmdtype => :ALIAS,
-                                                :target => @nodeId,
+                                                :target => @nodeID,
                                                 :name => group))
     # Now listen for messages on that new ALIAS address
     addr = ECCommunicator.instance.make_address(:name => group) 
@@ -336,30 +332,10 @@ class Node < MObject
       value.sub!(/%x/, @x.to_s)
       value.sub!(/%y/, @y.to_s)
     end
-    debug("Configure path '#{path}' with value '#{value}' - status: '#{status}'")
+    debug("Configure path '#{path}' with value '#{value}' "+
+          "- status: '#{status}'")
     TraceState.nodeConfigure(self, path, value, status)
   end
-
-  # TODO - Remove this once Netem integration is fixed!
-    #
-    # Set the IP of the interface used for experiment.
-    #   
-    #   - ipExp = @ip of the interface
-    #        
-#  def ipExp(ip)
-#    @ipExp = ip
-#  end
-#
-  #
-  #  Return the Ip of the interface used for experiment
-  #    
-  #  [Return] @Ip
-  #
-#
-#  def ipExp?()
-#        return @ipExp
-#  end
-
 
   #
   # Set the name of the image, which will be reported by this Node at check-in 
@@ -393,7 +369,7 @@ class Node < MObject
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
-      imgName = ENV['USER']+"-node-#{@nodeId}-#{ts}.ndz".split(':').join('-')
+      imgName = ENV['USER']+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
     end
         
     url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?"+
@@ -403,80 +379,49 @@ class Node < MObject
     
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "
-    info("- Saving image of '#{disk}' on node '#{@nodeId}'")
+    info("- Saving image of '#{disk}' on node '#{@nodeID}'")
     info("  to the file '#{imgName}' on host '#{imgHost}'")
     info " "
     # Send an ALIAS command to this resource
     send(ECCommunicator.instance.create_message(:cmdtype => :SAVE_IMAGE,
-                                                :target => @nodeId,
+                                                :target => @nodeID,
                                                 :address => imgHost,
                                                 :port => imgPort,
                                                 :disk => disk))
   end
 
+  def get_IP_address(interface)
+     m = match("net/#{interface}/ip/@value")
+     m.each do |e|
+       return e.to_s
+     end
+  end
+
+  def get_MAC_address(interface)
+     m = match("net/#{interface}/mac/@value")
+     m.each do |e|
+       return e.to_s
+     end
+  end
+
   #
-  # Send a message to the physical experiment Node, requesting the activation 
-  # of the MAC blacklist
+  # Send a message to the physical experiment Node, requesting the 
+  # configuration of a link according to a set of parameters
   #
-  # - toolToUse = the software tool to use to enforce the blacklist (iptable, 
-  #               ebtable, or mackill)
+  # - parameters = a Hash with the configuration parameters of the link to set
   #
-  def setLink(tool, parameters = nil)
+  # NOTE: when Node's and NodeSet's deferred queues will be moved to the
+  # communicator, there will be no more need to go through this Node object
+  # to send this message
+  #
+  def set_link(parameters = nil)
     return if !parameters
     message = ECCommunicator.instance.create_message(:cmdtype => :SET_LINK,
-                                                     :target => @nodeId, 
-                                                     :cmd => tool)
-    if tool == 'tc'
-      parameters.each { |k,v| message[k] = v }
-    else
-      list = ""
-      parameters.each_value { |v| list << "#{v} "}
-      message[:list] = list.chop!
-    end
+                                                     :target => @nodeID) 
+    parameters.each { |k,v| message[k] = v }
     send(message)
   end
 
-  #
-  #  Send message with rule parameters to enable traffic shaping
-  #  
-  #  - values = values of parameters for the action : values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange, portProtocol].  Value -1 = not set, except for portRange, 0
-  #  - ipDst = ip of the destination host
-  # 
-
-  def setTrafficRules(values)
-    nbRules = @rulesId
-    values = values + [@rulesId]
-    ipDst = values[0].to_s
-    if (@rulesList.size > 0)
-      i=0
-      while (i<@rulesList.size)
-        puts @rulesList[i][0].to_s+"rulesList"
-        #
-        #    UPDATE OF A RULE WHILE EXPERIMENT IS RUNNING
-        #     
-        #     if (@rulesList[i][0] == ipDst)
-        #     send('SET_REMOVERULES',
-	#          rulesList[i][0],rulesList[i][11],
-	#          rulesList[i][12],rulesList[i][13])
-        #     j=1
-        #     while (j!=13)
-        #       if (@rulesList[i][j] != values[j] and values[j] != -1)
-        #         @rulesList[i][j] = values[j]
-        #     end
-        #     j = j+1   
-        #   end
-        #   values = @rulesList[i]      
-        # end
-        
-        i = i+1
-      end
-    end
-    send('SET_TRAFFICRULES',values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14],values[15])
-    @rulesList = @rulesList + [values]
-    @rulesId = @rulesId + 1
-    puts " -- "
-  end
-  
   #
   # Inform the node that somebody (most likely NodeSet) has issued
   # a request to load an image onto this node's disk.
@@ -495,7 +440,7 @@ class Node < MObject
     # Check that EC is NOT in 'Slave Mode' 
     # - If so call CMC to switch node(s) ON
     if !NodeHandler.SLAVE_MODE()
-      CMC.nodeOn(@nodeId)
+      CMC.nodeOn(@nodeID)
     end
     @poweredAt = Time.now
     #if !@isUp
@@ -517,9 +462,9 @@ class Node < MObject
     # - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE_MODE()
       if hard
-        CMC.nodeOffHard(@nodeId)
+        CMC.nodeOffHard(@nodeID)
       else
-        CMC.nodeOffSoft(@nodeId)
+        CMC.nodeOffSoft(@nodeID)
       end
     end
     @poweredAt = -1
@@ -533,14 +478,14 @@ class Node < MObject
     desiredImage = @image.nil? ? "*" : @image
     # Send an ENROLL command to this resource
     # First listen for messages on that new resource address
-    addr = ECCommunicator.instance.make_address(:name => @nodeId) 
+    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
     ECCommunicator.instance.listen(addr)
     # Now, Directly use the Communicator send method as this message needs to
     # be sent even if the resource is not in the "UP" state
     cmd = ECCommunicator.instance.create_message(:cmdtype => :ENROLL,
                                                 :expID => Experiment.ID,
                                                 :image => desiredImage,
-                                                :target => @nodeId)
+                                                :target => @nodeID)
     addr.expID = nil # Same address as the resource but with no expID set
     ECCommunicator.instance.send_message(addr, cmd)
   end
@@ -563,7 +508,7 @@ class Node < MObject
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)
       debug("Resetting node")
-      CMC::nodeReset(@nodeId)
+      CMC::nodeReset(@nodeID)
       @checkedInAt = -1
       @poweredAt = Time.now
       changed
@@ -719,7 +664,7 @@ class Node < MObject
   # NodeSets which it belongs to.
   #
   def notifyRemoved()
-    ECCommunicator.instance.send_reset(@nodeId)
+    ECCommunicator.instance.send_reset(@nodeID)
     setStatus(STATUS_DOWN)
     changed
     notify_observers(self, :node_is_removed)
@@ -762,8 +707,7 @@ class Node < MObject
   # [Return] a String with this Node's ID
   #
   def to_s()
-    #return "#{@nodeId}(#{@aliases.to_a.join(', ')})"
-    return "#{@nodeId}"
+    return "#{@nodeID}"
   end
 
   private
@@ -772,8 +716,8 @@ class Node < MObject
   # Create a new Node object
   #
   def initialize(name)
-    @nodeId = name
-    super("node::#{@nodeId}")
+    @nodeID = name
+    super("node::#{@nodeID}")
     @rulesId = 1
     @rulesList = []
     @groups = Hash.new  # name of nodeSet groups this node belongs to
@@ -791,7 +735,7 @@ class Node < MObject
     @checkedInAt = -1
 
     @properties = Hash.new
-    TraceState.nodeAdd(self, @nodeId)
+    TraceState.nodeAdd(self, @nodeID)
     debug "Created node '#{name}'"
      
     # This flag is 'false' when this node is in a temporary disconnected (from 
@@ -808,8 +752,6 @@ class Node < MObject
   def setStatus(status)
     @nodeStatus = status
     TraceState.nodeStatus(self, status)
-    #@statusEl.text = status
-    #@statusEl.add_element('history', {'ts' => NodeHandler.getTS()}).text = status
   end
 
   #
@@ -820,8 +762,8 @@ class Node < MObject
   #
   def send(cmdObj)
     if @nodeStatus == STATUS_UP
-      cmdObj.target = @nodeId
-      addr = ECCommunicator.instance.make_address(:name => @nodeId)
+      cmdObj.target = @nodeID
+      addr = ECCommunicator.instance.make_address(:name => @nodeID)
       ECCommunicator.instance.send_message(addr, cmdObj)
     else
       debug "Deferred message: '#{cmdObj.to_s}'"

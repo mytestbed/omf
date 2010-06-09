@@ -86,72 +86,11 @@ class RCCommunicator < OmfCommunicator
                         :domain => @@domain, :name => myEC)
   end
 
-  #
-  # Send an ENROLLED reply to the EC. 
-  # This is done when a ENROLL or ALIAS command has been successfully 
-  # processed.
-  #
-  # - aliases = a String with the names of all the groups within which we have 
-  #             enrolled
-  #
-  #def send_enrolled_reply(aliases = nil)
-  #  reply = create_message(:cmdtype => :ENROLLED, :target => @@myName)
-  #  reply.name = aliases if aliases != nil
-  #  send_message(@@myECAddress, reply)
-  #end
-
-  #
-  # Send an WRONG_IMAGE reply to the EC. 
-  # This is done when the current disk image of this RC is not the disk
-  # image requested by the EC.
-  #
-  #def send_wrong_image_reply
-  #  reply = create_message(:cmdtype => :WRONG_IMAGE, :target => @@myName, 
-  #                         :image => imageName) 
-  #  # 'WRONG_IMAGE' message goes even if we are not part of an Experiment yet!
-  #  # Thus we create directly the address 
-  #  addr = create_address(:name => @@myName, :sliceID => @@sliceID,
-  #                        :domain => @@domain)
-  #  send_message(addr, reply)
-  #end
-
-  #
-  # Send an OK reply to the EC. 
-  # This is done for some received EC commands that were executed successfully
-  # (e.g. a successful CONFIGURE executing)
-  #
-  # - info = a String with more info on the command execution
-  # - command = the command that executed successfully
-  #
-  #def send_ok_reply(info, command)
-  #  reply = create_message(:cmdtype => :OK, :target => @@myName, 
-  #                         :message => info, :cmd => command.cmdType.to_s) 
-  #  reply.path = command.path if command.path != nil
-  #  reply.value = command.value if command.value != nil
-  #  send_message(@@myECAddress, reply)
-  #end
-
-  #
-  # Send an ERROR reply to the EC. 
-  # This is done when an error occured while executing a received EC command
-  # (e.g. a problem when executing a CONFIGURE command)
-  #
-  # - info = a String with more info on the command execution
-  # - command = the command that failed to execute 
-  #
-  #def send_error_reply(info, command)
-  #  reply = create_message(:cmdtype => :ERROR, :target => @@myName, 
-  #                         :cmd => command.cmdType.to_s, :message => info) 
-  #  reply.path = command.path if command.path != nil
-  #  reply.appID = command.appID if command.appID != nil
-  #  reply.value = command.value if command.value != nil
-  #  send_message(@@myECAddress, reply)
-  #end
-
-  def send_reply(type, reason, info, original_request)
-    reply = create_message(:cmdtype => type, :target => @@myName, 
-                           :cmd => reason ,:message => info) 
+  def send_reply(result, original_request)
+    reply = create_message(:cmdtype => result[:success], :target => @@myName, 
+                           :cmd => result[:reason], :message => result[:info]) 
     reply.merge(original_request)
+    reply.merge(result[:extra]) if result[:extra]
     send_message(@@myECAddress, reply)
   end
 
@@ -211,7 +150,7 @@ class RCCommunicator < OmfCommunicator
   def dispatch_message(message)
     result = super(message)
     if result && result.kind_of?(Hash)
-      send_reply(result[:success], result[:reason], result[:info], message)
+      send_reply(result, message)
       #send_error_reply("Failed to process command (Error: '#{result}')", 
       #                 message) 
     end

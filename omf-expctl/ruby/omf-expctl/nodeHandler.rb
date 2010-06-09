@@ -815,7 +815,7 @@ class NodeHandler < MObject
     el = LOG_EL.add_element(severity, {'timeStamp' => Time.now, 'id' => id})
     el.text = reason
     if source.kind_of?(Node)
-      el.add_attribute('source', source.nodeId)
+      el.add_attribute('source', source.nodeID)
     end
     extra.each {|k, v|
       el.add_element(k.to_s).text = v

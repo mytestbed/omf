@@ -154,4 +154,14 @@ class EthernetDevice < Device
     return filterCMD
   end
 
+  def get_MAC_address
+    return nil if !RUBY_PLATFORM.include?('linux')
+    match = /[.\da-fA-F]+\:[.\da-fA-F]+\:[.\da-fA-F]+\:[.\da-fA-F]+\:[.\da-fA-F]+\:[.\da-fA-F]+/
+    lines = IO.popen("/sbin/ifconfig #{@deviceName}", "r").readlines
+    if (lines.length >= 2)
+      macAddress = lines[0][match]
+    end
+    return macAddress
+  end
+
 end

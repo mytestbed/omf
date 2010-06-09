@@ -109,7 +109,7 @@ class OmfMessage
   end
 
   def merge(another)
-    if another.kind_of?(self.class)
+    if another.kind_of?(self.class) || another.kind_of?(Hash)
       another.each { |attr, val|
 	@attributes[attr] = val if @attributes[attr] == nil
       }

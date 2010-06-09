@@ -371,30 +371,10 @@ class NodeSet < MObject
   # - path = the full xpath used when setting the MAC filtering
   # - value = the value given to that xpath when setting it
   #
-  def setLinkCharacteristics(path, value)
+  def set_link_characteristics(path, value)
     topo = value[:topology]
-    tool = value[:method]
-    device = path[-2]
-    # FIXME: This is a TEMPORARY hack !
-    # Currently the Inventory contains only info of interfaces such as "athX"
-    # This should not be the case, and should be fixed soon! When the Inventory
-    # will be "clean", we will have to modify the following interface definition
-    case device.to_s
-      when "w0"
-        interface = "ath0"
-      when "w1"
-        interface = "ath1"
-      when "e0"
-        interface = "eth0"
-      when "e1"
-        interface = "eth1"
-    end
-    Topology[topo].buildLinks(tool, interface)
-    if theTool == "tc"
-      Topology[theTopo].buildTCList(theInterface)
-    else
-      Topology[theTopo].buildMACBlackList(theInterface, theTool)
-    end
+    interface = path[-2]
+    Topology[topo].build_links(interface)
   end
 
   # 

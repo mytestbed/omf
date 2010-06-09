@@ -120,7 +120,7 @@ class NodeSetPath < MObject
     end
     if value != nil
       if (@path.last.to_s == "enforce_link")
-        @nodeSet.setLinkCharacteristics(@path, @value)
+        @nodeSet.set_link_characteristics(@path, @value)
       elsif (NodeHandler.disconnectionMode? == false) 
         # If this EC is invoked with support for temporary disconnected 
 	# node/resource, then do not execute any node/resource configuration 

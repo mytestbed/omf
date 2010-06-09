@@ -94,7 +94,7 @@ class BasicNodeSet < NodeSet
     eachNode { |n|
       n.powerOn()
       if NodeHandler.JUST_PRINT
-        n.checkIn(n.nodeId, '1.0', 'UNKNOWN')
+        n.checkIn(n.nodeID, '1.0', 'UNKNOWN')
         n.heartbeat(0, 0, Time.now.to_s)
       end
     }
