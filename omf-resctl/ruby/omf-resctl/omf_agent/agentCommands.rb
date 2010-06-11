@@ -39,6 +39,8 @@ require 'omf-resctl/omf_driver/ethernet'
 
 module AgentCommands
 
+  @linkStates = Array.new[]
+
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
 
   # TODO:
@@ -514,17 +516,125 @@ module AgentCommands
     end
   end
 
-    #  Command 'SET_TRAFFICRULES'
-    #  Add a traffic shaping rules between the node src and the destination and 
-    #  specify a filter either on @dst either on @dst and destination port.
-    #  - values = all the values to set the rules. values =[ipDst,delay,
-    #  delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,per,duplication,
-    #  portDst,portRange,rulesId]
-    #
+  #  Command 'SET_LINK'
+  #
+  #  Set the characteristics of a link using a specific emulation tool
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
   def AgentCommands.SET_LINK(controller, communicator, command)
+    # Check that we know the tool to use in order to set this link
+    tool = command.emulationTool
+    interface = command.interface
+    setter = "set_link_#{tool}" if tool
+    if !tool || respond_to?(setter)
+      return {:success => :ERROR, :reason => :UNKNOWN_EMULATION_TOOL, 
+              :info => "Could not setup link characteristics with unknown "+
+                       "emulation tool '#{tool}'"}
+    end
+    # Get the tool and use it to set the link
+    cmdArray = method(setter).call(command)
+    resultArray = Array.new
+    success = false
+    cmdArray.each { |cmd|
+      resultArray << `#{cmd}` 
+      if $?.success?
+	success = true
+	break
+      end
+    }
+    # Process the result and reply
+    if success
+      @linkStates << {:interface => interface, :tool => tool}
+      msg = "Set emulated link on interface '#{interface}' with '#{tool}'"
+      result = {:success => :OK, :reason => :SET_LINK, :info => msg}
+    else
+      msg = "Could not set emulated link on interface '#{interface}' "+
+            "with '#{tool}' and using commands '#{cmdArray.join(" --OR-- ")}'"+
+	    " - The results are: '#{resultArray.join(" --AND-- ")}'"
+      result =  {:success => :ERROR, :reason => :FAILED_SET_LINK, :info => msg}
+    end
+    MObject.debug("AgentCommands", msg)
+    return result
   end
 
-  def AgentCommands.SET_TRAFFICRULES(agent , argArray)
+  def AgentCommands.reset_links
+    @linkStates.each { |link|
+      # Check that we know the tool to use in order to reset this link
+      tool = link[:tool]
+      iface = link[:interface]
+      resetter = "reset_link_#{tool}" if tool
+      if !tool || respond_to?(setter)
+        MObject.debug("AgentCommands", "Cannot reset link on '#{iface}' with "+
+                      "unknown tool '#{tool}'")
+      end
+      # Get the tool and use it to set the link
+      cmd = method(resetter).call(iface)
+      result = `#{cmd}` 
+      # we don't care if it worked...
+    }
+  end
+
+  def AgentCommands.set_link_iptable(options)
+    cmd= "iptables -A INPUT -m mac --mac-source #{options.blockedMAC} -j DROP"
+    return [cmd]
+  end
+  def AgentCommands.reset_link_iptable(interface)
+  end
+
+  def AgentCommands.set_link_ebtable(options)
+    cmd= "ebtables -A INPUT --source #{options.blockedMAC} -j DROP"
+    return [cmd]
+  end
+  def AgentCommands.reset_link_ebtable(interface)
+  end
+
+  def AgentCommands.set_link_mackill(options)
+    cmd1 = "echo - #{options.blockedMAC} > /proc/net/mackill"
+    cmd2 = "sudo chmod 666 /proc/net/mackill ; "+
+           "sudo echo \"-#{options.blockedMAC}\">/proc/net/mackill"
+    return [cmd1, cmd2]
+  end
+  def AgentCommands.reset_link_mackill(interface)
+  end
+
+  def AgentCommands.set_link_netem(options)
+    p = "netem "
+    p << "delay #{options.delay} " if options.delay
+    p << "#{options.delayVar} " if options.delayVar
+    p << "#{options.delayCor} " if options.delayCor
+    p << "loss #{options.loss} " if options.loss
+    p << "#{options.lossCor} " if options.lossCor
+    p << "corrupt #{per} " if options.per
+    p << "duplicate #{duplication} " if options.duplication
+    # NOTE: someone much skilled in netem/tc should review this
+    # to see if we can optimise it...
+    if options.bw && p == "netem "      # BW only
+
+              parametersTbf = "tbf rate #{bw} buffer #{bwBuffer} limit #{bwLimit}"
+          cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parametersTbf}"
+          MObject.debug "Exec: '#{cmdRule}'"
+
+
+
+    elsif options.bw  && p != "netem "  # BW and Netem
+    elsif !options.bw && p != "netem "  # Netem only
+    end
+    if options.portDst
+    else
+    end
+
+    return [cmd]
+  end
+  def AgentCommands.reset_link_netem(interface)
+    iface = DEV_MAPPING["net/#{interface}"].deviceName
+    return "tc qdisc del dev #{iface} root "
+  end
+
+
+  def AgentCommands.set_traffic_filtered_link(controller, communicator, command)
     #check if the tool is available (Currently, only TC)
     if (!File.exist?("/sbin/tc"))
       raise "Traffic shaping method not available in 'SET_TRAFFICRULES'"
@@ -616,61 +726,6 @@ end
       result=`#{cmdFilter}`
       agent.okReply(:SET_TRAFFICRULES)
     end
-  end
-
-  #
-  # Command 'SET_MACTABLE'
-  #
-  # Add a given MAC address to the MAC filtering table of 
-  # this node. Any frames from this MAC address will be dropped
-  #
-  # - agent = the instance of this NA
-  # - cmdToUse = which filtering tool to use, supported options are 'iptable' 
-  # or 'ebtable' or 'mackill'
-  # - mac = MAC address to block
-  #
-  def AgentCommands.SET_MACTABLE(agent, argArray)
-    # retrieve arguments
-    cmdToUse = getArg(argArray, "MAC Filtering Command to Use")
-    macToBlock = getArg(argArray, "MAC Address to Block")
-    # Current madwifi change first octet from 00 to 06 when using 'wlanconfig create' at Winlab
-    # Fix that by blocking it as well.
-    macToBlockBis = "06:"+macToBlock.slice(3..-1)
-    # retrieve command line to execute in order to block this MAC addr.
-    case cmdToUse
-      when "iptable"
-	cmd = "iptables -A INPUT -m mac --mac-source #{macToBlock} -j DROP ; iptables -A INPUT -m mac --mac-source #{macToBlockBis} -j DROP"
-        cmd2 = ''
-      when "ebtable"
-	cmd = "ebtables -A INPUT --source #{macToBlock} -j DROP ; ebtables -A INPUT --source #{macToBlockBis} -j DROP"
-        cmd2 = ''
-      when "mackill"
-	cmd = "echo - #{macToBlock} > /proc/net/mackill ; echo - #{macToBlockBis} > /proc/net/mackill" 
-        cmd2 = "sudo chmod 666 /proc/net/mackill ; echo \"-#{macToBlock}\">/proc/net/mackill ; echo \"-#{macToBlockBis}\">/proc/net/mackill"
-      else 
-        MObject.error "SET_MACTABLE - Unknown command to use: #{cmdToUse}"
-	agent.errorReply(:SET_MACTABLE, agent.agentName, "Unsupported command: #{cmdToUse}")
-	return
-    end
-    # execute the command...
-    MObject.debug "Exec: '#{cmd}'"
-    result=`#{cmd}`
-    # check if all went well
-    if ! $?.success?
-      # if not, and if an alternate method was set, try again with the alternate one
-      if (cmd2 != '')
-        MObject.error "SET_MACTABLE - Trying again using alternate cmd: #{cmd2}"
-        MObject.debug "Exec: '#{cmd2}'"
-        result=`#{cmd2}`
-      end
-      # check if all went well - Report error only for original cmd
-      if ! $?.success?
-        MObject.error "SET_MACTABLE - Error executing cmd: #{cmd}"
-        agent.errorReply(:SET_MACTABLE, agent.agentName, "Executing cmd: '#{cmd}'")
-	return
-      end
-    end
-    agent.okReply(:SET_MACTABLE)
   end
 
 

@@ -88,7 +88,7 @@ class RCCommunicator < OmfCommunicator
 
   def send_reply(result, original_request)
     reply = create_message(:cmdtype => result[:success], :target => @@myName, 
-                           :cmd => result[:reason], :message => result[:info]) 
+                           :reason => result[:reason], :message => result[:info]) 
     reply.merge(original_request)
     reply.merge(result[:extra]) if result[:extra]
     send_message(@@myECAddress, reply)

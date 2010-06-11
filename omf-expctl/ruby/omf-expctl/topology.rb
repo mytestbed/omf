@@ -510,6 +510,7 @@ class Topology < MObject
       end
     when :netem
       spec[:targetIP] = dst.get_IP_address(interface)
+      spec[:interface] = interface 
     #  
     # else... Let the resource decide if it can act on this
     end

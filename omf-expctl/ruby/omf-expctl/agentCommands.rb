@@ -42,9 +42,9 @@ module AgentCommands
   #
   def AgentCommands.OK(controller, communicator, reply)
     sender = Node[reply.target]
-    okType = reply.cmd
+    okReason = reply.reason
     message = reply.message
-    case okType
+    case okReason
       when 'ENROLLED'
         # when we receive the first ENROLLED, send a NOOP message to the RC. 
         # This is necessary since if RC is reset or restarted, it might
@@ -64,8 +64,8 @@ module AgentCommands
         end
         # HACK!!! End
       else 
-        MObject.debug("AgentCommands", "OK from: '#{reply.target}' - "+
-                      "cmd: '#{reply.cmd}' - msg: '#{reply.message}'")
+        MObject.debug("AgentCommands", "OK from: '#{sender}' - "+
+                      "cmd: '#{okReason}' - msg: '#{message}'")
     end
   end
 
@@ -134,10 +134,10 @@ module AgentCommands
   #
   def AgentCommands.ERROR(controller, communicator, reply)
     sender = Node[reply.target]
-    errorType = reply.cmd
+    errorReason = reply.reason
     message = reply.message
     lines = Array.new
-    case errorType
+    case errorReason
       when 'FAILED_CONFIGURE'
 	reason = "Couldn't configure '#{reply.path}'"
         controller.logError(sender, reason, {:details => message})
@@ -159,10 +159,10 @@ module AgentCommands
         lines << "The error message is '#{message}'" if message
       else
         controller.logError(sender,
-                            "Unknown error caused by '#{errorType}'", 
+                            "Unknown error caused by '#{errorReason}'", 
                             {:details => message})
         lines << "The resource '#{sender}' reports an unknown error while"
-        lines << "executing a command. Error type is '#{errorType}'."
+        lines << "executing a command. Error type is '#{errorReason}'."
         lines << "The error message is '#{message}'" if message
     end
     controller.display_error_msg(lines)

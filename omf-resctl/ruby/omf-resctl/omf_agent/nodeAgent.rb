@@ -178,11 +178,8 @@ class NodeAgent < MObject
   def reset
     info "\n\n------------ RESET ------------\n"
     ExecApp.killAll
+    AgentCommands.reset_links
     Device.unload
-    # Reset Traffic Shapping
-    # This should be better designed...
-    cmd = "tc qdisc del dev eth0 root "
-    result=`#{cmd}`
     resetState
     RCCommunicator.instance.reset
   end
