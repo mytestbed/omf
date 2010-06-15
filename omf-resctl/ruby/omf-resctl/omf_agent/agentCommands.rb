@@ -582,6 +582,7 @@ module AgentCommands
     return [cmd]
   end
   def AgentCommands.reset_link_iptable(interface)
+    return "iptables -F ; iptables -X"
   end
 
   def AgentCommands.set_link_ebtable(options)
@@ -589,6 +590,7 @@ module AgentCommands
     return [cmd]
   end
   def AgentCommands.reset_link_ebtable(interface)
+    return "ebtables -F ; ebtables -X"
   end
 
   def AgentCommands.set_link_mackill(options)
@@ -598,136 +600,71 @@ module AgentCommands
     return [cmd1, cmd2]
   end
   def AgentCommands.reset_link_mackill(interface)
+    return "echo '' >  /proc/net/mackill"
   end
 
   def AgentCommands.set_link_netem(options)
-    p = "netem "
-    p << "delay #{options.delay} " if options.delay
-    p << "#{options.delayVar} " if options.delayVar
-    p << "#{options.delayCor} " if options.delayCor
-    p << "loss #{options.loss} " if options.loss
-    p << "#{options.lossCor} " if options.lossCor
-    p << "corrupt #{per} " if options.per
-    p << "duplicate #{duplication} " if options.duplication
+    iface = DEV_MAPPING["net/#{options.interface}"].deviceName
+    pNetem = "netem "
+    pNetem << "delay #{options.delay} " if options.delay
+    pNetem << "#{options.delayVar} " if options.delayVar
+    pNetem << "#{options.delayCor} " if options.delayCor
+    pNetem << "loss #{options.loss} " if options.loss
+    pNetem << "#{options.lossCor} " if options.lossCor
+    pNetem << "corrupt #{per} " if options.per
+    pNetem << "duplicate #{duplication} " if options.duplication
+
     # NOTE: someone much skilled in netem/tc should review this
     # to see if we can optimise it...
-    if options.bw && p == "netem "      # BW only
+    # Case 1 - BW only 
+    if options.bw && pNetem == "netem "      
+      pTBF = "tbf rate #{options.bw} buffer #{options.bwBuffer} "+
+             "limit #{options.bwLimit}"
+      cmdRule = "tc class add dev #{iface} parent 1:1 "+
+                "classid 1:1#{options.ruleID} htb rate 1000Mbps ; "+
+                "tc qdisc add dev #{iface} "+
+                "parent 1:1#{options.ruleID} handle #{options.ruleID}0: #{pTBF}"
+      MObject.debug "TBF: '#{cmdRule}'"
 
-              parametersTbf = "tbf rate #{bw} buffer #{bwBuffer} limit #{bwLimit}"
-          cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parametersTbf}"
-          MObject.debug "Exec: '#{cmdRule}'"
+    # Case 2 - BW and NETEM 
+    elsif options.bw  && pNetem != "netem "  
+      pTBF = "tbf rate #{options.bw} buffer #{options.bwBuffer} "+
+             "limit #{options.bwLimit}"
+      cmdRule = "tc class add dev #{iface} parent 1:1 "+
+                "classid 1:1#{options.ruleID} htb rate 1000Mbps ; "+
+                "tc qdisc add dev eth0 parent 1:1#{options.ruleID} handle "+
+                "#{options.ruleID}0: #{pNetem} ; "+
+                "tc qdisc add dev #{iface} parent #{options.ruleID}0:1 "+
+                "handle #{options.ruleID}01: #{pTBF}"
+      MObject.debug "TBF Netem: '#{cmdRule}'"
 
-
-
-    elsif options.bw  && p != "netem "  # BW and Netem
-    elsif !options.bw && p != "netem "  # Netem only
+    # Case 2 - NETEM only
+    elsif !options.bw && pNetem != "netem "  
+      cmdRule = "tc class add dev #{iface} parent 1:1 "+
+                "classid 1:1#{options.ruleID} htb rate 1000Mbps ; "+
+                "tc qdisc add dev #{iface} "+
+                "parent 1:1#{options.ruleID} handle #{options.ruleID}0: "+
+                "#{pNetem}"
+      MObject.debug "Netem: '#{cmdRule}'"
     end
+
     if options.portDst
+      cmdFilter= "tc filter add dev #{iface} protocol ip parent 1:0 prio 3 "+
+                 "u32 match ip protocol #{options.protocol} 0xff "+
+                 "match ip dport #{options.portDst} 0x#{options.portRange} "+
+                 "match ip dst #{options.ipDst} flowid 1:1#{options.ruleID}"
     else
+      cmdFilter= "tc filter add dev #{iface} protocol ip "+
+                 "parent 1:0 prio 3 u32 match ip dst #{options.ipDst} "+
+                 "flowid 1:1#{options.ruleID}"
     end
-
+    cmd = cmdRule + " ; " + cmdFilter
     return [cmd]
   end
   def AgentCommands.reset_link_netem(interface)
     iface = DEV_MAPPING["net/#{interface}"].deviceName
     return "tc qdisc del dev #{iface} root "
   end
-
-
-  def AgentCommands.set_traffic_filtered_link(controller, communicator, command)
-    #check if the tool is available (Currently, only TC)
-    if (!File.exist?("/sbin/tc"))
-      raise "Traffic shaping method not available in 'SET_TRAFFICRULES'"
-    else
-      ipDst=getArg(argArray, "@ip dst")
-      delay=getArg(argArray, "value of the delay. -1=not set")
-      delayVar=getArg(argArray, "Value of the delay variation")
-      delayCor=getArg(argArray, "Value of the delay correlation")
-      loss=getArg(argArray, "value of the loss")
-      lossCor=getArg(argArray, "value of the loss correlation")
-      bw=getArg(argArray, "value of the bandwidth")
-      bwBuffer=getArg(argArray, "value of the buffer for TBf")
-      bwLimit=getArg(argArray, "value of the limit for TBF")
-      per=getArg(argArray, "value of the packet error rate")
-      duplication=getArg(argArray, "value of the duplication")
-      portDst=getArg(argArray, "value of the port for filter based on port")
-      portRange=getArg(argArray, "Range for filtering by port")
-      protocol=getArg(argArray, "TCP or UDP")
-      interface = getArg(argArray, "interface to apply the rules")
-      nbRules = getArg(argArray , "Number of rules")
-      nbRules = nbRules.to_i
-      nbRules = nbRules + 1
-      portRange = portRange.to_i
-      portRange = 65535 - portRange
-      portRange = portRange.to_s(16)
-      #values to check that either netem or tbf are in use (no empty rule)
-      netem = 0
-      tbf = 0
-      if (nbRules==2)
-        cmdMainPipe = "tc qdisc del dev eth0 root ; tc qdisc add dev eth0 handle 1: root htb ; tc class add dev eth0 parent 1: classid 1:1 htb rate 1000Mbps "
-        MObject.debug "Exec: '#{cmdMainPipe}'"
-        result=`#{cmdMainPipe}`
-      end
-      #Creation of netem parameters part
-      parameters ="netem "
-      puts "delay #{delay}"
-      if (delay != "-1")
-        netem = 1
-        parameters = parameters + "delay #{delay}"
-        if (delayVar != "-1")
-          parameters = parameters + " #{delayVar}"
-          if (delayCor != "-1")
-            parameters = parameters + " #{delayCor}"
-          end
-        end
-      end
-      if (loss!= "-1")
-        netem = 1
-        parameters = parameters + " loss #{loss}"
-        if (lossCor != "-1")
-          parameters = parameters +" #{lossCor}"
-        end
-      end
-      if (per != "-1")
-        netem = 1
-        parameters = parameters + " corrupt #{per}"
-      end
-      if (duplication != "-1")
-        netem = 1
-        parameters = parameters + " duplicate #{duplication}"
-end
-      #Only tbf in the rule
-      if(bw != "-1"  and netem == 0)
-        tbf = 1
-        parametersTbf = "tbf rate #{bw} buffer #{bwBuffer} limit #{bwLimit}"
-          cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parametersTbf}"
-          MObject.debug "Exec: '#{cmdRule}'"
-          result=`#{cmdRule}`
-      #Bw AND Netem Stuff
-      elsif (bw != "-1" and netem == 1)
-        tbf = 1
-        parametersTbf = "tbf rate #{bw} buffer #{bwBuffer} limit #{bwLimit}"
-        cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parameters} ; tc qdisc add dev eth0 parent #{nbRules}0:1 handle #{nbRules}01: #{parametersTbf}"
-        MObject.debug "Exec: '#{cmdRule}'"
-        result=`#{cmdRule}`
-      elsif (bw == "-1" and netem == 1)
-        cmdRule = "tc class add dev #{interface} parent 1:1 classid 1:1#{nbRules} htb rate 1000Mbps ; tc qdisc add dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: #{parameters}"
-        MObject.debug "Exec: '#{cmdRule}'"
-        result=`#{cmdRule}`
-      end
-      if(tbf != 0 or netem != 0)
-        if(portDst!="-1")
-          cmdFilter= "tc filter add dev #{interface} protocol ip parent 1:0 prio 3 u32 match ip protocol #{protocol} 0xff match ip dport #{portDst} 0x#{portRange} match ip dst #{ipDst} flowid 1:1#{nbRules}"
-        else
-          cmdFilter= " tc filter add dev #{interface} protocol ip parent 1:0 prio 3 u32 match ip dst #{ipDst} flowid 1:1#{nbRules}"
-        end
-      end
-      MObject.debug "Exec: '#{cmdFilter}'"
-      result=`#{cmdFilter}`
-      agent.okReply(:SET_TRAFFICRULES)
-    end
-  end
-
 
   #
   # Command 'SET_DISCONNECT'
