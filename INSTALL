@@ -12,12 +12,11 @@ How to build OMF debian packages
 How to build debian packages for the external dependencies
 ----------------------------------------------------------
 
-The OMF debian packages depend on customised version of some external software. To build
+The OMF debian packages depend on some customised versions of some external software. To build
 these, follow this guide:
 
 - enter the "external" directory
-- run "debuild -i -us -uc -b" in the coderay, log4r and xmpp4r directories
-- enter "emulab/oj/os/frisbee-080901" and run "debuild -i -us -uc -b" to build frisbee
-- enter "emulab/oj/os/imagezip-080901" and run "debuild -i -us -uc -b" to build imagezip
+- enter "frisbee/frisbee" and run "debuild -i -us -uc -b" to build frisbee
+- enter "frisbee/imagezip" and run "debuild -i -us -uc -b" to build imagezip
 - each debian package can be found in the parent directory of where it was built
 - use "dput packagename.changes" to upload it to your repository
