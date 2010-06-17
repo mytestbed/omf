@@ -39,7 +39,7 @@ require 'omf-resctl/omf_driver/ethernet'
 
 module AgentCommands
 
-  @linkStates = Array.new[]
+  @linkStates = Array.new
 
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
 

@@ -233,7 +233,7 @@ class Topology < MObject
     # not both
     if (linkIsAsymmetric != @asymmetric)
       raise "Topology:removeLink() - Cannot remove link '#{srcName}' -> "+
-            "'#{dstName}'. Its specifications are incompatible with this "
+            "'#{dstName}'. Its specifications are incompatible with this "+
             "topology. A Topology can only contain either symmetric or "+
             "asymmetric links, not both."
     end
@@ -266,8 +266,9 @@ class Topology < MObject
     # Check if this type of link is compatible with previously added links
     # i.e. a graph can only contain either symmetric or asymmetric links, 
     # not both
+info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}" 
     raise "Topology:addLink() - Cannot add link '#{srcName}' -> "+
-          "'#{dstName}'. Its specifications are incompatible with this "
+          "'#{dstName}'. Its specifications are incompatible with this "+
           "topology. A Topology can only contain either symmetric or "+
           "asymmetric links, not both." if (linkIsAsymmetric != @asymmetric)
     edges = getGraphEdges(@graph)
@@ -387,18 +388,32 @@ class Topology < MObject
   # - *params = the definition of the node to add 
   # 
   def addNode(*params)
-    if (params.size == 2) && 
-       params[0].kind_of?(String) && (params[1].kind_of?(String))
-      addMapping(["#{params[0]}","#{params[1]}"])
-      addNodeByName(params[1])
-    elsif (params.size == 1) && (params[0].kind_of?(String))
-      addMapping(["#{params[0]}","#{params[0]}"])
-      addNodeByName(params[0])
-    elsif (params.size == 1) && (params[0].kind_of?(Node))
-      addMapping(["#{params[0].name}","#{params[0].name}"])
-      addNodeByName(params[0].name)
+    vertex = nil
+    resource = nil
+    if (params.size == 2) 
+      if params[0].kind_of?(String)
+        vertex = params[0]
+        resource = params[1] if params[1].kind_of?(String)  
+        resource = params[1].value if params[1].kind_of?(ExperimentProperty)  
+      else
+        raise("Cannot add resource to topology '#{@uri}', wrong arguments "+
+              "'#{params}'")
+      end
+    elsif (params.size == 1) 
+      resource = params[0] if params[0].kind_of?(String)  
+      resource = params[0].value if params[0].kind_of?(ExperimentProperty)  
+      resource = params[0].name if params[0].kind_of?(Node)  
+      vertex = resource
     else
-      raise("addNode() - Cannot add node, unknown argument '#{params}'")
+      raise("Cannot add resource to topology '#{@uri}', wrong number of "+
+            "arguments '#{params}'")
+    end
+    if vertex && resource
+      addMapping(vertex, resource)
+      addNodeByName(resource)
+    else
+      raise("Cannot add resource to topology '#{@uri}', wrong arguments "+
+            "'#{params}'")
     end
   end
 
@@ -688,11 +703,9 @@ attr_accessor :strict
   # NOTE: nodeName is defined by the experiment, it is different
   # from the name defined by convention for each node (e.g. n_x_y)
   #
-  def addMapping(theCouple)
-    @mapping[theCouple[0]] = theCouple[1]
-    if (@graph != nil)
-      @graph.add_vertex!(theCouple)
-    end
+  def addMapping(label, resource)
+    @mapping[label] = resource
+    @graph.add_vertex!([label, resource]) if @graph
   end
 
   #
