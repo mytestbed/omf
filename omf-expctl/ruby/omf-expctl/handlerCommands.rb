@@ -69,6 +69,18 @@ class OEDLIllegalCommandException < OEDLException
   end   
 end
 
+class OEDLExecutionException < OEDLException
+  attr_reader :cmdName, :error
+  
+  def initialize(cmdName, error = nil, originalMsg = nil)
+    @cmdName = cmdName
+    message = "Error when executing the OEDL command '#{cmdName}'"
+    message << " ('#{error}' - '#{originalMsg}')" if error || originalMsg
+    super(message)
+  end   
+end
+
+
 module OMF
   module ExperimentController
     module Commands
@@ -112,13 +124,13 @@ alias :property :prop
 #
 def defTopology(refName, nodeArray = nil, &block)
   if (nodeArray != nil && !nodeArray.kind_of?(Array))
-    raise "Topology description. Expected array but got '#{nodeArray}'"
+    raise OEDLIllegalArgumentException.new(:defTopology, nodeArray) 
   end
   topo = Topology.create(refName, nodeArray)
   if (! block.nil?)
     block.call(topo)
   end
-  topo
+  return topo
 end
 
 

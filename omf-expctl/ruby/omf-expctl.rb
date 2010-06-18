@@ -39,6 +39,19 @@ begin
 rescue SystemExit
 rescue Interrupt
   # ignore
+rescue OEDLException => ex 
+  begin
+    bt = ex.backtrace 
+    MObject.fatal('run', "----------")
+    MObject.fatal('run', "  A fatal error was encountered while processing your"+
+                         " experiment description.")
+    MObject.fatal('run', "  Exception: #{ex.class}")
+    MObject.fatal('run', "  Exception: #{ex}")
+    MObject.fatal('run', "  In file: #{bt[0]}")
+    MObject.fatal('run', "----------")
+    MObject.debug('run', "\n\nTrace:\n\t#{bt.join("\n\t")}\n")
+  rescue Exception
+  end
 rescue ServiceException => sex
   begin
     MObject.fatal('run', "Failed to call an Aggregate Manager Service")

@@ -49,9 +49,9 @@ defEvent(:ALL_UP) do |event|
   event.fire if allEqual(node_status, "UP")
 end
 
-defEvent(:ALL_UP) do |event|
-  if_status = allGroups.state("net//", "status")
-  info "TDEBUG - #{if_status.join(" ")}"
+defEvent(:ALL_INTERFACE_UP) do |event|
+  if_status = allGroups.state("net/*/*/current", "status")
+  #info "TDEBUG - #{if_status.join(" ")}"
   event.fire if allEqual(if_status, "CONFIGURED.OK")
 end
 

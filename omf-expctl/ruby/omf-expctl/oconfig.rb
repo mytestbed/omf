@@ -241,7 +241,28 @@ module OConfig
     # Found the file, read it and optionally evaluate the ruby code inside
     str = File.new(file).read()
     if evalRuby
-      eval(str, OMF::ExperimentController::CmdContext.instance._binding())
+      begin
+        eval(str, OMF::ExperimentController::CmdContext.instance._binding(),
+             uri)
+      rescue Exception => ex
+        if ex.kind_of?(OEDLException)
+          # Remove the 1st backtrace line (i.e. the file implementing the cmd)
+          bt = ex.backtrace 
+          bt.shift 
+          ex.set_backtrace(bt)
+          raise ex
+        else
+          # Repackage any other raised exception as an OEDL exception
+          msg = ex.to_s
+          if ex.kind_of?(NameError) # Remove context pointing to CmdContext
+            a = msg.split(' ') ; a.delete_at(a.size-1) ;a.delete_at(a.size-1) 
+            msg = a.join(' ') ; msg << " in '#{uri}'"
+          end
+          e = OEDLException.new("(#{ex.class}) #{msg}")
+          e.set_backtrace(ex.backtrace)
+          raise e
+        end
+      end
       #require file
     end
     

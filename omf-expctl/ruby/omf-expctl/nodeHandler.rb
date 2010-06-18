@@ -26,12 +26,14 @@
 #
 # == Description
 #
-# This is the main source file for the Node Handler. It defines the NodeHandler class.
+# This is the main source file for the Node Handler. It defines the 
+# NodeHandler class.
 #
-# NOTE: Originally 'Node Handler' (EC) was the name of this OMF entity. As of end of 2008
-# we are adopting a new naming scheme closer to the GENI specifications. In this new scheme,
-# the term 'Experiment Controller' (EC) replaces 'Node Handler'. This code will gradually
-# be changed to reflect this. However, this is change is a low priority task, therefore the
+# NOTE: Originally 'Node Handler' (EC) was the name of this OMF entity.
+# As of end of 2008, we are adopting a new naming scheme.
+# In this new scheme, the term 'Experiment Controller' (EC) replaces 
+# 'Node Handler'. This code will gradually be changed to reflect this. 
+# However, this is change is a low priority task, therefore the
 # reader will see both terms 'EC' and 'EC' used in the code.
 #
 
@@ -435,8 +437,7 @@ class NodeHandler < MObject
 
     @interactive = false
     @doProfiling = false
-    @extraLibs = 'system:exp:stdlib'
-    #@extraLibs = 'system:exp:stdlib,system:exp:eventlib'
+    @extraLibs = 'system:exp:stdlib,system:exp:eventlib'
     @logConfigFile = nil
     @finalStateFile = nil
     @webPort = 4000

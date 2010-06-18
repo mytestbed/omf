@@ -271,7 +271,7 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
           "'#{dstName}'. Its specifications are incompatible with this "+
           "topology. A Topology can only contain either symmetric or "+
           "asymmetric links, not both." if (linkIsAsymmetric != @asymmetric)
-    edges = getGraphEdges(@graph)
+    @edges = getGraphEdges(@graph)
     source = [srcName, @mapping[srcName]]
     dstCompare = [dstName, @mapping[dstName]]
     @graph.adjacent(source).each { |dest|
@@ -279,7 +279,7 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
         # check if there is already a link set between source and dest
         if (dest.to_s == dstCompare.to_s)
 	  # update of the link (spec ...)
-	  linkSpec = edges[source+dest].label
+	  linkSpec = @edges[source+dest].label
 	  # update of a rule, which means update of a hash in a hash
 	  spec.each_key{|key|
 	    if(spec[key].kind_of? Hash and linkSpec[key].kind_of? Hash)
@@ -501,7 +501,7 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
       @graph.adjacent(source).each { |destination|
         if @graph.edge?(source, destination)
 	  dstNode = Node[destination[1]]  
-          linkSpec = edges[source+destination].label
+          linkSpec = @edges[source+destination].label
           configure_link(srcNode, dstNode, interface, linkSpec)
           if !linkSpec[:asymmetric]  
             configure_link(dstNode, srcNode, interface, linkSpec)
@@ -517,7 +517,7 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
     case spec[:emulationTool]
     when nil
       error "Cannot build links for this topology '#{@uri}', no emulation "+
-            "tool was set for the link between '#{srcNode}' and '#{dstNode}'"
+            "tool was set for the link between '#{src}' and '#{dst}'"
       return
     when :mackill, :ebtable, :iptable
       if linkSpec[:state] == :down
