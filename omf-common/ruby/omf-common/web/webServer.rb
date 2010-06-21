@@ -95,15 +95,20 @@ module OMF
           res['content-type'] = 'text/xml'
         end    
         
-        (args[:PublicHtml] || []).each do |rep|
-          public = "#{rep}/public_html"
-          if File.directory?(public)
-            MObject.debug(:web, "Mounting /resource to #{public}")
-            @@server.mount("/resource", HTTPServlet::FileHandler, public, true)
+        resourceDir = nil
+        (resourceDirChoices = (args[:ResourceDir] || [])).each do |dir|
+          if File.directory?(dir)
+            resourceDir = dir
             break
           end
         end
-    
+        if resourceDir
+          MObject.debug(:web, "Mounting /resource to #{resourceDir}")
+          @@server.mount("/resource", HTTPServlet::FileHandler, resourceDir, true)
+        else
+          MObject.error(:web, "Cannot find any of the resource directors '#{resourceDirChoices.join('::')}'")
+        end
+      
         Thread.new do
           begin
             sleep 10 # wait a bit so that the user script can define all services requested
