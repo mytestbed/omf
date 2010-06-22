@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/usr/bin/ruby
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
-#
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,48 +22,247 @@
 #
 #
 
-export LANG=c
+require 'optparse'
 
-# determine OMF version
-if [ ${0#*-} != $0 ]; then VER=-${0#*-}; fi
+@version="-5.3"
+@ec_path="/usr/share/omf-expctl#{@version}/"
 
-# Retrieve command line
-MY_NAME=`echo $0 | awk 'BEGIN {FS="/"};{print $NF}'`
-FULL_ARG_LINE=$@
-CMD_NAME=$1
-shift
-CMD_ARG_LINE=$@
+def parseOptions()
+  @options = {}
+  OptionParser.new do |opts|
+    @options[:help] = false
+    opts.on( '-h', '--help', "Show help" ) do
+      @options[:help] = true
+    end
+    @options[:summary] = false
+    opts.on( '-s', '--summary', "Show stat summary" ) do
+      @options[:summary] = true
+    end
+    @options[:aggregate] = ""
+    opts.on( '-c', '--config AGGREGATE', "Aggregate Name" ) do|c|
+      @options[:aggregate] = c
+    end
+    @options[:action] = ""
+    opts.on( '-a', '--action ACTION', "CMC action (on, offs, offh)" ) do|a|
+      @options[:action] = a
+    end
+    @options[:topology] = "system:topo:all"
+    opts.on( '-t', '--topology TOPOLOGY', "Topology" ) do|t|
+      @options[:topology] = t
+    end
+    @options[:image] = "baseline.ndz"
+    opts.on( '-i', '--image IMAGE', "Disk Image to load" ) do|i|
+      @options[:image] = i
+    end
+    @options[:timeout] = "800"
+    opts.on( '-o', '--timeout SECONDS', "Load image timeout" ) do|o|
+      @options[:timeout] = o
+    end
+    @options[:node] = ""
+    opts.on( '-n', '--node NODE', "Save image node" ) do|n|
+      @options[:node] = n
+    end
+  end.parse
+end
 
-# Help message
-function usage()
-{
-  echo -e "\nRun a command on the testbed(s)\n"
-  echo -e "Usage: $MY_NAME [COMMAND] [ARGUMENT]...\n" >&2
-  echo -e "  Available COMMANDs:\n" >&2
-  echo -e "    help   Print this help message or a specify command usage" >&2
-  echo -e "    exec   Execute an experiment script" >&2
-  echo -e "    load   Load a disk image on a given set of nodes" >&2
-  echo -e "    save   Save a disk image from a given node into a file" >&2
-  echo -e "    tell   Switch a given set of nodes ON/OFF" >&2
-  echo -e "    stat   Returns the status of a given set of nodes\n" >&2
-  echo -e "  To get more help on individual commands: 'omf help [COMMAND]'" >&2
-  echo -e "  Examples:" >&2
-  echo -e "            $MY_NAME help exec   Return usage/help for the 'exec' command" >&2
-  echo -e "            $MY_NAME help load   Return usage/help for the 'load' command\n" >&2
-}
+def run(cmd)
+  args=""
 
-# Parse command line
-case "$CMD_NAME" in
-  "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_NAME$VER" ;;
-  "help" ) case "$CMD_ARG_LINE" in
-             "exec" | "load" | "save" | "tell" | "stat" ) CMD_TO_RUN="omf_$CMD_ARG_LINE$VER" ; CMD_ARG_LINE="--help";;
-	     * ) usage ; exit 0 ;;
-	   esac ;;
-  * ) usage ; exit 0 ;;
-esac
+  ########## OMF EXEC    
+  if (cmd == "exec")
+    app="omf-expctl.rb"
+    args=Array.new(ARGV)
+    args.delete(cmd)
+    
+  ########## OMF TELL    
+  elsif (cmd == "tell")
+    app="omf-expctl/tellnode.rb"
+    # needs an action
+    if @options[:action].empty?
+      help(cmd)
+      exit 1
+    end
+    # tell [COMMAND] "[TOPOLOGY]" [DOMAIN]
+    args=["#{@options[:action]}", "#{@options[:topology]}", "#{@options[:aggregate]}"]
+    
+  ########## OMF STAT
+  elsif (cmd == "stat")
+    app="omf-expctl/statnode.rb"
+    if @options[:summary]
+      # stat [-c] [DOMAIN]
+      args=["-c", "#{@options[:aggregate]}"]
+    else
+      # stat "[TOPOLOGY]" [DOMAIN]
+      args=["#{@options[:topology]}", "#{@options[:aggregate]}"]
+    end
+    
+  ########## OMF LOAD
+  elsif (cmd == "load")
+    app="omf-expctl.rb"
+    args=["-s system:exp:imageNode", "--", "--nodes #{@options[:topology]}", "--image #{@options[:image]}", "--timeout #{@options[:timeout]}"]
+    if !@options[:aggregate].empty?
+      args << "--domain #{@options[:aggregate]}"
+    end
+    
+  ########## OMF SAVE
+  elsif (cmd == "save")
+    app="omf-expctl.rb"
+    if @options[:node].empty?
+      help(cmd)
+      exit 1
+    end
+    args=["-s system:exp:saveNode", "--", "--nodes #{@options[:node]}"]
+    if !@options[:aggregate].empty?
+      args << "--domain #{@options[:aggregate]}"
+    end
+  
+  ########## OMF ANYTHING ELSE
+  else
+    # should never get here
+    puts "Unknown command #{cmd}."
+    help()
+    exit 1
+  end
+  
+  if !File.exists?("#{@ec_path}#{app}")
+     puts "Cannot find the ruby module '#{@ec_path}#{app}'."
+     exit 1
+  end
 
-if [ -e ./$CMD_TO_RUN ]; then
-	./$CMD_TO_RUN $CMD_ARG_LINE
-else 
-	$CMD_TO_RUN $CMD_ARG_LINE
-fi
+  omf_command = "ruby1.8 -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"  
+  puts "DEBUG: Executing '#{omf_command}'"
+  exec omf_command
+end
+
+# display help for command 'cmd'
+def help(cmd = nil)
+  if (cmd == "exec")
+    # exec has its own help
+    ARGV << "-h"
+    run(cmd)
+  elsif (cmd == "stat")
+    puts "Returns the status of the nodes in a testbed\n"
+  	puts "Usage:"
+  	puts "      omf #{cmd} [-h] [-s] [-t TOPOLOGY] [-c AGGREGATE]"
+  	puts " "
+  	puts "      With: "
+  	puts "      -h, --help                print this help message"
+  	puts "      -s, --summary             print a summary of the node status for the testbed"
+  	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
+  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
+  	puts " "
+  	puts "      Some Examples: " 
+  	puts "                    omf #{cmd}"  	
+  	puts "                    omf #{cmd} -t all -a grid"
+  	puts "                    omf #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -a sb1"
+  	puts "                    omf #{cmd} -t system:topo:all"
+  	puts "                    omf #{cmd} -t system:topo:circle"
+  	puts "                    omf #{cmd} -t topo_grid_active"
+  	puts " "
+  elsif (cmd == "tell")
+    puts "Switch ON/OFF and reboot the nodes in a testbed\n"
+  	puts "Usage:"
+  	puts "      omf #{cmd} -a ACTION [-h] [-t TOPOLOGY] [-c AGGREGATE]"
+  	puts " "
+  	puts "      With: "
+  	puts "      -h, --help    print this help message"
+  	puts " "
+  	puts "      -a, --action  specify an action"  	
+  	puts "      ACTION:"
+  	puts "      on              turn node(s) ON"
+  	puts "      offs            turn node(s) OFF (soft)"
+  	puts "      offh            turn node(s) OFF (hard)"
+  	puts " "
+  	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
+  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
+  	puts " "
+  	puts "      Some Examples: " 
+  	puts "                    omf #{cmd} -a on -t all -c grid"
+  	puts "                    omf #{cmd} -a on -t omf.nicta.node1"
+  	puts "                    omf #{cmd} offs -t \"['omf.nicta.node1','omf.nicta.node2']\" -c sb1 "
+  	puts "                    omf #{cmd} offh -t system:topo:all"
+  	puts "                    omf #{cmd} offh -t topo_grid_active"
+  	puts " "
+  elsif (cmd == "load")
+    puts "Install a given disk image on the nodes in a testbed\n"
+    puts "Usage:"
+    puts "      omf #{cmd} [-h] [-i IMAGE_PATH] [-o TIMEOUT] [-t TOPOLOGY] [-c AGGREGATE]"
+    puts " "
+    puts "      With: "
+    puts "      -h, --help                print this help message"
+  	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
+  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"    
+    puts "      -i, --image IMAGE         disk image to load"
+    puts "                                (default is 'baseline.ndz', the latest stable baseline image)"
+    puts "      -o, --timeout TIMEOUT     a duration (in sec.) after which imageNodes should stop waiting for"
+    puts "                                nodes that have not finished their image installation"
+    puts "                                (default is 800 sec, i.e. 13min 20sec)"
+    puts " "
+    puts "      Some Examples: " 
+    puts "                    omf #{cmd}"
+    puts "                    omf #{cmd} -t all"
+    puts "                    omf #{cmd} -t all -i baseline-2.4.ndz"
+    puts "                    omf #{cmd} -t omf.nicta.node1 -i wireless-2.6.ndz"
+    puts "                    omf #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -i baseline.ndz -o 400"
+    puts "                    omf #{cmd} system:topo:circle my_Own_Image.ndz"
+    puts "                    omf #{cmd} my_Own_Topology baseline-2.2.ndz 600 grid"
+    puts " "
+  elsif (cmd == "save")
+    puts "Save a disk image from a given node into an archive file\n"
+    puts "Usage:"
+    puts "      omf #{cmd} [-h]"
+    puts "      omf #{cmd} [NODE] [DOMAIN]"
+    puts " "
+    puts "      With: "
+    puts "      -h, --help    print this help message"
+    puts "      NODE          a valid node description "
+    puts "                    (no default here, you have to enter a node!)"
+    puts " "
+    puts "      Some Examples: " 
+    puts "                    omf #{cmd} \"[5,10]\""
+    puts "                    omf #{cmd} \"[11,2]\" grid"
+    puts " "
+  else
+    # generic help
+    puts "Run a command on the testbed(s)\n"
+    puts "Usage: omf #{cmd} [COMMAND] [ARGUMENT]...\n"
+    puts "  Available COMMANDs:\n"
+    puts "    help   Print this help message or a specify command usage"
+    puts "    exec   Execute an experiment script"
+    puts "    load   Load a disk image on a given set of nodes"
+    puts "    save   Save a disk image from a given node into a file"
+    puts "    tell   Switch a given set of nodes ON/OFF"
+    puts "    stat   Returns the status of a given set of nodes\n"
+    puts "  To get more help on individual commands: 'omf help [COMMAND]'"
+    puts "  Examples:"
+    puts "            omf #{cmd} help exec   Return usage/help for the 'exec' command"
+    puts "            omf #{cmd} help load   Return usage/help for the 'load' command"
+  end
+end
+
+
+# print help if no arguments are given
+if ARGV.empty?
+  help()
+  exit 0
+end
+
+parseOptions()
+
+# specify valid commands
+commands = Array["exec","stat","tell","load","save","help"]
+
+if commands.include?(ARGV[0])
+  if (ARGV[0]=="help")
+    help(ARGV[1])
+  elsif @options[:help]
+    help(ARGV[0])
+  else
+    run(ARGV[0])
+  end
+else
+  puts "Unknown command: #{ARGV[0]}"
+  help()
+  exit 1
+end
+
