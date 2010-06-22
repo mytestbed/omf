@@ -2,6 +2,8 @@
 #
 # Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
+# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -26,10 +28,12 @@ require 'optparse'
 
 @version="-5.3"
 @ec_path="/usr/share/omf-expctl#{@version}/"
+@this_app=File.basename(__FILE__)
 
 def parseOptions()
   @options = {}
-  OptionParser.new do |opts|
+  
+  opts = OptionParser.new do |opts|
     @options[:help] = false
     opts.on( '-h', '--help', "Show help" ) do
       @options[:help] = true
@@ -51,7 +55,7 @@ def parseOptions()
       @options[:topology] = t
     end
     @options[:image] = "baseline.ndz"
-    opts.on( '-i', '--image IMAGE', "Disk Image to load" ) do|i|
+    opts.on( '-i', '--image IMAGE', "Disk image to load" ) do|i|
       @options[:image] = i
     end
     @options[:timeout] = "800"
@@ -62,7 +66,16 @@ def parseOptions()
     opts.on( '-n', '--node NODE', "Save image node" ) do|n|
       @options[:node] = n
     end
-  end.parse
+  end
+
+  begin
+    opts.parse!(Array.new(ARGV))
+  rescue OptionParser::InvalidOption, OptionParser::MissingArgument
+    puts $!.to_s
+    help(ARGV[0])
+    exit 1
+  end
+  p @options
 end
 
 def run(cmd)
@@ -116,7 +129,6 @@ def run(cmd)
       args << "--domain #{@options[:aggregate]}"
     end
   
-  ########## OMF ANYTHING ELSE
   else
     # should never get here
     puts "Unknown command #{cmd}."
@@ -143,7 +155,7 @@ def help(cmd = nil)
   elsif (cmd == "stat")
     puts "Returns the status of the nodes in a testbed\n"
   	puts "Usage:"
-  	puts "      omf #{cmd} [-h] [-s] [-t TOPOLOGY] [-c AGGREGATE]"
+  	puts "      #{@this_app} #{cmd} [-h] [-s] [-t TOPOLOGY] [-c AGGREGATE]"
   	puts " "
   	puts "      With: "
   	puts "      -h, --help                print this help message"
@@ -152,22 +164,22 @@ def help(cmd = nil)
   	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
   	puts " "
   	puts "      Some Examples: " 
-  	puts "                    omf #{cmd}"  	
-  	puts "                    omf #{cmd} -t all -a grid"
-  	puts "                    omf #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -a sb1"
-  	puts "                    omf #{cmd} -t system:topo:all"
-  	puts "                    omf #{cmd} -t system:topo:circle"
-  	puts "                    omf #{cmd} -t topo_grid_active"
+  	puts "                    #{@this_app} #{cmd}"  	
+  	puts "                    #{@this_app} #{cmd} -t all -a grid"
+  	puts "                    #{@this_app} #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -a sb1"
+  	puts "                    #{@this_app} #{cmd} -t system:topo:all"
+  	puts "                    #{@this_app} #{cmd} -t system:topo:circle"
+  	puts "                    #{@this_app} #{cmd} -t topo_grid_active"
   	puts " "
   elsif (cmd == "tell")
     puts "Switch ON/OFF and reboot the nodes in a testbed\n"
   	puts "Usage:"
-  	puts "      omf #{cmd} -a ACTION [-h] [-t TOPOLOGY] [-c AGGREGATE]"
+  	puts "      #{@this_app} #{cmd} -a ACTION [-h] [-t TOPOLOGY] [-c AGGREGATE]"
   	puts " "
   	puts "      With: "
-  	puts "      -h, --help    print this help message"
+  	puts "      -h, --help           print this help message"
   	puts " "
-  	puts "      -a, --action  specify an action"  	
+  	puts "      -a, --action ACTION  specify an action"  	
   	puts "      ACTION:"
   	puts "      on              turn node(s) ON"
   	puts "      offs            turn node(s) OFF (soft)"
@@ -177,16 +189,16 @@ def help(cmd = nil)
   	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
   	puts " "
   	puts "      Some Examples: " 
-  	puts "                    omf #{cmd} -a on -t all -c grid"
-  	puts "                    omf #{cmd} -a on -t omf.nicta.node1"
-  	puts "                    omf #{cmd} offs -t \"['omf.nicta.node1','omf.nicta.node2']\" -c sb1 "
-  	puts "                    omf #{cmd} offh -t system:topo:all"
-  	puts "                    omf #{cmd} offh -t topo_grid_active"
+  	puts "                    #{@this_app} #{cmd} -a on -t all -c grid"
+  	puts "                    #{@this_app} #{cmd} -a on -t omf.nicta.node1"
+  	puts "                    #{@this_app} #{cmd} offs -t \"['omf.nicta.node1','omf.nicta.node2']\" -c sb1 "
+  	puts "                    #{@this_app} #{cmd} offh -t system:topo:all"
+  	puts "                    #{@this_app} #{cmd} offh -t topo_grid_active"
   	puts " "
   elsif (cmd == "load")
     puts "Install a given disk image on the nodes in a testbed\n"
     puts "Usage:"
-    puts "      omf #{cmd} [-h] [-i IMAGE_PATH] [-o TIMEOUT] [-t TOPOLOGY] [-c AGGREGATE]"
+    puts "      #{@this_app} #{cmd} [-h] [-i IMAGE_PATH] [-o TIMEOUT] [-t TOPOLOGY] [-c AGGREGATE]"
     puts " "
     puts "      With: "
     puts "      -h, --help                print this help message"
@@ -199,47 +211,45 @@ def help(cmd = nil)
     puts "                                (default is 800 sec, i.e. 13min 20sec)"
     puts " "
     puts "      Some Examples: " 
-    puts "                    omf #{cmd}"
-    puts "                    omf #{cmd} -t all"
-    puts "                    omf #{cmd} -t all -i baseline-2.4.ndz"
-    puts "                    omf #{cmd} -t omf.nicta.node1 -i wireless-2.6.ndz"
-    puts "                    omf #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -i baseline.ndz -o 400"
-    puts "                    omf #{cmd} system:topo:circle my_Own_Image.ndz"
-    puts "                    omf #{cmd} my_Own_Topology baseline-2.2.ndz 600 grid"
+    puts "                    #{@this_app} #{cmd}"
+    puts "                    #{@this_app} #{cmd} -t all"
+    puts "                    #{@this_app} #{cmd} -t all -i baseline-2.4.ndz"
+    puts "                    #{@this_app} #{cmd} -t omf.nicta.node1 -i wireless-2.6.ndz"
+    puts "                    #{@this_app} #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -i baseline.ndz -o 400"
+    puts "                    #{@this_app} #{cmd} -t system:topo:circle -i my_Own_Image.ndz"
+    puts "                    #{@this_app} #{cmd} -t my_Own_Topology -i baseline-2.2.ndz -t 600 -c grid"
     puts " "
   elsif (cmd == "save")
     puts "Save a disk image from a given node into an archive file\n"
     puts "Usage:"
-    puts "      omf #{cmd} [-h]"
-    puts "      omf #{cmd} [NODE] [DOMAIN]"
+    puts "      #{@this_app} #{cmd} -n NODE [-h] [-c AGGREGATE]"
     puts " "
     puts "      With: "
-    puts "      -h, --help    print this help message"
-    puts "      NODE          a valid node description "
-    puts "                    (no default here, you have to enter a node!)"
+    puts "      -h, --help       print this help message"
+    puts "      -n, --node NODE  a valid node description "
+    puts "                       (no default here, you have to enter a node!)"
     puts " "
     puts "      Some Examples: " 
-    puts "                    omf #{cmd} \"[5,10]\""
-    puts "                    omf #{cmd} \"[11,2]\" grid"
+    puts "                    #{@this_app} #{cmd} -n omf.nicta.node1"
+    puts "                    #{@this_app} #{cmd} -n omf.nicta.node3 -c grid"
     puts " "
   else
     # generic help
     puts "Run a command on the testbed(s)\n"
-    puts "Usage: omf #{cmd} [COMMAND] [ARGUMENT]...\n"
-    puts "  Available COMMANDs:\n"
+    puts "Usage: #{@this_app} #{cmd} [COMMAND] [ARGUMENT]..."
+    puts "  Available COMMANDs:"
     puts "    help   Print this help message or a specify command usage"
     puts "    exec   Execute an experiment script"
     puts "    load   Load a disk image on a given set of nodes"
     puts "    save   Save a disk image from a given node into a file"
-    puts "    tell   Switch a given set of nodes ON/OFF"
-    puts "    stat   Returns the status of a given set of nodes\n"
-    puts "  To get more help on individual commands: 'omf help [COMMAND]'"
+    puts "    tell   Switch a given set of nodes ON/OFF or reboot them"
+    puts "    stat   Returns the status of a given set of nodes"
+    puts "  To get more help on individual commands: '#{@this_app} help [COMMAND]'"
     puts "  Examples:"
-    puts "            omf #{cmd} help exec   Return usage/help for the 'exec' command"
-    puts "            omf #{cmd} help load   Return usage/help for the 'load' command"
+    puts "            #{@this_app} #{cmd} help exec   Return usage/help for the 'exec' command"
+    puts "            #{@this_app} #{cmd} help load   Return usage/help for the 'load' command"
   end
 end
-
 
 # print help if no arguments are given
 if ARGV.empty?
