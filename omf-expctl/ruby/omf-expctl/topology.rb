@@ -266,7 +266,6 @@ class Topology < MObject
     # Check if this type of link is compatible with previously added links
     # i.e. a graph can only contain either symmetric or asymmetric links, 
     # not both
-info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}" 
     raise "Topology:addLink() - Cannot add link '#{srcName}' -> "+
           "'#{dstName}'. Its specifications are incompatible with this "+
           "topology. A Topology can only contain either symmetric or "+
@@ -308,6 +307,10 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
     # This link is OK, add it to the graph of this topology
     @graph.add_edge!([srcName,@mapping[srcName]],
                      [dstName,@mapping[dstName]],spec)
+    if !linkIsAsymmetric
+      @graph.add_edge!([dstName,@mapping[dstName]],
+                       [srcName,@mapping[srcName]],spec)
+    end
   end
 
   #
@@ -495,7 +498,7 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
   def build_links(interface)
     raise "Cannot build links for this topology '#{@uri}', no vertices "+
           "and/or edges were defined" if !@graph 
-    @edges = getGraphEdges(@graph) if !@edges
+    @edges = getGraphEdges(@graph) 
     @graph.vertices.each { |source|
       srcNode = Node[source[1]]
       @graph.adjacent(source).each { |destination|
@@ -503,9 +506,9 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
 	  dstNode = Node[destination[1]]  
           linkSpec = @edges[source+destination].label
           configure_link(srcNode, dstNode, interface, linkSpec)
-          if !linkSpec[:asymmetric]  
-            configure_link(dstNode, srcNode, interface, linkSpec)
-	  end 
+          #if !linkSpec[:asymmetric]  
+          #  configure_link(dstNode, srcNode, interface, linkSpec)
+	  #end 
         end
       }
     }
@@ -514,13 +517,13 @@ info "TDEBUG - link: #{linkIsAsymmetric} - graph: #{@asymmetric}"
   # NOTE: getting the MAC, IP, etc.. info on a node is done here for now
   # we discussed doing this directly on the node itself in the future
   def configure_link(src, dst, interface, spec)
-    case spec[:emulationTool]
+    case spec[:emulationTool].to_sym
     when nil
       error "Cannot build links for this topology '#{@uri}', no emulation "+
             "tool was set for the link between '#{src}' and '#{dst}'"
       return
     when :mackill, :ebtable, :iptable
-      if linkSpec[:state] == :down
+      if spec[:state] == :down
         spec[:blockedMAC] = dst.get_MAC_address(interface)
       end
     when :netem

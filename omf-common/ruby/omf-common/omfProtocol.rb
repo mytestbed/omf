@@ -32,9 +32,9 @@ module OmfProtocol
 
   # Commands issued by the EC
   EC_COMMANDS = Set.new [:EXECUTE, :KILL, :STDIN, :NOOP, 
-	                      :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
+                        :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
-                        :SAVE_IMAGE, :LOAD_DATA, :SET_MACTABLE, :ALIAS,
+                        :SAVE_IMAGE, :LOAD_DATA, :SET_LINK, :ALIAS,
                         :RESTART, :ENROLL, :EXIT]
 
   # Commands issued by the RC
@@ -45,7 +45,8 @@ module OmfProtocol
   RM_COMMANDS = Set.new [:OK, :WARN, :ERROR]
 
   # Commands issued by the Slice Manager
-  SLICEMGR_COMMANDS = Set.new [:CREATE_SLIVER, :DELETE_SLIVER, :EXECUTE, :KILL, :EXIT]
+  SLICEMGR_COMMANDS = Set.new [:CREATE_SLIVER, :DELETE_SLIVER, :EXECUTE, 
+                               :KILL, :EXIT]
 
   # Commands issued by the OTHER
   OTHER_COMMANDS = Set.new [:XYZ]

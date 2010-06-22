@@ -42,15 +42,23 @@ class OmfMessage
 
   #
   # Return the value of an attribute of this Command Object
-  # A list of currently used attributes can be found at the end of
-  # this file
   #
-  # - key = the name of the attribut
+  # - key = the name of the attribute
   #
   # [Return] the value of the attribute
   #
   def [](key)
     return @attributes[key.upcase]
+  end
+
+  #
+  # Set the value of an attribute of this Command Object
+  #
+  # - key = the name of the attribute
+  # - value = the value of the attribute
+  #
+  def []=(key, value)
+    @attributes[key.to_s.upcase.to_sym] = value
   end
 
   #

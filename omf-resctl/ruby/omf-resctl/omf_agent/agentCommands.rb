@@ -481,41 +481,6 @@ module AgentCommands
     # Do Nothing...
   end
 
-
-  # Command 'REMOVE_TRAFFICRULES'
-  #
-  # Remove a traffic rule and the filter attached. It not destroys the main 
-  # class which hosts the rule
-  # - values = values needed to delete a rule an a filter : the Id, and all 
-  # parameters of the filter
-  #
-  def AgentCommands.REMOVE_TRAFFICRULES(agent , argArray)
-    #check if the tool is available (Currently, only TC)
-    if (!File.exist?("/sbin/tc"))
-      raise "Traffic shaping method not available in 'SET_TRAFFICRULES'"
-    else
-      ipDst= getArg(argArray, "value of the destination IP")
-      portDst=getArg(argArray, "value of the port for filter based on port")
-      portRange=getArg(argArray, "Range for filtering by port")
-      nbRules = getArg(argArray , "Number of rules")
-      portRange = portRange.to_i
-      portRange = 65535 - portRange
-      portRange = portRange.to_s(16)
-      #Rule deletion.
-      cmdDelRule ="tc qdisc del dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: ; tc qdisc add dev eth0 parent #{nbRules}0:1 handle #{nbRules}01: "
-      MObject.debug "Exec: '#{cmdDelRule}'"
-      result=`#{cmdDelRule}`
-      #Filter deletion
-      if(portDst!="-1")
-        cmdFilter= "tc filter del dev eth0 protocol ip parent 1:0 prio 3 u32 match ip protocol 17 0xff match ip dport #{portDst} 0x#{portRange} match ip dst #{ipDst} flowid 1:1#{nbRules}"
-      else
-        cmdFilter= " tc filter del dev eth0 protocol ip parent 1:0 prio 3 u32 match ip dst #{ipDst} flowid 1:1#{nbRules}"
-      end
-      MObject.debug "Exec: '#{cmdFilter}'"
-      result=`#{cmdFilter}`
-    end
-  end
-
   #  Command 'SET_LINK'
   #
   #  Set the characteristics of a link using a specific emulation tool
@@ -529,7 +494,7 @@ module AgentCommands
     tool = command.emulationTool
     interface = command.interface
     setter = "set_link_#{tool}" if tool
-    if !tool || respond_to?(setter)
+    if !tool || !respond_to?(setter)
       return {:success => :ERROR, :reason => :UNKNOWN_EMULATION_TOOL, 
               :info => "Could not setup link characteristics with unknown "+
                        "emulation tool '#{tool}'"}
@@ -566,7 +531,7 @@ module AgentCommands
       tool = link[:tool]
       iface = link[:interface]
       resetter = "reset_link_#{tool}" if tool
-      if !tool || respond_to?(setter)
+      if !tool || !respond_to?(resetter)
         MObject.debug("AgentCommands", "Cannot reset link on '#{iface}' with "+
                       "unknown tool '#{tool}'")
       end
@@ -604,7 +569,7 @@ module AgentCommands
   end
 
   def AgentCommands.set_link_netem(options)
-    iface = DEV_MAPPING["net/#{options.interface}"].deviceName
+    iface = DEV_MAPPINGS["net/#{options.interface}"].deviceName
     pNetem = "netem "
     pNetem << "delay #{options.delay} " if options.delay
     pNetem << "#{options.delayVar} " if options.delayVar
@@ -632,10 +597,11 @@ module AgentCommands
              "limit #{options.bwLimit}"
       cmdRule = "tc class add dev #{iface} parent 1:1 "+
                 "classid 1:1#{options.ruleID} htb rate 1000Mbps ; "+
-                "tc qdisc add dev eth0 parent 1:1#{options.ruleID} handle "+
+                "tc qdisc add dev #{iface} parent 1:1#{options.ruleID} handle "+
                 "#{options.ruleID}0: #{pNetem} ; "+
                 "tc qdisc add dev #{iface} parent #{options.ruleID}0:1 "+
-                "handle #{options.ruleID}01: #{pTBF}"
+                "handle #{options.ruleID}0:1 #{pTBF}"
+                #"handle #{options.ruleID}01: #{pTBF}"
       MObject.debug "TBF Netem: '#{cmdRule}'"
 
     # Case 2 - NETEM only
@@ -652,17 +618,19 @@ module AgentCommands
       cmdFilter= "tc filter add dev #{iface} protocol ip parent 1:0 prio 3 "+
                  "u32 match ip protocol #{options.protocol} 0xff "+
                  "match ip dport #{options.portDst} 0x#{options.portRange} "+
-                 "match ip dst #{options.ipDst} flowid 1:1#{options.ruleID}"
+                 "match ip dst #{options.targetIP} flowid 1:1#{options.ruleID}"
     else
       cmdFilter= "tc filter add dev #{iface} protocol ip "+
-                 "parent 1:0 prio 3 u32 match ip dst #{options.ipDst} "+
+                 "parent 1:0 prio 3 u32 match ip dst #{options.targetIP} "+
                  "flowid 1:1#{options.ruleID}"
     end
     cmd = cmdRule + " ; " + cmdFilter
-    return [cmd]
+    # if cmd1 fail, try again but first set the interface in tc
+    cmd2 = "tc qdisc add dev #{iface} handle 1: root htb" + " ; " + cmd1 
+    return [cmd1, cmd2]
   end
   def AgentCommands.reset_link_netem(interface)
-    iface = DEV_MAPPING["net/#{interface}"].deviceName
+    iface = DEV_MAPPINGS["net/#{interface}"].deviceName
     return "tc qdisc del dev #{iface} root "
   end
 
@@ -733,3 +701,47 @@ module AgentCommands
   end
 
 end
+
+
+  #
+  # This used to be in the devel code on netem
+  # However, OMF 5.3 does not have any clean support for dynamically updating
+  # topologies during an experiment execution. Moreover, doing such thing 
+  # (dynamically updating topologies) is not used by IREEL, which is the main
+  # user of Link Emulation in OMF. 
+  # Thus, we decided to push the integration of this to OMF 5.4
+  # We keep that code around here, as it may be useful for 5.4 devel
+  #
+  # Command 'REMOVE_TRAFFICRULES'
+  #
+  # Remove a traffic rule and the filter attached. It not destroys the main 
+  # class which hosts the rule
+  # - values = values needed to delete a rule an a filter : the Id, and all 
+  # parameters of the filter
+  #
+#  def AgentCommands.REMOVE_TRAFFICRULES(agent , argArray)
+#    #check if the tool is available (Currently, only TC)
+#    if (!File.exist?("/sbin/tc"))
+#      raise "Traffic shaping method not available in 'SET_TRAFFICRULES'"
+#    else
+#      ipDst= getArg(argArray, "value of the destination IP")
+#      portDst=getArg(argArray, "value of the port for filter based on port")
+#      portRange=getArg(argArray, "Range for filtering by port")
+#      nbRules = getArg(argArray , "Number of rules")
+#      portRange = portRange.to_i
+#      portRange = 65535 - portRange
+#      portRange = portRange.to_s(16)
+#      #Rule deletion.
+#      cmdDelRule ="tc qdisc del dev eth0 parent 1:1#{nbRules} handle #{nbRules}0: ; tc qdisc add dev eth0 parent #{nbRules}0:1 handle #{nbRules}01: "
+#      MObject.debug "Exec: '#{cmdDelRule}'"
+#      result=`#{cmdDelRule}`
+#      #Filter deletion
+#      if(portDst!="-1")
+#        cmdFilter= "tc filter del dev eth0 protocol ip parent 1:0 prio 3 u32 match ip protocol 17 0xff match ip dport #{portDst} 0x#{portRange} match ip dst #{ipDst} flowid 1:1#{nbRules}"
+#      else
+#        cmdFilter= " tc filter del dev eth0 protocol ip parent 1:0 prio 3 u32 match ip dst #{ipDst} flowid 1:1#{nbRules}"
+#      end
+#      MObject.debug "Exec: '#{cmdFilter}'"
+#      result=`#{cmdFilter}`
+#    end
+#  end
