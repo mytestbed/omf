@@ -75,7 +75,7 @@ def parseOptions()
     help(ARGV[0])
     exit 1
   end
-  p @options
+  #p @options
 end
 
 def run(cmd)
@@ -141,8 +141,8 @@ def run(cmd)
      exit 1
   end
 
-  omf_command = "ruby1.8 -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"  
-  puts "DEBUG: Executing '#{omf_command}'"
+  omf_command = "/usr/bin/ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
+  #puts "DEBUG: Executing '#{omf_command}'"
   exec omf_command
 end
 
@@ -153,7 +153,7 @@ def help(cmd = nil)
     ARGV << "-h"
     run(cmd)
   elsif (cmd == "stat")
-    puts "Returns the status of the nodes in a testbed\n"
+    puts "Returns the status of the nodes in a testbed"
   	puts "Usage:"
   	puts "      #{@this_app} #{cmd} [-h] [-s] [-t TOPOLOGY] [-c AGGREGATE]"
   	puts " "
@@ -172,7 +172,7 @@ def help(cmd = nil)
   	puts "                    #{@this_app} #{cmd} -t topo_grid_active"
   	puts " "
   elsif (cmd == "tell")
-    puts "Switch ON/OFF and reboot the nodes in a testbed\n"
+    puts "Switch ON/OFF and reboot the nodes in a testbed"
   	puts "Usage:"
   	puts "      #{@this_app} #{cmd} -a ACTION [-h] [-t TOPOLOGY] [-c AGGREGATE]"
   	puts " "
@@ -196,7 +196,7 @@ def help(cmd = nil)
   	puts "                    #{@this_app} #{cmd} offh -t topo_grid_active"
   	puts " "
   elsif (cmd == "load")
-    puts "Install a given disk image on the nodes in a testbed\n"
+    puts "Install a given disk image on the nodes in a testbed"
     puts "Usage:"
     puts "      #{@this_app} #{cmd} [-h] [-i IMAGE_PATH] [-o TIMEOUT] [-t TOPOLOGY] [-c AGGREGATE]"
     puts " "
@@ -220,7 +220,7 @@ def help(cmd = nil)
     puts "                    #{@this_app} #{cmd} -t my_Own_Topology -i baseline-2.2.ndz -t 600 -c grid"
     puts " "
   elsif (cmd == "save")
-    puts "Save a disk image from a given node into an archive file\n"
+    puts "Save a disk image from a given node into an archive file"
     puts "Usage:"
     puts "      #{@this_app} #{cmd} -n NODE [-h] [-c AGGREGATE]"
     puts " "
@@ -235,7 +235,7 @@ def help(cmd = nil)
     puts " "
   else
     # generic help
-    puts "Run a command on the testbed(s)\n"
+    puts "Run a command on the testbed(s)"
     puts "Usage: #{@this_app} #{cmd} [COMMAND] [ARGUMENT]..."
     puts "  Available COMMANDs:"
     puts "    help   Print this help message or a specify command usage"
