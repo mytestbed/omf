@@ -103,7 +103,7 @@ class Application < MObject
   #
   def installable?
     d = appDefinition
-    return d.aptName != nil || d.binaryRepository != nil || d.rpmName != nil
+    return d.debPackage != nil || d.appPackage != nil || d.rpmPackage != nil
   end
 
   #
@@ -112,30 +112,38 @@ class Application < MObject
   # - nodeSet = the NodeSet object on which to install the application
   #
   def install(nodeSet)
-    if (aptName = @appDefinition.aptName) != nil
+    if (debPackage = @appDefinition.debPackage) != nil
       # Install App from DEB package using apt-get 
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :APT_INSTALL,
                                   :appID => "#{@appDefinition.uri}/install",
-                                  :package => aptName))
-    elsif (rep = @appDefinition.binaryRepository) != nil
+                                  :package => debPackage))
+
+    elsif (rpmPackage = @appDefinition.rpmPackage) != nil
+      # Install App from RPM package using apt-get 
+      nodeSet.send(ECCommunicator.instance.create_message(
+                                  :cmdtype => :RPM_INSTALL,
+                                  :appID => "#{@appDefinition.uri}/install",
+                                  :package => rpmPackage))
+                                  
+    elsif (rep = @appDefinition.appPackage) != nil
       # Install App from TAR archive using wget + tar 
-      # We first have to mount the local TAR file to a URL on our webserver
-      # ALERT: Should check if +rep+ actually exists
-      url_dir="/install/#{rep.gsub('/', '_')}"
-      url="#{OMF::Common::Web.url()}#{url_dir}"
-      OMF::Common::Web.mapFile(url_dir, rep)
+      if File.exists?(rep)
+        # We first have to mount the local TAR file to a URL on our webserver
+        url_dir="/install/#{rep.gsub('/', '_')}"
+        url="#{OMF::Common::Web.url()}#{url_dir}"
+        OMF::Common::Web.mapFile(url_dir, rep)
+      elsif rep[0..6]=="http://"
+        # the tarball is already being served from somewhere
+        url=rep
+      else
+        raise OEDLIllegalArgumentException.new(:defApplication,:appPackage,nil,"#{rep} is not a valid filename or URL") 
+      end
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :PM_INSTALL,
                                   :appID => "#{@appDefinition.uri}/install",
                                   :image => url,
                                   :path => "/"))
-    elsif (rpmName = @appDefinition.rpmName) != nil
-      # Install App from RPM package using apt-get 
-      nodeSet.send(ECCommunicator.instance.create_message(
-                                  :cmdtype => :RPM_INSTALL,
-                                  :appID => "#{@appDefinition.uri}/install",
-                                  :package => rpmName))
     end
   end
 

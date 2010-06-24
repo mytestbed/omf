@@ -154,16 +154,16 @@ class AppDefinition < MObject
   attr_reader :measurements
 
   # Location of binary install package
-  attr_accessor :binaryRepository
+  attr_accessor :appPackage
 
   # Location of development/source install package
   attr_reader :developmentRepository
 
   # Name to use for apt-get install (nil if packet is not in apt)
-  attr_accessor :aptName
+  attr_accessor :debPackage
 
   # Name to use for rpm install (nil if packet is not in rpm)
-  attr_accessor :rpmName
+  attr_accessor :rpmPackage
 
   # Location of binary on installed machine
   attr_accessor :path
@@ -440,7 +440,7 @@ class AppDefinition < MObject
   # - development =  the development repository for this application
   #
   def repository(binary, development = nil)
-    @binaryRepository = binary
+    @appPackage = binary
     @developmentRepository = development
   end
 

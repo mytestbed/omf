@@ -1,3 +1,9 @@
+omf-resctl-5.3 (1ubuntu5) testing; urgency=low
+
+  * latest SVN trunk
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 24 Jun 2010 15:22:34 +1000
+
 omf-resctl-5.3 (1ubuntu4) testing; urgency=low
 
   * moved config files to /usr/share/doc/omf-resctl-5.3/examples

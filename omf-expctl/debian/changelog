@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu5) testing; urgency=low
+
+  * latest SVN trunk
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 24 Jun 2010 15:23:15 +1000
+
 omf-expctl-5.3 (1ubuntu4) testing; urgency=low
 
   * moved config files to /usr/share/doc/omf-expctl-5.3/examples
