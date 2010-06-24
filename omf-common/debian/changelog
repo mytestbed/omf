@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu5) testing; urgency=low
+
+  * latest upstream version
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 24 Jun 2010 15:20:26 +1000
+
 omf-common-5.3 (1ubuntu4) testing; urgency=low
 
   * latest upstream version

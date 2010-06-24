@@ -65,7 +65,6 @@ class OMFPubSubTransport < MObject
     # Open a connection to the Gateway PubSub Server
     begin
       debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
-      check_server_reachability(@@psGateway)
       @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway)
     rescue Exception => ex
       raise "Failed to connect to Gateway PubSub Server '#{@@psGateway}' - "+
@@ -183,20 +182,6 @@ class OMFPubSubTransport < MObject
 
     # Pass the command to our communicator
     yield message
-  end
-
-  def check_server_reachability(server)
-    check = false
-    while !check
-      reply = `ping -c 1 #{server}`
-      if $?.success?
-        check = true
-      else
-        debug "Could not resolve or contact: '#{server}'"+ 
-	      "Waiting #{RETRY_INTERVAL} sec before retrying..."
-        sleep RETRY_INTERVAL
-      end
-    end
   end
 
   def event_source(event)
