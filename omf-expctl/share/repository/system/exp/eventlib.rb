@@ -37,22 +37,31 @@
 #
 
 defEvent(:ALL_UP_AND_INSTALLED) do |event|
-  node_status = allGroups.state("status", "value")
-  app_status = allGroups.state("apps/app/status", "value")
+  node_status = allGroups.state("status/@value")
+  app_status = allGroups.state("apps/app/status/@value")
   if allEqual(node_status, "UP") && allEqual(app_status, "INSTALLED.OK")
     event.fire 
   end
 end
 
 defEvent(:ALL_UP) do |event|
-  node_status = allGroups.state("status", "value")
+  node_status = allGroups.state("status/@value")
   event.fire if allEqual(node_status, "UP")
 end
 
 defEvent(:ALL_INTERFACE_UP) do |event|
-  if_status = allGroups.state("net/*/*/current", "status")
+  iface_status = allGroups.state("net/*/*/current/@status")
   #info "TDEBUG - #{if_status.join(" ")}"
-  event.fire if allEqual(if_status, "CONFIGURED.OK")
+  event.fire if allEqual(iface_status, "CONFIGURED.OK")
+end
+
+defEvent(:EXPERIMENT_DONE) do |event|
+  exp_status = Experiment.state("status/text()")
+  event.fire if allEqual(exp_status, "DONE")
+end
+
+onEvent(:EXPERIMENT_DONE) do |node|
+  Experiment.close
 end
 
 

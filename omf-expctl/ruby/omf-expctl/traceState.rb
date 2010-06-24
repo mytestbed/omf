@@ -104,6 +104,10 @@ class TraceState < MObject
     end
   end
 
+  def self.getExperimentState 
+    return @@expRoot
+  end
+
   #
   # Add a new node to the TraceState instance
   #

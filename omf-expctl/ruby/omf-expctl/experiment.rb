@@ -226,6 +226,15 @@ class Experiment
     TraceState.experiment(:status, "RUNNING")
   end
 
+  def Experiment.state(xpath)
+    result = Array.new
+    el = TraceState.getExperimentState
+    m = REXML::XPath.match(el, xpath)
+    m.each { |e| result << e.to_s }
+    return nil if result.size == 0
+    return result
+  end
+
   #
   # Start the Experiment
   #
@@ -259,12 +268,19 @@ class Experiment
   end
 
   #
-  # Stop an Experiment and do some clean up
+  # Set the status of the experiment to 'done'
+  # Thus allowing some clean up to happen, if required
   #
   def Experiment.done
-    @@is_running = false
-    MObject.info "Experiment", "DONE!"
     TraceState.experiment(:status, "DONE")
+  end
+
+  # 
+  # Close an experiment, i.e. tell the Experiment Controller
+  # to exit
+  #
+  def Experiment.close
+    @@is_running = false
     NodeHandler.exit(false)
   end
   

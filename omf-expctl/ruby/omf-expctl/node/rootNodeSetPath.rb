@@ -54,14 +54,11 @@ class RootNodeSetPath < NodeSetPath
     p.instantiate(@nodeSet, params)
   end
 
-  def state(path, attribute)
+  def state(xpath)
   result = Array.new
-  pattern = "#{path}/@#{attribute}"
   @nodeSet.eachNode { |node|
-    match = node.match(pattern)
-    match.each { |e|
-      result << e.to_s
-    }
+    match = node.match(xpath)
+    match.each { |e| result << e.to_s }
   }
   return nil if result.size == 0
   return result
