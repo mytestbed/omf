@@ -36,6 +36,8 @@ require 'omf-common/mobject'
 require 'omf-common/execApp'
 #require 'omf-resctl/omf_driver/aironet'
 require 'omf-resctl/omf_driver/ethernet'
+require 'net/http'
+require 'uri'
 
 module AgentCommands
 
@@ -286,9 +288,56 @@ module AgentCommands
     installRoot = command.path
 
     MObject.debug "Installing '#{url}' into '#{installRoot}'"
-    cmd = "cd /tmp;wget -m -nd -q #{url};"
-    file = url.split('/')[-1]
-    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
+    
+    file = "/#{File.basename(url)}"
+    eTagFile = "#{file}.etag"
+    download = true
+    cmd = ""
+    remoteETag = nil
+
+    if file.empty?
+      msg = "Failed to parse URL '#{url}'"
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :INVALID_URL, :info => msg}
+    end
+    
+    # get the ETag from the HTTP header
+    begin
+      uri = URI.parse(url)
+      res = Net::HTTP.start(uri.host, uri.port) {|http|
+        header = http.request_head(url)
+        remoteETag = header['etag']
+      }      
+    rescue Exception => err
+      msg = "Failed to access URL '#{url}', error: '#{err}'"
+      MObject.debug("AgentCommands", msg)
+      return {:success => :ERROR, :reason => :DL_FAILED, :info => msg}
+    end
+    
+    # if we have the file and its ETag locally, compare it to the ETag of the remote file
+    if File.exists?(file) && File.exists?(eTagFile)
+       f=File.open(eTagFile,'r')
+       localETag=f.gets
+       f.close
+       if remoteETag == localETag
+         download = false
+       end
+     end
+
+    # download the file & store the ETag if necessary
+    if download
+      MObject.debug "Downloading '#{url}'"
+      # -m -nd overwrites existing files
+      cmd="wget -P / -m -nd -q #{url};"
+      if !remoteETag.empty?
+        f=File.open(eTagFile,'w')
+        f.write remoteETag
+        f.close
+      end
+     else
+      MObject.debug "'#{file}' already exists and is identical to '#{url}', not downloading"
+    end
+    cmd += "tar -C #{installRoot} -xf #{file}"
     ExecApp.new(id, controller, cmd)
   end
 
@@ -471,7 +520,7 @@ module AgentCommands
 
     MObject.debug("Loading '#{url}' into '#{installRoot}'")
     cmd = "cd /tmp;wget -m -nd -q #{url};"
-    file = url.split('/')[-1]
+    file = File.basename(url)
     cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
     ExecApp.new(id, controller, cmd)
   end
