@@ -24,8 +24,8 @@ def create (node, hrn, ipaddr)
 end
 
 begin
-  @tester.create("/OMF/#{slice}")
-  @tester.create("/OMF/#{slice}/resources")
+  @tester.create("/OMF/#{@slice}")
+  @tester.create("/OMF/#{@slice}/resources")
 rescue
 end
 
@@ -41,11 +41,11 @@ create("node29", "omf.nicta.node29", "10.0.2.29")
 create("node28", "omf.nicta.node28", "10.0.1.28")
 create("node28", "omf.nicta.node28", "10.0.2.28")
 
-#msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au")
-#msg = tester.newcmd(:cmdType => "KILL", :target => "norbit.npc.nicta.com.au", :appID => 0, :value => 9)
+
+
+# msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au")
+# msg = tester.newcmd(:cmdType => "KILL", :target => "norbit.npc.nicta.com.au", :appID => 0, :value => 9)
 # msg = tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "norbit.npc.nicta.com.au", :slicename => 'omf.nicta.slice1', :resname => '8', :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au')
-#msg = tester.newcmd(:cmdType => "DELETE_SLIVER", :target => "norbit.npc.nicta.com.au", :resname => '8', :slicename => 'omf.nicta.slice1', :slivertype => 'openvz')
-
-
-#msg = tester.newcmd(:cmdType => "NOOP", :target => "norbit.npc.nicta.com.au")
-#tester.send("/OMF/system/node30", msg)
+# msg = tester.newcmd(:cmdType => "DELETE_SLIVER", :target => "norbit.npc.nicta.com.au", :resname => '8', :slicename => 'omf.nicta.slice1', :slivertype => 'openvz')
+# msg = tester.newcmd(:cmdType => "NOOP", :target => "norbit.npc.nicta.com.au")
+# tester.send("/OMF/system/node30", msg)

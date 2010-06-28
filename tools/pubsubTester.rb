@@ -6,6 +6,8 @@ require "xmpp4r/pubsub/helper/nodehelper.rb"
 require "omf-common/omfPubSubMessage"
 include Jabber
 
+#Jabber::debug=true
+
 #
 # This is a class test for pub/sub communication within OMF
 #
