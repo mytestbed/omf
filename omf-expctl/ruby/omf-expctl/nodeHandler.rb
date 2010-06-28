@@ -101,7 +101,7 @@ class NodeHandler < MObject
   LOG_EL = ROOT_EL.add_element("log")
   EXPERIMENT_EL = ROOT_EL.add_element("experiment")
   NODES_EL = ROOT_EL.add_element("nodes")
-  OML_EL = ROOT_EL.add_element("oml")#.add_element('experiment', {'id' => 'unamed_exp'})
+  OML_EL = ROOT_EL.add_element("oml")
 
   #
   # Name of tutorial experiment
@@ -126,22 +126,23 @@ class NodeHandler < MObject
   @@justPrint = false
 
   # 
-  # Flag indicating if this Experiment Controller (EC) is invoked for an Experiment
-  # that support temporary disconnections
+  # Flag indicating if this Experiment Controller (EC) is invoked for an 
+  # Experiment that support temporary disconnections
   #
   @@disconnectionMode = false
 
   #
-  # Constant - Mount point where the Experiment Description should be served by the
-  # EC's webserver
+  # Constant - Mount point where the Experiment Description should be 
+  # served by the EC's webserver
   #
   EXPFILE_MOUNT = "/ExperimentDescription"
 
   # 
   # Return the value of the 'runningSlaveMode' flag
   # The EC runs in 'slave mode' when it is invoked on a node/resource, which
-  # can be potentially disconnected from the Control Network. The EC's operations in 
-  # this mode are substantially different from its normal execution.
+  # can be potentially disconnected from the Control Network. 
+  # The EC's operations in this mode are substantially different from its 
+  # normal execution.
   #
   # [Return] true/false
   #
@@ -151,8 +152,9 @@ class NodeHandler < MObject
 
   #
   # Return the value of the 'showAppOutput' flag
-  # When this flag is 'true', the EC will display on its standard-out any outputs 
-  # coming from the standard-out of the applications running on the nodes.
+  # When this flag is 'true', the EC will display on its standard-out any 
+  # outputs coming from the standard-out of the applications running on the 
+  # nodes.
   #
   # [Return] true/false (default 'false')
   #
@@ -255,7 +257,8 @@ class NodeHandler < MObject
   end
 
   # Attribut readers
-  attr_reader :expFile, :expFileURL, :omlProxyPort, :omlProxyAddr, :slaveNodeX, :slaveNodeY
+  attr_reader :expFile, :expFileURL
+  attr_reader :omlProxyPort, :omlProxyAddr, :slaveNodeX, :slaveNodeY
 
   #
   # NodeHandler's methods...
@@ -281,7 +284,8 @@ class NodeHandler < MObject
         response
       rescue Exception => ex
         fatal('service_call', "------------")
-        fatal('service_call', "  A fatal error was encountered while making a request to an AM Service.")
+        fatal('service_call', "  A fatal error was encountered while making "+
+                              "a request to an AM Service.")
         fatal('service_call', "  Request: '#{url}'")
         fatal('service_call', "  Exception: '#{ex}'")
         fatal('service_call', "------------")
@@ -340,8 +344,8 @@ class NodeHandler < MObject
   end
 
   # 
-  # Set the Flag indicating that this Experiment Controller (EC) is invoked for an 
-  # Experiment that support temporary disconnections
+  # Set the Flag indicating that this Experiment Controller (EC) is invoked 
+  # for an Experiment that support temporary disconnections
   #
   def NodeHandler.setDisconnectionMode()
     info "Disconnection support enabled for this Experiment"
@@ -349,8 +353,8 @@ class NodeHandler < MObject
   end
 
   # 
-  # Return the value of the Flag indicating that this Experiment Controller (EC) is 
-  # invoked for an Experiment that support temporary disconnections
+  # Return the value of the Flag indicating that this Experiment Controller 
+  # (EC) is invoked for an Experiment that support temporary disconnections
   #
   # [Return] true/false
   #
@@ -369,8 +373,9 @@ class NodeHandler < MObject
   #
   # This is the main running loop of Node Handler
   # It is called by the main execution loop located at the end of this file
-  # After loading and starting the experiment, it will block waiting for a mutex.
-  # When the experiment is done, a signal will be sent to release the mutex and unblock this method.
+  # After loading and starting the experiment, it will block waiting for a 
+  # mutex. When the experiment is done, a signal will be sent to release the 
+  # mutex and unblock this method.
   #
   def run(main)
     if (@running != nil)

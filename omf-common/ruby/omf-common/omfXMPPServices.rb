@@ -45,6 +45,9 @@ require "xmpp4r/pubsub/helper/servicehelper"
 require 'omf-common/mobject'
 #Jabber::debug = true
 
+GATEWAY_TIMEOUT = 10
+RECONNECT_INTERVAL = 5
+
 #
 # This class subclasses 'Jabber::PubSub::ServiceHelper' because its 
 # 'unsubscribe_from' method is broken. 
@@ -124,13 +127,37 @@ class OmfXMPPServices < MObject
     @homeServer = host
     @homeJID = "pubsub.#{host}"
     @serviceHelpers = Hash.new # Holds the list of service helpers
+    @connecting = false
+    @cSemaphore = Mutex.new
 
     # Open a connection to the home XMPP Server
     # Any exception raised here shall be caught by the caller
     @clientHelper = Jabber::Client.new(@userJID)
+    connect
+    @clientHelper.on_exception { connect }
+  end
+
+  def connect
+    # Only allow one connection task at a time! 
+    @cSemaphore.synchronize {
+      return if @connecting 
+      @connecting = true
+    }
+    debug "No connection to Pubsub Gateway '#{@homeServer}'! "+
+          "Try to connect..."
     # We are passing the hostname here to prevent xmpp4r from trying to resolve
     # the DNS SRV record
-    @clientHelper.connect(@homeServer)
+    begin
+      success = call_with_timeout("Timing out while connecting to "+
+                                  "PubSub Gateway '#{@homeServer}'") { 
+                                  @clientHelper.connect(@homeServer) }
+      raise Exception.new if !success
+    rescue Exception => ex
+      debug "Cannot connect to PubSub Gateway '#{@homeServer}'! "+
+            "Retry in #{RECONNECT_INTERVAL}s ..."
+      sleep RECONNECT_INTERVAL
+      retry
+    end 
     # First, we try to register a new user at the server for this client
     # (assumes that the XMPP server is allowing in-band user registration)
     begin
@@ -144,9 +171,22 @@ class OmfXMPPServices < MObject
       end
     end
     # Now, we authenticate this client to the server
-    @clientHelper.auth(password)
+    @clientHelper.auth(@password)
     @clientHelper.send(Jabber::Presence.new)
-    debug "Connected as '#{user}' to XMPP server: '#{@homeServer}'"
+    debug "Connected as '#{@userJID}' to XMPP server: '#{@homeServer}'"
+    @cSemaphore.synchronize {
+      @connecting = false
+    }
+  end
+
+  def call_with_timeout(message, &block)
+    callingThread = Thread.new(&block) 
+    success = callingThread.join(GATEWAY_TIMEOUT) 
+    if !success
+      callingThread.kill!
+      warn "#{message}"
+    end
+    return success
   end
 
   #
@@ -290,7 +330,9 @@ class OmfXMPPServices < MObject
   def list_all_subscriptions(domain)
     list = []
     begin
-      list = service(domain).get_subscriptions_from_all_nodes
+      call_with_timeout("Timing out while getting all subscriptions "+
+                       "on '#{domain}'") { 
+                       list = service(domain).get_subscriptions_from_all_nodes }
     rescue Exception => ex
       raise "OmfXMPPServices - Failed getting list of all subscribed nodes "+
             "for domain '#{domain}' - ERROR - '#{ex}'"
@@ -308,7 +350,8 @@ class OmfXMPPServices < MObject
   #
   def leave_node(node, subid, domain)
     begin
-      service(domain).unsubscribe_from_fixed(node, subid)
+      call_with_timeout("Timing out while leaving the PubSub node '#{node}'") { 
+                        service(domain).unsubscribe_from_fixed(node, subid) }
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
         debug "Failed unsubscribing to unknown node '#{node}' "+
@@ -349,7 +392,8 @@ class OmfXMPPServices < MObject
   #
   def remove_node(node, domain)
     begin
-      service(domain).delete_node(node)
+      call_with_timeout("Timing out while removing the PubSub node '#{node}'") {
+                        service(domain).delete_node(node) }
     rescue Exception => ex
       # if the PubSub node does not exist, we ignore the "not found" exception
       return true if ("#{ex}" == "item-not-found: ")
@@ -383,9 +427,11 @@ class OmfXMPPServices < MObject
   #
   def ping(domain)
     begin
-      service(domain).ping
+      call_with_timeout("Timing out while pinging the PubSub Gateway "+
+                        "'#{domain}'") { service(domain).ping }
     rescue Exception => ex
-      raise "OmfXMPPServices - Failed 'pinging' service '#{serviceID}' - Error: '#{ex}'"
+      warn "Cannot ping the Pubsub Gateway '#{ping}'!"
+      # let the reconnection thread handle the rest...
     end
   end
 
@@ -396,8 +442,11 @@ class OmfXMPPServices < MObject
   #
   def stop
     debug "Exiting!"
-    @clientHelper.remove_registration
-    @clientHelper.close
+    call_with_timeout("Timing out closing connection to the PubSub Gateway "+
+                      "'#{@homeServer}}'") { 
+                      @clientHelper.remove_registration
+                      @clientHelper.close
+    }
   end
     
 end
