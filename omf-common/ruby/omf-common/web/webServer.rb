@@ -106,7 +106,7 @@ module OMF
           MObject.debug(:web, "Mounting /resource to #{resourceDir}")
           @@server.mount("/resource", HTTPServlet::FileHandler, resourceDir, true)
         else
-          MObject.error(:web, "Cannot find any of the resource directors '#{resourceDirChoices.join('::')}'")
+          MObject.error(:web, "Cannot find any of the resource directories '#{resourceDirChoices.join('::')}'")
         end
       
         Thread.new do

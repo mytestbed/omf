@@ -69,7 +69,8 @@ def parseOptions()
   end
 
   begin
-    opts.parse!(Array.new(ARGV))
+    # do not parse options for exec, since it uses its own option parser
+    opts.parse!(Array.new(ARGV)) if (ARGV[0]!="exec")    
   rescue OptionParser::InvalidOption, OptionParser::MissingArgument
     puts $!.to_s
     help(ARGV[0])
