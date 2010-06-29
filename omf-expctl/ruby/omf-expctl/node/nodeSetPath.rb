@@ -118,7 +118,9 @@ class NodeSetPath < MObject
     if block != nil
       call &block
     end
+    # What kind of path this is?
     if value != nil
+      # A path with a "= value" defined
       if (@path.last.to_s == "enforce_link")
         @nodeSet.set_link_characteristics(@path, @value)
       elsif (NodeHandler.disconnectionMode? == false) 
@@ -128,10 +130,14 @@ class NodeSetPath < MObject
 	# node/resource).
         @nodeSet.configure(@path, @value)
       end
-    # If the path is one that does not require a value (e.g. ip.down or ip.up)
-    # then we send a configure command to the nodes
+    # A path without a defined value
     elsif VALID_PATHS_WITHOUT_VALUES.has_key?(@path.last.to_s)
-        @nodeSet.configure(@path, @value)
+      # the path is a setter that does not require a value (e.g. ip.down)
+      # then we send a configure command to the nodes
+      @nodeSet.configure(@path, @value)
+    else 
+      # the path is a getter
+      # TODO IMPLEMENT THIS!
     end
   end
 
