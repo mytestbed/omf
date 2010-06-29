@@ -28,7 +28,7 @@ module OMF
             opts[:flash].clear
             opts[:view] = VIEW
 
-            res.body = MabRenderer.render('dashboard/show', opts, ViewHelper)
+            res.body = MabRenderer.render('dashboard/show', opts)
           end
         end
 
