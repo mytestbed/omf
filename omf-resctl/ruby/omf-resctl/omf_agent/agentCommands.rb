@@ -702,7 +702,7 @@ module AgentCommands
                  "parent 1:0 prio 3 u32 match ip dst #{options.targetIP} "+
                  "flowid 1:1#{options.ruleID}"
     end
-    cmd = cmdRule + " ; " + cmdFilter
+    cmd1 = cmdRule + " ; " + cmdFilter
     # if cmd1 fail, try again but first set the interface in tc
     cmd2 = "tc qdisc add dev #{iface} handle 1: root htb" + " ; " + cmd1 
     return [cmd1, cmd2]
