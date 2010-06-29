@@ -364,9 +364,12 @@ class NodeAgent < MObject
     if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
       raise "Name or Slice are not defined in config file or as arguments!"
     else
-      if @config[:agent][:name] == 'default' 
-        warn "Using Hostname as the default name for this resource"
-        @config[:agent][:name] = `/bin/hostname`.chomp
+      # if name starts with "%" perform some substitutions
+      if (@config[:agent][:name][0] == '%'[0])
+        # strip off leading '%'
+        @config[:agent][:name] = @config[:agent][:name][1..-1]  
+        # substitute hostname
+        @config[:agent][:name].sub!(/%hostname/, `/bin/hostname`.chomp)
       end
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
