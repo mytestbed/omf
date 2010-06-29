@@ -63,7 +63,7 @@
       # retrieve applications from the EC via HTTP.
       :web:
         :host: 'localhost'
-        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/htdocs"]
+        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"]
 
       :communicator:
         :type: 'xmpp'

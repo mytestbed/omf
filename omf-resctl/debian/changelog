@@ -1,3 +1,9 @@
+omf-resctl-5.3 (1ubuntu6) testing; urgency=low
+
+  * new release containing the new PM INSTALL implementation
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 29 Jun 2010 15:50:47 +1000
+
 omf-resctl-5.3 (1ubuntu5) testing; urgency=low
 
   * latest SVN trunk

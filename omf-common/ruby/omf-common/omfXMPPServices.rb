@@ -30,14 +30,6 @@
 # This PubSub Service Helper is based on XMPP.
 # This current implementation uses the library XMPP4R.
 #
-# Implementation Note: after testing interaction XMPP4R + OpenFire, it seems
-# like separate instances of Jabber::Client to perform publish/subscribe tasks 
-# and PubSub node browsing tasks. When using a unique instance to perform both 
-# type of tasks, the test application was always freezing...
-#
-# NOTE: Extensive modification by TR from the original code from Javid
-# TODO: Remove or Comment debug messages marked as 'TDEBUG'
-#
 
 require "xmpp4r"
 require "xmpp4r/pubsub"
@@ -91,6 +83,20 @@ class OmfServiceHelper < Jabber::PubSub::ServiceHelper
       ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
     end # @stream.send_with_id(iq)
   end
+  
+  #
+  # Another bug in XMPP4r
+  # owner field is missing when purging items
+  # see http://www.ejabberd.im/node/3413
+  #
+  def purge_items_from(node)
+    iq = basic_pubsub_query(:set,true)
+    purge = REXML::Element.new('purge')
+    purge.attributes['node'] = node
+    iq.pubsub.add(purge)
+    @stream.send_with_id(iq)
+  end  
+  
 end # END of OmfServiceHelper
 
 
@@ -195,7 +201,7 @@ class OmfXMPPServices < MObject
   # either done directly (if it is our home XMPP server) or via the XMPP
   # Server2Server capability (if it is a remote XMPP server).
   #
-  # - serviceID = [String|Symbol] a name for this service
+  # - domain = [String|Symbol] a name for this service
   # - serverID = [String] a ID for the server to interact with, following the
   #               XMPP convention we will prefix this ID with "pubsub."
   # - &bock = the block of commands that will process any event coming from that
@@ -222,7 +228,7 @@ class OmfXMPPServices < MObject
   # We wrap this default getter so that an exception is raised if the service
   # is unknown to us.
   #
-  # - serviceID =  [String|Symbol] the ID of the service helper to return
+  # - domain =  [String|Symbol] the ID of the service helper to return
   #
   # [Return] a OmfServiceHelper object
   #
@@ -247,7 +253,7 @@ class OmfXMPPServices < MObject
   # we replicate its behaviour by subscribing to the node we create.
   #
   # - node = [String] name of the node to create
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to create this node 
   #
   # [Return] True/False
@@ -264,7 +270,10 @@ class OmfXMPPServices < MObject
         "pubsub#publish_model" => "open"}))
     rescue Exception => ex
       # if the node exists we ignore the "conflict" exception
-      return true if ("#{ex}" == "conflict: ")
+      if ("#{ex}" == "conflict: ")
+        purge_node(node, domain)
+        return true
+      end
       raise "OmfXMPPServices - Failed creating node '#{node}' on domain "+
             "#{domain} - Error: '#{ex}'"
     end
@@ -276,7 +285,7 @@ class OmfXMPPServices < MObject
   #
   # - node = [String] name of the PubSub node 
   # - item = [Jabber::item] the PubSub item to publish
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to publish to this node
   #
   def publish_to_node(node, domain, item)
@@ -286,6 +295,11 @@ class OmfXMPPServices < MObject
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
         debug "Failed publishing to unknown node '#{node}' "+
+              "on domain '#{domain}'"
+        return false
+      end
+      if ("#{ex}"=="forbidden: ")
+        debug "Not allowed to publish to node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
@@ -300,7 +314,7 @@ class OmfXMPPServices < MObject
   # Do nothing if the node does not exist or if we are already subscribed
   #
   # - node = [String] name of the PubSub node 
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to publish to this node
   #
   def subscribe_to_node(node, domain, &block)
@@ -322,7 +336,7 @@ class OmfXMPPServices < MObject
   #
   # Returns all subscriptions for a given service helper 
   #
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to get the list of all subscribed nodes
   #
   # [Return] Hash of Strings
@@ -345,7 +359,7 @@ class OmfXMPPServices < MObject
   #
   # - node = [String] name of the PubSub node 
   # - subid = the subscription ID for this PubSub node
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to unsubscribe from this node
   #
   def leave_node(node, subid, domain)
@@ -367,7 +381,7 @@ class OmfXMPPServices < MObject
   #
   # Unsubscribe from all PubSub nodes on a given server
   #
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to unsubscribe from all nodes
   #
   def leave_all_nodes(domain = nil)
@@ -381,22 +395,48 @@ class OmfXMPPServices < MObject
   end
 
   #
+  # Purge all items from a PubSub node. 
+  # Do nothing if the PubSub node doesn't exist
+  #
+  # - node = [String] name of the node to remove
+  # - domain = [String|Symbol] the domain for the the server on which
+  #               we want to purge this node
+  #
+  # [Return] True/False
+  #
+  def purge_node(node, domain)
+    begin
+      call_with_timeout("Timing out while purging the PubSub node '#{node}'") {
+                        service(domain).purge_items_from(node) }
+    rescue Exception => ex
+      # if the PubSub node does not exist, we ignore the "not found" exception
+      return true if ("#{ex}" == "item-not-found: ")
+      return true if ("#{ex}" == "forbidden: ")
+      error "Failed purging node '#{node}'- Error: '#{ex}'"
+      return false
+    end
+    return true
+  end
+
+  #
   # Remove a PubSub node. 
   # Do nothing if the PubSub node doesn't exist
   #
   # - node = [String] name of the node to remove
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to remove this node
   #
   # [Return] True/False
   #
   def remove_node(node, domain)
+    purge_node(node, domain)
     begin
       call_with_timeout("Timing out while removing the PubSub node '#{node}'") {
                         service(domain).delete_node(node) }
     rescue Exception => ex
       # if the PubSub node does not exist, we ignore the "not found" exception
       return true if ("#{ex}" == "item-not-found: ")
+      return true if ("#{ex}" == "forbidden: ")
       error "Failed removing node '#{node}'- Error: '#{ex}'"
       return false
     end
@@ -406,7 +446,7 @@ class OmfXMPPServices < MObject
   #
   # Remove all PubSub nodes currently subscribed to on a given server
   #
-  # - serviceID = [String|Symbol] the serviceID for the the server on which
+  # - domain = [String|Symbol] the domain for the the server on which
   #               we want to remove all nodes
   #
   def remove_all_nodes(domain = nil)
@@ -423,7 +463,7 @@ class OmfXMPPServices < MObject
   #
   # Send a ping to the PubSub server
   #
-  # - serviceID = [String|Symbol] the serviceID for the the server to ping
+  # - domain = [String|Symbol] the domain for the the server to ping
   #
   def ping(domain)
     begin
