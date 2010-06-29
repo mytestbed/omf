@@ -24,11 +24,12 @@ module OMF
         class DashboardServlet < WEBrick::HTTPServlet::AbstractServlet
 
           def do_GET(req, res)
+	    MObject.error(:dashboard, "OPTIONS: #{@options.inspect}")
             opts = @options[0].dup
             opts[:flash].clear
             opts[:view] = VIEW
 
-            res.body = MabRenderer.render('dashboard/show', opts)
+            res.body = MabRenderer.render('show', opts)
           end
         end
 

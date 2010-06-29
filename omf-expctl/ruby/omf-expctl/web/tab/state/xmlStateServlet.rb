@@ -113,7 +113,7 @@ module OMF
               :content => State::stateAsXML,
               :mime => 'text/xml'
             }
-            res.body = MabRenderer.render('state/show', opts, ViewHelper)
+            res.body = MabRenderer.render('show', opts, ViewHelper)
           end
         end
 

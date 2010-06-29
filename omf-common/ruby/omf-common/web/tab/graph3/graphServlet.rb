@@ -38,10 +38,24 @@ module OMF
           
           def addLine(data, lopts = {})
             l = lopts.dup
+            l[:type] = :line
             l[:data] = data
             @lines << l
           end      
           
+          def addNetwork(nodes, links, nopts = {})
+            n = nopts.dup
+	    na = Array.new(nodes.size)
+	    nodes.each do |name, index| na[index] = {:nodeName => name} end
+	    h = {:nodes => na, :links => links}
+            n[:data] = "var oml_data = #{h.to_json}"
+            @graphs << n
+          end
+
+          def data()
+	    (@graphs[0] || {})[:data]
+	  end
+
           def session()
             unless session = @@sessions[@sessionID]
               session = @@sessions[@sessionID] = {}
@@ -66,7 +80,7 @@ module OMF
           def initialize(sessionID, opts)
             @sessionID = sessionID
             @opts = opts
-            @lines = []
+            @graphs = []
             if (dataProc = opts[:dataProc])
               dataProc.call(self)
 #              g[:ldata] = graph.lines.to_json 
@@ -112,7 +126,16 @@ module OMF
             if gx = opts[:graphs][gid]
               sessionID = req.query['sid'] || 'unknown'
               gd = GraphDescription.new(sessionID, gx)
+              res.body = gd.data
+	    else
               res.body = %{
+var oml_data = {"nodes":[{"nodeName":"192.168.1.2"},{"nodeName":"192.168.1.3"},{"nodeName":"192.168.1.4"},{"nodeName":"192.168.1.5"},{"nodeName":"192.168.1.6"}],"links":[{"target":1,"value":1.05086363636364,"source":0
+},{"target":2,"value":1.16,"source":0},{"target":3,"value":0.873318181818182,"source":0},{"target":4,"value":1.29881818181818,"source":0},{"target":0,"value":0.992772727272727,"source":1},{"target":2,"value":0.8801363
+63636364,"source":1},{"target":3,"value":0.886136363636364,"source":1},{"target":4,"value":1.09186363636364,"source":1},{"target":0,"value":0.9494375,"source":2},{"target":1,"value":0.914625,"source":2},{"target":3,"v
+alue":80.9961,"source":2},{"target":4,"value":0.9046875,"source":2},{"target":0,"value":0.934727272727273,"source":3},{"target":1,"value":0.896727272727273,"source":3},{"target":2,"value":83.5786666666666,"source":3},
+{"target":4,"value":82.1885,"source":3},{"target":0,"value":0.908428571428571,"source":4},{"target":1,"value":0.891785714285714,"source":4},{"target":2,"value":0.9015,"source":4},{"target":3,"value":80.8373333333333,"
+source":4}]}
+
 var oml_data = {
   nodes: [
     {nodeName: 'node28'},
@@ -131,8 +154,7 @@ var oml_data = {
   ]
 };
               }
-            else
-              res.body('');
+#              res.body('');
             end
           end
         end

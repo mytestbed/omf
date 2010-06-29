@@ -8,8 +8,8 @@ var color2 = pv.Scale.linear(0, 20).range("green", "red").by(function(l) {
 });
 
 var vis = new pv.Panel()
-    .width(700)
-    .height(700)
+    .width(500)
+    .height(500)
     .top(90)
     .left(90);
 
