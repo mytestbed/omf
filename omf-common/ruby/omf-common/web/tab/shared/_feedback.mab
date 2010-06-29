@@ -1,0 +1,23 @@
+
+cols_off = '20'
+cols_on = '40'
+
+json = '$("fb_content").cols = ' + cols_on + ';$("feedback").className = "feedback_selected"; return false;'
+jsoff = '$("fb_content").cols = ' + cols_off + ';$("feedback").className = "";'
+
+div.feedback!() do
+  h1 "We really appreciate your feedback, let us know what you like/dislike!"
+
+
+
+    form_remote_tag :url => {:action => 'feedback', :id => '0'} do
+      capture do
+        text_area_tag 'comment', nil, :size => "#{cols_off}x10", :id => 'fb_content', :onfocus => json
+        br
+        submit_tag 'Send', :class => 'fb_send_button'
+        text " | "
+        link_to_function "Cancel", jsoff, :class => 'admin'
+      end
+    end
+end
+

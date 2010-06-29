@@ -1,0 +1,48 @@
+
+
+script :language => "JavaScript", :type => "text/javascript" do
+	text %{
+new Ajax.PeriodicalUpdater({ success: 'logList' }, '/log/update', {
+  parameters: { session: '#{session_id}' },
+  method: 'get',
+  frequency: 2,
+  insertion: Insertion.Top
+});
+  }
+end
+
+style %{
+
+#logList {
+	/*
+	border: 1pt solid black;
+	*/
+}
+
+#logList td {
+	font-size: 80%;
+}
+
+#logList td.debug,
+#logList td.name {
+	font-size: 60%;
+}
+
+}
+
+div.page_header do
+	div.page_header_links do
+#    link_to 'Edit', {:action => 'edit', :id => @publication}, :class => 'admin'
+	end
+
+	h1 "Logs"
+end
+
+div.page do
+	table.logList! do
+	end
+end
+
+
+
+

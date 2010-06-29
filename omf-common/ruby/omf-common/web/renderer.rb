@@ -35,6 +35,9 @@ module OMF
         @@partial_dir = "#{File.dirname(__FILE__)}/tab"
 
         def self.render(name, assigns = {}, helpers = nil)
+          if helpers.nil?
+            helpers = OMF::Common::Web.helpersClass
+          end
           builder = Markaby::Builder.new(assigns, helpers)
           Thread.current[:MabRenderer] = {
             :builder => builder, :content => name, :opts => assigns
@@ -71,13 +74,19 @@ module OMF
           #fname = "#{@@partial_dir}/#{name}.mab"
           fname = "#{view_dir}/#{name}.mab"
           unless File.readable?(fname)
-            view_dir = Thread.current[:MabRenderer][:opts][:common_view_dir]
-            fname = "#{view_dir}/#{name}.mab"
-            unless File.readable?(fname)
-              MObject.error(:mab_renderer, "Can't find mab file for '#{name}' in '#{fname}'.")
-              raise "FFFF #{Thread.current[:MabRenderer][:opts].inspect}"
-              return nil
+            fname = nil
+            view_dirs = Thread.current[:MabRenderer][:opts][:common_view_dir]
+            view_dirs.each do |view_dir|
+              fname = "#{view_dir}/#{name}.mab"
+              if File.readable?(fname)
+                break
+              end
             end
+          end
+          unless fname
+            MObject.error(:mab_renderer, "Can't find mab file for '#{name}' in '#{fname}'.")
+            raise "FFFF #{Thread.current[:MabRenderer][:opts].inspect}"
+            return nil
           end
           return File.new(fname).read
         end

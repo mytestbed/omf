@@ -34,7 +34,7 @@ require 'webrick/httputils'
 require 'stringio'
 require 'omf-common/mobject'
 
-#require 'omf-common/web/renderer'
+require 'omf-common/web/renderer'
 #require 'omf-common/web/helpers'
 
 include WEBrick
@@ -68,17 +68,29 @@ module OMF
         args[:MimeTypes] = mimeTable
         @@server = HTTPServer.new(args)
 
+        @@helpersClass = args[:ViewHelperClass] || OMF::Common::Web::ViewHelper
+        @@commonViewDir = []
         if (tabDir = args[:TabDir])
-          Dir.foreach(tabDir) do |d| 
-            if d =~ /^[a-z]/
-              initF = "#{tabDir}/#{d}/init.rb"
-              if File.readable?(initF)
-                MObject.debug(:web, "Loading tab '#{d}' (#{initF})")
-                load(initF)
+          tabDir.each do |pkg|
+            $:.each do |prefix|
+              dir = "#{prefix}/#{pkg}"
+              if File.directory?(dir)
+                Dir.foreach(dir) do |d| 
+                  if d =~ /^[a-z]/
+                    initF = "#{dir}/#{d}/init.rb"
+                    if File.readable?(initF)
+                      MObject.debug(:web, "Loading tab '#{d}' (#{initF})")
+                      load(initF)
+                    end
+                  end
+                end
+                common = "#{dir}/shared"
+                if File.directory?(common)
+                  @@commonViewDir << dir
+                end
               end
             end
           end
-          @@commonViewDir = tabDir
         end
 
 #        @@server.mount_proc('/exp_id') do |req, resp|
@@ -247,6 +259,10 @@ module OMF
       def self.stop()
         @@server.shutdown if @@server != nil
         @@server = nil
+      end
+      
+      def self.helpersClass()
+        @@helpersClass
       end
     
     end # End of Module
