@@ -364,13 +364,8 @@ class NodeAgent < MObject
     if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
       raise "Name or Slice are not defined in config file or as arguments!"
     else
-      # if name starts with "%" perform some substitutions
-      if (@config[:agent][:name][0] == '%'[0])
-        # strip off leading '%'
-        @config[:agent][:name] = @config[:agent][:name][1..-1]  
-        # substitute hostname
-        @config[:agent][:name].sub!(/%hostname/, `/bin/hostname`.chomp)
-      end
+      # substitute hostname, if required
+      @config[:agent][:name].sub!(/%hostname%/, `/bin/hostname`.chomp)
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
       @agentDomain = @config[:communicator][:pubsub_domain] || 
