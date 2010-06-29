@@ -91,7 +91,7 @@ class Application < MObject
   def instantiate(nodeSet, context = {})
     appCtxt = AppContext.new(self, context)    
     nodeSet.addApplicationContext(appCtxt)
-    install(nodeSet)
+    install(nodeSet, appCtxt.id)
     appCtxt
   end
 
@@ -110,20 +110,21 @@ class Application < MObject
   # Install the application on a given set of nodes (NodeSet)
   #
   # - nodeSet = the NodeSet object on which to install the application
+  # - appID = unique application ID from the App Context
   #
-  def install(nodeSet)
+  def install(nodeSet, appID)
     if (debPackage = @appDefinition.debPackage) != nil
       # Install App from DEB package using apt-get 
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :APT_INSTALL,
-                                  :appID => "#{@appDefinition.uri}/install",
+                                  :appID => "#{appID}/install",
                                   :package => debPackage))
 
     elsif (rpmPackage = @appDefinition.rpmPackage) != nil
       # Install App from RPM package using apt-get 
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :RPM_INSTALL,
-                                  :appID => "#{@appDefinition.uri}/install",
+                                  :appID => "#{appID}/install",
                                   :package => rpmPackage))
                                   
     elsif (rep = @appDefinition.appPackage) != nil
@@ -141,7 +142,7 @@ class Application < MObject
       end
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :PM_INSTALL,
-                                  :appID => "#{@appDefinition.uri}/install",
+                                  :appID => "#{appID}/install",
                                   :image => url,
                                   :path => "/"))
     end
