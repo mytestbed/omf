@@ -63,7 +63,7 @@ class NodeAgent < MObject
 
   attr_reader :agentName, :agentSlice, :config 
 
-  attr_accessor :allowDisconnection, :enrolled
+  attr_accessor :allowDisconnection, :enrolled, :index
 
   #
   # Return the singleton instance of the Node Agent class
@@ -189,6 +189,7 @@ class NodeAgent < MObject
   #
   def resetState
     @enrolled = false
+    @index = 0
     @allowDisconnection = false
     @expirementDone = false
     info "Agent: '#{@agentName}' - Slice: '#{@agentSlice}'"
@@ -365,7 +366,7 @@ class NodeAgent < MObject
       raise "Name or Slice are not defined in config file or as arguments!"
     else
       # substitute hostname, if required
-      @config[:agent][:name].sub!(/%hostname%/, `/bin/hostname`.chomp)
+      @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
       @agentDomain = @config[:communicator][:pubsub_domain] || 

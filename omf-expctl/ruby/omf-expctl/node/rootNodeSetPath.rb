@@ -221,7 +221,8 @@ class RootNodeSetPath < NodeSetPath
   # Path.
   #
   def enroll()
-    @nodeSet.eachUniqueNode { |n| n.enroll() }
+    index = 1
+    @nodeSet.eachUniqueNode { |n| n.enroll(index); index = index + 1 }
   end
 
   #

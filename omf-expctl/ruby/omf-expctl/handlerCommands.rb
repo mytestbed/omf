@@ -222,6 +222,11 @@ def group(groupName, &block)
   return RootNodeSetPath.new(ns, nil, nil, block)
 end
 
+def resource(resName)
+  res = Node[resName]
+  return res
+end
+
 #
 # Evaluate a code-block over all nodes in all groups of the experiment.
 #

@@ -249,7 +249,7 @@ class AppDefinition < MObject
                   "(expecting Integer)"
           end
         when :string
-          if !value.kind_of?(String)
+          if !value.kind_of?(String) #&& !value.kind_of?(Node)
             raise "Wrong type '#{value}' for Property '#{name}' "+
                   "(expecting String)"
           end

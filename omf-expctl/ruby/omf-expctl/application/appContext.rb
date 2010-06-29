@@ -161,10 +161,33 @@ class AppContext < MObject
       raise "Unknown parameters '#{diff.join(', ')}'" \
             + " not in '#{pdef.keys.join(', ')}'."
     end
-    cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
+    arguments = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
+    argg = substitute_values(arguments) 
+    cmd.cmdLineArgs = substitute_values(arguments) 
+    #cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
     # Ask the NodeSet to send the Command Object 
     nodeSet.send(cmd)
   end
+
+  ## NOTE: Instead of doing this, we should implement a subclass of experiment
+  ## property, which would hold as a value the command in '?key?', and which
+  ## would eval() that command, when we build the command line
+  ## Lack of time for a demo, so use this instead for now...
+  def substitute_values(original)
+    result = original
+    # Get all the values to substitute
+    allKey = original.scan(/\?[0-9,a-z,.,(,)]*\?/)
+    # Perform substitutions
+    allKey.each { |k|
+      key = k[1..-1].chop
+      value = nil
+      value = eval(key,
+                   OMF::ExperimentController::CmdContext.instance._binding() )
+      result.gsub!("#{k}","#{value}") if value
+    }
+    return result
+  end
+
   
 end # ApplicationContext
 

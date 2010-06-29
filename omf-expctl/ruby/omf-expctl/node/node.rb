@@ -148,12 +148,6 @@ class Node < MObject
   # ID of shadow xml node
   attr_reader :nodeID
   
-  # Number of rules for TC
-  attr_writer :rulesNb
-
-  #list of rules applied on this node
-  attr_writer :rulesList
-
   # Name of image to expect on node
   attr_reader :image
 
@@ -326,12 +320,14 @@ class Node < MObject
   # - value = the value to set the resource to
   #
   def configure(path, value, status = "unknown")
-    if (value.kind_of?(String) && value[0] == '%'[0])
-      # if value starts with "%" perform certain substitutions
-      value = value[1..-1]  # strip off leading '%'
-      value.sub!(/%x/, @x.to_s)
-      value.sub!(/%y/, @y.to_s)
-    end
+    #if (value.kind_of?(String) && value[0] == '%'[0])
+    #  # if value starts with "%" perform certain substitutions
+    #  value = value[1..-1]  # strip off leading '%'
+    #  value.sub!(/%x/, @x.to_s)
+    #  value.sub!(/%y/, @y.to_s)
+    #end
+    # NOTE: substitution is now done on the RC side
+
     debug("Configure path '#{path}' with value '#{value}' "+
           "- status: '#{status}'")
     TraceState.nodeConfigure(self, path, value, status)
@@ -388,6 +384,18 @@ class Node < MObject
                                                 :address => imgHost,
                                                 :port => imgPort,
                                                 :disk => disk))
+  end
+
+  def method_missing(method, *args)
+    @propPath << "#{method.to_s}."
+    if (type, id, prop = @propPath.to_s.split(".")).length >= 3
+      m = match("#{type}/#{id}/#{prop}/@value")
+      m.each do |e|
+         @propPath = ""
+         return e.to_s
+      end
+    end
+    return self
   end
 
   def get_IP_address(interface)
@@ -474,7 +482,8 @@ class Node < MObject
   #
   # Enrol this Resource into the experiment
   #
-  def enroll()
+  def enroll(index)
+    @index = index
     desiredImage = @image.nil? ? "*" : @image
     # Send an ENROLL command to this resource
     # First listen for messages on that new resource address
@@ -485,7 +494,8 @@ class Node < MObject
     cmd = ECCommunicator.instance.create_message(:cmdtype => :ENROLL,
                                                 :expID => Experiment.ID,
                                                 :image => desiredImage,
-                                                :target => @nodeID)
+                                                :target => @nodeID,
+                                                :index => @index)
     addr.expID = nil # Same address as the resource but with no expID set
     ECCommunicator.instance.send_message(addr, cmd)
   end
@@ -718,8 +728,8 @@ class Node < MObject
   def initialize(name)
     @nodeID = name
     super("node::#{@nodeID}")
-    @rulesId = 1
-    @rulesList = []
+    @index = nil
+    @propPath = ""
     @groups = Hash.new  # name of nodeSet groups this node belongs to
     @groups["_ALLGROUPS_"] = false
     #@apps = Hash.new

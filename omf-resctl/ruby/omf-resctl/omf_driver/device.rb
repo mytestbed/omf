@@ -100,7 +100,7 @@ class Device < MObject
       result[:info] = reply
       # HACK!!! Start
       # while we wait for a better device handling...
-      result[:extra] = {:macaddr => get_MAC_address} if prop == "ip"
+      result[:extra] = {:macaddr => get_property_value(:mac)} if prop == "ip"
       # HACK!!! End
     rescue => err
       error("While configuring '#{prop}' with '#{value}' \n\t#{err}")

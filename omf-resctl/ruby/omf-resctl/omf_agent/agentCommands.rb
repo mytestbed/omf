@@ -141,6 +141,7 @@ module AgentCommands
     end
     # All is good, enroll this Resource Controller
     controller.enrolled = true
+    controller.index = command.index 
     communicator.set_EC_address(command.ecaddress)
     msg = "Enrolled into Experiment ID: '#{command.expID}'"
     MObject.debug("AgentCommands", msg)
@@ -202,10 +203,38 @@ module AgentCommands
     cmdLine = ""
     cmdLine = cmdLine + "env -i #{command.env} " if command.env != nil
     cmdLine = cmdLine + "OML_CONFIG=#{configPath} " if useOML
-    cmdLine = cmdLine + "#{command.path} #{command.cmdLineArgs}"
+    arguments = AgentCommands.substitute_values(controller, command.cmdLineArgs)
+    cmdLine = cmdLine + "#{command.path} #{arguments}"
     MObject.debug "Executing: '#{cmdLine}'"
     ExecApp.new(id, controller, cmdLine)
   end
+
+  def AgentCommands.substitute_values(controller, original)
+    result = original
+    # Get all the values to substitute
+    allKey = original.scan(/%[0-9,a-z,.]*%/)
+    # Perform substitutions
+    allKey.each { |k|
+      key = k[1..-1].chop
+      value = nil
+      case key
+      when "index"
+        value = controller.index
+      when "hostname"
+        value = `/bin/hostname`.chomp
+      else
+        # Check if this is a valid path
+        if (type, id, prop = key.split(".")).length >= 3
+          if (device = DEV_MAPPINGS["#{type}/#{id}"]) != nil
+            value = device.get_property_value(prop.to_sym)
+          end
+        end 
+      end
+      result.gsub!("#{k}","#{value}") if value
+    }
+    return result 
+  end
+
 
   #
   # Command 'KILL'
@@ -444,7 +473,7 @@ module AgentCommands
   #
   def AgentCommands.CONFIGURE(controller, communicator, command)
     path = command.path
-    value = command.value
+    value = AgentCommands.substitute_values(controller, command.value)
     result = Hash.new
 
     if (type, id, prop = path.split("/")).length >= 3
