@@ -61,7 +61,7 @@ require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/event'
-require 'omf-expctl/web/tab/log/logOutputter'
+require 'omf-common/web/tab/log/logOutputter'
 
 #require 'omf-expctl/web/tab/log/logServlet'
 
@@ -848,13 +848,19 @@ class NodeHandler < MObject
         #info "Checking port #{i}..."
         serv = TCPServer.new(i)
         serv.close
-        OMF::Common::Web::start(i, {
+        
+        require 'omf-expctl/web/helpers'
+        cfg = OConfig[:ec_config][:web] || {}
+        OMF::Common::Web::start(i,
            :Logger => MObject.logger('web::server'),
            :DocumentRoot => NodeHandler.WEB_ROOT(),
            :AccessLog => [[accLog, "%h \"%r\" %s %b"]],
-           :TabDir => "#{File.dirname(__FILE__)}/web/tab",
-           :PublicHtml => OConfig[:ec_config][:repository][:path]
-        })
+           #:TabDir => ["#{File.dirname(__FILE__)}/web/tab"],
+           :TabDir => cfg[:tab_dir] || ['omf-expctl/web/tab', 'omf-common/web/tab'],
+           #:PublicHtml => OConfig[:ec_config][:repository][:path],
+           :ResourceDir => cfg[:resource_dir],
+           :ViewHelperClass => OMF::ExperimentController::Web::ViewHelper
+        )
         confirmedPort = i
       rescue Exception => ex
         debug "Cannot start webserver on port #{i} (#{ex})"

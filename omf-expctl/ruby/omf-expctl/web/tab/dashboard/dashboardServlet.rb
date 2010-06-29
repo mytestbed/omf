@@ -11,12 +11,12 @@ module OMF
         def self.configure(server, options = {})
           opts = options.dup
           server.mount('/dashboard/show', DashboardServlet, opts)
+          server.mount('/dashboard/set', DashboardSetServlet, opts)
           
           #TODO: This should most likely done in the webServer with a 
           # redirect to the first service
           #
           server.mount('/', DashboardServlet, opts)
-          
           server.addTab(VIEW, "/dashboard/show", :name => 'Dashboard', 
               :title => "Show and interact with experiment status")
         end
@@ -29,6 +29,18 @@ module OMF
             opts[:view] = VIEW
 
             res.body = MabRenderer.render('dashboard/show', opts, ViewHelper)
+          end
+        end
+
+        class DashboardSetServlet < WEBrick::HTTPServlet::AbstractServlet
+
+          def do_POST(req, res)
+            opts = @options[0].dup
+            pname = req.query['pname']
+            value = req.query['value']
+            prop = ExperimentProperty[pname]
+            prop.set(value.to_s) if prop
+            res.body = prop ? prop.value : "Unknown Property"
           end
         end
       end
