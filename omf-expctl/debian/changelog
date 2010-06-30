@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu6) testing; urgency=low
+
+  * now with substitution feature
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 29 Jun 2010 17:13:10 +1000
+
 omf-expctl-5.3 (1ubuntu5) testing; urgency=low
 
   * latest SVN trunk

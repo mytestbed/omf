@@ -10,9 +10,9 @@ def create (node, hrn, ipaddr)
   msg = @tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "#{node}", :slicename => "#{@slice}", 
   :resname => "#{hrn}", :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au', 
   :sliveraddress => "#{ipaddr}", :slivernameserver => '10.0.0.200')
-  @tester.send("/OMF/system/#{node}", msg)
+  @tester.send("/OMF/system/#{hrn}", msg)
   msg = @tester.newcmd(:cmdType => "NOOP", :target => "#{node}")
-  @tester.send("/OMF/system/#{node}", msg)
+  @tester.send("/OMF/system/#{hrn}", msg)
   # TODO: these nodes will be created by the RM in the future
   # creating 5 slice nodes per host
   1.upto(5) { |n|

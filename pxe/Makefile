@@ -9,7 +9,7 @@ DEB_REP=debian
 KORG_URL = http://mirror.aarnet.edu.au/pub/ftp.kernel.org/linux/kernel/v
 KERNEL_VERSION = 2
 KERNEL_PATCHLEVEL = 6
-KERNEL_SUBLEVEL = 32
+KERNEL_SUBLEVEL = 34
 KERNEL_EXTRAVERSION = 
 KERNEL_MAIN_VER=$(KERNEL_VERSION).$(KERNEL_PATCHLEVEL).$(KERNEL_SUBLEVEL)
 KVER = $(KERNEL_MAIN_VER)$(KERNEL_EXTRAVERSION)
@@ -189,8 +189,8 @@ filesystem: dirs
 kernel: dirs get_kernel
 	if [ ! -r $(BUILD)/$(KERNEL_NAME) ] ; then \
 	  cp $(CONFIG)/$(KERNEL_CONFIG_FILE) $(SOURCE)/$(KERNEL_DIR)/.config ;\
-	  $(MAKE) -C $(SOURCE)/$(KERNEL_DIR) -j8 bzImage; \
-          cp $(SOURCE)/$(KERNEL_DIR)/arch/i386/boot/bzImage \
+	  $(MAKE) -C $(SOURCE)/$(KERNEL_DIR) -j14 bzImage; \
+          cp $(SOURCE)/$(KERNEL_DIR)/arch/x86/boot/bzImage \
 	    $(BUILD)/$(KERNEL_NAME) ; \
 	fi
 

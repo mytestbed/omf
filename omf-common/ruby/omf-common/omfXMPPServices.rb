@@ -270,10 +270,7 @@ class OmfXMPPServices < MObject
         "pubsub#publish_model" => "open"}))
     rescue Exception => ex
       # if the node exists we ignore the "conflict" exception
-      if ("#{ex}" == "conflict: ")
-        purge_node(node, domain)
-        return true
-      end
+      return true if ("#{ex}" == "conflict: ")
       raise "OmfXMPPServices - Failed creating node '#{node}' on domain "+
             "#{domain} - Error: '#{ex}'"
     end

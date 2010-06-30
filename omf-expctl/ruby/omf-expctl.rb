@@ -27,7 +27,7 @@ require 'omf-expctl/nodeHandler'
 startTime = Time.now
 cleanExit = false
 
-# Initialize the state tracking, Parse the command line options, and Run the EC
+# Initialize the state tracking, Parse the command line options, and run the EC
 begin
   puts ""
   TraceState.init()

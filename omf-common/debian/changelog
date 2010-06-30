@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu6) testing; urgency=low
+
+  * now with substitution feature
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 29 Jun 2010 17:13:49 +1000
+
 omf-common-5.3 (1ubuntu5) testing; urgency=low
 
   * latest upstream version
