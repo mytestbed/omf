@@ -81,8 +81,6 @@ LIB +=	/lib/libnss_dns.so.2 /lib/libresolv.so.2
 # Currently nodeagent requires lspci, which requires libpci. Remove this 
 # if not needed.
 LIB += /usr/lib/libpci.so.3
-# as well as lsusb
-LIB +=  /lib/libusb-0.1.so.4
 # for ruby1.8
 LIB +=  /lib/librt.so.1
 UCLIBC = /lib/ld-uClibc.so.0 /lib/libc.so.0 /lib/libm.so.0
@@ -111,8 +109,8 @@ omf:
 	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../$(TEMP)/omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	mv $(ROOTFS)/bin/nc.traditional $(ROOTFS)/bin/nc
-	sed -i 's/local_if: control/local_if: eth0/g' $(ROOTFS)/etc/omf-resctl-$(OMF_RELEASE)/omf-resctl.yaml
-	sed -i 's/omf-resctl/omf-resctl-$(OMF_RELEASE)/g' $(ROOTFS)/etc/init.d/rcS.actual
+	cp $(ROOTFS)/usr/share/doc/omf-resctl-$(OMF_RELEASE)/examples/omf-resctl.nicta.yaml $(ROOTFS)/etc/omf-resctl-$(OMF_RELEASE)/omf-resctl.yaml
+	sed -i 's/OMF_RELEASE/$(OMF_RELEASE)/g' $(ROOTFS)/etc/init.d/rcS.actual
 
 syslinux: omf
 	dpkg -x $(SOURCE)/omf/syslinux* $(TEMP)
@@ -136,6 +134,7 @@ filesystem: dirs
 	install -d $(ROOTFS)/var/lib
 	install -d $(ROOTFS)/lib
 	install -d $(ROOTFS)/sbin
+	sudo apt-get install pciutils
 	install $(LIB) $(ROOTFS)/lib
 	install -d $(ROOTFS)/etc
 	install -d $(ROOTFS)/etc/init.d
@@ -171,9 +170,7 @@ filesystem: dirs
 	install -m 644 $(CONFIG)/group $(ROOTFS)/etc/
 	install -m 644 $(CONFIG)/services $(ROOTFS)/etc/
 	install -m 644 $(CONFIG)/inittab $(ROOTFS)/etc/
-	# ubuntu/debian compatibility: use 'which' to locate lspci:
-	install -m 755 `which lspci` $(ROOTFS)/bin/lspci
-	install -m 755 /usr/sbin/lsusb $(ROOTFS)/bin/lsusb
+	install -m 755 /usr/bin/lspci $(ROOTFS)/usr/bin/lspci
 	# ubuntu or debian variation in location of example files:
 	if [ -f /var/lib/misc/usb.ids ]; then \
     install -d $(ROOTFS)/var/lib/misc; \

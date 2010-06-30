@@ -19,20 +19,29 @@ CONTROL=eth1
 UDHCPC_SCRIPT="/etc/udhcp.script"
 UDHCPC="/sbin/udhcpc"
 IP_CONFIG="/bin/ip"
+VERSION="OMF_RELEASE"
+RC_CONFIG="/etc/omf-resctl-$VERSION/omf-resctl.yaml"
 
 # get control interface name from kernel command line
 if grep -i -q "control=[a-zA-Z0-9]" /proc/cmdline
 then
   CONTROL=`cat /proc/cmdline | sed 's/.*control=\([^ ]*\).*/\1/'` 
-  sed -i "s/local_if:.*/local_if: $CONTROL/g" /etc/omf-resctl/nodeagent.yaml
-fi 
+  sed -i "s/:control_if:.*/:control_if: $CONTROL/g" $RC_CONFIG
+fi
 
 # get xmpp server address from kernel command line
 if grep -i -q "xmpp=[a-zA-Z0-9]" /proc/cmdline
 then
   XMPP=`cat /proc/cmdline | sed 's/.*xmpp=\([^ ]*\).*/\1/'` 
-  sed -i "s/xmpp_server:.*/xmpp_server: $XMPP/g" /etc/omf-resctl/nodeagent.yaml
-fi 
+  sed -i "s/:pubsub_gateway:.*/:pubsub_gateway: $XMPP/g" $RC_CONFIG
+fi
+
+# get slice name from kernel command line
+if grep -i -q "slice=[a-zA-Z0-9]" /proc/cmdline
+then
+  SLICE=`cat /proc/cmdline | sed 's/.*slice=\([^ ]*\).*/\1/'` 
+  sed -i "s/:slice:.*/:slice: $SLICE/g" $RC_CONFIG
+fi
 
 $IP_CONFIG link set $CONTROL up
 $UDHCPC -o -i $CONTROL -s $UDHCPC_SCRIPT
@@ -54,4 +63,4 @@ else
 fi
 cat /.omf_imageid
 # Start nodeagent
-/etc/init.d/omf-resctl start
+/etc/init.d/omf-resctl-$VERSION start
