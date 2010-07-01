@@ -51,7 +51,7 @@ module OMF
   
             #MObject.debug :web_code_servlet, "OPTS: #{opts.inspect}"
             #opts[:flash][:notice] = opts.inspect
-            res.body = MabRenderer.render('code/show', opts, ViewHelper)
+            res.body = MabRenderer.render('show', opts)
           end
         end
       end
