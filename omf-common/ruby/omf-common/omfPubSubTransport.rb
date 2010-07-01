@@ -44,7 +44,6 @@ class OMFPubSubTransport < MObject
   include Singleton
   @@started = false
   DEFAULT_PUBSUB_PWD = "123456"
-  PING_INTERVAL = 10
 
   def init(opts)
     raise "PubSub Transport already started" if @@started
@@ -71,16 +70,9 @@ class OMFPubSubTransport < MObject
             "Error: '#{ex}'"
     end
 
-    # Keep the connection to the PubSub server alive by sending a ping at
-    # regular intervals hour, otherwise clients will be listed as "offline" 
-    # by the PubSub server (e.g. Openfire) after a timeout
-    @@pingThread = Thread.new do
-      while true do
-        sleep PING_INTERVAL
-        debug "Ping the PubSub Gateway (keepalive)"
-        @@xmppServices.ping(@@psGateway)        
-      end
-    end
+    # Keep the connection to the PubSub server alive, otherwise clients will 
+    # be listed as "offline" by the PubSub server when idle for too long
+    @@xmppServices.keep_alive
     @@started = true 
     return self
   end
@@ -130,7 +122,6 @@ class OMFPubSubTransport < MObject
   end
 
   def stop
-    @@pingThread.kill!
     @@xmppServices.remove_all_nodes if @@forceCreate
     reset
     @@xmppServices.stop

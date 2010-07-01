@@ -37,8 +37,10 @@ require "xmpp4r/pubsub/helper/servicehelper"
 require 'omf-common/mobject'
 #Jabber::debug = true
 
-GATEWAY_TIMEOUT = 10
-RECONNECT_INTERVAL = 5
+GATEWAY_TIMEOUT = 10 # in sec
+RECONNECT_INTERVAL = 5 # in sec
+PING_INTERVAL = 60 # in sec
+PING_THRESHOLD = 10 # in number of pings
 
 #
 # This class subclasses 'Jabber::PubSub::ServiceHelper' because its 
@@ -134,6 +136,7 @@ class OmfXMPPServices < MObject
     @homeJID = "pubsub.#{host}"
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
+    @keepAliveThread = nil
     @cSemaphore = Mutex.new
 
     # Open a connection to the home XMPP Server
@@ -144,7 +147,7 @@ class OmfXMPPServices < MObject
   end
 
   def connect
-    # Only allow one connection task at a time! 
+    # Only allow one connection attempt at a time! 
     @cSemaphore.synchronize {
       return if @connecting 
       @connecting = true
@@ -192,6 +195,35 @@ class OmfXMPPServices < MObject
       warn "#{message}"
     end
     return success
+  end
+
+  # Keep the connection to the PubSub server alive by sending a ping at
+  # regular intervals, otherwise clients will be listed as "offline" 
+  # by the PubSub server (e.g. Openfire) after a timeout
+  # if PING_THRESHOLD pings in a row fail, then try to reconnect
+  def keep_alive
+    @keepAliveThread = Thread.new do
+      while true do
+        @pingTries = 0
+        @pingThread = Thread.new do
+          while true do
+            sleep PING_INTERVAL
+            #debug "Ping the PubSub Gateway (keepalive)"
+            success = ping(@homeServer)
+            # Kill this ping Thread if too many ping failures
+            @pingTries += 1 if !success
+            @pingTries = 0 if success
+            if @pingTries > PING_THRESHOLD 
+              debug "Ping retry threshold reached, will try to reconnect!"
+              break 
+            end
+          end
+        end # ping Thread
+        # Join the ping Thread, if it dies then try to reconnect
+        @pingThread.join
+        connect
+      end # while
+    end # keepAliveThread
   end
 
   #
@@ -463,10 +495,12 @@ class OmfXMPPServices < MObject
   #
   def ping(domain)
     begin
-      call_with_timeout("Timing out while pinging the PubSub Gateway "+
+      s = call_with_timeout("Timing out while pinging the PubSub Gateway "+
                         "'#{domain}'") { service(domain).ping }
+      return s
     rescue Exception => ex
       warn "Cannot ping the Pubsub Gateway '#{ping}'!"
+      return nil
       # let the reconnection thread handle the rest...
     end
   end
@@ -478,11 +512,17 @@ class OmfXMPPServices < MObject
   #
   def stop
     debug "Exiting!"
-    call_with_timeout("Timing out closing connection to the PubSub Gateway "+
-                      "'#{@homeServer}}'") { 
-                      @clientHelper.remove_registration
-                      @clientHelper.close
-    }
+    begin
+      @keepAliveThread.kill! if @keepAliveThread
+      call_with_timeout("Timing out closing connection to the PubSub Gateway "+
+                        "'#{@homeServer}}'") { 
+                        @clientHelper.remove_registration
+                        @clientHelper.close
+      }
+    # Do not care if an error occured during stopping
+    rescue Exception => ex
+      warn "Failed to exit cleanly (error: '#{ex}')"
+    end
   end
     
 end
