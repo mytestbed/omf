@@ -501,9 +501,13 @@ class Topology < MObject
     @edges = getGraphEdges(@graph) 
     @graph.vertices.each { |source|
       srcNode = Node[source[1]]
+      raise "Cannot configure link for unknown resource "+
+            "'#{source[0]}'" if !srcNode
       @graph.adjacent(source).each { |destination|
         if @graph.edge?(source, destination)
 	  dstNode = Node[destination[1]]  
+          raise "Cannot configure link of unknown resource "+
+                "'#{destination[0]}'" if !dstNode
           linkSpec = @edges[source+destination].label
           configure_link(srcNode, dstNode, interface, linkSpec)
           #if !linkSpec[:asymmetric]  

@@ -149,8 +149,7 @@ class OmfXMPPServices < MObject
       return if @connecting 
       @connecting = true
     }
-    debug "No connection to Pubsub Gateway '#{@homeServer}'! "+
-          "Try to connect..."
+    debug "Try to connect to Pubsub Gateway '#{@homeServer}'..."
     # We are passing the hostname here to prevent xmpp4r from trying to resolve
     # the DNS SRV record
     begin
