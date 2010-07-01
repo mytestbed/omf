@@ -316,7 +316,7 @@ module AgentCommands
     url = command.image
     installRoot = command.path
 
-    MObject.debug "Installing '#{url}' into '#{installRoot}'"
+    MObject.debug "Unpacking '#{url}' into '#{installRoot}'"
     
     file = "/#{File.basename(url)}"
     eTagFile = "#{file}.etag"
@@ -533,27 +533,6 @@ module AgentCommands
     MObject.debug("AgentCommands", "Image save command: #{cmd}")
     ExecApp.new('builtin:save_image', controller, cmd, true)
   end
-
-  #
-  # Command 'LOAD_DATA'
-  # Fetch a tar file and extract it into a specified directory
-  #
-  # - controller = the instance of this RC
-  # - communicator = the instance of this RC's communicator
-  # - command = the command to execute
-  #
-  def AgentCommands.LOAD_DATA(controller, communicator, command)
-    id = command.appID
-    url = command.image
-    installRoot = command.path
-
-    MObject.debug("Loading '#{url}' into '#{installRoot}'")
-    cmd = "cd /tmp;wget -m -nd -q #{url};"
-    file = File.basename(url)
-    cmd += "tar -C #{installRoot} -xf #{file}; rm #{file}"
-    ExecApp.new(id, controller, cmd)
-  end
-
 
   def AgentCommands.NOOP(controller, communicator, command)
     # Do Nothing...

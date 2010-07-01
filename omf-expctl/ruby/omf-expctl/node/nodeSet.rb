@@ -537,17 +537,24 @@ class NodeSet < MObject
   end
 
   def loadData(srcPath, dstPath = '/')
-      # Mount the local file to a URL on our webserver
-      # ALERT: Should check if +rep+ actually exists
-      url_dir="/data/#{srcPath.gsub('/', '_')}"
-      url="#{OMF::Common::Web.url()}#{url_dir}"
-      OMF::Common::Web.mapFile(url_dir, srcPath)
-
-      procName = "exec:#{@@execsCount += 1}:loadData"
-      send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_DATA,
+      procName = "exec:#{@@execsCount += 1}:loadData"   
+       if File.exists?(srcPath)
+         # We first have to mount the local file to a URL on our webserver
+        url_dir="/data/#{srcPath.gsub('/', '_')}"
+        url="#{OMF::Common::Web.url()}#{url_dir}"
+        OMF::Common::Web.mapFile(url_dir, srcPath)
+      elsif srcPath[0..6]=="http://"
+        # the file is already being served from somewhere
+        url=srcPath
+      else
+        raise OEDLIllegalArgumentException.new(:group,:loadData,nil,"#{srcPath} is not a valid filename or URL") 
+      end
+      # re-using the PM_INSTALL command here since
+      # installing an app and uploading data does the same thing on the node
+      send(ECCommunicator.instance.create_message(:cmdtype => :PM_INSTALL,
                                                 :appID => procName,
                                                 :image => url,
-                                                :path => dstPath))
+                                                :path => dstPath))                                            
 
       block = Proc.new do |node, op, eventName, message|
           case eventName

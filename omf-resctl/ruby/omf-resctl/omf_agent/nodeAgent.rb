@@ -401,7 +401,7 @@ elsif (File.exist?("/sbin/lspci"))
   # Fedora
   LSPCI="/sbin/lspci"
 else
-  error "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
+  MObject.info "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
 end
 
 if (LSPCI)
