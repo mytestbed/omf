@@ -19,10 +19,52 @@ module OMF
           server.addTab :graph3, "/graph3/show", :name => "PV Graphs", :title => "All defined graphs"
           
           if NodeHandler.debug?
-            self.addGraph 'test'
-          end
+            debug_graphs(opts)
+          end  
         end
         
+        def self.debug_graphs(opts)
+          dim = 6
+          dh = dim / 2 - 0.5
+          data = []
+          dim.times do |y|
+            data << (row = [])
+            dim.times do |x|
+              # cluster nodes
+              v = 5 * rand
+              if !((x > dh && y > dh) || (x < dh && y < dh))
+                v += 15
+              end
+              row << v
+            end
+          end
+          
+          self.addNetworkGraph 'force', :gtype => 'force' do |n|
+            data.each_index do |y|
+              row = data[y]
+              from = "node#{y}"
+              row.each_index do |x|
+                to = "node#{x}"
+                v = row[x]
+                opts[:spring_force] = v > 5 ? 0.01 : 0.5
+                n.addLink from, to, v, opts unless (from == to)
+              end
+            end
+          end
+
+          self.addNetworkGraph 'matrix', :gtype => 'matrix' do |n|
+            data.each_index do |y|
+              row = data[y]
+              from = "node#{y}"
+              row.each_index do |x|
+                to = "node#{x}"
+                n.addLink from, to, row[x], opts unless (from == to)
+              end
+            end
+          end
+
+        end
+
         def self.addGraph(name, opts = {}, &dataProc)
           g = {}
           g[:name] = name
@@ -30,6 +72,54 @@ module OMF
           g[:dataProc] = dataProc
           @@graphs << g
         end
+
+        def self.addNetworkGraph(name, opts = {}, &netProc)
+          g = {}
+          g[:name] = name
+          g[:gopts] = opts.dup
+          g[:netProc] = netProc
+          @@graphs << g
+        end
+
+        class NetworkBuilder
+          def addNode(name, param = {})
+            unless id = @node_name2id[name]
+              id = @node_name2id[name] = @node_name2id.length
+              np = param.dup
+              np[:nodeName] = name
+              @nodes << np
+            end
+            id
+          end
+          
+          def addLink(from, to, value, param = {})
+            from_id = addNode(from)
+            to_id = addNode(to)
+            lp = param.dup
+            lp[:source] = from_id
+            lp[:target] = to_id
+            lp[:value] = value
+            @links << lp
+          end
+        
+          def self.build(buildProc, opts = {})
+            gb = self.new
+            buildProc.call(gb)
+            varName = opts[:var_name] || 'oml_data'
+            data = gb.to_js(varName)
+          end
+          
+          def initialize()
+            @nodes = []
+            @node_name2id = {}
+            @links = []
+          end
+          
+          def to_js(varName = 'oml_data')
+            h = {:nodes => @nodes, :links => @links}
+            "var #{varName} = #{h.to_json};"
+          end
+        end # NetworkBuilder
 
         class GraphDescription
           @@sessions = {}
@@ -43,18 +133,24 @@ module OMF
             @lines << l
           end      
           
+          def addData(data, opts = {})
+            n = opts.dup
+            n[:data] = "var oml_data = #{data}"
+            @graphs << n
+          end
+          
           def addNetwork(nodes, links, nopts = {})
             n = nopts.dup
-	    na = Array.new(nodes.size)
-	    nodes.each do |name, index| na[index] = {:nodeName => name} end
-	    h = {:nodes => na, :links => links}
+      	    na = Array.new(nodes.size)
+            nodes.each do |name, index| na[index] = {:nodeName => name} end
+            h = {:nodes => na, :links => links}
             n[:data] = "var oml_data = #{h.to_json}"
             @graphs << n
           end
 
           def data()
-	    (@graphs[0] || {})[:data]
-	  end
+	          (@graphs[0] || {})[:data]
+	        end
 
           def session()
             unless session = @@sessions[@sessionID]
@@ -68,7 +164,7 @@ module OMF
           end
           
           def protovis()
-            type = @opts[:gtype] || 'matrix'
+            type = @opts[:gopts][:gtype] || 'matrix'
             
             fname = File.join(File.dirname(__FILE__), "#{type}.js")
             unless File.exists?(fname)
@@ -85,6 +181,12 @@ module OMF
               dataProc.call(self)
 #              g[:ldata] = graph.lines.to_json 
             end
+            if (nwProc = opts[:netProc])
+              gopts = opts[:gopts].dup
+              gopts[:data] = NetworkBuilder.build(nwProc, gopts)
+              @graphs << gopts
+            end
+
           end
         end
         
@@ -93,7 +195,7 @@ module OMF
           def do_GET(req, res)
             opts = @options[0].dup
             opts[:flash].clear
-            opts[:view] = :graph
+            opts[:view] = :graph3
 
             sessionID = opts[:session_id] = "sess#{(rand * 10000000).to_i}"
             gid = (req.query['id'] || 0).to_i
@@ -110,7 +212,7 @@ module OMF
               end
             
             end
-            res.body = MabRenderer.render('graph3/show', opts) do "foo" end
+            res.body = MabRenderer.render('graph3/show', opts)
           end
         end
 
@@ -134,25 +236,7 @@ var oml_data = {"nodes":[{"nodeName":"192.168.1.2"},{"nodeName":"192.168.1.3"},{
 63636364,"source":1},{"target":3,"value":0.886136363636364,"source":1},{"target":4,"value":1.09186363636364,"source":1},{"target":0,"value":0.9494375,"source":2},{"target":1,"value":0.914625,"source":2},{"target":3,"v
 alue":80.9961,"source":2},{"target":4,"value":0.9046875,"source":2},{"target":0,"value":0.934727272727273,"source":3},{"target":1,"value":0.896727272727273,"source":3},{"target":2,"value":83.5786666666666,"source":3},
 {"target":4,"value":82.1885,"source":3},{"target":0,"value":0.908428571428571,"source":4},{"target":1,"value":0.891785714285714,"source":4},{"target":2,"value":0.9015,"source":4},{"target":3,"value":80.8373333333333,"
-source":4}]}
-
-var oml_data = {
-  nodes: [
-    {nodeName: 'node28'},
-    {nodeName: 'node29'},
-    {nodeName: 'node30'},
-    {nodeName: 'node31'}
-  ],
-  links:[
-    {source:0, target:1, value:1},  
-    {source:0, target:2, value:2},  
-    {source:0, target:3, value:3},  
-    {source:1, target:1, value:4},  
-    {source:1, target:2, value:5},  
-    {source:1, target:3, value:6},  
-    {source:0, target:0, value:7}
-  ]
-};
+source":4}]};
               }
 #              res.body('');
             end

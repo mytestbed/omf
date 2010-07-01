@@ -8,10 +8,10 @@ var color2 = pv.Scale.linear(0, 20).range("green", "red").by(function(l) {
 });
 
 var vis = new pv.Panel()
-    .width(500)
-    .height(500)
-    .top(90)
-    .left(90);
+    .width(400)
+    .height(400)
+    .top(40)
+    .left(40);
 
 var layout = vis.add(pv.Layout.Matrix)
     .nodes(oml_data.nodes)

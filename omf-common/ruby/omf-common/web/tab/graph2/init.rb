@@ -4,7 +4,7 @@ include OMF::Common
 opts = {
     :name => :graph2, 
     :priority => 400, 
-    :def_enabled => true, 
+    :def_enabled => false, 
     :view_dir => File.dirname(__FILE__)
 }
 Web.registerService Web::Graph2, opts
