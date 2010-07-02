@@ -3,7 +3,7 @@ var color = pv.Colors.category19().by(function(d) {
   return d.group
 });
 
-var color2 = pv.Scale.linear(0, 20).range("green", "red").by(function(l) {
+var color2 = pv.Scale.linear(0, 100).range("green", "red").by(function(l) {
       return l.linkValue;
 });
 
