@@ -38,6 +38,7 @@ require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
 require 'omf-resctl/omf_agent/rcCommunicator'
 require 'omf-resctl/omf_agent/agentCommands'
+require 'omf-common/keyLocator'
 
 #
 # This class defines the Node Agent (NA) entity, which is a daemon
@@ -255,12 +256,15 @@ class NodeAgent < MObject
   # - args = the command line arguments
   #
   def parseOptions(args)
-    require 'optparse'
+      require 'optparse'
 
     cfgFile = nil
     @interactive = false
     @logConfigFile = ENV['NODE_AGENT_LOG'] || 
                      "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
+    sign_verify_messages = true
+    private_key = nil
+    public_key_dir = nil
 
     opts = OptionParser.new
     opts.banner = "Usage: nodeAgent [options]"
@@ -291,7 +295,7 @@ class NodeAgent < MObject
       "set, RC will use the same server as the 'pubsub-gateway'") {|name|
         @config[:communicator][:pubsub_domain] = name
     }
-    
+  
     # Instance Options
     opts.on('--name NAME',
       "Initial checkin name of agent (unique HRN for this resource)") {|name|
@@ -301,6 +305,11 @@ class NodeAgent < MObject
       "Initial checkin slice of agent (unique HRN for the slice)") {|name|
         @config[:agent][:slice] = name
     }
+
+    # Signing/Verification Options
+    opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| private_key = file }
+    opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| public_key_dir = dir }  
+    opts.on("-D", "--disable_signing", "Set this if you want to disable signature checks and message signing") { sign_verify_messages = false }
 
     # General Options
     opts.on("-i", "--interactive",
@@ -349,9 +358,9 @@ class NodeAgent < MObject
     end
     if (cfgFile.nil?)
       raise "Can't find any configuration files in the default paths. "+ 
-	    "Please create a config file at one of the default paths "+
-	    "(see install doc). Also, you may find an example configuration "+
-	    "file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
+      "Please create a config file at one of the default paths "+
+      "(see install doc). Also, you may find an example configuration "+
+      "file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
     else
       require 'yaml'
       h = YAML::load_file(cfgFile)
@@ -372,6 +381,26 @@ class NodeAgent < MObject
       @agentDomain = @config[:communicator][:pubsub_domain] || 
                      @config[:communicator][:pubsub_gateway]
     end
+    
+    kl = nil
+    if sign_verify_messages
+      if private_key == nil
+        if (private_key = @config[:communicator][:private_key]) == nil
+          error "No private key file specified on command line or config file! Exiting now!\n"
+  	      exit
+        end
+      end
+      if public_key_dir == nil
+        if (public_key_dir = @config[:communicator][:public_key_dir]) == nil
+          error "No public key directory specified on command line or config file! Exiting now!\n"
+  	      exit
+        end
+      end
+      kl = KeyLocator.new(private_key, public_key_dir)
+    end
+
+    ## TODO: initialize message envelope here with kl and sign_verify_messages
+    
   end
 
   ################################################

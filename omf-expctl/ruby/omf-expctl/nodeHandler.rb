@@ -37,7 +37,6 @@
 # reader will see both terms 'EC' and 'EC' used in the code.
 #
 
-
 require 'omf-common/omfVersion'
 require 'set'
 require 'benchmark'
@@ -62,6 +61,7 @@ require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/event'
 require 'omf-common/web/tab/log/logOutputter'
+require 'omf-common/keyLocator'
 
 #require 'omf-expctl/web/tab/log/logServlet'
 
@@ -446,6 +446,10 @@ class NodeHandler < MObject
     @logConfigFile = nil
     @finalStateFile = nil
     @webPort = 4000
+    
+    sign_verify_messages = true
+    private_key = nil
+    public_key_dir = nil
 
     opts = OptionParser.new
     opts.banner = "\nExecute an experiment script\n\n" +
@@ -466,6 +470,8 @@ class NodeHandler < MObject
       @debug = true 
       OConfig.config = 'debug'
     }
+
+    opts.on("-D", "--disable_signing", "Set this if you want to disable signature checks and message signing") { sign_verify_messages = false }
 
     opts.on("-i", "--interactive", "Run the experiment controller in interactive mode") { @interactive = true }
 
@@ -501,6 +507,10 @@ class NodeHandler < MObject
     opts.on("-O", "--output-app-stdout", "Display on standard-out the outputs from the applications running on the nodes") { 
       @@showAppOutput = true
     }
+
+    opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| private_key = file }
+
+    opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| public_key_dir = dir }
 
     opts.on("-r", "--reset", "If set, then reset (reboot) the nodes before the experiment") { @@reset = true }
 
@@ -580,10 +590,30 @@ class NodeHandler < MObject
         warn "Using default Slice ID (from config file): #{Experiment.sliceID}"
       else
         error "No slice ID defined on command line or config file! Exiting now!\n"
-	exit
+	      exit
       end
     end
     info " Experiment ID: #{Experiment.ID}"
+    
+    
+    kl = nil
+    if sign_verify_messages
+      if private_key == nil
+        if (private_key = OConfig[:ec_config][:communicator][:private_key]) == nil
+          error "No private key file specified on command line or config file! Exiting now!\n"
+  	      exit
+        end
+      end
+      if public_key_dir == nil
+        if (public_key_dir = OConfig[:ec_config][:communicator][:public_key_dir]) == nil
+          error "No public key directory specified on command line or config file! Exiting now!\n"
+  	      exit
+        end
+      end
+      kl = KeyLocator.new(private_key, public_key_dir)
+    end
+
+    ## TODO: initialize message envelope here with kl and sign_verify_messages
 
     if listTutorial
       OConfig.load("test:exp:tutorial-list" , true)

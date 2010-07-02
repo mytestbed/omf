@@ -66,6 +66,14 @@
         :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"]
 
       :communicator:
+          
+        # set this to false if you want to disable signature checks and message signing
+        :sign_verify_messages: true
+        # your RSA/DSA SSH private key file
+        :private_key: '~/.ssh/id_rsa'
+        # directory holding the public keys of your OMF peers
+        :public_key_dir: '~/.omf-expctl/peer_keys'
+        
         :type: 'xmpp'
         :xmpp:
           # Address of the server to use as gateway for PubSub communication

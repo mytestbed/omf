@@ -15,6 +15,13 @@
     # controlled & managed
     :control_if: control
 
+    # set this to false if you want to disable signature checks and message signing
+    :sign_verify_messages: true
+    # your RSA/DSA SSH private key file
+    :private_key: '/etc/omf-resctl-5.3/id_rsa'
+    # directory holding the public keys of your OMF peers
+    :public_key_dir: '/etc/omf-resctl-5.3/peer_keys'
+    
     :type: 'xmpp'
     :xmpp:
       # Address of the PubSub server to use as gateway for PubSub communication
