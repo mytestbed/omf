@@ -45,18 +45,21 @@ stop(){
 case "$1" in
   start)
     start
-	;;
+    ;;
   stop)
     stop
-	;;
-
+    ;;
   restart)
     stop
-	start
-	;;
+    start
+    ;;
+  force-reload)
+    stop
+    start
+    ;;
 
   *)
-	echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
+	echo "Usage: /etc/init.d/$NAME {start|stop|restart|force-reload}"
 	exit 1
 esac
 

@@ -1,15 +1,11 @@
 This package was debianized by Christoph Dwertmann <christoph.dwertmann@nicta.com.au> on
 Fri, 17 Apr 2009 16:59:49 +1000.
 
-Upstream Author(s): 
+Upstream Author(s): see the headers of the ruby files
 
-    see the headers of the ruby files
+Copyright: Copyright (C) see the headers of the ruby files
 
-Copyright: 
-
-    see the headers of the ruby files
-
-	License:
+License:
 
 	The MIT License
 
@@ -30,6 +26,8 @@ Copyright:
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
+
+Packaging:
 
 	The Debian packaging is (C) 2009, Christoph Dwertmann <christoph.dwertmann@nicta.com.au> and
 	is licensed under the MIT license, see above.

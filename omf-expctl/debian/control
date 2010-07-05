@@ -1,5 +1,5 @@
 Source: omf-expctl-5.3
-Section: omf
+Section: science
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
 Build-Depends: debhelper (>= 5)
@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: omf-expctl-5.3
 Architecture: all
-Depends: libmarkaby-ruby, omf-common-5.3, libcoderay-ruby, rubygems, libjson-ruby
+Depends: libmarkaby-ruby, omf-common-5.3, libcoderay-ruby, rubygems, libjson-ruby, ruby
 Description: OMF Experiment Controller
  Controls experiments in the OMF testbed.
 

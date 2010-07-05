@@ -2,12 +2,10 @@ This package was debianized by Christoph Dwertmann <christoph.dwertmann@nicta.co
 Fri, 17 Apr 2009 17:23:28 +1000.
 
 Copyright: 
-
-    2006-2010 National ICT Australia (NICTA), Australia 
-    2004-2010 - WINLAB, Rutgers University, USA
+    Copyright (C) 2006-2010 National ICT Australia (NICTA), Australia 
+    Copyright (C) 2004-2009 WINLAB, Rutgers University, USA
     
-	License:
-
+License:
 	The MIT License
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,6 +26,7 @@ Copyright:
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 
+Packaging:
 	The Debian packaging is (C) 2009, Christoph Dwertmann <christoph.dwertmann@nicta.com.au> and
 	is licensed under the MIT license, see above.
 

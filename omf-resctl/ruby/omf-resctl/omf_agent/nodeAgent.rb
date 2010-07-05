@@ -1,4 +1,3 @@
-#!/usr/bin/ruby
 #
 # Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
 #
