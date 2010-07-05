@@ -67,8 +67,8 @@
 
       :communicator:
           
-        # set this to false if you want to disable signature checks and message signing
-        :sign_verify_messages: true
+        # set this to true or false if you want to enable or disable signature checks and message signing                                       
+        :authenticate_messages: false
         # your RSA/DSA SSH private key file
         :private_key: '~/.ssh/id_rsa'
         # directory holding the public keys of your OMF peers

@@ -447,7 +447,7 @@ class NodeHandler < MObject
     @finalStateFile = nil
     @webPort = 4000
     
-    sign_verify_messages = true
+    authenticate_messages = nil
     private_key = nil
     public_key_dir = nil
 
@@ -458,6 +458,10 @@ class NodeHandler < MObject
                   "    [EXP_OPTIONS] are any options defined in the experiment script\n" +
                   "    [OPTIONS] are any of the following:\n\n" 
 
+    opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and message signing (default is no)") { |auth| 
+      authenticate_messages = (auth.downcase == "yes") 
+    }
+      
     opts.on("-C", "--configfile FILE", "File containing local configuration parameters") {|file|
       @configFile = file
     }
@@ -470,8 +474,6 @@ class NodeHandler < MObject
       @debug = true 
       OConfig.config = 'debug'
     }
-
-    opts.on("-D", "--disable_signing", "Set this if you want to disable signature checks and message signing") { sign_verify_messages = false }
 
     opts.on("-i", "--interactive", "Run the experiment controller in interactive mode") { @interactive = true }
 
@@ -595,9 +597,15 @@ class NodeHandler < MObject
     end
     info " Experiment ID: #{Experiment.ID}"
     
+    if OConfig[:ec_config][:communicator][:authenticate_messages] != nil
+      if authenticate_messages.nil?
+        authenticate_messages = OConfig[:ec_config][:communicator][:authenticate_messages]
+      end
+    end
     
     kl = nil
-    if sign_verify_messages
+    if authenticate_messages
+      info "Message authentication is enabled"
       if private_key == nil
         if (private_key = OConfig[:ec_config][:communicator][:private_key]) == nil
           error "No private key file specified on command line or config file! Exiting now!\n"
@@ -611,9 +619,11 @@ class NodeHandler < MObject
         end
       end
       kl = KeyLocator.new(private_key, public_key_dir)
+    else
+      info "Message authentication is disabled"
     end
 
-    ## TODO: initialize message envelope here with kl and sign_verify_messages
+    ## TODO: initialize message envelope here with kl and authenticate_messages
 
     if listTutorial
       OConfig.load("test:exp:tutorial-list" , true)

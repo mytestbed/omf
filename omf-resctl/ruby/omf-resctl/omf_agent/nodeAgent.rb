@@ -309,8 +309,9 @@ class NodeAgent < MObject
     # Signing/Verification Options
     opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| private_key = file }
     opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| public_key_dir = dir }  
-    opts.on("-D", "--disable_signing", "Set this if you want to disable signature checks and message signing") { authenticate_messages = false }
-    opts.on("-E", "--enable_signing", "Set this if you want to enable signature checks and message signing") { authenticate_messages = true }
+    opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and message signing (default is no)") { |auth|
+      authenticate_messages = (auth.downcase == "yes") 
+    }
 
     # General Options
     opts.on("-i", "--interactive",
