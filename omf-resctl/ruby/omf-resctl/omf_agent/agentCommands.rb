@@ -210,6 +210,7 @@ module AgentCommands
   end
 
   def AgentCommands.substitute_values(controller, original)
+    return if !original
     result = original
     # Get all the values to substitute
     allKey = original.scan(/%[0-9,a-z,.]*%/)
