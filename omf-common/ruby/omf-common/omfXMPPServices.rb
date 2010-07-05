@@ -121,7 +121,7 @@ class OmfXMPPServices < MObject
   # and will serve as an entry-point into the XMPP world to interact with 
   # potentially multiple XMPP servers via Server2Server communication.
   # A 'service helper' will be required for each XMPP server we want to
-  # interact with (see the 'add_new_service' method)
+  # interact with (see the 'add_service' method)
   # 
   # - user = [String] username to connect to the home XMPP server  
   # - password = [String], password to connect to the home XMPP server
@@ -246,6 +246,7 @@ class OmfXMPPServices < MObject
       raise "OmfXMPPServices - Failed to create service to '#{domain}' "+
 	    "- Error: '#{ex}'"
     end
+    leave_all_nodes(domain)
     begin
       @serviceHelpers[domain].add_event_callback(&block) if block
     rescue Exception => ex
