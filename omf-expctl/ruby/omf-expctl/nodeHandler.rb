@@ -446,10 +446,6 @@ class NodeHandler < MObject
     @logConfigFile = nil
     @finalStateFile = nil
     @webPort = 4000
-    
-    authenticate_messages = nil
-    private_key = nil
-    public_key_dir = nil
 
     opts = OptionParser.new
     opts.banner = "\nExecute an experiment script\n\n" +
@@ -458,10 +454,6 @@ class NodeHandler < MObject
                   "    [EXP_OPTIONS] are any options defined in the experiment script\n" +
                   "    [OPTIONS] are any of the following:\n\n" 
 
-    opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and message signing (default is no)") { |auth| 
-      authenticate_messages = (auth.downcase == "yes") 
-    }
-      
     opts.on("-C", "--configfile FILE", "File containing local configuration parameters") {|file|
       @configFile = file
     }
@@ -509,10 +501,6 @@ class NodeHandler < MObject
     opts.on("-O", "--output-app-stdout", "Display on standard-out the outputs from the applications running on the nodes") { 
       @@showAppOutput = true
     }
-
-    opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| private_key = file }
-
-    opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| public_key_dir = dir }
 
     opts.on("-r", "--reset", "If set, then reset (reboot) the nodes before the experiment") { @@reset = true }
 
@@ -597,28 +585,18 @@ class NodeHandler < MObject
     end
     info " Experiment ID: #{Experiment.ID}"
     
-    if OConfig[:ec_config][:communicator][:authenticate_messages] != nil
-      if authenticate_messages.nil?
-        authenticate_messages = OConfig[:ec_config][:communicator][:authenticate_messages]
-      end
-    end
-    
     kl = nil
-    if authenticate_messages
+    if OConfig[:ec_config][:communicator][:authenticate_messages]
       info "Message authentication is enabled"
-      if private_key == nil
-        if (private_key = OConfig[:ec_config][:communicator][:private_key]) == nil
-          error "No private key file specified on command line or config file! Exiting now!\n"
-  	      exit
-        end
+      if OConfig[:ec_config][:communicator][:private_key] == nil
+        error "No private key file specified on command line or config file! Exiting now!\n"
+	      exit
       end
-      if public_key_dir == nil
-        if (public_key_dir = OConfig[:ec_config][:communicator][:public_key_dir]) == nil
-          error "No public key directory specified on command line or config file! Exiting now!\n"
-  	      exit
-        end
+      if OConfig[:ec_config][:communicator][:public_key_dir] == nil
+        error "No public key directory specified on command line or config file! Exiting now!\n"
+	      exit
       end
-      kl = KeyLocator.new(private_key, public_key_dir)
+      kl = KeyLocator.new(OConfig[:ec_config][:communicator][:private_key], OConfig[:ec_config][:communicator][:public_key_dir])
     else
       info "Message authentication is disabled"
     end
