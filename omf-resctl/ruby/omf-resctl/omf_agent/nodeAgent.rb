@@ -262,7 +262,7 @@ class NodeAgent < MObject
     @interactive = false
     @logConfigFile = ENV['NODE_AGENT_LOG'] || 
                      "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
-    sign_verify_messages = true
+    authenticate_messages = nil
     private_key = nil
     public_key_dir = nil
 
@@ -309,7 +309,8 @@ class NodeAgent < MObject
     # Signing/Verification Options
     opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| private_key = file }
     opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| public_key_dir = dir }  
-    opts.on("-D", "--disable_signing", "Set this if you want to disable signature checks and message signing") { sign_verify_messages = false }
+    opts.on("-D", "--disable_signing", "Set this if you want to disable signature checks and message signing") { authenticate_messages = false }
+    opts.on("-E", "--enable_signing", "Set this if you want to enable signature checks and message signing") { authenticate_messages = true }
 
     # General Options
     opts.on("-i", "--interactive",
@@ -381,9 +382,16 @@ class NodeAgent < MObject
       @agentDomain = @config[:communicator][:pubsub_domain] || 
                      @config[:communicator][:pubsub_gateway]
     end
-    
+
+    if @config[:communicator][:authenticate_messages] != nil
+      if authenticate_messages.nil?
+        authenticate_messages = @config[:communicator][:authenticate_messages]
+      end
+    end
+
     kl = nil
-    if sign_verify_messages
+    if authenticate_messages
+      MObject.info "NodeAgent", "Message authentication is enabled"
       if private_key == nil
         if (private_key = @config[:communicator][:private_key]) == nil
           error "No private key file specified on command line or config file! Exiting now!\n"
@@ -397,9 +405,11 @@ class NodeAgent < MObject
         end
       end
       kl = KeyLocator.new(private_key, public_key_dir)
+    else
+      MObject.info "NodeAgent", "Message authentication is disabled"
     end
 
-    ## TODO: initialize message envelope here with kl and sign_verify_messages
+    ## TODO: initialize message envelope here with kl and authenticate_messages
     
   end
 
