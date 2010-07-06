@@ -267,6 +267,7 @@ class NodeAgent < MObject
     opts = OptionParser.new
     opts.banner = "Usage: nodeAgent [options]"
     @config = {:communicator => {}, :agent => {}}
+    @config[:communicator] = {:xmpp => {}}
 
     # Communication Options 
     opts.on("--control-if IF",
@@ -276,22 +277,22 @@ class NodeAgent < MObject
     }
     opts.on("--pubsub-gateway HOST",
       "Hostname of the local PubSub server to connect to") {|name|
-        @config[:communicator][:pubsub_gateway] = name
+        @config[:communicator][:xmpp][:pubsub_gateway] = name
     }
     opts.on("--pubsub-user NAME",
       "Username for connecting to the local PubSub server (if not set, RC "+
       "will register its own new user)") {|name|
-        @config[:communicator][:pubsub_user] = name
+        @config[:communicator][:xmpp][:pubsub_user] = name
     }
     opts.on("--pubsub-pwd PWD",
       "Password for connecting to the local PubSub server (if not set, RC "+
       "will register its own new user)") {|name|
-        @config[:communicator][:pubsub_user] = name
+        @config[:communicator][:xmpp][:pubsub_pwd] = name
     }
     opts.on("--pubsub-domain HOST",
       "Hostname of the PubSub server hosting the Slice of this agent (if not "+
       "set, RC will use the same server as the 'pubsub-gateway'") {|name|
-        @config[:communicator][:pubsub_domain] = name
+        @config[:communicator][:xmpp][:pubsub_domain] = name
     }
   
     # Instance Options
@@ -382,13 +383,13 @@ class NodeAgent < MObject
       @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
-      @agentDomain = @config[:communicator][:pubsub_domain] || 
-                     @config[:communicator][:pubsub_gateway]
+      @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
+                     @config[:communicator][:xmpp][:pubsub_gateway]
     end
 
     kl = nil
     if @config[:communicator][:authenticate_messages]
-      MObject.info "NodeAgent", "Message authentication is enabled"
+      MObject.info("Message authentication is enabled")
       if @config[:communicator][:private_key] == nil
         error "No private key file specified on command line or config file! Exiting now!\n"
 	      exit
@@ -399,7 +400,7 @@ class NodeAgent < MObject
       end
       kl = KeyLocator.new(@config[:communicator][:private_key], @config[:communicator][:public_key_dir])
     else
-      MObject.info "NodeAgent", "Message authentication is disabled"
+      MObject.info("Message authentication is disabled")
     end
 
     ## TODO: initialize message envelope here with kl and authenticate_messages

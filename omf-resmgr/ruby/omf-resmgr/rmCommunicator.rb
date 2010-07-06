@@ -116,7 +116,7 @@ class RMCommunicator < OmfCommunicator
   def valid_message?(message)
     # 1 - Perform common validations among OMF entities
     return false if !super(message) 
-    # 2 - Perform RC-specific validations
+    # 2 - Perform RM-specific validations
     # - Ignore commands that are not address to us 
     # (There may be multiple space-separated targets)
     # forMe = false

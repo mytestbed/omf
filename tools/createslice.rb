@@ -6,12 +6,12 @@ require "pubsubTester"
 @slice = "omf.nicta.slice1"
 @tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
 
-def create (node, hrn, ipaddr)
-  msg = @tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "#{node}", :slicename => "#{@slice}", 
+def create (hrn, ipaddr)
+  msg = @tester.newcmd(:cmdType => "CREATE_SLIVER", :target => "#{hrn}", :slicename => "#{@slice}", 
   :resname => "#{hrn}", :slivertype => 'openvz', :commaddr => 'norbit.npc.nicta.com.au', 
   :sliveraddress => "#{ipaddr}", :slivernameserver => '10.0.0.200')
   @tester.send("/OMF/system/#{hrn}", msg)
-  msg = @tester.newcmd(:cmdType => "NOOP", :target => "#{node}")
+  msg = @tester.newcmd(:cmdType => "NOOP", :target => "#{hrn}")
   @tester.send("/OMF/system/#{hrn}", msg)
   # TODO: these nodes will be created by the RM in the future
   # creating 5 slice nodes per host
@@ -30,16 +30,16 @@ rescue
 end
 
 # create two slivers on node 30
-create("node30", "omf.nicta.node30", "10.0.1.30")
-create("node30", "omf.nicta.node30", "10.0.2.30")
+create("omf.nicta.node30", "10.0.1.30")
+create("omf.nicta.node30", "10.0.2.30")
 
 # create two slivers on node 29
-create("node29", "omf.nicta.node29", "10.0.1.29")
-create("node29", "omf.nicta.node29", "10.0.2.29")
+create("omf.nicta.node29", "10.0.1.29")
+create("omf.nicta.node29", "10.0.2.29")
 
 # create two slivers on node 28
-create("node28", "omf.nicta.node28", "10.0.1.28")
-create("node28", "omf.nicta.node28", "10.0.2.28")
+create("omf.nicta.node28", "10.0.1.28")
+create("omf.nicta.node28", "10.0.2.28")
 
 
 

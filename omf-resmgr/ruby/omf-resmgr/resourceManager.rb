@@ -32,9 +32,6 @@
 # and executes them on the resource. Typically these commands will request
 # the RM to start/stop a virtual machine, and/or start/stop an instance
 # of a Resource Controller (RC) within that virtual machine.
-# The module ManagerCommands contains the list of commands that the RM 
-# understands.
-#
 
 require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
@@ -42,6 +39,7 @@ require 'omf-common/omfCommunicator'
 require 'omf-common/omfProtocol'
 require 'omf-resmgr/rmCommunicator'
 require 'omf-resmgr/managerCommands'
+require 'omf-common/keyLocator'
 
 #
 # This class defines the Resource Manager (RM) entity, which is a daemon
@@ -192,7 +190,7 @@ class ResourceManager < MObject
   # Reset all the internat states of this RM
   #
   def resetState
-    info "Agent: '#{@managerName}'"
+    info "Resource Manager: '#{@managerName}'"
   end
 
   # 
@@ -203,7 +201,7 @@ class ResourceManager < MObject
       info("Cleaning: Disconnect from the PubSub server")
       RMCommunicator.instance.stop
       # info("Cleaning: Kill all previously started Applications")
-      # ExecApp.killAll ## NOTE: do we want to kill of the started RC on reset ???
+      # ExecApp.killAll ## NOTE: do we want to kill of the started RM on reset ???
       info("Cleaning: Exit")
       info("\n\n------------ EXIT ------------\n")
     end
@@ -223,37 +221,39 @@ class ResourceManager < MObject
 
     opts = OptionParser.new
     opts.banner = "Usage: omf-resmgr [options]"
-    @config = {:comm => {}, :manager => {}}
+    @config = {:communicator => {}, :manager => {}}
+    @config[:communicator] = {:xmpp => {}}
 
-    # Communication Options 
-    opts.on("--control-if IF",
-      "Name of interface attached to the control and management network [#{@localIF}]") {|name|
-      @config[:communicator][:control_if] = name
-    }
     opts.on("--pubsub-gateway HOST",
-       "Hostname of the local PubSub server to connect to") {|name|
-         @config[:communicator][:pubsub_gateway] = name
-     }
-     opts.on("--pubsub-user NAME",
-       "Username for connecting to the local PubSub server (if not set, RC "+
-       "will register its own new user)") {|name|
-         @config[:communicator][:pubsub_user] = name
-     }
-     opts.on("--pubsub-pwd PWD",
-       "Password for connecting to the local PubSub server (if not set, RC "+
-       "will register its own new user)") {|name|
-         @config[:communicator][:pubsub_user] = name
-     }
-     opts.on("--pubsub-domain HOST",
-       "Hostname of the PubSub server hosting the Slice of this agent (if not "+
-       "set, RC will use the same server as the 'pubsub-gateway'") {|name|
-         @config[:communicator][:pubsub_domain] = name
-     }
+      "Hostname of the local PubSub server to connect to") {|name|
+        @config[:communicator][:xmpp][:pubsub_gateway] = name
+    }
+    opts.on("--pubsub-user NAME",
+      "Username for connecting to the local PubSub server (if not set, RM "+
+      "will register its own new user)") {|name|
+        @config[:communicator][:xmpp][:pubsub_user] = name
+    }
+    opts.on("--pubsub-pwd PWD",
+      "Password for connecting to the local PubSub server (if not set, RM "+
+      "will register its own new user)") {|name|
+        @config[:communicator][:xmpp][:pubsub_pwd] = name
+    }
     
     # Instance Options
     opts.on('--name NAME',
       "Checkin name of the manager (unique HRN for this resource)") {|name|
       @config[:manager][:name] = name
+    }
+
+    # Signing/Verification Options
+    opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| 
+      @config[:communicator][:private_key] = file 
+    }
+    opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| 
+      @config[:communicator][:public_key_dir] = dir 
+    }  
+    opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and message signing (default is no)") { |auth|
+      @config[:communicator][:authenticate_messages] = (auth.downcase == "yes") 
     }
 
     # General Options
@@ -308,12 +308,28 @@ class ResourceManager < MObject
     if @config[:manager][:name] == nil 
       raise "Manager's Name is not defined in config file or as arguments!"
     else
-      if @config[:manager][:name] == 'default' 
-        warn "Using Hostname as the default name for this manager"
-        @config[:manager][:name] = `/bin/hostname`.chomp
-      end
+      # substitute hostname, if required
+      @config[:manager][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
       @managerName = @config[:manager][:name] 
-    end	    
+    end
+    
+    kl = nil
+    if @config[:communicator][:authenticate_messages]
+      MObject.info("Message authentication is enabled")
+      if @config[:communicator][:private_key] == nil
+        error "No private key file specified on command line or config file! Exiting now!\n"
+	      exit
+      end
+      if @config[:communicator][:public_key_dir] == nil
+        error "No public key directory specified on command line or config file! Exiting now!\n"
+	      exit
+      end
+      kl = KeyLocator.new(@config[:communicator][:private_key], @config[:communicator][:public_key_dir])
+    else
+      MObject.info("Message authentication is disabled")
+    end
+
+    ## TODO: initialize message envelope here with kl and authenticate_messages
     
   end
 
