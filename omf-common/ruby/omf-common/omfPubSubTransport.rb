@@ -26,22 +26,24 @@
 #
 # == Description
 #
-# This file implements a generic Publish/Subscribe transport to be used by the 
+# This file implements a generic Publish/Subscribe transport to be used by the
 # various OMF entities.
 #
 require "omf-common/omfXMPPServices"
 require "omf-common/omfPubSubMessage"
 require "omf-common/omfPubSubAddress"
+require "omf-common/envelope"
 require 'omf-common/mobject'
 
-# 
-# This class defines a PubSub Transport  
+#
+# This class defines a PubSub Transport
 # Currently, this PubSub Transport is done over XMPP, and this class is using
 # the third party library XMPP4R.
 #
 class OMFPubSubTransport < MObject
 
   include Singleton
+  include OMF::Envelope
   @@started = false
   DEFAULT_PUBSUB_PWD = "123456"
 
@@ -52,7 +54,7 @@ class OMFPubSubTransport < MObject
     @@qcounter = 0
     @@forceCreate = opts[:createflag]
     @@myName = opts[:comms_name]
-    user = opts[:config][:xmpp][:pubsub_user] || 
+    user = opts[:config][:xmpp][:pubsub_user] ||
            "#{@@myName}-#{Time.now.to_i}-#{rand(Time.now.to_i)}"
     pwd = opts[:config][:xmpp][:pubsub_pwd] || DEFAULT_PUBSUB_PWD
     @@psGateway = opts[:config][:xmpp][:pubsub_gateway]
@@ -60,7 +62,7 @@ class OMFPubSubTransport < MObject
       raise "OMFPubSubTransport - Configuration is missing 'pubsub_gateway' "+
             "parameter!"
     end
-    
+
     # Open a connection to the Gateway PubSub Server
     begin
       debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
@@ -70,22 +72,22 @@ class OMFPubSubTransport < MObject
             "Error: '#{ex}'"
     end
 
-    # Keep the connection to the PubSub server alive, otherwise clients will 
+    # Keep the connection to the PubSub server alive, otherwise clients will
     # be listed as "offline" by the PubSub server when idle for too long
     @@xmppServices.keep_alive
-    @@started = true 
+    @@started = true
     return self
   end
 
-  # NOTE: XMPP4R limitation - listening on 2 addr in the same domain - 
-  # the events of the 2 listens will be put in the same Q and process by the 
+  # NOTE: XMPP4R limitation - listening on 2 addr in the same domain -
+  # the events of the 2 listens will be put in the same Q and process by the
   # same block, i.e. the queue and the block of the 1st call to listen!
   def listen(addr, &block)
     node = addr.generate_address
     subscribed = false
     index = 0
     # When a new event comes from that server, we push it on our event queue
-    # if block has been given, create another queue and another thread 
+    # if block has been given, create another queue and another thread
     # to process this listening
     if block
       index = @@qcounter
@@ -96,13 +98,13 @@ class OMFPubSubTransport < MObject
         end
       }
       @@qcounter += 1
-    end      
+    end
     subscribed = @@xmppServices.subscribe_to_node(node, addr.domain) { |event|
         @@queues[index] << event
-    }         
+    }
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, addr.domain)
-	debug "Creating new node '#{node}'" 
+	debug "Creating new node '#{node}'"
 	subscribed = listen(addr, &block)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
@@ -140,22 +142,22 @@ class OMFPubSubTransport < MObject
     domain = address.domain
     message = msg.serialize
     # Sanity checks...
-    if !message || (message.length == 0) 
+    if !message || (message.length == 0)
       error "send - Ignore attempt to send an empty message"
       return
     end
-    if !dst || (dst.length == 0 ) 
+    if !dst || (dst.length == 0 )
       error "send - Ignore attempt to send message to nobody"
       return
     end
+    message = add_envelope(message)
     # Build Message
     item = Jabber::PubSub::Item.new
-    msg = Jabber::Message.new(nil, message)
-    item.add(msg)
+    item.add(message)
     # Send it
     debug "Send to '#{dst}' - msg: '#{message}'"
     begin
-      @@xmppServices.publish_to_node("#{dst}", domain, item)        
+      @@xmppServices.publish_to_node("#{dst}", domain, item)
     rescue Exception => ex
       error "Failed sending to '#{dst}' on '#{domain}'"
       error "Failed msg: '#{message}'\nError msg: '#{ex}'"
@@ -164,7 +166,7 @@ class OMFPubSubTransport < MObject
 
   #############################
   #############################
-  
+
   private
 
   def process_queue(event, &block)
@@ -184,22 +186,30 @@ class OMFPubSubTransport < MObject
     begin
       # Ignore this 'event' if it doesnt have any 'items' element
       # These are notification messages from the PubSub server
-      return nil if event.first_element("items") == nil
-      return nil if event.first_element("items").first_element("item") == nil
-      # Retrieve the Command Object from the received message
-      eventBody = event.first_element("items").first_element("item").\
-                  first_element("message").first_element("body")
-      xmlMessage = nil
-      eventBody.each_element { |e| xmlMessage = e }
-      # Ignore events without XML payloads
-      return nil if xmlMessage == nil 
+      items = event.first_element("items")
+      return nil if items.nil?
+
+      item = items.first_element("item")
+      return nil if item.nil?
+
+      # Retrieve the payload envelope from the received message
+      envelope = item.elements[1]
+      # Ignore events without valid envelopes payloads
+      return nil if envelope == nil
       # All good, return the extracted XML payload
-      debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
-      message = get_new_message
-      message.create_from(xmlMessage)
-      return message
+
+      if self.verify(envelope)
+        xmlMessage = self.remove_envelope(envelope)
+        debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
+        message = get_new_message
+        message.create_from(xmlMessage)
+        return message
+      else
+        debug "Failed to verify signature - msg: '#{envelope.to_s}'"
+        return nil
+      end
     rescue Exception => ex
-      error "Cannot extract message from PubSub event '#{eventBody}'"
+      error "Cannot extract message from PubSub event '#{envelope}'"
       error "Error: '#{ex}'\nEvent received on '#{event_source(event)}')"
       return
     end

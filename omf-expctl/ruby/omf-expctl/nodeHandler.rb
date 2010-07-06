@@ -573,12 +573,14 @@ class NodeHandler < MObject
         error "No public key directory specified on command line or config file! Exiting now!\n"
 	      exit
       end
-      kl = KeyLocator.new(OConfig[:ec_config][:communicator][:private_key], OConfig[:ec_config][:communicator][:public_key_dir])
+      kl = OMF::Security::KeyLocator.new(OConfig[:ec_config][:communicator][:private_key], OConfig[:ec_config][:communicator][:public_key_dir])
     else
       info "Message authentication is disabled"
     end
 
-    ## TODO: initialize message envelope here with kl and authenticate_messages
+    ## initialize message envelope generator here with kl and authenticate_messages
+    OMF::Envelope.init(:authenticate_messages => authenticate_messages,
+                       :key_locator => kl)
 
     if listTutorial
       OConfig.load("test:exp:tutorial-list" , true)

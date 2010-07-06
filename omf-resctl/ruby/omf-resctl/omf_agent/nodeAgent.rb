@@ -38,6 +38,7 @@ require 'omf-common/omfVersion'
 require 'omf-resctl/omf_agent/rcCommunicator'
 require 'omf-resctl/omf_agent/agentCommands'
 require 'omf-common/keyLocator'
+require 'omf-common/envelope'
 
 #
 # This class defines the Node Agent (NA) entity, which is a daemon
@@ -398,13 +399,14 @@ class NodeAgent < MObject
         error "No public key directory specified on command line or config file! Exiting now!\n"
 	      exit
       end
-      kl = KeyLocator.new(@config[:communicator][:private_key], @config[:communicator][:public_key_dir])
+      kl = OMF::Security::KeyLocator.new(@config[:communicator][:private_key], @config[:communicator][:public_key_dir])
     else
       MObject.info("Message authentication is disabled")
     end
 
-    ## TODO: initialize message envelope here with kl and authenticate_messages
-    
+    ## initialize message envelope generator here with kl and authenticate_messages
+    OMF::Envelope.init(:authenticate_messages => authenticate_messages,
+                       :key_locator => kl)
   end
 
   ################################################
