@@ -123,11 +123,7 @@ class NodeSetPath < MObject
       # A path with a "= value" defined
       if (@path.last.to_s == "enforce_link")
         @nodeSet.set_link_characteristics(@path, @value)
-      elsif (NodeHandler.disconnectionMode? == false) 
-        # If this EC is invoked with support for temporary disconnected 
-	# node/resource, then do not execute any node/resource configuration 
-	# commands (this will be done by the slave EC running on the 
-	# node/resource).
+      else 
         @nodeSet.configure(@path, @value)
       end
     # A path without a defined value
@@ -207,26 +203,12 @@ class NodeSetPath < MObject
           end
         end
       }
-      if ! found
+      if !found
         warn("Unrecognized path '#{@pathSubString}/#{name}'")
       end
     end
     #debug("Creating new nodeSetPath '#{name}'")
     return NodeSetPath.new(self, name_s, args[0], block)
-  end
-
-  # 
-  #  Set the Flag indicating that this Experiment Controller (EC) is invoked 
-  #  for an Experiment that support temporary disconnections
-  #       
-  def allowDisconnection
-    # Check if EC is NOT in 'Slave Mode'
-    # When is 'Slave Mode' this mean there is already a Master EC which has 
-    # its 'disconnection mode' set so we do nothing here
-    if !NodeHandler.SLAVE_MODE()
-      NodeHandler.setDisconnectionMode()
-      @nodeSet.switchDisconnectionON
-    end 
   end
 
 end

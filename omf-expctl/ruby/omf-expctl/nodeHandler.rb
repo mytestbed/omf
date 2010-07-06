@@ -129,7 +129,7 @@ class NodeHandler < MObject
   # Flag indicating if this Experiment Controller (EC) is invoked for an 
   # Experiment that support temporary disconnections
   #
-  @@disconnectionMode = false
+  #@@disconnectionMode = false
 
   #
   # Constant - Mount point where the Experiment Description should be 
@@ -138,7 +138,7 @@ class NodeHandler < MObject
   EXPFILE_MOUNT = "/ExperimentDescription"
 
   # 
-  # Return the value of the 'runningSlaveMode' flag
+  # Return the value of the 'slave' flag
   # The EC runs in 'slave mode' when it is invoked on a node/resource, which
   # can be potentially disconnected from the Control Network. 
   # The EC's operations in this mode are substantially different from its 
@@ -146,8 +146,8 @@ class NodeHandler < MObject
   #
   # [Return] true/false
   #
-  def NodeHandler.SLAVE_MODE()
-    return @@runningSlaveMode
+  def NodeHandler.SLAVE_MODE
+    return @@disconnectionOptions[:slave] 
   end 
 
   #
@@ -243,7 +243,7 @@ class NodeHandler < MObject
   #
   # [Return] true/false (default 'false')
   #
-  def NodeHandler.NODE_RESET()
+  def NodeHandler.NODE_RESET
     return @@reset
   end
 
@@ -258,7 +258,7 @@ class NodeHandler < MObject
 
   # Attribut readers
   attr_reader :expFile, :expFileURL
-  attr_reader :omlProxyPort, :omlProxyAddr, :slaveNodeX, :slaveNodeY
+  attr_reader :disconnectionOptions 
 
   #
   # NodeHandler's methods...
@@ -343,30 +343,11 @@ class NodeHandler < MObject
     @debug
   end
 
-  # 
-  # Set the Flag indicating that this Experiment Controller (EC) is invoked 
-  # for an Experiment that support temporary disconnections
-  #
-  def NodeHandler.setDisconnectionMode()
-    info "Disconnection support enabled for this Experiment"
-    @@disconnectionMode = true
-  end
-
-  # 
-  # Return the value of the Flag indicating that this Experiment Controller 
-  # (EC) is invoked for an Experiment that support temporary disconnections
-  #
-  # [Return] true/false
-  #
-  def NodeHandler.disconnectionMode?()
-    return @@disconnectionMode
-  end
-
   #
   # Return the running state of the Node Handler
   # [Return] true/false
   #
-  def running?()
+  def running?
     return @running
   end
   
@@ -400,11 +381,11 @@ class NodeHandler < MObject
     # Load the Experiment File , if any
     if @expFile
       Experiment.load(@expFile)
-      Experiment.start()
+      Experiment.start
     end
     
     # If EC is in 'Disconnection Mode' print a message for user on console
-    if NodeHandler.disconnectionMode?
+    if @@disconnectionOptions[:enabled] 
       whenAll("*", "status[@value='UP']") {
         info("", "Disconnection Mode - Waiting for all nodes to declare End of Experiment...")
         everyNS('*', 15) { |n|
@@ -523,24 +504,20 @@ class NodeHandler < MObject
     opts.on_tail("-v", "--version", "Show the version\n") { |v| puts VERSION_STRING; exit }
 
     opts.on("--slave-mode EXPID", "Run EC in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
-      @@runningSlaveMode = true
+      @@disconnectionOptions[:slave] = true 
       Experiment.ID = "#{id}"
     }
 
     opts.on("--slave-mode-omlport PORT", "When EC in 'Slave' mode, this is the PORT to the local proxy OML collection server") { |port|
-      @omlProxyPort = port.to_i
+      @@disconnectionOptions[:portOMLProxy] = port.to_i
     }
 
     opts.on("--slave-mode-omladdr ADDR", "When EC in 'Slave' mode, this is the Address to the local proxy OML collection server") { |addr|
-      @omlProxyAddr = addr
+      @@disconnectionOptions[:addrOMLProxy] = addr
     }
 
-    opts.on("--slave-mode-xcoord X", "When EC in 'Slave' mode, this is the X coordinate of the node where this slave EC is running") { |x|
-      @slaveNodeX = eval(x)
-    }
-
-    opts.on("--slave-mode-ycoord Y", "When EC in 'Slave' mode, this is the Y coordinate of the node where this slave EC is running") { |y|
-      @slaveNodeY = eval(y)
+    opts.on("--slave-mode-resource NAME", "When EC in 'Slave' mode, this is the HRN of the resource where this slave EC is running") { |name|
+      @@disconnectionOptions[:resourceHRN] = name
     }
 
     #opts.on_tail("-p", "--profile", "Profile node handler") {
@@ -618,9 +595,10 @@ class NodeHandler < MObject
     comm[:expID] = Experiment.ID
     ECCommunicator.instance.init(comm)
     
-    if @@runningSlaveMode
-      info "Slave Mode on Node [#{@slaveNodeX},#{@slaveNodeY}] "+
-           "- OMLProxy: #{@omlProxyAddr}:#{@omlProxyPort}"
+    if @@disconnectionOptions[:slave] 
+      info "-- EC in Slave Mode on '#{@@disconnectionOptions[:resourceHRN]}'" 
+      info "-- OML Proxy at: '#{@@disconnectionOptions[:addrOMLProxy]}:"+
+           "#{@@disconnectionOptions[:portOMLProxy]}'"
     end
 
     @expFile = nil
@@ -672,7 +650,9 @@ class NodeHandler < MObject
       }
       # Still no luck... we cannot continue without a config file
       if cfg == nil
-        raise "Can't find #{DEFAULT_CONFIG_FILE} in #{path.join(':')}. You may find an example configuration file in '/usr/share/doc/omf-expctl-#{MM_VERSION}/examples'."
+        raise "Can't find #{DEFAULT_CONFIG_FILE} in #{path.join(':')}. "+
+              "You may find an example configuration file in "+
+              "'/usr/share/doc/omf-expctl-#{MM_VERSION}/examples'."
       end
     end
     # Now load the config file
@@ -708,7 +688,8 @@ class NodeHandler < MObject
     end
     # Now start the logger
     @logConfigFile = log
-    MObject.initLog('nodeHandler', Experiment.ID, {:configFile => @logConfigFile})
+    MObject.initLog('nodeHandler', Experiment.ID, 
+                    {:configFile => @logConfigFile})
     debug("Using Log config file: #{@logConfigFile}")
     info(" #{VERSION_STRING}")
   end
@@ -719,17 +700,16 @@ class NodeHandler < MObject
   # Create a new NodeHandler
   #
   def initialize()
-    #initialize_oml
-    @@runningSlaveMode = false
+    @@disconnectionOptions = Hash.new
+    @@disconnectionOptions[:enabled] = false
+    @@disconnectionOptions[:slave] = false
     @@showAppOutput = false
-    @omlProxyPort = nil
-    @omlProxyAddr = nil
     @web_ui = false
   end
 
   #
-  # This method prints the experiment resource, such as an experiment, prototype,
-  # or application definition to the console.
+  # This method prints the experiment resource, such as an experiment, 
+  # prototype, or application definition to the console.
   #
   # - uri = the URI referencing the experiment resources 
   #
@@ -848,8 +828,8 @@ class NodeHandler < MObject
   end
 
   #
-  # This method starts the EC's WebServer which will be used by nodes to retrieve
-  # configuration info, e.g. OML configs  
+  # This method starts the EC's WebServer which will be used by nodes to 
+  # retrieve configuration info, e.g. OML configs  
   #
   def startWebServer(port = @webPort)
     accLog = MObject.logger('web::access')
@@ -874,7 +854,8 @@ class NodeHandler < MObject
            :DocumentRoot => NodeHandler.WEB_ROOT(),
            :AccessLog => [[accLog, "%h \"%r\" %s %b"]],
            #:TabDir => ["#{File.dirname(__FILE__)}/web/tab"],
-           :TabDir => cfg[:tab_dir] || ['omf-expctl/web/tab', 'omf-common/web/tab'],
+           :TabDir => cfg[:tab_dir] || ['omf-expctl/web/tab', 
+                                        'omf-common/web/tab'],
            #:PublicHtml => OConfig[:ec_config][:repository][:path],
            :ResourceDir => cfg[:resource_dir],
            :ViewHelperClass => OMF::ExperimentController::Web::ViewHelper
@@ -888,7 +869,8 @@ class NodeHandler < MObject
     end
     
     if confirmedPort == 0
-      error("Binding a free TCP port in the range #{port} to #{port+MAXWEBTRY} was unsuccessful. Giving up!")
+      error "Binding a free TCP port in the range #{port} to "+
+            "#{port+MAXWEBTRY} was unsuccessful. Giving up!"
       exit
     end
         

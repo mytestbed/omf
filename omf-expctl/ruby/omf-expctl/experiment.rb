@@ -40,9 +40,14 @@ require 'optparse'
 #
 class Experiment
 
+  # When in disconnection mode, the interval at which to check if
+  # the experiment is done (i.e. all resources report that they are done)
+  DISCONNECT_INTERVAL = 10 # in sec
+
   @@name = "UNKNOWN"  # name of experiment
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
+  @@disconnectionAllowed = false
   @@sliceID = nil
   @@domain = nil
   @@is_running = true
@@ -177,11 +182,13 @@ class Experiment
 
   #
   # Set the start mode for this Experiment
+  # NOTE: deprecated? not used anywhere else in the code, but not sure
+  # what needed this in the 1st place. Need to check before removing.
   #
-  def Experiment.startMode=(mode)
-    @@startMode = mode
-    TraceState.experiment(:startMode, mode)
-  end
+  #def Experiment.startMode=(mode)
+  #  @@startMode = mode
+  #  TraceState.experiment(:startMode, mode)
+  #end
 
   # 
   # Set the Root Document for this Experiment
@@ -215,6 +222,28 @@ class Experiment
     return PropertyContext
   end
 
+  # 
+  #  Set the Flag indicating that this Experiment Controller (EC) is invoked 
+  #  for an Experiment that support temporary disconnections
+  #       
+  def Experiment.allow_disconnection
+    # Check if EC is NOT in 'Slave Mode'
+    # When is 'Slave Mode' this mean there is already a Master EC which has 
+    # its 'disconnection mode' set so we do nothing here
+    if !NodeHandler.SLAVE_MODE
+      @@disconnectionAllowed = true
+      #@nodeSet.switchDisconnectionON
+    end 
+  end
+
+  #
+  # Return the Disconnection Mode of this Experiment (i.e. does this 
+  # experiment allow disconnected resources or not)
+  #
+  def Experiment.disconnection_allowed?
+    return @@disconnectionAllowed 
+  end
+
   #
   # Observe experiment for x second
   #
@@ -238,9 +267,10 @@ class Experiment
   #
   # Start the Experiment
   #
-  def Experiment.start()
+  def Experiment.start
     @@is_running = true
     TraceState.experiment(:id, @@expID)
+
     # If -r flag was set on the command line
     # Reset the nodes before starting the experiment if -r flag was set
     if NodeHandler.NODE_RESET
@@ -250,20 +280,32 @@ class Experiment
     else
       OMF::ExperimentController::CmdContext.instance.allGroups.powerOn
     end
+
+    # If this is a disconnected experiment, purge all Events defined on this 
+    # EC for this experiment (the slave ECs will be responsible for acting
+    # on the experiment defined events). Then add a new event to wait for all
+    # resources to declare the end of the experiments
+    if @@disconnectionAllowed
+      MObject.info("Experiment", "Disconnection allowed") 
+      MObject.info("Experiment", "All resources should report the completion "+
+                   "of their tasks.")
+      Event.purge_all
+      OMF::ExperimentController::CmdContext.instance.\
+      defEvent(:EXPERIMENT_DONE, DISCONNECT_INTERVAL) do |event|
+        MObject.info("Experiment","Waiting for all resources to report back...")
+        event.fire if Node.all_reconnected?
+      end
+      OMF::ExperimentController::CmdContext.instance.\
+      onEvent(:EXPERIMENT_DONE) { |node| Experiment.close }
+    end
+ 
     # Now we can Enroll the nodes!
-    OMF::ExperimentController::CmdContext.instance.allGroups.enroll()
-    # In case we're in Just Print mode, then fake the Heartbeat
-    if NodeHandler.JUST_PRINT
-      Thread.new() {
-        while (true)
-          Kernel.sleep(5)
-          Node.each { |n|
-            if (n.poweredAt != -1)
-              n.heartbeat(0, 0, 0)
-            end
-          }
-        end
-      }
+    OMF::ExperimentController::CmdContext.instance.allGroups.enroll
+
+    # If this is a disconnected experiment, inform the resources about it
+    # And set
+    if @@disconnectionAllowed
+     #OMF::ExperimentController::CmdContext.instance.allGroups.set_disconnection
     end
   end
 

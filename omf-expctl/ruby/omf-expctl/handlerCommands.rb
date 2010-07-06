@@ -86,6 +86,16 @@ module OMF
     module Commands
 
 #
+# Display warnings about commands that we are not deprecating in this
+# OMF release, and which will be removed in future releases
+#
+def warn_deprecated_command(cmd)
+  warn "\n'#{cmd}' is deprecated! Please use 'defEvent' and 'onEvent' commands"
+  warn "Deprecated commands will be removed in future OMF versions"
+  warn "Moreover, they may not allow the use of some features in this version"
+end
+
+#
 # Define an experiment property which can be used to bind
 # to application and other properties. Changing an experiment
 # property should also change the bound properties, or trigger
@@ -254,6 +264,26 @@ def allNodes!(&block)
   return RootNodeSetPath.new(ns, nil, nil, block)
 end
 
+def allEqual(array, value)
+  res = true
+  array.each { |v| res = false if v.to_s != value.to_s }
+  res
+end
+
+def oneEqual(array, value)
+  res = false
+  array.each { |v| res = true if v.to_s == value.to_s }
+  res
+end
+
+def defEvent(name, interval = 5, &block)
+  Event.new(name, interval , &block)
+end
+
+def onEvent(name, &block)
+  Event.associate_tasks_to_event(name, &block)
+end
+
 #
 # Periodically perform a given test on all nodes in 'nodesSelector'
 # and execute block ONCE if all tests on all nodes evaluate to true.
@@ -285,6 +315,7 @@ end
 #            returns 'true'
 #
 def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
+  warn_deprecated_command("whenAll")
   ns = NodeSet[nodesSelector]
   if ns == nil
     raise "WhenAll: Unknown node set '#{nodesSelector}"
@@ -319,19 +350,19 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
                  flag = false if (e.to_s != triggerValue.to_s) 
                end
             end
-            MObject.debug("whenAll::internal", "Not true for ", node) if !flag
+            debug("whenAll::internal", "Not true for ", node) if !flag
             #p "FLAG: #{flag}"
           end
           flag
           }
         end
         if res
-          MObject.info("whenAll", nodesSelector, ": '", nodeTest, "' fires")
+          info("whenAll", nodesSelector, ": '", nodeTest, "' fires")
           begin
             RootNodeSetPath.new(ns, nil, nil, block)
           rescue Exception => ex
             bt = ex.backtrace.join("\n\t")
-            MObject.error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+            error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
           end
           # done
           break
@@ -343,26 +374,6 @@ def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
       end
     end
   }
-end
-
-def allEqual(array, value)
-  res = true
-  array.each { |v| res = false if v.to_s != value.to_s }
-  res
-end
-
-def oneEqual(array, value)
-  res = false
-  array.each { |v| res = true if v.to_s == value.to_s }
-  res
-end
-
-def defEvent(name, interval = 5, &block)
-  Event.new(name, interval , &block)
-end
-
-def onEvent(name, &block)
-  Event.associate_tasks_to_event(name, &block)
 end
 
 #
@@ -392,6 +403,7 @@ end
 #            returns 'true'
 #
 def whenAllEqual(nodesSelector, nodeTest, triggerValue, interval = 5, &block)
+  warn_deprecated_command("whenAllEqual")
   whenAll(nodesSelector, nodeTest, interval, triggerValue, &block)
 end
 
@@ -409,9 +421,7 @@ def whenAllUp(&block)
   # Check if this EC instance is set to run in Disconnection Mode
   # If yes, then returned now because whatever is asked from this whenAll 
   # should be executed by the whenAll of the slave EC on the disconnected mode
-  if NodeHandler.disconnectionMode?
-    return
-  end
+  warn_deprecated_command("whenAllUp")
   whenAll("*", "status[@value='UP']", &block)
 end
 
@@ -426,22 +436,13 @@ end
 # - &block = the code-block to execute/evaluate against the 'installed' nodes 
 #
 def whenAllInstalled(&block)
+  warn_deprecated_command("whenAllInstalled")
   # Check if this EC instance is set to run in Disconnection Mode
   # If yes, then returned now because whatever is asked from this whenAll 
   # should be executed by the whenAll of the slave EC on the disconnected mode
   return if NodeHandler.disconnectionMode?
   whenAllEqual("*", "apps/app/status/@value", "INSTALLED.OK", &block)
 end
-
-def whenAllConfigured(path, &block)
-  # Check if this EC instance is set to run in Disconnection Mode
-  # If yes, then returned now because whatever is asked from this whenAll 
-  # should be executed by the whenAll of the slave EC on the disconnected mode
-  return if NodeHandler.disconnectionMode?
-  pattern = path.gsub('.', '/')
-  whenAll("*", "#{pattern}/[@status='CONFIGURED.OK']", &block)
-end
-
 
 #
 # Periodically execute 'block' every 'interval' seconds until block
@@ -458,18 +459,17 @@ def every(name, interval = 60, initial = nil, &block)
   Thread.new(initial) { |context|
     while true
       Kernel.sleep(interval)
-      MObject.debug("every(#{name}): fires - #{context}")
+      debug("every(#{name}): fires - #{context}")
       begin
         if ((context = block.call(context)) == nil)
           break
         end
       rescue Exception => ex
         bt = ex.backtrace.join("\n\t")
-        MObject.error("every(#{name})", 
-                      "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+        error("every(#{name})", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
       end
     end
-    MObject.debug("every(#{name}): finishes")
+    debug("every(#{name}): finishes")
   }
 end
 
@@ -489,17 +489,17 @@ def everyNS(nodesSelector, interval = 60, &block)
   Thread.new(path) { |path|
     while true
       Kernel.sleep(interval)
-      MObject.debug("every", nodesSelector, ": fires")
+      debug("every", nodesSelector, ": fires")
       begin
         if ! (path.call &block)
           break
         end
       rescue Exception => ex
         bt = ex.backtrace.join("\n\t")
-        MObject.error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+        error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
       end
     end
-    MObject.debug("every", nodesSelector, ": finishes")
+    debug("every", nodesSelector, ": finishes")
   }
 end
 

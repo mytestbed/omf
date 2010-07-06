@@ -130,11 +130,9 @@ class Node < MObject
   #
   # [Return] true/false
   #
-  def Node.allReconnected?
-    @@nodes.each { |n|
-      if !n.isReconnected?
-        return false
-      end
+  def Node.all_reconnected?
+    Node.each { |n|
+      return false if !n.reconnected
     }
     return true
   end
@@ -157,6 +155,9 @@ class Node < MObject
   # Time the node checked in
   attr_reader :checkedInAt
 
+  #
+  attr_accessor :reconnected
+
   public :to_s
 
   #
@@ -164,7 +165,7 @@ class Node < MObject
   #
   # [Return] true/false
   #
-  def isUp()
+  def isUp
     return (@nodeStatus == STATUS_UP)
   end
 
@@ -697,19 +698,18 @@ class Node < MObject
   # node is in a temporary disconnected (from the Contorl Network) state, and
   # is 'true' when this node reconnects to the Control Network
   #
-  def setReconnected
-    @reconnected = true
-  end
-
+  #def setReconnected
+  #  @reconnected = true
+  #end
   #
   # Return the value of the 'Reconnected' flag for this node. 
   # This flag is 'false' when this node is in a temporary disconnected (from 
   # the Contorl Network) state, and is 'true' when this node reconnects to 
   # the Control Network
   #
-  def isReconnected?
-    return @reconnected
-  end
+  #def isReconnected?
+  #  return @reconnected
+  #end
 
   #
   # Return a String with this Node's ID

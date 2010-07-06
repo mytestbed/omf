@@ -351,6 +351,10 @@ class NodeSet < MObject
     eachNode {|n|
       n.configure(path, value)
     }
+    # When this Experiment is in disconnection mode, do not send the 
+    # configure command to the RC, as this will be done locally by the 
+    # slave EC and RC
+    return if Experiment.disconnection_allowed? 
     send(ECCommunicator.instance.create_message(:cmdtype => :CONFIGURE,
                                                 :path => path.join('/'),
                                                 :value => valueToSend.to_s))

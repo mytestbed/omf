@@ -53,12 +53,13 @@ class Event < MObject
     @name = name
     @@events[@name] = {:instance => self, :interval => interval,
                        :running => false, :fired => false, 
+                       :thread => nil, 
                        :conditionBlock => block, 
                        :actionBlocks => Queue.new, :actionOptions => Hash.new}
   end
 
   def start
-    Thread.new(self) { |event|
+    @@events[@name][:thread] = Thread.new(self) { |event|
       lines = Array.new
       @@events[@name][:running] = true
       while Experiment.running?
@@ -115,6 +116,13 @@ class Event < MObject
     end
     @@events[name][:actionBlocks] << block
     @@events[name][:instance].start if !@@events[name][:running] 
+  end
+ 
+  def Event.purge_all
+    @@events.each { |name, attributes|
+      attributes[:thread].kill! if attributes[:running] && attributes[:thread]
+    }
+    @@events.clear
   end
 
 end
