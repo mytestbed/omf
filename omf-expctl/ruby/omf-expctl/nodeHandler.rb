@@ -62,6 +62,7 @@ require 'omf-expctl/topology'
 require 'omf-expctl/event'
 require 'omf-common/web/tab/log/logOutputter'
 require 'omf-common/keyLocator'
+require 'omf-common/envelope'
 
 #require 'omf-expctl/web/tab/log/logServlet'
 
@@ -547,7 +548,7 @@ class NodeHandler < MObject
     # WARNING: No federation support yet, so for now the EC gets any 
     # testbed-specific information by assuming its domain is the same as 
     # the testbed name. In the future, we will have multiple testbed configs... 
-    # And this will not be there, but rather provided by the resource provisioning
+    # this will not be there, but rather provided by the resource provisioning
     OConfig.loadTestbedConfiguration()
 
     if Experiment.sliceID != nil
@@ -556,31 +557,29 @@ class NodeHandler < MObject
       if (Experiment.sliceID = OConfig[:ec_config][:slice]) != nil
         warn "Using default Slice ID (from config file): #{Experiment.sliceID}"
       else
-        error "No slice ID defined on command line or config file! Exiting now!\n"
-	      exit
+        raise "No slice ID defined on command line or config file!"
       end
     end
     info " Experiment ID: #{Experiment.ID}"
     
     kl = nil
-    if OConfig[:ec_config][:communicator][:authenticate_messages]
+    aflag = OConfig[:ec_config][:communicator][:authenticate_messages] || false
+    if aflag
       info "Message authentication is enabled"
-      if OConfig[:ec_config][:communicator][:private_key] == nil
-        error "No private key file specified on command line or config file! Exiting now!\n"
-	      exit
-      end
-      if OConfig[:ec_config][:communicator][:public_key_dir] == nil
-        error "No public key directory specified on command line or config file! Exiting now!\n"
-	      exit
-      end
-      kl = OMF::Security::KeyLocator.new(OConfig[:ec_config][:communicator][:private_key], OConfig[:ec_config][:communicator][:public_key_dir])
+      raise "No private key file specified on command line or config file!" \
+            if !OConfig[:ec_config][:communicator][:private_key]
+      raise "No public key directory specified on command line or config " \
+            if !OConfig[:ec_config][:communicator][:public_key_dir]
+      kl = OMF::Security::KeyLocator.new(
+                            OConfig[:ec_config][:communicator][:private_key], 
+                            OConfig[:ec_config][:communicator][:public_key_dir])
     else
       info "Message authentication is disabled"
     end
 
-    ## initialize message envelope generator here with kl and authenticate_messages
-    OMF::Envelope.init(:authenticate_messages => authenticate_messages,
-                       :key_locator => kl)
+    # initialize message envelope generator here with kl and 
+    # authenticate_messages
+    OMF::Envelope.init(:authenticate_messages => aflag, :key_locator => kl)
 
     if listTutorial
       OConfig.load("test:exp:tutorial-list" , true)
