@@ -405,7 +405,7 @@ class NodeAgent < MObject
 
     # initialize message envelope generator here with kl and 
     # authenticate_messages
-    OMF::Envelope.init(:authenticate_messages => afalg, :key_locator => kl)
+    OMF::Envelope.init(:authenticate_messages => aflag, :key_locator => kl)
   end
 
   ################################################
