@@ -1,0 +1,304 @@
+== WSS4R
+
+Project home: www.rubyforge.org/projects/wss4r
+Author      : Roland Schmitt, roland.schmitt@web.de
+Date        : 01.02.2006
+
+Version     : 0.3
+
+= Contents
+  1. What is it (and what is it not)
+  2. Requirements
+  3. Installation
+  4. Usage
+    4.1. Resolver
+	 4.2. UsernameToken	 
+	 4.3. Encryption
+	 4.4. Signature
+	 4.5. Signature/Encryption
+    4.6. Interoperability with WSE 2.0
+	 4.7. Interoperability with JWSDP 2.0
+	 4.8. Integration into rails
+  5. Samples
+    5.1. A simple example
+	 5.2. Rails example
+  6. License
+  7. Support
+  8. URLs
+  
+  
+  
+= 1. What is it (and what is it not)
+  WSS4R (Web Service Security For Ruby) is a library that implements some of the 
+  standards for web service security defined by the oasis open consortium [1].
+  It is a proof of concept (or "Can i do it with ruby?") and not an fully featured
+  implementation, so it's focussed on the encryption and signature aspects of 
+  web services. WSS4R sits on top of the famous soap4r library of NAKAMURA Hiroshi [2],
+  so implementing servers or clients that uses data encryption or signatures is easy
+  when you know how to use soap4r. 
+  Besides that there is a integration into the rails [3] application server, so you
+  can use the features of WSS4R in rails driven web services.
+  
+  I've tested WSS4R with the following counterparts:
+     - Web Service Enhancements 2.0 [8]
+	  - Java Web Service Development Pack 2.0 [9]
+
+	  
+  WSS4R is my first ruby project, so it is not very ruby like in most places nor is it
+  a example of good ruby programming in general. It was started mostly to learn ruby, 
+  not to implement an full featured WS-Security conform library.
+  
+  If you like it or hate it or want more features, drop me an email at Roland.Schmitt@web.de.
+	  
+  
+= 2. Requirements
+	- Ruby [4] with compiled bindings to openssl [6]  
+	     (tested only with Ruby 1.8.4)
+	- soap4r [2]
+	     (tested with soap4r version from 04. Dez. 2005), 
+	- Log4r [5]
+	     (tested with version 1.0.5)
+	
+	Optional (for the examples):
+	- Rails [3]
+	     (tested with version 1.0.0)
+	- Sqlite3-Ruby [7]
+        (tested with version 1.1.0)
+		  
+		
+		  
+= 3. Installation
+	Simly do 
+	   
+	    ruby setup.rb
+		 
+		 
+= 4. Usage
+	To use WSS4R, one have to require the new driver class
+   
+	   require "wss4r/rpc/driver"
+		
+	instead of 
+		require "soap/rpc/driver"
+	
+		
+= 4.1. Resolver
+	Resolver objects are used to find certificates, keys and to authenticate users. 
+	Resolver objects know how to get the corresponding private key for a certificate or how to load
+	a certificate identified by a name.
+	For example, when a client sends a encrypted request to the server, there is only the certificate 
+	embedded in the message. A resolver object is responsible for loading the private key of the 
+	certificate.
+	
+	There two implementations of resolvers:
+	   - CertificateDirectoryResolver
+		  Loads keys/certificates from files in a specified directory in the file system. 
+		  
+	   - DatabaseResolver
+		  Loads keys/certificates from sqlite3 databases.
+		  
+	
+= 4.2. UsernameToken		
+	   Example: 
+		
+		...
+		driver = Driver.new('http://localhost:8070/','urn:multiply')
+		driver.add_method('multiply','a','b')
+      ...
+		usernametoken = UsernameToken.new("username", "password")
+		driver.security().add_security_token(usernametoken)		
+		...
+		
+	The client is authenticated with his username and password. The password is not sended as clear
+	text, instead a hash function is used.
+	
+	
+= 4.3. Encryption
+	    Example:
+		 
+		 ...
+		 resolver = CertificateDirectoryResolver.new("../certs/ca")
+		 certificate = resolver.certificate_by_subject("/C=DE/ST=Rheinland-Pfalz/L=Trier/O=FF/OU=Development/CN=Server/emailAddress=server@web.de")
+		 x509 = X509SecurityToken.new(certificate)
+		 enc_data = EncryptedData.new(x509)
+		 driver.security().add_security_token(enc_data)
+		 ...
+		 
+	The soap body is encrypted with the TripleDES algorithm.  The used encryption key is then 
+	encrypted with the certificates public key and placed in the soap header.
+	
+	Actually only TripleDES and AES are supported by WSS4R as encryption algorithms. To use AES instead of the default
+	TripleDES, set:
+	    enc_data.sessionkey_algorithm=(Types::ALGORITHM_AES_CBC)
+		 
+		 
+= 4.4. Signature
+       Example:
+		 
+		 ...
+		 sign_cert = OpenSSL::X509::Certificate.new(File.read("../certs/wse/wse-client.cer"))
+		 pkey = OpenSSL::PKey::RSA.new(File.read("../certs/wse/wse-client.key"))
+		 x509 = X509SecurityToken.new(sign_cert, pkey)
+		 signature = Signature.new(x509)
+		 driver.security().add_security_token(signature)
+	    ...
+	
+	The soap body and the soap header timestamp elements are signed with the supplied certificate. The signature
+	is embedded in the soap header.
+
+	
+= 4.5. Signature/Encryption
+       Example:
+		 
+		 ...
+ 		 resolver = CertificateDirectoryResolver.new("../certs/wse")
+		 driver.security().add_security_resolver(resolver)
+		 sign_cert = OpenSSL::X509::Certificate.new(File.read("../certs/wse/wse-client.cer"))
+		 pkey = OpenSSL::PKey::RSA.new(File.read("../certs/wse/wse-client.key"))
+		 x509 = X509SecurityToken.new(sign_cert, pkey)
+		 signature = Signature.new(x509)
+		 driver.security().add_security_token(signature)
+       encrypt_cert = OpenSSL::X509::Certificate.new(File.read("../certs/wse/wse-server.cer"))
+		 x509 = X509SecurityToken.new(encrypt_cert)
+		 enc_data = EncryptedData.new(x509)
+		 enc_data.sessionkey_algorithm=(Types::ALGORITHM_AES_CBC)
+		 driver.security().add_security_token(enc_data)
+		 ...
+		
+   You can combine signature and encryption. In most cases, for encryption the clients certificate is used and
+	for signature the certificate of the server.
+	If you first apply the encryption, the signature is generated over the encrypted data. When signing is the first step, the
+	the signature is generated from the plain content. So it is important to know which token is first added to the driver object.
+
+
+= 4.6. Interoperability with WSE 2.0
+   Should work with usernames, encryption and signatures.
+	Sample Visual Studio projects are provided in examples/WebServiceTest (client) and examples/WebService (server).
+	
+	
+= 4.7. Interoperability with JWSDP 2.0
+	Should work with usernames, encryption and signatures.
+	Per default the examples the JWSDP works with keyIdendifiers for finding certificates and keys. 
+	WSS4R does not support the keyIdentifier mechanism to identify certificates, because it is not a standard.
+	
+	
+= 4.8. Integration into rails	
+   To use WSS4R in rails one have to modify the controller that implements the web service:
+	
+	require "wss4r/aws/utils"
+	require "activerecordresolver"
+
+	class SimpleServiceController < ApplicationController
+	   wsdl_service_name 'SimpleService'
+      web_service_scaffold :invoke
+      web_service_api SimpleServiceApi
+  
+      wss_add_resolvers([ActiveRecordResolver.new()])
+		
+		
+	I've only tested the direct dispatching mode of action web service with WSS4R.
+	
+	
+= 5. Examples	
+   All examples are placed in the examples subfolder.
+	
+	certs               Folder with various certificates and keys for the different examples
+	  |-- ca            Generated certificates and keys for the WSS4R examples
+	  |-- jwsdp_15      Certificates and keys for to use with the JWSDP 1.5
+     |-- jwsdp_16      Certificates and keys for to use with the JWSDP 1.6/2.0
+     |-- wse           Certificates and keys for to use with the WSE 2.0
+	  
+	clients
+	  PlainNET.rb       Example for using a .NET web service without web service security features.
+	  PlainXWS.rb       Example for using a JWSDP web service without web service security features. 
+	  TestNET.rb        Example for using a WSE 2.0 web service. Shows usenametoken, encryption and signature.
+	                    Client for the project in the WebService folder.
+	  TestXWS.rb        Example for using a JWSDP 2.0 web service. Shows usenametoken, encryption and signature.
+	                    Client for the examples bundled with the JWSDP 2.0 package. The service is found in 
+							  %JWSDP_HOME%/xws-security/samples/simple. To work, set the the keyReferenceType in the 
+							  JWSDP xml config files under config/ to "Direct".
+	  TestWSS4R.rb      Example for using a WSS4R/soap4r web service. Shows usenametoken, encryption and signature.
+	                    Used with the server in the server folder.
+							  
+	rails
+	  |-- simple               Example for rails integration. Requires sqlite3-ruby.
+	        |-- client         Test client for the rails web service.
+			  |-- app            Files for the web service
+			     |-- controllers Implementration of the web service and setup for the resolver, encryption and signing.
+			     |-- helpers     Resolver implementation that uses ActiveRecord to load certificates and keys.
+			  |-- databases      Sqlite3 database with certificates and keys.
+			  
+	server
+	  |-- TestServer.rb WebRick server using soap4r and WSS4R.
+	  
+	WebService          Visual Studio project for a WSE 2.0 enabled web service. Created with Visual Studio 2003 and
+	                    C#.
+	
+	WebServiceTest      Visual Studio project with clients for the WebService project and for the rails example. Created with 
+	                    Visual Studio 2003 and C#.
+							  
+							  
+= 5.1. A simple example
+	At the command line, go to examples/server and type:
+	
+	   ruby TestServer.rb user
+		
+	A WebRick server starts that requires a username/password from the client, where the password is the username reversed.
+	In another shell, change the working dir to examples/clients and type:
+	
+	  ruby TestWSS4R.rb user
+	  
+	It show the result of the multiplication of the 2 arguments. The client uses "Ron" as username and "noR" as password. Setting
+	the password to other values than "noR" in the TestWSS4R.rb file results in a "User not authenticatd!" message.
+	
+	Stop the TestServer with CTRL-Z (or CTRL-C). Restart it with
+	
+	  ruby TestServer.rb enc sign
+	  
+	The server now will first encrypt any request, then signing it.
+	
+	Start the client by typing:
+	
+	  ruby TestClient.rb sign enc
+	  
+	The client first signs the request, then encrypts it and shows the response. 
+	
+	You can use various monitoring tools like the tcpmon utility from the axis project [10] to view the 
+	resulting request/response messages.
+	
+= 5.2. Rails example
+  Go to examples/rails/simple and type
+  
+    ruby script/server
+	 
+  To start the client, open a new shell and go to examples/rails/simple/client.
+  
+    ruby client.rb
+	 
+  The output shows the reversed string that the client sents to the server. The client signs his request and the server encrypts
+  and signs the response.
+		 
+  
+= 6. License
+
+WSS4R is licensed under GPL and Ruby's custom license. See GPL and RUBYS.
+
+
+= 7. Support
+
+The RubyForge mailing list is at www.rubyforge.org/projects/wss4r.
+
+Or, to contact the author, send mail to Roland.Schmitt@web.de  
+
+
+= 8. URLs
+   [1] - http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=wss  
+   [2] - http://dev.ctor.org/soap4r/
+   [3] - http://www.rubyonrails.org
+   [4] - http://www.ruby-lang.org
+   [5] - http://log4r.sourceforge.net/
+   [6] - http://www.openssl.org
+   [7] - http://rubyforge.org/projects/sqlite-ruby/
+   [8] - http://msdn.microsoft.com/webservices/webservices/building/wse/default.aspx
+   [9] - https://jwsdp.dev.java.net/
+  [10] - http://ws.apache.org/axis/
