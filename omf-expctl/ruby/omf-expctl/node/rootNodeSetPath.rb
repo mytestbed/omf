@@ -225,6 +225,10 @@ class RootNodeSetPath < NodeSetPath
     @nodeSet.eachUniqueNode { |n| n.enroll(index); index = index + 1 }
   end
 
+  def set_disconnection 
+    @nodeSet.eachUniqueNode { |n| n.set_disconnection }
+  end
+
   #
   # This method reset all nodes in the NodeSet of this Root Path.
   #

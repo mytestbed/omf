@@ -501,6 +501,29 @@ class Node < MObject
     ECCommunicator.instance.send_message(addr, cmd)
   end
 
+  # 
+  # Send a 'SET_DISCONNECTION' message to the RC of this resource
+  # nodes/resources involved in this experiment.
+  # This message provides the RC with all the information it needs to 
+  # runs this experiment in disconnected mode.
+  #
+  def set_disconnection
+    begin
+      expFile = NodeHandler.instance.expFile
+      exp = File.new(expFile).read
+    rescue Exception => ex
+      raise "Cannot set disconnection mode on resource '#{@nodeID}', "+
+            "error when opening the original experiment file '#{expFile}' "+
+            "(error: '#{ex}')"
+    end
+    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+    cmd = ECCommunicator.instance.create_message(:cmdtype => :SET_DISCONNECTION,
+                       :target => @nodeID,
+                       :oml => OConfig[:tb_config][:default][:oml_url],
+                       :exp => exp)
+    ECCommunicator.instance.send_message(addr, cmd)
+  end
+
   #
   # Reset this Node
   #
@@ -692,24 +715,6 @@ class Node < MObject
     m = REXML::XPath.match(el, xpathExpr)
     return m
   end
-
-  #
-  # Set the 'Reconnected' flag for this node. This flag is 'false' when this
-  # node is in a temporary disconnected (from the Contorl Network) state, and
-  # is 'true' when this node reconnects to the Control Network
-  #
-  #def setReconnected
-  #  @reconnected = true
-  #end
-  #
-  # Return the value of the 'Reconnected' flag for this node. 
-  # This flag is 'false' when this node is in a temporary disconnected (from 
-  # the Contorl Network) state, and is 'true' when this node reconnects to 
-  # the Control Network
-  #
-  #def isReconnected?
-  #  return @reconnected
-  #end
 
   #
   # Return a String with this Node's ID

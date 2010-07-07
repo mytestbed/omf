@@ -693,41 +693,31 @@ module AgentCommands
   end
 
   #
-  # Command 'SET_DISCONNECT'
+  # Command 'SET_DISCONNECTION'
   # 
-  # Activate the 'Disconnection Mode' for this NA. In this mode, this NA will assume
-  # the role of a 'master' NA. It will fetch a copy of the experiment description from
-  # the main 'master' EC. Then it will execute a Proxy OML server, a 'slave' NA and
-  # a 'slave' EC. Finally, it will monitor the 'slave' EC, and upon its termination, 
-  # it will initiate the final measurement collection (OML proxy to OML server), and
-  # the end of the experiment.
+  # Activate the 'Disconnection Mode' for this RC. 
+  # In this mode, this RC will be a 'master' RC, which will execute a 
+  # proxy OML server, a 'slave' RC and a 'slave' EC. It will instruct the
+  # 'slave' EC to execute the experiment parts related to this resource. It 
+  # will monitor this EC, and upon its termination, it will notify the OML 
+  # proxy to forward the measurements back to the main OML server. 
   #
-  # - agent = the instance of this NA
-  # - argArray = an array with the following parameters: the experiment ID, the URL
-  #              from where to get the experiment description, the address of the 
-  #              OML Server, the port of the OML server
-  #
-  def AgentCommands.SET_DISCONNECT(agent, argArray)
-    agent.allowDisconnection = true
-    MObject.debug "Disconnection Support Enabled."
+  def AgentCommands.SET_DISCONNECTION(controller, communicator, command)
+    controller.allowDisconnection = true
+    MObject.debug("AgentCommands", "Disconnection Support Enabled")
     
-    # Fetch the Experiment ID from the EC
-    expID = getArg(argArray, "Experiment ID")
+    # Retrieve original experiment parameters from the command
+    expID = command.expID
+    omlURL = command.oml
+    exp = command.exp
+    expPath = "/tmp/#{expID}-ED.rb" 
+    expFile = File.new(expPath, "w+")
+    expFile << exp
+    expFile.close
+    MObject.debug("AgentCommands", "Original Experiment Description saved at "+
+                  "'#{expPath}'")
 
-    # Fetch the Experiment Description from the EC
     ts = Time.now.strftime("%F-%T").split(%r{[:-]}).join('_')
-    urlED = getArg(argArray, "URL for Experiment Description")
-    fileName = "/tmp/exp_#{ts}.rb"
-    MObject.debug("Fetching Experiment Description at '#{urlED}'")
-    if (! system("wget -m -nd -q -O #{fileName} #{urlED}"))
-      raise "Couldn't fetch Experiment Description at:' #{urlED}'"
-    end
-    MObject.debug("Experiment Description saved at: '#{fileName}'")
-
-    # Fetch the addr:port of the OML Collection Server from the EC
-    addrMasterOML = getArg(argArray, "Address of Master OML Server")
-    portMasterOML = getArg(argArray, "Port of Master OML Server")
-
     # Now Start a Proxy OML Server
     cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} \
                             --dstport #{portMasterOML} \
@@ -737,15 +727,18 @@ module AgentCommands
     MObject.debug("Starting OML Proxy Server with: '#{cmd}'")
     ExecApp.new(OML_PROXY_ID, agent, cmd)
 
-    # Now Start a Slave NodeAgent with its communication module in 'TCP Server' mode
-    # Example: sudo /usr/sbin/omf-resctl --server-port 9026 --local-if lo --log ./nodeagentSlave_log.xml
+    # Now Start a Slave NodeAgent with its communication module in 
+    # 'TCP Server' mode
+    # Example: sudo /usr/sbin/omf-resctl --server-port 9026 --local-if lo 
+    #          --log ./nodeagentSlave_log.xml
     cmd = "#{SLAVE_RESCTL_CMD}  --server-port #{SLAVE_RESCTL_LISTENPORT} \
                                 --local-if #{SLAVE_RESCTL_LISTENIF} \
                                 --log #{SLAVE_RESCTL_LOG}"
     MObject.debug("Starting Slave Resouce Controller (NA) with: '#{cmd}'")
     ExecApp.new(SLAVE_RESCTL_ID, agent, cmd)
     
-    # Now Start a Slave NodeHandler with its communication module in 'TCP Client' mode
+    # Now Start a Slave NodeHandler with its communication module in 
+    # 'TCP Client' mode
     cmd = "#{SLAVE_EXPCTL_CMD} --config #{SLAVE_EXPCTL_CFG} \
                                --slave-mode #{expID} \
                                --slave-mode-omlport #{OML_PROXY_LISTENPORT} \

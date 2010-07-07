@@ -35,7 +35,7 @@ module OmfProtocol
                         :PM_INSTALL, :APT_INSTALL, :RPM_INSTALL, :RESET, 
                         :REBOOT, :MODPROBE, :CONFIGURE, :LOAD_IMAGE,
                         :SAVE_IMAGE, :LOAD_DATA, :SET_LINK, :ALIAS,
-                        :RESTART, :ENROLL, :EXIT]
+                        :SET_DISCONNECTION, :RESTART, :ENROLL, :EXIT]
 
   # Commands issued by the RC
   RC_COMMANDS = Set.new [:ENROLLED, :WRONG_IMAGE, :OK, :KILL, :WARN, 

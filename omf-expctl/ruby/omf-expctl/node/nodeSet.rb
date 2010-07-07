@@ -381,19 +381,6 @@ class NodeSet < MObject
     Topology[topo].build_links(interface)
   end
 
-  # 
-  # Send a 'SET_DISCONNECT' message to the Node Agent(s) running on the 
-  # nodes/resources involved in this experiment.
-  # This message will also inform the NA of: the experiment ID, the URL
-  # where they can retrieve the experiment description (served by the EC
-  # webserver), and the contact info for the OML collection server.
-  #
-  def switchDisconnectionON
-    send(:SET_DISCONNECT, "#{Experiment.ID}", 
-         "#{NodeHandler.instance.expFileURL}", "#{OmlApp.getServerAddr}", 
-         "#{OmlApp.getServerPort}")
-  end
-
   #
   # This method sets the boot image of the nodes in this nodeSet
   # If the 'setPXE' flag is 'true' (default), then the nodes in this set

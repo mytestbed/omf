@@ -212,45 +212,6 @@ class NodeAgent < MObject
   end
 
   #
-  # Set the 'Disconnection Support' flag to true
-  #
-  #def allowDisconnection
-  #  debug "Disconnection Support Enabled."
-  #  @allowDisconnection = true
-  #end
-
-  #
-  # Return the value of the 'Disconnection Support'
-  #
-  # [Return] true/false
-  #
-  #def allowDisconnection?
-  #  return @allowDisconnection
-  #end 
-
-  # TODO: This was used with old Multicast communication scheme to 
-  # implement the disconnection mode... Keep this around until we fix
-  # the disconnection mode for PubSub communication scheme
-  #
-  # Send an OK reply to the Node Handler (EC). When a command has been 
-  # successfully completed, the NA sends an 'HeartBeat' OK message
-  # to the EC
-  #
-  # - cmd = a String with the command that completed successfully
-  # - id = the ID of this NA (default = nil)
-  # - msgArray = an array with the full received command (name, parameters,...)
-  #
-  #def old_okReply(cmd, id = nil, *msgArray)
-  #  if @allowDisconnection 
-  #    Communicator.instance.sendRelaxedHeartbeat()
-  #  else
-  #    Communicator.instance.sendHeartbeat()
-  #  end
-  #end
-
-
-
-  #
   # Parse the command line arguments which were used when starting this NA
   #
   # - args = the command line arguments

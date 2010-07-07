@@ -252,8 +252,7 @@ class NodeHandler < MObject
   end
 
   # Attribut readers
-  attr_reader :expFile, :expFileURL
-  attr_reader :disconnectionOptions 
+  attr_reader :expFile, :disconnectionOptions 
 
   #
   # NodeHandler's methods...
@@ -583,9 +582,7 @@ class NodeHandler < MObject
     end
 
     @expFile = nil
-    if runTutorial
-      @expFile = TUTORIAL
-    end
+    @expFile = TUTORIAL if runTutorial
 
     rest.each { |s|
       if s[0] == '-'[0]
