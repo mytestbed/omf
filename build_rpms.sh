@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TOPDIR=`pwd`
-BUILD='debuild -uc -us -b | grep "dpkg-deb: building package" | awk -F "../" "{print substr(\$2,0,length(\$2)-2)}"'
+BUILD='debuild -uc -us -b | grep "dpkg-deb: building package" | awk -F "../" "{print substr(\$2,0,length(\$2)-1)}"'
 
 function build {
 	DEB=`bash -c "$BUILD"`
