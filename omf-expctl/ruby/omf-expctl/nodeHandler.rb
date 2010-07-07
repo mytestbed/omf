@@ -126,12 +126,6 @@ class NodeHandler < MObject
   #
   @@justPrint = false
 
-  # 
-  # Flag indicating if this Experiment Controller (EC) is invoked for an 
-  # Experiment that support temporary disconnections
-  #
-  #@@disconnectionMode = false
-
   #
   # Constant - Mount point where the Experiment Description should be 
   # served by the EC's webserver
@@ -385,20 +379,6 @@ class NodeHandler < MObject
       Experiment.start
     end
     
-    # If EC is in 'Disconnection Mode' print a message for user on console
-    if @@disconnectionOptions[:enabled] 
-      whenAll("*", "status[@value='UP']") {
-        info("", "Disconnection Mode - Waiting for all nodes to declare End of Experiment...")
-        everyNS('*', 15) { |n|
-          if !Node.allReconnected?
-            info("still waiting...")
-          else
-            true
-          end
-        }
-      }
-    end
-  
     if interactive?
       require 'omf-expctl/console'
       OMF::ExperimentController::Console.start
@@ -702,7 +682,6 @@ class NodeHandler < MObject
   #
   def initialize()
     @@disconnectionOptions = Hash.new
-    @@disconnectionOptions[:enabled] = false
     @@disconnectionOptions[:slave] = false
     @@showAppOutput = false
     @web_ui = false
