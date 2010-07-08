@@ -48,8 +48,8 @@ module OMF
       # Create a new keyLocator
       #
       def initialize(private_key_file, public_key_dir)
-        @private_key_file = private_key_file
-        @public_key_dir = public_key_dir
+        @private_key_file = resolve_path(private_key_file)
+        @public_key_dir = resolve_path(public_key_dir)
         info "Using private key '#{private_key_file}', using public keys in '#{public_key_dir}'"
         # Read the private key file for signing our messages
         if not File.exists? private_key_file
@@ -82,6 +82,8 @@ module OMF
             end
           end # Dir.foreach
         end
+        # Allow us to verify our own messages
+        @authorized_keys[@signer_id] = @private_key
       end
 
       def find_key(signer_id)
@@ -101,6 +103,14 @@ module OMF
             nil
           end
         end.compact
+      end
+
+      def resolve_path(path)
+        if path[0..1] == "~/"
+          return "#{ENV['HOME']}/#{path[2..-1]}"
+        else
+          return path
+        end
       end
     end # class OMF::Security::KeyLocator
   end # module OMF::Security
