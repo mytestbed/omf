@@ -122,7 +122,9 @@ module OMF
         check_message_type(envelope)
         @envelope = envelope
         if not envelope.elements["//sig:signature"].nil? then
-          warn "Message appears to be signed, but authentication is not enabled #{envelope.to_s}"
+          warn("Message is signed, but authentication is not enabled")
+          debug("Message is signed, but authentication is not enabled "+
+                "'#{envelope.to_s}'")
         end
         if envelope.name == "omf-message" then
           # Return the first element as the message payload

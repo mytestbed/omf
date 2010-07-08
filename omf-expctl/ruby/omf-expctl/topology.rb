@@ -105,9 +105,22 @@ class Topology < MObject
     @@topologies.values.each {|t|
       t.removeNode(node)
     }
+    
     if ((n = Node[node.nodeID]) != nil)
       n.notifyRemoved()
     end
+  end
+
+  def self.empty?
+    @@topologies.values.each {|t|
+      return false if !t.empty?
+    }
+    return true
+  end
+
+  def empty?
+    return true if (size == 0)
+    return false
   end
   
   #
@@ -454,7 +467,9 @@ class Topology < MObject
       raise "Topology - failed to remove node '#{node}' from topology "+
             "'#{uri}'. No topology change allowed (flag 'strict' set)"
     end
-    @nodes.delete(n) if ((n = Node[node.nodeID]) != nil)
+    if ((n = Node[node.nodeID]) != nil)
+      @nodes.delete(n) 
+    end
   end
 
   #

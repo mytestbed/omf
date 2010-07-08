@@ -217,7 +217,7 @@ class NodeAgent < MObject
   def parseOptions(args)
       require 'optparse'
 
-    cfgFile = nil
+    @configFile = nil
     @interactive = false
     @logConfigFile = ENV['NODE_AGENT_LOG'] || 
                      "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
@@ -266,13 +266,16 @@ class NodeAgent < MObject
     }
 
     # Signing/Verification Options
-    opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key file location") { |file| 
+    opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key "+
+      "file location") { |file| 
       @config[:communicator][:private_key] = file 
     }
-    opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding the public keys of your OMF peers") { |dir| 
+    opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding "+
+      "the public keys of your OMF peers") { |dir| 
       @config[:communicator][:public_key_dir] = dir 
     }  
-    opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and message signing (default is no)") { |auth|
+    opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and "+
+      "message signing (default is no)") { |auth|
       @config[:communicator][:authenticate_messages] = (auth.downcase == "yes") 
     }
 
@@ -289,6 +292,10 @@ class NodeAgent < MObject
     opts.on("--log FILE",
       "File containing logging configuration information") {|file|
         @logConfigFile = file
+    }
+    opts.on("-C", "--configfile FILE",
+      "File containing local configuration parameters") {|file|
+        @configFile = file
     }
     opts.on("-n", "--just-print",
       "Print the commands that would be executed, but do not execute them") {
@@ -307,30 +314,30 @@ class NodeAgent < MObject
     MObject.initLog('nodeAgent', nil, {:configFile => @logConfigFile})
 
     # read optional config file
-    if cfgFile.nil?
+    if !@configFile
       name = "omf-resctl.yaml"
       path = ["../etc/omf-resctl/#{name}", 
               "/etc/omf-resctl-#{OMF_MM_VERSION}/#{name}"]
-      cfgFile = path.detect {|f|
+      @configFile = path.detect {|f|
         File.readable?(f)
       }
     else
-      if (!File.readable?(cfgFile))
-        raise "Can't find the configuration file '#{cfgFile}'."+
+      if (!File.readable?(@configFile))
+        raise "Can't find the configuration file '#{@configFile}'."+
               "You may find an example configuration file in "+
               "'/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
       end
     end
-    if (cfgFile.nil?)
+    if !@configFile
       raise "Can't find any configuration files in the default paths. "+ 
       "Please create a config file at one of the default paths "+
       "(see install doc). Also, you may find an example configuration "+
       "file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
     else
       require 'yaml'
-      h = YAML::load_file(cfgFile)
+      h = YAML::load_file(@configFile)
       if ((p = h[:rcontroller]) == nil)
-        raise "Missing ':rcontroller' root in '#{cfgFile}'"
+        raise "Missing ':rcontroller' root in '#{@configFile}'"
       end
       @config = p.merge_deep!(@config)
     end

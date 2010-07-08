@@ -266,13 +266,17 @@ end
 
 def allEqual(array, value)
   res = true
-  array.each { |v| res = false if v.to_s != value.to_s }
+  if array
+    array.each { |v| res = false if v.to_s != value.to_s }
+  end 
   res
 end
 
 def oneEqual(array, value)
   res = false
-  array.each { |v| res = true if v.to_s == value.to_s }
+  if array
+    array.each { |v| res = true if v.to_s == value.to_s }
+  end
   res
 end
 
@@ -437,10 +441,6 @@ end
 #
 def whenAllInstalled(&block)
   warn_deprecated_command("whenAllInstalled")
-  # Check if this EC instance is set to run in Disconnection Mode
-  # If yes, then returned now because whatever is asked from this whenAll 
-  # should be executed by the whenAll of the slave EC on the disconnected mode
-  return if NodeHandler.disconnectionMode?
   whenAllEqual("*", "apps/app/status/@value", "INSTALLED.OK", &block)
 end
 
@@ -459,17 +459,18 @@ def every(name, interval = 60, initial = nil, &block)
   Thread.new(initial) { |context|
     while true
       Kernel.sleep(interval)
-      debug("every(#{name}): fires - #{context}")
+      MObject.debug("every(#{name}): fires - #{context}")
       begin
         if ((context = block.call(context)) == nil)
           break
         end
       rescue Exception => ex
         bt = ex.backtrace.join("\n\t")
-        error("every(#{name})", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+        MObject.error("every(#{name})", 
+                      "Exception: #{ex} (#{ex.class})\n\t#{bt}")
       end
     end
-    debug("every(#{name}): finishes")
+    MObject.debug("every(#{name}): finishes")
   }
 end
 
@@ -489,17 +490,17 @@ def everyNS(nodesSelector, interval = 60, &block)
   Thread.new(path) { |path|
     while true
       Kernel.sleep(interval)
-      debug("every", nodesSelector, ": fires")
+      MObject.debug("every", nodesSelector, ": fires")
       begin
         if ! (path.call &block)
           break
         end
       rescue Exception => ex
         bt = ex.backtrace.join("\n\t")
-        error("whenAll", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+        MObject.error("everyNS", "Exception: #{ex} (#{ex.class})\n\t#{bt}")
       end
     end
-    debug("every", nodesSelector, ": finishes")
+    MObject.debug("every", nodesSelector, ": finishes")
   }
 end
 

@@ -73,6 +73,11 @@ everyNS('*', 10) { |ns|
             else
               MObject.warn('stdlib', "Giving up on node ", n)
               Topology.removeNode(n)
+              if Topology.empty?
+                MObject.info("stdlib", "No resources available for this "+
+                             "experiment. Closing the experiment now!" )
+                Experiment.close
+              end
             end
           end
         end
@@ -81,7 +86,8 @@ everyNS('*', 10) { |ns|
     # Check the number of nodes still not UP...
     nodesDownCnt = nodesDown.length
     if nodesDownCnt > 0
-      MObject.info('stdlib', "Waiting for nodes (Up/Down/Total): #{nodeCnt-nodesDownCnt}/#{nodesDownCnt}/#{nodeCnt}",
+      MObject.info('stdlib', "Waiting for nodes (Up/Down/Total): "+
+        "#{nodeCnt-nodesDownCnt}/#{nodesDownCnt}/#{nodeCnt}",
         " - (still down: ", nodesDown[0..2].join(','),")")
     end
     # Stop looping if all the ndoes are UP!

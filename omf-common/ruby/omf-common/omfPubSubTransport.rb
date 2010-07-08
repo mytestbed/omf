@@ -59,10 +59,8 @@ class OMFPubSubTransport < MObject
            "#{@@myName}-#{Time.now.to_i}-#{rand(Time.now.to_i)}"
     pwd = opts[:config][:xmpp][:pubsub_pwd] || DEFAULT_PUBSUB_PWD
     @@psGateway = opts[:config][:xmpp][:pubsub_gateway]
-    if !@@psGateway
-      raise "OMFPubSubTransport - Configuration is missing 'pubsub_gateway' "+
-            "parameter!"
-    end
+    raise "OMFPubSubTransport - Configuration is missing 'pubsub_gateway' "+
+            "parameter!" if !@@psGateway
 
     # Check if we are using message authentication  
     kl = nil

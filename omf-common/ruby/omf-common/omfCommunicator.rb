@@ -63,6 +63,10 @@ class OmfCommunicator < MObject
     when 'mock'
       @@sent = Array.new
       return # Uses the default Mock OmfCommunicator
+    when 'udplocal'
+      require 'omf-common/omfUDPLocalTransport'
+      @@transport = OMFUDPLocalTransport.instance.init(opts)
+      @@domain = 'localhost'
     else
       raise "Unknown transport '#{type}'"
     end

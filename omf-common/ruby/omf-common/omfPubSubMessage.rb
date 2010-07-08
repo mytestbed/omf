@@ -70,9 +70,6 @@ class OmfPubSubMessage < OmfMessage
     msg << REXML::Element.new("#{@attributes[:CMDTYPE].to_s}")
     # For each attribute of this Command Object, create the required XML element
     @attributes.each { |k,v|
-      ## For the OML Config attribute, add the value as an XML element to the XML 
-      ## to return
-      ## if (k == :OMLCONFIG) && (v != nil)
       # If this attribute value is an XML Element, then add it as is to the 
       # resulting XML element
       if (v != nil) && (v.kind_of?(REXML::Element))
