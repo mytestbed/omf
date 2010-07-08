@@ -37,9 +37,6 @@ require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
 require 'omf-resctl/omf_agent/rcCommunicator'
 require 'omf-resctl/omf_agent/agentCommands'
-# TDEBUG
-#require 'omf-common/keyLocator'
-#require 'omf-common/envelope'
 
 #
 # This class defines the Node Agent (NA) entity, which is a daemon
@@ -349,26 +346,6 @@ class NodeAgent < MObject
       @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
                      @config[:communicator][:xmpp][:pubsub_gateway]
     end
-
-# TDEBUG
-#    kl = nil
-#    aflag = @config[:communicator][:authenticate_messages] 
-#    if aflag
-#      info "Message authentication is enabled"
-#      raise "No private key file specified on command line or config file!" \
-#            if !@config[:communicator][:private_key]
-#      raise "No public key directory specified on command line or config " \
-#            if !@config[:communicator][:public_key_dir]
-#      kl = OMF::Security::KeyLocator.new(
-#                            @config[:communicator][:private_key], 
-#                            @config[:communicator][:public_key_dir])
-#    else
-#      info "Message authentication is disabled"
-#    end
-#
-#    # initialize message envelope generator here with kl and 
-#    # authenticate_messages
-#    OMF::Envelope.init(:authenticate_messages => aflag, :key_locator => kl)
   end
 
   ################################################
