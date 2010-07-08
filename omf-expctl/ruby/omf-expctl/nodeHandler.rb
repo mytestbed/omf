@@ -61,10 +61,6 @@ require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/event'
 require 'omf-common/web/tab/log/logOutputter'
-require 'omf-common/keyLocator'
-require 'omf-common/envelope'
-
-#require 'omf-expctl/web/tab/log/logServlet'
 
 Project = nil
 
@@ -539,26 +535,15 @@ class NodeHandler < MObject
         raise "No slice ID defined on command line or config file!"
       end
     end
-    info " Experiment ID: #{Experiment.ID}"
+    info "Experiment ID: #{Experiment.ID}"
     
-    kl = nil
-    aflag = OConfig[:ec_config][:communicator][:authenticate_messages] || false
-    if aflag
+    # Cosmetic - have this displayed here, so the log/sdout shows
+    # the 'NodeHandler' class as the source of this log
+    if OConfig[:ec_config][:communicator][:authenticate_messages] 
       info "Message authentication is enabled"
-      raise "No private key file specified on command line or config file!" \
-            if !OConfig[:ec_config][:communicator][:private_key]
-      raise "No public key directory specified on command line or config " \
-            if !OConfig[:ec_config][:communicator][:public_key_dir]
-      kl = OMF::Security::KeyLocator.new(
-                            OConfig[:ec_config][:communicator][:private_key], 
-                            OConfig[:ec_config][:communicator][:public_key_dir])
     else
       info "Message authentication is disabled"
     end
-
-    # initialize message envelope generator here with kl and 
-    # authenticate_messages
-    OMF::Envelope.init(:authenticate_messages => aflag, :key_locator => kl)
 
     if listTutorial
       OConfig.load("test:exp:tutorial-list" , true)
@@ -668,8 +653,8 @@ class NodeHandler < MObject
     @logConfigFile = log
     MObject.initLog('nodeHandler', Experiment.ID, 
                     {:configFile => @logConfigFile})
-    debug("Using Log config file: #{@logConfigFile}")
-    info(" #{VERSION_STRING}")
+    debug "Using Log config file: #{@logConfigFile}"
+    info "#{VERSION_STRING}"
   end
 
   private

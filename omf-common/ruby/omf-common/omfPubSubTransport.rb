@@ -32,6 +32,7 @@
 require "omf-common/omfXMPPServices"
 require "omf-common/omfPubSubMessage"
 require "omf-common/omfPubSubAddress"
+require 'omf-common/keyLocator'
 require "omf-common/envelope"
 require 'omf-common/mobject'
 
@@ -63,6 +64,25 @@ class OMFPubSubTransport < MObject
             "parameter!"
     end
 
+    # Check if we are using message authentication  
+    kl = nil
+    aflag = opts[:config][:authenticate_messages] || false
+    if aflag
+      debug "Message authentication is enabled"
+      raise "No private key file specified on command line or config file!" \
+            if !opts[:config][:private_key]
+      raise "No public key directory specified on command line or config " \
+            if !opts[:config][:public_key_dir]
+      kl = OMF::Security::KeyLocator.new(opts[:config][:private_key], 
+                                         opts[:config][:public_key_dir])
+    else
+      debug "Message authentication is disabled"
+    end
+
+    # initialize message envelope generator here with kl and 
+    # authenticate_messages
+    OMF::Envelope.init(:authenticate_messages => aflag, :key_locator => kl)
+  
     # Open a connection to the Gateway PubSub Server
     begin
       debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
@@ -150,6 +170,7 @@ class OMFPubSubTransport < MObject
       error "send - Ignore attempt to send message to nobody"
       return
     end
+    #message = OMF::Envelope::add_envelope(message)
     message = add_envelope(message)
     # Build Message
     item = Jabber::PubSub::Item.new
@@ -198,7 +219,9 @@ class OMFPubSubTransport < MObject
       return nil if envelope == nil
       # All good, return the extracted XML payload
 
+      #if OMF::Envelope::verify(envelope)
       if self.verify(envelope)
+        #xmlMessage = OMF::Envelope::remove_envelope(envelope)
         xmlMessage = self.remove_envelope(envelope)
         debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
         message = get_new_message

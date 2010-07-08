@@ -50,7 +50,7 @@ module OMF
     #  method.
     #
     def add_envelope(message)
-      puts "Adding envelope"
+      #puts "Adding envelope"
       generator.wrap(message)
     end
 
