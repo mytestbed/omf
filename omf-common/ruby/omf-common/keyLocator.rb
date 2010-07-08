@@ -50,17 +50,18 @@ module OMF
       def initialize(private_key_file, public_key_dir)
         @private_key_file = resolve_path(private_key_file)
         @public_key_dir = resolve_path(public_key_dir)
-        info "Using private key '#{private_key_file}', using public keys in '#{public_key_dir}'"
+        info "Using private key '#{@private_key_file}', using public keys in '#{@public_key_dir}'"
+
         # Read the private key file for signing our messages
-        if not File.exists? private_key_file
-          raise "KeyLocator can't find private key '#{private_key_file}'"
+        if not File.exists? @private_key_file
+          raise "KeyLocator can't find private key '#{@private_key_file}'"
         else
           # read file and check if key is valid
           @private_key = OpenSSL::PKey::RSA.new(File.read(@private_key_file))
           # get our own signer id from our public key file
           public_key_file = "#{@private_key_file}.pub"
           if not File.exists? public_key_file
-            raise "KeyLocator can't find public key corresponding to '#{private_key_file}'"
+            raise "KeyLocator can't find public key corresponding to '#{@private_key_file}'"
           else
             @signer_id = File.read(public_key_file).split(' ')[2].lstrip.rstrip
           end
@@ -68,13 +69,13 @@ module OMF
 
         # look for public keys with which to verify received messages
         @authorized_keys = Hash.new
-        if not File.directory? public_key_dir
-          raise "KeyLocator can't find peer public keys directory '#{public_key_dir}'"
+        if not File.directory? @public_key_dir
+          raise "KeyLocator can't find peer public keys directory '#{@public_key_dir}'"
         else
           # Find all files in the directory and try to make public keys out of them
-          dir = Dir.foreach(public_key_dir) do |file|
+          dir = Dir.foreach(@public_key_dir) do |file|
             if not file == "." and not file == ".."
-              pubkeys_from_file("#{public_key_dir}/#{file}").each do |key, signer|
+              pubkeys_from_file("#{@public_key_dir}/#{file}").each do |key, signer|
                 if not key.nil?
                   @authorized_keys[signer] = key
                 end
