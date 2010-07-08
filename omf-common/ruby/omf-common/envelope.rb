@@ -149,7 +149,7 @@ module OMF
         el_sig.add_attribute("over", "omf-payload")
         el_sig.add_attribute("signer", @key_locator.signer_id)
 
-        c = WSS4R::Security::Util::XmlCanonicalizer.new(false,true)
+        c = XML::Util::XmlCanonicalizer.new(false,true)
         text = c.canonicalize(message)
         key = @key_locator.private_key
         signature = key.sign(OpenSSL::Digest::SHA1.new, text)
@@ -170,7 +170,7 @@ module OMF
             signer = e.attributes["signer"]
             pubkey = @key_locator.find_key(signer)
             return false if pubkey.nil?
-            c = WSS4R::Security::Util::XmlCanonicalizer.new(false,true)
+            c = XML::Util::XmlCanonicalizer.new(false,true)
             text = c.canonicalize(message)
             b64 = e.text.split("\n").join
             signature = Base64.decode64(b64)
