@@ -86,7 +86,7 @@ module OMF
     # envelope is added/stripped) and always decides that a message
     # verified successfully (i.e. no verification).
     #
-    class EnvelopeGenerator
+    class EnvelopeGenerator < MObject
 
       @envelope = nil
       @message = nil
