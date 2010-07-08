@@ -170,7 +170,6 @@ class OMFPubSubTransport < MObject
       error "send - Ignore attempt to send message to nobody"
       return
     end
-    #message = OMF::Envelope::add_envelope(message)
     message = add_envelope(message)
     # Build Message
     item = Jabber::PubSub::Item.new
@@ -219,9 +218,7 @@ class OMFPubSubTransport < MObject
       return nil if envelope == nil
       # All good, return the extracted XML payload
 
-      #if OMF::Envelope::verify(envelope)
       if self.verify(envelope)
-        #xmlMessage = OMF::Envelope::remove_envelope(envelope)
         xmlMessage = self.remove_envelope(envelope)
         debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
         message = get_new_message
