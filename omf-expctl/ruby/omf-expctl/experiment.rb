@@ -305,7 +305,7 @@ class Experiment
     # If this is a disconnected experiment, inform the resources about it
     # And set
     if @@disconnectionAllowed
-     #OMF::ExperimentController::CmdContext.instance.allGroups.set_disconnection
+     OMF::ExperimentController::CmdContext.instance.allGroups.set_disconnection
     end
   end
 

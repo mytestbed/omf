@@ -85,11 +85,19 @@ class Node < MObject
   def Node.at! (name)
     n = @@nodes[name]
     if !n.kind_of?(Node)
-      if CMC::nodeActive?(name)
+      #
+      # Checking the CMC for active node might not be useful anymore, as we
+      # already wait for nodes to 'enroll', i.e. inactive Nodes will never
+      # enroll and thus will be excluded of the experiment after the enroll
+      # timeout. Furthermore, we will in the future use a more dynamic way
+      # of checking for active nodes (eg. sending a request directly to the
+      # node's pubsub, and waiting for replies from node itself or AM).
+      #
+      #if CMC::nodeActive?(name)
         n = Node.new(name)
-      else
-        raise ResourceException.new("Node #{name} is NOT active")
-      end
+      #else
+      #  raise ResourceException.new("Node #{name} is NOT active")
+      #end
     end
     return n
   end
@@ -519,7 +527,7 @@ class Node < MObject
     addr = ECCommunicator.instance.make_address(:name => @nodeID) 
     cmd = ECCommunicator.instance.create_message(:cmdtype => :SET_DISCONNECTION,
                        :target => @nodeID,
-                       :oml => OConfig[:tb_config][:default][:oml_url],
+                       :omlURL => OConfig[:tb_config][:default][:oml_url],
                        :exp => exp)
     ECCommunicator.instance.send_message(addr, cmd)
   end

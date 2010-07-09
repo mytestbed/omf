@@ -475,7 +475,7 @@ def every(name, interval = 60, initial = nil, &block)
 end
 
 #
-# Periodically execute 'block' against a group of nodes every 'interval' seconds 
+# Periodically execute 'block' against a group of nodes every 'interval' sec
 #
 # - nodesSelector = the name of the group of nodes 
 # - interval = interval at which to execute the action (in sec, default=60) 

@@ -406,16 +406,18 @@ class NodeHandler < MObject
 
     opts = OptionParser.new
     opts.banner = "\nExecute an experiment script\n\n" +
-                  "Usage: #{ENV['ROOTAPP']} exec [OPTIONS] ExperimentName [-- EXP_OPTIONS]\n\n" +
-                  "    ExperimentName is the filename of the experiment script\n" +
-                  "    [EXP_OPTIONS] are any options defined in the experiment script\n" +
-                  "    [OPTIONS] are any of the following:\n\n" 
+      "Usage: #{ENV['ROOTAPP']} exec [OPTIONS] ExperimentName [-- EXP_OPTIONS]"+
+      "\n\n\tExperimentName is the filename of the experiment script\n" +
+      "\t[EXP_OPTIONS] are any options defined in the experiment script\n" +
+      "\t[OPTIONS] are any of the following:\n\n" 
 
-    opts.on("-C", "--configfile FILE", "File containing local configuration parameters") {|file|
+    opts.on("-C", "--configfile FILE", 
+    "File containing local configuration parameters") {|file|
       @configFile = file
     }
 
-    opts.on("-c", "--config NAME", "Configuration section from the config file ('default' if omitted)") {|name|
+    opts.on("-c", "--config NAME", 
+    "Configuration section from the config file ('default' if omitted)") {|name|
       OConfig.config = name
     }
     
@@ -424,25 +426,31 @@ class NodeHandler < MObject
       OConfig.config = 'debug'
     }
 
-    opts.on("-i", "--interactive", "Run the experiment controller in interactive mode") { @interactive = true }
+    opts.on("-i", "--interactive", 
+    "Run the experiment controller in interactive mode") { @interactive = true }
 
-    opts.on("-l", "--libraries LIST", "Comma separated list of additional files to load [#{@extraLibs}]") {|list|
+    opts.on("-l", "--libraries LIST", 
+    "Comma separated list of additional files to load [#{@extraLibs}]") {|list|
       @extraLibs = list
     }
 
-    opts.on("--log FILE", "File containing logging configuration information") {|file|
+    opts.on("--log FILE", 
+    "File containing logging configuration information") {|file|
       @logConfigFile = file
     }
 
-    opts.on("-m", "--message MESSAGE", "Message to add to experiment trace") {|msg|
+    opts.on("-m", "--message MESSAGE", 
+    "Message to add to experiment trace") {|msg|
       Experiment.message = msg
     }
 
-    opts.on("-n", "--just-print", "Print the commands that would be executed, but do not execute them") { 
+    opts.on("-n", "--just-print", 
+    "Print the commands that would be executed, but do not execute them") { 
       NodeHandler.JUST_PRINT = true
     }
 
-    opts.on("-p", "--print URI", "Print to the console the content of the experiment resource URI") {|uri|
+    opts.on("-p", "--print URI", 
+    "Print to the console the content of the experiment resource URI") {|uri|
       printResource(uri)
       exit
     }
@@ -451,48 +459,73 @@ class NodeHandler < MObject
       @webPort = port.to_i
     }
 
-    opts.on("-o", "--output-result FILE", "File to write final state information to") {|file|
+    opts.on("-o", "--output-result FILE", 
+    "File to write final state information to") {|file|
       @finalStateFile = file
     }
 
-    opts.on("-O", "--output-app-stdout", "Display on standard-out the outputs from the applications running on the nodes") { 
+    opts.on("-O", "--output-app-stdout", 
+    "Display any standard-out outputs from the resources") { 
       @@showAppOutput = true
     }
 
-    opts.on("-r", "--reset", "If set, then reset (reboot) the nodes before the experiment") { @@reset = true }
+    opts.on("-r", "--reset", 
+    "If set, then reset (reboot) the nodes before the experiment") { 
+      @@reset = true 
+    }
 
-    opts.on("-S", "--slice NAME", "Name of the Slice where this EC should operate") { |name| Experiment.sliceID = name }
+    opts.on("-S", "--slice NAME", 
+    "Name of the Slice where this EC should operate") { |name| 
+      Experiment.sliceID = name 
+    }
 
-    opts.on("-s", "--shutdown", "If set, then shut down resources at the end of an experiment") { @@shutdown = true }
+    opts.on("-s", "--shutdown", 
+    "If set, then shut down resources at the end of an experiment") { 
+      @@shutdown = true 
+    }
 
-    opts.on("--tutorial", "Run a tutorial experiment (usage: '--tutorial -- --tutorialName tutorial-1a')") { runTutorial = true }
+    opts.on("--tutorial", "Run the tutorial experiment") { runTutorial = true }
 
-    opts.on("--tutorial-list", "List all the available tutorial") { listTutorial = true }
+    #opts.on("--tutorial-list", "List all the available tutorial") { 
+    #  listTutorial = true 
+    #}
 
-    opts.on("-t", "--tags TAGS", "Comma separated list of tags to add to experiment trace") {|tags|
+    opts.on("-t", "--tags TAGS", 
+    "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
     }
 
-    opts.on_tail("-w", "--web-ui", "Control experiment through web interface") { @web_ui = true }
+    opts.on_tail("-w", "--web-ui", 
+    "Control experiment through web interface") { 
+      @web_ui = true 
+    }
 
-    opts.on_tail("-h", "--help", "Show this message") { |v| puts VERSION_STRING; puts opts; exit }
+    opts.on_tail("-h", "--help", "Show this message") { |v| 
+      puts VERSION_STRING; puts opts; exit 
+    }
 
-    opts.on_tail("-v", "--version", "Show the version\n") { |v| puts VERSION_STRING; exit }
+    opts.on_tail("-v", "--version", "Show the version\n") { |v| 
+      puts VERSION_STRING; exit 
+    }
 
-    opts.on("--slave-mode EXPID", "Run EC in 'Slave' mode on a node that can be temporary disconnected, use EXPID for the Experiment ID") { |id|
+    opts.on("--slave-mode EXPID", 
+    "Run in slave mode in disconnected experiment, EXPID is the exp. ID") { |id|
       @@disconnectionOptions[:slave] = true 
       Experiment.ID = "#{id}"
     }
 
-    opts.on("--slave-mode-omlport PORT", "When EC in 'Slave' mode, this is the PORT to the local proxy OML collection server") { |port|
+    opts.on("--slave-mode-omlport PORT", 
+    "When in slave mode, PORT is the port to the proxy OML server") { |port|
       @@disconnectionOptions[:portOMLProxy] = port.to_i
     }
 
-    opts.on("--slave-mode-omladdr ADDR", "When EC in 'Slave' mode, this is the Address to the local proxy OML collection server") { |addr|
+    opts.on("--slave-mode-omladdr ADDR", 
+    "When in slave mode, ADDR is the port to the proxy OML server") { |addr|
       @@disconnectionOptions[:addrOMLProxy] = addr
     }
 
-    opts.on("--slave-mode-resource NAME", "When EC in 'Slave' mode, this is the HRN of the resource where this slave EC is running") { |name|
+    opts.on("--slave-mode-resource NAME", 
+    "When in slave mode, NAME is the HRN of the resource for this EC") { |name|
       @@disconnectionOptions[:resourceHRN] = name
     }
 
