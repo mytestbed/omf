@@ -62,6 +62,7 @@ module OMF
     
 
         args[:Port] = port
+        @@fileLoadFunc = args[:FileLoadFunc]
     
         mimeTable = HTTPUtils::DefaultMimeTypes
         mimeTable.update({ "xsl" => "text/xml" })
@@ -160,6 +161,7 @@ module OMF
       def self.registerService(serviceClass, opts)
         opts = opts.clone
         opts[:serviceClass] = serviceClass
+        opts[:fileLoadFunc] = @@fileLoadFunc if @@fileLoadFunc
         @@available_services << opts
       end
       

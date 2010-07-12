@@ -40,6 +40,7 @@ module OMF
           end
           
           self.addNetworkGraph 'force', :gtype => 'force' do |n|
+            opts = {}
             data.each_index do |y|
               row = data[y]
               from = "node#{y}"
@@ -164,13 +165,23 @@ module OMF
           end
           
           def protovis()
-            type = @opts[:gopts][:gtype] || 'matrix'
+            js_uri = @opts[:gopts][:gtype] || 'matrix'
             
-            fname = File.join(File.dirname(__FILE__), "#{type}.js")
-            unless File.exists?(fname)
-              raise "Unknown graph type '#{type}"
+            js = nil
+            if (loadProc = @opts[:fileLoadFunc])
+              begin 
+                js = loadProc.call(js_uri, '.js')
+              rescue IOError => ioerr
+              end
             end
-            File.read(fname)
+            if js.nil?
+              fname = File.join(File.dirname(__FILE__), "#{js_uri}.js")
+              js = File.read(fname) if File.exists?(fname)
+            end
+            if js.nil?
+              raise "Unknown graph definition '#{type}"
+            end
+            js
           end
           
           def initialize(sessionID, opts)
@@ -202,6 +213,9 @@ module OMF
             opts[:show_graph_id] = gid
   
             if gx = opts[:graphs][gid]
+              if (loadProc = opts[:fileLoadFunc])
+                gx[:fileLoadFunc] = loadProc
+              end
               opts[:gd] = GraphDescription.new(sessionID, gx)
             else
               opts[:gd] = nil
