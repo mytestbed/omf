@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu7) testing; urgency=low
+
+  * latest trunk
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 09 Jul 2010 16:09:51 +1000
+
 omf-common-5.3 (1ubuntu6) testing; urgency=low
 
   * now with substitution feature

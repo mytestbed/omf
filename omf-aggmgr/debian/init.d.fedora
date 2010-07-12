@@ -31,7 +31,7 @@ start(){
 	   echo "\nPort $PORT is in use. There might already be an AM running on this port."
 	   exit 1
 	fi
-    $NAME $OPTS > /dev/null 2>&1 &
+ 	$NAME $OPTS >& /var/log/$NAME.daemon.log &
     echo $! > $PIDFILE
     while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
 	   sleep 1

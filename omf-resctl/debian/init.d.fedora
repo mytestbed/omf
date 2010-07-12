@@ -29,7 +29,7 @@ start(){
     if [ -f /var/log/$NAME.log ]; then
        mv /var/log/$NAME.log /var/log/$NAME.log.1
     fi
-    $NAME > /dev/null 2>&1 &
+    $NAME >& /var/log/$NAME.daemon.log &
     echo $! > $PIDFILE
     sleep 2
     echo "."
