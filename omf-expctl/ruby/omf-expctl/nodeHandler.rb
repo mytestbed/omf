@@ -846,7 +846,8 @@ class NodeHandler < MObject
                                         'omf-common/web/tab'],
            #:PublicHtml => OConfig[:ec_config][:repository][:path],
            :ResourceDir => cfg[:resource_dir],
-           :ViewHelperClass => OMF::ExperimentController::Web::ViewHelper
+           :ViewHelperClass => OMF::ExperimentController::Web::ViewHelper,
+           :FileLoadFunc => lambda do |uri, def_ext| OConfig.load(uri, false, def_ext) end
         )
         confirmedPort = i
       rescue Exception => ex

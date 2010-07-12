@@ -224,13 +224,13 @@ module OConfig
   # 
   # [Return] the text content of the file, with its mimeType
   #
-  def self.load(uri, evalRuby = false)
+  def self.load(uri, evalRuby = false, default_ext = '.rb')
 
     # Find the file to load...
     file = self.findFile(uri)
     if file == nil
-      # Could not find it, try again but append '.rb' to the URI 
-      file = self.findFile(uri+'.rb')
+      # Could not find it, try again but append +default_ext+ to the URI 
+      file = self.findFile(uri + default_ext)
     end
     if file == nil
       # Still can't find it, give up.
