@@ -457,6 +457,11 @@ class NodeHandler < MObject
       @finalStateFile = file
     }
 
+    opts.on("-e", "--experiment-id EXPID", 
+    "Set the ID for this experiment, instead of the default standard ID") { |id|
+      Experiment.ID = "#{id}"
+    }
+
     opts.on("-O", "--output-app-stdout", 
     "Display any standard-out outputs from the resources") { 
       @@showAppOutput = true
@@ -847,7 +852,9 @@ class NodeHandler < MObject
            #:PublicHtml => OConfig[:ec_config][:repository][:path],
            :ResourceDir => cfg[:resource_dir],
            :ViewHelperClass => OMF::ExperimentController::Web::ViewHelper,
-           :FileLoadFunc => lambda do |uri, def_ext| OConfig.load(uri, false, def_ext) end
+           :FileLoadFunc => lambda do |uri, def_ext| 
+                              OConfig.load(uri, false, def_ext) 
+                            end
         )
         confirmedPort = i
       rescue Exception => ex
