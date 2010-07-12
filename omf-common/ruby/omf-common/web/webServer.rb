@@ -205,9 +205,11 @@ module OMF
       def self.url()
         addr = @@server.listeners[0].addr
 	      host = OConfig[:ec_config][:web][:host]
-        # Check if EC is running in 'Slave' Mode or has no Host set in its < file
-        if NodeHandler.SLAVE_MODE() || host == nil
-           # Yes - then other entities should access EC's web server on localhost
+        # Check if EC is running in 'Slave' Mode or has no Host set in 
+        # its < file
+        if NodeHandler.SLAVE || host == nil
+          # Yes - then other entities should access EC's web server on 
+          # localhost
           return "http://127.0.0.1:#{addr[1]}"
         else
           return "http://#{host}:#{addr[1]}"

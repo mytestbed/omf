@@ -128,18 +128,18 @@ class NodeHandler < MObject
   #
   EXPFILE_MOUNT = "/ExperimentDescription"
 
-  # 
-  # Return the value of the 'slave' flag
+  #
+  # Return the value of the 'slave' options for the EC
   # The EC runs in 'slave mode' when it is invoked on a node/resource, which
   # can be potentially disconnected from the Control Network. 
   # The EC's operations in this mode are substantially different from its 
   # normal execution.
   #
-  # [Return] true/false
-  #
-  def NodeHandler.SLAVE_MODE
-    return @@disconnectionOptions[:slave] 
-  end 
+  def NodeHandler.SLAVE ; return @@disconnection[:slave] end 
+  def NodeHandler.NAME ; return @@disconnection[:hrn] end 
+  def NodeHandler.OML_ADDR ; return @@disconnection[:addrOMLProxy] end 
+  def NodeHandler.OML_PORT ; return @@disconnection[:portOMLProxy] end 
+  def NodeHandler.EXP_FILE ; return @expFile end 
 
   #
   # Return the value of the 'showAppOutput' flag
@@ -246,13 +246,6 @@ class NodeHandler < MObject
   def NodeHandler.NODE_RESET=(flag)
     @@reset= flag
   end
-
-  # Attribut readers
-  attr_reader :expFile, :disconnectionOptions 
-
-  #
-  # NodeHandler's methods...
-  #
 
   #
   # Make a service call and return the HTTP response object. If the call fails
@@ -510,23 +503,23 @@ class NodeHandler < MObject
 
     opts.on("--slave-mode EXPID", 
     "Run in slave mode in disconnected experiment, EXPID is the exp. ID") { |id|
-      @@disconnectionOptions[:slave] = true 
+      @@disconnection[:slave] = true 
       Experiment.ID = "#{id}"
     }
 
     opts.on("--slave-mode-omlport PORT", 
     "When in slave mode, PORT is the port to the proxy OML server") { |port|
-      @@disconnectionOptions[:portOMLProxy] = port.to_i
+      @@disconnection[:portOMLProxy] = port.to_i
     }
 
     opts.on("--slave-mode-omladdr ADDR", 
     "When in slave mode, ADDR is the port to the proxy OML server") { |addr|
-      @@disconnectionOptions[:addrOMLProxy] = addr
+      @@disconnection[:addrOMLProxy] = addr
     }
 
     opts.on("--slave-mode-resource NAME", 
     "When in slave mode, NAME is the HRN of the resource for this EC") { |name|
-      @@disconnectionOptions[:resourceHRN] = name
+      @@disconnection[:hrn] = name
     }
 
     #opts.on_tail("-p", "--profile", "Profile node handler") {
@@ -593,10 +586,10 @@ class NodeHandler < MObject
     comm[:expID] = Experiment.ID
     ECCommunicator.instance.init(comm)
     
-    if @@disconnectionOptions[:slave] 
-      info "-- EC in Slave Mode on '#{@@disconnectionOptions[:resourceHRN]}'" 
-      info "-- OML Proxy at: '#{@@disconnectionOptions[:addrOMLProxy]}:"+
-           "#{@@disconnectionOptions[:portOMLProxy]}'"
+    if @@disconnection[:slave] 
+      info "-- EC in Slave Mode on '#{@@disconnection[:hrn]}'" 
+      info "-- OML Proxy at: '#{@@disconnection[:addrOMLProxy]}:"+
+           "#{@@disconnection[:portOMLProxy]}'"
     end
 
     @expFile = nil
@@ -696,8 +689,8 @@ class NodeHandler < MObject
   # Create a new NodeHandler
   #
   def initialize()
-    @@disconnectionOptions = Hash.new
-    @@disconnectionOptions[:slave] = false
+    @@disconnection = Hash.new
+    @@disconnection[:slave] = false
     @@showAppOutput = false
     @web_ui = false
   end

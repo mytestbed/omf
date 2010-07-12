@@ -230,10 +230,7 @@ class Experiment
     # Check if EC is NOT in 'Slave Mode'
     # When is 'Slave Mode' this mean there is already a Master EC which has 
     # its 'disconnection mode' set so we do nothing here
-    if !NodeHandler.SLAVE_MODE
-      @@disconnectionAllowed = true
-      #@nodeSet.switchDisconnectionON
-    end 
+    @@disconnectionAllowed = true if !NodeHandler.SLAVE
   end
 
   #

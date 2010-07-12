@@ -437,10 +437,10 @@ class Topology < MObject
     begin
       # Check if EC is in 'Slave Mode' - If so, only add the node on which 
       # this EC is running as slave
-      if NodeHandler.SLAVE_MODE() 
-        if (name != NodeHandler.instance.slaveNodeName)  
-          info "Slave Mode on '#{NodeHandler.instance.slaveNodeName}', "+
-               "thus ignoring node '#{name}'"
+      if NodeHandler.SLAVE
+        if name != NodeHandler.NAME
+          info "EC Slave on '#{NodeHandler.NAME}', thus ignoring node '#{name}'"
+          Experiment.done
           return 
         end
       end

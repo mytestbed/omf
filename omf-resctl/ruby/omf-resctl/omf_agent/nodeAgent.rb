@@ -200,7 +200,7 @@ class NodeAgent < MObject
   #
   def cleanUp
     if @running != nil
-      info("Cleaning: Disconnect from the PubSub server")
+      info("Cleaning: Shutting down communicator")
       RCCommunicator.instance.stop
       info("Cleaning: Kill all previously started Applications")
       ExecApp.killAll

@@ -17,5 +17,5 @@
       :communicator:
         :type: 'udplocal'
         :udplocal:
-          :listening_port: 8001
-          :sending_port: 8002
+          :listening_port: 8002
+          :sending_port: 8001

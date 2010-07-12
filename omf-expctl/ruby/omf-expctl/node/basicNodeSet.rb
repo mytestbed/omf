@@ -87,7 +87,7 @@ class BasicNodeSet < NodeSet
   def powerOn()
     #ns = @topo.nodeSetDecl
     # Check that EC is NOT in 'Slave Mode' - If so call CMC to switch node(s) ON
-    #if !NodeHandler.SLAVE_MODE()
+    #if !NodeHandler.SLAVE
     #  CMC.nodeSetOn(ns)
     #end
     # Now set the state of each node to ON

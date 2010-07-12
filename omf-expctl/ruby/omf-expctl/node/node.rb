@@ -194,11 +194,7 @@ class Node < MObject
   #
   def getControlIP()
     # Check if EC is running in 'Slave Mode'
-    if NodeHandler.SLAVE_MODE()
-      # Yes - Then there can only be 1 NA to talk to, 
-      # it's the 'Slave' NA on localhost
-      return "127.0.0.1"
-    end
+    return "127.0.0.1" if NodeHandler.SLAVE
     # Query the Inventory GridService for the Control IP address of this node
     url = "#{OConfig[:ec_config][:inventory][:url]}"+
           "/getControlIP?hrn=#{@nodeID}&domain=#{OConfig.domain}"
@@ -456,9 +452,7 @@ class Node < MObject
   def powerOn()
     # Check that EC is NOT in 'Slave Mode' 
     # - If so call CMC to switch node(s) ON
-    if !NodeHandler.SLAVE_MODE()
-      CMC.nodeOn(@nodeID)
-    end
+    CMC.nodeOn(@nodeID) if !NodeHandler.SLAVE
     @poweredAt = Time.now
     #if !@isUp
     if @nodeStatus != STATUS_UP
@@ -477,7 +471,7 @@ class Node < MObject
   def powerOff(hard = false)
     # Check that EC is NOT in 'Slave Mode' 
     # - If so call CMC to switch node(s) OFF
-    if !NodeHandler.SLAVE_MODE()
+    if !NodeHandler.SLAVE
       if hard
         CMC.nodeOffHard(@nodeID)
       else
@@ -517,7 +511,7 @@ class Node < MObject
   #
   def set_disconnection
     begin
-      expFile = NodeHandler.instance.expFile
+      expFile = NodeHandler.EXP_FILE
       exp = File.new(expFile).read
     rescue Exception => ex
       raise "Cannot set disconnection mode on resource '#{@nodeID}', "+

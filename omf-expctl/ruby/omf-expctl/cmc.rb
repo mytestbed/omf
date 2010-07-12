@@ -177,10 +177,8 @@ module CMC
   #  
   def CMC.nodeActive?(name)
     # Check if EC is running in 'Just Print' or 'Slave mode'
-    if ( NodeHandler.JUST_PRINT || NodeHandler.SLAVE_MODE )
-      # Yes - Then always say that a node is active!
-      return true
-    end
+    # Yes - Then always say that a node is active!
+    return true if NodeHandler.JUST_PRINT || NodeHandler.SLAVE
     if (@@activeNodes == nil)
       CMC.getAllActiveNodes
     end

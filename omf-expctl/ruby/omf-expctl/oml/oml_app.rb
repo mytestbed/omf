@@ -116,8 +116,8 @@ class OmlApp < MObject
   # Start the OML (v2) Collection Server
   #
   # FIXME: Obsolete now, but keep around until we make disconnected 
-  # mode (i.e. EC in SLAVE_MODE) work with new XMPP (we might need the code below
-  # in some cut-and-paste...)
+  # mode (i.e. EC in SLAVE_MODE) work with new XMPP 
+  # (we might need the code below in some cut-and-paste...)
   #
   def OmlApp.startCollectionServer()
 
@@ -127,12 +127,12 @@ class OmlApp < MObject
     # a 'master' Node Agent, which is then in charge of launching a Proxy OML
     # Collection Server. This EC then only retrieves the info for that Proxy 
     # Server from the 'master' NA.
-    if NodeHandler.SLAVE_MODE
+    if NodeHandler.SLAVE
       # YES - then the OML server has already been launched by the Master NA
       # We just fetch its config setting from the 'slave' EC
       @@collectionServerStarted = true
-      @@oml2ServerPort = NodeHandler.instance.omlProxyPort
-      @@oml2ServerAddr = NodeHandler.instance.omlProxyAddr
+      @@oml2ServerAddr = NodeHandler.OML_ADDR
+      @@oml2ServerPort = NodeHandler.OML_PORT
       if ((@@oml2ServerPort == nil) || (@@oml2ServerAddr == nil))
         error("OmlApp", "Slave Mode - OML Proxy addr:port not set !")
       else
@@ -175,16 +175,12 @@ class OmlApp < MObject
   def OmlApp.stopCollectionServer
 
     # Check if EC is running in 'slave' mode. 
-    # If so then do nothing then the OML Proxy server is managed by the Master NA, do nothing
-    if NodeHandler.SLAVE_MODE
-      return
-    end
+    # If so then do nothing then the OML Proxy server is managed by the 
+    # Master NA, do nothing
+    return if NodeHandler.SLAVE
 
     # Check if the server is really running
-    if ! @@collectionServerStarted
-      # not running
-      return
-    end
+    return if !@@collectionServerStarted
     # Yes, send a request to stop it to the GService
     unless (omlService = OConfig.OML_SERVICE)
       return

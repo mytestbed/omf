@@ -79,9 +79,8 @@ module OConfig
     # orchestrating the part of the experiment which is specific to this 
     # node/resource. Thus config parameters are also specific (most would be 
     # turned to 'localhost' and local node ID)
-    if NodeHandler.SLAVE_MODE || NodeHandler.debug?
-      return nil 
-    end
+    return nil if NodeHandler.SLAVE || NodeHandler.debug?
+
     # Initialize the config hash if first time called
     if  @@config[:tb_config] == nil
       @@config[:tb_config] = Hash.new 

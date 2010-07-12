@@ -30,6 +30,7 @@
 # various OMF entities.
 #
 require "omf-common/omfPubSubMessage"
+require "omf-common/omfPubSubAddress"
 require "socket"
 require 'omf-common/mobject'
 
@@ -38,8 +39,10 @@ require 'omf-common/mobject'
 # Currently, this PubSub Transport is done over XMPP, and this class is using
 # the third party library XMPP4R.
 #
-class OMFUDPLocalTransport < OMFPubSubTransport 
+class OMFUDPLocalTransport < MObject 
 
+  include Singleton
+  @@started = false
   MAX_PACKET_LENGTH = 4096
 
   def init(opts)
@@ -85,6 +88,7 @@ class OMFUDPLocalTransport < OMFPubSubTransport
         @@queue << event 
       }
       debug "Listening on UDP at '#{@@listeningPort}'" 
+      @@listening = true
       return true
     rescue Exception => ex
       debug "Failed to listen on UDP at '#{@@listeningPort}' (Error: '#{ex}')" 
@@ -113,7 +117,7 @@ class OMFUDPLocalTransport < OMFPubSubTransport
   end
 
   def send(address, msg)
-    message = msg.serialize
+    message = msg.serialize.to_s
     # Sanity checks...
     if !message || (message.length == 0)
       error "send - Ignore attempt to send an empty message"
@@ -140,15 +144,10 @@ class OMFUDPLocalTransport < OMFPubSubTransport
 
   def event_to_message(event)
     begin
-      # Ignore this 'event' if it doesnt have any 'items' element
-      # These are notification messages from the PubSub server
-      items = event.first_element("items")
-      return nil if items.nil?
-      item = items.first_element("item")
-      return nil if item.nil?
-
       # Retrieve the payload from the received message
-      xmlMessage = item.elements[1]
+      item = REXML::Document.new(event)
+      xmlMessage = nil
+      item.each_element { |e| xmlMessage = e }
       # Ignore events without a valid payload
       return nil if xmlMessage == nil
       # All good, return the extracted XML payload
