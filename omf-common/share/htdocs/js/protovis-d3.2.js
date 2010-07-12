@@ -10000,10 +10000,17 @@ pv.Force.spring = function(k) {
     if (arguments.length) {
       links = x;
       kl = x.map(function(l) {
-          return 1 / Math.sqrt(Math.max(
-              l.sourceNode.linkDegree,
-              l.targetNode.linkDegree));
-        });
+/*** MAX HACK START  ***/
+        var f;
+				if (l.spring_force) {
+			    f = l.spring_force;
+		    } else {
+			    f = 1 /
+			    Math.sqrt(Math.max(l.sourceNode.linkDegree, l.targetNode.linkDegree));
+		    }
+				return f;
+/*** MAX HACK END  ***/
+      });
       return force;
     }
     return links;
