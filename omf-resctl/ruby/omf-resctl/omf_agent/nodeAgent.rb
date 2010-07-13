@@ -141,18 +141,21 @@ class NodeAgent < MObject
   # - msg = a String with optional message from the application 
   #
   def onAppEvent(eventName, appID, *msg)
+    event = :APP_EVENT
     debug("onAppEvent(event: #{eventName} - app: #{appID}) - '#{msg}'")
     # If this NA allows disconnection, then check if the event is the Done 
     # message from the slave Experiment Controller
-    if @allowDisconnection && (appID == :SLAVE_EC.to_s) 
+    debug("dallow: #{@allowDisconnection} - app: #{appID}")
+    if @allowDisconnection && (appID.to_sym == :SLAVE_EC) 
        if eventName.split(".")[0] == "DONE"
          @expirementDone = true
-         debug("#{appID} - DONE - EXPERIMENT DONE with status: "+
+         event = :END_EXPERIMENT
+         debug("#{appID} is done - EXPERIMENT DONE with status: "+
                "#{eventName.split(".")[1]}")
        end
     end
     # Send the event to our EC
-    RCCommunicator.instance.send_event(:APP_EVENT, eventName.to_s.upcase, 
+    RCCommunicator.instance.send_event(event, eventName.to_s.upcase, 
                                        appID, "#{msg}")
   end
 

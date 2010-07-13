@@ -189,7 +189,8 @@ module AgentCommands
   def AgentCommands.END_EXPERIMENT(controller, communicator, command)
     sender = Node[command.target]
     if Experiment.disconnection_allowed? 
-      info "Received End of Experiment from reconnected resource '#{sender}'" 
+      MObject.info("#{sender}", 
+                   "Received End of Experiment from resource '#{sender}'")
       sender.reconnected = true
       #if Node.allReconnected?
       #  info "All nodes are now reconnected."

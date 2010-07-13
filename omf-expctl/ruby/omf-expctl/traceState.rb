@@ -257,7 +257,9 @@ class TraceState < MObject
   #
   def self.nodeOnAppEvent(node, eventName, appName, op, message)
     app = self.instance.getNodeComponent(node, appName)
-    app.onEvent(node, op, eventName, message)
+    if app 
+      app.onEvent(node, op, eventName, message) 
+    end
   end
 
   @@valEl = {}

@@ -440,7 +440,6 @@ class Topology < MObject
       if NodeHandler.SLAVE
         if name != NodeHandler.NAME
           info "EC Slave on '#{NodeHandler.NAME}', thus ignoring node '#{name}'"
-          Experiment.done
           return 
         end
       end

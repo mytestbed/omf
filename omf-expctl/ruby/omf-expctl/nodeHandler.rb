@@ -139,7 +139,7 @@ class NodeHandler < MObject
   def NodeHandler.NAME ; return @@disconnection[:hrn] end 
   def NodeHandler.OML_ADDR ; return @@disconnection[:addrOMLProxy] end 
   def NodeHandler.OML_PORT ; return @@disconnection[:portOMLProxy] end 
-  def NodeHandler.EXP_FILE ; return @expFile end 
+  def NodeHandler.EXP_FILE ; return @@expFile end 
 
   #
   # Return the value of the 'showAppOutput' flag
@@ -362,8 +362,8 @@ class NodeHandler < MObject
     end
     
     # Load the Experiment File , if any
-    if @expFile
-      Experiment.load(@expFile)
+    if @@expFile
+      Experiment.load(@@expFile)
       Experiment.start
     end
     
@@ -597,28 +597,28 @@ class NodeHandler < MObject
            "#{@@disconnection[:portOMLProxy]}'"
     end
 
-    @expFile = nil
-    @expFile = TUTORIAL if runTutorial
+    @@expFile = nil
+    @@expFile = TUTORIAL if runTutorial
 
     rest.each { |s|
       if s[0] == '-'[0]
         break
       end
-      if (@expFile != nil)
+      if (@@expFile != nil)
         fatal('init', " Found additional experiment file '#{s}'")
         puts opts
         exit -1
       end
-      @expFile = s
+      @@expFile = s
     }
 
-    if (@expFile.nil? && ! (@interactive || @web_ui))
+    if (@@expFile.nil? && ! (@interactive || @web_ui))
       fatal('init', " Missing experiment file")
       puts opts
       exit -1
     end
 
-    Experiment.expArgs = rest - [@expFile]
+    Experiment.expArgs = rest - [@@expFile]
   end
 
   #

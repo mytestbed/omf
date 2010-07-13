@@ -55,7 +55,6 @@ class OMFUDPLocalTransport < MObject
     @@sendingPort = opts[:config][:udplocal][:sending_port] 
     raise "UDPLocalTransport - Configuration is missing listening/sending "+
           "ports parameter!" if !@@listeningPort || !@@sendingPort
-
     # Open local UPD sockets to listen and send messages 
     begin
       debug "Creating UDP sockects (recv: #{@@listeningPort} / "+
@@ -66,15 +65,14 @@ class OMFUDPLocalTransport < MObject
     rescue Exception => ex
       raise "Failed to create UDP sockets (Error: '#{ex}')"
     end
-
     @@started = true
     return self
   end
 
   def listen(addr, &block)
     return true if @@listening 
-    # When a new event comes from that server, we push it on our event queue
-    # if block has been given 
+    # When a new event comes, we push it on our event queue if block has 
+    # been given 
     if block
       @@threads << Thread.new {
         while event = @@queue.pop
@@ -82,10 +80,13 @@ class OMFUDPLocalTransport < MObject
         end
       }
     end
+    # Listen on the UPD socket and push new event to queue
     begin
       @@threads << Thread.new {
-        event, addr = @@recvSock.recvfrom(MAX_PACKET_LENGTH)
-        @@queue << event 
+        while true do 
+          event, addr = @@recvSock.recvfrom(MAX_PACKET_LENGTH)
+          @@queue << event 
+        end
       }
       debug "Listening on UDP at '#{@@listeningPort}'" 
       @@listening = true
@@ -100,6 +101,7 @@ class OMFUDPLocalTransport < MObject
     @@threads.each { |t| t.exit }
     @@queue = Queue.new
     @@threads = Array.new
+    @@listening = false
   end
 
   def stop

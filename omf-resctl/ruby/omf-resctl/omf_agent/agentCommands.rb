@@ -45,28 +45,22 @@ module AgentCommands
 
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
 
-  # TODO:
-  # For GEC4 demo we use these Constant values.
-  # When we will integrate a virtualization scheme, coupled with a 
-  # Resource Manager (RM) and a Resource Controller (RC), we might want to have
-  # these config values passed as parameters (i.e. different RC in different 
-  # sliver might need different configs). This will probably depend on the 
-  # selected virtualization scheme 
+  # For now we use these constant values for slave OMF entities.
+  # We might want to have these config values passed as parameters later
   #
-  # Slave Resource Controller (aka NodeAgent)
-  SLAVE_RESCTL_LISTENIF = "lo" # Slave Agent listens only on localhost interface
-  SLAVE_RESCTL_LISTENPORT = 9026
-  SLAVE_RESCTL_CMD = "sudo /usr/sbin/omf-resctl-#{OMF_MM_VERSION}"
-  SLAVE_RESCTL_LOG = "/etc/omf-resctl-#{OMF_MM_VERSION}/nodeagentSlave_log.xml"
+  # Slave Resource Controller 
+  SLAVE_RC_CMD = "/usr/sbin/omf-resctl-#{OMF_MM_VERSION}"
+  SLAVE_RC_CFG = "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl.local.yaml"
+  SLAVE_RC_LOG = "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl.local.xml"
   # Slave Experiment Controller
-  SLAVE_EXPCTL_CMD = "/usr/bin/omf-#{OMF_MM_VERSION} exec"
-  SLAVE_EXPCTL_CFG = "/etc/omf-expctl-#{OMF_MM_VERSION}/nodehandlerSlave.yaml"
+  SLAVE_EC_CMD = "/usr/bin/omf-#{OMF_MM_VERSION} exec"
+  SLAVE_EC_CFG = "/etc/omf-expctl-#{OMF_MM_VERSION}/omf-expctl.local.yaml"
   # Proxy OML Collection Server
   OML_PROXY_CMD = "/usr/bin/oml2-proxy-server"
-  OML_PROXY_LISTENPORT = "8002"
+  OML_PROXY_LISTENPORT = "9001"
   OML_PROXY_LISTENADDR = "localhost"
-  OML_PROXY_CACHE = "/tmp/temp-proxy-cache"
-  OML_PROXY_LOG = "/tmp/temp-proxy-log"
+  OML_PROXY_CACHE = "/tmp/oml-proxy-cache"
+  OML_PROXY_LOG = "/tmp/oml-proxy-log"
   
   # Mapping between OMF's device name and Linux's device name
   DEV_MAPPINGS = {
@@ -692,19 +686,17 @@ module AgentCommands
     MObject.debug("AgentCommands", "Disconnection Support Enabled")
     
     # Retrieve original experiment parameters from the command
-    expID = command.expID
     omlAddr = command.omlURL.split(":")[1]
     omlPort = command.omlURL.split(":")[2]
-    exp = command.exp
-    expPath = "/tmp/#{expID}-ED.rb" 
+    expPath = "/tmp/#{command.expID}-ED.rb" 
     expFile = File.new(expPath, "w+")
-    expFile << exp
+    expFile << command.exp
     expFile.close
     MObject.debug("AgentCommands", "Original Experiment Description saved at "+
                   "'#{expPath}'")
     MObject.debug("AgentCommands", "TDEBUG  - #{omlAddr} - #{omlPort}")
+    #ts = Time.now.strftime("%F-%T").split(%r{[:-]}).join('_')
 
-    ts = Time.now.strftime("%F-%T").split(%r{[:-]}).join('_')
     # Now Start a Proxy OML Server
     cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} \
                             --dstaddress #{omlAddr}\
@@ -714,27 +706,22 @@ module AgentCommands
     MObject.debug("Starting OML Proxy Server with: '#{cmd}'")
     ExecApp.new(:OML_PROXY, controller, cmd)
 
-    # Now Start a Slave NodeAgent with its communication module in 
-    # 'TCP Server' mode
-    # Example: sudo /usr/sbin/omf-resctl --server-port 9026 --local-if lo 
-    #          --log ./nodeagentSlave_log.xml
-    #cmd = "#{SLAVE_RESCTL_CMD}  -C #{SLAVE_RC_CONFIG} \
-    #                            --log #{SLAVE_RESCTL_LOG}"
-    #MObject.debug("Starting Slave Resouce Controller (NA) with: '#{cmd}'")
-    #ExecApp.new(:SLAVE_RC, controller, cmd)
+    # Now Start a Slave RC 
+    cmd = "#{SLAVE_RC_CMD} -C #{SLAVE_RC_CFG} --log #{SLAVE_RC_LOG} \
+                           --name #{controller.agentName} \
+                           --slice #{controller.agentSlice}" 
+    MObject.debug("Starting Slave RC with: '#{cmd}'")
+    ExecApp.new(:SLAVE_RC, controller, cmd)
     
-    # Now Start a Slave NodeHandler with its communication module in 
-    # 'TCP Client' mode
-    #cmd = "#{SLAVE_EXPCTL_CMD} --config #{SLAVE_EXPCTL_CFG} \
-    #                           --slave-mode #{expID} \
-    #                           --slave-mode-omlport #{OML_PROXY_LISTENPORT} \
-    #                           --slave-mode-omladdr #{OML_PROXY_LISTENADDR} \
-    #                           --slave-mode-xcoord #{agent.x} \
-    #                           --slave-mode-ycoord #{agent.y} \
-    #                           #{fileName}"
-    #MObject.debug("Starting Slave Experiment Controller (EC) with: '#{cmd}'")
-    #ExecApp.new(:SLAVE_EC, agent, cmd)
-    
+    # Now Start a Slave EC
+    cmd = "#{SLAVE_EC_CMD} -C #{SLAVE_EC_CFG} --slice #{controller.agentSlice} \
+                           --slave-mode #{command.expID} \
+                           --slave-mode-omlport #{OML_PROXY_LISTENPORT} \
+                           --slave-mode-omladdr #{OML_PROXY_LISTENADDR} \
+                           --slave-mode-resource #{controller.agentName} \
+                           #{expPath}"
+    MObject.debug("Starting Slave EC with: '#{cmd}'")
+    ExecApp.new(:SLAVE_EC, controller, cmd)
   end
 
 end

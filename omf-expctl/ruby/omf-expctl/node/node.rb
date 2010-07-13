@@ -258,7 +258,7 @@ class Node < MObject
   #
   def onAppEvent(eventName, appId, message)
     appName, op = appId.split('/')
-    if NodeHandler.SHOW_APP_OUTPUT() &&
+    if NodeHandler.SHOW_APP_OUTPUT &&
        ((eventName.upcase == "STDOUT") || (eventName.upcase == "STDERR")) 
        # When requested by user, print SDOUT events on our own standard-out
        info("Output of app '#{appId}' -> '#{message}'")
