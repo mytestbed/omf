@@ -97,8 +97,11 @@ class OmfServiceHelper < Jabber::PubSub::ServiceHelper
     purge.attributes['node'] = node
     iq.pubsub.add(purge)
     @stream.send_with_id(iq)
-  end  
-  
+  end
+
+  def stream
+    @stream
+  end
 end # END of OmfServiceHelper
 
 
