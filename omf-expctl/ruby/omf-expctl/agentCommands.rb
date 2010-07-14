@@ -31,7 +31,7 @@
 # used by the (EC) to process the commands inside these messages.
 #
 
-require 'omf-resctl/nodeHandler'
+require 'omf-expctl/nodeHandler'
 
 module AgentCommands
 
