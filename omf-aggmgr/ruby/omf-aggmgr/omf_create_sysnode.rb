@@ -163,14 +163,14 @@ do |args|
   slice = args[0]
   resources = args[1..-1]
   mknode(OMF + slice)
-  resources.each { |r| mknode(OMF + slice + r) }
+  resources.each { |r| mknode(OMF + slice + "resources" + r) }
 end
 
 command("sliceadd <slice> [<resource>*] -- add a (list of) resource(s) to a <slice>")\
 do |args|
   slice = args[0]
   resources = args[1..-1]
-  resources.each { |r| mknode(OMF + slice + r) }
+  resources.each { |r| mknode(OMF + slice + "resources" + r) }
 end
 
 command("resourceadd [<resource>*] -- add a (list of) resource(s) to the system nodes (under /OMF/system)")\
