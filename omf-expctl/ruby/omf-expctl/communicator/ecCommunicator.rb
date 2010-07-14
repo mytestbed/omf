@@ -27,7 +27,7 @@
 # == Description
 #
 # This file implements a Publish/Subscribe Communicator for the Node Handler.
-# This PubSub communicator is based on XMPP. 
+# This PubSub communicator is based on XMPP.
 # This current implementation uses the library XMPP4R.
 #
 require "omf-common/omfCommunicator"
@@ -36,7 +36,7 @@ require 'omf-expctl/agentCommands'
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
-# The Node Agent (NA) aka Resource Controller will use this Communicator to 
+# The Node Agent (NA) aka Resource Controller will use this Communicator to
 # send/receive messages to/from the Node Handler (EC) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
@@ -49,15 +49,15 @@ class ECCommunicator < OmfCommunicator
     @@sliceID = opts[:sliceID]
     @@expID = opts[:expID]
     # 1 - listen to my address (i.e. the is the 'experiment' address)
-    addr = create_address(:sliceID => @@sliceID, 
-                          :expID => @@expID, 
+    addr = create_address(:sliceID => @@sliceID,
+                          :expID => @@expID,
                           :domain => @@domain)
-    listen(addr) 
+    listen(addr)
     # 3 - Set my lists of valid and specific commands
     OmfProtocol::RC_COMMANDS.each { |cmd|
-      define_valid_command(cmd) { |handler, comm, message| 
-        AgentCommands.method(cmd.to_s).call(handler, comm, message) 
-      }	
+      define_valid_command(cmd) { |comm, message|
+        AgentCommands.method(cmd.to_s).call(comm, message)
+      }
     }
     # 4 - Set my list of own/self commands
     OmfProtocol::EC_COMMANDS.each { |cmd| define_self_command(cmd) }
@@ -89,13 +89,13 @@ class ECCommunicator < OmfCommunicator
     target = resID ? resID : "*"
     addr = create_address(:sliceID => @@sliceID, :domain => @@domain,
                            :name => resID)
-    cmd = create_message(:cmdtype => :RESET, :target => "#{target}") 
+    cmd = create_message(:cmdtype => :RESET, :target => "#{target}")
     send_message(addr, cmd)
   end
 
   def make_address(opts = nil)
     name = opts ? opts[:name] : nil
-    return create_address(:sliceID => @@sliceID, :expID => @@expID, 
+    return create_address(:sliceID => @@sliceID, :expID => @@expID,
                            :domain => @@domain, :name => name)
   end
 

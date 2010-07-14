@@ -25,7 +25,7 @@
 # == Description
 #
 # This file implements a Publish/Subscribe Communicator for the Node Agent.
-# This PubSub communicator is based on XMPP. 
+# This PubSub communicator is based on XMPP.
 # This current implementation uses the library XMPP4R.
 #
 #
@@ -35,7 +35,7 @@ require 'omf-resctl/omf_agent/agentCommands'
 
 #
 # This class defines a Communicator entity using the Publish/Subscribe paradigm.
-# The Node Agent (NA) aka Resource Controller will use this Communicator to 
+# The Node Agent (NA) aka Resource Controller will use this Communicator to
 # send/receive messages to/from the Node Handler (EC) aka Experiment Controller
 # This Communicator is based on the Singleton design pattern.
 #
@@ -51,52 +51,52 @@ class RCCommunicator < OmfCommunicator
     @@expID = nil
     @@myECAddress = nil
     @@myAliases = [@@myName, "*"]
-    # 1 - Build my address for this slice 
-    @@myAddr = create_address(:sliceID => @@sliceID, 
-                              :name => @@myName, 
+    # 1 - Build my address for this slice
+    @@myAddr = create_address(:sliceID => @@sliceID,
+                              :name => @@myName,
                               :domain => @@domain)
-    # 3 - Set my lists of valid commands 
+    # 3 - Set my lists of valid commands
     OmfProtocol::EC_COMMANDS.each { |cmd|
-      define_valid_command(cmd) { |handler, comm, message| 
-        AgentCommands.method(cmd.to_s).call(handler, comm, message) 
-      }	
+      define_valid_command(cmd) { |comm, message|
+        AgentCommands.method(cmd.to_s).call(comm, message)
+      }
     }
     # 4 - Set my list of own/self commands
     OmfProtocol::RC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
   def listen_to_group(group)
-    addr = create_address(:sliceID => @@sliceID, :expID => @@expID, 
+    addr = create_address(:sliceID => @@sliceID, :expID => @@expID,
                           :domain => @@domain, :name => group)
     add_alias(group)
     return listen(addr)
   end
 
   def listen_to_experiment(expID)
-    addr = create_address(:sliceID => @@sliceID, :expID => expID, 
+    addr = create_address(:sliceID => @@sliceID, :expID => expID,
                           :domain => @@domain)
     success = listen(addr)
-    @@expID = expID if success    
+    @@expID = expID if success
     return success
   end
 
   def set_EC_address(ec_address = nil)
     myEC = ec_address ? ec_address : @@myName
-    @@myECAddress = create_address(:sliceID => @@sliceID, :expID => @@expID, 
+    @@myECAddress = create_address(:sliceID => @@sliceID, :expID => @@expID,
                         :domain => @@domain, :name => myEC)
   end
 
   def send_reply(result, original_request)
-    reply = create_message(:cmdtype => result[:success], :target => @@myName, 
-                           :reason => result[:reason], 
-                           :message => result[:info]) 
+    reply = create_message(:cmdtype => result[:success], :target => @@myName,
+                           :reason => result[:reason],
+                           :message => result[:info])
     reply.merge(original_request)
     reply.merge(result[:extra]) if result[:extra]
     send_message(@@myECAddress, reply)
   end
 
   #
-  # Send a APP or DEV EVENT message to the EC. 
+  # Send a APP or DEV EVENT message to the EC.
   # This is done when an application started on this resource or a device
   # configured on this resource has a new event to share with the EC
   # (e.g. a message coming on standard-out of the appliation)
@@ -108,8 +108,8 @@ class RCCommunicator < OmfCommunicator
   # - info = a String with the new event info
   #
   def send_event(type, name, id, info)
-    message = create_message(:cmdtype => type, :target => @@myName, 
-                             :value => name, :appID => id, :message => info) 
+    message = create_message(:cmdtype => type, :target => @@myName,
+                             :value => name, :appID => id, :message => info)
     send_message(@@myECAddress, message)
   end
 
@@ -120,7 +120,7 @@ class RCCommunicator < OmfCommunicator
     # Listen to my address - wait and try again until successfull
     listening = false
     while !listening
-      listening = listen(@@myAddr) 
+      listening = listen(@@myAddr)
       if !listening
         debug "Cannot listen on address: '#{@@myAddr}' - retry in "+
               "#{RETRY_INTERVAL} sec."
@@ -129,7 +129,7 @@ class RCCommunicator < OmfCommunicator
     end
     # Also listen to the generic resource address for this slice
     listening = false
-    addr = create_address(:sliceID => @@sliceID, :domain => @@domain) 
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
     while !listening
       listening = listen(addr)
       if !listening
@@ -154,21 +154,21 @@ class RCCommunicator < OmfCommunicator
       send_reply(result, message)
     end
   end
-  
+
   def valid_message?(message)
     # 1 - Perform common validations among OMF entities
-    return false if !super(message) 
+    return false if !super(message)
     # 2 - Perform RC-specific validations
     # - Ignore messages for/from unknown Slice and Experiment ID
     if (message.cmdType != :ENROLL) && (message.cmdType != :RESET) &&
        ((message.sliceID != @@sliceID) || (message.expID != @@expID))
       debug "Ignoring message with unknown slice "+
-            "and exp IDs: '#{message.sliceID}' and '#{message.expID}'" 
+            "and exp IDs: '#{message.sliceID}' and '#{message.expID}'"
       return false
     end
-    # - Ignore commands that are not address to us 
+    # - Ignore commands that are not address to us
     # (There may be multiple space-separated targets)
-    dst = message.target.split(' ') 
+    dst = message.target.split(' ')
     forMe = false
     dst.each { |t| forMe = true if @@myAliases.include?(t) }
      if !forMe

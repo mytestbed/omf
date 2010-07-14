@@ -31,16 +31,17 @@
 # used by the (EC) to process the commands inside these messages.
 #
 
+require 'omf-resctl/nodeHandler'
+
 module AgentCommands
 
   #
   # Process 'OK' reply from the RC
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - reply = the reply to process
   #
-  def AgentCommands.OK(controller, communicator, reply)
+  def AgentCommands.OK(communicator, reply)
     sender = Node[reply.target]
     okReason = reply.reason
     message = reply.message
@@ -73,11 +74,10 @@ module AgentCommands
   # Process 'WARN' reply from the RC
   # The EC receives such a message when a RC sends a warning text.
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - reply = the reply to process
   #
-  def AgentCommands.WARN(controller, communicator, reply)
+  def AgentCommands.WARN(communicator, reply)
     sender = Node[reply.target]
     MObject.warn("AgentCommands", "sender: '#{reply.target}' ('#{sender}') - "+
                  "msg: '#{reply.message}'")
@@ -88,11 +88,10 @@ module AgentCommands
   # The EC receives such a message when a RC reports an application-specific 
   # event that happened on the node.
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - command = the command to process
   #
-  def AgentCommands.APP_EVENT(controller, communicator, command)
+  def AgentCommands.APP_EVENT(communicator, command)
     sender = Node[command.target]
     eventName = command.value
     appId = command.appID
@@ -108,11 +107,10 @@ module AgentCommands
   # The EC receives such a message when a RC reports a device-specific
   # event that happened on the node.
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - command = the command to process
   #
-  def AgentCommands.DEV_EVENT(controller, communicator, command)
+  def AgentCommands.DEV_EVENT(communicator, command)
     sender = Node[command.target]
     eventName = command.value
     devName = command.appID
@@ -128,11 +126,10 @@ module AgentCommands
   # The EC receives such a message when a RC reports a error 
   # event that happened on the node.
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - reply = the reply to process
   #
-  def AgentCommands.ERROR(controller, communicator, reply)
+  def AgentCommands.ERROR(communicator, reply)
     sender = Node[reply.target]
     errorReason = reply.reason
     message = reply.message
@@ -140,7 +137,7 @@ module AgentCommands
     case errorReason
       when 'FAILED_CONFIGURE'
 	reason = "Couldn't configure '#{reply.path}'"
-        controller.logError(sender, reason, {:details => message})
+        NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(reply.path.split("/"), reason, "CONFIGURED.ERROR")
         lines << "The resource '#{sender}' reports that it failed to configure "
         lines << "the path '#{reply.path}'"
@@ -158,14 +155,14 @@ module AgentCommands
         lines << "the application '#{reply.appID}'"
         lines << "The error message is '#{message}'" if message
       else
-        controller.logError(sender,
+        NodeHandler.instance.logError(sender,
                             "Unknown error caused by '#{errorReason}'", 
                             {:details => message})
         lines << "The resource '#{sender}' reports an unknown error while"
         lines << "executing a command. Error type is '#{errorReason}'."
         lines << "The error message is '#{message}'" if message
     end
-    controller.display_error_msg(lines)
+    NodeHandler.instance.display_error_msg(lines)
   end
 
   #
@@ -182,11 +179,10 @@ module AgentCommands
   # involved in an experiment before declaring that the experiment is indeed 
   # completed.
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - command = the command to process
   #
-  def AgentCommands.END_EXPERIMENT(controller, communicator, command)
+  def AgentCommands.END_EXPERIMENT(communicator, command)
     sender = Node[command.target]
     if Experiment.disconnection_allowed? 
       MObject.info("#{sender}", 
@@ -229,11 +225,10 @@ module AgentCommands
   # If the underlying communication scheme does not have this behaviour, then 
   # another enroll sequence will need to be started here.
   #
-  # - controller = the instance of this EC
   # - communicator = the instance of this EC's communicator
   # - reply = the reply to process
   #
-  #def AgentCommands.WRONG_IMAGE(controller, communicator, reply)
+  #def AgentCommands.WRONG_IMAGE(communicator, reply)
   #  sender = Node[reply.target]
   #  MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
   #                "Desired: '#{sender.image}' - Installed: '#{reply.image}'")

@@ -374,6 +374,11 @@ class NodeAgent < MObject
 
 end
 
+# Convenience funtion for getting the NodeAgent instance.
+def controller
+  NodeAgent.instance
+end
+
 #
 # Discover the available devices
 # 

@@ -45,14 +45,12 @@ class OmfCommunicator < MObject
   @@communicator_commands = Hash.new
   @@self_commands = Array.new
   @@sent = []
-  @@handler = nil
   @@queue = Queue.new
   @@already_queueing = false
 
   def init(opts)
     raise "Communicator already started" if @@started
     @@transport = nil
-    @@handler = opts[:handler]
     # Initiate the required Transport entity
     case type = opts[:config][:type]
     when 'xmpp'
@@ -169,7 +167,7 @@ class OmfCommunicator < MObject
     # 3 - Dispatch the message to the OMF entity
     begin
       proc = @@valid_commands[msg.cmdType]
-      proc.call(@@handler, self, msg) if not proc.nil?
+      proc.call(self, msg) if not proc.nil?
     rescue Exception => ex
       error "Failed to process the command '#{msg.cmdType}'\n" +
             "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" 

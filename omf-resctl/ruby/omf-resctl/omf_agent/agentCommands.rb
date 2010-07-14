@@ -36,6 +36,7 @@ require 'omf-common/mobject'
 require 'omf-common/execApp'
 #require 'omf-resctl/omf_driver/aironet'
 require 'omf-resctl/omf_driver/ethernet'
+require 'omf-resctl/omf_agent/nodeAgent'
 require 'net/http'
 require 'uri'
 
@@ -85,11 +86,10 @@ module AgentCommands
   # Initial enroll message received from the EC, to ask us to join an
   # Experiment
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.ENROLL(controller, communicator, command)
+  def AgentCommands.ENROLL(communicator, command)
     # Check if we are already 'enrolled' or not
     if controller.enrolled
       msg = "Resource Controller already enrolled! - "+
@@ -132,11 +132,10 @@ module AgentCommands
   # Command 'ALIAS'
   # Set additional alias names for this RC
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.ALIAS(controller, communicator, command)
+  def AgentCommands.ALIAS(communicator, command)
     # Instruct the communicator to listen for messages addressed to 
     # our new group
     if !communicator.listen_to_group(command.name)
@@ -158,11 +157,10 @@ module AgentCommands
   # Command 'EXECUTE'
   # Execute a program on the resource running this RC
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.EXECUTE(controller, communicator, command)
+  def AgentCommands.EXECUTE(communicator, command)
     id = command.appID
     # Dump the XML description of the OML configuration into a file, if any
     useOML = false
@@ -220,11 +218,10 @@ module AgentCommands
   # Command 'KILL'
   # Send a signal to a process running on this resource
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.KILL(controller, communicator, command)
+  def AgentCommands.KILL(communicator, command)
     id = command.appID
     signal = command.value
     ExecApp[id].kill(signal)
@@ -236,11 +233,10 @@ module AgentCommands
   # First try to send the message 'exit' on the app's STDIN
   # If no succes, then send a Kill signal to the process
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.EXIT(controller, communicator, command)
+  def AgentCommands.EXIT(communicator, command)
     id = command.appID
     begin
       # First try sending 'exit' on the app's STDIN
@@ -264,11 +260,10 @@ module AgentCommands
   # Command 'STDIN'
   # Send a line of text to the STDIN of a process
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.STDIN(controller, communicator, command)
+  def AgentCommands.STDIN(communicator, command)
     begin
       id = command.appID
       line = command.value
@@ -287,11 +282,10 @@ module AgentCommands
   # Poor man's installer. Fetch a tar file and extract it into a 
   # specified directory
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.PM_INSTALL(controller, communicator, command)
+  def AgentCommands.PM_INSTALL(communicator, command)
     id = command.appID
     url = command.image
     installRoot = command.path
@@ -354,11 +348,10 @@ module AgentCommands
   # Command 'APT_INSTALL'
   # Execute apt-get command to install a package on this resource
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.APT_INSTALL(controller, communicator, command)
+  def AgentCommands.APT_INSTALL(communicator, command)
     id = command.appID
     pkgName = command.package
     cmd = "LANGUAGE='C' LANG='C' LC_ALL='C' DEBIAN_FRONTEND='noninteractive' "+
@@ -370,11 +363,10 @@ module AgentCommands
   # Command 'RPM_INSTALL'
   # Execute yum command to install a package on this resource
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.RPM_INSTALL(controller, communicator, command)
+  def AgentCommands.RPM_INSTALL(communicator, command)
     id = command.appID
     pkgName = command.package
     cmd = "/usr/bin/yum -y install #{pkgName}"
@@ -385,11 +377,10 @@ module AgentCommands
   # Command 'RESET'
   # Reset this Resource Controller
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.RESET(controller, communicator, command)
+  def AgentCommands.RESET(communicator, command)
     controller.reset
   end
 
@@ -397,11 +388,10 @@ module AgentCommands
   # Command 'RESTART'
   # Restart this Resource Controller
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.RESTART(controller, communicator, command)
+  def AgentCommands.RESTART(communicator, command)
     communicator.stop
     ExecApp.killAll
     sleep 2
@@ -413,11 +403,10 @@ module AgentCommands
   # Command 'REBOOT'
   # Reboot this resource... might not work on all the resources
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.REBOOT(controller, communicator, command)
+  def AgentCommands.REBOOT(communicator, command)
     communicator.stop
     sleep 2
     cmd = `sudo /sbin/reboot`
@@ -432,11 +421,10 @@ module AgentCommands
   # Command 'MODPROBE'
   # Load a kernel module on this resource
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.MODPROBE(controller, communicator, command)
+  def AgentCommands.MODPROBE(communicator, command)
     moduleName = command.appID
     id = "module/#{moduleName}"
     ExecApp.new(id, controller, 
@@ -447,11 +435,10 @@ module AgentCommands
   # Command 'CONFIGURE'
   # Configure a system parameter on this resource
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.CONFIGURE(controller, communicator, command)
+  def AgentCommands.CONFIGURE(communicator, command)
     path = command.path
     value = AgentCommands.substitute_values(controller, command.value)
     result = Hash.new
@@ -480,11 +467,10 @@ module AgentCommands
   # Command 'LOAD_IMAGE'
   # Load a specified disk image onto this resource 
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.LOAD_IMAGE(controller, communicator, command)
+  def AgentCommands.LOAD_IMAGE(communicator, command)
     mcAddress = command.address
     mcPort = command.port
     disk = command.disk
@@ -500,11 +486,10 @@ module AgentCommands
   # Command 'SAVE_IMAGE'
   # Save the image of this resource and send it to the image server.
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.SAVE_IMAGE(controller, communicator, command)
+  def AgentCommands.SAVE_IMAGE(communicator, command)
     imgHost = command.address
     imgPort = command.port
     disk = command.disk
@@ -514,7 +499,7 @@ module AgentCommands
     ExecApp.new('builtin:save_image', controller, cmd, true)
   end
 
-  def AgentCommands.NOOP(controller, communicator, command)
+  def AgentCommands.NOOP(communicator, command)
     # Do Nothing...
   end
 
@@ -522,11 +507,10 @@ module AgentCommands
   #
   #  Set the characteristics of a link using a specific emulation tool
   #
-  # - controller = the instance of this RC
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  def AgentCommands.SET_LINK(controller, communicator, command)
+  def AgentCommands.SET_LINK(communicator, command)
     # Check that we know the tool to use in order to set this link
     tool = command.emulationTool
     interface = command.interface
@@ -681,7 +665,7 @@ module AgentCommands
   # will monitor this EC, and upon its termination, it will notify the OML 
   # proxy to forward the measurements back to the main OML server. 
   #
-  def AgentCommands.SET_DISCONNECTION(controller, communicator, command)
+  def AgentCommands.SET_DISCONNECTION(communicator, command)
     controller.allowDisconnection = true
     MObject.debug("AgentCommands", "Disconnection Support Enabled")
     
