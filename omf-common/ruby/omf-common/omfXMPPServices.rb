@@ -323,22 +323,25 @@ class OmfXMPPServices < MObject
   def publish_to_node(node, domain, item)
     begin
       add_service(domain) if !service?(domain)
-      service(domain).publish_item_to(node, item)
+      success = call_with_timeout("Timing out while sending PubSub message to "+
+                        "'#{domain}'") { 
+                        service(domain).publish_item_to(node, item) }
+      return false if !success
+      return true
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
-        debug "Failed publishing to unknown node '#{node}' "+
+        warn "Failed publishing to unknown node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
       if ("#{ex}"=="forbidden: ")
-        debug "Not allowed to publish to node '#{node}' "+
+        warn "Not allowed to publish to node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
       raise "OmfXMPPServices - Failed publishing to node '#{node}' "+
             "on domain '#{domain}' - Error: '#{ex}'"
     end
-    return true
   end
 
   #

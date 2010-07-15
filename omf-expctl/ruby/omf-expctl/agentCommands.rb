@@ -64,6 +64,8 @@ module AgentCommands
           sender.configure(path, reply.macaddr, "CONFIGURED.OK")
         end
         # HACK!!! End
+      when 'DISCONNECT_READY'
+        MObject.info("#{sender}", "Ready to be disconnected")
       else 
         MObject.debug("AgentCommands", "OK from: '#{sender}' - "+
                       "cmd: '#{okReason}' - msg: '#{message}'")

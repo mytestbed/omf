@@ -42,12 +42,15 @@ require 'omf-expctl/agentCommands'
 #
 class ECCommunicator < OmfCommunicator
 
+  SEND_RETRY_INTERVAL = 5 # in sec
+
   def init(opts)
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
     @@sliceID = opts[:sliceID]
     @@expID = opts[:expID]
+    @@retrySending = false
     # 1 - listen to my address (i.e. the is the 'experiment' address)
     addr = create_address(:sliceID => @@sliceID,
                           :expID => @@expID,
@@ -63,10 +66,51 @@ class ECCommunicator < OmfCommunicator
     OmfProtocol::EC_COMMANDS.each { |cmd| define_self_command(cmd) }
   end
 
+  alias parentSend send_message
+
+  #
+  # Allow this communicator to retry sending when it failed to send a message
+  # Failed messages are put in a queue, which is processed by a separate thread
+  # This is because sending of messages can occur from different threads (e.g.
+  # a ExecApp thread running a user app) and we should not block that thread, 
+  # while we try to resend 
+  #
+  def allow_retry
+    @@retrySending = true
+    @@retryQueue = Queue.new
+    @@retryThread = Thread.new {
+      while element = @@retryQueue.pop do
+        success = false
+        while !success do
+          success = parentSend(element[:addr], element[:msg])
+          if !success 
+            warn "Failed to send message, retry in #{SEND_RETRY_INTERVAL}s "+
+             "(msg: '#{message}')"
+            sleep(SEND_RETRY_INTERVAL)
+          end
+        end
+      end
+    } 
+  end
+ 
+  def reset
+    if @@retrySending
+      @@retryThread.kill!
+      @@retryQueue = nil
+      @@retrySending = false
+    end
+    super
+  end
+
   def send_message(addr, message)
     message.sliceID = @@sliceID
     message.expID = @@expID
-    super(addr, message)
+    success = super(addr, message)
+    if !success && @@retrySending
+      @@retryQueue << {:addr => addr, :msg => message}
+      return
+    end
+    warn "Failed to send message! (msg: '#{message}')" if !success
   end
 
   #

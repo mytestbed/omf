@@ -113,14 +113,15 @@ class OmfCommunicator < MObject
 
   def send_message(addr, message)
     if !addr
-      error "No address defined! Cannot send message '#{message}'"
-      return
+      warn "No address defined! Cannot send message '#{message}'"
+      return false
     end
     if @@transport
-      @@transport.send(addr, message)
+      return @@transport.send(addr, message)
     else
       debug "Sending command '#{message}'"
       @@sent << [addr, message]
+      return false
     end
   end  
 

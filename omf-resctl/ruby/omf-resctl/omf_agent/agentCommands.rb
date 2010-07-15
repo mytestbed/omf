@@ -101,13 +101,13 @@ module AgentCommands
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
     # if not, then ignore this ENROLL
+    communicator.set_EC_address
     desiredImage = command.image
     if (desiredImage != controller.imageName() && desiredImage != '*')
       msg = "Requested Image: '#{desiredImage}' - "+
             "Current Image: '#{controller.imageName()}'"
       MObject.debug("AgentCommands", msg)
       return {:success => :ERROR, :reason => :WRONG_IMAGE, :info => msg}
-      #communicator.send_wrong_image_reply
     end
     # Now instruct the communicator to listen for messages addressed to 
     # our new groups
@@ -125,7 +125,6 @@ module AgentCommands
     msg = "Enrolled into Experiment ID: '#{command.expID}'"
     MObject.debug("AgentCommands", msg)
     return {:success => :OK, :reason => :ENROLLED, :info => msg}
-    #communicator.send_enrolled_reply
   end
 
   #
@@ -667,6 +666,7 @@ module AgentCommands
   #
   def AgentCommands.SET_DISCONNECTION(communicator, command)
     controller.allowDisconnection = true
+    communicator.allow_retry
     MObject.debug("AgentCommands", "Disconnection Support Enabled")
     
     # Retrieve original experiment parameters from the command
@@ -678,8 +678,6 @@ module AgentCommands
     expFile.close
     MObject.debug("AgentCommands", "Original Experiment Description saved at "+
                   "'#{expPath}'")
-    MObject.debug("AgentCommands", "TDEBUG  - #{omlAddr} - #{omlPort}")
-    #ts = Time.now.strftime("%F-%T").split(%r{[:-]}).join('_')
 
     # Now Start a Proxy OML Server
     cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} \
@@ -706,6 +704,9 @@ module AgentCommands
                            #{expPath}"
     MObject.debug("Starting Slave EC with: '#{cmd}'")
     ExecApp.new(:SLAVE_EC, controller, cmd)
+
+    # Tell the Master EC that from now on we can be disconnected
+    return {:success => :OK, :reason => :DISCONNECT_READY}
   end
 
 end

@@ -145,7 +145,6 @@ class NodeAgent < MObject
     debug("onAppEvent(event: #{eventName} - app: #{appID}) - '#{msg}'")
     # If this NA allows disconnection, then check if the event is the Done 
     # message from the slave Experiment Controller
-    debug("dallow: #{@allowDisconnection} - app: #{appID}")
     if @allowDisconnection && (appID.to_sym == :SLAVE_EC) 
        if eventName.split(".")[0] == "DONE"
          @expirementDone = true

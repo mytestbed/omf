@@ -286,7 +286,10 @@ class Experiment
       MObject.info("Experiment", "Disconnection allowed") 
       MObject.info("Experiment", "All resources should report the completion "+
                    "of their tasks.")
+      # Remove all previously defined events, these will be dealt with at
+      # the resources
       Event.purge_all
+      # Create a new event to detect when all resources are done 
       OMF::ExperimentController::CmdContext.instance.\
       defEvent(:EXPERIMENT_DONE, DISCONNECT_INTERVAL) do |event|
         MObject.info("Experiment","Waiting for all resources to report back...")
@@ -294,13 +297,13 @@ class Experiment
       end
       OMF::ExperimentController::CmdContext.instance.\
       onEvent(:EXPERIMENT_DONE) { |node| Experiment.close }
+      ECCommunicator.instance.allow_retry
     end
  
     # Now we can Enroll the nodes!
     OMF::ExperimentController::CmdContext.instance.allGroups.enroll
 
     # If this is a disconnected experiment, inform the resources about it
-    # And set
     if @@disconnectionAllowed
      OMF::ExperimentController::CmdContext.instance.allGroups.set_disconnection
     end

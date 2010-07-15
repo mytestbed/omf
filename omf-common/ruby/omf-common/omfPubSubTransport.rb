@@ -161,12 +161,12 @@ class OMFPubSubTransport < MObject
     message = msg.serialize
     # Sanity checks...
     if !message || (message.length == 0)
-      error "send - Ignore attempt to send an empty message"
-      return
+      warn "send - Ignore attempt to send an empty message"
+      return true
     end
     if !dst || (dst.length == 0 )
-      error "send - Ignore attempt to send message to nobody"
-      return
+      warn "send - Ignore attempt to send message to nobody"
+      return true
     end
     message = add_envelope(message)
     # Build Message
@@ -175,10 +175,11 @@ class OMFPubSubTransport < MObject
     # Send it
     debug "Send to '#{dst}' - msg: '#{message}'"
     begin
-      @@xmppServices.publish_to_node("#{dst}", domain, item)
+      return @@xmppServices.publish_to_node("#{dst}", domain, item)
     rescue Exception => ex
       error "Failed sending to '#{dst}' on '#{domain}'"
       error "Failed msg: '#{message}'\nError msg: '#{ex}'"
+      return false
     end
   end
 

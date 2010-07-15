@@ -122,14 +122,16 @@ class OMFUDPLocalTransport < MObject
     message = msg.serialize.to_s
     # Sanity checks...
     if !message || (message.length == 0)
-      error "send - Ignore attempt to send an empty message"
-      return
+      warn "send - Ignore attempt to send an empty message"
+      return true
     end
     begin
       @@sendSock.send(message, 0, '127.0.0.1', @@sendingPort)
+      return true
     rescue Exception => ex
       error "Failed sending message to local UDP port '#{@@sendingPort}'"
       error "Failed msg: '#{message}'\nError msg: '#{ex}'"
+      return false
     end
   end
 
