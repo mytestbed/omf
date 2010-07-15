@@ -63,10 +63,11 @@ module OConfig
   #
   def self.[](key)
     res = @@config[key]
-    if res.nil?
-      warn("Configuration parameter '#{key}' is nil")
-    end
+    warn("Configuration parameter '#{key}' is nil") if res.nil?
     res
+  end
+  def self.[]=(key, value)
+    @@config[key] = value
   end
 
   #
@@ -74,6 +75,11 @@ module OConfig
   # a given testbed
   #
   def self.loadTestbedConfiguration()
+    # Initialize the config hash if first time called
+    if  @@config[:tb_config] == nil
+      @@config[:tb_config] = Hash.new 
+    end
+
     # Check if EC is running in 'Slave' mode. If so, then this EC is actually 
     # running directly on a node/resource and will only be responsible for 
     # orchestrating the part of the experiment which is specific to this 
@@ -81,10 +87,6 @@ module OConfig
     # turned to 'localhost' and local node ID)
     return nil if NodeHandler.SLAVE || NodeHandler.debug?
 
-    # Initialize the config hash if first time called
-    if  @@config[:tb_config] == nil
-      @@config[:tb_config] = Hash.new 
-    end
     # Retrieve the testbed-specific configuration parameters from the Inventory
     url = "#{@@config[:ec_config][:inventory][:url]}"+
           "/getConfig?&domain=#{@@domainName}"
@@ -391,7 +393,8 @@ module OConfig
       if ((override = opts[@@configName.intern]) != nil)
         @@config[:ec_config].merge!(override)
       else
-        warn "OConfig - No entry in configuration file for config '#{@@configName}'. Using ':default:' config."
+        warn "OConfig - No entry in configuration file for config "+
+             "'#{@@configName}'. Using ':default:' config."
       end
     end
     # get the domain name from the config file

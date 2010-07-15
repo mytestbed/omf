@@ -147,6 +147,7 @@ class NodeAgent < MObject
     # message from the slave Experiment Controller
     if @allowDisconnection && (appID.to_sym == :SLAVE_EC) 
        if eventName.split(".")[0] == "DONE"
+         ExecApp[:OML_PROXY].stdin('OMLPROXY-RESUME')
          @expirementDone = true
          event = :END_EXPERIMENT
          debug("#{appID} is done - EXPERIMENT DONE with status: "+

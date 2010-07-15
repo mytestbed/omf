@@ -59,7 +59,7 @@ module AgentCommands
   # Proxy OML Collection Server
   OML_PROXY_CMD = "/usr/bin/oml2-proxy-server"
   OML_PROXY_LISTENPORT = "9001"
-  OML_PROXY_LISTENADDR = "localhost"
+  OML_PROXY_LISTENADDR = "127.0.0.1"
   OML_PROXY_CACHE = "/tmp/oml-proxy-cache"
   OML_PROXY_LOG = "/tmp/oml-proxy-log"
   
@@ -682,28 +682,29 @@ module AgentCommands
                   "'#{expPath}'")
 
     # Now Start a Proxy OML Server
-    cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} \
-                            --dstaddress #{omlAddr}\
-                            --dstport #{omlPort} \
-                            --resultfile #{OML_PROXY_CACHE} \
-                            --logfile #{OML_PROXY_LOG}"
+    cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} "+
+                           "--dstaddress #{omlAddr} "+
+                           "--dstport #{omlPort} "+
+                           "--resultfile #{OML_PROXY_CACHE} "+
+                           "--logfile #{OML_PROXY_LOG} -d 4"
     MObject.debug("Starting OML Proxy Server with: '#{cmd}'")
     ExecApp.new(:OML_PROXY, controller, cmd)
 
     # Now Start a Slave RC 
-    cmd = "#{SLAVE_RC_CMD} -C #{SLAVE_RC_CFG} --log #{SLAVE_RC_LOG} \
-                           --name #{controller.agentName} \
-                           --slice #{controller.agentSlice}" 
+    cmd = "#{SLAVE_RC_CMD} -C #{SLAVE_RC_CFG} --log #{SLAVE_RC_LOG} "+
+                          "--name #{controller.agentName} "+
+                          "--slice #{controller.agentSlice}" 
     MObject.debug("Starting Slave RC with: '#{cmd}'")
     ExecApp.new(:SLAVE_RC, controller, cmd)
     
     # Now Start a Slave EC
-    cmd = "#{SLAVE_EC_CMD} -C #{SLAVE_EC_CFG} --slice #{controller.agentSlice} \
-                           --slave-mode #{command.expID} \
-                           --slave-mode-omlport #{OML_PROXY_LISTENPORT} \
-                           --slave-mode-omladdr #{OML_PROXY_LISTENADDR} \
-                           --slave-mode-resource #{controller.agentName} \
-                           #{expPath}"
+    cmd = "#{SLAVE_EC_CMD} -C #{SLAVE_EC_CFG} "+
+                          "--slice #{controller.agentSlice} "+
+                          "--slave-mode #{command.expID} "+
+                          "--slave-mode-omlport #{OML_PROXY_LISTENPORT} "+
+                          "--slave-mode-omladdr #{OML_PROXY_LISTENADDR} "+
+                          "--slave-mode-resource #{controller.agentName} "+
+                          "#{expPath}"
     MObject.debug("Starting Slave EC with: '#{cmd}'")
     ExecApp.new(:SLAVE_EC, controller, cmd)
 

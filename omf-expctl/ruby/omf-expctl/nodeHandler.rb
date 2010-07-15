@@ -595,6 +595,9 @@ class NodeHandler < MObject
       info "-- EC in Slave Mode on '#{@@disconnection[:hrn]}'" 
       info "-- OML Proxy at: '#{@@disconnection[:addrOMLProxy]}:"+
            "#{@@disconnection[:portOMLProxy]}'"
+      OConfig[:tb_config][:default] = {:oml_url => "tcp:"+
+                                       "#{@@disconnection[:addrOMLProxy]}:"+
+                                       "#{@@disconnection[:portOMLProxy]}" }
     end
 
     @@expFile = nil
