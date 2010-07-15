@@ -51,7 +51,8 @@ install: build
 	tar -cf - --exclude='.svn' sbin | tar -xf - -C debian/$(PKG_NAME)/usr
 
 	mkdir -p debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
-	mv debian/$(PKG_NAME)/etc/omf-resctl/*.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples	
+	mv debian/$(PKG_NAME)/etc/omf-resctl/*.nicta.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
+	mv debian/$(PKG_NAME)/etc/omf-resctl/*.winlab.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples	
 	mv debian/$(PKG_NAME)/etc/omf-resctl debian/$(PKG_NAME)/etc/$(PKG_NAME)
 	mv debian/$(PKG_NAME)/usr/sbin/omf-resctl debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
 	
