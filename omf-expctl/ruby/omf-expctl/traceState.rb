@@ -188,12 +188,12 @@ class TraceState < MObject
   # - recvSeqNo = receiver's sequence number from the heartbeat
   # - timestamp = timestamp from the heartbeat
   #
-  def self.nodeHeartbeat(node, sendSeqNo, recvSeqNo, timestamp)
-    hb = self.instance.getNodeComponent(node, :heartbeat)
-    hb.add_attribute('ts', "#{timestamp}")
-    hb.add_attribute('sentPackets', "#{sendSeqNo}")
-    hb.add_attribute('receivedPackets', "#{recvSeqNo}")
-  end
+  #def self.nodeHeartbeat(node, sendSeqNo, recvSeqNo, timestamp)
+  #  hb = self.instance.getNodeComponent(node, :heartbeat)
+  #  hb.add_attribute('ts', "#{timestamp}")
+  #  hb.add_attribute('sentPackets', "#{sendSeqNo}")
+  #  hb.add_attribute('receivedPackets', "#{recvSeqNo}")
+  #end
 
   #
   # Log the image loaded onto a Node

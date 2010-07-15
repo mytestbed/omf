@@ -289,7 +289,7 @@ module AgentCommands
     url = command.image
     installRoot = command.path
 
-    MObject.debug "Unpacking '#{url}' into '#{installRoot}'"
+    MObject.debug("AgentCommands", "Unpacking '#{url}' into '#{installRoot}'")
     
     file = "/#{File.basename(url)}"
     eTagFile = "#{file}.etag"
@@ -316,7 +316,8 @@ module AgentCommands
       return {:success => :ERROR, :reason => :DL_FAILED, :info => msg}
     end
     
-    # if we have the file and its ETag locally, compare it to the ETag of the remote file
+    # if we have the file and its ETag locally, 
+    # compare it to the ETag of the remote file
     if File.exists?(file) && File.exists?(eTagFile)
        f=File.open(eTagFile,'r')
        localETag=f.gets
@@ -328,7 +329,7 @@ module AgentCommands
 
     # download the file & store the ETag if necessary
     if download
-      MObject.debug "Downloading '#{url}'"
+      MObject.debug("AgentCommands", "Downloading '#{url}'")
       # -m -nd overwrites existing files
       cmd="wget -P / -m -nd -q #{url};"
       if !remoteETag.empty?
@@ -337,7 +338,8 @@ module AgentCommands
         f.close
       end
      else
-      MObject.debug "'#{file}' already exists and is identical to '#{url}', not downloading"
+      MObject.debug("AgentCommands", "'#{file}' already exists and is "+
+                    "identical to '#{url}', not downloading")
     end
     cmd += "tar -C #{installRoot} -xf #{file}"
     ExecApp.new(id, controller, cmd)

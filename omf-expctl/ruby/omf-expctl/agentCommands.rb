@@ -190,27 +190,9 @@ module AgentCommands
       MObject.info("#{sender}", 
                    "Received End of Experiment from resource '#{sender}'")
       sender.reconnected = true
-      #if Node.allReconnected?
-      #  info "All nodes are now reconnected."
-      #  Experiment.done
-      #else
-      #  info "Still some nodes not reconnected"
-      #end
     end 
   end
 
-  #
-  # Process 'HB' message from a Node Agent. 
-  #
-  # - handler = the communicator that called this method
-  # - sender = the object that issued this command (i.e. usually a 'Node' object)
-  # - cmdObj = an OmfCommandObject holding the information for this command
-  #
-  def AgentCommands.HB(communicator, cmdObj)
-    sender = Node[cmdObj.target]
-    sender.heartbeat(0, 0, "00:00")
-  end
-  
   #
   # Process 'WRONG_IMAGE' reply from the RC
   # The EC receives such a message when a RC has an installed disk image which 

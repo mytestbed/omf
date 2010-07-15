@@ -633,17 +633,6 @@ class Node < MObject
     getProperty(name)
   end
 
-  #
-  # Process a received a timestamp/heartbeat from this Node
-  #
-  # - sendSeqNo = sender sequence number
-  # - recvSeqNo = receiver sequence number
-  # - timestamp = timestamp value for this heartbeat
-  #
-  def heartbeat(sendSeqNo, recvSeqNo, timestamp)
-    TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
-  end
-
   # 
   # Process a received ENROLLED message from this Node
   #
@@ -690,7 +679,6 @@ class Node < MObject
       changed
       notify_observers(self, :node_is_up)
     end
-    #TraceState.nodeHeartbeat(self, sendSeqNo, recvSeqNo, timestamp)
   end
   
   #
