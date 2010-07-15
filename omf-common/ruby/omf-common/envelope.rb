@@ -46,8 +46,8 @@ module OMF
     #  Returns the message wrapped in whatever envelope is appropriate
     #  for the current security environment.  If signing is enabled,
     #  this signs the message and returns it wrapped in the signature
-    #  envelope.  If signing is not enabled, this method is the identity
-    #  method.
+    #  envelope.  If signing is not enabled, this method returns the
+    #  original message wrapped in an envelope with no signature.
     #
     def add_envelope(message)
       #puts "Adding envelope"
@@ -55,11 +55,8 @@ module OMF
     end
 
     #
-    #  Removes the envelope from this message, if appropriate, and
-    #  returns the body of the message itself.  If signing is enabled,
-    #  there will be a signature envelope present and it will be removed
-    #  and the message returned.  Otherwise this method is the identity
-    #  method.
+    #  Removes the envelope from this message, and returns the body of
+    #  the message itself.  Any signature, if present, will be discarded.
     #
     #  Note:  this method does not verify the signature if present.
     #
@@ -81,10 +78,12 @@ module OMF
       generator.verify(message)
     end
 
+    private
+
     #
-    # The default envelope handler doesn't modify messages (i.e. no
-    # envelope is added/stripped) and always decides that a message
-    # verified successfully (i.e. no verification).
+    # The default envelope handler adds/removes an envelope with no
+    # signature, and always decides that a message verified
+    # successfully (i.e. no verification).
     #
     class EnvelopeGenerator < MObject
 
@@ -136,8 +135,11 @@ module OMF
       end
     end
 
-    private
-
+    #
+    # The authenticating message envelope generate adds envelopes
+    # containing a signature over the original message, and verifies
+    # the signature on messages that it receives.
+    #
     class AuthEnvelopeGenerator < EnvelopeGenerator
 
       def wrap(message)
