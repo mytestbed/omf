@@ -169,7 +169,7 @@ class RCCommunicator < OmfCommunicator
           success = parentSend(element[:addr], element[:msg])
           if !success 
             warn "Failed to send message, retry in #{SEND_RETRY_INTERVAL}s "+
-             "(msg: '#{message}')"
+             "(msg: '#{element[:msg]}')"
             sleep(SEND_RETRY_INTERVAL)
           end
         end

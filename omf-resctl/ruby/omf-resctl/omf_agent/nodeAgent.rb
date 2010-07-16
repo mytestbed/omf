@@ -147,7 +147,6 @@ class NodeAgent < MObject
     # message from the slave Experiment Controller
     if @allowDisconnection && (appID.to_sym == :SLAVE_EC) 
        if eventName.split(".")[0] == "DONE"
-         ExecApp[:OML_PROXY].stdin('OMLPROXY-RESUME')
          @expirementDone = true
          event = :END_EXPERIMENT
          debug("#{appID} is done - EXPERIMENT DONE with status: "+
@@ -178,6 +177,14 @@ class NodeAgent < MObject
   # started so far, and remove all loaded network modules
   #
   def reset
+    if @allowDisconnection && (ExecApp[:OML_PROXY] != nil)
+      ExecApp[:OML_PROXY].stdin('OMLPROXY-RESUME')
+      # HACK! begin
+      # We need a way to find out when OML Proxy is done sending the 
+      # collected measurements to the OML Server!
+      sleep 30 
+      # HACK! end
+    end
     info "\n\n------------ RESET ------------\n"
     ExecApp.killAll
     AgentCommands.reset_links
