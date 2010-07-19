@@ -55,6 +55,7 @@ class MySQLInventory < MObject
   # - database = name of the database (default = inventory)
   #
   def initialize(host, user, password, database = "inventory")
+    @connected = false
     @my   = nil
     @host  = host
     @user  = user
@@ -74,6 +75,7 @@ class MySQLInventory < MObject
       # automatically maintained even if the Server closes it due to timed-out idle period
       @my.reconnect = true
       debug " -  Open Connection to MYSQL server - reconnect=#{@my.reconnect}"
+      @connected = true
     rescue MysqlError => e
       debug "SQL error message: #{e.error}."
     end
@@ -83,6 +85,7 @@ class MySQLInventory < MObject
   # Close a previously opened connection to the MySQL server
   #
   def close()
+    @connected = false
     @my.close()
     @my = nil
   end
@@ -95,6 +98,7 @@ class MySQLInventory < MObject
   # - &block = the block of command, which will process the result of this query
   #
   def runQuery(query, &block)
+    raise "Trying to run a query when not connected to inventory DB" if not @connected
     begin
       debug "SQL Query: '#{query}'"
       reply=@my.query(query)
