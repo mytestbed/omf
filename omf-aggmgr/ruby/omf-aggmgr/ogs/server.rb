@@ -26,8 +26,8 @@ require 'stringio'
 require 'base64'
 require 'webrick'
 require 'omf-common/mobject'
-require 'omf-common/pubsub_nodes'
-require 'omf-aggmgr/ogs/aggmgrXmppCommunicator'
+require 'omf-common/omfProtocol'
+#require 'omf-aggmgr/ogs/aggmgrXmppCommunicator'
 
 class AggmgrServer < MObject
 
@@ -94,7 +94,7 @@ class HttpAggmgrServer < AggmgrServer
   @config_dir = nil
 
   def initialize(params)
-    MObject.debug(:gridservices, "Initializing HTTP server manager")
+    debug(:gridservices, "Initializing HTTP server manager")
     http_params = params[:http]
     @port = http_params[:port] || DEF_WEB_PORT
     @config_dir = params[:configDir]
@@ -146,12 +146,12 @@ class HttpAggmgrServer < AggmgrServer
   end
 
   def mount(service_class)
-    MObject.debug(self.class, "Mounting #{service_class}")
+    debug " Mounting #{service_class}"
     service_name = service_class.serviceName
     service_calls = service_class.serviceCalls
     service_calls.each do |name, params|
       mount_point = "/#{service_name}/#{name}"
-      debug service_name, "Mounting #{mount_point}"
+      debug "Mounting #{mount_point}"
       @server.mount_proc(mount_point) do |req, res|
         proc = params[:proc]
         if proc.nil? then
@@ -198,10 +198,10 @@ end
 
 class XmppAggmgrServer < AggmgrServer
 
-  include OmfPubSubNodes
+  include OmfProtocol
 
   def initialize(params)
-    MObject.debug("Initializing XMPP PubSub server manager")
+    debug "Initializing XMPP PubSub server manager"
     xmpp_params = params[:xmpp]
     @server = xmpp_params[:server]
     @user = xmpp_params[:user]

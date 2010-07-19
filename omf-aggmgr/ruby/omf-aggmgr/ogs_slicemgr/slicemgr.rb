@@ -27,7 +27,7 @@
 #
 
 require 'xmlrpc/server'
-require 'omf-common/omfPubSubService'
+require 'omf-common/omfXMPPServices'
 require 'xmpp4r'
 require 'xmpp4r/pubsub'
 require 'xmpp4r/pubsub/helper/nodebrowser'
