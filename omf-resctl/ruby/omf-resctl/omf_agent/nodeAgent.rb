@@ -240,11 +240,6 @@ class NodeAgent < MObject
     @config[:communicator] = {:xmpp => {}}
 
     # Communication Options 
-    opts.on("--control-if IF",
-      "Name of interface attached to the control and management network "+
-      "[#{@localIF}]") {|name|
-        @config[:communicator][:control_if] = name
-    }
     opts.on("--pubsub-gateway HOST",
       "Hostname of the local PubSub server to connect to") {|name|
         @config[:communicator][:xmpp][:pubsub_gateway] = name
@@ -356,8 +351,9 @@ class NodeAgent < MObject
     if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
       raise "Name or Slice are not defined in config file or as arguments!"
     else
-      # substitute hostname, if required
+      # substitute hostname or mac addr, if required
       @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
+      @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig control | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`)
       @agentName = @config[:agent][:name] 
       @agentSlice =  @config[:agent][:slice] 
       @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 

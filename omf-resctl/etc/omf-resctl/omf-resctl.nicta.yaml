@@ -10,10 +10,6 @@
 
     # Number of seconds between consecutive HEARTBEAT messages
     :heartbeat_interval: 10
-  
-    # Interface to the control network from which this resource can be 
-    # controlled & managed
-    :control_if: control
 
     # set this to true or false if you want to enable or disable signature checks and message signing                                       
     :authenticate_messages: false
@@ -46,10 +42,11 @@
     # Or this could also be passed as a command line parameter "--name"
     # This is either a fully defined string, e.g. "my_resource_name"
     # Or a string for which some values will be replaced by the running RC, 
-    # currently we support the values: %hostname%
+    # currently we support the values: %hostname% %macaddr%
     # For example, if you use "some_prefix.%hostname%.some_suffix"
     # Then if your hostname is 'node1', then your RC name will be
     # 'some_prefix.node1.some_suffix'
+    # %macaddr% is replaced with the MAC address of the interface named "control"
     :name: 'omf.nicta.%hostname%'
 
     # Name (i.e. unique HRN ID) of the slice to which this resource is assigned

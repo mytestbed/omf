@@ -308,8 +308,9 @@ class ResourceManager < MObject
     if @config[:manager][:name] == nil 
       raise "Manager's Name is not defined in config file or as arguments!"
     else
-      # substitute hostname, if required
+      # substitute hostname or mac address, if required
       @config[:manager][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
+      @config[:manager][:name].gsub!(/%macaddr%/, `ifconfig control | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`)
       @managerName = @config[:manager][:name] 
     end
     
