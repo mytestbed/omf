@@ -78,7 +78,8 @@ def outputTopologyFile(file, topo, msg, nset)
       f.puts(" ","defTopology('#{topo}', #{nsetString})")
     end
   rescue Exception => err
-    MObject.error("Could not write topology file: '#{file}' (#{err})")
+    MObject.warn("exp", "Could not write result topology file: '#{file}' (#{err})")
+    MObject.warn("exp", "(Most probably imaging was OK, but result file could not be created)")
   end
 end
 
