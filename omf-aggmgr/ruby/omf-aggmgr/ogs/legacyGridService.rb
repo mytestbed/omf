@@ -131,19 +131,6 @@ class LegacyGridService < LegacyHTTPService
     if (! res.kind_of?(Array))
       raise HTTPStatus::BadRequest, "Illegal node set declaration '#{str}'"
     end
-    if (! res[0].kind_of?(Array))
-      # seems to be a single set declaration
-      res = [res]
-    end
-    # validate
-    res.each { |ns|
-      if (! (ns.kind_of?(Array) \
-             &&  ns.length == 2 \
-             && (ns[0].kind_of?(Integer) || ns[0].kind_of?(Range)) \
-             && (ns[1].kind_of?(Integer) || ns[1].kind_of?(Range))))
-        raise HTTPStatus::BadRequest, "Illegal node set declaration '#{ns}'"
-      end
-    }
   end
 
   #
@@ -258,18 +245,18 @@ class LegacyGridService < LegacyHTTPService
   # - x,y = coordinate of the node to query
   # - domain = name of the testbed to query
   #
-  def self.getControlIP(url, name, domain)
-    queryURL = "#{url}/getControlIP?name=#{name}&domain=#{domain}"
+  def self.getControlIP(url, hrn, domain)
+    queryURL = "#{url}/getControlIP?hrn=#{hrn}&domain=#{domain}"
     debug "GridService - QueryURL: #{queryURL}"
     response = nil
     response = Net::HTTP.get_response(URI.parse(queryURL))
     if (! response.kind_of? Net::HTTPSuccess)
-          error "GridService - No Control IP found for '#{name}' - Bad Response from Inventory"
+          error "GridService - No Control IP found for '#{hrn}' - Bad Response from Inventory"
           error "GridService - QueryURL: #{queryURL}"
           raise Exception.new()
     end
     if (response == nil)
-      error "GridService - No Control IP found for '#{name}' - Response from Inventory is NIL"
+      error "GridService - No Control IP found for '#{hrn}' - Response from Inventory is NIL"
       error "GridService - QueryURL: #{queryURL}"
       raise Exception.new()
     end
@@ -282,7 +269,7 @@ class LegacyGridService < LegacyHTTPService
     # If no IP found in the reply... raise an error
     if (ip == nil)
       doc.root.elements.each('/ERROR') { |e|
-        error "GridService - No Control IP found for '#{name}' - val: #{e.get_text.value}"
+        error "GridService - No Control IP found for '#{hrn}' - val: #{e.get_text.value}"
       }
     end
     return ip

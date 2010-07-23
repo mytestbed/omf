@@ -168,7 +168,7 @@ class PxeService < LegacyGridService
     nodesHex = []
 
     @@mutex.synchronize {
-      nodes.each {|x, y|
+      nodes.each {|hrn|
         ip = getControlIP(inventoryURL, hrn, domain)
         if (image == nil)
           img = getPXEImageName(inventoryURL, hrn, domain)
