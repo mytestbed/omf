@@ -108,25 +108,25 @@ class SaveimageDaemon < AbstractDaemon
     if (@user =~ /[\W]+/) != nil
       raise HTTPStatus::BadRequest, "Invalid user name '#{@user}'"
     end
-    # do not allow to create images as root
-    if @user == 'root'
-      raise HTTPStatus::BadRequest, "Sorry, you cannot save files as the superuser (root)."
-    end
     
     # check if the user exists locally
     uid = %x[id -u #{@user}]
     if uid.to_i == 0
-      debug "User '#{@user}' does not exist on this system!"
+      if @user == 'root'
+        debug "Not allowed to save images as root, trying with a non-superuser account"
+      else
+        debug "User '#{@user}' does not exist on this system!"
+      end
       # if the user from the HTTP request doesn't exist on the AM, fall back to the
       # owner given in the config file
       if @config['owner'] == nil
-        raise HTTPStatus::BadRequest, "Missing configuration 'owner'"
+        raise HTTPStatus::BadRequest, "Missing configuration parameter 'owner'"
       else
         @user = @config['owner']
         uid = %x[id -u #{@user}]
         if uid.to_i == 0
-	  raise HTTPStatus::BadRequest, "User '#{@user}' does not exist on this system! Check the 'owner' setting in the saveimage config file."
-	end
+          raise HTTPStatus::BadRequest, "User '#{@user}' is the superuser or does not exist on this system! Check the 'owner' setting in the saveimage config file."
+        end
       end
     end
     
@@ -138,7 +138,7 @@ class SaveimageDaemon < AbstractDaemon
     # all good, return the netcat command line
     addr = @config['saveimageIF']
     ncBin = @config['ncBin']
-    debug("Starting netcat ('#{ncBin}') as user '#{user}' to receive image '#{imgPath}' on '#{port}' interface '#{addr}'")
+    debug("Starting netcat ('#{ncBin}') as user '#{user}' to receive image '#{imgPath}' on '#{addr}:#{port}'")
     cmd = "su #{user} -c '#{ncBin} -d -l #{addr} #{port} > #{imgPath}'"
   end
 

@@ -29,10 +29,11 @@
 # This file describes the Experiment that is used to image the nodes within OMF.
 # (In OMF, loading a disk image on a node is treated as an 'experiment' itself)
 #
+
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
 
-defProperty('nodes', [1..8, 1..8], "Range of nodes to image")
+defProperty('nodes', 'omf.nicta.node1,omf.nicta.node2', "Nodes to image")
 defProperty('image', 'baseline.ndz', "Image to load on nodes")
 defProperty('domain', nil, "Domain of the nodes to image")
 defProperty('outpath', '/tmp', "Path where to place the topology files resulting from this image")
@@ -43,7 +44,7 @@ defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the la
 # First of all, do some checks...
 # - check if the requested image really exists on the Repository
 #
-url = "#{OConfig[:tb_config][:default][:frisbee_url]}/checkImage?img=#{prop.image.value}"
+url = "#{OConfig[:tb_config][:default][:frisbee_url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
 response = NodeHandler.service_call(url, "Image does not exist")
 if response.body != "OK"
   MObject.error("The image file '#{prop.image.value}' was not found on the AM running the frisbee service! ")
@@ -191,7 +192,7 @@ TEXT
 #
 # When all the nodes in the above group are Up, then start loading the image on them
 #
-whenAllUp() {|ns|
+onEvent(:ALL_UP) {|ns|
   # Only execute imaging if node set is not empty!
   # (e.g. in rare occasions no node managed to come up and register to EC, when this
   # happens, we need to exit quietly from this 'whenAllUp')
@@ -206,7 +207,7 @@ whenAllUp() {|ns|
 
 
 #defURL('/progress') {|req, res|
-OMF::ExperimentController::Web.mapProc('/progress') {|req, res|
+OMF::Common::Web.mapProc('/progress') {|req, res|
   body = []
   body << %q{
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">

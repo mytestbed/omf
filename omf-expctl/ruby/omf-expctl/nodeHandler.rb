@@ -773,8 +773,8 @@ class NodeHandler < MObject
 
     if NodeHandler.SHUTDOWN
       info "Shutdown flag is set - Turning Off the resources"
-      allGroups.pxeImage(OConfig.domain, false) # remove PXE links, if any
-      allGroups.powerOff
+      OMF::ExperimentController::CmdContext.instance.allGroups.pxeImage(OConfig.domain, false) # remove PXE links, if any
+      OMF::ExperimentController::CmdContext.instance.allGroups.powerOff
     end
     @running = nil
   end

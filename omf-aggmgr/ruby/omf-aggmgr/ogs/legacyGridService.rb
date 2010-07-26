@@ -114,23 +114,8 @@ class LegacyGridService < LegacyHTTPService
     str = req.query[name] || default
     if (str == nil)
       return nil
-    elsif (str == "[]")
-      res = []
-      return res
     end
-
-    res = nil
-    begin
-      Thread.new() {
-        $SAFE = 4
-        res = eval(str)
-      }.join
-    rescue Exception => ex
-      raise HTTPStatus::BadRequest, "Error while parsing '#{str}'\n\t#{ex}"
-    end
-    if (! res.kind_of?(Array))
-      raise HTTPStatus::BadRequest, "Illegal node set declaration '#{str}'"
-    end
+    return str.split(',') 
   end
 
   #

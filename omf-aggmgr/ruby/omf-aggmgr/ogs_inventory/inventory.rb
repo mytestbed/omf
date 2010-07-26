@@ -130,14 +130,12 @@ class InventoryService < LegacyGridService
   # Implement 'getMacAddress' service using the 'service' method of AbstractService
   #
   s_info "Get the MAC address of a given interface on a given node for a given domain"
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :ifname, 'interfaceName', 'name of the interface (e.g. ath0).'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getMacAddress' do |req, res|
     # Retrieve the request parameter
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
+    hrn = getParam(req, 'hrn')
     ifname = getParam(req, 'ifname')
     domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
@@ -162,26 +160,24 @@ class InventoryService < LegacyGridService
   # Implement 'getPXEImage' service using the 'service' method of AbstractService
   #
   s_info "Get the MAC address of a given interface on a given node for a given domain"
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getPXEImage' do |req, res|
     # Retrieve the request parameter
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
+    hrn = getParam(req, 'hrn')
     domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
     # Query the inventory
     result = nil
     begin
       inv = getInv(tb)
-      result = inv.getNodePXEImage(x, y, domain)
+      result = inv.getNodePXEImage(hrn, domain)
     rescue Exception => ex
       error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
       raise HTTPStatus::InternalServerError
     end
     # Build and Set the XML response
-    msgEmpty = "Inventory has no PXE Image info for node [#{x},#{y}] (domain: #{domain})"
+    msgEmpty = "Inventory has no PXE Image info for node #{hrn} (domain: #{domain})"
     replyXML = buildXMLReply("PXE_Image", result, msgEmpty) { |root,image|
       root.text = image
     }
@@ -192,13 +188,11 @@ class InventoryService < LegacyGridService
   # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
   #
   s_info "Get the MAC addresses of all the interfaces on a given node on a given domain"
-  s_param :x, 'xcoord', 'x coordinates of location'
-  s_param :y, 'ycoord', 'y coordinates of location'
+  s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getAllMacAddresses' do |req, res|
     # Retrieve the request parameter
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
+    hrn = getParam(req, 'hrn')
     domain = getParam(req, 'domain')
     tb = getTestbedConfig(req, @@config)
     # Query the inventory
@@ -340,8 +334,7 @@ class InventoryService < LegacyGridService
   #       inventory. 
   #
   s_info "Get list of wireless devices on a given node in a given domain."
-  s_param :x, 'xcoord', 'x coordinate of given node'
-  s_param :y, 'ycoord', 'y coordinate of given node'
+  s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'domain of given node'
   service 'getAllWirelessDevices' do |req, res|
     x = getParam(req, 'x')

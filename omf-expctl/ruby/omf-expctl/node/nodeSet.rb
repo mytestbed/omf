@@ -424,7 +424,7 @@ class NodeSet < MObject
   #
   def setPxeEnv(node)
     if (@pxePrefix != nil)
-      ns = "[#{node.x},#{node.y}]"
+      ns = "#{node}"
       url = @pxePrefix + ns
       debug "PXE: #{url}"
       NodeHandler.service_call(url, "Error requesting PXE image")
@@ -441,9 +441,9 @@ class NodeSet < MObject
     if (@pxePrefix != nil)
       nsArray = []
       eachNode { |n|
-          nsArray << "[#{n.x},#{n.y}]"
+          nsArray << "#{n}"
       }
-      nset = "[#{nsArray.join(",")}]"
+      nset = "#{nsArray.join(",")}"
       url = @pxePrefix + nset
       debug "PXE: #{url}"
       NodeHandler.service_call(url, "Error requesting PXE image")

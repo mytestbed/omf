@@ -118,8 +118,6 @@ class CmcStubService < GridService
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |name, domain|
-    name = getParam(req, 'name')
-    domain = getParam(req, 'domain')
     reboot(name, domain)
     true
   end

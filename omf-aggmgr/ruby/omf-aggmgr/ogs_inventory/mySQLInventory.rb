@@ -262,7 +262,7 @@ CONFIG_Q
   # [Return] a String with the name of PXE image to use for the node matching
   #          the query
   #
-  def getNodePXEImage(x, y, domain = "grid")
+  def getNodePXEImage(hrn, domain = "grid")
   qs = <<PXEIMAGE_QS
 SELECT pxeimages.image_name
   FROM pxeimages
@@ -270,8 +270,7 @@ SELECT pxeimages.image_name
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
 WHERE testbeds.node_domain='#{domain}'
-  AND locations.x=#{x}
-  AND locations.y=#{y};
+  AND nodes.hrn='#{hrn}'
 PXEIMAGE_QS
 
     imageName = nil

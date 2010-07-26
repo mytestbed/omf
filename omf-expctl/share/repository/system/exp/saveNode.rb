@@ -34,7 +34,7 @@
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
 
-defProperty('node', [1, 1], "Node to save image of")
+defProperty('node', 'omf.nicta.node1', "Node to save image of")
 defProperty('pxe', '1.1.6', "PXE version to use")
 defProperty('domain', '', "Domain of the node to save")
 defProperty('started', 'false', "internal flag")
@@ -44,7 +44,7 @@ defProperty('started', 'false', "internal flag")
 #
 defGroup('save', Experiment.property('node')) {|n|
   n.pxeImage("#{prop.domain.value}", setPXE=true)
-   n.image = "pxe-5.2.1"
+  n.image = "pxe-5.2.1"
 }
 
 everyNS('save', 10) { |ns|
@@ -54,10 +54,10 @@ everyNS('save', 10) { |ns|
     if status =~ /DONE/
       notDone = false
       if status =~ /DONE.ERR/
-        info("- Saving disk image of n_#{n.x}_#{n.y} finished with ERRORS!")
-	info("  Check the log file (probably disk read error on the node)")
+        info("- Saving disk image of '#{n}' finished with ERRORS!")
+        info("  Check the log file (probably disk read error on the node)")
       else
-        info("- Saving disk image of n_#{n.x}_#{n.y} finished with success.")
+        info("- Saving disk image of '#{n}' finished with success.")
       end
       info("- Saving process completed at: #{Time.now}")
       info " "
@@ -76,16 +76,16 @@ everyNS('save', 10) { |ns|
     if status =~ /STARTED/
       if prop.started.value == "false"
         prop.started = "true"
-	info " "
+        info " "
         info "- Saving process started at: #{Time.now}"
-	info "  (this may take a while depending on the size of your image)"
+        info "  (this may take a while depending on the size of your image)"
       end
     end
   }
 }
 
-whenAllUp() {|ns|
+onEvent(:ALL_UP) {|ns|
   ns.eachNode { |n|
-   n.saveImage
+    n.saveImage
   }
 }
