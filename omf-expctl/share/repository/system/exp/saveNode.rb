@@ -44,7 +44,7 @@ defProperty('started', 'false', "internal flag")
 #
 defGroup('save', Experiment.property('node')) {|n|
   n.pxeImage("#{prop.domain.value}", setPXE=true)
-  n.image = "pxe-5.2.1"
+  n.image = "pxe-5.3.1"
 }
 
 everyNS('save', 10) { |ns|

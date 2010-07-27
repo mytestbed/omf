@@ -61,7 +61,9 @@ class Experiment
   #
   def Experiment.ID
     if (@@expID == nil)
-      ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
+      # since we use the exp ID as the pubsub user name
+      # we need to get rid of ":" and uppercase characters
+      ts = DateTime.now.to_s.gsub(':','.').downcase
       @@expID = "#{@@sliceID}-#{ts}"
       #YTraceState.experiment(:id, @@expID)
     end
@@ -113,7 +115,7 @@ class Experiment
   # overide the default experiment variables 
   #
   def Experiment.expArgs=(args)
-    MObject.debug "Experiment", "command line args: #{args}."
+    MObject.debug "Experiment", "command line args: '#{args.join(' ')}'"
     while (a = args.shift) != nil
       if (a =~ /^--/) != 0
         warn("Skipping invalid option '", a ,"'.")
