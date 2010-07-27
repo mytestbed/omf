@@ -60,7 +60,7 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentName, :agentSlice, :config 
+  attr_reader :agentName, :agentSlice, :config, :controlIP
 
   attr_accessor :allowDisconnection, :enrolled, :index
 
@@ -226,7 +226,7 @@ class NodeAgent < MObject
   # - args = the command line arguments
   #
   def parseOptions(args)
-      require 'optparse'
+    require 'optparse'
 
     @configFile = nil
     @interactive = false
@@ -241,9 +241,14 @@ class NodeAgent < MObject
     @config[:communicator] = {:xmpp => {}}
 
     # Communication Options 
+    opts.on("--control-if IF",
+    "Name of interface attached to the control and management network") {|name|
+      @config[:communicator][:control_if] = name
+      @controlIF = name
+    }
     opts.on("--pubsub-gateway HOST",
-      "Hostname of the local PubSub server to connect to") {|name|
-        @config[:communicator][:xmpp][:pubsub_gateway] = name
+    "Hostname of the local PubSub server to connect to") {|name|
+      @config[:communicator][:xmpp][:pubsub_gateway] = name
     }
     opts.on("--pubsub-user NAME",
       "Username for connecting to the local PubSub server (if not set, RC "+
@@ -351,14 +356,18 @@ class NodeAgent < MObject
     # At this point, we should now have a name and a slice
     if @config[:agent][:name] == nil || @config[:agent][:slice] == nil
       raise "Name or Slice are not defined in config file or as arguments!"
-    else
-      # substitute hostname or mac addr, if required
-      @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
-      @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig control | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`)
-      @agentName = @config[:agent][:name] 
-      @agentSlice =  @config[:agent][:slice] 
-      @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
-                     @config[:communicator][:xmpp][:pubsub_gateway]
+    end
+    # substitute hostname or mac addr, if required
+    @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
+    @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`)
+    @agentName = @config[:agent][:name] 
+    @agentSlice =  @config[:agent][:slice] 
+    @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
+                   @config[:communicator][:xmpp][:pubsub_gateway]
+
+    if @config[:communicator][:control_if] != nil
+      @controlIF = @config[:communicator][:control_if]
+      @controlIP = `ifconfig #{@controlIF} | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`
     end
   end
 
@@ -374,6 +383,8 @@ class NodeAgent < MObject
     # Name of image we booted into
     @imageName = nil
     @running = nil
+    @controlIP = nil
+    @controlIF = nil
   end
 
 end

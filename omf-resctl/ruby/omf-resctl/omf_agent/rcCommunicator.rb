@@ -46,7 +46,7 @@ class RCCommunicator < OmfCommunicator
 
   def init(opts)
     super(opts)
-    # EC-secific communicator initialisation...
+    # RC-specific communicator initialisation
     # 0 - set some attributes
     @@myName = opts[:hrn]
     @@sliceID = opts[:sliceID]

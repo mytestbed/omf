@@ -8,7 +8,7 @@ Section: science
 Package: omf-common-5.3
 Section: science
 Architecture: all
-Depends: ruby, liblog4r-ruby, libxmpp4r-ruby, libjson-ruby
+Depends: ruby, liblog4r-ruby, libxmpp4r-ruby, libjson-ruby, libopenssl-ruby
 Description: Common ruby classes for OMF
  Ruby classes commonly required by OMF Experiment Controller, 
  Resource Controller and Aggregate Manager

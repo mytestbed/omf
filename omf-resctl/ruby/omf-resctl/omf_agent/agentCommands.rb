@@ -477,7 +477,9 @@ module AgentCommands
     disk = command.disk
 
     MObject.info("AgentCommands", "Image from ", mcAddress, ":", mcPort)
-    ip = communicator.localAddr
+    ip = communicator.controlIP
+    raise "Could not get the IP address from the control interface. 
+      Check the control_if parameter of this RC!" if ip == nil
     cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
     MObject.debug("AgentCommands", "Frisbee command: ", cmd)
     ExecApp.new('builtin:load_image', controller, cmd, true)
