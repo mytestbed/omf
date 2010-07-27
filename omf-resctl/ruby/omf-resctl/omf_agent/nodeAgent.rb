@@ -87,7 +87,8 @@ class NodeAgent < MObject
     info(VERSION_STRING)
     resetState
     comm =  Hash.new
-    comm[:comms_name] = @agentName
+    comm[:hrn] = @agentName
+    comm[:comms_name] = "#{@agentSlice}-#{@agentName}"
     comm[:handler] = self
     comm[:createflag] = false
     comm[:config] = @config[:communicator]

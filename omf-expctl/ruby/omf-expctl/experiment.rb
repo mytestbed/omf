@@ -62,7 +62,7 @@ class Experiment
   def Experiment.ID
     if (@@expID == nil)
       ts = DateTime.now.strftime("%F-%T").split(%r{[:-]}).join('_')
-      @@expID = "#{OConfig.domain}_#{ts}"
+      @@expID = "#{@@sliceID}-#{ts}"
       #YTraceState.experiment(:id, @@expID)
     end
     return @@expID

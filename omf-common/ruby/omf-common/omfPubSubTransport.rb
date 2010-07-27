@@ -54,9 +54,8 @@ class OMFPubSubTransport < MObject
     @@threads = Array.new
     @@qcounter = 0
     @@forceCreate = opts[:createflag]
-    @@myName = opts[:comms_name]
-    user = opts[:config][:xmpp][:pubsub_user] ||
-           "#{@@myName}-#{Time.now.to_i}-#{rand(Time.now.to_i)}"
+    user = opts[:config][:xmpp][:pubsub_user] || opts[:comms_name] || 
+           "#{Time.now.to_i}-#{rand(Time.now.to_i)}"
     pwd = opts[:config][:xmpp][:pubsub_pwd] || DEFAULT_PUBSUB_PWD
     @@psGateway = opts[:config][:xmpp][:pubsub_gateway]
     raise "OMFPubSubTransport - Configuration is missing 'pubsub_gateway' "+

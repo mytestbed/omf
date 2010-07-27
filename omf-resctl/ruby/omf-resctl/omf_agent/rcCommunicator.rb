@@ -48,7 +48,7 @@ class RCCommunicator < OmfCommunicator
     super(opts)
     # EC-secific communicator initialisation...
     # 0 - set some attributes
-    @@myName = opts[:comms_name]
+    @@myName = opts[:hrn]
     @@sliceID = opts[:sliceID]
     @@expID = nil
     @@myECAddress = nil

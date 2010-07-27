@@ -81,7 +81,6 @@ class NodeHandler < MObject
   VERSION = OMF::Common::VERSION(__FILE__)
   MM_VERSION = OMF::Common::MM_VERSION()
   VERSION_STRING = "OMF Experiment Controller #{VERSION}"
-  MY_NAME = "EC"
 
   #
   # Where to find the default config files
@@ -547,8 +546,14 @@ class NodeHandler < MObject
     # Load the Configuration parameters for this EC
     loadControllerConfiguration()
 
-    # Start the Logger for this EC
+    # Setup the slice of this EC
+    Experiment.sliceID = OConfig[:ec_config][:slice] if !Experiment.sliceID 
+    raise "No slice ID from command line or config file!" if !Experiment.sliceID 
+    # Start the Logger for this EC and output some info
     startLogger()
+    Experiment.sliceID==OConfig[:ec_config][:slice] ? s = "(default)" : s = nil 
+    info "Slice ID: #{Experiment.sliceID} #{s}"
+    info "Experiment ID: #{Experiment.ID}"
 
     # Load the Configuration parameters for the default testbed of this EC
     # WARNING: No federation support yet, so for now the EC gets any 
@@ -557,17 +562,6 @@ class NodeHandler < MObject
     # this will not be there, but rather provided by the resource provisioning
     OConfig.loadTestbedConfiguration()
 
-    if Experiment.sliceID != nil
-      info "Slice ID: #{Experiment.sliceID}"
-    else
-      if (Experiment.sliceID = OConfig[:ec_config][:slice]) != nil
-        warn "Using default Slice ID (from config file): #{Experiment.sliceID}"
-      else
-        raise "No slice ID defined on command line or config file!"
-      end
-    end
-    info "Experiment ID: #{Experiment.ID}"
-    
     # Cosmetic - have this displayed here, so the log/sdout shows
     # the 'NodeHandler' class as the source of this log
     if OConfig[:ec_config][:communicator][:authenticate_messages] 
@@ -583,12 +577,12 @@ class NodeHandler < MObject
 
     # Now start the Communiator
     comm =  Hash.new
-    comm[:comms_name] = MY_NAME
     comm[:handler] = self
     comm[:createflag] = true
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
-    comm[:expID] = Experiment.ID
+    comm[:comms_name] = comm[:expID] = Experiment.ID
+    #comm[:expID] = Experiment.ID
     ECCommunicator.instance.init(comm)
     
     if @@disconnection[:slave] 
