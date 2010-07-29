@@ -84,8 +84,8 @@ everyNS('save', 10) { |ns|
   }
 }
 
-onEvent(:ALL_UP) {|ns|
-  ns.eachNode { |n|
+onEvent(:ALL_UP) {
+  allGroups.eachNode { |n|
     n.saveImage
   }
 }

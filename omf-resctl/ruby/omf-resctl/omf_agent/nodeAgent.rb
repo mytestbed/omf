@@ -359,7 +359,7 @@ class NodeAgent < MObject
     end
     # substitute hostname or mac addr, if required
     @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
-    @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`)
+    @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.chomp)
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
     @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
@@ -367,7 +367,7 @@ class NodeAgent < MObject
 
     if @config[:communicator][:control_if] != nil
       @controlIF = @config[:communicator][:control_if]
-      @controlIP = `ifconfig #{@controlIF} | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`
+      @controlIP = `ifconfig #{@controlIF} | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`.chomp
     end
   end
 

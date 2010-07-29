@@ -192,16 +192,16 @@ TEXT
 #
 # When all the nodes in the above group are Up, then start loading the image on them
 #
-onEvent(:ALL_UP) {|ns|
+onEvent(:ALL_UP) {
   # Only execute imaging if node set is not empty!
   # (e.g. in rare occasions no node managed to come up and register to EC, when this
   # happens, we need to exit quietly from this 'whenAllUp')
   nodeCount = 0 
-  ns.eachNode { |n|
+  allGroups.eachNode { |n|
     nodeCount += 1
   }
   if (nodeCount != 0)
-    ns.loadImage(Experiment.property('image'), "#{prop.domain.value}")
+    allGroups.loadImage(Experiment.property('image'), "#{prop.domain.value}")
   end
 }
 

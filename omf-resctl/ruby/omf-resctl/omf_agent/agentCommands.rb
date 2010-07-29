@@ -477,7 +477,7 @@ module AgentCommands
     disk = command.disk
 
     MObject.info("AgentCommands", "Image from ", mcAddress, ":", mcPort)
-    ip = communicator.controlIP
+    ip = controller.controlIP
     raise "Could not get the IP address from the control interface. 
       Check the control_if parameter of this RC!" if ip == nil
     cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"

@@ -125,7 +125,7 @@ def run(cmd)
       help(cmd)
       exit 1
     end
-    args=["-S pxe_slice -s system:exp:saveNode", "--", "--nodes #{@options[:node]}"]
+    args=["-S pxe_slice -s system:exp:saveNode", "--", "--node #{@options[:node]}"]
     if !@options[:aggregate].empty?
       args << "--domain #{@options[:aggregate]}"
     end
