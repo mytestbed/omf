@@ -44,32 +44,15 @@ require 'omf-expctl/nodeHandler.rb'
 # - domain =  the domain to query for
 #
 def getStatus(topo, domain)
-
+  # TODO: use the topology here instead of showing the status for all
   puts "-----------------------------------------------"
-  if topo.include?(":")
-    filename = topo.delete("[]")
-    t = Topology["#{filename}"]
-  else
-    begin
-      t = Topology.create("mytopo", eval(topo))
-    rescue Exception => e
-      filename = topo.delete("[]")
-      t = Topology["#{filename}"]
-    end
-  end
-  d = (domain == "default") ?  OConfig.domain : domain
-  puts " Testbed : #{d}"
-  url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{d}"
+  puts " Testbed : #{domain}"
+  url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{domain}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
   doc.root.elements.each('//detail/*') { |e|
     attr = e.attributes
-    x = attr['x'].to_i
-    y = attr['y'].to_i
-    state = attr['state']
-    if t.nodesArr[x][y] == [x,y]
-      puts " Node n_#{x}_#{y} - State: #{state}" 
-    end
+    puts " Node #{attr['name']}   \t State: #{attr['state']}" 
   }
   puts "-----------------------------------------------"
 end
@@ -84,7 +67,7 @@ def countNodeStatus(domain)
   nON = 0
   nOFF = 0
   nKO = 0
-  d = (domain == "default") ?  OConfig.GRID_NAME : domain
+  d = (domain == "default") ?  OConfig.domain : domain
   url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{d}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
@@ -108,15 +91,17 @@ end
 #
 begin
   topocmd = ARGV[0] # topo or command
-  domain = ARGV[1] 
   NodeHandler.instance.loadControllerConfiguration()
   NodeHandler.instance.startLogger()
   OConfig.loadTestbedConfiguration()
-  if (topocmd == "[-c]" || topocmd == "[--count]")
+  d = OConfig.domain ? OConfig.domain : "default"
+  if (topocmd == "-s" || topocmd == "--summary")
+    domain = ARGV[2] ? ARGV[2] : d
     countNodeStatus(domain)
   else
-      Topology.useNodeClass = false
-      TraceState.init()
-      getStatus(topocmd, domain)
+    Topology.useNodeClass = false
+    TraceState.init()
+    domain = ARGV[1] ? ARGV[1] : d
+    getStatus(topocmd, domain)
   end
 end

@@ -103,8 +103,8 @@ def run(cmd)
   elsif (cmd == "stat")
     app="omf-expctl/statnode.rb"
     if @options[:summary]
-      # stat [-c] [DOMAIN]
-      args=["-c", "#{@options[:aggregate]}"]
+      # stat [-s] [DOMAIN]
+      args=["-s","system:topo:all","#{@options[:aggregate]}"]
     else
       # stat "[TOPOLOGY]" [DOMAIN]
       args=["#{@options[:topology]}", "#{@options[:aggregate]}"]
@@ -143,7 +143,7 @@ def run(cmd)
   end
 
   omf_command = "/usr/bin/ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
-  #puts "DEBUG: Executing '#{omf_command}'"
+  puts "DEBUG: Executing '#{omf_command}'"
   exec omf_command
 end
 
@@ -165,12 +165,10 @@ def help(cmd = nil)
   	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
   	puts " "
   	puts "      Some Examples: " 
-  	puts "                    #{@this_app} #{cmd}"  	
-  	puts "                    #{@this_app} #{cmd} -t all -a grid"
-  	puts "                    #{@this_app} #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -a sb1"
-  	puts "                    #{@this_app} #{cmd} -t system:topo:all"
-  	puts "                    #{@this_app} #{cmd} -t system:topo:circle"
-  	puts "                    #{@this_app} #{cmd} -t topo_grid_active"
+  	puts "                    #{@this_app} #{cmd}"
+  	puts "                    #{@this_app} #{cmd} -s"
+  	puts "                    #{@this_app} #{cmd} -t \"omf.nicta.node1,omf.nicta.node2\" -c sb1"
+  	puts "                    #{@this_app} #{cmd} -t system:topo:all -c grid"
   	puts " "
   elsif (cmd == "tell")
     puts "Switch ON/OFF and reboot the nodes in a testbed"
@@ -190,9 +188,9 @@ def help(cmd = nil)
   	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
   	puts " "
   	puts "      Some Examples: " 
-  	puts "                    #{@this_app} #{cmd} -a on -t all -c grid"
+  	puts "                    #{@this_app} #{cmd} -a on -t system:topo:all -c grid"
   	puts "                    #{@this_app} #{cmd} -a on -t omf.nicta.node1"
-  	puts "                    #{@this_app} #{cmd} offs -t \"['omf.nicta.node1','omf.nicta.node2']\" -c sb1 "
+  	puts "                    #{@this_app} #{cmd} offs -t \"omf.nicta.node1,omf.nicta.node2\" -c sb1 "
   	puts "                    #{@this_app} #{cmd} offh -t system:topo:all"
   	puts "                    #{@this_app} #{cmd} offh -t topo_grid_active"
   	puts " "
@@ -216,7 +214,7 @@ def help(cmd = nil)
     puts "                    #{@this_app} #{cmd} -t all"
     puts "                    #{@this_app} #{cmd} -t all -i baseline-2.4.ndz"
     puts "                    #{@this_app} #{cmd} -t omf.nicta.node1 -i wireless-2.6.ndz"
-    puts "                    #{@this_app} #{cmd} -t \"['omf.nicta.node1','omf.nicta.node2']\" -i baseline.ndz -o 400"
+    puts "                    #{@this_app} #{cmd} -t \"omf.nicta.node1,omf.nicta.node2\" -i baseline.ndz -o 400"
     puts "                    #{@this_app} #{cmd} -t system:topo:circle -i my_Own_Image.ndz"
     puts "                    #{@this_app} #{cmd} -t my_Own_Topology -i baseline-2.2.ndz -t 600 -c grid"
     puts " "

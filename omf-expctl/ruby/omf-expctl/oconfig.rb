@@ -37,8 +37,6 @@ require 'observer'
 # which are specific to the testbed(s)
 #
 # Usage examples to query OConfig:
-#   
-#   OConfig[:tb_config][:default][:y_max]
 #
 #   OConfig[:ec_config][:communicator]
 #
@@ -48,9 +46,9 @@ module OConfig
   @@configName = nil  
   @@observers = []
   @@loadHistory = []
+  @allNodes = []
   
-  TESTBED_CONFIG_KEYS = [:x_max, :y_max, 
-                         :pxe_url, :cmc_url, :result_url, 
+  TESTBED_CONFIG_KEYS = [:pxe_url, :cmc_url, :result_url, 
                          :frisbee_url, :frisbee_default_disk, 
                          :oml_url, :saveimage_url]
 
@@ -94,6 +92,7 @@ module OConfig
                "Can't get config for domain '#{@@domainName}' from INVENTORY")
 
     configFromInventory = REXML::Document.new(response.body)
+    
     # Extract the information from the REXML, and store them in a Hash 
     tb_hash = Hash.new
     TESTBED_CONFIG_KEYS.each{ |key|
@@ -108,24 +107,27 @@ module OConfig
       }
     }
     @@config[:tb_config][:default] = tb_hash
+    
+    # Retrieve the testbed-specific list of resources from the Inventory
+    url = "#{@@config[:ec_config][:inventory][:url]}"+
+          "/getListOfResources?&domain=#{@@domainName}"
+    response = NodeHandler.service_call(url, 
+               "Can't get list of resources for domain '#{@@domainName}' from INVENTORY")
+    resourceList = REXML::Document.new(response.body)
+    
+    resourceList.root.elements.each("/RESOURCES/NODE") { |r|
+      @allNodes << "#{r.get_text}"
+    }
+    @allNodes
   end
 
   #
-  # Return the maximum X coordinate for a given testbed
+  # Return the default path(s) to the repository(ies) 
   #
-  # [Return] x coordinate
+  # [Return] a path string
   #
-  def self.X_MAX()
-    return eval(self.getConfigFromInventoryByKey('x_max')) # use eval to return an int
-  end
-
-  #
-  # Return the maximum Y coordinate for a given testbed
-  #
-  # [Return] y coordinate
-  #
-  def self.Y_MAX()
-    return eval(self.getConfigFromInventoryByKey('y_max')) # use eval to return an int
+  def self.ALL_NODES()
+    return @allNodes
   end
 
   #
@@ -227,7 +229,6 @@ module OConfig
   # [Return] the text content of the file, with its mimeType
   #
   def self.load(uri, evalRuby = false, default_ext = '.rb')
-
     # Find the file to load...
     file = self.findFile(uri)
     if file == nil
@@ -266,7 +267,6 @@ module OConfig
       end
       #require file
     end
-    
     state = {:uri => uri, :location => file, :content => str, 
              :mime_type => '/text/ruby'}
     @@loadHistory << state

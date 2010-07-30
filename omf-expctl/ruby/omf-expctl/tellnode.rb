@@ -43,27 +43,6 @@ require 'omf-expctl/nodeHandler.rb'
 # 
 
 #
-# Return a Topology object from a given topology declaration
-#
-# - topo = a topology declaration (either the name of an existing topology
-#          file, or the sequence of nodes within this topology)
-#
-def getTopo(topo)
-  if topo.include?(":")
-    filename = topo.delete("[]")
-    t = Topology["#{filename}"]
-  else
-    begin
-      t = Topology.create("mytopo", eval(topo))
-    rescue Exception => e
-      filename = topo.delete("[]")
-      t = Topology["#{filename}"]
-    end
-  end
-  return t
-end
-
-#
 # Send a power ON/OFF or reboot command to a given topology in a 
 # given domain.
 # Results will be displayed directly on STDOUT
@@ -90,12 +69,12 @@ def tellNode(cmd, topo, domain)
   end
   puts " Testbed : #{d} - Command: #{command}"
   topo.eachNode { |n|
-    url = "#{OConfig[:tb_config][:default][:cmc_url]}/#{command}?x=#{n[0]}&y=#{n[1]}&domain=#{d}"
+    url = "#{OConfig[:tb_config][:default][:cmc_url]}/#{command}?name=#{n}&domain=#{d}"
     begin
       response = NodeHandler.service_call(url, "Can't send command to CMC")
-      puts " Node n_#{n[0]}_#{n[1]} - Ok"
+      puts " Node #{n}   \t OK"
     rescue Exception => ex
-      puts " Node n_#{n[0]}_#{n[1]} - Error (node state: 'Not Available')"
+      puts " Node #{n}   \t Error (node state: 'Not Available')"
     end
   }
   puts "---------------------------------------------------"
@@ -114,6 +93,6 @@ begin
   OConfig.loadTestbedConfiguration()
   Topology.useNodeClass = false
   TraceState.init()
-  theTopo = getTopo(topo)
+  theTopo = Topology["#{topo}"]
   tellNode(cmd, theTopo, domain)
 end

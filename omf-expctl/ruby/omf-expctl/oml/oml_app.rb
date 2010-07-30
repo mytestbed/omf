@@ -151,10 +151,10 @@ class OmlApp < MObject
     unless (omlService = OConfig.OML_SERVICE)
       return
     end
-    url = "#{omlService}/start?id=#{Experiment.ID}&domain=#{OConfig.GRID_NAME}"
-    #url = "#{OConfig.OML_SERVICE}/start?id=#{Experiment.ID}&domain=#{OConfig.GRID_NAME}"
+    url = "#{omlService}/start?id=#{Experiment.ID}&domain=#{OConfig.domain}"
+    #url = "#{OConfig.OML_SERVICE}/start?id=#{Experiment.ID}&domain=#{OConfig.domain}"
     # Now we always use the same ID for the OML2 server, the new OML2 server will serve multiple experiment.
-    url = "#{omlService}/start?id=#{OConfig.GRID_NAME}&domain=#{OConfig.GRID_NAME}"
+    url = "#{omlService}/start?id=#{OConfig.domain}&domain=#{OConfig.domain}"
     response = NodeHandler.service_call(url, "Can't start OML collection service")
     if response.kind_of?(Net::HTTPOK)
       # The server started correctly, retrieve its contact info from the HTTPresponse

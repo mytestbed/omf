@@ -222,25 +222,26 @@ OMF::Common::Web.mapProc('/progress') {|req, res|
       <h1>Imaging Progress</h1>
       <table class="grid">
 }
-  (1 .. OConfig[:tb_config][:default][:y_max]).each { |y|
-    body << "<tr class='row'>"
-    (1 .. OConfig[:tb_config][:default][:x_max]).each { |x|
-      n = Node[x,y]
-      if (n == nil)
-        body << "<td class='cell'></td>"
-      elsif (n.isUp)
-        body << "<td class='cell cell-up'>"
-        progress = n.match('apps/builtin[1]/properties/progress/text()').to_s
-        if (progress != nil)
-          body << "<div class='cell-progress' style='width: #{progress}%'></div>"
-        end
-        body << "</td>"
-      else
-        body << "<td class='cell cell-down'></td>"
-      end
-    }
-    body << "</tr>"
-  }
+  # TODO: port this to OMF 5.3
+  # (1 .. OConfig[:tb_config][:default][:y_max]).each { |y|
+  #   body << "<tr class='row'>"
+  #   (1 .. OConfig[:tb_config][:default][:x_max]).each { |x|
+  #     n = Node[x,y]
+  #     if (n == nil)
+  #       body << "<td class='cell'></td>"
+  #     elsif (n.isUp)
+  #       body << "<td class='cell cell-up'>"
+  #       progress = n.match('apps/builtin[1]/properties/progress/text()').to_s
+  #       if (progress != nil)
+  #         body << "<div class='cell-progress' style='width: #{progress}%'></div>"
+  #       end
+  #       body << "</td>"
+  #     else
+  #       body << "<td class='cell cell-down'></td>"
+  #     end
+  #   }
+  #   body << "</tr>"
+  # }
   body << "</table></body></html>"
   res.body = body.to_s
   res['Content-Type'] = "text/html"

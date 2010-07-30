@@ -386,9 +386,6 @@ class NodeHandler < MObject
   def parseOptions(args)
     require 'optparse'
 
-    runTutorial = false
-    listTutorial = false
-
     @interactive = false
     @doProfiling = false
     @extraLibs = 'system:exp:stdlib,system:exp:eventlib'
@@ -481,12 +478,6 @@ class NodeHandler < MObject
       @@shutdown = true 
     }
 
-    opts.on("--tutorial", "Run the tutorial experiment") { runTutorial = true }
-
-    #opts.on("--tutorial-list", "List all the available tutorial") { 
-    #  listTutorial = true 
-    #}
-
     opts.on("-t", "--tags TAGS", 
     "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
@@ -570,11 +561,6 @@ class NodeHandler < MObject
       info "Message authentication is disabled"
     end
 
-    if listTutorial
-      OConfig.load("test:exp:tutorial-list" , true)
-      exit
-    end
-
     # Now start the Communiator
     comm =  Hash.new
     comm[:handler] = self
@@ -595,7 +581,6 @@ class NodeHandler < MObject
     end
 
     @@expFile = nil
-    @@expFile = TUTORIAL if runTutorial
 
     rest.each { |s|
       if s[0] == '-'[0]
