@@ -43,8 +43,8 @@ rescue OEDLException => ex
   begin
     bt = ex.backtrace 
     MObject.fatal('run', "----------")
-    MObject.fatal('run', "  A fatal error was encountered while processing your"+
-                         " experiment description.")
+    MObject.fatal('run', "  A fatal error was encountered while processing "+
+                         "your experiment description.")
     MObject.fatal('run', "  Exception: #{ex.class}")
     MObject.fatal('run', "  Exception: #{ex}")
     MObject.fatal('run', "  In file: #{bt[0]}")
@@ -66,8 +66,8 @@ rescue Exception => ex
                          " experiment.")
     MObject.fatal('run', "  Exception: #{ex.class}")
     MObject.fatal('run', "  Exception: #{ex}")
-    MObject.fatal('run', "  For more information (e.g. trace) see the log "+
-                         "file: /tmp/#{Experiment.ID}.log")
+    MObject.fatal('run', "  For more information (e.g. trace) see the log file")
+    MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
     MObject.fatal('run', "  (or see EC's config files to find the log's "+
                          "location)")
     MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")

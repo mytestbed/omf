@@ -60,8 +60,27 @@ defEvent(:EXPERIMENT_DONE) do |event|
   event.fire if allEqual(exp_status, "DONE")
 end
 
-onEvent(:EXPERIMENT_DONE) do |node|
+onEvent(:EXPERIMENT_DONE) do |event|
   Experiment.close
 end
+
+defEvent(:NO_USER_DEFINED_EVENTS) do |event|
+  if Experiment.running? && !Experiment.disconnection_allowed?
+    if Event.empty?(:ignore => [:EXPERIMENT_DONE, :NO_USER_DEFINED_EVENTS])
+      event.fire 
+    end
+  end
+end
+
+onEvent(:NO_USER_DEFINED_EVENTS) do |event|
+  warn " "
+  warn "Warning!!! Your experiment has no user-defined events!"
+  warn "It is likely that nothing will happen from now one..."
+  warn "Press CTRL-C only ONCE to stop your experiment.\n"
+  # An alternative... not sure what is the best here, for now use the above
+  # warn "Closing down your experiment now..."
+  # Experiment.done
+end
+
 
 

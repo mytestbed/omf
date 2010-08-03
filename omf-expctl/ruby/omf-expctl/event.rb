@@ -45,6 +45,17 @@ class Event < MObject
     return @@events[name]
   end
 
+  def Event.empty?(opts)
+    ignoreList = opts[:ignore]
+    @@events.each { |name,event|
+      if !ignoreList.include?(name)
+        return false if !event[:actionBlocks].empty?
+      end
+    }
+    return true
+  end
+
+  
   #
   # Event constructor
   #
@@ -62,7 +73,8 @@ class Event < MObject
     @@events[@name][:thread] = Thread.new(self) { |event|
       lines = Array.new
       @@events[@name][:running] = true
-      while Experiment.running?
+      #while Experiment.running?
+      while true
         begin 
 	  conditionBlock = @@events[@name][:conditionBlock]
           conditionBlock.call(event)

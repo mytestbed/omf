@@ -51,6 +51,8 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   # - &block = the block of command to execute
   #
   def eachGroup(&block)
+    raise "No resources or groups of resources defined in your "+
+          "experiment!" if !@@groups || @@groups.empty?
     debug("Running 'eachGroup' in RootGroupNodeSet")
     @@groups.each_value { |g|
       if g.kind_of?(BasicNodeSet)

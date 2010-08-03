@@ -50,7 +50,7 @@ class Experiment
   @@disconnectionAllowed = false
   @@sliceID = nil
   @@domain = nil
-  @@is_running = true
+  @@is_running = false
 
   attr_reader :domain
 
