@@ -9,18 +9,14 @@ server = 'norbit.npc.nicta.com.au'
 maxage = 7
 
 now = DateTime.now
-registered = `ejabberdctl registered_users #{server}`.to_a
-online = `ejabberdctl connected_users | awk '{split($0,a,"@#{server}"); print a[1]}'`.to_a
+registered = `ejabberdctl registered_users #{server}`.split("\n")
+online = `ejabberdctl connected_users | awk '{split($0,a,"@#{server}"); print a[1]}'`.split("\n")
 
 uid = %x[id -u $USER]
 if uid.to_i != 0
   puts "You have to be root to run this."
   exit
 end
-
-# remove \n
-registered.collect! {|x| x.chomp }
-online.collect! {|x| x.chomp }
 
 # collect accounts with a timestamp less than 'maxage' days ago
 not_expired = []
