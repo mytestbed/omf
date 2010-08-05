@@ -16,6 +16,10 @@ module OMF
       @@sender_id = nil
       @@message_id = 0
 
+      def XMPP.sender_id=(id)
+        @@sender_id = id
+      end
+
       # Borrow the connection from the "real" transport stack, if
       # it exists This means we don't have to worry about
       # splatting the main stack's pubsub subscriptions, etc., and
@@ -43,7 +47,7 @@ module OMF
           gw = domainspec[:gateway] || pubsub_domain
           user = domainspec[:user]
           password = domainspec[:password]
-          @@sender_id = domainspec[:sender_id]
+          @@sender_id = domainspec[:sender_id] || user
           @@connection = OMF::XMPP::Connection.new(gw.to_s, user, password)
         end
 
@@ -69,6 +73,10 @@ module OMF
       end
 
       def XMPP.xmpp_call(request_manager, uri, *args)
+        if @@sender_id.nil?
+          raise OMF::ServiceCall::ConfigError, "XMPP service calls need a sender ID \n(use OMF::ServiceCall::XMPP.sender_id=())"
+        end
+
         # Work out the service name and method from the URI
         service = uri.components[0]
         method = uri.components[1]
@@ -104,8 +112,16 @@ module OMF
         def method_missing(m, *args)
           # Automatically translate underscores to hyphens
           # Hyphens look better in XML...
-          m = m.to_s.sub("_", "-")
-          el = elements[m]
+          mstr = m.to_s.sub("_", "-")
+          # We can't use the 'method' tag name directly because the
+          # Ruby Object class defines a method named 'method' that
+          # does method lookup on the object itself.  So we special
+          # case it by mapping the method 'method_name' to the XML tag
+          # 'method'.
+          if mstr == "method-name"
+            mstr = "method"
+          end
+          el = elements[mstr]
           if el.nil?
             super(m, *args)
           else
@@ -215,8 +231,7 @@ module OMF
         # Return this Message's arguments as a hash.
         def arguments
           result = Hash.new
-          args = elements["arguments"]
-          args.collect do |arg|
+          args = elements.each("arguments/argument") do |arg|
             name = arg.elements["name"].text
             value = arg.elements["value"].text
             result[name] = value
@@ -241,7 +256,27 @@ module OMF
 
           @@required_keys[self.class].each { |name| add_key(name, props[name]) }
         end
-      end
+
+        #
+        # Set the <result/> tag of this response message, giving it
+        # the xml element as its sole child.
+        #
+        # xml:: [REXML::Element]
+        def set_result(xml)
+          el = elements["result"]
+          el = add_element("result") if el.nil?
+
+          el << xml
+        end
+
+        #
+        # Return the <result/> element from the response message as a
+        # REXML::Element.
+        #
+        def result
+          elements["result"]
+        end
+      end # class ResponseMessage
 
       class RequestManager
 
@@ -338,8 +373,8 @@ module OMF
         def add(message)
           queue = Queue.new
           @mutex.synchronize {
-            @outstanding[message.message_id] = message
-            @queues[message.message_id] = queue
+            @outstanding[message.message_id.to_i] = message
+            @queues[message.message_id.to_i] = queue
           }
           queue
         end
@@ -351,7 +386,7 @@ module OMF
           elsif message.kind_of? Message
             id = message.message_id
           else
-            raise "Trying to remove unknown type of message '#{message.class()} from message matcher"
+            raise "Trying to remove unknown type of message '#{message.class()}' (#{message.to_s}) from message matcher"
           end
 
           @mutex.synchronize {
@@ -361,25 +396,33 @@ module OMF
         end
 
         def serve_responses
-          while response = @listener.queue.pop
-            request_id, queue = match_request(response)
-            if not request_id.nil?
-              queue << response
-              remove(request_id)
+          begin
+            while response = @listener.queue.pop
+              puts "SERVE_RESPONSES:  Got a message on the pubsub node #{@node}:"
+              response = ResponseMessage.from_element(response)
+              next if response.nil?
+              request_id, queue = match_request(response)
+              if not request_id.nil?
+                queue << response.result
+                remove(request_id)
+              end
             end
+          rescue Exception => e
+            puts "SERVER_RESPONSES:  Got an exception: #{e.message}; retrying"
+            retry
           end
         end
 
         def match_request(response)
           return [nil, nil] if response.name != "service-response"
-          id = response.message_id
+          id = response.message_id.to_i
           request = nil
           queue = nil
           @mutex.synchronize {
             request = @outstanding[id]
             queue = @queues[id]
           }
-          if not request.nil? and not queue.nil? and response.sender == request.sender
+          if not request.nil? and not queue.nil? and response.response_to == request.sender
             [id, queue]
           else
             [nil, nil]
@@ -396,13 +439,15 @@ def run
   if false
     domain = OMF::ServiceCall::XMPP.new_xmpp_domain(:uri => "203.143.170.124",
                                                     :user => "abc",
-                                                    :password => "123")
+                                                    :password => "123",
+                                                    :sender_id => "ec_xyz")
     domain.call("cmc/allStatus", ["name", "omf.nicta.node1"])
   else
     dom = OMF::ServiceCall.add_domain(:type => :xmpp,
                                       :uri => "203.143.170.124",
                                       :user => "abc",
-                                      :password => "123")
+                                      :password => "123",
+                                      :sender_id => "ec_xyz")
 
     puts "Sleeping..."
     sleep 3
@@ -421,7 +466,12 @@ def run
       end
 
       begin
-        sp.call("allStatus", ["name", "omf.nicta.node1"], ["domain", "nicta"])
+        result = sp.call("allStatus", ["name", "omf.nicta.node1"], ["domain", "norbit"])
+
+        puts "cmc.allStatus returned:"
+        result.elements.each("TESTBED_STATUS/detail/node") do |node|
+          puts "#{node.attributes["name"]}:\t#{node.attributes["state"]}"
+        end
       rescue OMF::ServiceCall::Timeout => e
         puts "Service call to 'cmc.allStatus' timed out"
       end

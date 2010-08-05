@@ -28,6 +28,7 @@ require 'webrick'
 require 'omf-common/mobject'
 require 'omf-common/omfProtocol'
 require 'omf-common/xmpp'
+require 'omf-common/servicecall'
 
 class AggmgrServer < MObject
 
@@ -153,6 +154,7 @@ class HttpAggmgrServer < AggmgrServer
       mount_point = "/#{service_name}/#{name}"
       debug "Mounting #{mount_point}"
       @server.mount_proc(mount_point) do |req, res|
+        debug "Service call:  #{service_name}.#{name}"
         proc = params[:proc]
         if proc.nil? then
           raise HTTPStatus::NotImplemented, "No support for service '#{service_name}', subservice '#{name}'"
@@ -170,11 +172,6 @@ class HttpAggmgrServer < AggmgrServer
         else
           HttpAggmgrServer.response_plain_text(res, result.to_s)
         end
-        p res.status
-        p res.body
-        p res.header
-        p res.reason_phrase
-        p res.http_version
       end
     end
 
@@ -199,6 +196,11 @@ end
 class XmppAggmgrServer < AggmgrServer
 
   include OmfProtocol
+  include OMF::ServiceCall::XMPP
+
+  # Hash of Hashes.  @services[myservice][mymethod] is a block to
+  # execute when a request for 'myservice.mymethod' is received.
+  @services = nil
 
   def initialize(params)
     debug "Initializing XMPP PubSub AM server"
@@ -207,20 +209,10 @@ class XmppAggmgrServer < AggmgrServer
     @user = xmpp_params[:user]
     @password = xmpp_params[:password]
     @connection = OMF::XMPP::Connection.new(@server, @user, @password)
-    debug "Connecting to XMPP PubSub server '#{@server}' with user '#{@user}'"
-    @connection.connect
-    debug "...connected"
 
-    # We need to talk to at least one pubsub domain -- use the local
-    # gateway as the default domain.  In future, we'll need to talk to
-    # multiple domains, but the architecture isn't settled yet, so we
-    # leave it at just the local domain for the moment.
+    @services = Hash.new
+    @listener_queues = Array.new
     @domains = Hash.new
-    @domains[@server] = OMF::XMPP::PubSub::Domain.new(@connection, @server)
-    @domains.each_value do |domain|
-      # Only add the system node to start with.
-      make_dispatcher(domain, "/OMF/system")
-    end
   end
 
   # Start listening for service requests on node in domain.
@@ -228,14 +220,112 @@ class XmppAggmgrServer < AggmgrServer
   # domain:: [OMF::XMPP::PubSub::Domain]
   # node:: [String]
   def make_dispatcher(domain, node)
+    debug "Creating dispatcher for node #{node} on domain #{domain.name}"
+    listener = domain.listen_to_node(node)
 
+    @listener_queues << listener.queue
+
+    Thread.new {
+      begin
+        while msg = listener.queue.pop
+          if msg == :stop
+            break
+          end
+          request = OMF::ServiceCall::XMPP::RequestMessage.from_element(msg)
+          # Ignore anything that isn't well-formed
+          if not request.nil?
+            timestamp = request.timestamp.to_i
+            now = Time.now.tv_sec
+            if now - timestamp > 30
+              # Ignore stale messages
+            elsif now < timestamp
+              # Ignore messages from the future
+            else
+              sender = request.sender
+              message_id = request.message_id
+              service = request.service
+              method = request.method_name
+              arguments = request.arguments
+              service_hash = @services[service]
+              # Ignore requests for unknown services -- another AM might be serving them.
+              if not service_hash.nil?
+                proc = service_hash[method]
+                if proc.nil?
+                  # return an error response
+                  status = "#{service}.#{method}: Method not supported"
+                  response = ResponseMessage.new("response-to" => sender,
+                                                 "message-id" => message_id,
+                                                 "status" => status)
+                else
+                  result = nil
+                  error_result = nil
+                  begin
+                    result = proc.call(arguments)
+                  rescue Exception => e
+                    error_result = e.message
+                  end
+
+                  if error_result.nil?
+                    status = "OK"
+                  else
+                    status = error_result
+                  end
+
+                  response = ResponseMessage.new("response-to" => sender,
+                                                 "message-id" => message_id,
+                                                 "status" => status)
+                  if not result.nil?
+                    response.set_result(result)
+                  end
+
+                  begin
+                    domain.publish_to_node(node, response)
+                  rescue Exception => e
+                    error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
+                  end
+                end
+              end
+            end
+          else
+            # Ignore messages that are not <service-request/>'s
+          end # if not request.nil?
+        end # while msg = listener.queue.pop
+      rescue Exception => e
+        warn "Received an exception in dispatcher loop for node #{node}: #{e.message}\n#{e.backtrace}"
+        retry
+      end
+      info "Shutting down XMPP PubSub dispatcher for node '#{node}' on domain '#{domain.name}'"
+      domain.unlisten(listener)
+    }
   end
 
   def start
-    @server.start
+    info "Starting XMPP server: #{@server}"
+    begin
+      info "Connecting to XMPP PubSub server '#{@server}' with user '#{@user}'"
+      @connection.connect
+      info "...connected"
+
+      # We need to talk to at least one pubsub domain -- use the local
+      # gateway as the default domain.  In future, we'll need to talk to
+      # multiple domains, but the architecture isn't settled yet, so we
+      # leave it at just the local domain for the moment.
+      @domains[@server] = OMF::XMPP::PubSub::Domain.new(@connection, @server)
+      @domains.each_value do |domain|
+        # Only add the system node to start with.
+        make_dispatcher(domain, "/OMF/system")
+      end
+    rescue Exception => e
+      error "Exception!  #{e.message}"
+    end
   end
+
   def stop
-    @server.stop
+    info "Shutting down XMPP connection"
+    @listener_queues.each { |q| q << :stop }
+    sleep 1
+    @connection.close
+    info "...done"
   end
 
   def mount(service_class)
@@ -243,32 +333,29 @@ class XmppAggmgrServer < AggmgrServer
 
     service_name = service_class.serviceName
     service_calls = service_class.serviceCalls
-    service_calls.each do |name, params|
-      debug("Mounting service #{service_name}, subservice #{name}")
-      @server.mount_proc(service_name, name) do |server, command|
-        puts "Received service call with XML:"
-        puts command.to_s
+    service_calls.each do |method, params|
+      debug("Mounting service #{service_name}, method #{method}")
+      service = @services[service_name] || Hash.new
+
+      # arguments is a hash containing the key-value pairs of the
+      # named arguments from the service call.  They have to be
+      # matched with the arguments that the service method supports.
+      service[method] = lambda do |arguments|
+        argstr = arguments.collect { |k, v| "#{k} => '#{v}'" }.join(", ")
+        debug "Service call:  '#{service_name}.#{method}(#{argstr})'"
 
         proc = params[:proc]
-        if proc.nil? then
-          raise HTTPStatus::NotImplemented, "No support for service '#{service_name}', subservice '#{name}'"
+        if proc.nil?
+          raise "Attempting to execute unimplemented service '#{service_name}.#{method}'"
+        else
+          p_list = params[:param_list] || []
+          args = p_list.collect { |p| arguments[p.to_s] }
+          result = proc.call(*args)
         end
-
-        node = system_node?(command.pubsub_node)
-
-        if not node.nil? then
-          command.name = node
-        end
-
-        p_list = params[:param_list] || []
-        args = p_list.collect { |p| command.attributes[p.to_s] }
-        result = proc.call(*args)
-
-        response_type = (command.cmdType.to_s + "_REPLY").to_sym
-        res = server.new_command(response_type)
       end
+      @services[service_name] = service
     end
   end
-end
+end # class XmppAggmgrServer
 
 

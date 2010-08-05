@@ -71,10 +71,12 @@ module OMF
 
     # ----- Exception classes -----
 
-    class Timeout < Exception; end
-    class ProtocolError < Exception; end
-    class NoService < Exception; end
-    class Error < Exception; end
+    class ServiceCallException < Exception; end
+    class Timeout < ServiceCallException; end
+    class ProtocolError < ServiceCallException; end
+    class NoService < ServiceCallException; end
+    class ConfigError < ServiceCallException; end
+    class Error < ServiceCallException; end
 
     private
 

@@ -222,6 +222,8 @@ module OMF
         @mutex = nil
         @event_count = 0
 
+        attr_reader :name
+
         def initialize(connection, domain)
           @event_count = 0
           @name = domain
