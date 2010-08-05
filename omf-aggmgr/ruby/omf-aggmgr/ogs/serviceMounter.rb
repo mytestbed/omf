@@ -34,6 +34,7 @@ require 'omf-aggmgr/ogs/server'
 
 class ServiceMounter < MObject
   @@servers = {}
+  @@thread = nil
 
   def self.init(params)
     @@servers[:http] = AggmgrServer.create_server(:http, params)
@@ -48,18 +49,45 @@ class ServiceMounter < MObject
       Thread.new {server.start}
     }
 
-    @@should_stop = false
-    while @@should_stop == false
-      sleep 3
-      if @@should_stop
-        @@servers.values.each { |server| server.stop }
+    # Stop the current thread and wait for stop_services to be
+    # called and wake us up
+    @@thread = Thread.current
+    Thread.stop
+
+    MObject.info(:gridservices, "Stopping AM servers")
+
+    # Issue stop commands to individual servers
+    @@servers.values.each { |server| server.stop }
+
+    MObject.info(:gridservices, "Waiting for all servers to stop")
+
+    all_stopped = false
+    count = 0
+    while not all_stopped
+      stopped = []
+      @@servers.values.each { |server|
+        if server.stopped?
+          stopped << server
+        end
+      }
+      sleep 1
+      if stopped.length == @@servers.length
+        all_stopped = true
+      else
+        MObject.info(:gridservices, "... still waiting")
+        count += 1
+      end
+
+      if not all_stopped and count > 5
+        break
       end
     end
+    MObject.info(:gridservices, "... done.")
   end
 
   def self.stop_services
     MObject.debug(:gridservices, "Stopping AM servers")
-    @@should_stop = true
+    @@thread.run if not @@thread.nil?
   end
 
   def self.mount(service_class, transport = nil)

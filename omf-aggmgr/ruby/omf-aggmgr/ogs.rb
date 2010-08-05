@@ -160,8 +160,16 @@ def run(params)
       end
     }
   end
-  ["INT", "TERM"].each { |sig| trap(sig) { ServiceMounter.stop_services } }
-  ServiceMounter.start_services
+  @stopping = false
+  ["INT", "TERM"].each { |sig|
+    trap(sig) {
+      if not @stopping then
+        ServiceMounter.stop_services
+        @stopping = true
+      end
+    }
+  }
+  Thread.new { ServiceMounter.start_services }.join
 end
 
 #

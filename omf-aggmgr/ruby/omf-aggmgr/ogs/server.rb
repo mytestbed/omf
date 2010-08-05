@@ -34,6 +34,8 @@ class AggmgrServer < MObject
 
   @@mutex = nil
 
+  @stopped = nil
+
   attr_accessor :server
 
   def initialize(params)
@@ -49,6 +51,7 @@ class AggmgrServer < MObject
   #  - params = [Hash] the configuration parameters passed to omf-aggmgr
   #
   def self.create_server(type, params)
+    @stopped = true
     @@mutex = Mutex.new if @@mutex.nil?
     debug :gridservices, "Starting server type #{type}"
     case type
@@ -74,6 +77,10 @@ class AggmgrServer < MObject
   #
   def stop
     raise unimplemented_method_exception("stop")
+  end
+
+  def stopped?
+    @stopped
   end
 
   #
@@ -139,11 +146,14 @@ class HttpAggmgrServer < AggmgrServer
   end
 
   def start
+    @stopped = false
     @server.start
   end
 
   def stop
+    debug "Shutting down HTTP server"
     @server.shutdown
+    @stopped = true
   end
 
   def mount(service_class)
@@ -318,6 +328,7 @@ class XmppAggmgrServer < AggmgrServer
     rescue Exception => e
       error "Exception!  #{e.message}"
     end
+    @stopped = false
   end
 
   def stop
@@ -326,6 +337,7 @@ class XmppAggmgrServer < AggmgrServer
     sleep 1
     @connection.close
     info "...done"
+    @stopped = true
   end
 
   def mount(service_class)
