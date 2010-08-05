@@ -1,9 +1,9 @@
 require 'web/tab/setup/setupServlet'
 
-include OMF::Admin::Web
+include OMF::Admin
 opts = {
     :name => :stats, 
-    :priority => 900, 
+    :priority => 400, 
     :def_enabled => true, 
     :view_dir => File.dirname(__FILE__)
 }

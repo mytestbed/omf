@@ -1,0 +1,15 @@
+--- 
+communication: 
+  amid: 
+    value: v
+    description: d
+  xmppserver: 
+    value: v
+    description: d
+dnsmasq: 
+  dnslog0: 
+    value: v
+    description: d
+  dnslog1: 
+    value: v
+    description: d

@@ -2,7 +2,7 @@ div.page_header do
 	div.page_header_links do
     a 'Refresh', :href => '', :class => 'admin'
 	end
-	h1 "Auto-detect nodes"
+	h1 "Auto-detect Nodes"
 end
 
 @scripts = scripts
@@ -34,7 +34,7 @@ div.page do
       tr do
         td m
         td n
-        td {a "Add", :href => "/nodes/add?mac=#{m}"}
+        td {a "Add", :href => "/nodes/edit?mac=#{m}"}
       end
     }
   end

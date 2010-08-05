@@ -14,9 +14,8 @@ module OMF
         
         def self.configure(server, options = {})
           opts = options.dup
-          opts[:scripts] = @@scripts
           server.mount('/nodes/show', NodesServlet, opts)
-          server.addTab(VIEW, "/nodes/show", :name => 'Testbed Nodes', 
+          server.addTab(VIEW, "/nodes/show", :name => 'Nodes', 
               :title => "Add, edit and remove testbed nodes")
 
         end
@@ -34,7 +33,6 @@ module OMF
               opts[:flash][:alert] = "Missing 'id'"
             end
             
-            opts[:auto_nodes] = @@auto_nodes
             res.body = MabRenderer.render('show', opts)
           end
           

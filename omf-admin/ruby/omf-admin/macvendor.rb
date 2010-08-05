@@ -1,3 +1,4 @@
+# taken from http://gist.github.com/383063
 [
   ['00-00-00', 'XEROX CORPORATION'],
   ['00-00-01', 'XEROX CORPORATION'],

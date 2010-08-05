@@ -1,3 +1,7 @@
+require 'web/renderer'
+require 'web/helpers'
+include OMF::Admin::Web
+
 module OMF
   module Admin
     module Web
@@ -23,6 +27,9 @@ module OMF
             else
               opts[:flash][:alert] = "Missing 'id'"
             end
+            
+            opts[:config] = @@config.get
+            
             res.body = MabRenderer.render('setup', opts)
           end
           

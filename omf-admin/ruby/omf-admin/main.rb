@@ -28,7 +28,9 @@ require 'thread'  # Queue class
 require 'net/http'
 require 'omf-common/mobject'
 require 'web/webServer'
-require 'web/tab/log/logOutputter'
+require 'config'
+
+@@config = AdminConfig.new
 
 access_log_stream = File.open('access.log', 'w')
 access_log = [ [ access_log_stream, WEBrick::AccessLog::COMBINED_LOG_FORMAT ] ]
