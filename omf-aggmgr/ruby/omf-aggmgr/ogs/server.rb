@@ -216,11 +216,19 @@ class XmppAggmgrServer < AggmgrServer
     # multiple domains, but the architecture isn't settled yet, so we
     # leave it at just the local domain for the moment.
     @domains = Hash.new
-    @domains[@server] = OMF::PubSub::Domain.new(@connection, @server)
+    @domains[@server] = OMF::XMPP::PubSub::Domain.new(@connection, @server)
     @domains.each_value do |domain|
       # Only add the system node to start with.
       make_dispatcher(domain, "/OMF/system")
     end
+  end
+
+  # Start listening for service requests on node in domain.
+  #
+  # domain:: [OMF::XMPP::PubSub::Domain]
+  # node:: [String]
+  def make_dispatcher(domain, node)
+
   end
 
   def start

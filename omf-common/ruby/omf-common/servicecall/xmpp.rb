@@ -103,8 +103,10 @@ module OMF
       end
 
       class RequestMessage < Message
+        @name = nil
         @args = nil
-        def initialize(sender, id, service, method)
+        def initialize(sender, id=nil, service=nil, method=nil)
+          @name = "service-request"
           super("service-request")
           add_element(REXML::Element.new("sender").add_text(sender))
           add_element(REXML::Element.new("message-id").add_text(id.to_s))
@@ -112,6 +114,14 @@ module OMF
           add_element(REXML::Element.new("service").add_text(service))
           add_element(REXML::Element.new("method").add_text(method))
           @args = add_element(REXML::Element.new("arguments"))
+        end
+
+        def self.from_element(element)
+          if rel.name != "service-request"
+            return nil
+          else
+            elements.each { |e| add_element(e.clone) }
+          end
         end
 
         # Add an argument to the message, with given name and value.
@@ -152,8 +162,52 @@ module OMF
       end # class RequestMessage
 
       class ResponseMessage < Message
-        def initialize(sender, id)
-          super(id)
+        def initialize(props, id = nil, service = nil, method = nil)
+          super("service-response")
+          if props.kind_of? Hash
+            sender = props["sender"]
+            id = props["id"]
+            service = props["service"]
+            method = props["method"]
+            timestamp = props["timestamp"]
+          else
+            sender = props
+            timestamp = Time.now.tv_sec.to_s
+          end
+
+          add_element(REXML::Element.new("sender").add_text(sender))
+          add_element(REXML::Element.new("message-id").add_text(id.to_s))
+          add_element(REXML::Element.new("timestamp").add_text(timestamp))
+          add_element(REXML::Element.new("service").add_text(service))
+          add_element(REXML::Element.new("method").add_text(method))
+        end
+
+        def self.try_text(element, name)
+          p element
+          if not element.elements[name].nil?
+            element.elements[name].text
+          else
+            nil
+          end
+        end
+
+        def self.from_element(element)
+          p element.to_s
+          props = Hash.new
+          props["sender"] = self.try_text(element, "sender") || nil
+          props["id"] = self.try_text(element,"message-id") || nil
+          props["timestamp"] = self.try_text(element,"timestamp") || nil
+          props["service"] = self.try_text(element,"service") || nil
+          props["method"] = self.try_text(element,"method") || nil
+
+          p props
+
+          have_nil = false
+          props.each_value { |v| have_nil = true if v.nil? }
+
+          puts "Nil property:  #{have_nil}"
+          return nil if have_nil
+          self.new(props)
         end
       end
 
@@ -232,6 +286,13 @@ module OMF
       end # class RequestManager
 
       class ResponseMatcher
+
+        #
+        # Create a new response matcher listening on the given node in
+        # the given pubsub domain.
+        #
+        # node:: [String]
+        # domain:: [OMF::XMPP::PubSub::Domain]
         def initialize(node, domain)
           @mutex = Mutex.new
           @domain = domain
@@ -316,4 +377,24 @@ def run
   end
 end
 
-run if __FILE__ == $PROGRAM_NAME
+def add_key(el, name, value)
+  el.add_element(REXML::Element.new(name).add_text(value))
+end
+
+def run2
+  doc = REXML::Document.new
+  rel = REXML::Element.new("service-response")
+  add_key(rel, "sender", "x@y.z")
+  add_key(rel, "message-id", "42")
+  add_key(rel, "timestamp", "122345678")
+  add_key(rel, "service", "cmc")
+  add_key(rel, "method", "allStatus")
+
+  puts "REL="
+  p rel
+
+  y = OMF::ServiceCall::XMPP::ResponseMessage.from_element(rel)
+  puts y.to_s
+  p y.class()
+end
+run2 if __FILE__ == $PROGRAM_NAME
