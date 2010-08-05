@@ -98,7 +98,7 @@ module OMF
 
       attr_reader :client
 
-      def initialize(gateway, user, password)
+      def initialize(gateway, user, password, client = nil)
         raise Misconfigured, "Must specify XMPP gateway" if gateway.nil?
         raise Misconfigured, "Must specify XMPP user name" if user.nil?
         raise Misconfigured, "Must specify XMPP user password" if password.nil?
@@ -106,9 +106,17 @@ module OMF
         jid = "#{user}@#{gateway}"
         @gateway = gateway
         @password = password
-        @mutex = Mutex.new
-        @connected = false
-        @client = Jabber::Client.new(jid)
+
+        if client.nil?
+          @own_client = true
+          @mutex = Mutex.new
+          @connected = false
+          @client = Jabber::Client.new(jid)
+        else
+          @own_client = false
+          @client = client
+          @connected = true # Assume we're already connected
+        end
       end
 
       def connected?
@@ -126,6 +134,7 @@ module OMF
       #  4. sending the presence notification
       #
       def connect
+        return if not @own_client # Don't allow connection attempts if we don't own the client stream
         @mutex.synchronize {
           return if @connected
 
@@ -154,6 +163,7 @@ module OMF
       end
 
       def close
+        return if not @own_client # Don't allow closing the client stream if we don't own it.
         @mutex.synchronize {
           clean_exceptions { nonblocking { @client.close } }
           @connected  = false
@@ -205,6 +215,7 @@ module OMF
         @name = nil
         @service_helper = nil
         @subscriptions = nil
+        @local_subscriptions = nil
         @listeners = nil
         @mutex = nil
         @event_count = 0
@@ -213,6 +224,7 @@ module OMF
           @event_count = 0
           @name = domain
           @subscriptions = Hash.new
+          @local_subscriptions = Hash.new
           @listeners = Hash.new
           @mutex = Mutex.new
           clean_exceptions {
@@ -273,14 +285,22 @@ module OMF
         def listen_to_node(node, queue = nil)
           listener = nil
           sub = nil
+          resp = nil
           @mutex.synchronize {
             sub = @subscriptions[node]
           }
           if sub.nil?
             resp = clean_exceptions { nonblocking { @service_helper.subscribe_to(node) } }
           end
+          raise "sub and resp simultaneously nil" if sub.nil? and resp.nil?
+          raise "sub and resp simultaneously not nil" if not sub.nil? and not resp.nil?
           @mutex.synchronize {
-            @subscriptions[node] = resp
+            if resp.nil?
+              @subscriptions[node] = sub
+            else
+              @subscriptions[node] = resp
+              @local_subscriptions[node] = resp # we own this subscription
+            end
             listener = Listener.new(node, @subscriptions[node], queue)
             listeners = @listeners[node] || []
             listeners << listener
@@ -299,11 +319,13 @@ module OMF
             empty = listeners.empty?
           }
 
-          if empty
+          # Only unsubscribe if we own the subscription for this pubsub node
+          if empty and not @local_subscriptions[node].nil?
             clean_exceptions { nonblocking { @service_helper.unsubscribe_from(node,sub) } }
             @mutex.synchronized {
               @listeners.delete(node)
-              @subscription.delete(node)
+              @subscriptions.delete(node)
+              @local_subscriptions.delete(node)
             }
           end
         end
@@ -316,6 +338,7 @@ module OMF
           @mutex.synchronize {
             if @subscriptions[node] == subscription
               @subscriptions.delete(node)
+              @local_subscriptions.delete(node)
               @listeners.delete(node)
             end
           }
@@ -356,32 +379,29 @@ module OMF
   end # module XMPP
 end # module OMF
 
-def run
-  domain = "203.143.170.124"
-  #domain = "10.42.54.2"
-
+def run(pubsub_domain)
   n1 = "abc"
 
-  puts "C1..."
-  c1 = OMF::XMPP::Connection.new(domain, n1, "123")
+  puts "CONNECTION..."
+  connection = OMF::XMPP::Connection.new(pubsub_domain, n1, "123")
   puts "done"
-  c1.connect
+  connection.connect
 
   # First, for this test, unsubscribe from all existing subscriptions
-  d2 = OMF::XMPP::PubSub::Domain.new(c1, domain)
-  subs = d2.request_subscriptions
-#  subs.each { |s| d2.unsubscribe(s) }
+  domain = OMF::XMPP::PubSub::Domain.new(connection, pubsub_domain)
+  subs = domain.request_subscriptions
+#  subs.each { |s| domain.unsubscribe(s) }
 
-  sub = d2.listen_to_node("/OMF")
-  sub2 = d2.listen_to_node("/OMF/foo")
+  listener = domain.listen_to_node("/OMF")
+  listener2 = domain.listen_to_node("/OMF/foo")
   i = 1
   m = 0
 
   while true
-    puts "sleep #{i}, messages: #{m}, queue: #{sub.queue.length}"
+    puts "sleep #{i}, messages: #{m}, queue: #{listener.queue.length}"
     sleep 1
     i += 1
-    c1.ping
+    connection.ping
 
     item = Jabber::PubSub::Item.new
     hello = REXML::Element.new("hello")
@@ -394,18 +414,18 @@ def run
     item2.add(goodbye)
 
     puts "Pub1"
-    d2.publish_to_node("/OMF", item)
+    domain.publish_to_node("/OMF", item)
     puts "Pub2"
-    d2.publish_to_node("/OMF/foo", item2)
+    domain.publish_to_node("/OMF/foo", item2)
 
     puts "Servicing queue 1"
-    until sub.queue.empty?
-      p sub.queue.pop.to_s
+    until listener.queue.empty?
+      p listener.queue.pop.to_s
     end
 
     puts "Cleared first queue"
-    until sub2.queue.empty?
-      p sub2.queue.pop.to_s
+    until listener2.queue.empty?
+      p listener2.queue.pop.to_s
     end
 
     puts "Cleared second queue"
@@ -414,4 +434,4 @@ def run
   end
 end
 
-run if __FILE__ == $PROGRAM_NAME
+run(ARGV[0]) if __FILE__ == $PROGRAM_NAME

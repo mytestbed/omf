@@ -182,6 +182,10 @@ class OMFPubSubTransport < MObject
     end
   end
 
+  def xmpp_services
+    @@xmppServices
+  end
+
   #############################
   #############################
 

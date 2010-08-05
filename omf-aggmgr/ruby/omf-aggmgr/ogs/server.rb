@@ -27,7 +27,7 @@ require 'base64'
 require 'webrick'
 require 'omf-common/mobject'
 require 'omf-common/omfProtocol'
-#require 'omf-aggmgr/ogs/aggmgrXmppCommunicator'
+require 'omf-common/xmpp'
 
 class AggmgrServer < MObject
 
@@ -201,14 +201,26 @@ class XmppAggmgrServer < AggmgrServer
   include OmfProtocol
 
   def initialize(params)
-    debug "Initializing XMPP PubSub server manager"
+    debug "Initializing XMPP PubSub AM server"
     xmpp_params = params[:xmpp]
     @server = xmpp_params[:server]
     @user = xmpp_params[:user]
     @password = xmpp_params[:password]
+    @connection = OMF::XMPP::Connection.new(@server, @user, @password)
+    debug "Connecting to XMPP PubSub server '#{@server}' with user '#{@user}'"
+    @connection.connect
+    debug "...connected"
 
-    AggmgrXmppCommunicator.init(xmpp_params)
-    @server = AggmgrXmppCommunicator.instance
+    # We need to talk to at least one pubsub domain -- use the local
+    # gateway as the default domain.  In future, we'll need to talk to
+    # multiple domains, but the architecture isn't settled yet, so we
+    # leave it at just the local domain for the moment.
+    @domains = Hash.new
+    @domains[@server] = OMF::PubSub::Domain.new(@connection, @server)
+    @domains.each_value do |domain|
+      # Only add the system node to start with.
+      make_dispatcher(domain, "/OMF/system")
+    end
   end
 
   def start

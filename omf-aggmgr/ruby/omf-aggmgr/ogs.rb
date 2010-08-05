@@ -48,26 +48,6 @@ require 'optparse'
 #####
 require 'omf-aggmgr/ogs/serviceMounter'
 
-# PACKAGING HACK -
-# Hack to force services to be included in the distribution - need to remove that
-# - When packaging, set the following to 'true'
-# - When running GS2, set the following to 'false'
-if true then
-require 'omf-aggmgr/ogs_frisbee/frisbee'
-require 'omf-aggmgr/ogs_pxe/pxe'
-require 'omf-aggmgr/ogs_inventory/inventory'
-require 'omf-aggmgr/ogs_result/result'
-# Two CMC alternatives:
-# - 'cmc', which is the full CMC implementation (currently under dev/debug)
-# - 'cmcStub', which is just a stub to temporary make the EC happy on the NICTA
-#    platform which currently does not have CMC functionalities
-#
-# Both will be installed with the package.
-# BUT only ONE should be ENABLED at any given time! (using symlinks in '/etc/enabled')
-require 'omf-aggmgr/ogs_cmcStub/cmcStub' # use the stub
-require 'omf-aggmgr/ogs_cmc/cmc' # use real cmc
-end
-
 include WEBrick
 
 #

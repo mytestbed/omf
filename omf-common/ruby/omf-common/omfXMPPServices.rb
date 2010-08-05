@@ -118,6 +118,10 @@ end # END of OmfServiceHelper
 #
 class OmfXMPPServices < MObject
 
+  @client = nil
+
+  attr_reader :client
+
   #
   # Create a new instance of XMPP Services 
   # This instance will maintain a single connection to a 'home' XMPP server

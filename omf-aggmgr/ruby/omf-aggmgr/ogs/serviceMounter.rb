@@ -37,8 +37,7 @@ class ServiceMounter < MObject
 
   def self.init(params)
     @@servers[:http] = AggmgrServer.create_server(:http, params)
-# XMPP server is only partially implemented.
-#    @@servers[:xmpp] = AggmgrServer.create_server(:xmpp, params)
+    @@servers[:xmpp] = AggmgrServer.create_server(:xmpp, params)
   end
 
   def self.start_services
