@@ -1,5 +1,4 @@
 
-require 'rubygems'
 require 'xmpp4r'
 require 'omf-common/omfXMPPServices'
 
@@ -93,10 +92,12 @@ module OMF
       include OMF::XMPP::Safely
       @connected = false
       @client = nil
-      @password = nil
       @mutex = nil
+      @gateway = nil
+      @user = nil
+      @password = nil
 
-      attr_reader :client
+      attr_reader :client, :gateway, :user
 
       def initialize(gateway, user, password, client = nil)
         raise Misconfigured, "Must specify XMPP gateway" if gateway.nil?
@@ -106,6 +107,7 @@ module OMF
         jid = "#{user}@#{gateway}"
         @gateway = gateway
         @password = password
+        @user = jid
 
         if client.nil?
           @own_client = true
@@ -278,7 +280,22 @@ module OMF
           clean_exceptions { nonblocking { @service_helper.create_node(node, config) } }
         end
 
+        #
+        # Publish item to node.  If item is a Jabber::PubSub::Item,
+        # then just pass it on to the service helper unchanged; if it
+        # is some other kind of REXML::Element, then create a new
+        # Jabber::PubSub::Item for it before passing it to the service
+        # helper.
+        #
+        # node:: [String]
+        # item:: [Jabber::PubSub::Item or REXML::Element]
         def publish_to_node(node, item)
+          if not item.kind_of? Jabber::PubSub::Item
+            new_item = Jabber::PubSub::Item.new
+            new_item.add(item)
+            item = new_item
+          end
+          puts item.to_s
           clean_exceptions { nonblocking { @service_helper.publish_item_to(node,item) } }
         end
 
@@ -393,7 +410,7 @@ def run(pubsub_domain)
 #  subs.each { |s| domain.unsubscribe(s) }
 
   listener = domain.listen_to_node("/OMF")
-  listener2 = domain.listen_to_node("/OMF/foo")
+  listener2 = domain.listen_to_node("/OMF/system")
   i = 1
   m = 0
 
@@ -416,7 +433,7 @@ def run(pubsub_domain)
     puts "Pub1"
     domain.publish_to_node("/OMF", item)
     puts "Pub2"
-    domain.publish_to_node("/OMF/foo", item2)
+    domain.publish_to_node("/OMF/system", item2)
 
     puts "Servicing queue 1"
     until listener.queue.empty?
@@ -434,4 +451,28 @@ def run(pubsub_domain)
   end
 end
 
-run(ARGV[0]) if __FILE__ == $PROGRAM_NAME
+def listener(domain)
+  puts "CONNECTION..."
+  connection = OMF::XMPP::Connection.new(domain, "abc", "123")
+  puts "done"
+  connection.connect
+
+  domain = OMF::XMPP::PubSub::Domain.new(connection, domain)
+  subs = domain.request_subscriptions
+
+  listener = domain.listen_to_node("/OMF/system")
+
+  while msg = listener.queue.pop
+    puts "RECEIVED:  #{msg.to_s}"
+  end
+end
+
+
+def dispatch
+  case ARGV[0]
+  when "listen" then listener(ARGV[1])
+  when "txloop" then run(ARGV[1])
+  end
+end
+
+dispatch if __FILE__ == $PROGRAM_NAME

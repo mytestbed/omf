@@ -1,5 +1,4 @@
 
-require 'rubygems'
 require 'time'
 require 'xmpp4r'
 require 'rexml/element'
@@ -32,6 +31,10 @@ module OMF
         @@connection = connection
       end
 
+      def XMPP.connection
+        @@connection
+      end
+
       def XMPP.new_xmpp_domain(domainspec)
         pubsub_domain = domainspec[:uri]
 
@@ -57,19 +60,23 @@ module OMF
 
         domain = OMF::XMPP::PubSub::Domain.new(@@connection, pubsub_domain)
         domain.request_subscriptions
+        request_manager = RequestManager.new(domain)
 
         lambda do |service, *args|
           service = service || ""
-          xmpp_call(domain, service, *args)
+          xmpp_call(request_manager, service, *args)
         end
       end
 
-      def XMPP.xmpp_call(domain, uri, *args)
+      def XMPP.xmpp_call(request_manager, uri, *args)
         # Work out the service name and method from the URI
         service = uri.components[0]
         method = uri.components[1]
         # Build the message object
-        message = Message.new(@@sender_id, new_message_id, service, method)
+        message = RequestMessage.new("sender" => @@sender_id,
+                                     "message-id" => new_message_id.to_s,
+                                     "service" => service,
+                                     "method" => method)
         args.each do |name, value|
           message.set_arg(name, value)
         end
@@ -77,6 +84,7 @@ module OMF
         p uri.components
         puts uri.to_s
         puts message.arg("a")
+        request_manager.make_request(message, "/OMF/system")
       end
 
       def XMPP.new_message_id
@@ -84,44 +92,100 @@ module OMF
       end
 
       class Message < REXML::Element
+        # These three Hashes are populated by subclasses
+        @@name = Hash.new # Tag name for the root tag of this type of message
+        @@required_keys = Hash.new  # Tag names of required key/value pairs in message header
+        @@required_payload = Hash.new # Require payload tags (arbitrary XML child nodes)
+
         def initialize(name)
           super(name)
         end
 
         def method_missing(m, *args)
-          # Special-case "message-id" to make a good Ruby identifier
-          if m == :id
-            m = "message-id"
-          end
-          el = elements[m.to_s]
+          # Automatically translate underscores to hyphens
+          # Hyphens look better in XML...
+          m = m.to_s.sub("_", "-")
+          el = elements[m]
           if el.nil?
             super(m, *args)
           else
             el.text
           end
         end
-      end
 
-      class RequestMessage < Message
-        @name = nil
-        @args = nil
-        def initialize(sender, id=nil, service=nil, method=nil)
-          @name = "service-request"
-          super("service-request")
-          add_element(REXML::Element.new("sender").add_text(sender))
-          add_element(REXML::Element.new("message-id").add_text(id.to_s))
-          add_element(REXML::Element.new("timestamp").add_text(Time.now.tv_sec.to_s))
-          add_element(REXML::Element.new("service").add_text(service))
-          add_element(REXML::Element.new("method").add_text(method))
-          @args = add_element(REXML::Element.new("arguments"))
+        def add_key(name, value)
+          add_element(REXML::Element.new(name).add_text(value))
         end
 
-        def self.from_element(element)
-          if rel.name != "service-request"
-            return nil
+        def add_key_to_element(element, name, value)
+          element.add_element(REXML::Element.new(name).add_text(value))
+        end
+
+        def self.name
+          @@name[self]
+        end
+
+        def self.required_keys
+          @@required_keys[self]
+        end
+
+        def self.required_payload
+          @@required_payload[self]
+        end
+
+        def self.try_text(element, name)
+          if not element.elements[name].nil?
+            element.elements[name].text
           else
-            elements.each { |e| add_element(e.clone) }
+            nil
           end
+        end
+
+        # element:: [REXML::Element]
+        def self.from_element(element)
+          return nil if element.name != self.name
+          props = Hash.new
+
+          required_keys.each do |key|
+            props[key] = self.try_text(element, key) || nil
+          end
+
+          have_nil = false
+          props.each_value { |v| have_nil = true if v.nil? }
+
+          return nil if have_nil
+          result = self.new(props)
+
+          required_payload.each do |tag|
+            el = element.elements[tag]
+            if not el.nil?
+              result.add_element(el)
+            end
+          end
+          result
+        end
+     end
+
+      class RequestMessage < Message
+        @@name[self] = "service-request"
+        @@required_keys[self] = [ "sender",
+                                  "message-id",
+                                  "timestamp",
+                                  "service",
+                                  "method" ]
+        @@required_payload[self] = [ "arguments" ]
+
+        @args = nil
+
+        def initialize(props)
+          super("service-request")
+          if not props.has_key? "timestamp"
+            props["timestamp"] = Time.now.tv_sec.to_s
+          end
+
+          @@required_keys[self.class].each { |name| add_key(name, props[name]) }
+
+          @args = add_element(REXML::Element.new("arguments"))
         end
 
         # Add an argument to the message, with given name and value.
@@ -130,8 +194,8 @@ module OMF
         # value:: [String]
         def set_arg(name, value)
           arg = @args.add_element(REXML::Element.new("argument"))
-          arg.add_element(REXML::Element.new("name").add_text(name))
-          arg.add_element(REXML::Element.new("value").add_text(value))
+          add_key_to_element(arg, "name", name)
+          add_key_to_element(arg, "value", value)
         end
 
         # Return the value of a named argument
@@ -162,52 +226,20 @@ module OMF
       end # class RequestMessage
 
       class ResponseMessage < Message
-        def initialize(props, id = nil, service = nil, method = nil)
+        @@name[self] = "service-response"
+        @@required_keys[self] = [ "response-to",
+                                  "message-id",
+                                  "timestamp",
+                                  "status" ]
+        @@required_payload[self] = [ "result" ]
+
+        def initialize(props)
           super("service-response")
-          if props.kind_of? Hash
-            sender = props["sender"]
-            id = props["id"]
-            service = props["service"]
-            method = props["method"]
-            timestamp = props["timestamp"]
-          else
-            sender = props
-            timestamp = Time.now.tv_sec.to_s
+          if not props.has_key? "timestamp"
+            props["timestamp"] = Time.now.tv_sec.to_s
           end
 
-          add_element(REXML::Element.new("sender").add_text(sender))
-          add_element(REXML::Element.new("message-id").add_text(id.to_s))
-          add_element(REXML::Element.new("timestamp").add_text(timestamp))
-          add_element(REXML::Element.new("service").add_text(service))
-          add_element(REXML::Element.new("method").add_text(method))
-        end
-
-        def self.try_text(element, name)
-          p element
-          if not element.elements[name].nil?
-            element.elements[name].text
-          else
-            nil
-          end
-        end
-
-        def self.from_element(element)
-          p element.to_s
-          props = Hash.new
-          props["sender"] = self.try_text(element, "sender") || nil
-          props["id"] = self.try_text(element,"message-id") || nil
-          props["timestamp"] = self.try_text(element,"timestamp") || nil
-          props["service"] = self.try_text(element,"service") || nil
-          props["method"] = self.try_text(element,"method") || nil
-
-          p props
-
-          have_nil = false
-          props.each_value { |v| have_nil = true if v.nil? }
-
-          puts "Nil property:  #{have_nil}"
-          return nil if have_nil
-          self.new(props)
+          @@required_keys[self.class].each { |name| add_key(name, props[name]) }
         end
       end
 
@@ -227,8 +259,8 @@ module OMF
         #
         # Send a service request and wait for a reply from the remote
         # AM.  If the remote AM replies with a service response within
-        # the SERVICE_CALL_TIMEOUT then returns the response as an XML
-        # doc (kind_of? Message).  Otherwise, raise a
+        # the SERVICE_CALL_TIMEOUT then return the response as an XML
+        # doc (actually, kind_of? Message).  Otherwise, raise a
         # ServiceCall::Timeout exception.
         #
         # Node is the pubsub node to publish the service request to.
@@ -247,7 +279,7 @@ module OMF
           queue = matcher.add(message)
 
           # FIXME:  Handle exceptions
-          @domain.publish_to_node(message)
+          @domain.publish_to_node(node, message)
 
           # Timeout thread
           Thread.new {
@@ -306,8 +338,8 @@ module OMF
         def add(message)
           queue = Queue.new
           @mutex.synchronize {
-            @outstanding[message.id] = message
-            @queues[message.id] = queue
+            @outstanding[message.message_id] = message
+            @queues[message.message_id] = queue
           }
           queue
         end
@@ -317,7 +349,7 @@ module OMF
           if message.kind_of? Integer
             id = message
           elsif message.kind_of? Message
-            id = message.id
+            id = message.message_id
           else
             raise "Trying to remove unknown type of message '#{message.class()} from message matcher"
           end
@@ -339,7 +371,8 @@ module OMF
         end
 
         def match_request(response)
-          id = response.id
+          return [nil, nil] if response.name != "service-response"
+          id = response.message_id
           request = nil
           queue = nil
           @mutex.synchronize {
@@ -371,9 +404,28 @@ def run
                                       :user => "abc",
                                       :password => "123")
 
-    sp = OMF::ServiceCall::Dispatch.instance.new_service_proc(dom, OMF::ServiceCall::Dispatch::Uri.new("cmc"))
-    sp.call("xyz", ["a", "b"])
-    sp.call("allStatus", ["name", "omf.nicta.node1"], ["domain", "nicta"])
+    puts "Sleeping..."
+    sleep 3
+    puts "done"
+
+#    xdom = OMF::XMPP::PubSub::Domain.new(OMF::ServiceCall::XMPP.connection,"203.143.170.124")
+#    msg = REXML::Element.new("test-message").add_text("servicecall/xmpp.rb")
+#    xdom.publish_to_node("/OMF/system", item)
+
+    if true
+      sp = OMF::ServiceCall::Dispatch.instance.new_service_proc(dom, OMF::ServiceCall::Dispatch::Uri.new("cmc"))
+      begin
+        sp.call("xyz", ["a", "b"])
+      rescue OMF::ServiceCall::Timeout => e
+        puts "Service call to 'cmc.xyz' timed out"
+      end
+
+      begin
+        sp.call("allStatus", ["name", "omf.nicta.node1"], ["domain", "nicta"])
+      rescue OMF::ServiceCall::Timeout => e
+        puts "Service call to 'cmc.allStatus' timed out"
+      end
+    end
   end
 end
 
@@ -383,18 +435,40 @@ end
 
 def run2
   doc = REXML::Document.new
-  rel = REXML::Element.new("service-response")
-  add_key(rel, "sender", "x@y.z")
-  add_key(rel, "message-id", "42")
-  add_key(rel, "timestamp", "122345678")
-  add_key(rel, "service", "cmc")
-  add_key(rel, "method", "allStatus")
+  resp = REXML::Element.new("service-response")
+  add_key(resp, "response-to", "x@y.z")
+  add_key(resp, "message-id", "42")
+  add_key(resp, "timestamp", "122345678")
+  add_key(resp, "status", "OK")
+  resp.add_element(REXML::Element.new("result").add_text("MY RESULT TEXT"))
 
   puts "REL="
-  p rel
+  puts resp.to_s
 
-  y = OMF::ServiceCall::XMPP::ResponseMessage.from_element(rel)
+  y = OMF::ServiceCall::XMPP::ResponseMessage.from_element(resp)
   puts y.to_s
   p y.class()
+
+  req = REXML::Element.new("service-request")
+  add_key(req, "sender", "x@y.z")
+  add_key(req, "message-id", "42")
+  add_key(req, "timestamp", "122345678")
+  add_key(req, "service", "cmc")
+  add_key(req, "method", "allStatus")
+  args = req.add_element(REXML::Element.new("arguments"))
+  arg = args.add_element("argument")
+  arg.add_element("name").add_text("name")
+  arg.add_element("value").add_text("omf.nicta.node1")
+  arg = args.add_element("argument")
+  arg.add_element("name").add_text("domain")
+  arg.add_element("value").add_text("norbit")
+
+  puts "REQ="
+  puts req.to_s
+  y = OMF::ServiceCall::XMPP::RequestMessage.from_element(req)
+
+  puts y.to_s
+
 end
-run2 if __FILE__ == $PROGRAM_NAME
+
+run if __FILE__ == $PROGRAM_NAME
