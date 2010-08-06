@@ -1,45 +1,18 @@
 div.page_header do
-  div.page_header_links do
-    a 'Save', :href => '/setup', :class => 'admin'
-  end
   h1 "Configuration Setup"
 end
 
 @config = config
 
 div.page do
-  form :action => "action", :method => "post" do
-  @config.each_key{|k|
-    p "#{k}"
-    @config[k].each_key{|l|
-      @config[k][l].each{|m,n|
-        input :type => "text", :name => l, :value => m
-        label n; br
+  form :action => "setup", :method => "post" do
+    @config.each_key{|k|
+      p "#{k.to_s.capitalize}"
+      @config[k].each{|l,m|
+        input :type => "text", :name => "#{k}:#{l}", :value => m[:value], :size => 30
+        label " #{m[:desc]}"; br
       }
     }
-  }
-  
-  
-    
-    input :type => "text", :name => 'amid'
-    label " AM Identifier"; br
-    input :type => "text", :name => 'dnslog.0'
-    label " Dnsmasq logfile"; br
-    input :type => "text", :name => 'dnslog.1'
-    label " Old Dnsmasq logfile (after log rotation)"; br
-    input :type => "text", :name => 'dnsmasq_config'
-    label " Dnsmasq additional configuration file (where static DHCP assignments are stored)"; br
-    input :type => "text", :name => 'node_format'    
-    label " Node name format (%n will be replaced by an ID number)"; br
-    input :type => "text", :name => 'hrn_format'
-    label " HRN name format (%n will be replaced by an ID number)"; br
-    input :type => "text", :name => 'controlip_format'
-    label " Control IP address format (%n will be replaced by an ID number)"; br      
-    #select :name => "field_name" do
-    #   option_list.each do |value, text|
-    #     option(text || value, :value => value)
-    #  end
-    #end
     br
     input :type => "submit", :value => "Save"
   end

@@ -1,15 +1,25 @@
 --- 
-communication: 
-  amid: 
-    value: v
-    description: d
-  xmppserver: 
-    value: v
-    description: d
-dnsmasq: 
-  dnslog0: 
-    value: v
-    description: d
-  dnslog1: 
-    value: v
-    description: d
+:dnsmasq: 
+  :dnslog0: 
+    :desc: Dnsmasq logfile
+    :value: /var/log/syslog
+  :dnslog1: 
+    :desc: Old Dnsmasq logfile (after log rotation)
+    :value: /var/log/syslog.1
+  :dhcpconfig: 
+    :desc: Dnsmasq additional configuration file (where static DHCP assignments are stored)
+    :value: /etc/dnsmasq_omf.conf
+:nodes: 
+  :node_format: 
+    :desc: Node name format (%n will be replaced by an ID number)
+    :value: node%n
+  :hrn_format: 
+    :desc: HRN format (%n will be replaced by an ID number)
+    :value: omf.nicta.node%n
+  :controlip_format: 
+    :desc: Control IP address format (%n will be replaced by an ID number)
+    :value: 10.0.0.%n
+:communication: 
+  :xmppserver: 
+    :desc: XMPP Server
+    :value: norbit.npc.nicta.com.au

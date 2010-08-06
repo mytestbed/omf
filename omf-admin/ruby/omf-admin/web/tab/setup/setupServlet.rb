@@ -33,6 +33,10 @@ module OMF
             res.body = MabRenderer.render('setup', opts)
           end
           
+          def do_POST(req, res)
+            req.query.collect { | key, value | puts("#{key}: #{value}") }
+            do_GET(req, res)
+          end
         end
       end
     end

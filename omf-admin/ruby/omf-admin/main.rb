@@ -32,6 +32,9 @@ require 'config'
 
 @@config = AdminConfig.new
 
+@@config.load
+@@config.save
+
 access_log_stream = File.open('access.log', 'w')
 access_log = [ [ access_log_stream, WEBrick::AccessLog::COMBINED_LOG_FORMAT ] ]
 
