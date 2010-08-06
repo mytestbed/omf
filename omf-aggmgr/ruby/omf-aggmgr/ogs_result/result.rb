@@ -34,12 +34,12 @@ require 'sqlite3'
 #require 'omf-aggmgr/ogs_result/resultSQLite3'
 
 #
-# This class defines a Service to access the measurement results for a given 
-# performed experiment. These results are stored in a Database. The only 
+# This class defines a Service to access the measurement results for a given
+# performed experiment. These results are stored in a Database. The only
 # database format currently supported is SQLite 3.
 #
 # IMPORTANT: this 'ResultService' needs to be colocated with the Oml2ServerService.
-# In other words, the 'result' service needs to be running on the same server as the 
+# In other words, the 'result' service needs to be running on the same server as the
 # 'oml2' service.
 #
 # For more details on how features of this Service are implemented below, please
@@ -49,8 +49,8 @@ require 'sqlite3'
 class ResultService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
-  name 'result' 
-  info 'Service to access and query experiment measurement databases'
+  name 'result'
+  description 'Service to access and query experiment measurement databases'
   @@config = nil
 
   #
@@ -64,7 +64,7 @@ class ResultService < LegacyGridService
     database = nil
     path = nil
     begin
-      path = "#{@@config['database_path']}/#{experimentID}.sq3" 
+      path = "#{@@config['database_path']}/#{experimentID}.sq3"
       database = SQLite3::Database.new(path)
     rescue Exception => ex
       error "Result - Error opening Experiment Database --- PATH: '#{path}' --- '#{ex}'"
@@ -90,7 +90,7 @@ class ResultService < LegacyGridService
   #
   # Create new XML reply containing a given result value.
   # If the result is 'nil' or empty, set an error message in this reply.
-  # Otherwise, call a block of commands to format the content of this reply 
+  # Otherwise, call a block of commands to format the content of this reply
   # based on the result.
   #
   # - replyName = name of the new XML Reply object
@@ -98,8 +98,8 @@ class ResultService < LegacyGridService
   # - msg =  the error message to store in this reply, if result is nil or empty
   # - &block = the block of command to use to format the result
   #
-  # [Return] a new XML tree 
-  #  
+  # [Return] a new XML tree
+  #
   def self.buildXMLReply(replyName, result, msg, &block)
     root = REXML::Element.new("#{replyName}")
     if (result == :Error)
@@ -115,7 +115,7 @@ class ResultService < LegacyGridService
   #
   # Implement 'dumpDatabase' service using the 'service' method of AbstractService
   #
-  s_info "Dump the complete database holding the measurement results for a given experiment"
+  s_description "Dump the complete database holding the measurement results for a given experiment"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'
   service 'dumpDatabase' do |req, res|
     # Retrieve the request parameter
@@ -123,22 +123,22 @@ class ResultService < LegacyGridService
     # Access and Query the experiment database
     dump = nil
     begin
-      path = "#{@@config['database_path']}/#{id}.sq3" 
+      path = "#{@@config['database_path']}/#{id}.sq3"
       cmd = "#{@@config['sqlite3_path']} #{path} .dump"
       dump =  `#{cmd}`
     rescue Exception => ex
       error "Result - Error dumping the experiment measurement database --- ID: #{id} --- '#{ex}'"
     end
-    # The database dump should be returned as a pain text 
+    # The database dump should be returned as a pain text
     # So the user can load the dump directly with SQLite3 without any reformatting
-    result = "--\n-- Database Dump\n-- Experiment ID: #{id}\n--\n" + dump 
+    result = "--\n-- Database Dump\n-- Experiment ID: #{id}\n--\n" + dump
     setResponsePlainText(res, result)
   end
-  
+
   #
   # Implement 'listTables' service using the 'service' method of AbstractService
   #
-  s_info "Get the list of tables in given experiment measurement database"
+  s_description "Get the list of tables in given experiment measurement database"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'
   service 'listTables' do |req, res|
     # Retrieve the request parameter
@@ -146,7 +146,7 @@ class ResultService < LegacyGridService
     # Access and Query the experiment database
     result = nil
     begin
-      path = "#{@@config['database_path']}/#{id}.sq3" 
+      path = "#{@@config['database_path']}/#{id}.sq3"
       cmd = "#{@@config['sqlite3_path']} #{path} .tables"
       result =  `#{cmd}`
     rescue Exception => ex
@@ -162,11 +162,11 @@ class ResultService < LegacyGridService
     replyXML.add_attribute("ExperimentID", "#{id}")
     setResponse(res, replyXML)
   end
-  
+
   #
   # Implement 'listTables' service using the 'service' method of AbstractService
   #
-  s_info "Get the Schema of a given experiment measurement database"
+  s_description "Get the Schema of a given experiment measurement database"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'
   service 'getSchema' do |req, res|
     # Retrieve the request parameter
@@ -174,7 +174,7 @@ class ResultService < LegacyGridService
     # Access and Query the experiment database
     result = nil
     begin
-      path = "#{@@config['database_path']}/#{id}.sq3" 
+      path = "#{@@config['database_path']}/#{id}.sq3"
       cmd = "#{@@config['sqlite3_path']} #{path} .schema"
       result =  `#{cmd}`
     rescue Exception => ex
@@ -188,11 +188,11 @@ class ResultService < LegacyGridService
     replyXML.add_attribute("ExperimentID", "#{id}")
     setResponse(res, replyXML)
   end
-  
+
   #
   # Implement 'queryDatabase' service using the 'service' method of AbstractService
   #
-  s_info "Get the Schema of a given experiment measurement database"
+  s_description "Get the Schema of a given experiment measurement database"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'
   s_param :query, 'SQLquery', 'An SQLite query to run against the database'
   s_param :format, 'raw | xml | json | cvs | merged', 'Format to return result in.', "xml"
@@ -201,7 +201,7 @@ class ResultService < LegacyGridService
     id = getParam(req, 'expID')
     sqlQuery = getParam(req, 'query')
     format = getParamDef(req, 'format', 'xml')
-    
+
     # Access and Query the experiment database
     result = nil
     begin
@@ -238,7 +238,7 @@ class ResultService < LegacyGridService
         error "Unknown reply format '#{format}'"
     end
   end
-  
+
   def self.formatResultRAW(id, sqlQuery, resultColumns, resultRows, msgEmpty)
     reply = ""
     lineNum = 1
@@ -248,27 +248,27 @@ class ResultService < LegacyGridService
     }
     reply
   end
-  
+
   def self.formatResultXML(id, sqlQuery, resultColumns, resultRows, msgEmpty)
     # XMLRoot is 'DATABASE'
     replyXML = buildXMLReply("DATABASE", resultRows, msgEmpty) { |root,rows|
-      # Add Element 'DATABASE - QUERY'     
+      # Add Element 'DATABASE - QUERY'
       addXMLElement(root, "QUERY", "#{sqlQuery}")
-      # Add Element 'DATABASE - RESULT'     
+      # Add Element 'DATABASE - RESULT'
       element = addXMLElement(root, "RESULT")
-      # Add Element 'DATABASE - RESULT - FIELDS'     
+      # Add Element 'DATABASE - RESULT - FIELDS'
       line = resultColumns.join(" ")
       addXMLElement(element, 'FIELDS', "#{line}")
-      # Add Element 'DATABASE - RESULT - ROW' for each row in the result    
+      # Add Element 'DATABASE - RESULT - ROW' for each row in the result
       rows.each { |aRow|
         line = aRow.join(" ")
         addXMLElement(element, 'ROW', "#{line}")
       }
     }
     replyXML.add_attribute("ExperimentID", "#{id}")
-    replyXML    
+    replyXML
   end
-  
+
   require 'stringio'
   def self.formatResultJSON(id, sqlQuery, resultColumns, resultRows, msgEmpty)
     reply = %{
@@ -311,16 +311,16 @@ class ResultService < LegacyGridService
         names << node
         names_h[node] = true
       end
-      #reply << "SINGLE: #{node}:#{h.inspect}"      
+      #reply << "SINGLE: #{node}:#{h.inspect}"
       if h.key?(node)
         # got another value for +node+, output graph row
         va = names.collect do |n| h[n] end
         #reply << "EMPTY <#{va.inspect}><#{va.join(';')}:#{h.inspect}"
         unless (vas = va.join(';')).empty?
-          
+
           if (ts_d = start_ts - prev_ts) > 0
             i = 0
-            while ts_d < 1.0 
+            while ts_d < 1.0
               i += 1; ts_d *= 10
             end
             ts_s = sprintf("%.#{i}f", start_ts)
@@ -338,9 +338,9 @@ class ResultService < LegacyGridService
     # prepand empty record of size names
     (';' * names.size) + "\n" + reply.string
   end
-  
-  
-  
+
+
+
   #
   # Configure the service through a hash of options
   #
@@ -351,8 +351,8 @@ class ResultService < LegacyGridService
     error("Missing configuration 'sqlite3_path'") if @@config['sqlite3_path'] == nil
     error("Missing configuration 'database_path'") if @@config['database_path'] == nil
   end
-  
-  # Overide the 'mont' call when installing the service to install the 
+
+  # Overide the 'mont' call when installing the service to install the
   # flash security handler.
   #
   def self.mount(server, prefix = "/#{self.serviceName}")
@@ -367,5 +367,5 @@ class ResultService < LegacyGridService
     end
     super
   end
-  
+
 end

@@ -118,7 +118,7 @@ class HttpAggmgrServer < AggmgrServer
       res['Content-Type'] = "text/xml"
       body = [%{<?xml version='1.0'?><serviceGroups>}]
       @mounted_services.each do |path, service|
-        info = service.info
+        info = service.description
         name = service.serviceName
         body << "<serviceGroup path='#{path}' name='#{name}'><info>#{info}</info></serviceGroup>"
       end

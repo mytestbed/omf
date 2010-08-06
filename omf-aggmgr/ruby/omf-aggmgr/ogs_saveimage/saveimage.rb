@@ -42,27 +42,27 @@ require 'omf-aggmgr/ogs_saveimage/saveimaged'
 class SaveimageService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
-  name 'saveimage'  
-  info 'Service to control netcat to receive image files'
+  name 'saveimage'
+  description 'Service to control netcat to receive image files'
   @@config = nil
-  
+
   #
   # Implement 'getAddress' service using the 'service' method of AbstractService
   #
-  s_info 'Get the port number of a netcat instance receiving a specified image (start a new instance if none exists)'
+  s_description 'Get the port number of a netcat instance receiving a specified image (start a new instance if none exists)'
   s_param :img, 'imgName', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
   s_param :user, 'user', 'UNIX user name to set image file ownership.'
-  service 'getAddress' do |req, res|    
+  service 'getAddress' do |req, res|
     d = SaveimageDaemon.start(req)
     res['Content-Type'] = "text"
     res.body = d.getAddress()
   end
-  
+
   #
   # Implement 'stop' service using the 'service' method of AbstractService
   #
-  s_info 'Stop receiving a specified image'
+  s_description 'Stop receiving a specified image'
   s_param :img, 'imgName', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
   service 'stop' do |req, res|
@@ -74,7 +74,7 @@ class SaveimageService < LegacyGridService
   #
   # Implement 'status' service using the 'service' method of AbstractService
   #
-  s_info 'Returns the list of a certain or all netcat instances'
+  s_description 'Returns the list of a certain or all netcat instances'
   s_param :img, 'imgName', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
   service 'status' do |req, res|

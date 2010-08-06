@@ -1,7 +1,7 @@
 
 class NetworkService < AbstractService
 
- s_info 'Switch configuration service'
+ s_description 'Switch configuration service'
 
 
  def self.authorize(req, res)

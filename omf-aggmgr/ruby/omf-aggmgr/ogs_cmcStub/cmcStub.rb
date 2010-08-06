@@ -48,7 +48,7 @@ class CmcStubService < GridService
 
   # name used to register/mount the service, the service's url will be based on it
   name 'cmc'
-  info 'Information on available testbed resources and simple control functionality'
+  description 'Information on available testbed resources and simple control functionality'
   @@config = nil
 
   #
@@ -59,7 +59,7 @@ class CmcStubService < GridService
   #       - if node is already ON do nothing
   #       - if node is OFF then turn it ON
   #
-  s_info 'Switch ON a resource'
+  s_description 'Switch ON a resource'
   s_param :name, 'name', 'name of the resource'
   service 'on' do |name|
     true
@@ -69,7 +69,7 @@ class CmcStubService < GridService
   # Implement 'nodeSetOn' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return true (OK)
   #
-  s_info 'Switch on a set of nodes'
+  s_description 'Switch on a set of nodes'
   s_param :nodes, 'setDecl', 'set of nodes to switch on'
   service 'nodeSetOn' do |nodes|
     true
@@ -83,7 +83,7 @@ class CmcStubService < GridService
   #       - if node is already ON, then reset/reboot it
   #       - if node is OFF then turn it ON
   #
-  s_info 'Reset a resource'
+  s_description 'Reset a resource'
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'reset' do |name, domain|
@@ -99,7 +99,7 @@ class CmcStubService < GridService
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the NA's 'REBOOT' command to implement a 'offHard'
   #
-  s_info 'Switch off a node HARD (immediately) at a specific coordinate'
+  s_description 'Switch off a node HARD (immediately) at a specific coordinate'
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offHard' do |name, domain|
@@ -114,7 +114,7 @@ class CmcStubService < GridService
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the NA's 'REBOOT' command to implement a 'offSoft'
   #
-  s_info 'Switch off a node SOFT (execute halt) at a specific coordinate'
+  s_description 'Switch off a node SOFT (execute halt) at a specific coordinate'
   s_param :name, 'name', 'name of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |name, domain|
@@ -126,7 +126,7 @@ class CmcStubService < GridService
   # Implement 'allOffHard' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return true (OK)
   #
-  s_info 'Switch off ALL nodes HARD (immediately)'
+  s_description 'Switch off ALL nodes HARD (immediately)'
   service 'allOffHard' do
     true
   end
@@ -138,7 +138,7 @@ class CmcStubService < GridService
   # At NICTA, we do not have the CM card operational on our nodes yet...
   # We use the NA's 'REBOOT' command to implement a 'allOffSoft'
   #
-  s_info 'Switch off ALL nodes SOFT (execute halt)'
+  s_description 'Switch off ALL nodes SOFT (execute halt)'
   s_param :domain, '[domain]', 'domain for request.'
   service 'allOffSoft' do |domain|
     tb = getTestbedConfig(domain, @@config)
@@ -160,7 +160,7 @@ class CmcStubService < GridService
   # TODO: if still not CM card operational after a while, then this should
   # really use information from the Inventory instead
   #
-  s_info 'Returns a list of all nodes in the testbed'
+  s_description 'Returns a list of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
   service 'getAllNodes' do |domain|
     tb = getTestbedConfig(domain, @@config)
@@ -179,7 +179,7 @@ class CmcStubService < GridService
   # TODO: if still not CM card operational after a while, then this should
   # really use information from the Inventory instead
   #
-  s_info 'Returns the status of all nodes in the testbed'
+  s_description 'Returns the status of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
   service 'allStatus' do |domain|
     tb = getTestbedConfig(domain, @@config)

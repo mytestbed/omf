@@ -59,7 +59,7 @@ require 'omf-common/mobject'
 #
 # Instead of declaring a separate servlet for every method, I have a
 # 'service' method which takes a name and a block. Help messages and
-# parameter are declared with 's_info', and 's_param' respectively. This
+# parameter are declared with 's_description', and 's_param' respectively. This
 # allows me to build the xml file describing the entire service
 # automatically.
 #
@@ -96,7 +96,7 @@ class AbstractService < MObject
   #
   # - str = optional, the short description to use (default=nil)
   #
-  def self.info(str = nil)
+  def self.description(str = nil)
     if (str != nil)
       #@@info = str # We now have a table with the info for each class of Service
       @@info[self] = str
@@ -111,7 +111,7 @@ class AbstractService < MObject
   #
   # - str = short help message to use
   #
-  def self.s_info(str)
+  def self.s_description(str)
     @@__info = str
   end
 
@@ -251,7 +251,7 @@ class AbstractService < MObject
   def self.to_xml(parentEl)
     topEl = parentEl.add_element('serviceGroup', {'name' => self.serviceName})
     # Table @@info contains info for each class of Services
-    #if ((info = self.info) != nil)
+    #if ((info = self.description) != nil)
     if ((info = @@info[self]) != nil)
       topEl.add_element('info').text = info
     end
@@ -291,14 +291,14 @@ if $0 == __FILE__
 
   class Service1 < AbstractService
 
-    s_info 'Foo is a typical service'
+    s_description 'Foo is a typical service'
     s_param :x, 'xcoord', 'x coordinates of location'
     s_param :domain, '[sb_name]', 'domain for which to apply this action'
     service 'foo' do |req, res|
       res.body = "Foo. Always foo."
     end
 
-    s_info 'Bar is a typical service'
+    s_description 'Bar is a typical service'
     s_param :domain, '[sb_name]', 'domain for which to apply this action'
     service 'bar' do |req, res|
       res.body = "Bar. Where is the beer."
@@ -325,7 +325,7 @@ if $0 == __FILE__
 
   class Service2 < AbstractService
 
-    s_info 'Making soup is important'
+    s_description 'Making soup is important'
     s_param :name, 'str', 'Name of soup'
     s_param :servings, '[number]', 'Number of servings'
     service 'makeSoup' do |req, res|

@@ -34,7 +34,7 @@ require 'omf-aggmgr/ogs_frisbee/frisbeed'
 
 #
 # This class defines a Service to control a Frisbee server. A Frisbee server
-# is used to distribute disk image in an efficient manner among the nodes of a 
+# is used to distribute disk image in an efficient manner among the nodes of a
 # given testbed.
 #
 # For more details on how features of this Service are implemented below, please
@@ -43,16 +43,16 @@ require 'omf-aggmgr/ogs_frisbee/frisbeed'
 class FrisbeeService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
-  name 'frisbee'  
-  info 'Service to control frisbee servers to stream specific images'
+  name 'frisbee'
+  description 'Service to control frisbee servers to stream specific images'
   @@config = nil
- 
+
   #
   # Implement 'checkImage' service using the 'service' method of AbstractService
   #
-  s_info 'Check if a given disk image really exist on the repository'
+  s_description 'Check if a given disk image really exist on the repository'
   s_param :img, '[imgName]', 'name of image to check.'
-  service 'checkImage' do |req, res|    
+  service 'checkImage' do |req, res|
     config = getTestbedConfig(req, @@config)
     image = getParamDef(req, 'img', nil)
     imagePath = "#{config['imageDir']}/#{image}"
@@ -64,23 +64,23 @@ class FrisbeeService < LegacyGridService
       res.body = "OK"
     end
   end
-  
+
   #
   # Implement 'getAddress' service using the 'service' method of AbstractService
   #
-  s_info 'Get the port number of a frisbee server serving a specified image (start a new server if none exists)'
+  s_description 'Get the port number of a frisbee server serving a specified image (start a new server if none exists)'
   s_param :img, '[imgName]', 'name of image to serve [defaultImage].'
   s_param :domain, '[domain]', 'domain for request.'
-  service 'getAddress' do |req, res|    
+  service 'getAddress' do |req, res|
     d = FrisbeeDaemon.start(req)
     res['Content-Type'] = "text"
     res.body = d.getAddress()
   end
-  
+
   #
   # Implement 'stop' service using the 'service' method of AbstractService
   #
-  s_info 'Stop serving a specified image'
+  s_description 'Stop serving a specified image'
   s_param :img, '[imgName]', 'name of image to serve [defaultImage].'
   s_param :domain, '[domain]', 'domain for request.'
   service 'stop' do |req, res|
@@ -92,7 +92,7 @@ class FrisbeeService < LegacyGridService
   #
   # Implement 'status' service using the 'service' method of AbstractService
   #
-  s_info 'Returns the list of all served image'
+  s_description 'Returns the list of all served image'
   s_param :img, '[imgName]', 'If defined, only report about that image.'
   s_param :domain, '[domain]', 'domain for request.'
   service 'status' do |req, res|

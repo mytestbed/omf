@@ -36,14 +36,14 @@ require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 # This class defines a Service to access inventory information about available
 # testbeds and their resources (e.g. nodes, antenna, etc...). For a given
 # administrative entity, there is a unique inventory, which holds information
-# for multiple testbeds. 
-# Example of information stored in the inventory are: address and port for other 
+# for multiple testbeds.
+# Example of information stored in the inventory are: address and port for other
 # Services (e.g. 'where to find the Frisbee Service for testbed X'), or location
 # info (e.g. 'where resource Y of testbed X is physically located'), or resource
 # specific attributs (e.g. 'what is the MAC address of wireless device I on
 # resource Y of testbed X' or 'what is the Control IP of node Y of testbed X').
-# The information contained in the inventory should be kept up to date by the 
-# testbed operator. The database schema for the OMF-understandable inventory is 
+# The information contained in the inventory should be kept up to date by the
+# testbed operator. The database schema for the OMF-understandable inventory is
 # available in the separate OMF Installation Guide document.
 #
 # For more details on how features of this Service are implemented below, please
@@ -53,15 +53,15 @@ require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 class InventoryService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
-  name 'inventory' 
-  info 'Service to retrieve information about nodes or testbeds from the Inventory Database'
+  name 'inventory'
+  description 'Service to retrieve information about nodes or testbeds from the Inventory Database'
   @@config = nil
   @@inventory = nil
   # These are the current configuration parameters available for testbeds running OMF
-  CONST_CONFIG_KEYS = [ 'x_max', 'y_max', 'pxe_url', 'cmc_url', 
+  CONST_CONFIG_KEYS = [ 'x_max', 'y_max', 'pxe_url', 'cmc_url',
                         'frisbee_url', 'frisbee_default_disk', 'saveimage_url', 'oml_url']
- 
-  # From Winlab, please fix/clean 
+
+  # From Winlab, please fix/clean
   #
   #@@device_description = Hash.new("UNKNOWN")
   # XXX This needs to move into the config file.
@@ -104,7 +104,7 @@ class InventoryService < LegacyGridService
   #
   # Create new XML reply containing a given result value.
   # If the result is 'nil' or empty, set an error message in this reply.
-  # Otherwise, call a block of commands to format the content of this reply 
+  # Otherwise, call a block of commands to format the content of this reply
   # based on the result.
   #
   # - replyName = name of the new XML Reply object
@@ -112,8 +112,8 @@ class InventoryService < LegacyGridService
   # - msg =  the error message to store in this reply, if result is nil or empty
   # - &block = the block of command to use to format the result
   #
-  # [Return] a new XML tree 
-  #  
+  # [Return] a new XML tree
+  #
   def self.buildXMLReply(replyName, result, msg, &block)
     root = REXML::Element.new("#{replyName}")
     if (result == :Error)
@@ -129,7 +129,7 @@ class InventoryService < LegacyGridService
   #
   # Implement 'getMacAddress' service using the 'service' method of AbstractService
   #
-  s_info "Get the MAC address of a given interface on a given node for a given domain"
+  s_description "Get the MAC address of a given interface on a given node for a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :ifname, 'interfaceName', 'name of the interface (e.g. ath0).'
   s_param :domain, 'domain', 'testbed/domain for this given node'
@@ -155,11 +155,11 @@ class InventoryService < LegacyGridService
     }
     setResponse(res, replyXML)
   end
-  
+
   #
   # Implement 'getPXEImage' service using the 'service' method of AbstractService
   #
-  s_info "Get the MAC address of a given interface on a given node for a given domain"
+  s_description "Get the MAC address of a given interface on a given node for a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getPXEImage' do |req, res|
@@ -187,7 +187,7 @@ class InventoryService < LegacyGridService
   #
   # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
   #
-  s_info "Get the MAC addresses of all the interfaces on a given node on a given domain"
+  s_description "Get the MAC addresses of all the interfaces on a given node on a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getAllMacAddresses' do |req, res|
@@ -217,7 +217,7 @@ class InventoryService < LegacyGridService
   #
   # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
   #
-  s_info "Get a list of the names of all available resources on a given domain"
+  s_description "Get a list of the names of all available resources on a given domain"
   s_param :domain, 'domain', 'testbed/domain for this query'
   service 'getListOfResources' do |req, res|
     # Retrieve the request parameter
@@ -244,8 +244,8 @@ class InventoryService < LegacyGridService
 
   #
   # Implement 'getControlIP' service using the 'service' method of AbstractService
-  #  
-  s_info "Get the Control IP address of a given resource for a given domain"
+  #
+  s_description "Get the Control IP address of a given resource for a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getControlIP' do |req, res|
@@ -272,8 +272,8 @@ class InventoryService < LegacyGridService
 
   #
   # Implement 'getHRN' service using the 'service' method of AbstractService
-  #  
-  s_info "Get the HRN for a certain hostname on a given domain"
+  #
+  s_description "Get the HRN for a certain hostname on a given domain"
   s_param :hostname, 'hostname', 'hostname of the node'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getHRN' do |req, res|
@@ -300,8 +300,8 @@ class InventoryService < LegacyGridService
 
   #
   # Implement 'getConfig' service using the 'service' method of AbstractService
-  # 
-  s_info "Get all Specific Configuration Parameters for a given Testbed"
+  #
+  s_description "Get all Specific Configuration Parameters for a given Testbed"
   s_param :domain, 'domain', 'domain for which we want to retrieve the config parameters.'
   service 'getConfig' do |req, res|
     # Retrieve the request parameter
@@ -326,14 +326,14 @@ class InventoryService < LegacyGridService
     }
     setResponse(res, rootXMLConfig)
   end
-  
+
   #
   # Implement 'getAllWirelessDevices' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
-  #       if so it might need some fixing with new way of handling access to 
-  #       inventory. 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
+  #       if so it might need some fixing with new way of handling access to
+  #       inventory.
   #
-  s_info "Get list of wireless devices on a given node in a given domain."
+  s_description "Get list of wireless devices on a given node in a given domain."
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'domain of given node'
   service 'getAllWirelessDevices' do |req, res|
@@ -367,11 +367,11 @@ class InventoryService < LegacyGridService
 
   #
   # Implement 'getAllNodesWithOui' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
-  #       if so it might need some fixing with new way of handling access to 
-  #       inventory. 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
+  #       if so it might need some fixing with new way of handling access to
+  #       inventory.
   #
-  s_info "Get list of nodes that have network cards with given OUI (first 3 bytes) on a given domain"
+  s_description "Get list of nodes that have network cards with given OUI (first 3 bytes) on a given domain"
   s_param :oui, 'oui', 'First three bytes of the OUI as B1:B2:B3'
   s_param :domain, 'domain', 'domain for this node list'
   service 'getAllNodesWithOui' do |req, res|
@@ -401,11 +401,11 @@ class InventoryService < LegacyGridService
 
   #
   # Implement 'getAllDeviceAliases' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
-  #       if so it might need some fixing with new way of handling access to 
-  #       inventory. 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
+  #       if so it might need some fixing with new way of handling access to
+  #       inventory.
   #
-  s_info "Get list of device aliases defined in the inventory"
+  s_description "Get list of device aliases defined in the inventory"
   s_param :domain, 'domain', 'domain for the alias list'
   service 'getAllDeviceAliases' do |req, res|
     MObject::debug("In get Aliases")
@@ -423,7 +423,7 @@ class InventoryService < LegacyGridService
         aliases.each { | al |
           el = aliasnode.add_element("alias")
           el.add_attribute("name", al)
-        }        
+        }
       end
     rescue Exception => ex
       root.add_element("ERROR")
@@ -431,13 +431,13 @@ class InventoryService < LegacyGridService
     end
     setResponse(res, root)
   end
-  
+
   #
   # add a node to the testbed
   # creates entries in the inventory tables, adds XMPP system nodes
   # and reconfigures dnsmasq
   #
-  s_info "Get list of device aliases defined in the inventory"
+  s_description "Get list of device aliases defined in the inventory"
   s_param :domain, 'domain', 'domain for the alias list'
   service 'addNode' do |req, res|
     root = REXML::Element.new("result")
@@ -456,11 +456,11 @@ class InventoryService < LegacyGridService
 
   #
   # Implement 'getAllNodesWithAliasDevice' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
-  #       if so it might need some fixing with new way of handling access to 
-  #       inventory. 
-  #  
-  s_info "Get list of nodes that have devices with the human readable alias (tag)"
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
+  #       if so it might need some fixing with new way of handling access to
+  #       inventory.
+  #
+  s_description "Get list of nodes that have devices with the human readable alias (tag)"
   s_param :alias, 'alias', 'Device alias (tag)'
   s_param :domain, 'domain', 'domain for this node list'
   service 'getAllNodesWithAliasDevice' do |req, res|
@@ -482,7 +482,7 @@ class InventoryService < LegacyGridService
       else
         MObject::debug("Got #{range[0]}, #{range[1]}, #{range[2]}")
         addXMLElement(root,"domain",domain)
-        nl = root.add_element("range")        
+        nl = root.add_element("range")
         addXMLElement(nl,"x_max",range[0])
         addXMLElement(nl,"y_max",range[1])
         addXMLElement(nl,"z_max",range[2])
@@ -494,7 +494,7 @@ class InventoryService < LegacyGridService
           el.add_attribute("x", coords[0])
           el.add_attribute("y", coords[1])
           nlist.add_text "[#{coords[0]},#{coords[1]}]"
-          if (coords != nodes.last) 
+          if (coords != nodes.last)
             nlist.add_text ','
           end
         }
@@ -506,12 +506,12 @@ class InventoryService < LegacyGridService
     end
     setResponse(res, root)
   end
-  
+
   #
   # Return all the Wireless Devices for a given resource of a given testbed.
-  # NOTE: Following code added by Winlab?, not sure if it is still used... 
-  #       if so it might need some fixing with new way of handling access to 
-  #       inventory. 
+  # NOTE: Following code added by Winlab?, not sure if it is still used...
+  #       if so it might need some fixing with new way of handling access to
+  #       inventory.
   #
   def self.getAllWirelessDevices(tbConfig, x, y, domainName)
     h = tbConfig['host']
@@ -529,7 +529,7 @@ class InventoryService < LegacyGridService
     inv.close()
     return wds
   end
-  
+
   #
   # Configure the service through a hash of options
   #
@@ -538,7 +538,7 @@ class InventoryService < LegacyGridService
   def self.configure(config)
     @@config = config
   end
-  
+
   #
   # Write a dnsmasq DHCP configuration file
   # that is generated from the inventory
@@ -546,7 +546,7 @@ class InventoryService < LegacyGridService
   # - inventoryConfig = the testbed configuration
   # - inv = the inventory
   # - domain = the domain we want to create a config file for
-  #  
+  #
   def self.updateDnsMasq(inventoryConfig, inv, domain)
     MObject::debug("Updating dnsmasq configuration")
     if !(inventoryConfig['dnsmasq_config'])
@@ -562,12 +562,12 @@ class InventoryService < LegacyGridService
     # in dnsmasq.conf
     system("killall -s HUP dnsmasq")
   end
-  
-  
+
+
   #
   # Easter Egg :-)
   #
-  s_info "This service has meta cow powers"
+  s_description "This service has meta cow powers"
   service 'moo' do |req, res|
     # Moo.
     root = REXML::Element.new("moo")

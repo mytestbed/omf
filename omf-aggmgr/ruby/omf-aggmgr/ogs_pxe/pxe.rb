@@ -34,7 +34,7 @@ require 'omf-aggmgr/ogs/legacyGridService'
 require 'omf-aggmgr/ogs/timer'
 
 #
-# This class defines a Service to enable/disable one or many node(s) of a 
+# This class defines a Service to enable/disable one or many node(s) of a
 # testbed to boot over the network using the PXE method.
 #
 # For more details on how features of this Service are implemented below, please
@@ -44,7 +44,7 @@ class PxeService < LegacyGridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'pxe'
-  info 'Service to facilitate PXE to boot into specific image'
+  description 'Service to facilitate PXE to boot into specific image'
   @@config = nil
 
   # store the currently installed image for a node identified by its
@@ -57,7 +57,7 @@ class PxeService < LegacyGridService
   #
   # Implement 'setBootImageNS' service using the 'service' method of AbstractService
   #
-  s_info "Get PXE to boot all nodes in 'nodeSet' into their respective PXE image."
+  s_description "Get PXE to boot all nodes in 'nodeSet' into their respective PXE image."
   s_param :ns, 'nodeSet', 'set definition of nodes included.'
   s_param :domain, 'domain', 'domain for request.'
   s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
@@ -68,11 +68,11 @@ class PxeService < LegacyGridService
     imageName = getParamDef(req, 'imgName', nil)
     setImage(ns, tb, domain, res, imageName)
   end
-  
+
   #
   # Implement 'clearBootImageNS' service using the 'service' method of AbstractService
-  #  
-  s_info "Get PXE to clear the pxe boot image of all nodes in 'nodeSet'"
+  #
+  s_description "Get PXE to clear the pxe boot image of all nodes in 'nodeSet'"
   s_param :ns, 'nodeSet', 'set definition of nodes included.'
   s_param :domain, 'domain', 'domain for request.'
   service 'clearBootImageNS' do |req, res|
@@ -81,11 +81,11 @@ class PxeService < LegacyGridService
     domain = getParam(req, 'domain')
     clearImage(ns, tb, domain, res)
   end
-  
+
   #
   # Implement 'setBootImageAll' service using the 'service' method of AbstractService
   #
-  s_info "Get PXE to boot ALL nodes on this testbed into their respective PXE image"
+  s_description "Get PXE to boot ALL nodes on this testbed into their respective PXE image"
   s_param :domain, 'domain', 'domain for request.'
   s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
   service 'setBootImageAll' do |req, res|
@@ -96,11 +96,11 @@ class PxeService < LegacyGridService
     imageName = getParamDef(req, 'imgName', nil)
     setImage(nodes, tb, domain, res, imageName)
   end
-  
+
   #
   # Implement 'clearBootImageAll' service using the 'service' method of AbstractService
   #
-  s_info "Get PXE to clear the pxe boot image of all nodes"
+  s_description "Get PXE to clear the pxe boot image of all nodes"
   s_param :domain, 'domain', 'domain for request.'
   service 'clearBootImageAll' do |req, res|
     tb = getTestbedConfig(req, @@config)
@@ -111,7 +111,7 @@ class PxeService < LegacyGridService
   end
 
   #
-  # Return the PXE Image to use for a specific node on a given testbed. This 
+  # Return the PXE Image to use for a specific node on a given testbed. This
   # method makes use of the Inventory GridService
   #
   # - url = URL to the Inventory GridService
@@ -132,7 +132,7 @@ class PxeService < LegacyGridService
       error "PXE - No PXE Image info found for #{hrn} - Response from Inventory is NIL"
       error "PXE - QueryURL: #{queryURL}"
       raise Exception.new()
-    end 
+    end
     doc = REXML::Document.new(response.body)
     # Parse the Reply to retrieve the PXE Image name
     imageName = nil
@@ -147,12 +147,12 @@ class PxeService < LegacyGridService
     end
     return imageName
   end
-  
+
   #
   # Set some given nodes to network-boot into a specific image via PXE.
-  # Following the PXE boot mechanism, this method creates some symlinks to a 
+  # Following the PXE boot mechanism, this method creates some symlinks to a
   # specific PXE boot image into the '/tftpboot/pxelinux.cfg/' directory of the
-  # server hosting the PXE image(s). These symlinks are named based on the 
+  # server hosting the PXE image(s). These symlinks are named based on the
   # Control IP address of the nodes to PXE boot.
   #
   # - nodes = an Array with the HRNs of the nodes to PXE boot
@@ -208,11 +208,11 @@ class PxeService < LegacyGridService
     }
     setResponse(res, resXml)
   end
- 
+
   #
   # Remove PXE boot for some given nodes. At the next reboot, these nodes will
   # boot from their default boot (usually local hardrive).
-  # Following the PXE boot mechanism, this method removes the symlinks 
+  # Following the PXE boot mechanism, this method removes the symlinks
   # previously created by setImage(...).
   #
   # - nodes = an Array with the HRNs of the nodes to PXE boot
@@ -225,7 +225,7 @@ class PxeService < LegacyGridService
     inventoryURL = tb['inventory_url']
     cfgDir = @@config['cfgDir']
     nodesHex = []
- 
+
     @@mutex.synchronize {
       if nodes.length != 0
         nodes.each {|hrn|
@@ -240,7 +240,7 @@ class PxeService < LegacyGridService
         }
       else
         debug("ClearImage called with an empty nodeSet (#{nodes}), nothing to be done.")
-      end 
+      end
     }
     setResponse(res, resXml)
   end
@@ -250,7 +250,7 @@ class PxeService < LegacyGridService
   #
   # - actionName = description of the action to use as a response
   #
-  # [Return] a pair (res, resXml) holding the basic HTTP response and its XML 
+  # [Return] a pair (res, resXml) holding the basic HTTP response and its XML
   #          extension
   #
   def self.createResponse(actionName)

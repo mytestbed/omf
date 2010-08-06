@@ -1,7 +1,7 @@
 
 class SampleService < AbstractService
 
- s_info 'Foo is a typical service'
+ s_description 'Foo is a typical service'
  s_param :x, 'xcoord', 'x coordinates of location'
  s_param :domain, '[sb_name]', 'domain for which to apply this action'
  s_auth :authorize

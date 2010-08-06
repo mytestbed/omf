@@ -22,7 +22,7 @@
 #
 #
 #
-# This service provides information on the 
+# This service provides information on the
 # available nodes in the testbed and basic
 # functionality to switch them on and off.
 #
@@ -34,14 +34,14 @@ require 'omf-aggmgr/ogs_cmc/cmcNode'
 
 
 class CmcService < LegacyGridService
-  
+
   name 'cmc' # used to register/mount the service, the service's url will be based on it
-  info 'Information on available testbed resources and simple control functionality'
+  description 'Information on available testbed resources and simple control functionality'
   @@config = nil
-  
+
   @@nodes = {}
-  
-  s_info 'Switch on a node at a specific coordinate'
+
+  s_description 'Switch on a node at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
   s_param :domain, '[domain]', 'domain for request.'
@@ -55,70 +55,70 @@ class CmcService < LegacyGridService
     p "peerIp #{peerIp}"
     p "X= #{x}, Y= #{y}"
     p req.query
-    self.responseOK(res)    
+    self.responseOK(res)
   end
 
-  s_info 'Switch on a set of nodes'
+  s_description 'Switch on a set of nodes'
   s_param :ns, 'nodeSet', 'set definition of nodes included.'
   s_param :domain, '[domain]', 'domain for request.'
   service 'nodeSetOn' do |req, res|
      ns = getNodeSetParam(req, 'ns')
-     tb = getTestbedConfig(req, @@config) 
-    self.responseOK(res)   
-  end
-  
-  s_info 'Switch on all of the nodes'
-  service 'allOn' do |req, res|
-    self.responseOK(res)   
+     tb = getTestbedConfig(req, @@config)
+    self.responseOK(res)
   end
 
-  s_info 'Switch off a node HARD (immediately) at a specific coordinate'
+  s_description 'Switch on all of the nodes'
+  service 'allOn' do |req, res|
+    self.responseOK(res)
+  end
+
+  s_description 'Switch off a node HARD (immediately) at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
   service 'offHard' do |req, res|
-    self.responseOK(res)    
+    self.responseOK(res)
   end
 
-  s_info 'Switch off a node SOFT (execute halt) at a specific coordinate'
+  s_description 'Switch off a node SOFT (execute halt) at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
   service 'offSoft' do |req, res|
-    self.responseOK(res)    
+    self.responseOK(res)
   end
-  
-  s_info 'Switch off ALL nodes HARD (immediately)'
+
+  s_description 'Switch off ALL nodes HARD (immediately)'
   service 'allOffHard' do |req, res|
-    self.responseOK(res)    
+    self.responseOK(res)
   end
 
-  s_info 'Switch off ALL nodes SOFT (execute halt)'
+  s_description 'Switch off ALL nodes SOFT (execute halt)'
   service 'allOffSoft' do |req, res|
-    self.responseOK(res)    
+    self.responseOK(res)
   end
 
-  s_info 'Reset a node at a specific coordinate'
+  s_description 'Reset a node at a specific coordinate'
   s_param :x, 'xcoord', 'x coordinates of location'
   s_param :y, 'ycoord', 'y coordinates of location'
   service 'reset' do |req, res|
-    self.responseOK(res)    
+    self.responseOK(res)
   end
 
-  s_info 'Returns a list of all nodes in the testbed'
+  s_description 'Returns a list of all nodes in the testbed'
   service 'getAllNodes' do |req, res|
     tb = getTestbedConfig(req)
-    
+
     nodes = eval(tb['listAll'])
     res.body = nodes.inspect
     res['Content-Type'] = "text"
   end
-  
-  s_info 'Returns the status of all nodes in the testbed'
+
+  s_description 'Returns the status of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
   service 'allStatus' do |req, res|
     tb = getTestbedConfig(req, @@config)
     root = REXML::Element.new('TESTBED_STATUS')
     detail = root.add_element('detail')
-    
+
     nodes = eval(tb['listStatus'])
     nodes.each { |n|
       x = n[0]; y = n[1]
@@ -127,28 +127,28 @@ class CmcService < LegacyGridService
     }
     setResponse(res, root)
   end
-  
+
     # Configure the service through a hash of options
   #
   def self.configure(config)
     @@config = config
   end
-  
+
   def self.authorizeIP(req, res)
    domain = getParam(req, 'domain')
     peerDomain= Websupp.getPeerSubDomain(req)
     address = req.peeraddr[2]
     peerIp = Websupp.getAddress(address.rstrip)
-  
+
    # We have to make sure that either the domain of the peer address
-   # maches the requested testbed or that the address  
+   # maches the requested testbed or that the address
    # belongs to the set/range of addresses authorized to access nodes
    puts "Checking authorization for domain #{domain}' req=#{peerDomain}, peerIP=#{peerIp}"
    # We need to do parial match on subdomain and handle default as well ...
    isAuth = (domain == peerDomain)
    isAuth
  end
-  
+
 end
 
 # We now register the service from the main code of 'ogs.rb'

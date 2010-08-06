@@ -46,9 +46,9 @@ class SlicemgrService < LegacyGridService
   @@dryrun_nodes = nil
 
   name 'slicemgr'
-  info 'XML-RPC interface to the PubSub server for slice creation'
+  description 'XML-RPC interface to the PubSub server for slice creation'
 
-  s_info 'Create PubSub nodes for a new slice.'
+  s_description 'Create PubSub nodes for a new slice.'
   service 'createSlice' do |slice|
     if check_slice_name(slice) then
       sliceid = slice_pubsub_id(slice)
@@ -63,7 +63,7 @@ class SlicemgrService < LegacyGridService
     end
   end
 
-  s_info 'Create PubSub node for a new resource in a given slice.'
+  s_description 'Create PubSub node for a new resource in a given slice.'
   service 'addResource' do |slice, resource|
     if check_slice_name(slice) then
       sliceid = slice_pubsub_id(slice)
@@ -79,7 +79,7 @@ class SlicemgrService < LegacyGridService
     end
   end
 
-  s_info 'Delete the PubSub node for a resource in a slice.'
+  s_description 'Delete the PubSub node for a resource in a slice.'
   service 'removeResource' do |slice, resource|
     if check_slice_name(slice) then
       sliceid = slice_pubsub_id(slice)
@@ -94,7 +94,7 @@ class SlicemgrService < LegacyGridService
     end
   end
 
-  s_info 'Delete the PubSub node for a given slice.'
+  s_description 'Delete the PubSub node for a given slice.'
   service 'deleteSlice' do |slice|
     if check_slice_name(slice) then
       sliceid = slice_pubsub_id(slice)

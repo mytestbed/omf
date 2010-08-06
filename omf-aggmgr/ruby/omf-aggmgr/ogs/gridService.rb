@@ -179,7 +179,6 @@ class GridService < AbstractService
         error "No Resource info found for t: #{domain} - val: #{e.get_text.value}"
       }
     end
-    info "TDEBUG - GS - AllNodes - [ #{allNodes.join(" - ")} ]"
     return allNodes
   end
 

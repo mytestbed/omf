@@ -31,9 +31,9 @@
 require 'omf-aggmgr/ogs/timer'
 
 #
-# This class defines the general Daemon class. This class is used by all the 
+# This class defines the general Daemon class. This class is used by all the
 # Services that calls an external daemon software to perform their required tasks.
-# The AbstractDameon class serves as the interface between the GridServices of 
+# The AbstractDameon class serves as the interface between the GridServices of
 # OMF and the external daemon software.
 # This class is meant to be sub-classed for a particular type of Daemon required by a Service.
 # This class not only represent a single Daemon instance, but it also provides a class-wide
@@ -62,7 +62,7 @@ class AbstractDaemon < MObject
   end
 
   #
-  # Start a given Daemon identified by its name. If no daemon exist for the given name, 
+  # Start a given Daemon identified by its name. If no daemon exist for the given name,
   # then create and start a new one
   #
   # - req = the HTTP Request used to request the dameon execution, and which contains its name
@@ -83,7 +83,7 @@ class AbstractDaemon < MObject
 
 
   #
-  # Stop a given Daemon identified by its name. 
+  # Stop a given Daemon identified by its name.
   #
   # - req = the HTTP Request used to request the dameon termination, and which contains its name
   #
@@ -105,7 +105,7 @@ class AbstractDaemon < MObject
 
   #
   # Return a particular Daemon instance used by this Service
-  #	
+  #
   # [Return] an instance of a Daemon
   #
   def self.[] (id)
@@ -136,7 +136,7 @@ class AbstractDaemon < MObject
     end
     p
   end
-	
+
   #
   # Return the value of a given configuration parameter for a Daemon,
   # if this parameter is not present in the request, return a default value
@@ -151,7 +151,7 @@ class AbstractDaemon < MObject
     req.query[name] || default
   end
 
-  # 
+  #
   # Create a new instance of an AbstractDaemon
   #
   # - req = the HTTP Request that requests the daemon creation
@@ -176,7 +176,7 @@ class AbstractDaemon < MObject
   end
 
   #
-  # Load config file for this Service, assign default value to config 
+  # Load config file for this Service, assign default value to config
   # parameters when no value is specified in the config file.
   # Specific Daemon sub-class will override this method with its own defaults
   #
@@ -185,9 +185,9 @@ class AbstractDaemon < MObject
 
   #
   # Return the command string for starting the Daemon.
-  # Specific Daemon sub-class will override this method with its own command line 
+  # Specific Daemon sub-class will override this method with its own command line
   #
-	def getCommand()
+    def getCommand()
     raise "Missing implementation of 'getCommand'"
   end
 
@@ -215,7 +215,7 @@ class AbstractDaemon < MObject
   end
 
   #
-  # Stop this particular Daemon instance	
+  # Stop this particular Daemon instance
   #
   def stop()
     @running = false  # to avoid error message from termination
@@ -226,7 +226,7 @@ class AbstractDaemon < MObject
     Timer.cancel(@name)
     @@inst[self.class].delete(@name)
   end
-	
+
   #
   # Return a free network Port on which this Daemon can listen for requests.
   # This 1st check an initial Port (specified in request or default), if not available
@@ -245,7 +245,7 @@ class AbstractDaemon < MObject
       #    break
       #  end
       #}
-      # Retrieve the list of all Daemons running 
+      # Retrieve the list of all Daemons running
       if (@@inst[self.class] != nil)
         @@inst[self.class].each_value { |value|
           # For each Daemon, check its used port compared to our candidate one
@@ -254,7 +254,7 @@ class AbstractDaemon < MObject
             break
           end
         }
-      end 
+      end
       if (good)
         begin
           info "Checking port #{port}..."
@@ -274,7 +274,7 @@ class AbstractDaemon < MObject
   end
 
   #
-  # Execute the command line to run this Daemon. This method forks the current Thread to 
+  # Execute the command line to run this Daemon. This method forks the current Thread to
   # execute the Daemon, then create a new Thread to monitor the correct termination of this
   # Daemon, and Timer (i.e. essentially another Thread) to monitor Daemon timeout.
   #
@@ -321,7 +321,7 @@ class AbstractDaemon < MObject
   #
   # Return the time in seconds before this Daemon instance will timeout
   #
-	# [Return] a time in second
+    # [Return] a time in second
   #
   def untilTimeout()
     return Timer.timeRemaining(@name)
