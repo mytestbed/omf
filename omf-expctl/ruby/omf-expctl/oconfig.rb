@@ -48,9 +48,9 @@ module OConfig
   @@loadHistory = []
   @allNodes = []
   
-  TESTBED_CONFIG_KEYS = [:pxe_url, :cmc_url, :result_url, 
-                         :frisbee_url, :frisbee_default_disk, 
-                         :oml_url, :saveimage_url]
+  #TESTBED_CONFIG_KEYS = [:pxe_url, :cmc_url, :result_url, 
+  #                       :frisbee_url, :frisbee_default_disk, 
+  #                       :oml_url, :saveimage_url]
 
   #
   # Return the value of a given configuration parameter
@@ -68,59 +68,68 @@ module OConfig
     @@config[key] = value
   end
 
+  # NOTE: 
+  # This is not required anymore, now that we have implemented initial 
+  # support for federation.
+  # the :tb_config key of the @@config hash should not be required anymore
+  # all parameters should be under the :ec_config key
   #
   # Query the Inventory service for the configuration parameters related to 
   # a given testbed
   #
-  def self.loadTestbedConfiguration()
-    # Initialize the config hash if first time called
-    if  @@config[:tb_config] == nil
-      @@config[:tb_config] = Hash.new 
-    end
+#  def self.loadTestbedConfiguration()
+#    # Initialize the config hash if first time called
+#    if  @@config[:tb_config] == nil
+#      @@config[:tb_config] = Hash.new 
+#    end
+#
+#    # Check if EC is running in 'Slave' mode. If so, then this EC is actually 
+#    # running directly on a node/resource and will only be responsible for 
+#    # orchestrating the part of the experiment which is specific to this 
+#    # node/resource. Thus config parameters are also specific (most would be 
+#    # turned to 'localhost' and local node ID)
+#    return nil if NodeHandler.SLAVE || NodeHandler.debug?
+#
+#    # Retrieve the testbed-specific configuration parameters from the Inventory
+#    url = "#{@@config[:ec_config][:inventory][:url]}"+
+#          "/getConfig?&domain=#{@@domainName}"
+#    response = NodeHandler.service_call(url, 
+#               "Can't get config for domain '#{@@domainName}' from INVENTORY")
+#
+#    configFromInventory = REXML::Document.new(response.body)
+#    
+#    # Extract the information from the REXML, and store them in a Hash 
+#    tb_hash = Hash.new
+#    TESTBED_CONFIG_KEYS.each{ |key|
+#      configValue = nil
+#      configFromInventory.root.elements.each("/CONFIG/#{key}") { |e|
+#        if (e.get_text != nil)
+#          tb_hash[key] = e.get_text.value
+#	      else
+#          raise "OConfig - The configuration parameter '#{key}' has no value "+
+#                " assigned to it! (EC config is set to '#{@@domainName}')"
+#        end
+#      }
+#    }
+#    @@config[:tb_config][:default] = tb_hash
+#    
+#    # Retrieve the testbed-specific list of resources from the Inventory
+#    url = "#{@@config[:ec_config][:inventory][:url]}"+
+#          "/getListOfResources?&domain=#{@@domainName}"
+#    response = NodeHandler.service_call(url, 
+#               "Can't get list of resources for domain '#{@@domainName}' from INVENTORY")
+#    resourceList = REXML::Document.new(response.body)
+#    
+#    resourceList.root.elements.each("/RESOURCES/NODE") { |r|
+#      @allNodes << "#{r.get_text}"
+#    }
+#    @allNodes
+#  end
 
-    # Check if EC is running in 'Slave' mode. If so, then this EC is actually 
-    # running directly on a node/resource and will only be responsible for 
-    # orchestrating the part of the experiment which is specific to this 
-    # node/resource. Thus config parameters are also specific (most would be 
-    # turned to 'localhost' and local node ID)
-    return nil if NodeHandler.SLAVE || NodeHandler.debug?
-
-    # Retrieve the testbed-specific configuration parameters from the Inventory
-    url = "#{@@config[:ec_config][:inventory][:url]}"+
-          "/getConfig?&domain=#{@@domainName}"
-    response = NodeHandler.service_call(url, 
-               "Can't get config for domain '#{@@domainName}' from INVENTORY")
-
-    configFromInventory = REXML::Document.new(response.body)
-    
-    # Extract the information from the REXML, and store them in a Hash 
-    tb_hash = Hash.new
-    TESTBED_CONFIG_KEYS.each{ |key|
-      configValue = nil
-      configFromInventory.root.elements.each("/CONFIG/#{key}") { |e|
-        if (e.get_text != nil)
-          tb_hash[key] = e.get_text.value
-	      else
-          raise "OConfig - The configuration parameter '#{key}' has no value "+
-                " assigned to it! (EC config is set to '#{@@domainName}')"
-        end
-      }
-    }
-    @@config[:tb_config][:default] = tb_hash
-    
-    # Retrieve the testbed-specific list of resources from the Inventory
-    url = "#{@@config[:ec_config][:inventory][:url]}"+
-          "/getListOfResources?&domain=#{@@domainName}"
-    response = NodeHandler.service_call(url, 
-               "Can't get list of resources for domain '#{@@domainName}' from INVENTORY")
-    resourceList = REXML::Document.new(response.body)
-    
-    resourceList.root.elements.each("/RESOURCES/NODE") { |r|
-      @allNodes << "#{r.get_text}"
-    }
-    @allNodes
-  end
-
+  #
+  # NOTE: After integration of new AM service call, this should send a query
+  # to the Slice's root node to ask for the presence of all the resources
+  # involved in this experiment's slice.
   #
   # Return the default path(s) to the repository(ies) 
   #
@@ -291,8 +300,9 @@ module OConfig
   end
 
   #
-  # Similar to 'load' method, but use the external loading function, which may be defined 
-  # in the EC config file. This loading method is obsolete, and should be removed.
+  # Similar to 'load' method, but use the external loading function, which may 
+  # be defined in the EC config file. This loading method is obsolete, and 
+  # should be removed.
   # See 'load' for more info on 'uri' and 'evalRuby' arguments.
   #
   def self.loadExternal(uri, evalRuby = false)
@@ -300,9 +310,10 @@ module OConfig
   end
 
   #
-  # Retrieve and return a piece of code from the Node Handler
-  # configuration file as a Proc. This method is obsolete, as we have adopted a design
-  # where the EC get most of its config from the Inventory service. Thus it should be removed.
+  # Retrieve and return a piece of code from the Node Handler configuration 
+  # file as a Proc. This method is obsolete, as we have adopted a design
+  # where the EC get most of its config from the Inventory service. Thus it 
+  # should be removed.
   #
   # - name = name identifying the code block to retrieve in the EC config file
   # 

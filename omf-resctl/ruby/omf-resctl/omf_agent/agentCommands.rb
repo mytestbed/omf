@@ -58,8 +58,8 @@ module AgentCommands
   SLAVE_EC_CFG = "/etc/omf-expctl-#{OMF_MM_VERSION}/omf-expctl.local.yaml"
   # Proxy OML Collection Server
   OML_PROXY_CMD = "/usr/bin/oml2-proxy-server"
-  OML_PROXY_LISTENPORT = "9001"
-  OML_PROXY_LISTENADDR = "127.0.0.1"
+  OML_PROXY_PORT = "9001"
+  OML_PROXY_ADDR = "127.0.0.1"
   OML_PROXY_CACHE = "/tmp/oml-proxy-cache"
   OML_PROXY_LOG = "/tmp/oml-proxy-log"
   
@@ -684,7 +684,7 @@ module AgentCommands
                   "'#{expPath}'")
 
     # Now Start a Proxy OML Server
-    cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_LISTENPORT} "+
+    cmd = "#{OML_PROXY_CMD} --listen #{OML_PROXY_PORT} "+
                            "--dstaddress #{omlAddr} "+
                            "--dstport #{omlPort} "+
                            "--resultfile #{OML_PROXY_CACHE} "+
@@ -702,9 +702,8 @@ module AgentCommands
     # Now Start a Slave EC
     cmd = "#{SLAVE_EC_CMD} -C #{SLAVE_EC_CFG} "+
                           "--slice #{controller.agentSlice} "+
+                          "--oml-uri tcp:#{OML_PROXY_ADDR}:#{OML_PROXY_PORT} "+
                           "--slave-mode #{command.expID} "+
-                          "--slave-mode-omlport #{OML_PROXY_LISTENPORT} "+
-                          "--slave-mode-omladdr #{OML_PROXY_LISTENADDR} "+
                           "--slave-mode-resource #{controller.agentName} "+
                           "#{expPath}"
     MObject.debug("Starting Slave EC with: '#{cmd}'")

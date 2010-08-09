@@ -136,8 +136,6 @@ class NodeHandler < MObject
   #
   def NodeHandler.SLAVE ; return @@disconnection[:slave] end 
   def NodeHandler.NAME ; return @@disconnection[:hrn] end 
-  def NodeHandler.OML_ADDR ; return @@disconnection[:addrOMLProxy] end 
-  def NodeHandler.OML_PORT ; return @@disconnection[:portOMLProxy] end 
   def NodeHandler.EXP_FILE ; return @@expFile end 
 
   #
@@ -392,6 +390,7 @@ class NodeHandler < MObject
     @logConfigFile = nil
     @finalStateFile = nil
     @webPort = 4000
+    omlURI = nil
 
     opts = OptionParser.new
     opts.banner = "\nExecute an experiment script\n\n" +
@@ -488,6 +487,11 @@ class NodeHandler < MObject
       @web_ui = true 
     }
 
+    opts.on("--oml-uri URI", 
+    "The URI to the OML server for this experiment") { |uri|
+      omlURI = uri
+    }
+
     opts.on_tail("-h", "--help", "Show this message") { |v| 
       puts VERSION_STRING; puts opts; exit 
     }
@@ -500,16 +504,6 @@ class NodeHandler < MObject
     "Run in slave mode in disconnected experiment, EXPID is the exp. ID") { |id|
       @@disconnection[:slave] = true 
       Experiment.ID = "#{id}"
-    }
-
-    opts.on("--slave-mode-omlport PORT", 
-    "When in slave mode, PORT is the port to the proxy OML server") { |port|
-      @@disconnection[:portOMLProxy] = port.to_i
-    }
-
-    opts.on("--slave-mode-omladdr ADDR", 
-    "When in slave mode, ADDR is the port to the proxy OML server") { |addr|
-      @@disconnection[:addrOMLProxy] = addr
     }
 
     opts.on("--slave-mode-resource NAME", 
@@ -537,6 +531,9 @@ class NodeHandler < MObject
     # Load the Configuration parameters for this EC
     loadControllerConfiguration()
 
+    # If OML configs were on command line, overwrite ones from the config file  
+    OConfig[:ec_config][:omluri] = omlURI if omlURI
+
     # Setup the slice of this EC
     Experiment.sliceID = OConfig[:ec_config][:slice] if !Experiment.sliceID 
     raise "No slice ID from command line or config file!" if !Experiment.sliceID 
@@ -545,13 +542,18 @@ class NodeHandler < MObject
     Experiment.sliceID==OConfig[:ec_config][:slice] ? s = "(default)" : s = nil 
     info "Slice ID: #{Experiment.sliceID} #{s}"
     info "Experiment ID: #{Experiment.ID}"
+    info "Slave Mode on '#{@@disconnection[:hrn]}'" if @@disconnection[:slave] 
 
+    # NOTE: 
+    # This is not required anymore, now that we have implemented initial 
+    # support for federation.
+    # 
     # Load the Configuration parameters for the default testbed of this EC
     # WARNING: No federation support yet, so for now the EC gets any 
     # testbed-specific information by assuming its domain is the same as 
     # the testbed name. In the future, we will have multiple testbed configs... 
     # this will not be there, but rather provided by the resource provisioning
-    OConfig.loadTestbedConfiguration()
+    # OConfig.loadTestbedConfiguration()
 
     # Cosmetic - have this displayed here, so the log/sdout shows
     # the 'NodeHandler' class as the source of this log
@@ -568,17 +570,7 @@ class NodeHandler < MObject
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
     comm[:comms_name] = comm[:expID] = Experiment.ID
-    #comm[:expID] = Experiment.ID
     ECCommunicator.instance.init(comm)
-    
-    if @@disconnection[:slave] 
-      info "-- EC in Slave Mode on '#{@@disconnection[:hrn]}'" 
-      info "-- OML Proxy at: '#{@@disconnection[:addrOMLProxy]}:"+
-           "#{@@disconnection[:portOMLProxy]}'"
-      OConfig[:tb_config][:default] = {:oml_url => "tcp:"+
-                                       "#{@@disconnection[:addrOMLProxy]}:"+
-                                       "#{@@disconnection[:portOMLProxy]}" }
-    end
 
     @@expFile = nil
 

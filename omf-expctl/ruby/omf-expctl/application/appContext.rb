@@ -98,7 +98,7 @@ class AppContext < MObject
       el.add_attribute("id","#{nodeSet}") if nodeSet != nil
       omlXML << el
       el = REXML::Element.new('collect')
-      el.add_attribute("url","#{OConfig[:tb_config][:default][:oml_url]}")
+      el.add_attribute("url","#{OConfig[:ec_config][:omluri]}")
       # Second - build the entry for each measurement point
       @app.measurements.each do |m|
         # add mstream configurations
@@ -122,7 +122,7 @@ class AppContext < MObject
   def getENVConfig(nodeSet = nil)
     unless @app.measurements.empty?
       # add OML environment
-      @env['OML_SERVER'] = OConfig[:tb_config][:default][:oml_url]
+      @env['OML_SERVER'] = OConfig[:ec_config][:omluri]
       @env['OML_EXP_ID'] = Experiment.ID
       @env['OML_NAME'] = "#{nodeSet}" if nodeSet != nil
     end
