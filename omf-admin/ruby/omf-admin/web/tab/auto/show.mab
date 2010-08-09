@@ -26,21 +26,15 @@ div.page do
   p "The following machines have recently sent DHCP requests:"
   table do
     tr do
-      th ""      
       th "MAC Address"
-      th "Vendor ID"
+      th "Vendor ID" 
     end
     @auto_nodes.each{|m,n|
       tr do
-        td {a "add", :href => "/nodes/edit?mac=#{m}"}        
-        td m
-        td n
+        td {a m, :href => "/nodes/add?mac=#{m}"}
+        td n        
       end
     }
   end
-  
-  @script = @scripts[@show_id]
-  if @script
-    render_code @script[:content], @script[:mime_type]
-  end
+  p "Click on a MAC address to add the node to your testbed.", :style => 'font-size:12px'
 end

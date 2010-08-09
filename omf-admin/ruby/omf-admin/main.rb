@@ -29,11 +29,13 @@ require 'net/http'
 require 'omf-common/mobject'
 require 'web/webServer'
 require 'config'
+require 'testbeds'
 
 @@config = AdminConfig.new
 
-@@config.load
-@@config.save
+@@testbeds = Testbeds.new
+@@testbeds.load
+@@testbeds.save
 
 access_log_stream = File.open('access.log', 'w')
 access_log = [ [ access_log_stream, WEBrick::AccessLog::COMBINED_LOG_FORMAT ] ]

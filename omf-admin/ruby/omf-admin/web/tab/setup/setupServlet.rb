@@ -24,6 +24,7 @@ module OMF
             opts[:config] = @@config.get
             
             res.body = MabRenderer.render('setup', opts)
+            opts[:flash].clear
           end
           
           def do_POST(req, res)

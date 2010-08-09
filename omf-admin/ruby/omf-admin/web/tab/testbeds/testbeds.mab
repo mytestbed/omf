@@ -1,0 +1,28 @@
+div.page_header do
+	div.page_header_links do
+	  a 'Add', :href => '?action=edit', :class => 'admin'
+	  text " | "
+    a 'Refresh', :href => '/testbeds', :class => 'admin'
+	end
+	h1 "Configure Testbeds"
+end
+
+div.page_nav do
+end
+
+div.page do
+  table do
+    tr do
+      th ""      
+      th "Name"
+    end
+    tb = @@testbeds.getAll
+    tb.each{|t|
+      tr do
+        td {a "x", :href => "?action=remove&name=#{t['name']}"}
+        td {a t['name'], :href => "?action=edit&name=#{t['name']}"}
+      end
+    }
+  end
+  p 'Click on a testbed name to edit. Click the \'x\' to remove.', :style => 'font-size:12px'
+end

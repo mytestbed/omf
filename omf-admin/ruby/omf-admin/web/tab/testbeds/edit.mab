@@ -1,0 +1,19 @@
+div.page_header do
+  div.page_header_links do
+    a 'Save', :href => '/testbeds', :class => 'admin', :onclick => "document.forms[0].submit()"
+	end
+  if tb['name']
+    h1 "Edit a Testbed"
+  else
+    h1 "Add a Testbed"
+  end
+end
+
+div.page do
+  form :action => "", :method => "post" do
+    input :type => "text", :name => "name", :value => tb['name'], :size => 30
+    label " Name"; br
+    br
+    input :type => "submit", :value => "Save"
+  end
+end
