@@ -24,6 +24,7 @@ class AdminConfig
           :node_format => {:desc => "Node name format (%n will be replaced by an ID number)", :value =>"node%n"},
           :hrn_format => {:desc => "HRN format (%n will be replaced by an ID number)", :value =>"omf.nicta.node%n"},
           :controlip_format => {:desc => "Control IP address format (%n will be replaced by an ID number)", :value =>"10.0.0.%n"},
+          :default_disk => {:desc => "Default disk for loading/saving images", :value =>"/dev/sda"},
         }
       }
     end
@@ -37,6 +38,10 @@ class AdminConfig
   
   def get
     @@config
+  end
+  
+  def set(newconfig)
+    @@config.merge!(newconfig)
   end
   
 end

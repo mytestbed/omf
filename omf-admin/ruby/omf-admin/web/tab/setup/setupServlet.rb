@@ -19,14 +19,7 @@ module OMF
 
           def do_GET(req, res)
             opts = @options[0].dup
-            opts[:flash].clear
             opts[:view] = VIEW
-            opts[:show_file] = nil
-            if i = req.query['id'] || 0
-              opts[:show_file_id] = i.to_i
-            else
-              opts[:flash][:alert] = "Missing 'id'"
-            end
             
             opts[:config] = @@config.get
             
@@ -34,7 +27,14 @@ module OMF
           end
           
           def do_POST(req, res)
-            req.query.collect { | key, value | puts("#{key}: #{value}") }
+            newconfig = @@config.get
+            req.query.collect { | key, value |
+              k = key.split(':')
+              newconfig[:"#{k[0]}"][:"#{k[1]}"][:"#{k[2]}"] = value.to_s
+            }
+            @@config.set(newconfig)
+            @@config.save
+            @options[0][:flash][:notice] = "Configuration saved"
             do_GET(req, res)
           end
         end

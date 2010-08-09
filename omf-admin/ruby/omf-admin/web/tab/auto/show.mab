@@ -26,15 +26,15 @@ div.page do
   p "The following machines have recently sent DHCP requests:"
   table do
     tr do
+      th ""      
       th "MAC Address"
       th "Vendor ID"
-      th "Action"
     end
     @auto_nodes.each{|m,n|
       tr do
+        td {a "add", :href => "/nodes/edit?mac=#{m}"}        
         td m
         td n
-        td {a "Add", :href => "/nodes/edit?mac=#{m}"}
       end
     }
   end

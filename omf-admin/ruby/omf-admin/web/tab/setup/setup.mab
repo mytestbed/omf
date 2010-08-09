@@ -1,15 +1,17 @@
 div.page_header do
+  div.page_header_links do
+    a 'Save', :href => '', :class => 'admin', :onclick => "document.forms[0].submit()"
+	end
   h1 "Configuration Setup"
 end
 
-@config = config
-
 div.page do
   form :action => "setup", :method => "post" do
-    @config.each_key{|k|
+    cfg = @@config.get
+    cfg.each_key{|k|
       p "#{k.to_s.capitalize}"
-      @config[k].each{|l,m|
-        input :type => "text", :name => "#{k}:#{l}", :value => m[:value], :size => 30
+      cfg[k].each{|l,m|
+        input :type => "text", :name => "#{k}:#{l}:value", :value => m[:value], :size => 30
         label " #{m[:desc]}"; br
       }
     }

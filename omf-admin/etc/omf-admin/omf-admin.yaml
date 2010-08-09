@@ -1,25 +1,28 @@
 --- 
 :dnsmasq: 
   :dnslog0: 
-    :desc: Dnsmasq logfile
     :value: /var/log/syslog
+    :desc: Dnsmasq logfile
   :dnslog1: 
-    :desc: Old Dnsmasq logfile (after log rotation)
     :value: /var/log/syslog.1
+    :desc: Old Dnsmasq logfile (after log rotation)
   :dhcpconfig: 
-    :desc: Dnsmasq additional configuration file (where static DHCP assignments are stored)
     :value: /etc/dnsmasq_omf.conf
+    :desc: Dnsmasq additional configuration file (where static DHCP assignments are stored)
 :nodes: 
   :node_format: 
-    :desc: Node name format (%n will be replaced by an ID number)
     :value: node%n
+    :desc: Node name format (%n will be replaced by an ID number)
   :hrn_format: 
-    :desc: HRN format (%n will be replaced by an ID number)
     :value: omf.nicta.node%n
+    :desc: HRN format (%n will be replaced by an ID number)
   :controlip_format: 
-    :desc: Control IP address format (%n will be replaced by an ID number)
     :value: 10.0.0.%n
+    :desc: Control IP address format (%n will be replaced by an ID number)
+  :default_disk: 
+    :value: /dev/sda
+    :desc: Default disk for loading/saving images
 :communication: 
   :xmppserver: 
-    :desc: XMPP Server
     :value: norbit.npc.nicta.com.au
+    :desc: XMPP Server

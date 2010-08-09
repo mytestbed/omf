@@ -87,9 +87,7 @@ html do
                     self << '&nbsp;'
                   end
                   div.footer! do
-                    span('200809280', :style => 'float:right;margin-right:10pt')
- ##                   image_tag 'logo-bottom.gif', {:align => 'right', :style => 'margin-right:10pt'}
-                    text 'Brought to you by the TEMPO Team'
+                    span('Brought to you by the TEMPO Team', :style => 'float:right;margin-right:10pt')
                   end
                 end
               end
