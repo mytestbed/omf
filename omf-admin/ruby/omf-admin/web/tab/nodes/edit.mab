@@ -1,0 +1,39 @@
+div.page_header do
+  div.page_header_links do
+    a 'Save', :href => '/nodes', :class => 'admin', :onclick => "document.forms[0].submit()"
+    text " | "
+    a 'Cancel', :href => '/nodes', :class => 'admin'
+	end
+  if nd['name']
+    h1 "Edit a Node"
+  else
+    h1 "Add a Node"
+  end
+end
+
+div.page do
+  form :action => "", :method => "post" do
+    input :type => "text", :name => "name", :value => nd['name'], :size => 30
+    label " Name"; br
+    input :type => "text", :name => "hrn", :value => nd['hrn'], :size => 30
+    label " HRN"; br
+    input :type => "text", :name => "control_mac", :value => nd['control_mac'], :size => 30
+    label " MAC address of the Control Interface"; br
+    input :type => "text", :name => "control_ip", :value => nd['control_ip'], :size => 30
+    label " IP address of the Control Interface"; br
+    input :type => "text", :name => "x", :value => nd['x'], :size => 30
+    label " X location"; br
+    input :type => "text", :name => "y", :value => nd['y'], :size => 30
+    label " Y location"; br
+    input :type => "text", :name => "z", :value => nd['z'], :size => 30
+    label " Z location"; br
+    input :type => "text", :name => "disk", :value => nd['disk'], :size => 30
+    label " Disk device for imaging (omf load/save)"; br
+    input :type => "text", :name => "testbed", :value => nd['testbed'], :size => 30
+    label " Testbed"; br
+    input :type => "hidden", :name => "oldname", :value => nd['oldname'], :size => 30
+    br
+    input :type => "submit", :value => "Save"
+  end
+end
+

@@ -16,8 +16,8 @@ module OMF
         def self.configure(server, options = {})
           opts = options.dup
           opts[:scripts] = @@scripts
-          server.mount('/auto/show', AutoServlet, opts)
-          server.addTab(VIEW, "/auto/show", :name => 'Auto-detection', 
+          server.mount('/auto', AutoServlet, opts)
+          server.addTab(VIEW, "/auto", :name => 'Auto-Detect', 
               :title => "Auto-detect new nodes and add them to the testbed")
 
         end
@@ -45,7 +45,7 @@ module OMF
             readSyslog
             
             opts[:auto_nodes] = @@auto_nodes
-            res.body = MabRenderer.render('show', opts)
+            res.body = MabRenderer.render('auto', opts)
             @@auto_nodes = []
           end
           

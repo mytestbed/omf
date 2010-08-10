@@ -1,0 +1,50 @@
+div.page_header do
+	div.page_header_links do
+	  a 'Add', :href => '?action=edit', :class => 'admin'
+	  text " | "
+    a 'Refresh', :href => '/nodes', :class => 'admin'
+	end
+	h1 "Configure Nodes"
+end
+
+div.page_nav do
+end
+
+div.page do
+  table do
+    tr do
+      th ""
+      th "Name"
+      th "HRN"
+      th "Control MAC"
+      th "Control IP"
+      th "X"
+      th "Y"
+      th "Z"
+      th "Disk"
+      th "Testbed"
+    end
+    nd = @@nodes.getAll
+    nd.each{|n|
+      tr do
+        td do
+          div :class => "nohover" do
+            a :href => URI.escape("?action=remove&name=#{n['name']}") do
+              img :src => '/resource/image/icon-remove.gif', :style => "border-style: none"
+            end
+          end
+        end
+        td {a n['name'], :href => URI.escape("?action=edit&name=#{n['name']}")}
+        td n['hrn']
+        td n['control_mac']
+        td n['control_ip']
+        td n['x']
+        td n['y']
+        td n['z']
+        td n['disk']
+        td n['testbed']
+      end
+    }
+  end
+  p 'Click on a node name to edit. Click the \'x\' to remove.', :style => 'font-size:12px'
+end

@@ -12,6 +12,9 @@ class AdminConfig
       @@config = YAML.load_file(@@cfgfile)
     else
       @@config = {
+        :webinterface => {
+          :port => {:desc => "Port used by the web interface (requires restart of the omf-admin daemon)", :value => 5454}
+        },
         :communication => {
           :xmppserver => {:desc => "XMPP Server", :value => "norbit.npc.nicta.com.au"}
         },      
@@ -21,12 +24,12 @@ class AdminConfig
           :dhcpconfig => {:desc => "Dnsmasq additional configuration file (where static DHCP assignments are stored)", :value =>"/etc/dnsmasq_omf.conf"}
         },      
         :nodes => {
-          :node_format => {:desc => "Node name format (%n will be replaced by an ID number)", :value =>"node%n"},
-          :hrn_format => {:desc => "HRN format (%n will be replaced by an ID number)", :value =>"omf.nicta.node%n"},
-          :controlip_format => {:desc => "Control IP address format (%n will be replaced by an ID number)", :value =>"10.0.0.%n"},
-          :default_disk => {:desc => "Default disk for loading/saving images", :value =>"/dev/sda"},
+          :name => {:desc => "Node name format (%n will be replaced by an ID number)", :value =>"node%n"},
+          :hrn => {:desc => "HRN format (%n will be replaced by an ID number)", :value =>"omf.nicta.node%n"},
+          :control_ip => {:desc => "Control IP address format (%n will be replaced by an ID number)", :value =>"10.0.0.%n"}
         }
       }
+      save
     end
   end
   

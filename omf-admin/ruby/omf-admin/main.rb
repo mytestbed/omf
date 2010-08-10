@@ -30,19 +30,24 @@ require 'omf-common/mobject'
 require 'web/webServer'
 require 'config'
 require 'testbeds'
+require 'nodes'
+require 'uri'
+
+DEFAULT_PORT=5454
 
 @@config = AdminConfig.new
 
 @@testbeds = Testbeds.new
-@@testbeds.load
-@@testbeds.save
+@@nodes = Nodes.new
+
 
 access_log_stream = File.open('access.log', 'w')
 access_log = [ [ access_log_stream, WEBrick::AccessLog::COMBINED_LOG_FORMAT ] ]
 
 begin
   require 'web/helpers'
-  OMF::Admin::Web::start(5555,
+  port = DEFAULT_PORT if !(port = @@config.get[:webinterface][:port][:value])
+  OMF::Admin::Web::start(port,
   :Logger => MObject.logger('web::server'),
   :DocumentRoot => ".",
   :AccessLog => access_log,

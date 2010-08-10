@@ -19,8 +19,14 @@ div.page do
     tb = @@testbeds.getAll
     tb.each{|t|
       tr do
-        td {a "x", :href => "?action=remove&name=#{t['name']}"}
-        td {a t['name'], :href => "?action=edit&name=#{t['name']}"}
+        td do
+          div :class => "nohover" do
+            a :href => URI.escape("?action=remove&name=#{t['name']}") do
+              img :src => '/resource/image/icon-remove.gif', :style => "border-style: none"
+            end
+          end
+        end
+        td {a t['name'], :href => URI.escape("?action=edit&name=#{t['name']}")}
       end
     }
   end

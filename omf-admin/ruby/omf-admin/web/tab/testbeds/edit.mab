@@ -1,6 +1,8 @@
 div.page_header do
   div.page_header_links do
     a 'Save', :href => '/testbeds', :class => 'admin', :onclick => "document.forms[0].submit()"
+    text " | "
+    a 'Cancel', :href => '/testbeds', :class => 'admin'
 	end
   if tb['name']
     h1 "Edit a Testbed"
@@ -13,6 +15,7 @@ div.page do
   form :action => "", :method => "post" do
     input :type => "text", :name => "name", :value => tb['name'], :size => 30
     label " Name"; br
+    input :type => "hidden", :name => "oldname", :value => tb['name'], :size => 30
     br
     input :type => "submit", :value => "Save"
   end

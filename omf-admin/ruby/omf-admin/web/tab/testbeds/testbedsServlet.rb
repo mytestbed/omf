@@ -26,7 +26,7 @@ module OMF
                 opts[:tb] = req.query
                 res.body = MabRenderer.render('edit', opts)
               elsif req.query['action'] == 'remove'
-                # remove code here
+                @@testbeds.delete(req.query['name'])
                 opts[:flash][:notice] = "Testbed removed"
                 res.body = MabRenderer.render('testbeds', opts)
               end
@@ -41,10 +41,12 @@ module OMF
             req.query.collect { | key, value |
               newtb["#{key}"] = value.to_s
             }
-            @@testbeds.setOne(newtb)
-            @@testbeds.save
-            
-            @options[0][:flash][:notice] = "Changes saved"
+            result = @@testbeds.edit(newtb)
+            if  result == "OK"
+              @options[0][:flash][:notice] = "Changes saved"
+            else
+              @options[0][:flash][:alert] = result
+            end
             do_GET(req, res)
           end
           

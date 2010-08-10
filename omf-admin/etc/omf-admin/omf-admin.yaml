@@ -9,19 +9,20 @@
   :dhcpconfig: 
     :value: /etc/dnsmasq_omf.conf
     :desc: Dnsmasq additional configuration file (where static DHCP assignments are stored)
+:webinterface: 
+  :port: 
+    :value: "5454"
+    :desc: Port used by the web interface (requires restart of the omf-admin daemon)
 :nodes: 
-  :node_format: 
+  :control_ip: 
+    :value: 10.0.1.%n
+    :desc: Control IP address format (%n will be replaced by an ID number)
+  :name: 
     :value: node%n
     :desc: Node name format (%n will be replaced by an ID number)
-  :hrn_format: 
+  :hrn: 
     :value: omf.nicta.node%n
     :desc: HRN format (%n will be replaced by an ID number)
-  :controlip_format: 
-    :value: 10.0.0.%n
-    :desc: Control IP address format (%n will be replaced by an ID number)
-  :default_disk: 
-    :value: /dev/sda
-    :desc: Default disk for loading/saving images
 :communication: 
   :xmppserver: 
     :value: norbit.npc.nicta.com.au

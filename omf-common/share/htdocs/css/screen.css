@@ -1305,3 +1305,5 @@ div.order_by {
     text-decoration:underline;
     margin-left: 1em;
 }
+
+.nohover a:hover { background-color: transparent; }

@@ -5,21 +5,9 @@ div.page_header do
 	h1 "Auto-detect Nodes"
 end
 
-@scripts = scripts
-@show_id = show_file_id
 @auto_nodes = auto_nodes
 
 div.page_nav do
-  ul do
-    @scripts.each_index do |i| 
-      @s = @scripts[i]
-	    @klass = i == @show_id ? 'selected' : nil
-
-      li :class => @klass do
-  	    a @s[:uri], :href => "/code/show?id=#{i}"
-    	end
-   	end
-  end
 end
 
 div.page do
@@ -31,7 +19,7 @@ div.page do
     end
     @auto_nodes.each{|m,n|
       tr do
-        td {a m, :href => "/nodes/add?mac=#{m}"}
+        td {a m, :href => URI.escape("/nodes?action=edit&control_mac=#{m}")}
         td n        
       end
     }
