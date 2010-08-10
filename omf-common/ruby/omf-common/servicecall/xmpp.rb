@@ -88,11 +88,16 @@ module OMF
         args.each do |name, value|
           message.set_arg(name, value)
         end
+        puts "---> xmpp_call --->"
         puts message.to_s
         p uri.components
         puts uri.to_s
-        puts message.arg("a")
-        request_manager.make_request(message, "/OMF/system")
+        r = request_manager.make_request(message, "/OMF/system")
+        p r.to_s
+        puts "<--- xmpp_call <---"
+        doc = REXML::Document.new
+        doc.add(r)
+        doc
       end
 
       def XMPP.new_message_id
@@ -103,6 +108,7 @@ module OMF
         # These three Hashes are populated by subclasses
         @@name = Hash.new # Tag name for the root tag of this type of message
         @@required_keys = Hash.new  # Tag names of required key/value pairs in message header
+        @@optional_keys = Hash.new  # Tag names of optional key/value pairs in message header
         @@required_payload = Hash.new # Require payload tags (arbitrary XML child nodes)
 
         def initialize(name)
@@ -123,7 +129,11 @@ module OMF
           end
           el = elements[mstr]
           if el.nil?
-            super(m, *args)
+            if self.class.required_keys.include? mstr or self.class.optional_keys.include? mstr
+              nil
+            else
+              super(m, *args)
+            end
           else
             el.text
           end
@@ -143,6 +153,10 @@ module OMF
 
         def self.required_keys
           @@required_keys[self]
+        end
+
+        def self.optional_keys
+          @@optional_keys[self]
         end
 
         def self.required_payload
@@ -170,6 +184,11 @@ module OMF
           props.each_value { |v| have_nil = true if v.nil? }
 
           return nil if have_nil
+
+          optional_keys.each do |key|
+            props[key] = self.try_text(element, key) || nil
+          end
+
           result = self.new(props)
 
           required_payload.each do |tag|
@@ -186,8 +205,8 @@ module OMF
         @@name[self] = "service-request"
         @@required_keys[self] = [ "sender",
                                   "message-id",
-                                  "timestamp",
-                                  "service",
+                                  "timestamp" ]
+        @@optional_keys[self] = [ "service",
                                   "method" ]
         @@required_payload[self] = [ "arguments" ]
 
@@ -200,6 +219,7 @@ module OMF
           end
 
           @@required_keys[self.class].each { |name| add_key(name, props[name]) }
+          @@optional_keys[self.class].each { |name| add_key(name, props[name]) }
 
           @args = add_element(REXML::Element.new("arguments"))
         end
@@ -246,6 +266,7 @@ module OMF
                                   "message-id",
                                   "timestamp",
                                   "status" ]
+        @@optional_keys[self] = []
         @@required_payload[self] = [ "result" ]
 
         def initialize(props)
@@ -274,7 +295,7 @@ module OMF
         # REXML::Element.
         #
         def result
-          elements["result"]
+          elements["result"].elements[1]
         end
       end # class ResponseMessage
 
@@ -399,7 +420,10 @@ module OMF
           begin
             while response = @listener.queue.pop
               puts "SERVE_RESPONSES:  Got a message on the pubsub node #{@node}:"
+              puts response.to_s
               response = ResponseMessage.from_element(response)
+              puts "NIL" if response.nil?
+              puts "Parsed response = #{response.to_s}"
               next if response.nil?
               request_id, queue = match_request(response)
               if not request_id.nil?

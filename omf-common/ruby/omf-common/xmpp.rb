@@ -254,8 +254,6 @@ module OMF
         end
 
         def process_event(event)
-          c = @event_count
-          puts "event: #{c}"
           @event_count += 1
           listeners = nil
           node = event_node(event)
@@ -297,7 +295,6 @@ module OMF
             new_item.add(item)
             item = new_item
           end
-          puts item.to_s
           clean_exceptions { nonblocking { @service_helper.publish_item_to(node,item) } }
         end
 

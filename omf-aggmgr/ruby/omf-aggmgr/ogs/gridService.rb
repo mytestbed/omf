@@ -31,6 +31,10 @@
 
 require 'omf-aggmgr/ogs/abstractService'
 
+
+class ServiceError < Exception; end
+class BadRequest < ServiceError; end
+
 #
 # This class defines the GridService class a sub-class of AbstractService.
 # Compared to an AbstractService, a GridService object provides access to
@@ -47,17 +51,17 @@ class GridService < AbstractService
   # section /testbed/default. If both are not found, an exception is raised.
   #
   # - domain = The domain to query.
-  # - serviceConfig = Hash with all the parsed entries from the config file
+  # - serviceConfig = Hash with all the parsed entries from the config file for this service
   #
   # [Return] a Hash with the configuration parameters for a given domain
   #
   def self.getTestbedConfig(domain, serviceConfig)
     if ((dc = serviceConfig['testbed']) == nil)
-      raise HTTPStatus::ServerError, "Missing 'testbed' configuration"
+      raise ServiceError, "Missing 'testbed' configuration"
     end
     config = dc[domain] || dc['default']
     if (config == nil)
-      raise HTTPStatus::ServerError, "Missing 'testbed' config for '#{domain}' or 'default'"
+      raise ServiceError, "Missing 'testbed' config for '#{domain}' or 'default'"
     end
     config
   end
@@ -85,10 +89,10 @@ class GridService < AbstractService
         res = eval(node_set)
       }.join
     rescue Exception => ex
-      raise HTTPStatus::BadRequest, "Error while parsing '#{node_set}'\n\t#{ex}"
+      raise BadRequest, "Error while parsing '#{node_set}'\n\t#{ex}"
     end
     if (! res.kind_of?(Array))
-      raise HTTPStatus::BadRequest, "Illegal node set declaration '#{node_set}'"
+      raise BadRequest, "Illegal node set declaration '#{node_set}'"
     end
     if (! res[0].kind_of?(Array))
       # seems to be a single set declaration
@@ -100,7 +104,7 @@ class GridService < AbstractService
              &&  ns.length == 2 \
              && (ns[0].kind_of?(Integer) || ns[0].kind_of?(Range)) \
              && (ns[1].kind_of?(Integer) || ns[1].kind_of?(Range))))
-        raise HTTPStatus::BadRequest, "Illegal node set declaration '#{ns}'"
+        raise BadRequest, "Illegal node set declaration '#{ns}'"
       end
     }
   end

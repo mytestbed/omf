@@ -32,14 +32,18 @@ require 'omf-common/servicecall'
 
 class AggmgrServer < MObject
 
-  @@mutex = nil
-
   @stopped = nil
+
+  # Hash of Hashes.  @services[myservice][mymethod] is a block to
+  # execute when a request for 'myservice.mymethod' is received.
+  @mounted_services = nil
 
   attr_accessor :server
 
   def initialize(params)
     super(self.class)
+    @stopped = true
+    @mounted_services = Hash.new
   end
 
   #
@@ -51,8 +55,6 @@ class AggmgrServer < MObject
   #  - params = [Hash] the configuration parameters passed to omf-aggmgr
   #
   def self.create_server(type, params)
-    @stopped = true
-    @@mutex = Mutex.new if @@mutex.nil?
     debug :gridservices, "Starting server type #{type}"
     case type
     when :http
@@ -95,6 +97,48 @@ class AggmgrServer < MObject
   def unimplemented_method_exception(method_name)
     "AggmgrServer subclass '#{self.class}' must implement #{method_name}()"
   end
+
+  #
+  # Build an XML document describing the services offered by this
+  # AM server.
+  #
+  # Returns: REXML::Document
+  #
+  def all_services_summary
+    doc = REXML::Document.new
+    root = doc.add(REXML::Element.new("serviceGroups"))
+#    body = ["<?xml version='1.0'?><serviceGroups>"]
+    @mounted_services.each do |path, service_class|
+      description = service_class.description
+      name = service_class.serviceName
+      group = REXML::Element.new("serviceGroup")
+      group.add_attributes({"path" => path,
+                             "name" => name})
+      group.add_element(REXML::Element.new("info").add_text(description))
+      #      body << "<serviceGroup path='#{path}' name='#{name}'><info>#{description}</info></serviceGroup>"
+      root.add_element(group)
+    end
+    doc
+  end
+
+  #
+  # Build an XML document describing the methods offered by a
+  # particular service.
+  #
+  # service_class:: [kind_of? AbstractService]
+  #
+  # Returns: REXML::Document
+  #
+  def service_description(service_class)
+    service_name = service_class.serviceName
+
+    doc = REXML::Document.new
+    root = doc.add(REXML::Element.new("services"))
+    el = service_class.to_xml(root)
+    el.attributes['prefix'] = "/#{service_name}"
+
+    doc
+  end
 end
 
 class HttpAggmgrServer < AggmgrServer
@@ -103,10 +147,10 @@ class HttpAggmgrServer < AggmgrServer
 
   def initialize(params)
     debug(:gridservices, "Initializing HTTP server manager")
+    super(params)
     http_params = params[:http]
     @port = http_params[:port] || DEF_WEB_PORT
     @config_dir = params[:configDir]
-    @mounted_services = {}
     @server = HTTPServer.new(:Port => @port || DEF_WEB_PORT,
                              :Logger => Log4r::Logger.new("#{MObject.logger.fullname}::web"))
 
@@ -116,14 +160,12 @@ class HttpAggmgrServer < AggmgrServer
     }
     @server.mount_proc('/') do |req, res|
       res['Content-Type'] = "text/xml"
-      body = [%{<?xml version='1.0'?><serviceGroups>}]
-      @mounted_services.each do |path, service|
-        info = service.description
-        name = service.serviceName
-        body << "<serviceGroup path='#{path}' name='#{name}'><info>#{info}</info></serviceGroup>"
-      end
-      body << "</serviceGroups>"
-      res.body = body.to_s
+      ss = StringIO.new
+      ss.write("<?xml version='1.0'?>\n")
+      formatter = REXML::Formatters::Default.new
+      doc = all_services_summary
+      formatter.write(doc, ss)
+      res.body = ss.string
     end
   end
 
@@ -172,8 +214,7 @@ class HttpAggmgrServer < AggmgrServer
 
         p_list = params[:param_list] || []
         args = p_list.collect { |p| req.query[p.to_s] }
-        result = nil
-        @@mutex.synchronize { result = proc.call(*args) }
+        result = proc.call(*args)
 
         if result == true then
           HttpAggmgrServer.response_ok(res)
@@ -187,15 +228,14 @@ class HttpAggmgrServer < AggmgrServer
 
     @server.mount_proc("/#{service_name}") do |req, res|
       res['ContentType'] = "text/xml"
-      ss = StringIO.new()
+
+      ss = StringIO.new
       ss.write("<?xml version='1.0'?>\n")
-      doc = REXML::Document.new
-      root = doc.add(REXML::Element.new("services"))
-      el = service_class.to_xml(root)
-      el.attributes['prefix'] = "/#{service_name}"
       formatter = REXML::Formatters::Default.new
-      formatter.write(doc,ss)
+      doc = service_description(service_class)
+      formatter.write(doc, ss)
       res.body = ss.string
+#      res.body = service_description(service_class)
     end
 
     @mounted_services[service_name] = service_class
@@ -214,6 +254,7 @@ class XmppAggmgrServer < AggmgrServer
 
   def initialize(params)
     debug "Initializing XMPP PubSub AM server"
+    super(params)
     xmpp_params = params[:xmpp]
     @server = xmpp_params[:server]
     @user = xmpp_params[:user]
@@ -255,47 +296,65 @@ class XmppAggmgrServer < AggmgrServer
               message_id = request.message_id
               service = request.service
               method = request.method_name
-              arguments = request.arguments
-              service_hash = @services[service]
-              # Ignore requests for unknown services -- another AM might be serving them.
-              if not service_hash.nil?
-                proc = service_hash[method]
-                if proc.nil?
-                  # return an error response
-                  status = "#{service}.#{method}: Method not supported"
-                  response = ResponseMessage.new("response-to" => sender,
-                                                 "message-id" => message_id,
-                                                 "status" => status)
-                else
-                  result = nil
-                  error_result = nil
-                  begin
-                    result = proc.call(arguments)
-                  rescue Exception => e
-                    error_result = e.message
-                  end
 
-                  if error_result.nil?
+
+              result = nil
+              error_result = nil
+              status = nil
+              if service.nil? or method.nil?
+                if not service.nil?
+                  service_class = @mounted_services[service]
+
+                  if method.nil? and not service_class.nil?
+
+                    result = service_description(service_class)
                     status = "OK"
+                  end
+                else
+                  result = all_services_summary
+                  status = "OK"
+                end
+              else
+
+                puts "Request for service/method #{service}/#{method}"
+                arguments = request.arguments
+                service_hash = @services[service]
+
+                # Ignore requests for unknown services -- another AM might be serving them.
+                if not service_hash.nil?
+                  proc = service_hash[method]
+                  if proc.nil?
+                    # return an error response
+                    status = "#{service}.#{method}: Method not supported"
                   else
-                    status = error_result
-                  end
+                    begin
+                      result = proc.call(arguments)
+                    rescue Exception => e
+                      error_result = e.message
+                    end
 
-                  response = ResponseMessage.new("response-to" => sender,
-                                                 "message-id" => message_id,
-                                                 "status" => status)
-                  if not result.nil?
-                    response.set_result(result)
-                  end
-
-                  begin
-                    domain.publish_to_node(node, response)
-                  rescue Exception => e
-                    error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
+                    if error_result.nil?
+                      status = "OK"
+                    else
+                      status = error_result
+                    end
                   end
                 end
               end
-            end
+
+              response = ResponseMessage.new("response-to" => sender,
+                                             "message-id" => message_id,
+                                             "status" => status)
+              if not result.nil?
+                response.set_result(result)
+              end
+
+              begin
+                domain.publish_to_node(node, response)
+              rescue Exception => e
+                error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
+              end
+            end # message not stale
           else
             # Ignore messages that are not <service-request/>'s
           end # if not request.nil?
@@ -367,6 +426,7 @@ class XmppAggmgrServer < AggmgrServer
       end
       @services[service_name] = service
     end
+    @mounted_services[service_name] = service_class
   end
 end # class XmppAggmgrServer
 

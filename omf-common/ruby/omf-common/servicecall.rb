@@ -136,7 +136,9 @@ module OMF
       def find_service(name)
         @domains.each do |dom|
           list = get_service_list(dom)
-          if list.include?(name.to_s)
+          puts "get_service_list returned:"
+          p list
+          if (not list.nil?) and list.include?(name.to_s)
             return Service.new(name, new_service_proc(dom, Uri.new(name)))
           end
         end
@@ -145,13 +147,24 @@ module OMF
 
       # [domain] :: domain Proc
       def get_service_list(domain)
-        xml = domain.call('')
-        xml.elements.collect("serviceGroups/serviceGroup") { |e| e.attributes["name"] }
+        begin
+          xml = domain.call(Uri.new)
+          puts "_---_"
+          puts "Got XML description of service:"
+          puts xml.to_s
+          puts "Parsing xml DESCIPTION of service"
+          xml.elements.collect("serviceGroups/serviceGroup") { |e| e.attributes["name"] }
+        rescue ServiceCallException => e
+          error "Trying to get service list from domain '#{domain}':  #{e.message}"
+          return nil
+        end
       end
 
       # [service] :: service Proc
       def get_service_method_list(service)
-        xml = service.call('')
+        puts "*-*-*"
+        puts "get_service_method_list"
+        xml = service.call(Uri.new)
         if not xml.nil?
           xml.elements.collect("services/serviceGroup/service") do |e|
             name = e.attributes["name"]
@@ -181,13 +194,17 @@ module OMF
 
         attr_reader :components
 
-        def initialize(uri)
-          case uri
-          when String then @components = [uri]
-          when Array  then @components = uri
-          when Symbol then @components = [uri.to_s]
+        def initialize(uri = nil)
+          if uri.nil?
+            @components = []
           else
-            raise "Can't make Uri from #{uri} (#{uri.class()})"
+            case uri
+            when String then @components = [uri]
+            when Array  then @components = uri
+            when Symbol then @components = [uri.to_s]
+            else
+              raise "Can't make Uri from #{uri} (#{uri.class()})"
+            end
           end
         end
 
