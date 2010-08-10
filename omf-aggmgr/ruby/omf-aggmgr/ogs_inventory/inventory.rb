@@ -50,7 +50,7 @@ require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 # refer to the description of the AbstractService class
 #
 #
-class InventoryService < LegacyGridService
+class InventoryService < GridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'inventory'
@@ -133,12 +133,8 @@ class InventoryService < LegacyGridService
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :ifname, 'interfaceName', 'name of the interface (e.g. ath0).'
   s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getMacAddress' do |req, res|
-    # Retrieve the request parameter
-    hrn = getParam(req, 'hrn')
-    ifname = getParam(req, 'ifname')
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+  service 'getMacAddress' do |hrn, ifname, domain|
+    tb = getTestbedConfig(domain, @@config)
     # Query the inventory
     result = nil
     begin
@@ -153,7 +149,7 @@ class InventoryService < LegacyGridService
     replyXML = buildXMLReply("MAC_Address", result, msgEmpty) { |root,mac|
       addXMLElement(root, "#{ifname}", "#{mac}")
     }
-    setResponse(res, replyXML)
+    replyXML
   end
 
   #
@@ -162,11 +158,9 @@ class InventoryService < LegacyGridService
   s_description "Get the MAC address of a given interface on a given node for a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getPXEImage' do |req, res|
-    # Retrieve the request parameter
-    hrn = getParam(req, 'hrn')
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+  service 'getPXEImage' do |hrn, domain|
+    # Retrieve the testbed config
+    tb = getTestbedConfig(domain, @@config)
     # Query the inventory
     result = nil
     begin
@@ -181,7 +175,7 @@ class InventoryService < LegacyGridService
     replyXML = buildXMLReply("PXE_Image", result, msgEmpty) { |root,image|
       root.text = image
     }
-    setResponse(res, replyXML)
+    replyXML
   end
 
   #
@@ -190,11 +184,8 @@ class InventoryService < LegacyGridService
   s_description "Get the MAC addresses of all the interfaces on a given node on a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getAllMacAddresses' do |req, res|
-    # Retrieve the request parameter
-    hrn = getParam(req, 'hrn')
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+  service 'getAllMacAddresses' do |hrn, domain|
+    tb = getTestbedConfig(domain, @@config)
     # Query the inventory
     result = nil
     begin
@@ -211,7 +202,7 @@ class InventoryService < LegacyGridService
         addXMLElement(root, "#{couple[0]}", "#{couple[1]}")
       }
     }
-    setResponse(res, replyXML)
+    replyXML
   end
 
   #
@@ -219,10 +210,8 @@ class InventoryService < LegacyGridService
   #
   s_description "Get a list of the names of all available resources on a given domain"
   s_param :domain, 'domain', 'testbed/domain for this query'
-  service 'getListOfResources' do |req, res|
-    # Retrieve the request parameter
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+  service 'getListOfResources' do |domain|
+    tb = getTestbedConfig(domain, @@config)
     # Query the inventory
     result = nil
     begin
@@ -239,7 +228,7 @@ class InventoryService < LegacyGridService
         addXMLElement(root, "NODE", "#{name}")
       }
     }
-    setResponse(res, replyXML)
+    replyXML
   end
 
   #
@@ -248,11 +237,9 @@ class InventoryService < LegacyGridService
   s_description "Get the Control IP address of a given resource for a given domain"
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getControlIP' do |req, res|
+  service 'getControlIP' do |hrn, domain|
     # Retrieve the request parameter
-    hrn = getParam(req, 'hrn')
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+    tb = getTestbedConfig(domain, @@config)
     # Query the inventory
     result = nil
     begin
@@ -267,7 +254,7 @@ class InventoryService < LegacyGridService
     replyXML = buildXMLReply("CONTROL_IP", result, msgEmpty) { |root,ip|
       root.text = ip
     }
-    setResponse(res, replyXML)
+    replyXML
   end
 
   #
@@ -276,11 +263,9 @@ class InventoryService < LegacyGridService
   s_description "Get the HRN for a certain hostname on a given domain"
   s_param :hostname, 'hostname', 'hostname of the node'
   s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getHRN' do |req, res|
+  service 'getHRN' do |hostname, domain|
     # Retrieve the request parameter
-    hostname = getParam(req, 'hostname')
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+    tb = getTestbedConfig(domain, @@config)
     # Query the inventory
     result = nil
     begin
@@ -295,7 +280,7 @@ class InventoryService < LegacyGridService
     replyXML = buildXMLReply("HRN", result, msgEmpty) { |root,ip|
       root.text = ip
     }
-    setResponse(res, replyXML)
+    replyXML
   end
 
   #
@@ -303,10 +288,9 @@ class InventoryService < LegacyGridService
   #
   s_description "Get all Specific Configuration Parameters for a given Testbed"
   s_param :domain, 'domain', 'domain for which we want to retrieve the config parameters.'
-  service 'getConfig' do |req, res|
+  service 'getConfig' do |domain|
     # Retrieve the request parameter
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config) # This is GS config, not EC configs!
+    tb = getTestbedConfig(domain, @@config) # This is GS config, not EC configs!
     rootXMLConfig = REXML::Element.new("CONFIG")
     inv = getInv(tb)
     CONST_CONFIG_KEYS.each { |k|
@@ -336,15 +320,19 @@ class InventoryService < LegacyGridService
   s_description "Get list of wireless devices on a given node in a given domain."
   s_param :hrn, 'hrn', 'HRN of the resource'
   s_param :domain, 'domain', 'domain of given node'
-  service 'getAllWirelessDevices' do |req, res|
+  service 'getAllWirelessDevices' do |hrn, domain|
+    MObject.error "getAllWirelessDevices STILL USES [X,Y] RESOURCE NAMING!!! FIXME!!"
+    raise "getAllWirelessDevices STILL USES [X,Y] RESOURCE NAMING!!! FIXME!!"
+
     x = getParam(req, 'x')
     y = getParam(req, 'y')
-    domain = getParam(req, 'domain')
-    tb = getTestbedConfig(req, @@config)
+
+    tb = getTestbedConfig(domain, @@config)
     ids = getAllWirelessDevices(tb, x, y, domain)
     root = REXML::Element.new("device")
     if (ids == :Error)
       # XXXXXXX Wow.  We can't 404?
+      # YYYYYYY No, we're not in Kansas anymore.
       root.add_element("ERROR")
       root.elements["ERROR"].text = "Error when accessing the Inventory Database."
     elsif (ids.empty?)
@@ -374,12 +362,10 @@ class InventoryService < LegacyGridService
   s_description "Get list of nodes that have network cards with given OUI (first 3 bytes) on a given domain"
   s_param :oui, 'oui', 'First three bytes of the OUI as B1:B2:B3'
   s_param :domain, 'domain', 'domain for this node list'
-  service 'getAllNodesWithOui' do |req, res|
-    oui = getParam(req, 'oui')
-    domain = getParam(req, 'domain')
+  service 'getAllNodesWithOui' do |oui, domain|
     root = REXML::Element.new("nodes")
     begin
-      tb = getTestbedConfig(req, @@config)
+      tb = getTestbedConfig(domain, @@config)
       inv = getInv(tb)
       nodes =  inv.getNodesWithOUIInterfaces(oui, domain)
       if (nodes.empty?)
@@ -407,11 +393,11 @@ class InventoryService < LegacyGridService
   #
   s_description "Get list of device aliases defined in the inventory"
   s_param :domain, 'domain', 'domain for the alias list'
-  service 'getAllDeviceAliases' do |req, res|
+  service 'getAllDeviceAliases' do |domain|
     MObject::debug("In get Aliases")
     root = REXML::Element.new("result")
     begin
-      tb = getTestbedConfig(req, @@config)
+      tb = getTestbedConfig(domain, @@config)
       inv = getInv(tb)
       aliases =  inv.getDeviceAliases()
       MObject::debug("Got the list")
@@ -439,11 +425,10 @@ class InventoryService < LegacyGridService
   #
   s_description "Get list of device aliases defined in the inventory"
   s_param :domain, 'domain', 'domain for the alias list'
-  service 'addNode' do |req, res|
+  service 'addNode' do |domain|
     root = REXML::Element.new("result")
-    domain = getParam(req, 'domain')
     begin
-      tb = getTestbedConfig(req, @@config)
+      tb = getTestbedConfig(domain, @@config)
       inv = getInv(tb)
       updateDnsMasq(tb, inv, domain)
     rescue Exception => ex
@@ -463,14 +448,13 @@ class InventoryService < LegacyGridService
   s_description "Get list of nodes that have devices with the human readable alias (tag)"
   s_param :alias, 'alias', 'Device alias (tag)'
   s_param :domain, 'domain', 'domain for this node list'
-  service 'getAllNodesWithAliasDevice' do |req, res|
-    tag = getParam(req, 'alias')
-    domain = getParam(req, 'domain')
+  service 'getAllNodesWithAliasDevice' do |tag, domain|
+    # 'alias' is a ruby keyword, so we use 'tag' instead internally
     root = REXML::Element.new("InventoryReport")
-    root.add_attribute("querry", "getAllNodesWithAliasDevice")
+    root.add_attribute("query", "getAllNodesWithAliasDevice")
     root.add_attribute("alias",tag)
     begin
-      tb = getTestbedConfig(req, @@config)
+      tb = getTestbedConfig(domain, @@config)
       inv = getInv(tb)
       MObject::debug("Opened database")
       range = inv.getNodeCoordinateRange(domain)
@@ -568,7 +552,7 @@ class InventoryService < LegacyGridService
   # Easter Egg :-)
   #
   s_description "This service has meta cow powers"
-  service 'moo' do |req, res|
+  service 'moo' do
     # Moo.
     root = REXML::Element.new("moo")
     root.text = <<MOO_MOO_MOO
@@ -584,6 +568,6 @@ class InventoryService < LegacyGridService
 
 Do not go big.  Do not go small.  Go meta.
 MOO_MOO_MOO
-    setResponse(res, root)
+    root
   end
 end
