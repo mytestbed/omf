@@ -13,7 +13,8 @@ class AdminConfig
     else
       @@config = {
         :webinterface => {
-          :port => {:desc => "Port used by the web interface (requires restart of the omf-admin daemon)", :value => 5454}
+          :port => {:desc => "Port used by the web interface (requires restart of the omf-admin daemon)", :value => 5454},
+          :rdir => {:desc => 'Resource directory containing the CSS', :value => '/usr/share/omf-common-5.3/share/htdocs'}
         },
         :communication => {
           :xmppserver => {:desc => "XMPP Server", :value => "norbit.npc.nicta.com.au"}
@@ -21,7 +22,7 @@ class AdminConfig
         :dnsmasq => {
           :dnslog0 => {:desc => "Dnsmasq logfile", :value =>"/var/log/syslog"},
           :dnslog1 => {:desc => "Old Dnsmasq logfile (after log rotation)", :value =>"/var/log/syslog.1"},
-          :dhcpconfig => {:desc => "Dnsmasq additional configuration file (where static DHCP assignments are stored)", :value =>"/etc/dnsmasq_omf.conf"}
+          :dhcpconfig => {:desc => "Dnsmasq additional configuration file (where static DHCP assignments are stored)", :value =>"dnsmasq_omf.conf"}
         },      
         :nodes => {
           :name => {:desc => "Node name format (%n will be replaced by an ID number)", :value =>"node%n"},

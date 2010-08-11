@@ -52,8 +52,11 @@ class Testbeds
   end
   
   def delete(name)
+    return "At least one testbed must be defined!" if @@tb.size == 1
     @@tb.delete_if {|t| t['name'] == name }
+    @@nodes.deleteAllFromTB(name)
     save
+    return "OK"
   end
   
 end

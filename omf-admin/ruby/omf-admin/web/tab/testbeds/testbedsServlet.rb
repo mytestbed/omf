@@ -26,8 +26,12 @@ module OMF
                 opts[:tb] = req.query
                 res.body = MabRenderer.render('edit', opts)
               elsif req.query['action'] == 'remove'
-                @@testbeds.delete(req.query['name'])
-                opts[:flash][:notice] = "Testbed removed"
+                result = @@testbeds.delete(req.query['name'])
+                if result == "OK"
+                  opts[:flash][:notice] = "Testbed deleted"
+                else
+                  opts[:flash][:alert] = result
+                end
                 res.body = MabRenderer.render('testbeds', opts)
               end
             else

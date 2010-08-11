@@ -22,11 +22,7 @@
 #
 
 require 'omf-common/omfVersion'
-require 'set'
-require 'benchmark'
-require 'thread'  # Queue class
 require 'net/http'
-require 'omf-common/mobject'
 require 'web/webServer'
 require 'config'
 require 'testbeds'
@@ -36,30 +32,23 @@ require 'uri'
 DEFAULT_PORT=5454
 
 @@config = AdminConfig.new
-
 @@testbeds = Testbeds.new
 @@nodes = Nodes.new
 
-
-access_log_stream = File.open('access.log', 'w')
-access_log = [ [ access_log_stream, WEBrick::AccessLog::COMBINED_LOG_FORMAT ] ]
+@@currentTB = @@testbeds.getAll.first['name']
 
 begin
   require 'web/helpers'
   port = DEFAULT_PORT if !(port = @@config.get[:webinterface][:port][:value])
   OMF::Admin::Web::start(port,
-  :Logger => MObject.logger('web::server'),
   :DocumentRoot => ".",
-  :AccessLog => access_log,
-  #:TabDir => ["#{File.dirname(__FILE__)}/web/tab"],
-  :TabDir => ['web/tab'],
+  :TabDir => ["#{File.dirname(__FILE__)}/web/tab"],
   #:PublicHtml => OConfig[:ec_config][:repository][:path],
-  :ResourceDir => ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"])
+  :ResourceDir => @@config.get[:webinterface][:rdir][:value])
 rescue Exception => ex
   puts "Cannot start webserver (#{ex})"
 end 
 
-while(true)
-  sleep 1
-end
-
+loop{
+  sleep 10
+}

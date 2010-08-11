@@ -18,7 +18,7 @@ div.page do
     input :type => "text", :name => "hrn", :value => nd['hrn'], :size => 30
     label " HRN"; br
     input :type => "text", :name => "control_mac", :value => nd['control_mac'], :size => 30
-    label " MAC address of the Control Interface"; br
+    label " MAC address of the Control Interface ('aa:bb:cc:dd:ee:ff')"; br
     input :type => "text", :name => "control_ip", :value => nd['control_ip'], :size => 30
     label " IP address of the Control Interface"; br
     input :type => "text", :name => "x", :value => nd['x'], :size => 30
@@ -28,12 +28,21 @@ div.page do
     input :type => "text", :name => "z", :value => nd['z'], :size => 30
     label " Z location"; br
     input :type => "text", :name => "disk", :value => nd['disk'], :size => 30
-    label " Disk device for imaging (omf load/save)"; br
-    input :type => "text", :name => "testbed", :value => nd['testbed'], :size => 30
-    label " Testbed"; br
+    label " Disk device for imaging (e.g. '/dev/sda')"; br  
+    select.testbed! :style=>"width: 229px" do
+      @@testbeds.getAll.each{|t|
+        if t['name'] == @@currentTB
+          option t['name'], :value=> t['name'], :selected => true
+        else
+          option t['name'], :value=> t['name']
+        end
+      }
+    end
+    label " Testbed this node belongs to"; br
     input :type => "hidden", :name => "oldname", :value => nd['oldname'], :size => 30
     br
     input :type => "submit", :value => "Save"
+    button 'Cancel', :type=>'button', :onclick => "window.location='/nodes'"
   end
+   
 end
-

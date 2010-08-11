@@ -23,75 +23,104 @@ class Nodes
     File.open(@@dbfile, 'w' ) do |out|
       YAML.dump(@@nds, out )
     end
+    saveDnsmasqConfig
   end
   
-  def suggestID
+  # try to guess the next free node ID
+  def suggestID(testbed)
     numbers = []
     @@nds.each{|n|
-      num = (/\d+/).match(n['name'])
-      numbers << num[0].to_i if !num.nil?
+      if n['testbed'] == testbed
+        num = (/\d+/).match(n['name'])
+        numbers << num[0].to_i if !num.nil?
+      end
     }
     numbers.sort!
     n = 1
-    if !numbers.empty?
-      n = numbers.last+1
-    end
+    n = numbers.last+1 if !numbers.empty?
     return n
   end
   
-  
-  def getAll
-    @@nds
+  # return a list of all nodes
+  def getAll(testbed = nil)
+    return @@nds if testbed.nil?
+    ret = []
+    @@nds.each{|n| ret << n if n['testbed'] == testbed}
+    ret
   end
   
-  def get(name)
-    cfg = @@config.get
-    newnode = {'name' => cfg[:nodes][:name][:value].dup, 'hrn' => cfg[:nodes][:hrn][:value].dup,
-               'control_ip' => cfg[:nodes][:control_ip][:value].dup, 'oldname' => ''}
-    nr = suggestID.to_s
-    p newnode
-    newnode['name'].gsub!('%n', nr)
-    newnode['hrn'].gsub!('%n', nr)
-    newnode['control_ip'].gsub!('%n', nr)
-
-    if name.nil? || name.empty?
-      return newnode
-    else
+  # return the details of a specific node
+  def get(name, testbed)
+    if !name.nil?
+      # if the node exists, return it
       @@nds.each{|n|
-        if n['name'] == name
-          n['oldname'] == name
+        if n['name'] == name && n['testbed'] == testbed
+          n['oldname'] = name
           return n 
         end
       }
-      return newnode
     end
+    # otherwise return a new, pre-filled node entry
+    cfg = @@config.get
+    nr = suggestID(testbed).to_s
+    return {'name' => cfg[:nodes][:name][:value].dup.gsub!('%n', nr), 
+            'hrn' => cfg[:nodes][:hrn][:value].dup.gsub!('%n', nr),
+            'control_ip' => cfg[:nodes][:control_ip][:value].dup.gsub!('%n', nr), 'oldname' => ''}
   end
-  
+
+  # edit or add a node
   def edit(entry)
     return "Node name cannot be empty!" if entry['name'].empty?
     if entry['oldname'].empty?
-      @@nds.each{|t|
-        return "'#{t['name']}' already exists!" if t['name'] == entry['name']
+      # adding a new node
+      @@nds.each{|n|
+        return "'#{n['name']}' already exists!" if n['name'] == entry['name'] && n['testbed'] == entry['testbed']
       }
-      # add a new entry
       @@nds << entry
     else
       # update an existing entry
-      @@nds.collect! {|t|
-        if t['name'] == entry['oldname']
-          t = entry
-          t.delete('oldname')
+      @@nds.collect! {|n|
+        if n['name'] == entry['oldname']
+          n = entry
+          n.delete('oldname')
         end
-        t
+        n
       }
     end
     save
     return "OK"
   end
   
-  def delete(name)
-    @@nds.delete_if {|t| t['name'] == name }
+  # delete a node
+  def delete(name, testbed)
+    @@nds.delete_if {|t| t['name'] == name && t['testbed'] == testbed }
     save
+  end
+  
+  # delete all nodes from a testbed
+  def deleteAllFromTB(testbed)
+    @@nds.delete_if {|t| t['testbed'] == testbed }
+    save
+  end
+  
+  def saveDnsmasqConfig
+    cfg = @@config.get
+    file = cfg[:dnsmasq][:dhcpconfig][:value].dup
+    begin
+      File.open(cfg[:dnsmasq][:dhcpconfig][:value].dup, 'w') do |f|
+        f.puts "# Do NOT modify this file manually!\n# It is auto-generated from the OMF inventory database."
+        f.puts "# Add the line 'dhcp-hostsfile=#{file}' to your /etc/dnsmasq.conf to include this file."
+        @@nds.each{ | n | 
+          next if n['control_mac'].empty? || n['name'].empty? || n['control_ip'].empty? 
+          f.puts "#{n['control_mac']},#{n['name']},#{n['control_ip']}" 
+        }
+      end
+    rescue Exception => ex
+      puts "Could not write to dnsmasq configuration file '#{file}'! Error: #{ex}"
+    end
+    # when dnsmasq receives SIGHUP it reloads the contents of files specified with 'dhcp-hostsfile'
+    # in dnsmasq.conf
+    system("killall -s HUP dnsmasq")
   end
   
 end

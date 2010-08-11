@@ -11,16 +11,17 @@ div.page_nav do
 end
 
 div.page do
-  p "The following machines have recently sent DHCP requests:"
+  p "The following machines have recently sent DHCP requests and are not configured as nodes yet:"
   table do
     tr do
       th "MAC Address"
-      th "Vendor ID" 
+      th "Vendor ID"
+      th "Configured as" 
     end
     @auto_nodes.each{|m,n|
       tr do
         td {a m, :href => URI.escape("/nodes?action=edit&control_mac=#{m}")}
-        td n        
+        td n
       end
     }
   end

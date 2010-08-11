@@ -26,12 +26,14 @@ module OMF
             opts = @options[0].dup
             opts[:view] = VIEW
             
+            @@currentTB = req.query['testbed'] if req.query['testbed']
+              
             if req.query.has_key?('action')
               if req.query['action'] == 'edit'
-                opts[:nd] = @@nodes.get(req.query['name']).merge(req.query)
+                opts[:nd] = @@nodes.get(req.query['name'],@@currentTB).merge(req.query)
                 res.body = MabRenderer.render('edit', opts)
               elsif req.query['action'] == 'remove'
-                @@nodes.delete(req.query['name'])
+                @@nodes.delete(req.query['name'],@@currentTB)
                 opts[:flash][:notice] = "Node removed"
                 res.body = MabRenderer.render('nodes', opts)
               end

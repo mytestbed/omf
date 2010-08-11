@@ -1307,3 +1307,7 @@ div.order_by {
 }
 
 .nohover a:hover { background-color: transparent; }
+
+.omf-admin-small {
+	font-size:12px;
+}

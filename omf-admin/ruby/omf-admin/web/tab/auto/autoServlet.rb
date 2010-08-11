@@ -54,6 +54,12 @@ module OMF
             syslog1 = "/var/log/syslog.1"
             discover = `grep DHCPDISCOVER #{syslog1} #{syslog0} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.split("\n")
             discover.uniq!
+            # remove MAC addresses of nodes already in the inventory
+            known = @@nodes.getAll.collect{|n| n['control_mac']}
+            if !known.nil?
+              discover = discover - known
+            end
+            # find the Vendor IDs of the remaining MACs
             discover.each{|m|
               vendorID = m[0..7].gsub(':','-').upcase
               vendor = "unknown"
