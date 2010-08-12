@@ -49,7 +49,7 @@ class Event < MObject
     ignoreList = opts[:ignore]
     @@events.each { |name,event|
       if !ignoreList.include?(name)
-        return false if !event[:actionBlocks].empty?
+        return false if event[:running]
       end
     }
     return true
@@ -63,7 +63,7 @@ class Event < MObject
     super("event::#{name}")
     @name = name
     @@events[@name] = {:instance => self, :interval => interval,
-                       :running => false, :fired => false, 
+                       :running => false, :fired => false,
                        :thread => nil, 
                        :conditionBlock => block, 
                        :actionBlocks => Queue.new, :actionOptions => Hash.new}
