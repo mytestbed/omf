@@ -1,0 +1,9 @@
+/var/log/omf-admin-5.3.log {
+	weekly
+	rotate 4
+	missingok
+	notifempty
+	compress
+	copytruncate
+}
+

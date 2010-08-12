@@ -28,6 +28,7 @@ require 'config'
 require 'testbeds'
 require 'nodes'
 require 'uri'
+require 'omf-common/servicecall'
 
 DEFAULT_PORT=5454
 
@@ -36,6 +37,16 @@ DEFAULT_PORT=5454
 @@nodes = Nodes.new
 
 @@currentTB = @@testbeds.getAll.first['name']
+
+#Jabber::debug = true
+
+OMF::ServiceCall.add_domain(:type => :xmpp,
+                            :uri => "norbit.npc.nicta.com.au",
+                            :user => "omf-admin1",
+                            :password => "123")
+                            
+x = OMF::Services.inventory
+p x
 
 begin
   require 'web/helpers'
