@@ -1,5 +1,6 @@
 
 require 'xmpp4r'
+require 'omf-common/mobject'
 require 'omf-common/omfXMPPServices'
 
 #Jabber::debug = true
@@ -16,6 +17,7 @@ module OMF
     class ReadTimeout < XmppError; end
     class NoService < XmppError; end
     class ServerError < XmppError; end
+    class ServerDisconnected < XmppError; end
     class Misconfigured < XmppError; end
 
     module Safely
@@ -96,8 +98,13 @@ module OMF
       @gateway = nil
       @user = nil
       @password = nil
+      @keep_alive_queue = nil
+      @keep_alive_thread = nil
 
       attr_reader :client, :gateway, :user
+
+      PING_INTERVAL = 10 # seconds
+      PING_RETRY_LIMIT = 5
 
       def initialize(gateway, user, password, client = nil)
         raise Misconfigured, "Must specify XMPP gateway" if gateway.nil?
@@ -108,6 +115,8 @@ module OMF
         @gateway = gateway
         @password = password
         @user = jid
+
+        @do_keep_alive = false
 
         if client.nil?
           @own_client = true
@@ -168,7 +177,9 @@ module OMF
         return if not @own_client # Don't allow closing the client stream if we don't own it.
         @mutex.synchronize {
           clean_exceptions { nonblocking { @client.close } }
+          @keep_alive_thread.wakeup if not @keep_alive_thread.nil?
           @connected  = false
+          @do_keep_alive = false
         }
       end
 
@@ -186,6 +197,51 @@ module OMF
           ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
         end
       end
+
+      def keep_alive?
+        @do_keep_alive
+      end
+
+      def keep_alive
+        @do_keep_alive = true
+
+        @keep_alive_queue = Queue.new
+        @keep_alive_thread = Thread.new {
+          while keep_alive?
+            sleep PING_INTERVAL
+            @keep_alive_queue << :ping if keep_alive?
+          end
+        }
+
+        Thread.new {
+          error_count = 0
+          cmd = :ping
+          while cmd == :ping
+            result = nil
+            begin
+              clean_exceptions { nonblocking { result = ping } }
+            rescue XmppError => e
+              warn "Trying to ping XMPP server: #{e}"
+            end
+
+            if not result
+              error_count += 1
+              warn "Error(#{error_count}) pinging XMPP server"
+              if error_count > PING_RETRY_LIMIT
+                warn "Reached XMPP server ping retry limit -- disconnected from server"
+                raise ServerDisconnected "Ping retry limit reached"
+              end
+            end
+
+            # Wait for the next :ping from the PING_INTERVAL thread above
+            if keep_alive?
+              cmd = @keep_alive_queue.pop
+            else
+              cmd = :stop
+            end
+          end
+        }
+      end # keep_alive
     end # class Connection
 
     module PubSub
@@ -212,7 +268,7 @@ module OMF
         end
       end # class Listener
 
-      class Domain
+      class Domain < MObject
         include OMF::XMPP::Safely
         @name = nil
         @service_helper = nil
@@ -311,9 +367,7 @@ module OMF
           raise "sub and resp simultaneously nil" if sub.nil? and resp.nil?
           raise "sub and resp simultaneously not nil" if not sub.nil? and not resp.nil?
           @mutex.synchronize {
-            if resp.nil?
-              @subscriptions[node] = sub
-            else
+            if not resp.nil?
               @subscriptions[node] = resp
               @local_subscriptions[node] = resp # we own this subscription
             end
@@ -371,23 +425,42 @@ module OMF
         # If node is nil, request subscriptions to all nodes,
         # otherwise just to the specified node.
         #
-        def request_subscriptions(node = nil)
+        def request_subscriptions(node = nil, remove_duplicates = false)
           list = nil
           if node.nil?
             list = clean_exceptions { nonblocking { @service_helper.get_subscriptions_from_all_nodes } }
           else
             list = clean_exceptions { nonblocking { @service_helper.get_subscriptions_from(node) } }
           end
-          @mutex.synchronize {
-            list.delete_if do |sub|
-              @subscriptions.has_key?(sub.node) && @subscriptions[node].subid == sub.subid
+          duplicates = Array.new
+          h = Hash.new
+          list.each do |sub|
+            if h.has_key? sub.node
+              duplicates << sub
+            else
+              h[sub.node] = sub
             end
-            list.each do |sub|
+          end
+
+          unique_list = h.values
+
+          @mutex.synchronize {
+            unique_list.each do |sub|
               if not @subscriptions.has_key?(sub.node)
+                debug "Existing Subscription: #{sub.node}, #{sub.subid}"
                 @subscriptions[sub.node] = sub
+              else
+                duplicates << sub
               end
             end
           }
+
+          if remove_duplicates
+            duplicates.each do |sub|
+              debug "Unsubscribing from duplicate subscription #{sub.node}, #{sub.subid}"
+              clean_exceptions { nonblocking { @service_helper.unsubscribe_from(sub.node, sub.subid) } }
+            end
+          end
           list
         end
       end # class Domain

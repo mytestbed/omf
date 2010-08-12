@@ -107,7 +107,6 @@ class AggmgrServer < MObject
   def all_services_summary
     doc = REXML::Document.new
     root = doc.add(REXML::Element.new("serviceGroups"))
-#    body = ["<?xml version='1.0'?><serviceGroups>"]
     @mounted_services.each do |path, service_class|
       description = service_class.description
       name = service_class.serviceName
@@ -115,7 +114,6 @@ class AggmgrServer < MObject
       group.add_attributes({"path" => path,
                              "name" => name})
       group.add_element(REXML::Element.new("info").add_text(description))
-      #      body << "<serviceGroup path='#{path}' name='#{name}'><info>#{description}</info></serviceGroup>"
       root.add_element(group)
     end
     doc
@@ -262,7 +260,7 @@ class XmppAggmgrServer < AggmgrServer
     @connection = OMF::XMPP::Connection.new(@server, @user, @password)
 
     @services = Hash.new
-    @listener_queues = Array.new
+    @listeners = Array.new
     @domains = Hash.new
   end
 
@@ -274,7 +272,7 @@ class XmppAggmgrServer < AggmgrServer
     debug "Creating dispatcher for node #{node} on domain #{domain.name}"
     listener = domain.listen_to_node(node)
 
-    @listener_queues << listener.queue
+    @listeners << listener
 
     Thread.new {
       begin
@@ -381,9 +379,14 @@ class XmppAggmgrServer < AggmgrServer
       # leave it at just the local domain for the moment.
       @domains[@server] = OMF::XMPP::PubSub::Domain.new(@connection, @server)
       @domains.each_value do |domain|
+        # Get existing subscriptions from the server, unsubscribing
+        # from duplicates (to cleanup from crashes, etc.).
+        domain.request_subscriptions(nil, true)
         # Only add the system node to start with.
         make_dispatcher(domain, "/OMF/system")
       end
+
+      @connection.keep_alive
     rescue Exception => e
       error "Exception!  #{e.message}"
     end
@@ -392,8 +395,15 @@ class XmppAggmgrServer < AggmgrServer
 
   def stop
     info "Shutting down XMPP connection"
-    @listener_queues.each { |q| q << :stop }
+#    @listener_queues.each { |q| q << :stop }
     sleep 1
+    @domains.each_value do |domain|
+      # FIXME:  listener queues should be maintained for each domain
+      @listeners.each do |listener|
+        listener.queue << :stop
+        domain.unlisten(listener)
+      end
+    end
     @connection.close
     info "...done"
     @stopped = true
