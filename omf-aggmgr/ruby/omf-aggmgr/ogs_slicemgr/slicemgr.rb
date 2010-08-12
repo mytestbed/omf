@@ -27,11 +27,14 @@
 #
 
 require 'xmlrpc/server'
-require 'omf-common/omfXMPPServices'
 require 'xmpp4r'
 require 'xmpp4r/pubsub'
 require 'xmpp4r/pubsub/helper/nodebrowser'
 include Jabber
+
+require 'omf-common/omfXMPPServices'
+require 'omf-aggmgr/ogs/legacyGridService'
+
 
 ERR_INVALID_SLICE_NAME = 1
 

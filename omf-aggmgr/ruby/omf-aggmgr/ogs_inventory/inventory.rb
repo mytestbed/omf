@@ -29,7 +29,7 @@
 # This file defines the InventoryService class.
 #
 
-require 'omf-aggmgr/ogs/legacyGridService'
+require 'omf-aggmgr/ogs/gridService'
 require 'omf-aggmgr/ogs_inventory/mySQLInventory'
 
 #
