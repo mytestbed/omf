@@ -3,8 +3,7 @@ Thu, 12 Aug 2010 17:23:28 +1000.
 
 Copyright: 
 
-    2006-2009 National ICT Australia (NICTA), Australia 
-    2004-2009 - WINLAB, Rutgers University, USA
+    2010 National ICT Australia (NICTA), Australia 
     
 	License:
 
@@ -28,6 +27,6 @@ Copyright:
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
 
-	The Debian packaging is (C) 2009, Christoph Dwertmann <christoph.dwertmann@nicta.com.au> and
+	The Debian packaging is (C) 2010, Christoph Dwertmann <christoph.dwertmann@nicta.com.au> and
 	is licensed under the MIT license, see above.
 

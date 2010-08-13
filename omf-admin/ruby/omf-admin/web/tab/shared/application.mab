@@ -87,7 +87,7 @@ html do
                     self << '&nbsp;'
                   end
                   div.footer! do
-                    span('Brought to you by the TEMPO Team', :style => 'float:right;margin-right:10pt')
+                    span("#{@@OMF_VERSION}", :style => 'float:right;margin-right:10pt')
                   end
                 end
               end

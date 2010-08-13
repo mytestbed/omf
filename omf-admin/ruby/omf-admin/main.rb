@@ -31,6 +31,8 @@ require 'uri'
 require 'omf-common/servicecall'
 
 DEFAULT_PORT=5454
+@@OMF_VERSION = "OMF Administration Interface v.#{OMF::Common::VERSION(__FILE__)}"
+puts @@OMF_VERSION
 
 @@config = AdminConfig.new
 @@testbeds = Testbeds.new
@@ -41,16 +43,19 @@ DEFAULT_PORT=5454
 #Jabber::debug = true
 
 OMF::ServiceCall.add_domain(:type => :xmpp,
-                            :uri => "norbit.npc.nicta.com.au",
-                            :user => "omf-admin1",
+                            :uri => @@config.get[:communication][:xmppserver][:value],
+                            :user => "omf-admin",
                             :password => "123")
                             
 x = OMF::Services.inventory
 p x
 
+port = DEFAULT_PORT
+idx = ARGV.index("--port")
+port = ARGV[idx+1] if !idx.nil? && !ARGV[idx+1].nil?
+
 begin
   require 'web/helpers'
-  port = DEFAULT_PORT if !(port = @@config.get[:webinterface][:port][:value])
   OMF::Admin::Web::start(port,
   :DocumentRoot => ".",
   :TabDir => ["#{File.dirname(__FILE__)}/web/tab"],

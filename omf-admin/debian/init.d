@@ -29,7 +29,7 @@ start(){
 		echo -e "\nPort $PORT is in use. There might already be a '$NAME' process running."
 		exit 0
 	fi
-	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS
+	start-stop-daemon --start --background --pidfile /var/run/$NAME.pid --make-pidfile --exec /usr/sbin/$NAME -- $OPTS >> /var/log/$NAME.log 2>&1
 	i=0
 	while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
 		if [ $i -eq 10 ]; then
@@ -80,8 +80,13 @@ case "$1" in
 	stop
 	start
 	;;
+	force-reload)
+	stop
+	start
+	;;
+	
 	*)
-	echo "Usage: /etc/init.d/$NAME {start|stop|restart}"
+	echo "Usage: /etc/init.d/$NAME {start|stop|restart|force-reload}"
 	exit 1
 esac
 

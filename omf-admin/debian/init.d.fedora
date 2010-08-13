@@ -1,37 +1,31 @@
 #! /bin/sh
 #
-# starts and stops the Aggregate Manager Daemon (formerly know as gridservices)
-#     Written by Maximilian Ott <max@winlab.rutgers.edu>.
-#     Modified by Christoph Dwertmann
+# starts and stops the OMF Admin Interface
+#     Written by Christoph Dwertmann
 #
 
 # chkconfig: 2345 99 01
-# description: OMF Aggregate Manager
+# description: OMF Admin Interface
 
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-NAME=omf-aggmgr-5.3
+NAME=omf-admin-5.3
 PIDFILE=/var/run/$NAME.pid
 
 test -x /usr/sbin/$NAME || exit 0
-
-if [ -f /etc/$NAME/gridservices.cfg ]; then
-   . /etc/$NAME/gridservices.cfg
-fi
-
 if [ -f /etc/default/$NAME ]; then
     . /etc/default/$NAME
 fi
 
 PORT=`echo $OPTS | sed 's/[^0-9]*//g'`
 start(){
-    echo -n "Starting OMF Aggregate Manager: $NAME"
+    echo -n "Starting OMF Administration Interface: $NAME"
 	if [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; then
 	   echo "\nPort $PORT is in use. There might already be an AM running on this port."
 	   exit 1
 	fi
- 	$NAME $OPTS >& /var/log/$NAME.daemon.log &
+ 	$NAME $OPTS >& /var/log/$NAME.log &
     echo $! > $PIDFILE
     while [ `netstat -ltn | grep $PORT -c` -eq 0 ] ; do
 	   sleep 1
@@ -40,7 +34,7 @@ start(){
 }
 
 stop(){
-    echo -n "Stopping OMF Aggregate Manager: $NAME"
+    echo -n "Stopping OMF Administration Interface: $NAME"
     if [ -f $PIDFILE ]; then
 	    kill -9 `cat $PIDFILE`
 		while [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; do
