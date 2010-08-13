@@ -53,10 +53,12 @@ module OMF
 
         if not @@connection.connected?
           begin
+            MObject.debug :xmpp, "XMPP service caller connecting to XMPP server #{@@connection.gateway} as #{@@connection.user}..."
             @@connection.connect
             if not @@connection.connected?
               raise ServiceCall::NoService, "Attemping to connect to XMPP server failed"
             end
+            MObject.debug :xmpp, "done"
           rescue OMF::XMPP::XmppError => e
             raise ServiceCall::NoService, e.message
           end
@@ -80,6 +82,7 @@ module OMF
         # Work out the service name and method from the URI
         service = uri.components[0]
         method = uri.components[1]
+        MObject.debug "ServiceCall #{service}.#{method}"
         # Build the message object
         message = RequestMessage.new("sender" => @@sender_id,
                                      "message-id" => new_message_id.to_s,
@@ -88,13 +91,7 @@ module OMF
         args.each do |name, value|
           message.set_arg(name, value)
         end
-        puts "---> xmpp_call --->"
-        puts message.to_s
-        p uri.components
-        puts uri.to_s
         r = request_manager.make_request(message, "/OMF/system")
-        p r.to_s
-        puts "<--- xmpp_call <---"
         doc = REXML::Document.new
         doc.add(r)
         doc
@@ -286,7 +283,6 @@ module OMF
         def set_result(xml)
           el = elements["result"]
           el = add_element("result") if el.nil?
-
           el << xml
         end
 
@@ -295,7 +291,11 @@ module OMF
         # REXML::Element.
         #
         def result
-          elements["result"].elements[1]
+          if not elements["result"].nil?
+            elements["result"].elements[1]
+          else
+            nil
+          end
         end
       end # class ResponseMessage
 
@@ -373,7 +373,7 @@ module OMF
         end
       end # class RequestManager
 
-      class ResponseMatcher
+      class ResponseMatcher < MObject
 
         #
         # Create a new response matcher listening on the given node in
@@ -416,23 +416,42 @@ module OMF
           }
         end
 
+        # For debugging
+        def dump_response(response)
+          if not response.nil? and response.kind_of? ResponseMessage
+            debug "----"
+            debug "Received service-response ="
+            debug " --> response-to: #{response.response_to}"
+            debug " --> message-id:  #{response.message_id}"
+            debug " --> timestamp:   #{response.timestamp}"
+            debug " --> status:      #{response.status}"
+            debug "----"
+          end
+        end
+
         def serve_responses
           begin
             while response = @listener.queue.pop
-              puts "SERVE_RESPONSES:  Got a message on the pubsub node #{@node}:"
-              puts response.to_s
               response = ResponseMessage.from_element(response)
-              puts "NIL" if response.nil?
-              puts "Parsed response = #{response.to_s}"
               next if response.nil?
               request_id, queue = match_request(response)
               if not request_id.nil?
-                queue << response.result
+                status = response.status
+                result = response.result
+                if status != "OK"
+                  warn "Service call response error: #{status}"
+                elsif result.nil?
+                  warn "Service call returned OK but no result body was found"
+                else
+                  queue << response.result
+                end
                 remove(request_id)
               end
             end
           rescue Exception => e
-            puts "SERVER_RESPONSES:  Got an exception: #{e.message}; retrying"
+            debug "Got an exception waiting for a response to a service call; retrying.  Error was: #{e.message}; retrying"
+            e.backtrace.each { |b| debug b }
+            debug response
             retry
           end
         end
@@ -473,21 +492,8 @@ def run
                                       :password => "123",
                                       :sender_id => "ec_xyz")
 
-    puts "Sleeping..."
-    sleep 3
-    puts "done"
-
-#    xdom = OMF::XMPP::PubSub::Domain.new(OMF::ServiceCall::XMPP.connection,"203.143.170.124")
-#    msg = REXML::Element.new("test-message").add_text("servicecall/xmpp.rb")
-#    xdom.publish_to_node("/OMF/system", item)
-
     if true
       sp = OMF::ServiceCall::Dispatch.instance.new_service_proc(dom, OMF::ServiceCall::Dispatch::Uri.new("cmc"))
-      begin
-        sp.call("xyz", ["a", "b"])
-      rescue OMF::ServiceCall::Timeout => e
-        puts "Service call to 'cmc.xyz' timed out"
-      end
 
       begin
         result = sp.call("allStatus", ["name", "omf.nicta.node1"], ["domain", "norbit"])

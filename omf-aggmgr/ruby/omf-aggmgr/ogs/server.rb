@@ -233,7 +233,6 @@ class HttpAggmgrServer < AggmgrServer
       doc = service_description(service_class)
       formatter.write(doc, ss)
       res.body = ss.string
-#      res.body = service_description(service_class)
     end
 
     @mounted_services[service_name] = service_class
@@ -257,7 +256,7 @@ class XmppAggmgrServer < AggmgrServer
     @server = xmpp_params[:server]
     @user = xmpp_params[:user]
     @password = xmpp_params[:password]
-    @connection = OMF::XMPP::Connection.new(@server, @user, @password)
+    @connection = xmpp_params[:connection]
 
     @services = Hash.new
     @listeners = Array.new
@@ -280,82 +279,85 @@ class XmppAggmgrServer < AggmgrServer
           if msg == :stop
             break
           end
-          request = OMF::ServiceCall::XMPP::RequestMessage.from_element(msg)
-          # Ignore anything that isn't well-formed
-          if not request.nil?
-            timestamp = request.timestamp.to_i
-            now = Time.now.tv_sec
-            if now - timestamp > 30
-              # Ignore stale messages
-            elsif now < timestamp
-              # Ignore messages from the future
-            else
-              sender = request.sender
-              message_id = request.message_id
-              service = request.service
-              method = request.method_name
+          # Execute requests in their own thread, so that we can be re-entrant
+          Thread.new {
+            request = OMF::ServiceCall::XMPP::RequestMessage.from_element(msg)
+            # Ignore anything that isn't well-formed
+            if not request.nil?
+              timestamp = request.timestamp.to_i
+              now = Time.now.tv_sec
+              if now - timestamp > 30
+                # Ignore stale messages
+                debug "Ignoring stale message #{request.message_id}"
+              elsif now < timestamp
+                # Ignore messages from the future
+                debug "Ignoring future message #{request.message_id}"
+              else
+                sender = request.sender
+                message_id = request.message_id
+                service = request.service
+                method = request.method_name
 
+                result = nil
+                error_result = nil
+                status = nil
+                if service.nil? or method.nil?
+                  if not service.nil?
+                    service_class = @mounted_services[service]
 
-              result = nil
-              error_result = nil
-              status = nil
-              if service.nil? or method.nil?
-                if not service.nil?
-                  service_class = @mounted_services[service]
-
-                  if method.nil? and not service_class.nil?
-
-                    result = service_description(service_class)
+                    if method.nil? and not service_class.nil?
+                      result = service_description(service_class)
+                      status = "OK"
+                    end
+                  else
+                    result = all_services_summary
                     status = "OK"
                   end
                 else
-                  result = all_services_summary
-                  status = "OK"
-                end
-              else
 
-                puts "Request for service/method #{service}/#{method}"
-                arguments = request.arguments
-                service_hash = @services[service]
+                  arguments = request.arguments
+                  service_hash = @services[service]
 
-                # Ignore requests for unknown services -- another AM might be serving them.
-                if not service_hash.nil?
-                  proc = service_hash[method]
-                  if proc.nil?
-                    # return an error response
-                    status = "#{service}.#{method}: Method not supported"
-                  else
-                    begin
-                      result = proc.call(arguments)
-                    rescue Exception => e
-                      error_result = e.message
-                    end
-
-                    if error_result.nil?
-                      status = "OK"
+                  # Ignore requests for unknown services -- another AM might be serving them.
+                  if not service_hash.nil?
+                    proc = service_hash[method]
+                    if proc.nil?
+                      # return an error response
+                      status = "#{service}.#{method}: Method not supported"
                     else
-                      status = error_result
+                      begin
+                        result = proc.call(arguments)
+                      rescue Exception => e
+                        error_result = e.message
+                      end
+
+                      if error_result.nil?
+                        status = "OK"
+                      else
+                        status = error_result
+                      end
                     end
                   end
                 end
-              end
 
-              response = ResponseMessage.new("response-to" => sender,
-                                             "message-id" => message_id,
-                                             "status" => status)
-              if not result.nil?
-                response.set_result(result)
-              end
+                response = ResponseMessage.new("response-to" => sender,
+                                               "message-id" => message_id,
+                                               "status" => status)
+                if not result.nil?
+                  response.set_result(result)
+                end
 
-              begin
-                domain.publish_to_node(node, response)
-              rescue Exception => e
-                error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
-              end
-            end # message not stale
-          else
-            # Ignore messages that are not <service-request/>'s
-          end # if not request.nil?
+                begin
+                  domain.publish_to_node(node, response)
+                rescue Exception => e
+                  error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
+                end
+              end # message not stale
+            else
+              # Ignore messages that are not <service-request/>'s
+            end # if not request.nil?
+          } # Request execution thread
+
         end # while msg = listener.queue.pop
       rescue Exception => e
         warn "Received an exception in dispatcher loop for node #{node}: #{e.message}\n#{e.backtrace}"
@@ -395,7 +397,6 @@ class XmppAggmgrServer < AggmgrServer
 
   def stop
     info "Shutting down XMPP connection"
-#    @listener_queues.each { |q| q << :stop }
     sleep 1
     @domains.each_value do |domain|
       # FIXME:  listener queues should be maintained for each domain

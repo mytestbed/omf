@@ -141,9 +141,7 @@ class CmcStubService < GridService
   s_description 'Switch off ALL nodes SOFT (execute halt)'
   s_param :domain, '[domain]', 'domain for request.'
   service 'allOffSoft' do |domain|
-    tb = getTestbedConfig(domain, @@config)
-    inventoryURL = tb['inventory_url']
-    nodes = listAllNodes(inventoryURL, domain)
+    nodes = listAllNodes(domain)
     nodes.each { |n|
       reboot(n, domain)
     }
@@ -163,9 +161,7 @@ class CmcStubService < GridService
   s_description 'Returns a list of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
   service 'getAllNodes' do |domain|
-    tb = getTestbedConfig(domain, @@config)
-    inventoryURL = tb['inventory_url']
-    nodes = listAllNodes(inventoryURL, domain)
+    nodes = listAllNodes(domain)
     nodes.inspect
   end
 
@@ -182,11 +178,9 @@ class CmcStubService < GridService
   s_description 'Returns the status of all nodes in the testbed'
   s_param :domain, '[domain]', 'domain for request.'
   service 'allStatus' do |domain|
-    tb = getTestbedConfig(domain, @@config)
-    inventoryURL = tb['inventory_url']
     root = REXML::Element.new('TESTBED_STATUS')
     detail = root.add_element('detail')
-    nodes = listAllNodes(inventoryURL, domain)
+    nodes = listAllNodes(domain)
     nodes.each { |n|
       attr = {'name' => "#{n}", 'state' => 'POWERON' }
       detail.add_element('node', attr)
@@ -205,9 +199,7 @@ class CmcStubService < GridService
 
   def self.reboot(hrn, domain)
     MObject.debug("Sending REBOOT cmd to '#{hrn}'")
-    tb = getTestbedConfig(domain, @@config)
-    inventoryURL = tb['inventory_url']
-    ip = getControlIP(inventoryURL, hrn, domain)
+    ip = getControlIP(domain, hrn, domain)
     begin
       cmd = `nmap #{ip} -p22-23`
       #MObject.debug("TDEBUG - NMAP - '#{cmd}'")

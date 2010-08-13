@@ -37,6 +37,7 @@
 require 'webrick'
 require 'omf-common/mobject'
 require 'omf-common/omfVersion'
+require 'omf-common/servicecall'
 
 # We need to find a better way of adding the dependencies of the
 # individual services.
@@ -47,6 +48,7 @@ require 'yaml'
 require 'optparse'
 #####
 require 'omf-aggmgr/ogs/serviceMounter'
+
 
 include WEBrick
 
@@ -122,6 +124,16 @@ def run(params)
     exit -1
   end
 
+  # First initialize the connection to the XMPP server, if XMPP is enabled
+  xmpp_params = params[:xmpp]
+  xmpp_connection = nil
+  if not xmpp_params.nil?
+    xmpp_connection = OMF::XMPP::Connection.new(xmpp_params[:server],
+                                                xmpp_params[:user],
+                                                xmpp_params[:password])
+    xmpp_params[:connection] = xmpp_connection
+  end
+
   ServiceMounter.init(params)
 
   if ((services = params[:services]) != nil)
@@ -169,7 +181,13 @@ def run(params)
       end
     }
   }
-  Thread.new { ServiceMounter.start_services }.join
+  Thread.new {
+    OMF::ServiceCall::XMPP.sender_id = "aggmgr"
+    OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
+    OMF::ServiceCall.add_domain(:type => :xmpp,
+                                :uri => xmpp_params[:server])
+    ServiceMounter.start_services
+  }.join
 end
 
 #
