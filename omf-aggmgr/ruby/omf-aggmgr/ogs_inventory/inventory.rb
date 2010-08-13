@@ -420,8 +420,7 @@ class InventoryService < GridService
 
   #
   # add a node to the testbed
-  # creates entries in the inventory tables, adds XMPP system nodes
-  # and reconfigures dnsmasq
+  # creates entries in the inventory tables
   #
   s_description "Get list of device aliases defined in the inventory"
   s_param :domain, 'domain', 'domain for the alias list'
@@ -430,7 +429,6 @@ class InventoryService < GridService
     begin
       tb = getTestbedConfig(domain, @@config)
       inv = getInv(tb)
-      updateDnsMasq(tb, inv, domain)
     rescue Exception => ex
       MObject::debug("exception #{ex}")
       root.add_element("ERROR")
@@ -490,6 +488,31 @@ class InventoryService < GridService
     end
     setResponse(res, root)
   end
+  
+  s_description "Get list of testbeds defined in the inventory"
+  service 'getAllTestbeds' do |domain|
+    root = REXML::Element.new("result")
+    begin
+      tb = getTestbedConfig()
+      inv = getInv(tb)
+      MObject::debug("foo")
+      testbeds =  inv.getAllTestbeds()
+      if (testbeds.empty?)
+        root.add_element("ERROR")
+        root.elements["ERROR"].text = "Empty testbeds list"
+      else
+        tbnode = root.add_element("testbeds")
+        testbeds.each { | al |
+          el = tb.add_element("testbed")
+          el.add_attribute("name", al)
+        }
+      end
+    rescue Exception => ex
+      root.add_element("ERROR")
+      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
+    end
+    setResponse(res, root)
+  end
 
   #
   # Return all the Wireless Devices for a given resource of a given testbed.
@@ -523,51 +546,4 @@ class InventoryService < GridService
     @@config = config
   end
 
-  #
-  # Write a dnsmasq DHCP configuration file
-  # that is generated from the inventory
-  #
-  # - inventoryConfig = the testbed configuration
-  # - inv = the inventory
-  # - domain = the domain we want to create a config file for
-  #
-  def self.updateDnsMasq(inventoryConfig, inv, domain)
-    MObject::debug("Updating dnsmasq configuration")
-    if !(inventoryConfig['dnsmasq_config'])
-      MObject::debug("Missing parameter 'dnsmasq_config' in inventory configuration file. Not updating dnsmasq.")
-      return
-    end
-    File.open(inventoryConfig['dnsmasq_config'], 'w') do |f|
-      f.puts "# Do NOT modify this file manually!\n# It is auto-generated from the OMF inventory database."
-      f.puts "# Add the line 'dhcp-hostsfile=#{inventoryConfig['dnsmasq_config']}' to your /etc/dnsmasq.conf to include this file."
-      inv.getDHCPConfig(domain).each{ | m, h, i | f.puts "#{m},#{h},#{i}" }
-    end
-    # when dnsmasq receives SIGHUP it reloads the contents of files specified with 'dhcp-hostsfile'
-    # in dnsmasq.conf
-    system("killall -s HUP dnsmasq")
-  end
-
-
-  #
-  # Easter Egg :-)
-  #
-  s_description "This service has meta cow powers"
-  service 'moo' do
-    # Moo.
-    root = REXML::Element.new("moo")
-    root.text = <<MOO_MOO_MOO
-
- ________
-( lambda )
- --------
-        o   ^__^
-         o  (oo)\\_______
-            (__)\\       )\\/\\
-                ||----w |
-                ||     ||
-
-Do not go big.  Do not go small.  Go meta.
-MOO_MOO_MOO
-    root
-  end
 end

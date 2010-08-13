@@ -132,7 +132,7 @@ SELECT nodes.control_ip
   FROM nodes
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}'
+WHERE testbeds.name='#{domain}'
   AND nodes.hrn='#{hrn}';
 CONTROL_QS
 
@@ -158,7 +158,7 @@ SELECT nodes.hrn
   FROM nodes
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}'
+WHERE testbeds.name='#{domain}'
   AND nodes.hostname='#{hostname}';
 HRN_QS
 
@@ -186,7 +186,7 @@ SELECT devices.mac
   LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}'
+WHERE testbeds.name='#{domain}'
   AND locations.x=#{x}
   AND locations.y=#{y}
   AND canonical_name='#{cname}';
@@ -216,7 +216,7 @@ SELECT devices.mac , devices.canonical_name
   LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}'
+WHERE testbeds.name='#{domain}'
   AND locations.x=#{x}
   AND locations.y=#{y};
 ALLMAC_QS
@@ -242,7 +242,7 @@ ALLMAC_QS
     qs = <<CONFIG_Q
 SELECT testbeds.#{key}
   FROM testbeds
-WHERE testbeds.node_domain='#{domain}';
+WHERE testbeds.name='#{domain}';
 CONFIG_Q
 
     value = nil
@@ -269,7 +269,7 @@ SELECT pxeimages.image_name
   LEFT JOIN nodes ON pxeimages.id = nodes.pxeimage_id
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}'
+WHERE testbeds.name='#{domain}'
   AND nodes.hrn='#{hrn}'
 PXEIMAGE_QS
 
@@ -292,7 +292,7 @@ PXEIMAGE_QS
     qs = <<END_QS1
 SELECT x_max, y_max, z_max
   FROM testbeds
-WHERE node_domain = '#{domain}'
+WHERE name = '#{domain}'
 END_QS1
 
     result = Array.new
@@ -323,7 +323,7 @@ END_QS1
          "FROM testbeds " \
            "LEFT JOIN locations ON testbeds.id = locations.testbed_id " \
            "LEFT JOIN nodes ON locations.id = nodes.location_id " \
-	 "WHERE testbeds.node_domain = '#{domain}' " \
+	 "WHERE testbeds.name = '#{domain}' " \
            "AND locations.x = #{x} " \
            "AND locations.y = #{y} "
     begin
@@ -468,7 +468,7 @@ SELECT locations.x, locations.y
   LEFT JOIN device_kinds ON device_kinds.id = devices.device_kind_id
   LEFT JOIN device_ouis ON device_ouis.device_kind_id = device_kinds.id
   WHERE device_ouis.oui = '#{oui}'
-    AND testbeds.node_domain = '#{domain}'
+    AND testbeds.name = '#{domain}'
   ORDER BY locations.x, locations.y
 END_QS
     begin
@@ -539,7 +539,7 @@ SELECT DISTINCT locations.x, locations.y
   LEFT JOIN device_kinds ON device_kinds.id = devices.device_kind_id
   LEFT JOIN device_tags ON device_tags.device_kind_id = device_kinds.id
 WHERE device_tags.tag = '#{tag}'
-  AND testbeds.node_domain = '#{domain}'
+  AND testbeds.name = '#{domain}'
 ORDER BY locations.x, locations.y
 END_QS2
     begin
@@ -568,7 +568,7 @@ SELECT nodes.hrn
   FROM nodes 
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}';
+WHERE testbeds.name='#{domain}';
 ALLRESOURCES_QS
 
     resources = Set.new
@@ -579,23 +579,18 @@ ALLRESOURCES_QS
   end
 
 
-  def getDHCPConfig(domain)
-  qs = <<DHCP_QS
-SELECT devices.mac, nodes.hostname, nodes.control_ip
-  FROM devices
-  LEFT JOIN nodes ON devices.motherboard_id = nodes.motherboard_id
-  LEFT JOIN locations ON nodes.location_id = locations.id
-  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.node_domain='#{domain}';
-DHCP_QS
+  def getAllTestbeds
+  qs = <<ALLTESTBEDS_QS
+SELECT name FROM testbeds;
+ALLTESTBEDS_QS
  
     result = Array.new
     begin
-      @my.query(qs).each() { | m, h, i |
-           result.push([m,h,i])
+      @my.query(qs).each() { | n |
+           result << n
     }
     rescue MysqlError => e
-      err_str = "Inventory - Could not execute query in getDHCPconfig; domain #{domain}"
+      err_str = "Inventory - Could not execute query in getAllTestbeds"
       p err_str
       MObject.debug err_str
     end

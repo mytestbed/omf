@@ -47,7 +47,8 @@ OMF::ServiceCall.add_domain(:type => :xmpp,
                             :user => "omf-admin",
                             :password => "123")
                             
-x = OMF::Services.inventory
+x = OMF::Services.inventory.getListOfResources('norbit')
+
 p x
 
 port = DEFAULT_PORT
