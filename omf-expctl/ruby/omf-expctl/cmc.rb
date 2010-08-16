@@ -26,20 +26,20 @@
 #
 # == Description
 #
-# This module holds the methods used by the Node Handler to interact with 
+# This module holds the methods used by the Node Handler to interact with
 # the CMC Services
 #
 
 module CMC
-	
+
   # Holds the list of active nodes for this experiment
   @@activeNodes = nil
 
   # Syntactic sugar...
   # Return the URL of the CMC service from OConfig
   #
-  def CMC.URL() 
-    OConfig[:tb_config][:default][:cmc_url] 
+  def CMC.URL()
+    OConfig[:ec_config][:cmc][:url]
     #OConfig.CMC_SERVICE()
   end
 
@@ -113,7 +113,7 @@ module CMC
   end
 
   #
-  # Get a specified set of nodes on the default domain 
+  # Get a specified set of nodes on the default domain
   # _Deprecated_ - Method no longer used...
   #
   def CMC.getNodes(set)
@@ -174,7 +174,7 @@ module CMC
   # - y = Y coordinate of node
   #
   # [Return] true/false
-  #  
+  #
   def CMC.nodeActive?(name)
     # Check if EC is running in 'Just Print' or 'Slave mode'
     # Yes - Then always say that a node is active!
