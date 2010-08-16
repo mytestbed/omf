@@ -29,6 +29,7 @@
       :communicator:
         :type: 'xmpp'
         :xmpp:
-          :server: '72.44.37.31'
-          :password: '123'
+          :pubsub_gateway: '72.44.37.31'
+          #:pubsub_user:   'my_EC_name'       # -- optional
+          #:pubsub_password: 'my_EC_password' # -- optional
         

@@ -105,8 +105,9 @@
       :communicator:
         :type: 'xmpp'
         :xmpp:
-          :server: planetlab-europe-07.ipv6.lip6.fr
-          :password: '123'
+          :pubsub_gateway: planetlab-europe-07.ipv6.lip6.fr
+          #:pubsub_user: 'my_EC_name'              # -- optional
+          #:pubsub_password: 'my_EC_password'      # -- optional
     ####    
     :planetlab:
       :domain: 'planetlab'
@@ -123,8 +124,9 @@
       :communicator:
         :type: 'xmpp'
         :xmpp:
-          :server: planetlab-europe-07.ipv6.lip6.fr
-          :password: '123'
+          :pubsub_gateway: planetlab-europe-07.ipv6.lip6.fr
+          #:pubsub_user: 'my_EC_name'              # -- optional
+          #:pubsub_password: 'my_EC_password'      # -- optional
     
         
     # "debug" configuration
