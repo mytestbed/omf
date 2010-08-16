@@ -20,8 +20,12 @@ class Testbeds
   end
   
   def save
-    File.open(@@dbfile, 'w' ) do |out|
-      YAML.dump(@@tb, out )
+    if @@dummy
+      File.open(@@dbfile, 'w' ) do |out|
+        YAML.dump(@@tb, out )
+      end
+    else
+    #here
     end
   end
   

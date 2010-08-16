@@ -597,5 +597,29 @@ ALLTESTBEDS_QS
     result
   end
   
+    def getAllNodes
+    qs = <<ALLNODES_QS
+SELECT hostname,hrn,control_mac,control_ip,x,y,z,disk,testbeds.name
+FROM nodes
+LEFT JOIN locations ON nodes.location_id = locations.id
+LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+;
+ALLNODES_QS
+
+      result = Array.new
+      begin
+        @my.query(qs).each() { | hostname,hrn,control_mac,control_ip,x,y,z,disk,tbname |
+             result << {'name' => "#{hostname}", 'hrn' => "#{hrn}", 'control_mac' => "#{control_mac}",
+               'control_ip' => "#{control_ip}", 'x' => "#{x}", 'y' => "#{y}", 'z' => "#{z}", 'disk' => "#{disk}",
+               'testbed' => "#{tbname}"}
+      }
+      rescue MysqlError => e
+        err_str = "Inventory - Could not execute query in getAllTestbeds"
+        p err_str
+        MObject.debug err_str
+      end
+      result
+    end
+  
 end
 

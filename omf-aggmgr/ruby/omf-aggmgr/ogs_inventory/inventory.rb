@@ -490,28 +490,47 @@ class InventoryService < GridService
   end
   
   s_description "Get list of testbeds defined in the inventory"
-  service 'getAllTestbeds' do |domain|
-    root = REXML::Element.new("result")
+  service 'getAllTestbeds' do
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
     begin
-      tb = getTestbedConfig()
       inv = getInv(tb)
-      MObject::debug("foo")
-      testbeds =  inv.getAllTestbeds()
-      if (testbeds.empty?)
-        root.add_element("ERROR")
-        root.elements["ERROR"].text = "Empty testbeds list"
-      else
-        tbnode = root.add_element("testbeds")
-        testbeds.each { | al |
-          el = tb.add_element("testbed")
-          el.add_attribute("name", al)
-        }
-      end
+      result = inv.getAllTestbeds()
     rescue Exception => ex
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
     end
-    setResponse(res, root)
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no testbeds defined"
+    replyXML = buildXMLReply("TESTBEDS", result, msgEmpty) { |root,testbeds|
+      testbeds.each { |tb|
+        addXMLElement(root, "TESTBED", "#{tb}")
+      }
+    }
+    replyXML
+  end
+  
+  s_description "Get list of nodes defined in the inventory"
+  service 'getAllNodes' do
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.getAllNodes()
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no nodes defined"
+    replyXML = buildXMLReply("ALLNODES", result, msgEmpty) { |root,nodes|
+      nodes.each { |h|
+        nl = root.add_element("NODE")
+        nl.add_attributes(h)
+      }
+    }
+    MObject::debug(replyXML)
+    replyXML
   end
 
   #

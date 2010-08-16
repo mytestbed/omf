@@ -29,27 +29,30 @@ require 'testbeds'
 require 'nodes'
 require 'uri'
 require 'omf-common/servicecall'
+require 'rexml/document'
 
 DEFAULT_PORT=5454
 @@OMF_VERSION = "OMF Administration Interface v.#{OMF::Common::VERSION(__FILE__)}"
 puts @@OMF_VERSION
 
-@@config = AdminConfig.new
-@@testbeds = Testbeds.new
-@@nodes = Nodes.new
-
-@@currentTB = @@testbeds.getAll.first['name']
-
+@@dummy=false
 #Jabber::debug = true
+
+@@config = AdminConfig.new
 
 OMF::ServiceCall.add_domain(:type => :xmpp,
                             :uri => @@config.get[:communication][:xmppserver][:value],
                             :user => "omf-admin",
                             :password => "123")
-                            
-x = OMF::Services.inventory.getListOfResources('norbit')
 
-p x
+
+@@testbeds = Testbeds.new
+@@nodes = Nodes.new
+
+@@currentTB = @@testbeds.getAll.first['name']
+
+p @@nodes.getAll
+
 
 port = DEFAULT_PORT
 idx = ARGV.index("--port")

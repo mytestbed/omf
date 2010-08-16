@@ -3,25 +3,40 @@ require 'yaml'
 class Nodes
   def initialize
     @@dbfile = 'nodes.yaml'
-    @@nds = nil
+    @@nds = []
     load
   end
   
   def load
-    if File.exists?(@@dbfile)
-      @@nds = YAML.load_file(@@dbfile)
+    if @@dummy
+      if File.exists?(@@dbfile)
+        @@nds = YAML.load_file(@@dbfile)
+      else
+        @@nds = [
+          {'name' => 'node1', 'hrn' => 'omf.nicta.node1', 'control_mac' => '00:03:2d:0a:a3:d7',
+            'control_ip' => '10.0.0.1', 'x' => '1', 'y' => '1', 'z' => '1', 'disk' => '/dev/sda',
+            'testbed' => 'norbit'}
+        ]
+      end
     else
-      @@nds = [
-        {'name' => 'node1', 'hrn' => 'omf.nicta.node1', 'control_mac' => '00:03:2d:0a:a3:d7',
-          'control_ip' => '10.0.0.1', 'x' => '1', 'y' => '1', 'z' => '1', 'disk' => '/dev/sda',
-          'testbed' => 'norbit'}
-      ]
+      nodes = OMF::Services.inventory.getAllNodes
+      nodes.elements.each("ALLNODES/NODE"){|e|
+        h = Hash.new
+        e.attributes.each{|name,value|
+          h[name]=value
+        }
+        @@nds << h
+      }
     end
   end
   
   def save
-    File.open(@@dbfile, 'w' ) do |out|
-      YAML.dump(@@nds, out )
+    if @@dummy
+      File.open(@@dbfile, 'w' ) do |out|
+        YAML.dump(@@nds, out )
+      end
+    else
+      # here
     end
     saveDnsmasqConfig
   end
