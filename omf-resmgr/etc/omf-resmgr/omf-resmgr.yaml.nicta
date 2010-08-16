@@ -30,17 +30,31 @@
 ---
 :rmanager:
   # Communication settings 
-  :comm:
-
-    # Address of the XMPP server to use for PubSub communication
-    :xmpp_server: 10.0.0.200
-    
+  :communicator:
+      
     # set this to true or false if you want to enable or disable signature checks and message signing                                       
     :authenticate_messages: false
     # your RSA/DSA SSH private key file
-    :private_key: '/etc/omf-resctl-5.3/id_rsa'
+    :private_key: '~/.ssh/id_rsa'
     # directory holding the public keys of your OMF peers
-    :public_key_dir: '/etc/omf-resctl-5.3/peer_keys'
+    :public_key_dir: '~/.omf-expctl/peer_keys'
+    
+    :type: 'xmpp'
+    :xmpp:
+      # Address of the server to use as gateway for PubSub communication
+      :pubsub_gateway: 'norbit.npc.nicta.com.au'
+      # The 'pubsub_domain' is the hostname of the pubsub server on which
+      # you would like to host your slice's communications. Leave this 
+      # commented if you wish to host them on the 'pubsub_gateway' server
+      # which you selected above.
+      #:pubsub_domain: 'norbit.npc.nicta.com.au'
+      # The following 'pubsub_user' and 'pubsub_pwd' are optional
+      # EC will create a unique user/pwd for itself if this is not provided
+      # In a typical OMF install, you should not uncomment these lines
+      # (do so only if you need to manually set user/password for 
+      # your client to connect to your pubsub server)
+      #:pubsub_user: 'my_EC_name' 
+      #:pubsub_pwd: 'my_EC_password'
 
   # Resource Manager settings
   :manager:

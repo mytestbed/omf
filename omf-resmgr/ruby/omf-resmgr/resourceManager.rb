@@ -87,7 +87,7 @@ class ResourceManager < MObject
     comm =  Hash.new
     comm[:comms_name] = @managerName
     comm[:handler] = self
-    comm[:createflag] = false
+    comm[:createflag] = true
     comm[:config] = @config[:communicator]
     RMCommunicator.instance.init(comm)
     RMCommunicator.instance.reset
