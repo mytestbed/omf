@@ -118,9 +118,9 @@ end # END of OmfServiceHelper
 #
 class OmfXMPPServices < MObject
 
-  @client = nil
+  @clientHelper = nil
 
-  attr_reader :client
+  attr_reader :clientHelper
 
   #
   # Create a new instance of XMPP Services 

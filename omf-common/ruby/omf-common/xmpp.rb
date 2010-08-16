@@ -107,9 +107,11 @@ module OMF
       PING_RETRY_LIMIT = 5
 
       def initialize(gateway, user, password, client = nil)
-        raise Misconfigured, "Must specify XMPP gateway" if gateway.nil?
-        raise Misconfigured, "Must specify XMPP user name" if user.nil?
-        raise Misconfigured, "Must specify XMPP user password" if password.nil?
+        if client.nil?
+          raise Misconfigured, "Must specify XMPP gateway" if gateway.nil?
+          raise Misconfigured, "Must specify XMPP user name" if user.nil?
+          raise Misconfigured, "Must specify XMPP user password" if password.nil?
+        end
 
         jid = "#{user}@#{gateway}"
         @gateway = gateway

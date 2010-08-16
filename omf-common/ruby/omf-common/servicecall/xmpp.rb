@@ -43,6 +43,10 @@ module OMF
         pubsub_domain = domainspec[:uri]
 
         if @@connection.nil?
+          conn = domainspec[:conn]
+          if conn
+            XMPP.borrow_connection
+          end
           # create the gateway connection
           gw = domainspec[:gateway] || pubsub_domain
           user = domainspec[:user]

@@ -678,13 +678,14 @@ class NodeHandler < MObject
     end
 
     if not xmpp_domain.nil?
-      domains << { :type => :xmpp, :uri => xmpp_domain }
+      domains << { :type => :xmpp, :uri => xmpp_domain, :conn => true }
     elsif not xmpp_gw.nil?
-      domains << { :type => :xmpp, :uri => xmpp_gw }
+      domains << { :type => :xmpp, :uri => xmpp_gw, :conn => true }
     end
 
     services = OConfig[:ec_config][:services]
     services.each do |domain|
+      domain[:conn] = true
       domains << domain
     end
 

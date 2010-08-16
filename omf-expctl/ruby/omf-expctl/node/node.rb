@@ -35,7 +35,7 @@ require 'rexml/document'
 require 'rexml/element'
 require 'rexml/xpath'
 require 'omf-common/arrayMD'
-requrie 'omf-common/servicecall'
+require 'omf-common/servicecall'
 require 'observer'
 require 'date'
 
