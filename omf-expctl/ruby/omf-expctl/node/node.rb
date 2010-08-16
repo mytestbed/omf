@@ -35,6 +35,7 @@ require 'rexml/document'
 require 'rexml/element'
 require 'rexml/xpath'
 require 'omf-common/arrayMD'
+requrie 'omf-common/servicecall'
 require 'observer'
 require 'date'
 
@@ -195,12 +196,16 @@ class Node < MObject
   def getControlIP()
     # Check if EC is running in 'Slave Mode'
     return "127.0.0.1" if NodeHandler.SLAVE
+
     # Query the Inventory GridService for the Control IP address of this node
-    url = "#{OConfig[:ec_config][:inventory][:url]}"+
-          "/getControlIP?hrn=#{@nodeID}&domain=#{OConfig.domain}"
-    response = NodeHandler.service_call(url, 
-               "Can't get Control IP for '#{@nodeID}'/'#{OConfig.domain}'")
-    doc = REXML::Document.new(response.body)
+    doc = nil
+    begin
+      doc = OMF::Services.inventory.getControlIP(@nodeID, OConfig.domain)
+    rescue Exception => e
+      warn "Couldn't retrieve control IP for '#{@nodeID}' - #{e.message}"
+      raise e
+    end
+
     # Parse the Reply to retrieve the control IP address
     doc.root.elements.each("ERROR") { |e|
       error "OConfig - No Control IP found for '#{@nodeID}' - "+
