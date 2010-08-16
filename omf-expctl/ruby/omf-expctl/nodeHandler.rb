@@ -683,7 +683,7 @@ class NodeHandler < MObject
       domains << { :type => :xmpp, :uri => xmpp_gw, :conn => true }
     end
 
-    services = OConfig[:ec_config][:services]
+    services = OConfig[:ec_config][:services] || []
     services.each do |domain|
       domain[:conn] = true
       domains << domain
