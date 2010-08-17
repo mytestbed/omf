@@ -1,3 +1,9 @@
+omf-aggmgr-5.3 (1ubuntu6) lucid; urgency=low
+
+  * latest trunk
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 17 Aug 2010 16:29:06 +1000
+
 omf-aggmgr-5.3 (1ubuntu5) testing; urgency=low
 
   * new init script, removed dependency on old OMF transport library

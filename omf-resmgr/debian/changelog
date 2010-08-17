@@ -1,3 +1,9 @@
+omf-resmgr-5.3 (1ubuntu3) lucid; urgency=low
+
+  * latest trunk
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 17 Aug 2010 15:55:48 +1000
+
 omf-resmgr-5.3 (1ubuntu2) testing; urgency=low
 
   * Testing release 

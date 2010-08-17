@@ -1,3 +1,9 @@
+frisbee (1.0.3-2ubuntu1) lucid; urgency=low
+
+  * build for Ubuntu lucid
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 17 Aug 2010 16:18:40 +1000
+
 frisbee (1.0.3-2) stable; urgency=low
 
   * updated Debian packaging for OMF

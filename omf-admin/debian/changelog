@@ -1,3 +1,9 @@
+omf-admin-5.3 (5.3-1ubuntu1) lucid; urgency=low
+
+  * latest trunk
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 17 Aug 2010 16:29:23 +1000
+
 omf-admin-5.3 (5.3-1) testing; urgency=low
 
   * Initial release

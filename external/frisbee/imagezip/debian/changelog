@@ -1,3 +1,9 @@
+imagezip (1.0.0-2ubuntu1) lucid; urgency=low
+
+  * build for Ubuntu lucid
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 17 Aug 2010 16:20:29 +1000
+
 imagezip (1.0.0-2) stable; urgency=low
 
   * updated Debian packaging for OMF
