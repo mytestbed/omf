@@ -231,8 +231,8 @@ class OMFPubSubTransport < MObject
         return nil
       end
     rescue Exception => ex
-      error "Cannot extract message from PubSub event '#{envelope}'"
-      error "Error: '#{ex}'\nEvent received on '#{event_source(event)}')"
+      debug "Cannot extract message from PubSub event '#{envelope}'"
+      debug "Error: '#{ex}'\nEvent received on '#{event_source(event)}')"
       return
     end
   end

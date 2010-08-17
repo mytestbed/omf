@@ -91,7 +91,7 @@ module OMF
       @message = nil
 
       def check_message_type(message)
-        return if message.class() == REXML::Document || message.class == REXML::Element
+        return if (message.class() == REXML::Document) || (message.class() == REXML::Element)
         raise "Message is not an XML document - '#{message.to_s}'"
       end
 
@@ -121,9 +121,7 @@ module OMF
         check_message_type(envelope)
         @envelope = envelope
         if not envelope.elements["//sig:signature"].nil? then
-          warn("Message is signed, but authentication is not enabled")
-          debug("Message is signed, but authentication is not enabled "+
-                "'#{envelope.to_s}'")
+          debug("Message is signed, but authentication is not enabled")
         end
         if envelope.name == "omf-message" then
           # Return the first element as the message payload
