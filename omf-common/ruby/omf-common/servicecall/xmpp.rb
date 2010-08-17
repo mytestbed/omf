@@ -26,7 +26,7 @@ module OMF
       # we don't have to have double the traffic to the XMPP
       # server.  It's a kludge...
       def XMPP.borrow_connection
-        client = OMFPubSubTransport.instance.xmpp_services.client
+        client = OMFPubSubTransport.instance.xmpp_services.clientHelper
         @@connection = OMF::XMPP::Connection.new("", "", "", client)
       end
 

@@ -184,8 +184,14 @@ def run(params)
   Thread.new {
     OMF::ServiceCall::XMPP.sender_id = "aggmgr"
     OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
-    OMF::ServiceCall.add_domain(:type => :xmpp,
-                                :uri => xmpp_params[:server])
+    begin
+      OMF::ServiceCall.add_domain(:type => :xmpp,
+                                  :uri => xmpp_params[:server])
+    rescue OMF::ServiceCall::ServiceCallException => e
+      MObject.error(:gridservices, "Failed to set up service call framework: #{e}")
+      bt = e.backtrace.join("\n\t")
+      MObject.debug(:gridservices, "Exception:  #{e} (#{e.class})\n\t#{bt}")
+    end
     ServiceMounter.start_services
   }.join
 end
