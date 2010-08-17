@@ -46,13 +46,14 @@ module OMF
           conn = domainspec[:conn]
           if conn
             XMPP.borrow_connection
+          else
+            # create the gateway connection
+            gw = domainspec[:gateway] || pubsub_domain
+            user = domainspec[:user]
+            password = domainspec[:password]
+            @@sender_id = domainspec[:sender_id] || user
+            @@connection = OMF::XMPP::Connection.new(gw.to_s, user, password)
           end
-          # create the gateway connection
-          gw = domainspec[:gateway] || pubsub_domain
-          user = domainspec[:user]
-          password = domainspec[:password]
-          @@sender_id = domainspec[:sender_id] || user
-          @@connection = OMF::XMPP::Connection.new(gw.to_s, user, password)
         end
 
         if not @@connection.connected?
