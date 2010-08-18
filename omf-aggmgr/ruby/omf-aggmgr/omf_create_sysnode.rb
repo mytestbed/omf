@@ -163,6 +163,7 @@ do |args|
   slice = args[0]
   resources = args[1..-1]
   mknode(OMF + slice)
+  mknode(OMF + slice + "resources")
   resources.each { |r| mknode(OMF + slice + "resources" + r) }
 end
 
