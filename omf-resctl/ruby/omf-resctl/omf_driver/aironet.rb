@@ -28,7 +28,7 @@
 #
 # This file defines the class AironetDevice which is a sub-class of WirelessDevice.
 #
-require 'omf-resctl/omf_drivert/wireless'
+require 'omf-resctl/omf_driver/wireless'
 
 #
 # This class represents an Cisco Aironet device
