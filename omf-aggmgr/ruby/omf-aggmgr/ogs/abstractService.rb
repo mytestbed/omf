@@ -264,14 +264,15 @@ class AbstractService < MObject
       end
       if (params = v[:param])
         args = s.add_element('args')
-        v[:param].each {|k,v|
-          arg = args.add_element('arg', {
-           'name' => k,
-           'value' => v[:value],
-           'isRequired' => v[:isReq]
-          })
-          if v[:info]
-            arg.add_element('info').text = v[:info]
+        v[:param_list].each { |name|
+          attrs = v[:param][name]
+          arg = args.add_element('arg',
+                                 { 'name' => name,
+                                   'value' => attrs[:value],
+                                   'isRequired' => attrs[:isReq]
+                                 })
+          if attrs[:info]
+            arg.add_element('info').text = attrs[:info]
           end
         }
       end
