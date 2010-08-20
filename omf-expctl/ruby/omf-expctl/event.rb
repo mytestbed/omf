@@ -76,12 +76,12 @@ class Event < MObject
       #while Experiment.running?
       while true
         begin 
-	  conditionBlock = @@events[@name][:conditionBlock]
+          conditionBlock = @@events[@name][:conditionBlock]
           conditionBlock.call(event)
           if @@events[@name][:fired]
             info "Event triggered. Starting the associated tasks."
             begin
-	      if !@@events[@name][:actionBlocks].empty?
+              if !@@events[@name][:actionBlocks].empty?
                 while block = @@events[@name][:actionBlocks].pop
                   block.call(event)
                 end
@@ -92,7 +92,7 @@ class Event < MObject
               lines << "Failed to execute tasks associated with Event"
               lines << "Error (#{ex.class}): '#{ex}'"
               lines << "(More information in the log file)"
-	      NodeHandler.instance.display_error_msg(lines)
+	            NodeHandler.instance.display_error_msg(lines)
               bt = ex.backtrace.join("\n\t")
               debug "Exception: #{ex} (#{ex.class})\n\t#{bt}"
             end
@@ -104,7 +104,7 @@ class Event < MObject
           lines << "Failed to create the new Event '#{name}'"
           lines << "Error (#{ex.class}): '#{ex}'"
           lines << "(More information in the log file)"
-	  NodeHandler.instance.display_error_msg(lines)
+          NodeHandler.instance.display_error_msg(lines)
           bt = ex.backtrace.join("\n\t")
           debug "Exception: #{ex} (#{ex.class})\n\t#{bt}"
         end

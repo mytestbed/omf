@@ -163,10 +163,36 @@ WHERE testbeds.name='#{domain}'
 HRN_QS
 
       addr = nil
-      runQuery(qs) { |ip|
-        addr = ip
+      runQuery(qs) { |i|
+        addr = i
       }
       return addr
+    end
+
+    #
+    # Query the Inventory database for the default disk of a specific node
+    # on a testbed.
+    #
+    # - hrn = hrn of the node to query
+    # - domain = name of the testbed to query (default=grid)
+    #
+    # [Return] the default disk of the node matching the query
+    #
+    def getDefaultDisk(hrn, domain = "grid")
+      qs = <<DD_QS
+SELECT nodes.disk
+  FROM nodes
+  LEFT JOIN locations ON nodes.location_id = locations.id
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.name='#{domain}'
+  AND nodes.hrn='#{hrn}';
+DD_QS
+
+      disk = nil
+      runQuery(qs) { |i|
+        disk = i
+      }
+      return disk
     end
 
   #

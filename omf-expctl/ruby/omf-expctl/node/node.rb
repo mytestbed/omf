@@ -188,36 +188,6 @@ class Node < MObject
   end
 
   #
-  # Return the IP address of the node's control interface 
-  # (this method queries the Inventory DB for this IP)
-  #
-  # [Return] a String holding the IP address
-  #
-  def getControlIP()
-    # Check if EC is running in 'Slave Mode'
-    return "127.0.0.1" if NodeHandler.SLAVE
-
-    # Query the Inventory GridService for the Control IP address of this node
-    doc = nil
-    begin
-      doc = OMF::Services.inventory.getControlIP(@nodeID, OConfig.domain)
-    rescue Exception => e
-      warn "Couldn't retrieve control IP for '#{@nodeID}' - #{e.message}"
-      raise e
-    end
-
-    # Parse the Reply to retrieve the control IP address
-    doc.root.elements.each("ERROR") { |e|
-      error "OConfig - No Control IP found for '#{@nodeID}' - "+
-            "val: #{e.get_text.value}"
-      raise "OConfig - #{e.get_text.value}"
-    }
-    doc.root.elements.each("/CONTROL_IP") { |v|
-       return v.get_text.value
-    }
-  end
-
-  #
   # Add an application to the states of this Node
   #
   # - appCtxt = the Application Context to add (AppContext). This context
@@ -355,9 +325,8 @@ class Node < MObject
   end
 
   #
-  # Save the image currently stored on the node's disk to
-  # 'nsfDir', a NSF mountable directory and name the
-  # image 'imgName'.
+  # Save the image currently stored on the node using
+  # the saveimage service
   #
   # If no image name is given, a name is formed
   # using the pattern "node-#{x}:#{y}-#{ts}.ndz",
@@ -366,19 +335,23 @@ class Node < MObject
   #
   # imgName = Name of file which will contain the saved image
   # imgHost = Name or IP address of host which will contain the saved image
-  # disk = Disk containing the image to save (e.g. '/dev/hda')
+  # disk = Disk containing the image to save (e.g. '/dev/sda')
   #
   def saveImage(imgName = nil,
-                domain = OConfig.domain,
-                disk = OConfig[:tb_config][:default][:frisbee_default_disk])
-
+                domain = OConfig.domain)
+    
+    begin
+      disk = OMF::Services.inventory.getDefaultDisk(@nodeID, OConfig.domain).elements[1].text
+    rescue
+      raise "Could not retrieve default disk of node #{@nodeID} from inventory"
+    end
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
       imgName = ENV['USER']+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
     end
-        
-    url = "#{OConfig[:tb_config][:default][:saveimage_url]}/getAddress?"+
+    
+    url = "#{OConfig[:ec_config][:saveimage][:url]}/getAddress?"+
           "domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
     response = NodeHandler.service_call(url, "Can't get netcat address/port")
     imgHost, imgPort = response.body.split(':')
@@ -526,7 +499,7 @@ class Node < MObject
     addr = ECCommunicator.instance.make_address(:name => @nodeID) 
     cmd = ECCommunicator.instance.create_message(:cmdtype => :SET_DISCONNECTION,
                        :target => @nodeID,
-                       :omlURL => OConfig[:tb_config][:default][:oml_url],
+                       :omlURL => OConfig[:ec_config][:oml][:url],
                        :exp => exp)
     ECCommunicator.instance.send_message(addr, cmd)
   end

@@ -199,7 +199,7 @@ class CmcStubService < GridService
 
   def self.reboot(hrn, domain)
     MObject.debug("Sending REBOOT cmd to '#{hrn}'")
-    ip = getControlIP(domain, hrn, domain)
+    ip = getControlIP(hrn, domain)
     begin
       cmd = `nmap #{ip} -p22-23`
       #MObject.debug("TDEBUG - NMAP - '#{cmd}'")

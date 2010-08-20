@@ -44,7 +44,7 @@ defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the la
 # First of all, do some checks...
 # - check if the requested image really exists on the Repository
 #
-url = "#{OConfig[:tb_config][:default][:frisbee_url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
+url = "#{OConfig[:ec_config][:frisbee][:url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
 response = NodeHandler.service_call(url, "Image does not exist")
 if response.body != "OK"
   MObject.error("The image file '#{prop.image.value}' was not found on the AM running the frisbee service! ")

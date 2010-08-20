@@ -69,7 +69,7 @@ def tellNode(cmd, topo, domain)
   end
   puts " Testbed : #{d} - Command: #{command}"
   topo.eachNode { |n|
-    url = "#{OConfig[:tb_config][:default][:cmc_url]}/#{command}?name=#{n}&domain=#{d}"
+    url = "#{OConfig[:ec_config][:cmc][:url]}/#{command}?name=#{n}&domain=#{d}"
     begin
       response = NodeHandler.service_call(url, "Can't send command to CMC")
       puts " Node #{n}   \t OK"

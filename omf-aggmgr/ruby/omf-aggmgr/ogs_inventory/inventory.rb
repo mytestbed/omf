@@ -57,9 +57,6 @@ class InventoryService < GridService
   description 'Service to retrieve information about nodes or testbeds from the Inventory Database'
   @@config = nil
   @@inventory = nil
-  # These are the current configuration parameters available for testbeds running OMF
-  CONST_CONFIG_KEYS = [ 'x_max', 'y_max', 'pxe_url', 'cmc_url',
-                        'frisbee_url', 'frisbee_default_disk', 'saveimage_url', 'oml_url']
 
   # From Winlab, please fix/clean
   #
@@ -261,7 +258,7 @@ class InventoryService < GridService
   # Implement 'getHRN' service using the 'service' method of AbstractService
   #
   s_description "Get the HRN for a certain hostname on a given domain"
-  s_param :hostname, 'hostname', 'hostname of the node'
+  s_param :hrn, 'hostname', 'hostname of the node'
   s_param :domain, 'domain', 'testbed/domain for this given node'
   service 'getHRN' do |hostname, domain|
     # Retrieve the request parameter
@@ -282,33 +279,31 @@ class InventoryService < GridService
     }
     replyXML
   end
-
+  
   #
-  # Implement 'getConfig' service using the 'service' method of AbstractService
+  # Implement 'getDefaultDisk' service using the 'service' method of AbstractService
   #
-  s_description "Get all Specific Configuration Parameters for a given Testbed"
-  s_param :domain, 'domain', 'domain for which we want to retrieve the config parameters.'
-  service 'getConfig' do |domain|
+  s_description "Get the default disk for a certain HRN on a given domain"
+  s_param :hrn, 'hrn', 'hrn of the node'
+  s_param :domain, 'domain', 'testbed/domain for this given node'
+  service 'getDefaultDisk' do |hrn, domain|
     # Retrieve the request parameter
-    tb = getTestbedConfig(domain, @@config) # This is GS config, not EC configs!
-    rootXMLConfig = REXML::Element.new("CONFIG")
-    inv = getInv(tb)
-    CONST_CONFIG_KEYS.each { |k|
-      # Query the inventory
-      result = nil
-      begin
-        result = inv.getConfigByKey(k, domain)
-      rescue Exception => ex
-        error "Inventory - getConfigFromInventory() - Cannot connect to the Inventory Database - #{ex}"
-        result = :Error
-      end
-      msgEmpty = "Inventory has no info on [#{k}] for domain: #{domain}"
-      replyXML = buildXMLReply("#{k}", result, msgEmpty) { |root,value|
-        root.text = value
-      }
-      rootXMLConfig.add_element(replyXML)
+    tb = getTestbedConfig(domain, @@config)
+    # Query the inventory
+    result = nil
+    begin
+      inv = getInv(tb)
+      result = inv.getDefaultDisk(hrn, domain)
+    rescue Exception => ex
+      error "Inventory - getDefaultDisk() - Cannot connect to the Inventory Database - #{ex}"
+      result = :Error
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no default disk for HRN '#{hrn}' (domain: #{domain})"
+    replyXML = buildXMLReply("disk", result, msgEmpty) { |root,ip|
+      root.text = ip
     }
-    setResponse(res, rootXMLConfig)
+    replyXML
   end
 
   #

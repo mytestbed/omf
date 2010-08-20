@@ -692,6 +692,8 @@ class NodeHandler < MObject
     domains.each do |domain|
       OMF::ServiceCall.add_domain(domain)
     end
+    OMF::ServiceCall::XMPP.sender_id=Experiment.ID
+    
   end
 
   #

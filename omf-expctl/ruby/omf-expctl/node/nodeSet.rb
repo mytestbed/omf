@@ -405,10 +405,10 @@ class NodeSet < MObject
       end
     else
       if setPXE # set PXE
-        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}"+
+        @pxePrefix = "#{OConfig[:ec_config][:pxe][:url]}"+
                      "/setBootImageNS?domain=#{domain}&ns="
       else # clear PXE
-        @pxePrefix = "#{OConfig[:tb_config][:default][:pxe_url]}"+
+        @pxePrefix = "#{OConfig[:ec_config][:pxe][:url]}"+
                      "/clearBootImageNS?domain=#{domain}&ns="
       end
       setPxeEnvMulti()
@@ -470,22 +470,43 @@ class NodeSet < MObject
   # this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
-  def loadImage(image, domain = nil, disk = nil)
-
+  def loadImage(image, domain = nil)
+    # it would be better if the nodes query the inventory themselves
+    # for their default disk
+    disks = []
+    eachNode { |n|
+      begin
+        disk = OMF::Services.inventory.getDefaultDisk(n.to_s, OConfig.domain).elements[1].text
+        raise if disk.nil? || disk.empty?
+        disks << disk
+      rescue
+        Topology.removeNode(n)
+        error "Could not retrieve default disk of node '#{n.to_s}' from inventory. Removing it from the topology."
+      end      
+    }
+    disks.uniq!
+    if disks.length > 1
+      # remove all nodes from this nodeset
+      eachNode { |n|
+        Topology.removeNode(n)
+      }
+      error "All nodes in your nodeset have to have the same disk name configured in the inventory.
+             In the current nodeset, mixed disk names were found: '#{disks.join(",")}'"
+    end
+    
     domain = "#{OConfig.domain}" if !domain
-    disk = OConfig[:tb_config][:default][:frisbee_default_disk] if !disk
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Prepare image #{image} for set #{self}"
       mcAddress = "Some_MC_address"
       mcPort = "Some_MC_port"
     else
       # get frisbeed address
-      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/"+
+      url = "#{OConfig[:ec_config][:frisbee][:url]}/"+
             "getAddress?domain=#{domain}&img=#{image}"
       response = NodeHandler.service_call(url, "Can't get frisbee address")
       mcAddress, mcPort = response.body.split(':')
     end
-    opts = {:disk => disk, :mcAddress => mcAddress, :mcPort => mcPort}
+    opts = {:disk => disks[0], :mcAddress => mcAddress, :mcPort => mcPort}
     eachNode { |n|
       n.loadImage(image, opts)
     }
@@ -493,7 +514,7 @@ class NodeSet < MObject
     send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
                                                 :address => mcAddress,
                                                 :port => mcPort,
-                                                :disk => disk))
+                                                :disk => disks[0]))
   end
 
   #
@@ -504,18 +525,16 @@ class NodeSet < MObject
   # - image = Image to load onto node's disk
   # - domain = testbed for this node (optional, default= default testbed for 
   #   this EC)
-  # - disk = Disk drive to load (default is given by OConfig)
   #
-  def stopImageServer(image, domain = nil, disk = nil)
+  def stopImageServer(image, domain = nil)
 		     
     domain = "#{OConfig.domain}" if !domain
-    disk = OConfig[:tb_config][:default][:frisbee_default_disk] if !disk
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
     else
       # stop the frisbeed server on the Gridservice side
       debug "Stop server of image #{image} for domain #{domain}"
-      url = "#{OConfig[:tb_config][:default][:frisbee_url]}/"+
+      url = "#{OConfig[:ec_config][:frisbee][:url]}/"+
             "stop?domain=#{domain}&img=#{image}"
       response = NodeHandler.service_call(url, 
                              "Can't stop frisbee daemon on the GridService")

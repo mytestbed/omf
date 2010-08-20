@@ -48,10 +48,6 @@ module OConfig
   @@loadHistory = []
   @allNodes = []
   
-  #TESTBED_CONFIG_KEYS = [:pxe_url, :cmc_url, :result_url, 
-  #                       :frisbee_url, :frisbee_default_disk, 
-  #                       :oml_url, :saveimage_url]
-
   #
   # Return the value of a given configuration parameter
   #
@@ -67,64 +63,6 @@ module OConfig
   def self.[]=(key, value)
     @@config[key] = value
   end
-
-  # NOTE: 
-  # This is not required anymore, now that we have implemented initial 
-  # support for federation.
-  # the :tb_config key of the @@config hash should not be required anymore
-  # all parameters should be under the :ec_config key
-  #
-  # Query the Inventory service for the configuration parameters related to 
-  # a given testbed
-  #
-#  def self.loadTestbedConfiguration()
-#    # Initialize the config hash if first time called
-#    if  @@config[:tb_config] == nil
-#      @@config[:tb_config] = Hash.new 
-#    end
-#
-#    # Check if EC is running in 'Slave' mode. If so, then this EC is actually 
-#    # running directly on a node/resource and will only be responsible for 
-#    # orchestrating the part of the experiment which is specific to this 
-#    # node/resource. Thus config parameters are also specific (most would be 
-#    # turned to 'localhost' and local node ID)
-#    return nil if NodeHandler.SLAVE || NodeHandler.debug?
-#
-#    # Retrieve the testbed-specific configuration parameters from the Inventory
-#    url = "#{@@config[:ec_config][:inventory][:url]}"+
-#          "/getConfig?&domain=#{@@domainName}"
-#    response = NodeHandler.service_call(url, 
-#               "Can't get config for domain '#{@@domainName}' from INVENTORY")
-#
-#    configFromInventory = REXML::Document.new(response.body)
-#    
-#    # Extract the information from the REXML, and store them in a Hash 
-#    tb_hash = Hash.new
-#    TESTBED_CONFIG_KEYS.each{ |key|
-#      configValue = nil
-#      configFromInventory.root.elements.each("/CONFIG/#{key}") { |e|
-#        if (e.get_text != nil)
-#          tb_hash[key] = e.get_text.value
-#	      else
-#          raise "OConfig - The configuration parameter '#{key}' has no value "+
-#                " assigned to it! (EC config is set to '#{@@domainName}')"
-#        end
-#      }
-#    }
-#    @@config[:tb_config][:default] = tb_hash
-#    
-#    # Retrieve the testbed-specific list of resources from the Inventory
-#    url = "#{@@config[:ec_config][:inventory][:url]}"+
-#          "/getListOfResources?&domain=#{@@domainName}"
-#    response = NodeHandler.service_call(url, 
-#               "Can't get list of resources for domain '#{@@domainName}' from INVENTORY")
-#    resourceList = REXML::Document.new(response.body)
-#    
-#    resourceList.root.elements.each("/RESOURCES/NODE") { |r|
-#      @allNodes << "#{r.get_text}"
-#    }
-#    @allNodes
-#  end
 
   #
   # NOTE: After integration of new AM service call, this should send a query
@@ -147,41 +85,7 @@ module OConfig
   def self.REPOSITORY_DEFAULT()
     self['repository']['path']
   end
-
-  #
-  # Return the XMPP server hostname / IP address 
-  #
-  # [Return] hostname / IP address
-  #
-#  def self.XMPP_HOST()
-#    self['xmpp-server']['host']
-#  end
-
-  #
-  # Return the default disk identifier that should be used to load/save images
-  #
-  # [Return] a disk identifier (e.g. '/dev/hda')
-  #
-  def self.DEFAULT_DISK()
-    return self.getConfigFromInventoryByKey('frisbee_default_disk')
-  end
   
-  # Return the OML server hostname
-  #
-  # [Return] a hostname or IP address
-  #
-  def self.OML_SERVER_HOST()
-    return self.getConfigFromInventoryByKey('oml_server_host')
-  end
-  
-  # Return the OML server port
-  #
-  # [Return] a port number (e.g. '3003')
-  #
-  def self.OML_SERVER_PORT()
-    return self.getConfigFromInventoryByKey('oml_server_port')
-  end
-
   #
   # Return the URL of the RESULT service
   #
@@ -199,7 +103,7 @@ module OConfig
   # [Return] an URL string
   #
   def self.CMC_SERVICE()
-    return self.getConfigFromInventoryByKey('cmc_url')
+    @@config[:ec_config][:cmc][:url]
   end
   
   #

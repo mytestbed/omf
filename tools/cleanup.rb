@@ -2,7 +2,7 @@
 require 'date'
 
 # list of accounts that should not be removed
-whitelist = ["aggmgr", "admin", "max"]
+whitelist = ["aggmgr", "admin", "max", "zabbix"]
 # XMPP server
 server = 'norbit.npc.nicta.com.au'
 # maximum user account age in days

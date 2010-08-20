@@ -39,8 +39,7 @@ module CMC
   # Return the URL of the CMC service from OConfig
   #
   def CMC.URL()
-    OConfig[:ec_config][:cmc][:url]
-    #OConfig.CMC_SERVICE()
+    OConfig.CMC_SERVICE()
   end
 
   #

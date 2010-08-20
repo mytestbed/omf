@@ -47,7 +47,7 @@ def getStatus(topo, domain)
   # TODO: use the topology here instead of showing the status for all
   puts "-----------------------------------------------"
   puts " Testbed : #{domain}"
-  url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{domain}"
+  url = "#{OConfig[:ec_config][:cmc][:url]}/allStatus?domain=#{domain}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
   doc.root.elements.each('//detail/*') { |e|
@@ -68,7 +68,7 @@ def countNodeStatus(domain)
   nOFF = 0
   nKO = 0
   d = (domain == "default") ?  OConfig.domain : domain
-  url = "#{OConfig[:tb_config][:default][:cmc_url]}/allStatus?domain=#{d}"
+  url = "#{OConfig[:ec_config][:cmc][:url]}/allStatus?domain=#{d}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
   doc.root.elements.each('//detail/*') { |e|
