@@ -74,8 +74,12 @@ everyNS('*', 10) { |ns|
               MObject.warn('stdlib', "Giving up on node ", n)
               Topology.removeNode(n)
               if Topology.empty?
+                MObject.info("stdlib", " ")
                 MObject.info("stdlib", "No resources available for this "+
                              "experiment. Closing the experiment now!" )
+                MObject.info("stdlib", "Please wait and ignore remaining "+
+                             "messages...")
+                MObject.info("stdlib", " ")
                 Experiment.close
               end
             end
