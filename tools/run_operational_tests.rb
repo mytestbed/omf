@@ -3,6 +3,7 @@
 require "fileutils"
 
 # Some constant
+OMLURI = "tcp:norbit.npc.nicta.com.au:3003"
 ECPATH = "/usr/bin/omf-5.3"
 ECOPTS = "-O -l system:exp:stdlib,system:exp:eventlib,system:exp:testlib"
 TESTPATH = "test:exp"
@@ -15,7 +16,7 @@ EXPFILE = 'exp.rb'
 RESPOOL = {:r1 => 'omf.nicta.node2', :r2 => 'omf.nicta.node3'}
 
 # List of tests to perform
-TESTLIST = ['test01', 'test02', 'test06']
+TESTLIST = ['test01', 'test02', 'test03', 'test04', 'test05', 'test06']
 
 # Some inits
 batchID = Time.now.to_i
@@ -31,7 +32,8 @@ TESTLIST.each do |t|
   # Call the EC with the experiment test
   expID = "#{t}-#{batchID}"
   outpath = "#{expID}.result"
-  cmd = "#{ECPATH} exec #{ECOPTS} -e #{expID} #{TESTPATH}:#{t} --"+
+  cmd = "#{ECPATH} exec #{ECOPTS} -e #{expID} --oml-uri #{OMLURI}"+
+        " #{TESTPATH}:#{t} --"+
         " --res1 #{RESPOOL[:r1]} --res2 #{RESPOOL[:r2]}"+
         " --resetDelay #{RESETDELAY} --resetTries #{RESETTRIES}"+
         " --logpath #{LOGPATH} --outpath #{outpath}"
@@ -50,7 +52,9 @@ TESTLIST.each do |t|
   f.puts(result)
   f.close
   FileUtils.cp("#{LOGPATH}/#{expID}.log", "./")
-  FileUtils.cp("#{LOGPATH}/#{expID}-state.xml", "./")
+  FileUtils.cp("#{LOGPATH}/#{expID}-state.xml", "./")  
+  # wait 
+  sleep(2)
 end
 
 puts "\nFinished at: #{Time.now}\n"
