@@ -49,6 +49,10 @@
       :repository:
         :path: ["../share/repository", "/usr/share/omf-expctl-5.3/repository"]
 
+      # URI to the OML server to use for this EC 
+      # (can be overwritten on the EC command line)
+      :omluri: 'tcp:ZZZnorbit.npc.nicta.com.au:3003'
+
       # This is the Url where EC can contact the Inventory Service
       :inventory:
         :url: 'http://norbit.npc.nicta.com.au:5053/inventory'
