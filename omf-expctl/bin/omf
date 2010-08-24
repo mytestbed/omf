@@ -113,7 +113,7 @@ def run(cmd)
   ########## OMF LOAD
   elsif (cmd == "load")
     app="omf-expctl.rb"
-    args=["-S pxe_slice -s system:exp:imageNode", "--", "--nodes #{@options[:topology]}", "--image #{@options[:image]}", "--timeout #{@options[:timeout]}"]
+    args=["-r -S pxe_slice -s system:exp:imageNode", "--", "--nodes #{@options[:topology]}", "--image #{@options[:image]}", "--timeout #{@options[:timeout]}"]
     if !@options[:aggregate].empty?
       args << "--domain #{@options[:aggregate]}"
     end
@@ -125,7 +125,7 @@ def run(cmd)
       help(cmd)
       exit 1
     end
-    args=["-S pxe_slice -s system:exp:saveNode", "--", "--node #{@options[:node]}"]
+    args=["-r -S pxe_slice -s system:exp:saveNode", "--", "--node #{@options[:node]}"]
     if !@options[:aggregate].empty?
       args << "--domain #{@options[:aggregate]}"
     end

@@ -249,7 +249,7 @@ def loadConfig(params)
     MObject.error('services', "Can't find config file '#{configFile}")
     return false
   else
-    MObject.info('services', "Config file '#{configFile}' not readable")
+    MObject.info('services', "Config file '#{configFile}' not readable. You may find an example file in /usr/share/doc/omf-aggmgr-#{OMF_MM_VERSION}/examples.")
   end
   return true
 end

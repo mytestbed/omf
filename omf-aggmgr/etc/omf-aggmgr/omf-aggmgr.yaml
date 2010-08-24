@@ -5,7 +5,7 @@
 #
 ---
 :xmpp:
-  :server: "10.0.0.200"
+  :server: "norbit.npc.nicta.com.au"
   :user: "aggmgr"
   :password: "123"
 
