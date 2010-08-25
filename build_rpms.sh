@@ -1,7 +1,8 @@
 #!/bin/bash
 
 TOPDIR=`pwd`
-BUILD='debuild -uc -us -b | grep "dpkg-deb: building package" | awk -F "../" "{print substr(\$2,0,length(\$2)-1)}"'
+#BUILD='debuild -uc -us -b | grep "dpkg-deb: building package" | awk -F "../" "{print substr(\$2,0,length(\$2)-1)}"'
+BUILD='debuild -uc -us -b | grep "dpkg-deb: building package" | awk -F "../" "{print \$2}" | sed "s/\(.\+\)'\''./\1/"'
 
 function build {
 	DEB=`bash -c "$BUILD"`
@@ -90,5 +91,8 @@ cd $TOPDIR
 
 rm -f liblog4r-ruby-1*rpm libxmpp4r-ruby-1*rpm
 
-scp *.rpm mytestbed.net:/var/www/packages/yum/base/8/i386
-ssh mytestbed.net createrepo /var/www/packages/yum/base/8/i386
+read -p "Do you want to upload the RPMs to mytestbed.net (y/n)?"
+if [ "$REPLY" == "y" ]; then
+	scp *.rpm mytestbed.net:/var/www/packages/yum/base/8/i386
+	ssh mytestbed.net createrepo /var/www/packages/yum/base/8/i386
+fi
