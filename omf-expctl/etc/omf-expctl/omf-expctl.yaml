@@ -42,7 +42,7 @@
       # You need a corresponding entry in the testbed table of your inventory 
       # that has this name set in the 'node_domain' column
       :domain: 'norbit'
-      :slice: 'testing_slice'
+      :slice: 'default_slice'
 
       # This is the Path where EC should look for its repository of built-in 
       # experiments (e.g. example experiments, maintenance experiments, etc...)
@@ -51,7 +51,7 @@
 
       # URI to the OML server to use for this EC 
       # (can be overwritten on the EC command line)
-      :omluri: 'tcp:ZZZnorbit.npc.nicta.com.au:3003'
+      :omluri: 'tcp:norbit.npc.nicta.com.au:3003'
 
       # This is the Url where EC can contact the Inventory Service
       :inventory:

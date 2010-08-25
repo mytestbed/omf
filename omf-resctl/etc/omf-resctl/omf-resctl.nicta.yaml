@@ -54,4 +54,4 @@
     :name: 'omf.nicta.%hostname%'
 
     # Name (i.e. unique HRN ID) of the slice to which this resource is assigned
-    :slice: testing_slice
+    :slice: default_slice

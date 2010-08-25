@@ -143,7 +143,7 @@ def run(cmd)
   end
 
   omf_command = "/usr/bin/ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
-  puts "DEBUG: Executing '#{omf_command}'"
+  #puts "DEBUG: Executing '#{omf_command}'"
   exec omf_command
 end
 
