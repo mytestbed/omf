@@ -16,18 +16,26 @@
 ### END INIT INFO
 
 NAME=omf-aggmgr-5.3
+CFG=/etc/$NAME/omf-aggmgr.yaml
 
 test -x /usr/sbin/$NAME || exit 0
-
-if [ -f /etc/$NAME/gridservices.cfg ]; then
-	. /etc/$NAME/gridservices.cfg
-fi
 
 if [ -f /etc/default/$NAME ]; then
 	. /etc/default/$NAME
 fi
 
-PORT=`echo $OPTS | sed 's/[^0-9]*//g'`
+if [ ! -f $CFG ]; then
+        echo "Configuration file '$CFG' missing. Please see the example configuration in '/usr/share/doc/$NAME/examples'"
+	exit 0
+fi
+
+PORT=`grep :port: $CFG | awk '{ print $2 }'`
+
+if [[ $PORT != ${PORT//[^0-9]/} ]] || [ "$PORT" == "" ]; then
+       echo "No port number configured in '$CFG'. Exiting."
+       exit 0
+fi
+
 start(){
 	echo -n "Starting OMF Aggregate Manager: $NAME"
 	if [ `netstat -ltn | grep $PORT -c` -ne 0 ] ; then
