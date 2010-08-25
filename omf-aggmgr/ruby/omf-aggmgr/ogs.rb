@@ -274,9 +274,6 @@ opts.on("-d", "--dir DIRECTORY", "Directory containing gridservices definitions"
 opts.on("--log FILE", "File containing logging configuration information [#{logParams[:fileName]}]") {|file|
   logParams[:configFile] = file
 }
-opts.on("-p", "--port PORT_NO", "Port to start web server on [#{DEF_WEB_PORT}]") {|port|
-  params[:webPort] = port.to_i
-}
 opts.on("-s", "--services NAME1,NAME2", "Services to load [load all in 'dir']") {|services|
   params[:services] = services.split(',').map {|s| s.strip }
 }

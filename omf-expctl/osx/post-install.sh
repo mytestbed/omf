@@ -19,15 +19,6 @@ chgrp -R admin /etc/omf-expctl-$VERSION
 
 # bin of EC
 cp $INDIR/omf-expctl/bin/omf /usr/bin/omf-$VERSION
-cp $INDIR/omf-expctl/bin/omf_exec /usr/bin/omf_exec-$VERSION
-cp $INDIR/omf-expctl/bin/omf_load /usr/bin/omf_load-$VERSION
-cp $INDIR/omf-expctl/bin/omf_save /usr/bin/omf_save-$VERSION
-cp $INDIR/omf-expctl/bin/omf_stat /usr/bin/omf_stat-$VERSION
-cp $INDIR/omf-expctl/bin/omf_tell /usr/bin/omf_tell-$VERSION
-if [ ! -e "/usr/bin/ruby1.8" ]
-then
-  ln -s /usr/bin/ruby /usr/bin/ruby1.8
-fi
 
 # Common
 mv $INDIR/omf-common/ruby /usr/share/omf-common-$VERSION
