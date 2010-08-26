@@ -63,7 +63,10 @@ class Experiment
     if (@@expID == nil)
       # since we use the exp ID as the pubsub user name
       # we need to get rid of ":" and uppercase characters
-      ts = DateTime.now.to_s.gsub(':','.').downcase
+      # also "+" in time zone is reserved and not escaped by URI.escape 
+      # so we reformat time zone here (alternatives: extend URI.escape, or ?)
+      tz = DateTime.now.strftime("%Z").gsub('+','P').gsub('-','M') 
+      ts = (DateTime.now.strftime("%Ft%T")+tz).gsub(':','.')
       @@expID = "#{@@sliceID}-#{ts}"
       #YTraceState.experiment(:id, @@expID)
     end

@@ -129,7 +129,7 @@ module OMF
           debug("SQL: #{sql}")
           url = OConfig.RESULT_SERVICE
           #puts "RESULT_URI: #{url}"
-          url = url + "/queryDatabase?format=csv&query=#{URI.escape(sql)}&expID=#{Experiment.ID}"
+          url = url + "/queryDatabase?format=csv&query=#{URI.escape(sql)}&expID=#{URI.escape(Experiment.ID)}"
           #puts "SERVICE_URI: #{url}"
           resp = NodeHandler.service_call(url, "Can't query result service")
 
