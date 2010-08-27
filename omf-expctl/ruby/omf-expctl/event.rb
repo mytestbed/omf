@@ -27,6 +27,19 @@
 # This file defines the ...
 #
 
+class SynchronisedStack
+  def initialize
+    @mutex = Mutex.new
+    @stack = Array.new
+  end
+  def empty?()  @mutex.synchronize { @stack.length == 0 } end
+  def push(item) @mutex.synchronize { @stack.push item } end
+  def top() @mutex.synchronize { @stack[@stack.length - 1] } end
+  def pop() @mutex.synchronize { @stack.pop } end
+  def bottom() @mutex.synchronize { @stack[0] } end
+  def each() @mutex.synchronize { @stack.each{|item| item} } end
+end
+
 #
 # This class implements an Event which can be used by users/experimenters 
 # to describe a particular event to monitor for and to act upon
@@ -66,7 +79,7 @@ class Event < MObject
                        :running => false, :fired => false,
                        :thread => nil, 
                        :conditionBlock => block, 
-                       :actionBlocks => Queue.new, :actionOptions => Hash.new}
+                       :actionBlocks => SynchronisedStack.new, :actionOptions => Hash.new}
   end
 
   def start
@@ -83,16 +96,19 @@ class Event < MObject
             begin
               if !@@events[@name][:actionBlocks].empty?
                 while block = @@events[@name][:actionBlocks].pop
-                  block.call(event)
+                  block[:block].call(event)
+                  break if block[:consumeEvent]
                 end
               else
                 info "No tasks associated to Event '#{name}'" 
               end
+            rescue SystemExit => ex
+              raise ex
             rescue Exception => ex
               lines << "Failed to execute tasks associated with Event"
               lines << "Error (#{ex.class}): '#{ex}'"
               lines << "(More information in the log file)"
-	            NodeHandler.instance.display_error_msg(lines)
+              NodeHandler.instance.display_error_msg(lines)
               bt = ex.backtrace.join("\n\t")
               debug "Exception: #{ex} (#{ex.class})\n\t#{bt}"
             end
@@ -100,6 +116,8 @@ class Event < MObject
             break
           end
           Kernel.sleep(@@events[@name][:interval])
+        rescue SystemExit => ex
+          raise ex
         rescue Exception => ex
           lines << "Failed to create the new Event '#{name}'"
           lines << "Error (#{ex.class}): '#{ex}'"
@@ -119,14 +137,15 @@ class Event < MObject
     end
   end
 
-  def Event.associate_tasks_to_event(name, &block)
+  def Event.associate_tasks_to_event(name, consumeEvent = false, &block)
     return if !block
     if !@@events[name] 
       MObject.warn("Event","Event '#{name}' does not exist! Cannot associate "+
                    "a block of tasks to it!")
       return
     end
-    @@events[name][:actionBlocks] << block
+    @@events[name][:actionBlocks].push({:consumeEvent => consumeEvent, 
+                                        :block => block})
     @@events[name][:instance].start if !@@events[name][:running] 
   end
  

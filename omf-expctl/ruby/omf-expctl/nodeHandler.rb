@@ -359,6 +359,8 @@ class NodeHandler < MObject
       end
     end
     
+    # Trap SIG_INTERRUPT - Let our Event mechanism handle it
+    Signal.trap('SIGINT') {Experiment.interrupt}
     # Load the Experiment File , if any
     if @@expFile
       Experiment.load(@@expFile)
@@ -769,10 +771,8 @@ class NodeHandler < MObject
     info ""
     info "Shutting down experiment, please wait..."
     info ""
-    if (! @running)
-      # nothing to do
-      return
-    end
+    return if !@running
+
     @processCommands = false
 
     begin

@@ -60,8 +60,18 @@ defEvent(:EXPERIMENT_DONE) do |event|
   event.fire if allEqual(exp_status, "DONE")
 end
 
-onEvent(:EXPERIMENT_DONE) do |event|
+onEvent(:EXPERIMENT_DONE, true) do |event|
   Experiment.close
+end
+
+defEvent(:INTERRUPT, 1) do |event|
+  exp_status = Experiment.state("status/text()")
+  event.fire if allEqual(exp_status, "INTERRUPTED")
+end
+
+onEvent(:INTERRUPT) do |event|
+  MObject.info(:INTERRUPT, "\nUser-requested Interruption... Exiting Now!\n")
+  raise SystemExit.new
 end
 
 defEvent(:NO_USER_DEFINED_EVENTS) do |event|

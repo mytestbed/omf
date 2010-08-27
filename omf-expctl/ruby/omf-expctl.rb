@@ -36,9 +36,8 @@ begin
   cleanExit = true
 
 # Process the various Exceptions...
-rescue SystemExit
 rescue Interrupt
-  # ignore
+  # ignore, our Event mechanism now handles this
 rescue OEDLException => ex 
   begin
     bt = ex.backtrace 
@@ -59,20 +58,27 @@ rescue ServiceException => sex
   rescue Exception
   end
 rescue Exception => ex
-  begin
-    bt = ex.backtrace.join("\n\t")
+  if Experiment.running?
+    begin
+      bt = ex.backtrace.join("\n\t")
+      MObject.fatal('run', "----------")
+      MObject.fatal('run', "  A fatal error was encountered while running your"+
+                           " experiment.")
+      MObject.fatal('run', "  Exception: #{ex.class}")
+      MObject.fatal('run', "  Exception: #{ex}")
+      MObject.fatal('run', "  For more information (trace) see the log file")
+      MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
+      MObject.fatal('run', "  (or see EC's config files to find the log's "+
+                           "location)")
+      MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
+      MObject.fatal('run', "----------")
+    rescue Exception
+    end
+  else 
     MObject.fatal('run', "----------")
-    MObject.fatal('run', "  A fatal error was encountered while running your"+
-                         " experiment.")
-    MObject.fatal('run', "  Exception: #{ex.class}")
-    MObject.fatal('run', "  Exception: #{ex}")
-    MObject.fatal('run', "  For more information (e.g. trace) see the log file")
-    MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
-    MObject.fatal('run', "  (or see EC's config files to find the log's "+
-                         "location)")
-    MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
+    MObject.fatal('run', "  Exception raised, no experiment running.")
+    MObject.fatal('run', "  Exception: '#{ex}'.")
     MObject.fatal('run', "----------")
-  rescue Exception
   end
 end
 
