@@ -284,8 +284,8 @@ def defEvent(name, interval = 5, &block)
   Event.new(name, interval , &block)
 end
 
-def onEvent(name, &block)
-  Event.associate_tasks_to_event(name, &block)
+def onEvent(name, consumeEvent = false, &block)
+  Event.associate_tasks_to_event(name, consumeEvent, &block)
 end
 
 #

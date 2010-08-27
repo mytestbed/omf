@@ -319,6 +319,11 @@ class Experiment
     TraceState.experiment(:status, "DONE")
   end
 
+  def Experiment.interrupt
+    @@is_running = false
+    TraceState.experiment(:status, "INTERRUPTED")
+  end
+
   # 
   # Close an experiment, i.e. tell the Experiment Controller
   # to exit
