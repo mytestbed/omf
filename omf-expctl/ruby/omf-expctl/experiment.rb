@@ -326,7 +326,7 @@ class Experiment
   end
 
   def Experiment.interrupt
-    if @@is_running
+	    if @@is_running
       @@is_running = false
       TraceState.experiment(:status, "INTERRUPTED")
     end

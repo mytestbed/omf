@@ -64,10 +64,19 @@ rescue Exception => ex
       MObject.fatal('run', "----------")
       MObject.fatal('run', "  A fatal error was encountered while running your"+
                            " experiment.")
+<<<<<<< HEAD
       MObject.fatal('run', "  Exception (#{ex.class}): #{ex}")
       MObject.fatal('run', "  For more information see the EC log file")
       MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
       MObject.fatal('run', "  (or see config file to find the log's location)")
+=======
+      MObject.fatal('run', "  Exception: #{ex.class}")
+      MObject.fatal('run', "  Exception: #{ex}")
+      MObject.fatal('run', "  For more information (trace) see the log file")
+      MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
+      MObject.fatal('run', "  (or see EC's config files to find the log's "+
+                           "location)")
+>>>>>>> 56ebc31... Added support for Event mechanism to support SIGINT
       MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
       MObject.fatal('run', "----------")
     rescue Exception
