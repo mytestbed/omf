@@ -65,6 +65,18 @@
       :result:
         :url: 'http://norbit.npc.nicta.com.au:5053/result'
 
+      # This is the Url where EC can contact the PXE Service
+      :pxe:
+        :url: 'http://norbit.npc.nicta.com.au:5053/pxe'
+
+      # This is the Url where EC can contact the Frisbee Service
+      :frisbee:
+        :url: 'http://norbit.npc.nicta.com.au:5053/frisbee'
+
+      # This is the Url where EC can contact the Frisbee Service
+      :saveimage:
+        :url: 'http://norbit.npc.nicta.com.au:5053/saveimage'
+
       # This should be the IP address of the local interface that is accessible 
       # from the nodes. This address will be given to the nodes so they can 
       # retrieve applications from the EC via HTTP.
