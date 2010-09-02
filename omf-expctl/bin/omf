@@ -38,6 +38,10 @@ def parseOptions()
     opts.on( '-h', '--help', "Show help" ) do
       @options[:help] = true
     end
+    @options[:debug] = false
+    opts.on( '-d', '--debug', "Debug (this script only, not passed to omf exec)" ) do
+      @options[:debug] = true
+    end
     @options[:summary] = false
     opts.on( '-s', '--summary', "Show stat summary" ) do
       @options[:summary] = true
@@ -143,7 +147,7 @@ def run(cmd)
   end
 
   omf_command = "/usr/bin/ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
-  puts "DEBUG: Executing '#{omf_command}'"
+  puts "DEBUG: Executing '#{omf_command}'" if @options[:debug]
   exec omf_command
 end
 
