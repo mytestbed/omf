@@ -229,12 +229,12 @@ def help(cmd = nil)
     puts " "
     puts "      With: "
     puts "      -h, --help       print this help message"
-    puts "      -n, --node NODE  a valid node description "
+    puts "      -n, --node NODE  a valid description of a single node"
     puts "                       (no default here, you have to enter a node!)"
     puts " "
     puts "      Some Examples: " 
-    puts "                    #{@this_app} #{cmd} -n \"[omf.nicta.node1]\""
-    puts "                    #{@this_app} #{cmd} -n \"[omf.nicta.node3]\" -c grid"
+    puts "                    #{@this_app} #{cmd} -n [omf.nicta.node1]"
+    puts "                    #{@this_app} #{cmd} -n [omf.nicta.node3] -c grid"
     puts " "
   else
     # generic help
