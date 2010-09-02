@@ -53,7 +53,7 @@ install: build
 	
 	mv debian/$(PKG_NAME)/etc/omf-aggmgr debian/$(PKG_NAME)/etc/$(PKG_NAME)
 	mv debian/$(PKG_NAME)/usr/sbin/omf-aggmgr debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
-	mv debian/$(PKG_NAME)/usr/sbin/omf_create_sysnode debian/$(PKG_NAME)/usr/sbin/omf_create_sysnode-$(VERSION)
+	mv debian/$(PKG_NAME)/usr/sbin/omf_create_psnode debian/$(PKG_NAME)/usr/sbin/omf_create_psnode-$(VERSION)
 	mkdir -p debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
 	mv debian/$(PKG_NAME)/etc/$(PKG_NAME)/*.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
 

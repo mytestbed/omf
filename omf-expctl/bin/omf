@@ -38,6 +38,10 @@ def parseOptions()
     opts.on( '-h', '--help', "Show help" ) do
       @options[:help] = true
     end
+    @options[:debug] = false
+    opts.on( '-d', '--debug', "Debug (this script only, not passed to omf exec)" ) do
+      @options[:debug] = true
+    end
     @options[:summary] = false
     opts.on( '-s', '--summary', "Show stat summary" ) do
       @options[:summary] = true
@@ -97,25 +101,25 @@ def run(cmd)
       exit 1
     end
     # tell [COMMAND] "[TOPOLOGY]" [DOMAIN]
-    args=["#{@options[:action]}", "#{@options[:topology]}", "#{@options[:aggregate]}"]
+    args=["'#{@options[:action]}'", "'#{@options[:topology]}'", "'#{@options[:aggregate]}'"]
     
   ########## OMF STAT
   elsif (cmd == "stat")
     app="omf-expctl/statnode.rb"
     if @options[:summary]
       # stat [-s] [DOMAIN]
-      args=["-s","system:topo:all","#{@options[:aggregate]}"]
+      args=["-s","system:topo:all","'#{@options[:aggregate]}'"]
     else
       # stat "[TOPOLOGY]" [DOMAIN]
-      args=["#{@options[:topology]}", "#{@options[:aggregate]}"]
+      args=["'#{@options[:topology]}'", "'#{@options[:aggregate]}'"]
     end
     
   ########## OMF LOAD
   elsif (cmd == "load")
     app="omf-expctl.rb"
-    args=["-r -S pxe_slice -s system:exp:imageNode", "--", "--nodes #{@options[:topology]}", "--image #{@options[:image]}", "--timeout #{@options[:timeout]}"]
+    args=["-r -S pxe_slice -s system:exp:imageNode", "--", "--nodes '#{@options[:topology]}'", "--image '#{@options[:image]}'", "--timeout '#{@options[:timeout]}'"]
     if !@options[:aggregate].empty?
-      args << "--domain #{@options[:aggregate]}"
+      args << "--domain '#{@options[:aggregate]}'"
     end
     
   ########## OMF SAVE
@@ -125,9 +129,9 @@ def run(cmd)
       help(cmd)
       exit 1
     end
-    args=["-r -S pxe_slice -s system:exp:saveNode", "--", "--node #{@options[:node]}"]
+    args=["-r -S pxe_slice -s system:exp:saveNode", "--", "--node '#{@options[:node]}'"]
     if !@options[:aggregate].empty?
-      args << "--domain #{@options[:aggregate]}"
+      args << "--domain '#{@options[:aggregate]}'"
     end
   
   else
@@ -143,7 +147,7 @@ def run(cmd)
   end
 
   omf_command = "/usr/bin/ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
-  puts "DEBUG: Executing '#{omf_command}'"
+  puts "DEBUG: Executing '#{omf_command}'" if @options[:debug]
   exec omf_command
 end
 
@@ -167,7 +171,7 @@ def help(cmd = nil)
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd}"
   	puts "                    #{@this_app} #{cmd} -s"
-  	puts "                    #{@this_app} #{cmd} -t [omf.nicta.node1,omf.nicta.node2] -c sb1"
+  	puts "                    #{@this_app} #{cmd} -t \"[omf.nicta.node1,omf.nicta.node2]\" -c sb1"
   	puts "                    #{@this_app} #{cmd} -t system:topo:all -c grid"
   	puts " "
   elsif (cmd == "tell")
@@ -189,8 +193,8 @@ def help(cmd = nil)
   	puts " "
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd} -a on -t system:topo:all -c grid"
-  	puts "                    #{@this_app} #{cmd} -a on -t [omf.nicta.node1]"
-  	puts "                    #{@this_app} #{cmd} offs -t [omf.nicta.node1,omf.nicta.node2] -c sb1 "
+  	puts "                    #{@this_app} #{cmd} -a on -t \"[omf.nicta.node1]\""
+  	puts "                    #{@this_app} #{cmd} offs -t \"[omf.nicta.node1,omf.nicta.node2]\" -c sb1 "
   	puts "                    #{@this_app} #{cmd} offh -t system:topo:all"
   	puts "                    #{@this_app} #{cmd} offh -t topo_grid_active"
   	puts " "
@@ -213,8 +217,8 @@ def help(cmd = nil)
     puts "                    #{@this_app} #{cmd}"
     puts "                    #{@this_app} #{cmd} -t all"
     puts "                    #{@this_app} #{cmd} -t all -i baseline-2.4.ndz"
-    puts "                    #{@this_app} #{cmd} -t [omf.nicta.node1] -i wireless-2.6.ndz"
-    puts "                    #{@this_app} #{cmd} -t [omf.nicta.node1,omf.nicta.node2] -i baseline.ndz -o 400"
+    puts "                    #{@this_app} #{cmd} -t \"[omf.nicta.node1]\" -i wireless-2.6.ndz"
+    puts "                    #{@this_app} #{cmd} -t \"[omf.nicta.node1,omf.nicta.node2]\" -i baseline.ndz -o 400"
     puts "                    #{@this_app} #{cmd} -t system:topo:circle -i my_Own_Image.ndz"
     puts "                    #{@this_app} #{cmd} -t my_Own_Topology -i baseline-2.2.ndz -t 600 -c grid"
     puts " "
@@ -225,7 +229,7 @@ def help(cmd = nil)
     puts " "
     puts "      With: "
     puts "      -h, --help       print this help message"
-    puts "      -n, --node NODE  a valid node description "
+    puts "      -n, --node NODE  a valid description of a single node"
     puts "                       (no default here, you have to enter a node!)"
     puts " "
     puts "      Some Examples: " 
