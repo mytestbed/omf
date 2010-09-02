@@ -198,7 +198,7 @@ def defGroup(groupName, selector = nil, &block)
         # These resources are identified by their HRNs
         # e.g. "node1, node2, node3"
         tname = "-:topo:#{groupName}"
-        topo = Topology.create(tname, selector.split(","))
+        topo = Topology.create(tname, selector.delete("[]").split(","))
         ns = BasicNodeSet.new(groupName, topo)
       end
     # Selector is an Array of existing group names (e.g. ["group1","group2"])
