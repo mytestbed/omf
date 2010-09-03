@@ -50,8 +50,8 @@ ResetCount = {}
 everyNS('*', 10) { |ns|
 
   # First check if the experiment has not been interrupted
-  exp_status = Experiment.state("status/text()")
-  return true if allEqual(exp_status, "INTERRUPTED")
+  #exp_status = Experiment.state("status/text()")
+  #return true if allEqual(exp_status, "INTERRUPTED")
 
 
   # Now check if we are done with adding node in that experiment
@@ -99,8 +99,14 @@ everyNS('*', 10) { |ns|
         "#{nodeCnt-nodesDownCnt}/#{nodesDownCnt}/#{nodeCnt}",
         " - (still down: ", nodesDown[0..2].join(','),")")
     end
-    # Stop looping if all the ndoes are UP!
-    nodesDownCnt > 0
+    # Check if the experiment is not interrupted
+    exp_status = Experiment.state("status/text()")
+    if allEqual(exp_status, "INTERRUPTED")
+      false 
+    else 
+      # The experiment is running, stop looping if all the nodes are UP!
+      nodesDownCnt > 0
+    end
   else
     # We have not finished adding nodes to this experiment, 
     # loop and check again in 10sec
