@@ -23,21 +23,28 @@ VERSION="OMF_RELEASE"
 RC_CONFIG="/etc/omf-resctl-$VERSION/omf-resctl.yaml"
 
 # get control interface name from kernel command line
-if grep -i -q "control=[a-zA-Z0-9]" /proc/cmdline
+if grep -i -q "control=[^[:space:]]" /proc/cmdline
 then
   CONTROL=`cat /proc/cmdline | sed 's/.*control=\([^ ]*\).*/\1/'`
   sed -i "s/:control_if:.*/:control_if: $CONTROL/g" $RC_CONFIG
 fi
 
+# get HRN naming scheme from kernel command line
+if grep -i -q "hrn=[^[:space:]]" /proc/cmdline
+then
+  HRN=`cat /proc/cmdline | sed 's/.*hrn=\([^ ]*\).*/\1/'`
+  sed -i "s/:name:.*/:name: '$HRN'/g" $RC_CONFIG
+fi
+
 # get xmpp server address from kernel command line
-if grep -i -q "xmpp=[a-zA-Z0-9]" /proc/cmdline
+if grep -i -q "xmpp=[^[:space:]]" /proc/cmdline
 then
   XMPP=`cat /proc/cmdline | sed 's/.*xmpp=\([^ ]*\).*/\1/'` 
   sed -i "s/:pubsub_gateway:.*/:pubsub_gateway: $XMPP/g" $RC_CONFIG
 fi
 
 # get slice name from kernel command line
-if grep -i -q "slice=[a-zA-Z0-9]" /proc/cmdline
+if grep -i -q "slice=[^[:space:]]" /proc/cmdline
 then
   SLICE=`cat /proc/cmdline | sed 's/.*slice=\([^ ]*\).*/\1/'` 
   sed -i "s/:slice:.*/:slice: $SLICE/g" $RC_CONFIG
