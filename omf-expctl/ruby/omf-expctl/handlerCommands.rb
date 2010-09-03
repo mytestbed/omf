@@ -198,12 +198,24 @@ def defGroup(groupName, selector = nil, &block)
         # These resources are identified by their HRNs
         # e.g. "node1, node2, node3"
         tname = "-:topo:#{groupName}"
-        topo = Topology.create(tname, selector.delete("[]").split(","))
+        topo = Topology.create(tname, selector.split(","))
         ns = BasicNodeSet.new(groupName, topo)
       end
-    # Selector is an Array of existing group names (e.g. ["group1","group2"])
+    # Selector is an Array of String 
     elsif selector.kind_of?(Array) && selector[0].kind_of?(String)
+      begin 
+        # Selector is an array of group names
+        # Thus we are creating a Group or Groups
         ns = GroupNodeSet.new(groupName, selector)
+        # This raises an exception if Selector contains a name, which does
+        # not refer to an existing defined Group
+      rescue
+        # Selector is an array of resource names, which are identified by their
+        # HRNs, e.g. ['node1','node2','node3']
+        tname = "-:topo:#{groupName}"
+        topo = Topology.create(tname, selector)
+        ns = BasicNodeSet.new(groupName, topo)
+      end
     else
       raise "Unknown node set declaration '#{selector}: #{selector.class}'"
     end
