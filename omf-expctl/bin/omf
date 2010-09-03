@@ -56,7 +56,11 @@ def parseOptions()
     end
     @options[:topology] = "system:topo:all"
     opts.on( '-t', '--topology TOPOLOGY', "Topology" ) do|t|
-      @options[:topology] = t
+      if t == "all"
+        @options[:topology] = "system:topo:all"
+      else
+        @options[:topology] = t
+      end
     end
     @options[:image] = "baseline.ndz"
     opts.on( '-i', '--image IMAGE', "Disk image to load" ) do|i|
@@ -216,8 +220,8 @@ def help(cmd = nil)
     puts " "
     puts "      Some Examples: " 
     puts "                    #{@this_app} #{cmd}"
-    puts "                    #{@this_app} #{cmd} -t all"
-    puts "                    #{@this_app} #{cmd} -t all -i baseline-2.4.ndz"
+#    puts "                    #{@this_app} #{cmd} -t all"
+#    puts "                    #{@this_app} #{cmd} -t all -i baseline-2.4.ndz"
     puts "                    #{@this_app} #{cmd} -t omf.nicta.node1 -i wireless-2.6.ndz"
     puts "                    #{@this_app} #{cmd} -t omf.nicta.node1,omf.nicta.node2 -i baseline.ndz -o 400"
     puts "                    #{@this_app} #{cmd} -t system:topo:circle -i my_Own_Image.ndz"
