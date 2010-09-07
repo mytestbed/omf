@@ -71,7 +71,7 @@ end
 
 onEvent(:INTERRUPT) do |event|
   MObject.info(:INTERRUPT, "\nUser-requested Interruption... Exiting Now!\n")
-  raise SystemExit.new
+  Experiment.done
 end
 
 defEvent(:NO_USER_DEFINED_EVENTS) do |event|
