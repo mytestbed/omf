@@ -478,6 +478,7 @@ class Node < MObject
                                                 :target => @nodeID,
                                                 :index => @index)
     addr.expID = nil # Same address as the resource but with no expID set
+    ECCommunicator.instance.listen(addr)
     ECCommunicator.instance.send_message(addr, cmd)
   end
 
