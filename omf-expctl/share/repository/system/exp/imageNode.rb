@@ -30,15 +30,36 @@
 # (In OMF, loading a disk image on a node is treated as an 'experiment' itself)
 #
 
+# Define the experiment properties
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
-
 defProperty('nodes', 'omf.nicta.node1,omf.nicta.node2', "Nodes to image")
 defProperty('image', 'baseline.ndz', "Image to load on nodes")
 defProperty('domain', nil, "Domain of the nodes to image")
-defProperty('outpath', '/tmp', "Path where to place the topology files resulting from this image")
+defProperty('outpath', "/tmp", "Path where to place the topology files resulting from this image")
+defProperty('outprefix', "#{Experiment.ID}", "Prefix to use for the topology files resulting from this image")
 # The following value of 800sec for timeout is based on trial imaging experiments 
 defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the last node has powered up")
+
+# Define some constants
+MSG_FAILED = <<TEXT
+# This creates a Topology wih the resources, for which the image loading failed.
+# On these resources, the 'frisbee' client raised an error during its execution.
+# Please check the EC log file for the 'frisbee' client error message.
+#
+TEXT
+MSG_TIMEOUT = <<TEXT
+# This creates a Topology wih the resources, for which the image loading timed-out.
+# These nodes did not finish imaging before the timeout limit.
+# Most of the time this is caused by some disk or network problems.
+#
+TEXT
+MSG_SUCCESS = <<TEXT
+# This creates a Topology wih the resources which have successfully been imaged.
+#
+TEXT
+MESSAGES = {:failed => MSG_FAILED, :timeout => MSG_TIMEOUT, :success => MSG_SUCCESS}
+
 
 #
 # First of all, do some checks...
@@ -65,23 +86,30 @@ end
 #
 defGroup('image', prop.nodes) {|n|
    n.pxeImage("#{prop.domain.value}", setPXE=true)
-   n.image = "pxe-5.3.1"
+   n.image = "pxe-5.3"
 }
 
-def outputTopologyFile(file, topo, msg, nset)
+def outputTopologyFile(type, nset)
   begin
-    File.open(file, "w") do |f|
-      f.puts("# Topology name: #{topo}", "# ")
-      f.puts(msg)
-      nsArray = []
-      nset.each { |n| nsArray << "[#{n.x},#{n.y}]" }
-      nsetString = "[#{nsArray.join(",")}]"
-      f.puts(" ","defTopology('#{topo}', #{nsetString})")
+    filename = "#{prop.outpath.value}/#{prop.outprefix.value}-topo-#{type}.rb"
+    toponame = "#{prop.outprefix.value}-topo-#{type}"
+    File.open(filename, "w") do |f|
+      f.puts("# Topology name: #{toponame}", "# ")
+      f.puts(MESSAGES[type])
+      f.puts("defTopology('#{toponame}') do |t|")
+      index = 1
+      nset.each { |n| 
+        f.puts("  t.addNode('n#{index}','#{n.x}')")
+        index += 1
+      }
+      f.puts("end")
     end
+    return filename
   rescue Exception => err
-    MObject.warn("exp", "Could not write result topology file: '#{file}' (#{err})")
+    MObject.warn("exp", "Could not write result topology file: '#{filename}' (#{err})")
     MObject.warn("exp", "(Most probably imaging was OK, but result file could not be created)")
   end
+  return nil
 end
 
 #
@@ -150,34 +178,16 @@ everyNS('image', 10) { |ns|
       info " ----------------------------- "
       info " Imaging Process Done " 
       if nodesWithErrorList.length > 0
-	 filename = "#{prop.outpath.value}/#{Experiment.ID}_topo_failed.rb"
-         topoName = "#{Experiment.ID}:topo:failed"
-	 message = <<TEXT
-# The following command creates a Topology wih the nodes that have failed the imaging process.
-# On these nodes, the 'frisbee' client did not manage to start the imaging process.
-# Check the EC log file for the 'frisbee' client error message.
-#
-TEXT
-	 outputTopologyFile(filename, topoName, message, nodesWithErrorList)
-         info " - #{nodesWithErrorList.length} node(s) failed - See the topology file: '#{filename}'"
+	 f = outputTopologyFile(:failed, nodesWithErrorList)
+         info " - #{nodesWithErrorList.length} node(s) failed - Topology saved at: '#{f}'"
       end
       if nodesPendingList.length > 0
-	 filename = "#{prop.outpath.value}/#{Experiment.ID}_topo_timeout.rb"
-         topoName = "#{Experiment.ID}:topo:timeout"
-	 message = <<TEXT
-# The following command creates a Topology wih the nodes that have timed-out the imaging process.
-# These nodes did not finish imaging before the timeout limit.
-# These nodes most probably have some issues (disk problems ?).
-TEXT
-	 outputTopologyFile(filename, topoName, message, nodesPendingList)
-         info " - #{nodesPendingList.length} node(s) timed-out - See the topology file: '#{filename}'"
+	 f = outputTopologyFile(:timeout, nodesPendingList)
+         info " - #{nodesPendingList.length} node(s) timed-out - Topology saved at: '#{f}'"
       end
       if nodesWithSuccessList.length > 0
-	 filename = "#{prop.outpath.value}/#{Experiment.ID}_topo_active.rb"
-         topoName = "#{Experiment.ID}:topo:active"
-	 message = "# The following command creates a Topology wih the nodes that have successfully been imaged."
-	 outputTopologyFile(filename, topoName, message, nodesWithSuccessList)
-         info " - #{nodesWithSuccessList.length} node(s) successfully imaged - See the topology file: '#{filename}'"
+	 f = outputTopologyFile(:success, nodesWithSuccessList)
+         info " - #{nodesWithSuccessList.length} node(s) successfully imaged - Topology saved at: '#{f}'"
       end
       info " ----------------------------- "
       ns.pxeImage("#{prop.domain.value}", setPXE=false)
