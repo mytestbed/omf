@@ -83,34 +83,6 @@ class PxeService < LegacyGridService
   end
 
   #
-  # Implement 'setBootImageAll' service using the 'service' method of AbstractService
-  #
-  s_description "Get PXE to boot ALL nodes on this testbed into their respective PXE image"
-  s_param :domain, 'domain', 'domain for request.'
-  s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
-  service 'setBootImageAll' do |req, res|
-    tb = getTestbedConfig(req, @@config)
-    inventoryURL = tb['inventory_url']
-    domain = getParam(req, 'domain')
-    nodes = listAllNodes(inventoryURL, domain)
-    imageName = getParamDef(req, 'imgName', nil)
-    setImage(nodes, tb, domain, res, imageName)
-  end
-
-  #
-  # Implement 'clearBootImageAll' service using the 'service' method of AbstractService
-  #
-  s_description "Get PXE to clear the pxe boot image of all nodes"
-  s_param :domain, 'domain', 'domain for request.'
-  service 'clearBootImageAll' do |req, res|
-    tb = getTestbedConfig(req, @@config)
-    inventoryURL = tb['inventory_url']
-    domain = getParam(req, 'domain')
-    nodes = listAllNodes(inventoryURL, domain)
-    clearImage(nodes, tb, domain, res)
-  end
-
-  #
   # Return the PXE Image to use for a specific node on a given testbed. This
   # method makes use of the Inventory GridService
   #
@@ -274,6 +246,37 @@ class PxeService < LegacyGridService
     error("Missing configuration 'defImage'") if @@config['defImage'] == nil
     error("Missing configuration 'linkLifetime'") if @@config['linkLifetime'] == nil
   end
+
+  # RETIRED SERVICES:
+  #------------------
+
+  # #
+  # # Implement 'setBootImageAll' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get PXE to boot ALL nodes on this testbed into their respective PXE image"
+  # s_param :domain, 'domain', 'domain for request.'
+  # s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
+  # service 'setBootImageAll' do |req, res|
+  #   tb = getTestbedConfig(req, @@config)
+  #   inventoryURL = tb['inventory_url']
+  #   domain = getParam(req, 'domain')
+  #   nodes = listAllNodes(inventoryURL, domain)
+  #   imageName = getParamDef(req, 'imgName', nil)
+  #   setImage(nodes, tb, domain, res, imageName)
+  # end
+  # 
+  # #
+  # # Implement 'clearBootImageAll' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get PXE to clear the pxe boot image of all nodes"
+  # s_param :domain, 'domain', 'domain for request.'
+  # service 'clearBootImageAll' do |req, res|
+  #   tb = getTestbedConfig(req, @@config)
+  #   inventoryURL = tb['inventory_url']
+  #   domain = getParam(req, 'domain')
+  #   nodes = listAllNodes(inventoryURL, domain)
+  #   clearImage(nodes, tb, domain, res)
+  # end
 
 end
 

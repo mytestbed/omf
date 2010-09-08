@@ -123,31 +123,7 @@ class InventoryService < GridService
     return root
   end
 
-  #
-  # Implement 'getMacAddress' service using the 'service' method of AbstractService
-  #
-  s_description "Get the MAC address of a given interface on a given node for a given domain"
-  s_param :hrn, 'hrn', 'HRN of the resource'
-  s_param :ifname, 'interfaceName', 'name of the interface (e.g. ath0).'
-  s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getMacAddress' do |hrn, ifname, domain|
-    tb = getTestbedConfig(domain, @@config)
-    # Query the inventory
-    result = nil
-    begin
-      inv = getInv(tb)
-      result = inv.getMacAddrByName(x, y, ifname, domain)
-    rescue Exception => ex
-      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      raise HTTPStatus::InternalServerError
-    end
-    # Build and Set the XML response
-    msgEmpty = "Inventory has no info on [#{ifname}] for node [#{x},#{y}] (domain: #{domain})"
-    replyXML = buildXMLReply("MAC_Address", result, msgEmpty) { |root,mac|
-      addXMLElement(root, "#{ifname}", "#{mac}")
-    }
-    replyXML
-  end
+
 
   #
   # Implement 'getPXEImage' service using the 'service' method of AbstractService
@@ -176,34 +152,7 @@ class InventoryService < GridService
   end
 
   #
-  # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
-  #
-  s_description "Get the MAC addresses of all the interfaces on a given node on a given domain"
-  s_param :hrn, 'hrn', 'HRN of the resource'
-  s_param :domain, 'domain', 'testbed/domain for this given node'
-  service 'getAllMacAddresses' do |hrn, domain|
-    tb = getTestbedConfig(domain, @@config)
-    # Query the inventory
-    result = nil
-    begin
-      inv = getInv(tb)
-      result = inv.getAllMacAddr(x, y, domain)
-    rescue Exception => ex
-      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      raise HTTPStatus::InternalServerError
-    end
-    # Build and Set the XML response
-    msgEmpty = "Inventory has no info for interfaces of node [#{x},#{y}] (domain: #{domain})"
-    replyXML = buildXMLReply("MAC_Address", result, msgEmpty) { |root,macs|
-      macs.each { |couple|
-        addXMLElement(root, "#{couple[0]}", "#{couple[1]}")
-      }
-    }
-    replyXML
-  end
-
-  #
-  # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
+  # Implement 'getListOfResources' service using the 'service' method of AbstractService
   #
   s_description "Get a list of the names of all available resources on a given domain"
   s_param :domain, 'domain', 'testbed/domain for this query'
@@ -307,251 +256,6 @@ class InventoryService < GridService
   end
 
   #
-  # Implement 'getAllWirelessDevices' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used...
-  #       if so it might need some fixing with new way of handling access to
-  #       inventory.
-  #
-  s_description "Get list of wireless devices on a given node in a given domain."
-  s_param :hrn, 'hrn', 'HRN of the resource'
-  s_param :domain, 'domain', 'domain of given node'
-  service 'getAllWirelessDevices' do |hrn, domain|
-    MObject.error "getAllWirelessDevices STILL USES [X,Y] RESOURCE NAMING!!! FIXME!!"
-    raise "getAllWirelessDevices STILL USES [X,Y] RESOURCE NAMING!!! FIXME!!"
-
-    x = getParam(req, 'x')
-    y = getParam(req, 'y')
-
-    tb = getTestbedConfig(domain, @@config)
-    ids = getAllWirelessDevices(tb, x, y, domain)
-    root = REXML::Element.new("device")
-    if (ids == :Error)
-      # XXXXXXX Wow.  We can't 404?
-      # YYYYYYY No, we're not in Kansas anymore.
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
-    elsif (ids.empty?)
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "No information for node [#{x},#{y}] (domain: #{domain})."
-    else
-      ids.each { | triple |
-        # destructuring bind? anyone? Buler?
-        ix = triple[0]
-        v = triple[1]
-        d = triple[2]
-        root.add_element(ix)
-        root.elements[ix].add_attribute("vendor", v)
-        root.elements[ix].add_attribute("device", d)
-        root.elements[ix].text = @@device_description["#{v} #{d}"]
-      }
-    end
-    setResponse(res, root)
-  end
-
-  #
-  # Implement 'getAllNodesWithOui' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used...
-  #       if so it might need some fixing with new way of handling access to
-  #       inventory.
-  #
-  s_description "Get list of nodes that have network cards with given OUI (first 3 bytes) on a given domain"
-  s_param :oui, 'oui', 'First three bytes of the OUI as B1:B2:B3'
-  s_param :domain, 'domain', 'domain for this node list'
-  service 'getAllNodesWithOui' do |oui, domain|
-    root = REXML::Element.new("nodes")
-    begin
-      tb = getTestbedConfig(domain, @@config)
-      inv = getInv(tb)
-      nodes =  inv.getNodesWithOUIInterfaces(oui, domain)
-      if (nodes.empty?)
-        root.add_element("ERROR")
-        root.elements["ERROR"].text = "No nodes with oui: #{oui} (domain: #{domain})."
-      else
-        nodes.each { | coords |
-          el = root.add_element("node")
-          el.add_attribute("x", coords[0])
-          el.add_attribute("y", coords[1])
-        }
-      end
-    rescue Exception => ex
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
-    end
-    setResponse(res, root)
-  end
-
-  #
-  # Implement 'getAllDeviceAliases' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used...
-  #       if so it might need some fixing with new way of handling access to
-  #       inventory.
-  #
-  s_description "Get list of device aliases defined in the inventory"
-  s_param :domain, 'domain', 'domain for the alias list'
-  service 'getAllDeviceAliases' do |domain|
-    MObject::debug("In get Aliases")
-    root = REXML::Element.new("result")
-    begin
-      tb = getTestbedConfig(domain, @@config)
-      inv = getInv(tb)
-      aliases =  inv.getDeviceAliases()
-      MObject::debug("Got the list")
-      if (aliases.empty?)
-        root.add_element("ERROR")
-        root.elements["ERROR"].text = "Empty alias list"
-      else
-        aliasnode = root.add_element("aliases")
-        aliases.each { | al |
-          el = aliasnode.add_element("alias")
-          el.add_attribute("name", al)
-        }
-      end
-    rescue Exception => ex
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
-    end
-    setResponse(res, root)
-  end
-
-  #
-  # add a node to the testbed
-  # creates entries in the inventory tables
-  #
-  s_description "Get list of device aliases defined in the inventory"
-  s_param :domain, 'domain', 'domain for the alias list'
-  service 'addNode' do |domain|
-    root = REXML::Element.new("result")
-    begin
-      tb = getTestbedConfig(domain, @@config)
-      inv = getInv(tb)
-    rescue Exception => ex
-      MObject::debug("exception #{ex}")
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "Error when accessing the Inventory Database."
-    end
-    setResponse(res, root)
-  end
-
-  #
-  # Implement 'getAllNodesWithAliasDevice' service using the 'service' method of AbstractService
-  # NOTE: Following code added by Winlab?, not sure if it is still used...
-  #       if so it might need some fixing with new way of handling access to
-  #       inventory.
-  #
-  s_description "Get list of nodes that have devices with the human readable alias (tag)"
-  s_param :alias, 'alias', 'Device alias (tag)'
-  s_param :domain, 'domain', 'domain for this node list'
-  service 'getAllNodesWithAliasDevice' do |tag, domain|
-    # 'alias' is a ruby keyword, so we use 'tag' instead internally
-    root = REXML::Element.new("InventoryReport")
-    root.add_attribute("query", "getAllNodesWithAliasDevice")
-    root.add_attribute("alias",tag)
-    begin
-      tb = getTestbedConfig(domain, @@config)
-      inv = getInv(tb)
-      MObject::debug("Opened database")
-      range = inv.getNodeCoordinateRange(domain)
-      nodes = inv.getNodesWithTagInterfaces(tag, domain)
-      MObject::debug("Got inventory req for #{tag} (domain: #{domain}).")
-      if (nodes.empty?)
-        root.add_element("ERROR")
-        root.elements["ERROR"].text = "No nodes with tag: #{tag} (domain: #{domain})."
-      else
-        MObject::debug("Got #{range[0]}, #{range[1]}, #{range[2]}")
-        addXMLElement(root,"domain",domain)
-        nl = root.add_element("range")
-        addXMLElement(nl,"x_max",range[0])
-        addXMLElement(nl,"y_max",range[1])
-        addXMLElement(nl,"z_max",range[2])
-        ndetail = root.add_element("detail")
-        nlist = root.add_element("nodeArray")
-        nlist.add_text '['
-        nodes.each { | coords |
-          el = ndetail.add_element("node")
-          el.add_attribute("x", coords[0])
-          el.add_attribute("y", coords[1])
-          nlist.add_text "[#{coords[0]},#{coords[1]}]"
-          if (coords != nodes.last)
-            nlist.add_text ','
-          end
-        }
-        nlist.add_text ']'
-      end
-    rescue Exception => ex
-      root.add_element("ERROR")
-      root.elements["ERROR"].text = "Error when accessing the Inventory Database -> #{ex}"
-    end
-    setResponse(res, root)
-  end
-  
-  s_description "Get list of testbeds defined in the inventory"
-  service 'getAllTestbeds' do
-    tb = getTestbedConfig(nil, @@config)
-    # Query the inventory
-    begin
-      inv = getInv(tb)
-      result = inv.getAllTestbeds()
-    rescue Exception => ex
-      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      raise HTTPStatus::InternalServerError
-    end
-    # Build and Set the XML response
-    msgEmpty = "Inventory has no testbeds defined"
-    replyXML = buildXMLReply("TESTBEDS", result, msgEmpty) { |root,testbeds|
-      testbeds.each { |tb|
-        addXMLElement(root, "TESTBED", "#{tb}")
-      }
-    }
-    replyXML
-  end
-  
-  s_description "Get list of nodes defined in the inventory"
-  service 'getAllNodes' do
-    tb = getTestbedConfig(nil, @@config)
-    # Query the inventory
-    begin
-      inv = getInv(tb)
-      result = inv.getAllNodes()
-    rescue Exception => ex
-      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-      raise HTTPStatus::InternalServerError
-    end
-    # Build and Set the XML response
-    msgEmpty = "Inventory has no nodes defined"
-    replyXML = buildXMLReply("ALLNODES", result, msgEmpty) { |root,nodes|
-      nodes.each { |h|
-        nl = root.add_element("NODE")
-        nl.add_attributes(h)
-      }
-    }
-    MObject::debug(replyXML)
-    replyXML
-  end
-
-  #
-  # Return all the Wireless Devices for a given resource of a given testbed.
-  # NOTE: Following code added by Winlab?, not sure if it is still used...
-  #       if so it might need some fixing with new way of handling access to
-  #       inventory.
-  #
-  def self.getAllWirelessDevices(tbConfig, x, y, domainName)
-    h = tbConfig['host']
-    u = tbConfig['user']
-    p = tbConfig['password']
-    d = tbConfig['database']
-    begin
-      inv = MySQLInventory.new(h, u, p, d)
-      inv.open()
-    rescue Exception => ex
-      error "Inventory - getAllWirelessDevices() - Cannot connect to the Inventory Database #{d} on #{h} as #{u} - #{ex}"
-      raise HTTPStatus::InternalServerError
-    end
-    wds = inv.getAllPCIID(x, y, domainName)
-    inv.close()
-    return wds
-  end
-
-  #
   # Configure the service through a hash of options
   #
   # - config = the Hash holding the config parameters for this service
@@ -559,5 +263,270 @@ class InventoryService < GridService
   def self.configure(config)
     @@config = config
   end
+
+  # RETIRED SERVICES:
+  #------------------
+
+  # #
+  # # Implement 'getMacAddress' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get the MAC address of a given interface on a given node for a given domain"
+  # s_param :hrn, 'hrn', 'HRN of the resource'
+  # s_param :ifname, 'interfaceName', 'name of the interface (e.g. ath0).'
+  # s_param :domain, 'domain', 'testbed/domain for this given node'
+  # service 'getMacAddress' do |hrn, ifname, domain|
+  #   tb = getTestbedConfig(domain, @@config)
+  #   # Query the inventory
+  #   result = nil
+  #   begin
+  #     inv = getInv(tb)
+  #     result = inv.getMacAddrByName(x, y, ifname, domain)
+  #   rescue Exception => ex
+  #     error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+  #     raise HTTPStatus::InternalServerError
+  #   end
+  #   # Build and Set the XML response
+  #   msgEmpty = "Inventory has no info on [#{ifname}] for node [#{x},#{y}] (domain: #{domain})"
+  #   replyXML = buildXMLReply("MAC_Address", result, msgEmpty) { |root,mac|
+  #     addXMLElement(root, "#{ifname}", "#{mac}")
+  #   }
+  #   replyXML
+  # end
+
+  # # Implement 'getAllMacAddresses' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get the MAC addresses of all the interfaces on a given node on a given domain"
+  # s_param :hrn, 'hrn', 'HRN of the resource'
+  # s_param :domain, 'domain', 'testbed/domain for this given node'
+  # service 'getAllMacAddresses' do |hrn, domain|
+  #   tb = getTestbedConfig(domain, @@config)
+  #   # Query the inventory
+  #   result = nil
+  #   begin
+  #     inv = getInv(tb)
+  #     result = inv.getAllMacAddr(x, y, domain)
+  #   rescue Exception => ex
+  #     error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+  #     raise HTTPStatus::InternalServerError
+  #   end
+  #   # Build and Set the XML response
+  #   msgEmpty = "Inventory has no info for interfaces of node [#{x},#{y}] (domain: #{domain})"
+  #   replyXML = buildXMLReply("MAC_Address", result, msgEmpty) { |root,macs|
+  #     macs.each { |couple|
+  #       addXMLElement(root, "#{couple[0]}", "#{couple[1]}")
+  #     }
+  #   }
+  #   replyXML
+  # end
+  
+  # #
+  # # Implement 'getAllWirelessDevices' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get list of wireless devices on a given node in a given domain."
+  # s_param :hrn, 'hrn', 'HRN of the resource'
+  # s_param :domain, 'domain', 'domain of given node'
+  # service 'getAllWirelessDevices' do |hrn, domain|
+  #   MObject.error "getAllWirelessDevices STILL USES [X,Y] RESOURCE NAMING!!! FIXME!!"
+  #   raise "getAllWirelessDevices STILL USES [X,Y] RESOURCE NAMING!!! FIXME!!"
+  # 
+  #   x = getParam(req, 'x')
+  #   y = getParam(req, 'y')
+  # 
+  #   tb = getTestbedConfig(domain, @@config)
+  #   ids = getAllWirelessDevices(tb, x, y, domain)
+  #   root = REXML::Element.new("device")
+  #   if (ids == :Error)
+  #     # XXXXXXX Wow.  We can't 404?
+  #     # YYYYYYY No, we're not in Kansas anymore.
+  #     root.add_element("ERROR")
+  #     root.elements["ERROR"].text = "Error when accessing the Inventory Database."
+  #   elsif (ids.empty?)
+  #     root.add_element("ERROR")
+  #     root.elements["ERROR"].text = "No information for node [#{x},#{y}] (domain: #{domain})."
+  #   else
+  #     ids.each { | triple |
+  #       # destructuring bind? anyone? Buler?
+  #       ix = triple[0]
+  #       v = triple[1]
+  #       d = triple[2]
+  #       root.add_element(ix)
+  #       root.elements[ix].add_attribute("vendor", v)
+  #       root.elements[ix].add_attribute("device", d)
+  #       root.elements[ix].text = @@device_description["#{v} #{d}"]
+  #     }
+  #   end
+  #   setResponse(res, root)
+  # end
+  # 
+  # #
+  # # Implement 'getAllNodesWithOui' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get list of nodes that have network cards with given OUI (first 3 bytes) on a given domain"
+  # s_param :oui, 'oui', 'First three bytes of the OUI as B1:B2:B3'
+  # s_param :domain, 'domain', 'domain for this node list'
+  # service 'getAllNodesWithOui' do |oui, domain|
+  #   root = REXML::Element.new("nodes")
+  #   begin
+  #     tb = getTestbedConfig(domain, @@config)
+  #     inv = getInv(tb)
+  #     nodes =  inv.getNodesWithOUIInterfaces(oui, domain)
+  #     if (nodes.empty?)
+  #       root.add_element("ERROR")
+  #       root.elements["ERROR"].text = "No nodes with oui: #{oui} (domain: #{domain})."
+  #     else
+  #       nodes.each { | coords |
+  #         el = root.add_element("node")
+  #         el.add_attribute("x", coords[0])
+  #         el.add_attribute("y", coords[1])
+  #       }
+  #     end
+  #   rescue Exception => ex
+  #     root.add_element("ERROR")
+  #     root.elements["ERROR"].text = "Error when accessing the Inventory Database."
+  #   end
+  #   setResponse(res, root)
+  # end
+  # 
+  # #
+  # # Implement 'getAllDeviceAliases' service using the 'service' method of AbstractService
+  # #
+  # s_description "Get list of device aliases defined in the inventory"
+  # s_param :domain, 'domain', 'domain for the alias list'
+  # service 'getAllDeviceAliases' do |domain|
+  #   MObject::debug("In get Aliases")
+  #   root = REXML::Element.new("result")
+  #   begin
+  #     tb = getTestbedConfig(domain, @@config)
+  #     inv = getInv(tb)
+  #     aliases =  inv.getDeviceAliases()
+  #     MObject::debug("Got the list")
+  #     if (aliases.empty?)
+  #       root.add_element("ERROR")
+  #       root.elements["ERROR"].text = "Empty alias list"
+  #     else
+  #       aliasnode = root.add_element("aliases")
+  #       aliases.each { | al |
+  #         el = aliasnode.add_element("alias")
+  #         el.add_attribute("name", al)
+  #       }
+  #     end
+  #   rescue Exception => ex
+  #     root.add_element("ERROR")
+  #     root.elements["ERROR"].text = "Error when accessing the Inventory Database."
+  #   end
+  #   setResponse(res, root)
+  # end
+  #
+  # Implement 'getAllNodesWithAliasDevice' service using the 'service' method of AbstractService
+  #
+  # s_description "Get list of nodes that have devices with the human readable alias (tag)"
+  # s_param :alias, 'alias', 'Device alias (tag)'
+  # s_param :domain, 'domain', 'domain for this node list'
+  # service 'getAllNodesWithAliasDevice' do |tag, domain|
+  #   # 'alias' is a ruby keyword, so we use 'tag' instead internally
+  #   root = REXML::Element.new("InventoryReport")
+  #   root.add_attribute("query", "getAllNodesWithAliasDevice")
+  #   root.add_attribute("alias",tag)
+  #   begin
+  #     tb = getTestbedConfig(domain, @@config)
+  #     inv = getInv(tb)
+  #     MObject::debug("Opened database")
+  #     range = inv.getNodeCoordinateRange(domain)
+  #     nodes = inv.getNodesWithTagInterfaces(tag, domain)
+  #     MObject::debug("Got inventory req for #{tag} (domain: #{domain}).")
+  #     if (nodes.empty?)
+  #       root.add_element("ERROR")
+  #       root.elements["ERROR"].text = "No nodes with tag: #{tag} (domain: #{domain})."
+  #     else
+  #       MObject::debug("Got #{range[0]}, #{range[1]}, #{range[2]}")
+  #       addXMLElement(root,"domain",domain)
+  #       nl = root.add_element("range")
+  #       addXMLElement(nl,"x_max",range[0])
+  #       addXMLElement(nl,"y_max",range[1])
+  #       addXMLElement(nl,"z_max",range[2])
+  #       ndetail = root.add_element("detail")
+  #       nlist = root.add_element("nodeArray")
+  #       nlist.add_text '['
+  #       nodes.each { | coords |
+  #         el = ndetail.add_element("node")
+  #         el.add_attribute("x", coords[0])
+  #         el.add_attribute("y", coords[1])
+  #         nlist.add_text "[#{coords[0]},#{coords[1]}]"
+  #         if (coords != nodes.last)
+  #           nlist.add_text ','
+  #         end
+  #       }
+  #       nlist.add_text ']'
+  #     end
+  #   rescue Exception => ex
+  #     root.add_element("ERROR")
+  #     root.elements["ERROR"].text = "Error when accessing the Inventory Database -> #{ex}"
+  #   end
+  #   setResponse(res, root)
+  # end
+  # 
+  # s_description "Get list of testbeds defined in the inventory"
+  # service 'getAllTestbeds' do
+  #   tb = getTestbedConfig(nil, @@config)
+  #   # Query the inventory
+  #   begin
+  #     inv = getInv(tb)
+  #     result = inv.getAllTestbeds()
+  #   rescue Exception => ex
+  #     error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+  #     raise HTTPStatus::InternalServerError
+  #   end
+  #   # Build and Set the XML response
+  #   msgEmpty = "Inventory has no testbeds defined"
+  #   replyXML = buildXMLReply("TESTBEDS", result, msgEmpty) { |root,testbeds|
+  #     testbeds.each { |tb|
+  #       addXMLElement(root, "TESTBED", "#{tb}")
+  #     }
+  #   }
+  #   replyXML
+  # end
+  # 
+  # s_description "Get list of nodes defined in the inventory"
+  # service 'getAllNodes' do
+  #   tb = getTestbedConfig(nil, @@config)
+  #   # Query the inventory
+  #   begin
+  #     inv = getInv(tb)
+  #     result = inv.getAllNodes()
+  #   rescue Exception => ex
+  #     error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+  #     raise HTTPStatus::InternalServerError
+  #   end
+  #   # Build and Set the XML response
+  #   msgEmpty = "Inventory has no nodes defined"
+  #   replyXML = buildXMLReply("ALLNODES", result, msgEmpty) { |root,nodes|
+  #     nodes.each { |h|
+  #       nl = root.add_element("NODE")
+  #       nl.add_attributes(h)
+  #     }
+  #   }
+  #   MObject::debug(replyXML)
+  #   replyXML
+  # end
+  # 
+  # #
+  # # Return all the Wireless Devices for a given resource of a given testbed.
+  # #
+  # def self.getAllWirelessDevices(tbConfig, x, y, domainName)
+  #   h = tbConfig['host']
+  #   u = tbConfig['user']
+  #   p = tbConfig['password']
+  #   d = tbConfig['database']
+  #   begin
+  #     inv = MySQLInventory.new(h, u, p, d)
+  #     inv.open()
+  #   rescue Exception => ex
+  #     error "Inventory - getAllWirelessDevices() - Cannot connect to the Inventory Database #{d} on #{h} as #{u} - #{ex}"
+  #     raise HTTPStatus::InternalServerError
+  #   end
+  #   wds = inv.getAllPCIID(x, y, domainName)
+  #   inv.close()
+  #   return wds
+  # end
 
 end

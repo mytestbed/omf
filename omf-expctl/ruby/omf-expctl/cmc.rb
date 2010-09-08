@@ -45,9 +45,6 @@ module CMC
   #
   # Switch a given node ON
   #
-  # - x = X coordinate of node
-  # - y = Y coordinate of node
-  #
   def CMC.nodeOn(name)
     if NodeHandler.JUST_PRINT
       puts ">> CMC: Switch on node '#{name}'"
@@ -65,7 +62,7 @@ module CMC
   #
   # Switch a given set of nodes ON
   #
-  # - set = a String describing the set of nodes to switch ON (e.g. [[1,1],[1,2]])
+  # - set = a String describing the set of nodes to switch ON
   #
   def CMC.nodeSetOn(set)
     if NodeHandler.JUST_PRINT
@@ -81,9 +78,6 @@ module CMC
   # Switch a given node OFF Hard
   # (i.e. similar to a push of 'power' button)
   #
-  # - x = X coordinate of node
-  # - y = Y coordinate of node
-  #
   def CMC.nodeOffHard(name)
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{name}"
@@ -97,9 +91,6 @@ module CMC
   #
   # Switch a given node OFF Soft
   # (i.e. similar to a console call to 'halt -p' on the node)
-  #
-  # - x = X coordinate of node
-  # - y = Y coordinate of node
   #
   def CMC.nodeOffSoft(name)
     if NodeHandler.JUST_PRINT
@@ -129,7 +120,7 @@ module CMC
   #
   # Get a list of all nodes for the default testbed domain
   #
-  # [Return] a String declaring the list of nodes (e.g. "[[1,1],[1,2]])
+  # [Return] a String declaring the list of nodes
   #
   def CMC.getAllNodes()
     if NodeHandler.JUST_PRINT
@@ -168,9 +159,6 @@ module CMC
 
   #
   # Return true if a given node belongs to the list of active nodes
-  #
-  # - x = X coordinate of node
-  # - y = Y coordinate of node
   #
   # [Return] true/false
   #
@@ -214,9 +202,6 @@ module CMC
 
   #
   # Reset a particular node
-  #
-  # - x = X coordinate of node
-  # - y = Y coordinate of node
   #
   def CMC.nodeReset(name)
     if NodeHandler.JUST_PRINT
