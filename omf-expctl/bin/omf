@@ -119,11 +119,11 @@ def run(cmd)
   elsif (cmd == "stat")
     app="omf-expctl/statnode.rb"
     if @options[:summary]
-      # stat [-s] [DOMAIN]
-      args=["-s","system:topo:all","'#{@options[:aggregate]}'"]
+      # stat [-s] [DOMAIN] 
+      args=["-s","'#{@options[:aggregate]}'"]
     else
-      # stat "[TOPOLOGY]" [DOMAIN]
-      args=["'#{@options[:topology]}'", "'#{@options[:aggregate]}'"]
+      # stat [DOMAIN] 
+      args=["'#{@options[:aggregate]}'"]
     end
     
   ########## OMF LOAD
@@ -177,19 +177,18 @@ def help(cmd = nil)
   elsif (cmd == "stat")
     puts "Returns the status of the nodes in a testbed"
   	puts "Usage:"
-  	puts "      #{@this_app} #{cmd} [-h] [-s] [-t TOPOLOGY] [-c AGGREGATE]"
+  	puts "      #{@this_app} #{cmd} [-h] [-s] [-c AGGREGATE]"
   	puts " "
   	puts "      With: "
   	puts "      -h, --help                print this help message"
   	puts "      -s, --summary             print a summary of the node status for the testbed"
   	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
-  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
   	puts " "
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd}"
   	puts "                    #{@this_app} #{cmd} -s"
-  	puts "                    #{@this_app} #{cmd} -t omf.nicta.node1,omf.nicta.node2 -c sb1"
-  	puts "                    #{@this_app} #{cmd} -t system:topo:all -c grid"
+  	puts "                    #{@this_app} #{cmd} -s -c sb1"
+  	puts "                    #{@this_app} #{cmd} -c grid"
   	puts " "
   elsif (cmd == "tell")
     puts "Switch ON/OFF and reboot the nodes in a testbed"
