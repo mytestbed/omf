@@ -77,9 +77,8 @@ class Node < MObject
   end
 
   #
-  # Return the node at location 'x'@'y'. If no node exists, create a new one.
-  # - x = x coordinate of the node to return
-  # - y = y coordinate of the node to return
+  # Return the node called "name". If no node exists, create a new one.
+  #  name - node name
   #
   # [Return] an existing or a new Node object 
   #

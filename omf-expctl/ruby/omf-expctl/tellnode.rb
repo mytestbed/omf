@@ -34,7 +34,10 @@ require 'set'
 require 'omf-common/arrayMD'
 require 'net/http'
 require 'omf-common/mobject'
-require 'omf-expctl/nodeHandler.rb'
+require 'omf-expctl/nodeHandler'
+require 'omf-expctl/handlerCommands'
+require 'omf-expctl/node/node'
+
 
 # Stub Class for the NodeHandler
 # The current OMF classe/module are so tighly coupled that nothing can be
@@ -67,7 +70,7 @@ def tellNode(cmd, topo, domain)
     puts ""
     exit 1
   end
-  puts " Testbed : #{d} - Command: #{command}"
+  puts " Domain : #{d} - Command: #{command}"
   topo.eachNode { |n|
     url = "#{OConfig[:ec_config][:cmc][:url]}/#{command}?name=#{n}&domain=#{d}"
     begin
@@ -87,12 +90,11 @@ begin
   puts " "  
   cmd = ARGV[0] 
   topo = ARGV[1] 
-  domain = ARGV[2] 
+  OConfig.config = ARGV[2] if !ARGV[2].empty?
   NodeHandler.instance.loadControllerConfiguration()
   NodeHandler.instance.startLogger()
-  OConfig.loadTestbedConfiguration()
-  Topology.useNodeClass = false
   TraceState.init()
-  theTopo = Topology["#{topo}"]
-  tellNode(cmd, theTopo, domain)
+  include OMF::ExperimentController::Commands
+  rootns = OMF::ExperimentController::Commands.defGroup("_ALLGROUPS_",topo)
+  tellNode(cmd,rootns,OConfig.domain)
 end

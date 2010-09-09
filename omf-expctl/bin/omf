@@ -210,9 +210,9 @@ def help(cmd = nil)
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd} -a on -t system:topo:all -c grid"
   	puts "                    #{@this_app} #{cmd} -a on -t omf.nicta.node1"
-  	puts "                    #{@this_app} #{cmd} offs  -t omf.nicta.node1,omf.nicta.node2 -c sb1 "
-  	puts "                    #{@this_app} #{cmd} offh  -t system:topo:all"
-  	puts "                    #{@this_app} #{cmd} offh  -t topo_grid_active"
+  	puts "                    #{@this_app} #{cmd} -a offs -t omf.nicta.node1,omf.nicta.node2 -c sb1 "
+  	puts "                    #{@this_app} #{cmd} -a offh -t system:topo:all"
+  	puts "                    #{@this_app} #{cmd} -a offh -t topo_grid_active"
   	puts " "
   elsif (cmd == "load")
     puts "Install a given disk image on the nodes in a testbed"

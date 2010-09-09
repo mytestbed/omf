@@ -69,19 +69,6 @@ class Topology < MObject
   end
 
   #
-  # This flag switch the use of the class Node when defining a topology.
-  # It should be set to 'true' when the Topology class is used with the 
-  # NodeHandler, and to 'false' otherwise (e.g. when used in 'tellnode' and 
-  # 'statnode' tools)
-  #
-  # - flag = true or false
-  #
-  def self.useNodeClass=(flag)
-    @@useNodeClass = flag
-  end
-  @@useNodeClass = true
-
-  #
   # Create and Return a new topology object
   #
   # - id = URI identifying the topology (nil for anonymous topos)
@@ -443,8 +430,7 @@ class Topology < MObject
           return 
         end
       end
-      # When Topology is not used with a NodeHandler, do not use the Node class
-      n = (@@useNodeClass) ? Node.at!(name) : name
+      n = Node.at!(name)
       @nodes.add(n)
     rescue ResourceException => re
       if @strict

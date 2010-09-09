@@ -97,7 +97,6 @@ begin
     OConfig.config = ARGV[0] if !ARGV[0].empty?
     NodeHandler.instance.loadControllerConfiguration()
     NodeHandler.instance.startLogger()
-    Topology.useNodeClass = false
     TraceState.init()
     getStatus(OConfig.domain)
   end

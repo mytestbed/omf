@@ -165,7 +165,7 @@ end
 # use, or a set combining other sets.
 #
 # - groupName = name of this group of nodes
-# - selector = optional, this can be: a String refering to the name of an 
+# - selector = optional, this can be: a String referring to the name of an 
 #              existing Topology, or an Array with the name of existing 
 #              Groups to add to this group, or an Array explicitly describing 
 #              the nodes to include in this group 
