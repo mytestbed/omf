@@ -213,7 +213,10 @@ class RootNodeSetPath < NodeSetPath
   # - *args = a sequence of arguments to send as a messages to this application
   #
   def sendMessage(name, *args)
-    @nodeSet.send(:STDIN, "#{name}", *args)
+    @nodeSet.send(ECCommunicator.instance.create_message(:cmdtype => :STDIN,
+                                                 :appID => name,
+                                                 :value => "#{args.join(' ')}"))
+
   end
   
   #
