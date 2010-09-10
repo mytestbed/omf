@@ -64,6 +64,7 @@ class Device < MObject
     @deviceName = deviceName
     @logicalName = logicalName
     @isActive = false
+    @propertyList = Hash.new
   end
 
   #

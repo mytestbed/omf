@@ -79,6 +79,7 @@ class AtherosDevice < WirelessDevice
   #
   def getConfigCmd(prop, value)
 
+    @propertyList[prop.to_sym] = value
     case prop
       when 'type'
         # 'value' defines type of operation
@@ -153,6 +154,15 @@ class AtherosDevice < WirelessDevice
 
     end
     super
+  end
+
+  def get_property_value(prop)
+    # Note: for now we are returning values set by a CONFIGURE command
+    # when refactoring the device handling scheme, we may want to query
+    # the system here to find out the real value of the property
+    result = super(prop)
+    result = @propertyList[prop] if !result
+    return result 
   end
 
 end
