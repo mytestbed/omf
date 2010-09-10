@@ -30,12 +30,15 @@ require 'nodes'
 require 'uri'
 require 'omf-common/servicecall'
 require 'rexml/document'
+include REXML
 
 DEFAULT_PORT=5454
+AM_ERROR="The AM reported an error executing this request."
 @@OMF_VERSION = "OMF Administration Interface v.#{OMF::Common::VERSION(__FILE__)}"
 puts @@OMF_VERSION
 
 @@dummy=false
+@@currentTB=nil
 #Jabber::debug = true
 
 @@config = AdminConfig.new
@@ -45,14 +48,8 @@ OMF::ServiceCall.add_domain(:type => :xmpp,
                             :user => "omf-admin",
                             :password => "123")
 
-
 @@testbeds = Testbeds.new
 @@nodes = Nodes.new
-
-@@currentTB = @@testbeds.getAll.first['name']
-
-p @@nodes.getAll
-
 
 port = DEFAULT_PORT
 idx = ARGV.index("--port")

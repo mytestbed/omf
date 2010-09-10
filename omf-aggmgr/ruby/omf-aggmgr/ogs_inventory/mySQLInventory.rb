@@ -247,6 +247,109 @@ ALLRESOURCES_QS
     return resources
   end
 
+  def getAllTestbeds
+  qs = <<ALLTESTBEDS_QS
+SELECT name FROM testbeds;
+ALLTESTBEDS_QS
+
+    result = Array.new
+    begin
+      @my.query(qs).each() { | n |
+           result << n
+    }
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in getAllTestbeds"
+      p err_str
+      MObject.debug err_str
+    end
+    result
+  end
+
+  def getAllNodes
+  qs = <<ALLNODES_QS
+SELECT hostname,hrn,control_mac,control_ip,x,y,z,disk,testbeds.name
+FROM nodes
+LEFT JOIN locations ON nodes.location_id = locations.id
+LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+;
+ALLNODES_QS
+
+    result = Array.new
+    begin
+      @my.query(qs).each() { | hostname,hrn,control_mac,control_ip,x,y,z,disk,tbname |
+           result << {'name' => "#{hostname}", 'hrn' => "#{hrn}", 'control_mac' => "#{control_mac}",
+             'control_ip' => "#{control_ip}", 'x' => "#{x}", 'y' => "#{y}", 'z' => "#{z}", 'disk' => "#{disk}",
+             'testbed' => "#{tbname}"}
+    }
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in getAllTestbeds"
+      p err_str
+      MObject.debug err_str
+    end
+    result
+  end
+
+  def addTestbed(testbed)
+    qs = "INSERT INTO testbeds (name) VALUES ('#{testbed}');"
+    begin
+      @my.query(qs)
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in rmTestbed: '#{qs}'"
+      p err_str
+      MObject.debug err_str
+    end
+    return @my.affected_rows > 0
+  end
+  
+  def editTestbed(testbed, name)
+    qs = "UPDATE testbeds SET name = '#{name}' WHERE name = '#{testbed}';"
+    begin
+      @my.query(qs)
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in editTestbed: '#{qs}'"
+      p err_str
+      MObject.debug err_str
+    end
+    return @my.affected_rows > 0
+  end
+  
+  def rmTestbed(testbed)
+    qs = "DELETE FROM testbeds WHERE name = '#{testbed}';"
+    begin
+      @my.query(qs)
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in rmTestbed: '#{qs}'"
+      p err_str
+      MObject.debug err_str
+    end
+    return @my.affected_rows > 0
+  end
+  
+  def addNode(node)
+    qs = "INSERT INTO nodes (#{node.keys.join(',')}) VALUES ('#{node.values.join('\',\'')}');"
+    MObject.debug(qs)
+    return true
+    begin
+      @my.query(qs)
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in rmTestbed: '#{qs}'"
+      p err_str
+      MObject.debug err_str
+    end
+    return @my.affected_rows > 0
+  end
+  
+  def rmNode(node,testbed)
+    qs = "DELETE FROM nodes WHERE name = '#{node}';"
+    begin
+      @my.query(qs)
+    rescue MysqlError => e
+      err_str = "Inventory - Could not execute query in rmNode: '#{qs}'"
+      p err_str
+      MObject.debug err_str
+    end
+    return @my.affected_rows > 0
+  end
  
   # RETIRED SERVICES:
   #------------------
@@ -607,47 +710,7 @@ ALLRESOURCES_QS
   #     result
   #   end
   #
-  #   def getAllTestbeds
-  #   qs = <<ALLTESTBEDS_QS
-  # SELECT name FROM testbeds;
-  # ALLTESTBEDS_QS
-  # 
-  #     result = Array.new
-  #     begin
-  #       @my.query(qs).each() { | n |
-  #            result << n
-  #     }
-  #     rescue MysqlError => e
-  #       err_str = "Inventory - Could not execute query in getAllTestbeds"
-  #       p err_str
-  #       MObject.debug err_str
-  #     end
-  #     result
-  #   end
-  # 
-  #   def getAllNodes
-  #   qs = <<ALLNODES_QS
-  # SELECT hostname,hrn,control_mac,control_ip,x,y,z,disk,testbeds.name
-  # FROM nodes
-  # LEFT JOIN locations ON nodes.location_id = locations.id
-  # LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-  # ;
-  # ALLNODES_QS
-  # 
-  #     result = Array.new
-  #     begin
-  #       @my.query(qs).each() { | hostname,hrn,control_mac,control_ip,x,y,z,disk,tbname |
-  #            result << {'name' => "#{hostname}", 'hrn' => "#{hrn}", 'control_mac' => "#{control_mac}",
-  #              'control_ip' => "#{control_ip}", 'x' => "#{x}", 'y' => "#{y}", 'z' => "#{z}", 'disk' => "#{disk}",
-  #              'testbed' => "#{tbname}"}
-  #     }
-  #     rescue MysqlError => e
-  #       err_str = "Inventory - Could not execute query in getAllTestbeds"
-  #       p err_str
-  #       MObject.debug err_str
-  #     end
-  #     result
-  #   end
+
 
 end
 

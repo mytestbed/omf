@@ -13,8 +13,8 @@ end
 
 div.page do
   form :action => "", :method => "post" do
-    input :type => "text", :name => "name", :value => nd['name'], :size => 30
-    label " Name"; br
+    input :type => "text", :name => "hostname", :value => nd['hostname'], :size => 30
+    label " Hostname"; br
     input :type => "text", :name => "hrn", :value => nd['hrn'], :size => 30
     label " HRN"; br
     input :type => "text", :name => "control_mac", :value => nd['control_mac'], :size => 30

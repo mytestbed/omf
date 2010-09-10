@@ -123,7 +123,26 @@ class InventoryService < GridService
     return root
   end
 
-
+  #
+  # Create new XML reply containing an OK or ERROR message.
+  # If result is false, set an error message in this reply.
+  # Otherwise return OK.
+  #
+  # - replyName = name of the new XML Reply object
+  # - result = boolean indicating whether the request was successful or not
+  # - msg =  the error message to store in this reply, if result is false
+  #
+  # [Return] a new XML tree
+  #
+  def self.booleanXMLReply(replyName, result, msg)
+    root = REXML::Element.new("#{replyName}")
+    if result
+      addXMLElement(root, "OK", nil)
+    else
+      addXMLElement(root, "ERROR", "#{msg}")
+    end
+    return root
+  end
 
   #
   # Implement 'getPXEImage' service using the 'service' method of AbstractService
@@ -253,6 +272,134 @@ class InventoryService < GridService
       root.text = ip
     }
     replyXML
+  end
+  
+  # the following service calls are mainly used by omf-admin:
+
+  s_description "Get list of nodes defined in the inventory"
+  service 'getAllNodes' do
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.getAllNodes()
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no nodes defined"
+    replyXML = buildXMLReply("ALLNODES", result, msgEmpty) { |root,nodes|
+      nodes.each { |h|
+        nl = root.add_element("NODE")
+        nl.add_attributes(h)
+      }
+    }
+    replyXML
+  end
+
+  s_description "Get list of testbeds defined in the inventory"
+  service 'getAllTestbeds' do
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.getAllTestbeds()
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no testbeds defined"
+    replyXML = buildXMLReply("ALLTESTBEDS", result, msgEmpty) { |root,testbeds|
+      testbeds.each { |tb|
+        addXMLElement(root, "TESTBED", "#{tb}")
+      }
+    }
+    replyXML
+  end
+
+  s_description "Add testbed"
+  s_param :testbed, 'testbed', 'name of the testbed'
+  service 'addTestbed' do |testbed|
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.addTestbed(testbed)
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    booleanXMLReply("ADD_TESTBED", result, "Failed to add testbed `#{testbed}` to the inventory.")
+  end
+
+  s_description "Edit testbed name"
+  s_param :testbed, 'testbed', 'current name of the testbed'
+  s_param :name, 'name', 'new name of the testbed'
+  service 'editTestbed' do |testbed, name|
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.editTestbed(testbed, name)
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    booleanXMLReply("EDIT_TESTBED", result, "Failed to edit testbed `#{testbed}` in the inventory.")
+  end
+
+  s_description "Remove testbed"
+  s_param :testbed, 'testbed', 'name of the testbed'
+  service 'removeTestbed' do |testbed|
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.rmTestbed(testbed)
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    booleanXMLReply("REMOVE_TESTBED", result, "Failed to remove testbed `#{testbed}` from the inventory.")
+  end
+
+  s_description "Add node"
+  s_param :xml, 'xml', 'xml-encoded hash of node parameters'
+  service 'addNode' do |xml|
+    tb = getTestbedConfig(nil, @@config)
+    doc = REXML::Document.new xml
+    h = Hash.new
+    doc.elements["NODE"].attributes.each{|name,value|
+      MObject.debug(name, value)
+      h[name]=value
+    }
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.addNode(h)
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    booleanXMLReply("ADD_NODE", result, "Failed to add node `x` to the inventory.")
+  end
+  
+  s_description "Remove node"
+  s_param :node, 'node', 'hostname of the node'
+  s_param :testbed, 'testbed', 'name of the testbed the node belongs to'
+  service 'removeNode' do |node,testbed|
+    tb = getTestbedConfig(nil, @@config)
+    # Query the inventory
+    begin
+      inv = getInv(tb)
+      result = inv.rmNode(node, testbed)
+    rescue Exception => ex
+      error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
+      raise HTTPStatus::InternalServerError
+    end
+    booleanXMLReply("REMOVE_NODE", result, "Failed to remove node `#{node}` from the inventory.")
   end
 
   #
@@ -465,49 +612,8 @@ class InventoryService < GridService
   #   setResponse(res, root)
   # end
   # 
-  # s_description "Get list of testbeds defined in the inventory"
-  # service 'getAllTestbeds' do
-  #   tb = getTestbedConfig(nil, @@config)
-  #   # Query the inventory
-  #   begin
-  #     inv = getInv(tb)
-  #     result = inv.getAllTestbeds()
-  #   rescue Exception => ex
-  #     error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-  #     raise HTTPStatus::InternalServerError
-  #   end
-  #   # Build and Set the XML response
-  #   msgEmpty = "Inventory has no testbeds defined"
-  #   replyXML = buildXMLReply("TESTBEDS", result, msgEmpty) { |root,testbeds|
-  #     testbeds.each { |tb|
-  #       addXMLElement(root, "TESTBED", "#{tb}")
-  #     }
-  #   }
-  #   replyXML
-  # end
-  # 
-  # s_description "Get list of nodes defined in the inventory"
-  # service 'getAllNodes' do
-  #   tb = getTestbedConfig(nil, @@config)
-  #   # Query the inventory
-  #   begin
-  #     inv = getInv(tb)
-  #     result = inv.getAllNodes()
-  #   rescue Exception => ex
-  #     error "Inventory - Error connecting to the Inventory Database - '#{ex}''"
-  #     raise HTTPStatus::InternalServerError
-  #   end
-  #   # Build and Set the XML response
-  #   msgEmpty = "Inventory has no nodes defined"
-  #   replyXML = buildXMLReply("ALLNODES", result, msgEmpty) { |root,nodes|
-  #     nodes.each { |h|
-  #       nl = root.add_element("NODE")
-  #       nl.add_attributes(h)
-  #     }
-  #   }
-  #   MObject::debug(replyXML)
-  #   replyXML
-  # end
+
+
   # 
   # #
   # # Return all the Wireless Devices for a given resource of a given testbed.
