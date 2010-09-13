@@ -50,7 +50,7 @@ class Topology < MObject
   # not identify an existing topology
   #
   def self.[](uriRaw)
-    uri = uriRaw.delete("[]") # remove leading/trailing "[" "]"
+    uri = uriRaw.delete("[]").chomp(".rb") # clean the uri
     topo = @@topologies[uri]
     if topo == nil
       MObject.info('Topology', "Loading topology '", uri, "'.")
@@ -430,8 +430,7 @@ class Topology < MObject
           return 
         end
       end
-      n = Node.at!(name)
-      @nodes.add(n)
+      @nodes.add(Node.at!(name))
     rescue ResourceException => re
       if @strict
         raise "Topology - Failed to add resource '#{name}' to topology "+
