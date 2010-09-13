@@ -1,5 +1,6 @@
 #!/bin/sh
 VERSION="5.3"
+REVISION="652"
 INDIR="/tmp/omf-install-tmp/"
 
 # Ruby of EC
@@ -19,18 +20,10 @@ chgrp -R admin /etc/omf-expctl-$VERSION
 
 # bin of EC
 cp $INDIR/omf-expctl/bin/omf /usr/bin/omf-$VERSION
-cp $INDIR/omf-expctl/bin/omf_exec /usr/bin/omf_exec-$VERSION
-cp $INDIR/omf-expctl/bin/omf_load /usr/bin/omf_load-$VERSION
-cp $INDIR/omf-expctl/bin/omf_save /usr/bin/omf_save-$VERSION
-cp $INDIR/omf-expctl/bin/omf_stat /usr/bin/omf_stat-$VERSION
-cp $INDIR/omf-expctl/bin/omf_tell /usr/bin/omf_tell-$VERSION
-if [ ! -e "/usr/bin/ruby1.8" ]
-then
-  ln -s /usr/bin/ruby /usr/bin/ruby1.8
-fi
 
 # Common
 mv $INDIR/omf-common/ruby /usr/share/omf-common-$VERSION
+mv $INDIR/omf-common/share /usr/share/omf-common-$VERSION
 chown -R root /usr/share/omf-common-$VERSION
 chgrp -R admin /usr/share/omf-common-$VERSION
 
@@ -44,6 +37,17 @@ mv $INDIR/external/log4r-1.0.5/src/* /usr/lib/ruby/1.8/
 chown -R root $INDIR/external/xmpp4r-0.4
 chgrp -R admin $INDIR/external/xmpp4r-0.4
 mv $INDIR/external/xmpp4r-0.4/lib/* /usr/lib/ruby/1.8/
+
+# Tools
+mv $INDIR/tools /usr/share/omf-expctl-$VERSION
+chown -R root /usr/share/omf-expctl-$VERSION/tools
+chgrp -R admin /usr/share/omf-expctl-$VERSION/tools
+
+# Install the JSON Gem
+/usr/bin/gem install json
+
+# Set the REVISION (should find a better way to do this)
+echo $REVISION >/usr/share/omf-expctl-$VERSION/omf-expctl/REVISION
 
 # Clean up
 rm -rf $INDIR
