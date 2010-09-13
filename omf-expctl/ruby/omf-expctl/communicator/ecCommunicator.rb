@@ -131,10 +131,8 @@ class ECCommunicator < OmfCommunicator
   #
   def send_reset(resID = nil)
     target = resID ? resID : "*"
-    addr = create_address(:sliceID => @@sliceID, :domain => @@domain,
-                           :name => resID)
     cmd = create_message(:cmdtype => :RESET, :target => "#{target}")
-    send_message(addr, cmd)
+    send_message(make_address(:name => resID), cmd)
   end
 
   def make_address(opts = nil)
