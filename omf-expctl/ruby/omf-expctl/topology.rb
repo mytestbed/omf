@@ -50,7 +50,7 @@ class Topology < MObject
   # not identify an existing topology
   #
   def self.[](uriRaw)
-    uri = uriRaw.delete("[]") # remove leading/trailing "[" "]"
+    uri = uriRaw.delete("[]").chomp(".rb") # clean the uri
     topo = @@topologies[uri]
     if topo == nil
       MObject.info('Topology', "Loading topology '", uri, "'.")
@@ -67,19 +67,6 @@ class Topology < MObject
     end
     return topo
   end
-
-  #
-  # This flag switch the use of the class Node when defining a topology.
-  # It should be set to 'true' when the Topology class is used with the 
-  # NodeHandler, and to 'false' otherwise (e.g. when used in 'tellnode' and 
-  # 'statnode' tools)
-  #
-  # - flag = true or false
-  #
-  def self.useNodeClass=(flag)
-    @@useNodeClass = flag
-  end
-  @@useNodeClass = true
 
   #
   # Create and Return a new topology object
@@ -443,9 +430,7 @@ class Topology < MObject
           return 
         end
       end
-      # When Topology is not used with a NodeHandler, do not use the Node class
-      n = (@@useNodeClass) ? Node.at!(name) : name
-      @nodes.add(n)
+      @nodes.add(Node.at!(name))
     rescue ResourceException => re
       if @strict
         raise "Topology - Failed to add resource '#{name}' to topology "+
