@@ -120,7 +120,6 @@ module OMF
             rows << ro
           end
           #puts "==> READ RESULT: #{rows.inspect}"
-          puts "==> READ RESULT #: #{rows.length}"
           Arel::Array.new(rows, relation.attributes)
         end
         
