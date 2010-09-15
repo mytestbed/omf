@@ -195,12 +195,20 @@ module OMF
       FilterSpec.register(:first) do |s|
         s.addParam 'first', :input
       end
+      FilterSpec.register(:last) do |s|
+        s.addParam 'last', :input
+      end
       FilterSpec.register(:seqgap) do |s|
         s.addParam 'fwdgap', 'INTEGER'
         s.addParam 'bwdgap', 'INTEGER'
         s.addParam 'count', 'INTEGER'
       end
-      
+      FilterSpec.register(:sum) do |s|
+        s.addParam 'sum', 'FLOAT'
+      end
+      FilterSpec.register(:delta) do |s|
+        s.addParam 'delta', 'FLOAT'
+      end
 
     end # module OML
   end # module ExperimentController

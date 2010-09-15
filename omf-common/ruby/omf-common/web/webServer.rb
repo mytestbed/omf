@@ -124,31 +124,6 @@ module OMF
       
         Thread.new do
           begin
-            sleep 10 # wait a bit so that the user script can define all services requested
-              
-            services = @@enabled_services
-            if services.empty?
-              services = @@available_services.select do |opts| opts[:def_enabled] end
-            else
-              
-            end 
-            
-            #puts services.inspect
-
-            options = {
-              :params => {}, 
-              :flash => {}, 
-              :server => self, 
-              :common_view_dir => @@commonViewDir
-            }
-            services.sort do |a, b| a[:priority] <=> b[:priority] end.each do |sopts|
-              sClass = sopts[:serviceClass]
-              sClass.configure(self, options.merge(sopts))
-              if (initProc = sopts[:initProc])
-                initProc.call(sClass)
-              end
-            end
-            
             MObject.debug(:web, "Starting web server on port #{port}")
             @@server.start
           rescue => ex
@@ -184,6 +159,35 @@ module OMF
         opts = opts.merge(service)
         opts[:initProc] = initProc
         @@enabled_services << opts 
+        self.startService
+      end
+    
+      def self.startService
+        begin
+          services = @@enabled_services
+          if services.empty?
+            services = @@available_services.select do |opts| opts[:def_enabled] end
+          end 
+          options = {
+            :params => {}, 
+            :flash => {}, 
+            :server => self, 
+            :common_view_dir => @@commonViewDir
+          }
+          services.sort do |a, b| a[:priority] <=> b[:priority] end.each do |sopts|
+          if !sopts[:def_displayed]
+            sopts[:def_displayed] = true
+            sClass = sopts[:serviceClass]
+            sClass.configure(self, options.merge(sopts))
+            if (initProc = sopts[:initProc])
+                initProc.call(sClass)
+            end
+          end
+          end
+        rescue => ex
+          MObject.error(:web, "Failed adding new Web Services. #{ex}")
+          puts ex.backtrace
+        end
       end
       
       def self.mount(path, servlet, options = {})
