@@ -1,3 +1,5 @@
+require "activesupport"
+
 module Arel
   class Relation
     attr_reader :count

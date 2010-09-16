@@ -125,6 +125,7 @@ module OMF
         Thread.new do
           begin
             MObject.debug(:web, "Starting web server on port #{port}")
+            self.startService
             @@server.start
           rescue => ex
             MObject.error(:web, "Internal web server died. #{ex}")
