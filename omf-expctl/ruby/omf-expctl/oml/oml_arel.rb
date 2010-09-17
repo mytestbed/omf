@@ -65,7 +65,7 @@ module OMF
         def columns(tbl_name, log_msg)
           mstream = Table[tbl_name].mstream
           mstream.columns.collect do |name, opts|
-            type = opts[:type].downcase
+            type = opts[:type].to_s.downcase
             ctype = FIX_TYPES[type] || type
             #col = ::ActiveRecord::ConnectionAdapters::Column.new(name, nil, ctype)
             col = Column.new(name, nil, ctype)
@@ -96,7 +96,7 @@ module OMF
               if (a2)
                 a2.column.type_cast_proc
               else
-                warn("Can't find attribute for '#{a.value}'")
+                debug("Can't find attribute for '#{a.value}'")
                 lambda() do |v| v end
               end
       #        puts "   READ_VALUE: #{a2}"
