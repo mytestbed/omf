@@ -551,6 +551,24 @@ def mstream(uri = :mandatory)
 end
 alias :ms :mstream
 
+# Note: we plan to give user full access to SQL query definition in OEDL
+# this will allow them to define JOIN queries to retrieve the name of the
+# oml senders. In the meantime, we provide that information through 
+# this method
+def msSenderName
+  senders = Hash.new
+  sql = "SELECT * from _senders"
+  url = OConfig.RESULT_SERVICE
+  url = url + "/queryDatabase?format=csv&query=#{URI.escape(sql)}"+
+        "&expID=#{URI.escape(Experiment.ID,'+')}"
+  resp = NodeHandler.service_call(url, "Can't query result service")
+  resp.body.each_line do |l|
+    name, id = l.split(';')
+    senders[id.strip.to_i] = name.strip
+  end
+  senders
+end
+
 #
 # Add a tab to the built-in web gui
 #
