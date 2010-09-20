@@ -203,17 +203,20 @@ class ResultService < LegacyGridService
     format = getParamDef(req, 'format', 'xml')
 
     # Access and Query the experiment database
-    result = nil
+    result = database = nil
     begin
       database = getDatabase(id)
       database.type_translation = true if format == "json"
       resultColumns, *resultRows = database.execute2(sqlQuery)
-      database.close()
     rescue Exception => ex
-      error "Result - Error executing Query for the experiment measurement database --- ID: #{id} --- QUERY: '#{sqlQuery}' --- '#{ex}'"
+      error "Result - Error executing Query for the experiment measurement "+
+            " database --- ID: #{id} --- QUERY: '#{sqlQuery}' --- '#{ex}'"
+    ensure
+      database.close() if !database.nil?  
     end
     # Build and Set the XML response
-    msgEmpty = "No Result from Query against this experiment measurement database --- ID: #{id} --- QUERY: #{sqlQuery} --- #{ex} "
+    msgEmpty = "No Result from Query against this experiment measurement "+
+               "database --- ID: #{id} --- QUERY: #{sqlQuery} --- #{ex} "
     case format
       when 'raw'
         reply = formatResultRAW(id, sqlQuery, resultColumns, resultRows, msgEmpty)
