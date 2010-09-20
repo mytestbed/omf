@@ -124,7 +124,7 @@ module OMF
               gd = GraphDescription.new(sessionID, gx)
               res.body = "plot(#{gd.lines.to_json});"
             else
-              res.body('');
+              res.body = '';
             end
             
             
