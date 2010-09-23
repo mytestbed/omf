@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,10 @@
 # This is an OMF Definition for the existing application called 'otr2'
 # This definition will allow OMF entities to use and instrument this application
 #
-defApplication('test:app:otr2', 'otr2') { |a|
+defApplication('test:app:otr2', 'otr2') do |a|
 
   a.path = "/usr/bin/otr2"
-  a.version(1, 1, 2)
+  a.version(1, 1, 3)
   a.shortDescription = "Programmable traffic sink"
   a.description = <<TEXT
 otr is a configurable traffic sink. It contains port to receive
@@ -45,12 +45,12 @@ TEXT
 
   # Define the Measurement Points and associated metrics that are available for this application
   #
-  a.defMeasurement('udp_in') { |m|
+  a.defMeasurement('udp_in') do |m|
     m.defMetric('ts',:float)
     m.defMetric('flow_id',:long)
     m.defMetric('seq_no',:long)
     m.defMetric('pkt_length',:long)
     m.defMetric('dst_host',:string)
     m.defMetric('dst_port',:long)
-  }
-}
+  end
+end
