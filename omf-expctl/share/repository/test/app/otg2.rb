@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,10 @@
 # This is an OMF Definition for the existing application called 'otg2'
 # This definition will allow OMF entities to use and instrument this application
 #
-defApplication('test:app:otg2', 'otg2') {|a|
+defApplication('test:app:otg2', 'otg2') do |a|
 
   a.path = "/usr/bin/otg2"
-  a.version(1, 1, 2)
+  a.version(1, 1, 3)
   a.shortDescription = "Programmable traffic generator v2"
   a.description = <<TEXT
 OTG is a configurable traffic generator. It contains generators
@@ -42,22 +42,27 @@ TEXT
   # 
   # syntax: defProperty(name, description, mnemonic = nil, options = nil)
   #
+  a.defProperty('generator', 'Type of packet generator to use (cbr or expo)', 'g', {:type => :string, :dynamic => false})
   a.defProperty('udp:broadcast', 'Broadcast', nil, {:type => :integer, :dynamic => false})
   a.defProperty('udp:dst_host', 'IP address of the Destination', nil, {:type => :string, :dynamic => false})
   a.defProperty('udp:dst_port', 'Destination Port to send to', nil, {:type => :integer, :dynamic => false})
   a.defProperty('udp:local_host', 'IP address of this Source node', nil, {:type => :string, :dynamic => false})
   a.defProperty('udp:local_port', 'Local Port of this source node', nil, {:type => :integer, :dynamic => false})
   a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
-  a.defProperty("cbr:rate", "Data rate of the flow [bps]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty("cbr:rate", "Data rate of the flow [kbps]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty("exp:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty("exp:rate", "Data rate of the flow [kbps]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty("exp:ontime", "Average length of burst [msec]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty("exp:offtime", "Average length of idle time [msec]", nil, {:dynamic => true, :type => :integer})
 
   # Define the Measurement Points and associated metrics that are available for this application
   #
-  a.defMeasurement('udp_out') { |m|
+  a.defMeasurement('udp_out') do |m|
     m.defMetric('ts',:float)
     m.defMetric('flow_id',:long)
     m.defMetric('seq_no',:long)
     m.defMetric('pkt_length',:long)
     m.defMetric('dst_host',:string)
     m.defMetric('dst_port',:long)
-  }
-}
+  end
+end

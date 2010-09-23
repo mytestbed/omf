@@ -50,19 +50,6 @@ defPrototype("test:proto:udp_receiver") { |p|
 
     otr.bindProperty('udp:local_host', 'localHost')
     otr.bindProperty('udp:local_port', 'localPort')
-    
-    otr.measure('udp_in', :interval => 1)
-    # Other valid measurement definitions...
-    #
-    #otg.measure('udp_in')
-    #otg.measure('udp_in', :interval => 5)
-    #otg.measure('udp_in', :sample => 5)
-    #otg.measure('udp_in', :interval => 5) do |mp|
-      #mp.metric('myMetrics', 'seq_no' )
-      #mp.metric('myMetrics', 'dst_host' )
-      #mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
-      #mp.filter('myFilter1', 'avg', :input => 'pkt_length')
-      #mp.filter('myFilter2', 'first', :input => 'dst_host')
-    #end
+    otr.measure('udp_in', :samples => 1)
   }
 }

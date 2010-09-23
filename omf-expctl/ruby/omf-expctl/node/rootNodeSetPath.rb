@@ -53,6 +53,7 @@ class RootNodeSetPath < NodeSetPath
     end
     p.instantiate(@nodeSet, params)
   end
+  alias :addPrototype :prototype
 
   def state(xpath)
   result = Array.new

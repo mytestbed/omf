@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
 #
 defPrototype("test:proto:udp_sender") { |p|
   p.name = "UDP_Sender"
-  p.description = "A node which transmit a stream of packets over multiple paths"
+  p.description = "A node which transmit unicast CBR UDP packets"
 
   # Define the properties (and their default values) that can be configured 
   # for this prototype
@@ -56,20 +56,6 @@ defPrototype("test:proto:udp_sender") { |p|
     otg.bindProperty('udp:local_port', 'localPort')
     otg.bindProperty('cbr:size', 'packetSize')
     otg.bindProperty('cbr:rate', 'rate')
-
-    otg.measure('udp_out', :interval => 1)
-    # Other valid measurement definitions...
-    #
-    #otg.measure('udp_out')
-    #otg.measure('udp_out', :interval => 5)
-    #otg.measure('udp_out', :sample => 5)
-    #otg.measure('udp_out', :interval => 5) do |mp|
-      #mp.metric('myMetrics', 'seq_no' )
-      #mp.metric('myMetrics', 'dst_host' )
-      #mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
-      #mp.filter('myFilter1', 'avg', :input => 'pkt_length')
-      #mp.filter('myFilter2', 'first', :input => 'dst_host')
-    #end
-
+    otg.measure('udp_out', :samples => 1)
   }
 }
