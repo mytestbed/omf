@@ -1,7 +1,11 @@
 #!/bin/sh
 VERSION="5.3"
-REVISION="652"
+REVISION="663"
 INDIR="/tmp/omf-install-tmp/"
+
+# Remove previous install
+rm -rf /usr/share/omf-expctl-$VERSION
+rm -rf /usr/share/omf-common-$VERSION
 
 # Ruby of EC
 mv $INDIR/omf-expctl/ruby /usr/share/omf-expctl-$VERSION
