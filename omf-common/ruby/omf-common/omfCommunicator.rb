@@ -60,6 +60,7 @@ class OmfCommunicator < MObject
                  opts[:config][:xmpp][:pubsub_gateway] || nil
     when 'mock'
       @@sent = Array.new
+      @@domain = 'mock_domain'
       return # Uses the default Mock OmfCommunicator
     when 'udplocal'
       require 'omf-common/omfUDPLocalTransport'

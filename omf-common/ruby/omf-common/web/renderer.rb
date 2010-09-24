@@ -36,7 +36,13 @@ module OMF
 
         def self.render(name, assigns = {}, helpers = nil)
           if helpers.nil?
-            helpers = OMF::Common::Web.helpersClass
+            if (server = assigns[:server])
+              helpers = server.helpersClass
+            end
+            unless helpers
+              require 'omf-common/web/helpers'
+              helpers = OMF::Common::Web::ViewHelper
+            end
           end
           builder = Markaby::Builder.new(assigns, helpers)
           Thread.current[:MabRenderer] = {
@@ -104,12 +110,12 @@ module Markaby
       @streams.push(builder.target = [])
       @builder.level += 1
       #puts ">>>> #{str}"
-      str = instance_eval(str)
-      str = @streams.last.join if @streams.last.any?
+      s = instance_eval(str)
+      s = @streams.last.join if @streams.last.any?
       @streams.pop
       @builder.level -= 1
       builder.target = @streams.last
-      str
+      s
     end
   end
 end

@@ -129,6 +129,10 @@ module OMF
       
         def self.content_for_layout
         end
+      
+        def self.page_title
+          "Unknown"
+        end
         
       end
     end
