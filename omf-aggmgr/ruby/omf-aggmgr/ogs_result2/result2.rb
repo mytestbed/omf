@@ -54,6 +54,7 @@ class Result2Service < LegacyGridService
   description 'Service to access and query experiment measurement databases'
   @@factory = nil
   @@res_logger = nil
+  @@mutex = Mutex.new
   
   RESULT2_NS = 'http://schema.mytestbed.net/am/result/2/'
 
@@ -75,7 +76,7 @@ class Result2Service < LegacyGridService
     error "No result request (body) found" if body.empty?
     error "Service instantion error" unless @@factory
     
-    puts body.inspect
+    #puts body.inspect
     doc = REXML::Document.new(body)
     request = doc.root
     unless request.name == 'request'
@@ -87,30 +88,33 @@ class Result2Service < LegacyGridService
       error "Request does not contain a 'query'."
       return
     end
-    q = OML::Arel::XML::Server::Query.new(qel, @@factory, @@res_logger)
-    
-    resp_opts = {:req_id => request.attributes['id'] }
-    puts resp_opts.inspect
-    if fel = request.elements['/request/result/format']
-      format = fel.text.downcase
-    else
-      format = 'xml'
-    end
-    case format
-      when 'xml'
-        reply = formatXML(q, resp_opts)
-        res.body = reply
-        res['Content-Type'] = "text/xml"
-      when 'json'
-        reply = formatJSON(q, resp_opts)
-        res.body = reply
-        res['Content-Type'] = "text/json"
-      when 'csv'
-        reply = formatCSV(q, resp_opts)
-        res.body = reply
-        res['Content-Type'] = "text/csv"
+
+    @@mutex.synchronize do
+      q = OML::Arel::XML::Server::Query.new(qel, @@factory, @@res_logger)
+      
+      resp_opts = {:req_id => request.attributes['id'] }
+      #puts resp_opts.inspect
+      if fel = request.elements['/request/result/format']
+        format = fel.text.downcase
       else
-        error "Unknown reply format '#{format}'"
+        format = 'xml'
+      end
+      case format
+        when 'xml'
+          reply = formatXML(q, resp_opts)
+          res.body = reply
+          res['Content-Type'] = "text/xml"
+        when 'json'
+          reply = formatJSON(q, resp_opts)
+          res.body = reply
+          res['Content-Type'] = "text/json"
+        when 'csv'
+          reply = formatCSV(q, resp_opts)
+          res.body = reply
+          res['Content-Type'] = "text/csv"
+        else
+          error "Unknown reply format '#{format}'"
+      end
     end
   end
   
