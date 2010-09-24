@@ -156,7 +156,7 @@ class AbstractService < MObject
   # - proc = optional (default=nil)
   # - &block = the block of commands that implement the sub-service
   #
-  def self.service(mount, proc = nil, &block)
+  def self.service(mount, opts = {}, proc = nil, &block)
     #MObject.debug(serviceName, "defining '#{mount}'")
     proc ||= block
     services = @@services[self] || {}
@@ -166,7 +166,7 @@ class AbstractService < MObject
       :param => @@__param,
       :param_list => @@__param_list,
       :auth => @@__auth
-    }
+    }.merge(opts)
     @@services[self] = services
     @@__info = nil
     @@__param = nil

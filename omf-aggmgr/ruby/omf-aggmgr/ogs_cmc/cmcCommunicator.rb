@@ -98,7 +98,7 @@ module CMC
       ip = config['ip']
       port = config['port']
       if ! (ip && port)
-	raise "Missing arguments. Require 'ip', and 'port'"
+	      raise "Missing arguments. Require 'ip', and 'port'"
       end
       Communicator.new(name, ip, port)
     end

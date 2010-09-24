@@ -37,8 +37,12 @@ class ServiceMounter < MObject
   @@thread = nil
 
   def self.init(params)
-    @@servers[:http] = AggmgrServer.create_server(:http, params)
-    @@servers[:xmpp] = AggmgrServer.create_server(:xmpp, params)
+    if params[:http]
+      @@servers[:http] = AggmgrServer.create_server(:http, params)
+    end
+    if params[:xmpp]
+      @@servers[:xmpp] = AggmgrServer.create_server(:xmpp, params)
+    end
   end
 
   def self.start_services

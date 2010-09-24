@@ -136,42 +136,9 @@ def run(params)
 
   ServiceMounter.init(params)
 
-  if ((services = params[:services]) != nil)
-    services.each { |name|
-      begin
-        file = "#{name}/#{name}"
-        MObject.info(:gridservices, "Loading #{name} service module")
-        if (! require(file))
-          MObject.error(:gridservices, "Failed loading #{name} service module")
-        end
-      rescue => ex
-        MObject.error(:gridservices, "Failed loading #{name} service module: #{ex}")
-      end
-    }
-  else
-    MObject.debug('gridservices', "Loading all available services from #{serviceDir}")
-    Dir.foreach(serviceDir) {|filename|
-      if (filename =~ /\.yaml$/) then
-        name = filename.split('.')[0]
-        MObject.info(:gridservices, "Loading #{name} service module")
-        file = "omf-aggmgr/ogs_#{name}/#{name}"
-        begin
-          require(file)
-          # Building the class name out of the config file name
-          # This new design allows us to avoid calling 'register' from the service .rb file
-          serviceClassName = name
-          serviceClassName[0] = (serviceClassName[0,1]).upcase # .capitalize not good, it changes the all string
-          serviceClassName = serviceClassName + "Service"
-          # Register the service
-          register(serviceClassName, filename)
-        rescue Exception => ex
-          MObject.error(:gridservices, "Failed loading #{file}: #{ex}")
-          bt = ex.backtrace.join("\n\t")
-          MObject.debug(:gridservices, "Exception: #{ex} (#{ex.class})\n\t#{bt}")
-        end
-      end
-    }
-  end
+  services = find_services(params, serviceDir)
+  loadServices(services)
+  
   @stopping = false
   ["INT", "TERM"].each { |sig|
     trap(sig) {
@@ -182,18 +149,77 @@ def run(params)
     }
   }
   Thread.new {
-    OMF::ServiceCall::XMPP.sender_id = "aggmgr"
-    OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
-    begin
-      OMF::ServiceCall.add_domain(:type => :xmpp,
-                                  :uri => xmpp_params[:server])
-    rescue OMF::ServiceCall::ServiceCallException => e
-      MObject.error(:gridservices, "Failed to set up service call framework: #{e}")
-      bt = e.backtrace.join("\n\t")
-      MObject.debug(:gridservices, "Exception:  #{e} (#{e.class})\n\t#{bt}")
+    if xmpp_params
+      OMF::ServiceCall::XMPP.sender_id = "aggmgr"
+      OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
+      begin
+        OMF::ServiceCall.add_domain(:type => :xmpp,
+                                    :uri => xmpp_params[:server])
+      rescue OMF::ServiceCall::ServiceCallException => e
+        MObject.error(:gridservices, "Failed to set up service call framework: #{e}")
+        bt = e.backtrace.join("\n\t")
+        MObject.debug(:gridservices, "Exception:  #{e} (#{e.class})\n\t#{bt}")
+      end
     end
     ServiceMounter.start_services
   }.join
+end
+
+# Return a an array of dictionaries each one describing a service to
+# load. Each dictinary contains three keys, :name, :require, config,
+# with the first one being the name of the service, followed by the
+# file to load (require) to load the code for this service and the
+# third one being the yaml file holding the service's configuration. 
+#
+# There are two ways to discover services. One is from the list
+# of services stored in param[:services] and the other one is
+# to look for yaml files in 'serviceDir'.
+#
+def find_services(params, serviceDir)
+  service_files = []
+  if ((services = params[:services]) != nil)
+    services.each do |name|
+      s = {}
+      s[:name] = name
+      s[:require] = "omf-aggmgr/ogs_#{name}/#{name}"
+      s[:config] = "#{name}.yaml"
+      service_files << s
+    end
+  else
+    MObject.debug('gridservices', "Loading all available services from #{serviceDir}")
+    Dir.foreach(serviceDir)  do |filename|
+      if (filename =~ /\.yaml$/) then   
+        s = {}
+        s[:name] = name = filename.split('.')[0]
+        s[:require] = "omf-aggmgr/ogs_#{name}/#{name}"
+        s[:config] = filename
+        service_files << s
+      end
+    end
+  end
+  service_files
+end
+
+def loadServices(services)
+  services.each do |s|
+    name = s[:name]  
+    MObject.info(:gridservices, "Loading #{name} service module")
+    file = s[:require]
+    begin
+      require(file)
+      # Building the class name out of the config file name
+      # This new design allows us to avoid calling 'register' from the service .rb file
+      serviceClassName = name.dup
+      serviceClassName[0] = (serviceClassName[0,1]).upcase # .capitalize not good, it changes the all string
+      serviceClassName = serviceClassName + "Service"
+      # Register the service
+      register(serviceClassName, s[:config])
+    rescue Exception => ex
+      MObject.error(:gridservices, "Failed loading #{file}: #{ex}")
+      bt = ex.backtrace.join("\n\t")
+      MObject.debug(:gridservices, "Exception: #{ex} (#{ex.class})\n\t#{bt}")
+    end
+  end
 end
 
 #
