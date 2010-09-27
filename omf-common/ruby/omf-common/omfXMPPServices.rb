@@ -540,7 +540,13 @@ class OmfXMPPServices < MObject
   
   # returns all pubsub nodes a given XMPP domain
   def list_nodes(domain)
-    @nodeBrowser.nodes("pubsub.#{domain}")
+    nodes = []
+    begin
+      nodes = @nodeBrowser.nodes("pubsub.#{domain}")
+    rescue Exception => ex
+      warn "Failed to retrieve list of pubsub nodes (error: '#{ex}')"
+    end
+    nodes
   end
     
 end

@@ -99,7 +99,7 @@ class Node < MObject
       #  raise ResourceException.new("Node #{name} is NOT active")
       #end
       
-      resources = ECCommunicator.instance.list_resources
+      resources = NodeHandler.RESOURCES
       if resources.include?(name)
         n = Node.new(name)
       else

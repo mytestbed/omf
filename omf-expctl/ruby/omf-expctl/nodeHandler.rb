@@ -121,6 +121,11 @@ class NodeHandler < MObject
   # If true, don't send commands to node, just log actions   
   #
   @@justPrint = false
+  
+  
+  # list of resources in this slice
+  # with corresponding pubsub nodes on the XMPP server
+  @@resources = []
 
   #
   # Constant - Mount point where the Experiment Description should be 
@@ -149,6 +154,12 @@ class NodeHandler < MObject
   #
   def NodeHandler.SHOW_APP_OUTPUT()
     return @@showAppOutput
+  end
+  
+  # return list of resources in this slice
+  # with corresponding pubsub nodes on the XMPP server
+  def NodeHandler.RESOURCES
+    return @@resources
   end
   
   #
@@ -577,6 +588,7 @@ class NodeHandler < MObject
 
     setupServiceCalls()
 
+    @@resources = ECCommunicator.instance.list_resources
     @@expFile = nil
 
     rest.each { |s|
