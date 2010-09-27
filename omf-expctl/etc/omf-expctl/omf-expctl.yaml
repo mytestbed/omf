@@ -141,7 +141,8 @@
         :xmpp:
           :pubsub_gateway: 'mytestbed.net'
         
-    # "debug" configuration
+    ##########################
+    # config parameters for the "p2p" profile
     #
     # To use this testbed, call EC with the option PRINT_ONLY or "-d debug"
     # Any parameter settings within this section will override the settings 

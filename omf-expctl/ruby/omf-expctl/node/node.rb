@@ -94,10 +94,17 @@ class Node < MObject
       # node's pubsub, and waiting for replies from node itself or AM).
       #
       #if CMC::nodeActive?(name)
-        n = Node.new(name)
+        #n = Node.new(name)
       #else
       #  raise ResourceException.new("Node #{name} is NOT active")
       #end
+      
+      resources = ECCommunicator.instance.list_resources
+      if resources.include?(name)
+        n = Node.new(name)
+      else
+        raise ResourceException.new("Resource '#{name}' could not be found in the current slice!")
+      end
     end
     return n
   end

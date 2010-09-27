@@ -195,6 +195,10 @@ class OmfCommunicator < MObject
   def unimplemented_method_exception(method_name)
     "Communicator - Subclass '#{self.class}' must implement #{method_name}()"
   end
+  
+  def list_nodes(domain)
+    @@transport.list_nodes(domain)
+  end
 
 end # END OmfCommunicator Class
 

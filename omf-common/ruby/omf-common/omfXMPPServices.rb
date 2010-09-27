@@ -34,6 +34,7 @@
 require "xmpp4r"
 require "xmpp4r/pubsub"
 require "xmpp4r/pubsub/helper/servicehelper"
+require "xmpp4r/pubsub/helper/nodebrowser"
 require 'omf-common/mobject'
 #Jabber::debug = true
 
@@ -119,6 +120,7 @@ end # END of OmfServiceHelper
 class OmfXMPPServices < MObject
 
   @clientHelper = nil
+  @nodeBrowser = nil
 
   attr_reader :clientHelper
 
@@ -140,7 +142,6 @@ class OmfXMPPServices < MObject
     @userJID = "#{user}@#{host}"
     @password = password
     @homeServer = host
-    @homeJID = "pubsub.#{host}"
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
     @keepAliveThread = nil
@@ -189,6 +190,7 @@ class OmfXMPPServices < MObject
     @clientHelper.auth(@password)
     @clientHelper.send(Jabber::Presence.new)
     debug "Connected as '#{@userJID}' to XMPP server: '#{@homeServer}'"
+    @nodeBrowser = Jabber::PubSub::NodeBrowser.new(@clientHelper)
     @cSemaphore.synchronize {
       @connecting = false
     }
@@ -242,7 +244,7 @@ class OmfXMPPServices < MObject
   # - domain = [String|Symbol] a name for this service
   # - serverID = [String] a ID for the server to interact with, following the
   #               XMPP convention we will prefix this ID with "pubsub."
-  # - &bock = the block of commands that will process any event coming from that
+  # - &block = the block of commands that will process any event coming from that
   #           XMPP server
   #
   def add_service(domain, &block)
@@ -534,6 +536,11 @@ class OmfXMPPServices < MObject
     rescue Exception => ex
       warn "Failed to exit cleanly (error: '#{ex}')"
     end
+  end
+  
+  # returns all pubsub nodes a given XMPP domain
+  def list_nodes(domain)
+    @nodeBrowser.nodes("pubsub.#{domain}")
   end
     
 end

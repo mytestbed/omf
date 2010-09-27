@@ -185,6 +185,10 @@ class OMFPubSubTransport < MObject
   def xmpp_services
     @@xmppServices
   end
+  
+  def list_nodes(domain)
+    @@xmppServices.list_nodes(domain)
+  end
 
   #############################
   #############################

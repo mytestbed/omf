@@ -140,6 +140,21 @@ class ECCommunicator < OmfCommunicator
     return create_address(:sliceID => @@sliceID, :expID => @@expID,
                            :domain => @@domain, :name => name)
   end
+  
+  # list resources in the current slice 
+  # that have a corresponding pubsub node on the XMPP server
+  def list_resources
+    resources = []
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
+    resource_prefix = "#{addr.generate_address}/"
+    nodes = list_nodes(@@domain)
+    nodes.each{|node|
+      next if !node.include?(resource_prefix)
+      node.slice!(resource_prefix)
+      resources << node if !node.empty?
+    }
+    resources
+  end
 
   private
 
@@ -161,5 +176,5 @@ class ECCommunicator < OmfCommunicator
     # Accept this message
     return true
   end
-
+  
 end
