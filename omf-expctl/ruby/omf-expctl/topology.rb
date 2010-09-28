@@ -434,9 +434,10 @@ class Topology < MObject
     rescue ResourceException => re
       if @strict
         raise "Topology - Failed to add resource '#{name}' to topology "+
-              "'#{uri}' ('strict' flag set, thus no change allowed) - #{re}"
+              "'#{@uri}'. The strict flag is set, thus stop now! (#{re})"
       else
-        warn "Cannot find missing resource '#{name}', ignoring it"
+        warn "Cannot add resource '#{name}' to topology '#{@uri}', "+
+             "ignoring it (#{re})"
       end
     end
   end

@@ -277,6 +277,7 @@ def allNodes!(&block)
 end
 
 def allEqual(array, value)
+  return false if array.nil? || array.empty?
   res = true
   if array
     array.each { |v| res = false if v.to_s != value.to_s }

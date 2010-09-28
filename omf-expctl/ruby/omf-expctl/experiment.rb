@@ -301,6 +301,13 @@ class Experiment
       onEvent(:EXPERIMENT_DONE) { |node| Experiment.close }
       ECCommunicator.instance.allow_retry
     end
+
+    # Check that we do have some resources, if not we quit
+    if Topology.empty?
+      MObject.info('Experiment', 'All Topologies are empty! No resources '+
+                   'available for this experiment.')
+      Experiment.done
+    end
  
     # Now we can Enroll the nodes!
     OMF::ExperimentController::CmdContext.instance.allGroups.enroll
