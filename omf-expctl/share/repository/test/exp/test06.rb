@@ -27,6 +27,11 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   wait 5
   allGroups.startApplications
   wait 10
+  # clean:
+  rm = "LANGUAGE='C' LANG='C' LC_ALL='C' DEBIAN_FRONTEND='noninteractive' "+
+       "apt-get remove nmap -qq -y"
+  allGroups.exec(rm)
+  wait 10
   Experiment.done
 end
 

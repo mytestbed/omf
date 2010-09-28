@@ -13,13 +13,16 @@ RESETTRIES = 0
 EXPFILE = 'exp.rb'
 
 # List of resources to use for the test batch
-RESPOOL = {:r1 => 'omf.nicta.node2', :r2 => 'omf.nicta.node3'}
+RESPOOL = {:r1 => 'omf.nicta.node36', 
+           :r2 => 'omf.nicta.node37'}
 
 # List of tests to perform
 TESTLIST = ['test01', 'test02', 'test03', 'test04', 'test05', 'test06']
 
 # Some inits
 batchID = Time.now.to_i
+respath = "test-#{batchID}"
+FileUtils.mkdir(respath)
 puts "\nTest Batch ID: #{batchID}"
 puts "Started at: #{Time.now}"
 puts " "
@@ -28,10 +31,10 @@ puts " "
 TESTLIST.each do |t|
 
   STDOUT.sync = true
-  print "- Running test: '#{t}'... "
-  # Call the EC with the experiment test
   expID = "#{t}-#{batchID}"
-  outpath = "#{expID}.result"
+  print "- Running test: '#{t}' (#{expID})... "
+  # Call the EC with the experiment test
+  outpath = "#{respath}/#{expID}.result"
   cmd = "#{ECPATH} exec #{ECOPTS} -e #{expID} --oml-uri #{OMLURI}"+
         " #{TESTPATH}:#{t} --"+
         " --res1 #{RESPOOL[:r1]} --res2 #{RESPOOL[:r2]}"+
@@ -43,18 +46,18 @@ TESTLIST.each do |t|
   begin
     puts "Result: #{File.new(outpath).read}"
   rescue Exception => ex
-    puts "Result: FAILED (#{ex})"
+    puts "Result: UNKNOWN (Error: #{ex})"
   end
   # Store the experiment STDOUT and EC log file in case the user 
   # wants to know more about what happened
-  f = File.open("#{expID}.stdout", 'w')
+  f = File.open("#{respath}/#{expID}.stdout", 'w')
   f.puts(cmd+"\n")
   f.puts(result)
   f.close
-  FileUtils.cp("#{LOGPATH}/#{expID}.log", "./")
-  FileUtils.cp("#{LOGPATH}/#{expID}-state.xml", "./")  
+  FileUtils.cp("#{LOGPATH}/#{expID}.log", respath)
+  FileUtils.cp("#{LOGPATH}/#{expID}-state.xml", respath) 
   # wait 
   sleep(2)
 end
 
-puts "\nFinished at: #{Time.now}\n"
+puts "\nFinished at: #{Time.now} - Duration: #{Time.now.to_i - batchID} sec\n"
