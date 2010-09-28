@@ -329,7 +329,8 @@ module OMF
           
           def reset()
             @index = 0
-            @tuple.clear
+            #@tuple.clear
+            @tuple = []
           end
           
           def <<(value)

@@ -184,7 +184,7 @@ module OML
           
         end # RepositoryFactory
         
-        class AbstractRepository
+        class AbstractRepository < MObject
 
           def initialize(repoEl = nil, opts = {}, logger = nil)
             @opts = opts
@@ -242,6 +242,7 @@ module OML
                 :database => db_file,
                 :timeout  => 5000
             }
+            debug "Connecting to database '#{db_file}'"
             ActiveRecord::Base.establish_connection(db_config)
             ::Arel::Table.engine = ::Arel::Sql::Engine.new(ActiveRecord::Base)
           end
