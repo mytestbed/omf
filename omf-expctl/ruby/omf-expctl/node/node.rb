@@ -94,11 +94,11 @@ class Node < MObject
       # node's pubsub, and waiting for replies from node itself or AM).
       #
       #if CMC::nodeActive?(name)
-        #n = Node.new(name)
+      #  n = Node.new(name)
       #else
       #  raise ResourceException.new("Node #{name} is NOT active")
       #end
-      
+
       resources = NodeHandler.RESOURCES
       if resources.include?(name)
         n = Node.new(name)
@@ -306,17 +306,34 @@ class Node < MObject
   # - value = the value to set the resource to
   #
   def configure(path, value, status = "unknown")
-    #if (value.kind_of?(String) && value[0] == '%'[0])
-    #  # if value starts with "%" perform certain substitutions
-    #  value = value[1..-1]  # strip off leading '%'
-    #  value.sub!(/%x/, @x.to_s)
-    #  value.sub!(/%y/, @y.to_s)
-    #end
-    # NOTE: substitution is now done on the RC side
-
     debug("Configure path '#{path}' with value '#{value}' "+
           "- status: '#{status}'")
     TraceState.nodeConfigure(self, path, value, status)
+    
+    #NOTE:
+    # Due to GEC9 deadline this CONFIGURE is implemented here for now
+    # However, this all 'configure' implementation will need to be
+    # redesign to take into account the new resource handling scheme
+    # which we will introduce for OMF 5.4
+    if (path[0] == 'exp') && (path[1] == 'configure')
+      @index = value
+      desiredImage = @image.nil? ? "*" : @image
+      # Send an CONFIGURE command to this resource
+      # First listen for messages on that new resource address
+      addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+      ECCommunicator.instance.listen(addr)
+      # Now, Directly use the Communicator send method as this message needs to
+      # be sent even if the resource is not in the "UP" state
+      cmd = ECCommunicator.instance.create_message(:cmdtype => :CONFIGURE,
+                                                  :path => path.join('/'),
+                                                  :expID => status,
+                                                  :image => desiredImage,
+                                                  :target => @nodeID,
+                                                  :index => @index)
+      addr.expID = nil # Same address as the resource but with no expID set
+      ECCommunicator.instance.listen(addr)
+      ECCommunicator.instance.send_message(addr, cmd)
+    end
   end
 
   #
@@ -466,28 +483,6 @@ class Node < MObject
     setStatus(STATUS_POWERED_OFF)
   end
 
-  #
-  # Enrol this Resource into the experiment
-  #
-  def enroll(index)
-    @index = index
-    desiredImage = @image.nil? ? "*" : @image
-    # Send an ENROLL command to this resource
-    # First listen for messages on that new resource address
-    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
-    ECCommunicator.instance.listen(addr)
-    # Now, Directly use the Communicator send method as this message needs to
-    # be sent even if the resource is not in the "UP" state
-    cmd = ECCommunicator.instance.create_message(:cmdtype => :ENROLL,
-                                                :expID => Experiment.ID,
-                                                :image => desiredImage,
-                                                :target => @nodeID,
-                                                :index => @index)
-    addr.expID = nil # Same address as the resource but with no expID set
-    ECCommunicator.instance.listen(addr)
-    ECCommunicator.instance.send_message(addr, cmd)
-  end
-
   # 
   # Send a 'SET_DISCONNECTION' message to the RC of this resource
   # nodes/resources involved in this experiment.
@@ -624,6 +619,9 @@ class Node < MObject
   # - groupArray = an Array with the names of all the groups within the 
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
+  # NOTE: For GEC9, we leave that as is, however, this should be merged into the 
+  # processing of a configure when we will introduce the new resource handling 
+  # scheme in OMF 5.4
   def enrolled(cmdObj)
     # First, If this is the first ENROLLED that we received, set the state to UP
     # and perform the associated tasks
