@@ -1,0 +1,11 @@
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser used to read this file)
+#
+# This is the Config file for the Result GridService on the NICTA platform
+#
+--- 
+result2:
+  adapter: 'sqlite3'
+
+  sqlite3:
+    db_dir: 'omf-common/test'

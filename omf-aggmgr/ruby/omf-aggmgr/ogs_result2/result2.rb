@@ -144,6 +144,7 @@ class Result2Service < LegacyGridService
       end 
       rel = rows_el.add_element('r')
       r.tuple.each do |re|
+        #puts re
         rel.add_element('c').text = re.to_s
       end
       row_count += 1
