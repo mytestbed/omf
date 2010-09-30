@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu10) lucid; urgency=low
+
+  * Bug Fixes on 5.3 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 22 Sep 2010 14:08:58 +1000
+
 omf-common-5.3 (1ubuntu9) lucid; urgency=low
 
   * release 5.3

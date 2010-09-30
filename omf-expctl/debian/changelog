@@ -1,3 +1,15 @@
+omf-expctl-5.3 (1ubuntu11) lucid; urgency=low
+
+  * Updated to 5.3 the tutorials and app/proto definition in EC's repository 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Thu, 23 Sep 2010 17:26:39 +1000
+
+omf-expctl-5.3 (1ubuntu10) lucid; urgency=low
+
+  * Bug fixes on 5.3 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 22 Sep 2010 14:07:07 +1000
+
 omf-expctl-5.3 (1ubuntu9) lucid; urgency=low
 
   * release 5.3

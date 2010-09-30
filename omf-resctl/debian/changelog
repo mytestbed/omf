@@ -1,3 +1,9 @@
+omf-resctl-5.3 (1ubuntu11) lucid; urgency=low
+
+  * Bug fixes on 5.3 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 22 Sep 2010 14:13:07 +1000
+
 omf-resctl-5.3 (1ubuntu10) lucid; urgency=low
 
   * release 5.3
