@@ -494,7 +494,7 @@ class NodeSet < MObject
              In the current nodeset, mixed disk names were found: '#{disks.join(",")}'"
     end
     
-    domain = "#{OConfig.domain}" if !domain
+    domain = "#{OConfig.domain}" if !domain || domain == ''
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Prepare image #{image} for set #{self}"
       mcAddress = "Some_MC_address"
