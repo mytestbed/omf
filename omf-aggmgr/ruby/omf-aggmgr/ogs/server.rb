@@ -284,15 +284,21 @@ class XmppAggmgrServer < AggmgrServer
             request = OMF::ServiceCall::XMPP::RequestMessage.from_element(msg)
             # Ignore anything that isn't well-formed
             if not request.nil?
-              timestamp = request.timestamp.to_i
-              now = Time.now.tv_sec
-              if now - timestamp > 30
-                # Ignore stale messages
-                debug "Ignoring stale message #{request.message_id}"
-              elsif now < timestamp
-                # Ignore messages from the future
-                debug "Ignoring future message #{request.message_id}"
-              else
+
+# JW 2010-10-05 Disable the timestamp checking code because we can't rely on the EC
+# machine's clock being properly synchronized.
+
+#              timestamp = request.timestamp.to_i
+#              now = Time.now.tv_sec
+#              if now - timestamp > 30
+#                # Ignore stale messages
+#                debug "Ignoring stale message #{request.message_id}"
+#              elsif now < timestamp
+#                # Ignore messages from the future
+#                debug "Ignoring future message #{request.message_id}"
+#              else
+
+              if true # Accept all messages regardless of timestamp
                 sender = request.sender
                 message_id = request.message_id
                 service = request.service
