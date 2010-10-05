@@ -1,3 +1,9 @@
+omf-aggmgr-5.3 (1ubuntu9) lucid; urgency=low
+
+  * Removed stale XMPP message detection
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 05 Oct 2010 19:29:46 +1100
+
 omf-aggmgr-5.3 (1ubuntu8) lucid; urgency=low
 
   * Bug fixes on 5.3 
