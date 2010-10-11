@@ -34,6 +34,7 @@
 # 'ogs_serviceName'
 #
 
+require 'rubygems'
 require 'webrick'
 require 'omf-common/mobject'
 require 'omf-common/omfVersion'
