@@ -54,6 +54,7 @@ class FrisbeeDaemon < AbstractDaemon
   end
 
   attr_reader :port, :img, :running
+  attr_accessor :clientCount
 
   # 
   # Return the bandwidth for this FrisbeeDaemon instance
@@ -79,10 +80,28 @@ class FrisbeeDaemon < AbstractDaemon
   # - req = the HTTP Request used to request the dameon creation
   #
   def initialize(req)
+    @clientCount = 0
     @img = self.class.getDaemonParamDef(req, 'img', nil)
     super(req)
     @@bw = @config['bandwidth']
     @@mcAddr = @config['mcAddress']
+  end
+
+  #
+  # Augment the start/stop methods of AbstractDaemon
+  # The FrisbeeDaemon class keeps a counter of clients which requested a
+  # given image, and only kills the daemon serving an image if there is no
+  # more client using it.
+  #
+  def self.start(req)
+    d = super(req)
+    d.clientCount = d.clientCount + 1 if !d.nil?
+    return d
+  end
+  def self.stop(req)
+    d = self[daemon_name(req)]
+    d.clientCount = d.clientCount - 1 if !d.nil?
+    super(req) if !d.nil? && d.clientCount <= 0
   end
 
   #
