@@ -1,3 +1,9 @@
+omf-aggmgr-5.3 (1ubuntu10) lucid; urgency=low
+
+  * Fixed Frisbee Service to support multiple load for same image on same testbed 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Tue, 12 Oct 2010 15:03:15 +1100
+
 omf-aggmgr-5.3 (1ubuntu9) lucid; urgency=low
 
   * Removed stale XMPP message detection
