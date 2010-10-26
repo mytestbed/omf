@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2010 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,90 +22,97 @@
 # THE SOFTWARE.
 #
 #
-require 'net/http'
-require 'uri'
 
-Experiment.name = "tutorial-1"
-Experiment.project = "orbit:tutorial"
-Experiment.documentRoot = '../repository/public_html/exp/conf_room_demo'
+defProperty('hrnPrefix', "omf.nicta.node", "Prefix to use for the HRN of resources")
+defProperty('resources', "[1,2,3,4,5,8,9,10,11,12,13]", "List of IDs for the resources to use as senders")
+defProperty('receiver', "6", "ID for the resource to use as a receiver")
+defProperty('groupSize', 4, "Number of resources to put in each group of senders")
+defProperty('rate', 300, 'Bits per second sent from senders')
+defProperty('packetSize', 256, 'Byte size of packets sent from senders')
+defProperty('wifiType', "g", "The type of WIFI to use in this experiment")
+defProperty('channel', '6', "The WIFI channel to use in this experiment")
+defProperty('netid', "confroom", "The ESSID to use in this experiment")
+defProperty('stepDuration', 60, "The duration of each step of this conf-room")
 
-#
-# Define various elements used in the experiment
-#
-
-defProperty('rate', 300, 'Bits per second sent from sender')
-defProperty('packetSize', 256, 'Size of packets sent from sender')
-defProperty('startExp', 0, 'Start experiment flag')
-defProperty('numSendGroups', 7, 'Number of Sender Groups')
-
-#defNodes('sender1', [[1,2],[1,4],[1,6],[1,8]])
-defGroup('sender1', [[1,2],[1,4],[1,8]])
-defGroup('sender2', [[2,1],[2,3],[2,5]])
-defGroup('sender3', [[3,2],[3,4],[3,6],[3,8]])
-defGroup('sender4', [[4,1],[4,3],[4,5],[4,7]])
-defGroup('sender5', [[5,2],[5,8],[6,3],[6,5]])
-defGroup('sender6', [[6,7],[7,2],[7,4],[7,6]])
-defGroup('sender7', [[8,1],[8,5],[8,7]])
-
-defGroup('receiver', [5,4]) {|node|
-  node.image = nil  # assume the right image to be on disk
-  node.prototype("test:proto:receiver" , {
-    'hostname' => '192.168.5.4',
-    'protocol' => 'udp'
-  })
+# Define the Receiver
+defGroup('Receiver', "#{property.hrnPrefix}#{property.receiver}") do |node|
+  node.addApplication("test:app:otr2") do |app|
+    app.setProperty('udp:local_host', '%net.w0.ip%')
+    app.setProperty('udp:local_port', 3000)
+    app.measure('udp_in', :samples => 1)
+  end
   node.net.w0.mode = "master"
-  node.net.w0.essid = "helloworld"
-  node.net.w0.type = 'a'
-  node.net.w0.ip = "%192.168.%x.%y"
-}
+  node.net.w0.type = property.wifiType
+  node.net.w0.channel = property.channel
+  node.net.w0.essid = property.netid
+  node.net.w0.ip = "192.168.0.254"
+end
 
-wait 5
+# Define each Sender groups
+groupList = []
+res = eval(property.resources.value)
+groupNumber = res.size >= property.groupSize ? (res.size.to_f / property.groupSize.value.to_f).ceil : 1
+(1..groupNumber).each do |i|
+  list = []
+  (1..property.groupSize).each do |j| popped = res.pop ; list << popped if !popped.nil?  end
+  senderNames = list.collect do |id| "#{property.hrnPrefix}#{id}" end 
+  senders = senderNames.join(',')
 
-defGroup('sender', ['sender1', 'sender2', 'sender3', 'sender4', 'sender5', 'sender6', 'sender7']) { |node|
-  node.image = nil  # assume the right image to be on disk
-  node.prototype("test:proto:sender", {
-    'destinationHost' => '192.168.5.4',
-    'packetSize' => Experiment.property("packetSize"),
-    'rate' => Experiment.property("rate"),
-    'protocol' => 'udp'
-  })
-  node.net.w0.mode = "managed"
-  node.net.w0.essid = "helloworld"
-  node.net.w0.type = 'a'
-  node.net.w0.ip = "%192.168.%x.%y"
-}
+  info "Group Sender #{i}: '#{senders}'"
+  groupList << "Sender#{i}"
+  defGroup("Sender#{i}", senders) do |node|
+    node.addApplication("test:app:otg2") do |app|
+      app.setProperty('udp:local_host', '%net.w0.ip%')
+      app.setProperty('udp:dst_host', '192.168.0.254')
+      app.setProperty('udp:dst_port', 3000)
+      app.setProperty('cbr:size', property.packetSize)
+      app.setProperty('cbr:rate', property.rate)
+      app.measure('udp_out', :samples => 1)
+    end
+    node.net.w0.mode = "managed"
+    node.net.w0.type = property.wifiType
+    node.net.w0.channel = property.channel
+    node.net.w0.essid = property.netid
+    node.net.w0.ip = "192.168.0.%index%"
+  end 
+end
 
-#
-# Now, start the application
-#
-whenAllInstalled() {|node|
-  Experiment.props.packetSize = 1024
-  Experiment.props.rate = 1500
-#  Experiment.props.rate = 10000
-  Experiment.props.startExp = 0
-  Experiment.props.numSendGroups = 5
-
+onEvent(:ALL_UP_AND_INSTALLED) do |event|
   wait 10
-  nodes('receiver').startApplications
-
-  # Slowly adding traffic
-  (1..7).each {|i|
-    group = "sender#{i}"
-    info "Starting applications on #{group}"
-    nodes(group).startApplications
-    wait 10
-  }
-  wait 50
-
-  # Slowly removing traffic
-  (1..7).each {|i|
-    group = "sender#{i}"
-    info "Stopping applications on #{group}"
-    nodes(group).stopApplications
-    wait 5
-  }
-
+  group('Receiver').startApplications
+  wait 10
+  (1..groupNumber).each do |i|
+    group("Sender#{i}").startApplications
+    wait property.stepDuration
+  end
+  wait 60
+  (1..groupNumber).each do |i|
+    group("Sender#{i}").stopApplications
+    wait property.stepDuration
+  end
+  group('Receiver').stopApplications
   Experiment.done
-}
+end
 
+
+addTab(:defaults)
+addTab(:graph2) do |tab|
+  opts = { :postfix => %{Sender index for incoming UDP traffic = F(time)}, :updateEvery => 1 }
+  tab.addGraph("Incoming UDP", opts) do |g|
+    data = Hash.new
+    index = 1
+    mpIn = ms('udp_in')
+    mpIn.project(:oml_ts_server, :src_host, :seq_no).each do |sample|
+      time, src, seq = sample.tuple
+      if data[src].nil? 
+        data[src] = [index,[]] 
+        index += 1
+      end
+      data[src][1] << [time, data[src][0]] 
+    end
+    data.each do |src,value|
+      g.addLine(value[1], :label => "Node #{value[0]}") 
+    end
+  end
+end
 
