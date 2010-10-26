@@ -41,12 +41,29 @@ $DEF_OPTS = {
 def initGraphs(opts)
   
   repo = opts[:repo]
-  OMF::Common::Web::Graph3.addGraph('Position (T)', 'table', {:updateEvery => 5}) do |g|
+  OMF::Common::Web::Graph3.addGraph('Position (T)', 'table2', {:updateEvery => 5}) do |g|
     skip = g.session['skip'] ||= 0
     s = []
     t = repo[:GPSlogger_gps_data]
     q = t.project(t[:time], t[:lat], t[:lon]) 
     q.skip(skip).take(10000).each do |r|  # skip always needs a take as well
+    puts r.tuple.inspect
+      s << r.tuple
+    end
+    g.session['skip'] += s.length
+    sopts = {:labels => ["Time", "Lat", "Lon"]} #, :record_id => 0}
+    g.addSeries(s, sopts)
+  end
+  
+  gopts = {:updateEvery => 2}
+  #gopts = {}
+
+  OMF::Common::Web::Graph3.addGraph('Position (M)', 'map2', gopts) do |g|
+    skip = g.session['skip'] ||= 0
+    s = []
+    t = repo[:GPSlogger_gps_data]
+    q = t.project(t[:time], t[:lat], t[:lon]) 
+    q.skip(skip).take(50).each do |r|  # skip always needs a take as well
     puts r.tuple.inspect
       s << r.tuple
     end

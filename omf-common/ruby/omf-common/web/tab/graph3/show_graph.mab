@@ -2,6 +2,7 @@
 javascript_include_tag "jquery"
 javascript_include_tag "jquery.periodicalupdater"
 javascript_include_tag 'jquery-ui-1.8.4.custom.min'
+javascript_include_file 'http://maps.google.com/maps/api/js?sensor=false'
 
 javascript_include_tag "protovis-d3.2"
 stylesheet_link_tag 'table'
@@ -68,7 +69,7 @@ $.PeriodicalUpdater('update?id=#{@show_id}&sid=#{@session_id}', {
 }, function(reply) {
       var data = reply['data'];
       var opts = reply['opts'];
-      #{gd.func_name()}(data, opts, true)
+      #{gd.js_var_name()}.update(data);
 });      
 
 /***

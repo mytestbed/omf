@@ -49,11 +49,15 @@ module OMF
             unless func_name
               func_name = func_name()
             end
-            "#{func_name}(#{d.to_json}, #{gopts.to_json}, false);"
+            "var #{js_var_name()} = new #{func_name}(#{gopts.to_json});\n#{js_var_name()}.init(#{d.to_json});"
 	        end
           
+          def js_var_name()
+            "oml_#{self.hash}"
+          end
+          
           def func_name()
-            "oml_" + @js_uri.gsub("::", "_")
+            "OML_" + @js_uri.gsub("::", "_")
           end
           
           def data()

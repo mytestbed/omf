@@ -18,6 +18,7 @@ module OMF
           #
           def addSeries(darray, opts = {})
             l = opts.dup
+            l[:id] ||= @series.length
             l[:values] = darray
             @series << l
           end      

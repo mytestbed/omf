@@ -35,18 +35,23 @@ $DEF_OPTS = {
   :debug => false,
   :port => 4000,
   :serviceURL => 'http://localhost:5053/result2/query',
-  :repoName => 'prefetching_4'
+  :serviceURL => 'http://srv.mytestbed.net:5053/result2/query',  
+  :repoName => 'prefetching_4',
+  # Starting time for most graphs
+#  :startTime => 2e6
 }
+
 
 
 def initGraphs(opts)
   
   repo = opts[:repo]
-  OMF::Common::Web::Graph3.addGraph('Content', 'table', {:updateEvery => 3}) do |g|
+  startTime = opts[:startTime] || 0
+  OMF::Common::Web::Graph3.addGraph('Content', 'table2', {:updateEvery => 3}) do |g|
     skip = g.session['skip'] ||= 0
     s = []
     repo[:mediacontent].project(:oml_ts_server, :name, :url, :status) \
-        .skip(skip).take(10000).each do |r|  # skip always needs a take as well
+        .skip(skip).take(20).each do |r|  # skip always needs a take as well
       ts, name, url, status = r.tuple
       ourl = url
       if (url.length > 23)
@@ -66,8 +71,8 @@ def initGraphs(opts)
       :yLabel =>  "Received Traffic [Kbytes]",
       :yMin => 0
   }
-  gtype = 'line_chart_focus'
-  #gtype = 'line_chart'
+  gtype = 'line_chart_focus2'
+  #gtype = 'line_chart2'
   OMF::Common::Web::Graph3.addGraph('Download', gtype, opts) do |g|
     wifi = []
     umts = []
@@ -79,7 +84,8 @@ def initGraphs(opts)
     res = []
     skip = g.session['skip'] ||= 0
     repo[:traffic].project(:oml_ts_server, :wifi_in_bytes, :umts_in_bytes) \
-        .skip(skip).take(5000).each do |r|
+        .where(repo[:traffic][:oml_ts_server].gt(startTime)) \
+        .skip(skip).take(2000).each do |r|
       ts, w, u = r.tuple
       
       wifi << [ts, w]
@@ -114,6 +120,7 @@ def initGraphs(opts)
   
   opts = {
       #:prefix => "Prefix text",
+      :updateEvery => 3,    
       :xLabel => "Time [sec]",      
       :yLabel =>  "Traffic [Kbytes]",
       #:yMin => 0
@@ -124,6 +131,7 @@ def initGraphs(opts)
     skip = g.session['skip'] ||= 0
     repo[:traffic]\
         .project(:oml_ts_server, :app_in_bytes, :app_out_bytes)\
+        .where(repo[:traffic][:oml_ts_server].gt(startTime)) \
         .skip(skip).take(1000).each do |r|
       ts, i, o = r.tuple
       inT << [ts, i / 1000]
