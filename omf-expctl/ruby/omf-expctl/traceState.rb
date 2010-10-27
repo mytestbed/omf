@@ -369,7 +369,7 @@ class TraceState < MObject
       el.attributes['value'] = historyAttr['value'] = value.value
       el.attributes['value_ref'] = value.id
     else
-      el.attributes['value'] = historyAttr['value'] = value
+      el.attributes['value'] = historyAttr['value'] = value.to_s
     end
 
     historyAttr['ts'] = NodeHandler.getTS()
