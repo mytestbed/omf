@@ -53,7 +53,7 @@ module OMF
 	        end
           
           def js_var_name()
-            "oml_#{self.hash}"
+            "oml_#{self.hash.abs}"
           end
           
           def func_name()
