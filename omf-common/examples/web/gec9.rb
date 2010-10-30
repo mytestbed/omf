@@ -35,7 +35,7 @@ $DEF_OPTS = {
   :port => 4000,
   :serviceURL => 'http://localhost:5053/result2/query',
   :repoName => 'gpswalk-eveleigh-sample',
-  :repoName => 'gpswalk-winlab'
+  :repoName => 'disconnecttest'
 }
 
 
@@ -88,6 +88,81 @@ def initGraphs(opts)
     g.addSeries(s, sopts)
   end
 
+
+  OMF::Common::Web::Graph3.addGraph('WiMAX (T)', 'table2', {:updateEvery => 5}) do |g|
+    skip = g.session['skip'] ||= 0
+    s = []
+    t = repo[:wimaxmonitor_wimaxstatus]
+    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:signal], t[:rssilong], t[:cinrlong]) 
+    q.skip(skip).take(100).each do |r|  # skip always needs a take as well
+      #id, time, sensor = r.tuple
+      s << r.tuple
+    end
+    g.session['skip'] += s.length
+    sopts = {:labels => ["Car#", "Time", "Sensor"]} #, :record_id => 0}
+    g.addSeries(s, sopts)
+  end
+
+  opts = {
+      :updateEvery => 3,    
+      :xLabel => "Time [sec]",      
+      :yLabel =>  "RSSI"
+#      :yMin => 0
+  }
+  OMF::Common::Web::Graph3.addGraph('WiMAX (RSSI)', 'line_chart_focus2', opts) do |g|
+    skip = g.session['skip'] ||= 0
+    s = []
+    t = repo[:wimaxmonitor_wimaxstatus]
+    q = t.project(t[:timestamp_epoch], t[:rssilong]) 
+    q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
+      #id, time, sensor = r.tuple
+      s << r.tuple
+    end
+    g.session['skip'] += s.length
+    sopts = {:labels => ["Car#", "Time", "Sensor"]} #, :record_id => 0}
+    g.addSeries(s, sopts)
+  end
+
+  opts = {
+      :updateEvery => 3,    
+      :xLabel => "Time [sec]",      
+      :yLabel =>  "CINR"
+#      :yMin => 0
+  }
+  OMF::Common::Web::Graph3.addGraph('WiMAX (CINR)', 'line_chart_focus2', opts) do |g|
+    skip = g.session['skip'] ||= 0
+    s = []
+    t = repo[:wimaxmonitor_wimaxstatus]
+    q = t.project(t[:timestamp_epoch], t[:cinrlong]) 
+    q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
+      #id, time, sensor = r.tuple
+      s << r.tuple
+    end
+    g.session['skip'] += s.length
+    sopts = {:labels => ["Car#", "Time", "Sensor"]} #, :record_id => 0}
+    g.addSeries(s, sopts)
+  end
+
+  opts = {
+      :updateEvery => 3,    
+      :xLabel => "Time [sec]",      
+      :yLabel =>  "Sensor Reading",
+      :yMin => 0
+  }
+  gtype = 'line_chart_focus'
+  gtype = 'line_chart_focus2'
+  OMF::Common::Web::Graph3.addGraph('Sensor (G)', gtype, opts) do |g|
+    skip = g.session['skip'] ||= 0
+    s = []
+    t = repo[:gpsapp_sensor]
+    q = t.project(t[:oml_sender_id], t[:sensortime_integer], t[:sensorreading]) 
+    q.skip(skip).take(500).each do |r|  # skip always needs a take as well
+      id, time, sensor = r.tuple
+      s << [time, sensor.slice(1..-1).to_i ]
+    end
+    g.session['skip'] += s.length
+    g.addSeries(s, :label => "Car #1")
+  end
 
   
   opts = {

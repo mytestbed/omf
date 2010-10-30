@@ -54,7 +54,7 @@ def startWebServer(opts)
   OMF::Common::Web::start(port, opts) do |s|
     initGraphs(opts)
     
-    trap("HUP") do # use 1 instead of "HUP" on Windows
+    trap("INT") do 
       s.stop 
     end
   end
