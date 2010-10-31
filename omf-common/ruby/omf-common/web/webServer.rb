@@ -50,6 +50,7 @@ module OMF
       @@server = nil
       @@available_services = []
       @@enabled_services = []
+      @@requested_tabs = nil
       @@tabs = []
     
       #
@@ -71,6 +72,7 @@ module OMF
 
         @@helpersClass = args[:ViewHelperClass] || OMF::Common::Web::ViewHelper
         @@commonViewDir = []
+        @@requested_tabs = args[:ShowTabs]
         if (tabDir = args[:TabDir])
           tabDir.each do |pkg|
             $:.each do |prefix|
@@ -190,7 +192,13 @@ module OMF
         begin
           services = @@enabled_services
           if services.empty?
-            services = @@available_services.select do |opts| opts[:def_enabled] end
+            if @@requested_tabs
+              services = @@available_services.select do |s| 
+                @@requested_tabs.find do |tname| s[:name] == tname end
+              end
+            else
+              services = @@available_services.select do |opts| opts[:def_enabled] end
+            end
           end 
           options = {
             :params => {}, 

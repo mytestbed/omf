@@ -8,4 +8,4 @@ result2:
   adapter: 'sqlite3'
 
   sqlite3:
-    db_dir: 'omf-common/test'
+    db_dir: 'omf-aggmgr/test'

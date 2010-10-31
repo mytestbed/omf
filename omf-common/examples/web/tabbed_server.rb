@@ -49,10 +49,16 @@ def startWebServer(opts)
   opts[:ResourceDir] ||= ['omf-common/share/htdocs']
   opts[:ViewHelperClass] = ViewHelper
   opts[:StartServerThread] = false
-  opts[:ShowTabs] = [:graph3]
+  opts[:ShowTabs] = opts[:showTabs] || [:graph3]
   
   OMF::Common::Web::start(port, opts) do |s|
-    initGraphs(opts)
+    opts[:ShowTabs].each do |tab|
+      if tab == :graph3
+        initGraphs(opts)
+      else
+        eval "init#{tab.to_s.capitalize}(opts)"
+      end
+    end
     
     trap("INT") do 
       s.stop 

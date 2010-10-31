@@ -1,13 +1,13 @@
 
 require 'omf-common/web/renderer'
-require 'omf-expctl/web/helpers'
+require 'omf-common/web/helpers'
 include OMF::Common::Web
 
 #
 # A servlet to display scripts
 #
 module OMF
-  module ExperimentController
+  module Common
     module Web
       module Code
         VIEW = :code
@@ -21,13 +21,15 @@ module OMF
           server.addTab(VIEW, "/code/show", :name => 'Scripts', 
               :title => "Browse all scripts involved in this experiment")
 
-          
-          OConfig.add_observer() { |action, opts|
-            if action == :load
-              self.addScript(opts)
-            end 
-          }
-          OConfig.getLoadHistory.each do |sopts| addScript(sopts) end
+          if (onConfig = opts[:on_configure])
+            onConfig.call(self)
+          end
+#          OConfig.add_observer() { |action, opts|
+#            if action == :load
+#              self.addScript(opts)
+#            end 
+#          }
+#          OConfig.getLoadHistory.each do |sopts| addScript(sopts) end
         end
 
         def self.addScript(opts)

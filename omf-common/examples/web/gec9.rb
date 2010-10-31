@@ -33,6 +33,7 @@ $TITLE = "Walk Around Redfern"
 $DEF_OPTS = {
   :debug => false,
   :port => 4000,
+  :showTabs => [:graph3, :code],
   :serviceURL => 'http://localhost:5053/result2/query',
   :repoName => 'gpswalk-eveleigh-sample',
   :repoName => 'disconnecttest'
@@ -233,6 +234,16 @@ def initGraphs(opts)
 #    sopts = {:labels => ["Time", "Name", "URL", "Status"]} #, :record_id => 0}
 #    g.addSeries(s, sopts)
 #  end
+end
+
+def initCode(opts)
+  puts "INIT CODE #{opts.inspect}"
+  c = {
+    :uri => 'exp:foo',
+    :content => "FOOO",
+    :mime_type => "/text/ruby"
+  }
+  OMF::Common::Web::Code.addScript(c)
 end
 
 load "#{File.dirname(__FILE__)}/tabbed_server.rb"
