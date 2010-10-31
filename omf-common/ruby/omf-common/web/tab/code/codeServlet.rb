@@ -53,6 +53,7 @@ module OMF
   
             #MObject.debug :web_code_servlet, "OPTS: #{opts.inspect}"
             #opts[:flash][:notice] = opts.inspect
+            res['Content-Type'] = 'text/html'
             res.body = MabRenderer.render('show', opts)
           end
         end
