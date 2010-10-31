@@ -1,0 +1,5 @@
+---
+sliceManager:
+  testbed:
+    default:
+    dummy:  'hello'

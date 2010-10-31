@@ -245,6 +245,8 @@ class XmppAggmgrServer < AggmgrServer
   include OmfProtocol
   include OMF::ServiceCall::XMPP
 
+  attr_reader :domains, :connection
+
   # Hash of Hashes.  @services[myservice][mymethod] is a block to
   # execute when a request for 'myservice.mymethod' is received.
   @services = nil
@@ -346,6 +348,10 @@ class XmppAggmgrServer < AggmgrServer
                   end
                 end
 
+                if result == true
+                  result = nil
+                end
+
                 response = ResponseMessage.new("response-to" => sender,
                                                "message-id" => message_id,
                                                "status" => status)
@@ -391,12 +397,20 @@ class XmppAggmgrServer < AggmgrServer
         # from duplicates (to cleanup from crashes, etc.).
         domain.request_subscriptions(nil, true)
         # Only add the system node to start with.
-        make_dispatcher(domain, "/OMF/system")
+        begin
+          make_dispatcher(domain, "/OMF/system")
+        rescue Exception => e
+          puts "'#{e.message}'"
+          if e.message == "item-not-found: " then
+            domain.create_node("/OMF/system")
+            make_dispatcher(domain, "/OMF/system")
+          end
+        end
       end
 
       @connection.keep_alive
     rescue Exception => e
-      error "Exception!  #{e.message}"
+      error "While starting XMPP connections: #{e.message}"
     end
     @stopped = false
   end

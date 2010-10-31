@@ -104,7 +104,7 @@ class ServiceMounter < MObject
   end
 
   def self.server(type)
-    @@servers[type].server
+    @@servers[type]
   end
 end
 

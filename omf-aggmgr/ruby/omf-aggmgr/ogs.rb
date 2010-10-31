@@ -50,6 +50,7 @@ require 'optparse'
 #####
 require 'omf-aggmgr/ogs/serviceMounter'
 
+#Jabber::debug = true
 
 include WEBrick
 

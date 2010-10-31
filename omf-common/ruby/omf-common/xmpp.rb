@@ -338,6 +338,10 @@ module OMF
           clean_exceptions { nonblocking { @service_helper.create_node(node, config) } }
         end
 
+        def delete_node(node)
+          clean_exceptions { nonblocking { @service_helper.delete_node(node) } }
+        end
+
         #
         # Publish item to node.  If item is a Jabber::PubSub::Item,
         # then just pass it on to the service helper unchanged; if it
