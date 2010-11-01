@@ -1,87 +1,90 @@
-#
-# Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# Tutorial experiment
-#
-defProperty('res1', 'omf.nicta.node1', "ID of sender node")
-defProperty('res2', 'omf.nicta.node2', "ID of receiver node")
-defProperty('duration', 60, "Duration of the experiment")
-defProperty('graph', false, "Display graph or not")
 
-defGroup('Sender', property.res1) do |node|
-  node.addApplication("test:app:otg2") do |app|
-    app.setProperty('udp:local_host', '192.168.0.2')
-    app.setProperty('udp:dst_host', '192.168.0.3')
-    app.setProperty('udp:dst_port', 3000)
-    app.measure('udp_out', :samples => 1)
+# Define some Properties for this experiment
+defProperty('cars', "[1,2,3,4,5,8]", "List of IDs for the mobile resources")
+defProperty('cloud', "[1,2,3]", "List of IDs for the cloud resources")
+defProperty('resources', "[1,2,3,4,5,8]", "List of IDs for the mobile resources")
+defProperty('connected', true, "Connection state of the resource")
+
+# Enable the Support for Disconnection in this Experiment
+Experiment.allow_disconnection
+
+# Define the list of all resoures
+allMobileResources = property.cars.value.collect do |id| "omf.nypoly.car#{id}" end
+allCloudResources = property.cloud.value.collect do |id| "omf.winlab.sb8.node#{id}" end
+
+# Define the Group of Cars
+defGroup('Cars', allMobileResouces.join(',')) do |node|
+  # Associate a Wimax Monitor application to each car
+  node.addApplication("demo:gec9:wimaxmonitor") do |app|
+    app.setProperty('interval', 1)
+    app.measure('wimax_status', :samples => 1)
   end
-  node.net.w0.mode = "adhoc"
-  node.net.w0.type = 'g'
-  node.net.w0.channel = "6"
-  node.net.w0.essid = "helloworld"
-  node.net.w0.ip = "192.168.0.2"
+  # Associate a GPS Logger application to each car
+  node.addApplication("demo:gec9:gpslogger") do |app|
+    app.measure('gps_data', :samples => 1)
+  end
+  # Associate a Sensor Monitor application to each car
+  node.addApplication("demo:gec9:sensormonitor") do |app|
+    app.setProperty('usb_port', '/dev/ttyUSB1')
+    app.measure('sensor_data', :samples => 1)
+  end
+  # Configure Networking parameters on each car
+  node.net.wmax0.ip = "192.168.1.%index%"
 end
 
-defGroup('Receiver', property.res2) do |node|
-  node.addApplication("test:app:otr2") do |app|
-    app.setProperty('udp:local_host', '192.168.0.3')
-    app.setProperty('udp:local_port', 3000)
-    app.measure('udp_in', :samples => 1)
-  end
-  node.net.w0.mode = "adhoc"
-  node.net.w0.type = 'g'
-  node.net.w0.channel = "6"
-  node.net.w0.essid = "helloworld"
-  node.net.w0.ip = "192.168.0.3"
+defGroup('Clouds', allCloudResources.join(',')) do |node|
+  node.addApplication("demo:gec9:pnAnalytics")
 end
 
+# When all resources have checked-in and all applications are installed on them
+# Do the following...
+#
 onEvent(:ALL_UP_AND_INSTALLED) do |event|
-  info "This is my first OMF experiment"
   wait 10
-  allGroups.startApplications
-  info "All my Applications are started now..."
-  wait property.duration
-  allGroups.stopApplications
-  info "All my Applications are stopped now."
-  Experiment.done
+  group('Clouds').startApplications
+  wait 10
+  group('Cars').startApplications
+  wait 10
+  # wait 600
+  # Experiment.done
 end
 
-if property.graph.value 
-  addTab(:defaults)
-  addTab(:graph2) do |tab|
-    opts = { :postfix => %{This graph shows the Sequence Number from the UDP traffic.}, :updateEvery => 1 }
-    tab.addGraph("Sequence_Number", opts) do |g|
-      dataOut = Array.new
-      dataIn = Array.new
-      mpOut = ms('udp_out')
-      mpIn = ms('udp_in')
-      mpOut.project(:oml_ts_server, :seq_no).each do |sample|
-        dataOut << sample.tuple
-      end
-      mpIn.project(:oml_ts_server, :seq_no).each do |sample|
-        dataIn << sample.tuple
-      end
-      g.addLine(dataOut, :label => "Sender (outgoing UDP)")
-      g.addLine(dataIn, :label => "Receiver (incoming UDP)")
+# Check the Wimax signal every second
+# When there is a change in the connection state, fire the 'CONNECTION_CHANGE'
+# event, and re-arm so we can continue checking again next time...
+#
+defEvent(:CONNECTION_CHANGE, 1, true) do |event|
+  ms('wimax_status').project(:signal).each do |sample|
+    signal = sample.tuple
+    if (signal == "No network") && property.connected
+      property.connected = false
+      event.fire
+    elsif (signal != "No network") && !property.connected
+      property.connected = true
+      event.fire
     end
   end
+end
+
+# When the 'CONNECTION_CHANGE' event has fired, pause or resume the OML Proxy 
+# server, depending on the current connection state
+#
+onEvent(:CONNECTION_CHANGE) do |event|
+  if property.connected
+    group('Cars').resumeDataCollection
+  else 
+    group('Cars').pauseDataCollection
+  end
+end
+
+# When the Experiment is DONE, stop all applications
+# The default OMF tasks associated to this event will be called after the
+# tasks below, and will cleanly terminate the experiment
+#
+onEvent(:EXPERIMENT_DONE) do |event|
+  group('Cars').stopApplications
+  wait 10
+  #group('Clouds').stopApplications
+  #wait 10
 end
 
