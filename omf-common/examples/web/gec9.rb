@@ -27,7 +27,7 @@
 # Define a few graphs for a gps walk around Redfern
 #
 
-$TITLE = "Walk Around Redfern"
+$TITLE = "Parknet"
 
 
 $DEF_OPTS = {
@@ -49,7 +49,6 @@ def initGraphs(opts)
     t = repo[:GPSlogger_gps_data]
     q = t.project(t[:time], t[:lat], t[:lon]) 
     q.skip(skip).take(10000).each do |r|  # skip always needs a take as well
-    puts r.tuple.inspect
       s << r.tuple
     end
     g.session['skip'] += s.length
@@ -57,36 +56,26 @@ def initGraphs(opts)
     g.addSeries(s, sopts)
   end
   
-  gopts = {:updateEvery => 2}
-  #gopts = {}
-
+  gopts = {
+    :updateEvery => 3,
+    :zoom => 14
+  }
   OMF::Common::Web::Graph3.addGraph('Position (M)', 'map2', gopts) do |g|
     skip = g.session['skip'] ||= 0
-    s = []
+    traces = {}
     t = repo[:GPSlogger_gps_data]
-    q = t.project(t[:time], t[:lat], t[:lon]) 
-    q.skip(skip).take(50).each do |r|  # skip always needs a take as well
-    puts r.tuple.inspect
-      s << r.tuple
+    q = t.project(t[:oml_sender_id], t[:time], t[:lat], t[:lon]) 
+    q.skip(skip).take(5000).each do |r|  # skip always needs a take as well
+      car, time, lat, lon = r.tuple
+      t = traces[car] ||= []
+      t << [time, lat, lon]
+      skip += 1
     end
-    g.session['skip'] += s.length
+    g.session['skip'] += skip
     sopts = {:labels => ["Time", "Lat", "Lon"]} #, :record_id => 0}
-    g.addSeries(s, sopts)
-  end
-
-  OMF::Common::Web::Graph3.addGraph('GPS (T)', 'table', {:updateEvery => 5}) do |g|
-    skip = g.session['skip'] ||= 0
-    s = []
-    t = repo[:gpsnew_gps]
-    q = t.project(t[:oml_sender_id], t[:systemtime_integer],
-                  t[:latitude], t[:longitude], t[:speed]) 
-    q.skip(skip).take(10000).each do |r|  # skip always needs a take as well
-      s << r.tuple
+    traces.each do |name, values|
+      g.addSeries(values, {:label => name})
     end
-    puts s.inspect
-    g.session['skip'] += s.length
-    sopts = {:labels => ["Car#", "Time", "Lat", "Lon", "Speed"]} #, :record_id => 0}
-    g.addSeries(s, sopts)
   end
 
 
@@ -94,13 +83,13 @@ def initGraphs(opts)
     skip = g.session['skip'] ||= 0
     s = []
     t = repo[:wimaxmonitor_wimaxstatus]
-    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:signal], t[:rssilong], t[:cinrlong]) 
-    q.skip(skip).take(100).each do |r|  # skip always needs a take as well
+    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:signal], t[:rssi], t[:cinr]) 
+    q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
       #id, time, sensor = r.tuple
       s << r.tuple
     end
     g.session['skip'] += s.length
-    sopts = {:labels => ["Car#", "Time", "Sensor"]} #, :record_id => 0}
+    sopts = {:labels => ["Terminal", "Timestamp", "Signal", "RSSI", "CINR"]} #, :record_id => 0}
     g.addSeries(s, sopts)
   end
 
@@ -112,16 +101,21 @@ def initGraphs(opts)
   }
   OMF::Common::Web::Graph3.addGraph('WiMAX (RSSI)', 'line_chart_focus2', opts) do |g|
     skip = g.session['skip'] ||= 0
-    s = []
+    traces = {}
     t = repo[:wimaxmonitor_wimaxstatus]
-    q = t.project(t[:timestamp_epoch], t[:rssilong]) 
+    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:rssi]) 
     q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
       #id, time, sensor = r.tuple
-      s << r.tuple
+      host, ts, rssi = r.tuple
+      t = traces[host] ||= []
+      t << [ts, rssi]
+      skip += 1
     end
-    g.session['skip'] += s.length
-    sopts = {:labels => ["Car#", "Time", "Sensor"]} #, :record_id => 0}
-    g.addSeries(s, sopts)
+    g.session['skip'] += skip
+
+    traces.each do |name, values|
+      g.addSeries(values, :label => name)
+    end
   end
 
   opts = {
@@ -132,16 +126,21 @@ def initGraphs(opts)
   }
   OMF::Common::Web::Graph3.addGraph('WiMAX (CINR)', 'line_chart_focus2', opts) do |g|
     skip = g.session['skip'] ||= 0
-    s = []
+    traces = {}
     t = repo[:wimaxmonitor_wimaxstatus]
-    q = t.project(t[:timestamp_epoch], t[:cinrlong]) 
+    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:cinr]) 
     q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
       #id, time, sensor = r.tuple
-      s << r.tuple
+      host, ts, cinr = r.tuple
+      t = traces[host] ||= []
+      t << [ts, cinr]
+      skip += 1
     end
-    g.session['skip'] += s.length
-    sopts = {:labels => ["Car#", "Time", "Sensor"]} #, :record_id => 0}
-    g.addSeries(s, sopts)
+    g.session['skip'] += skip
+
+    traces.each do |name, values|
+      g.addSeries(values, :label => name)
+    end
   end
 
   opts = {
@@ -202,22 +201,6 @@ def initGraphs(opts)
       :yLabel =>  "Traffic [Kbytes]",
       #:yMin => 0
   }
-  OMF::Common::Web::Graph3.addGraph('App Traffic', gtype, opts) do |g|
-    inT = []
-    outT = []
-    skip = g.session['skip'] ||= 0
-    repo[:traffic]\
-        .project(:oml_ts_server, :app_in_bytes, :app_out_bytes)\
-        .skip(skip).take(1000).each do |r|
-      ts, i, o = r.tuple
-      inT << [ts, i / 1000]
-      outT << [ts, o / 1000]
-    end
-    g.session['skip'] += inT.length
-    g.addSeries(inT, :label => "Incoming")
-    g.addSeries(outT, :label => "Outgoing")
-  end
-  
 #  OMF::Common::Web::Graph3.addGraph('Test', 'table', opts) do |g|
 #
 #    skip = g.session['skip'] ||= 0
@@ -237,10 +220,9 @@ def initGraphs(opts)
 end
 
 def initCode(opts)
-  puts "INIT CODE #{opts.inspect}"
   c = {
-    :uri => 'exp:foo',
-    :content => "FOOO",
+    :uri => 'exp:gec9',
+    :content => File.new("#{File.dirname(__FILE__)}/gec9_script.rb").read,
     :mime_type => "/text/ruby"
   }
   OMF::Common::Web::Code.addScript(c)

@@ -85,7 +85,7 @@ module OMF
 #              session = @@sessions[sessionID] ||= {}
 #              session[:ts] = Time.now
               gd = GraphDescription.new(sessionID, gx)
-              body = {:data => gd.data, :opts => gx[:gopts]}
+              body = {:data => gd.data.to_a, :opts => gx[:gopts]}
               res.body = body.to_json
 	          else
               raise "Unknown graph" 

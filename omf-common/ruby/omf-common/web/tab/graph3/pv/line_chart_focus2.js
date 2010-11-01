@@ -76,11 +76,16 @@ function OML_line_chart_focus2(opts){
         return dd;
       });
       fsx.domain(d1, d2).nice();
-      var t = fsx.domain();
+      
       var ymax = pv.max(dd, function(da){
         return pv.max(da, fy);
       });
-      var ymin = 0;
+      var ymin = opts["yMin"];
+      if (!ymin) {
+        ymin = pv.min(dd, function(da){
+          return pv.min(da, fy);
+        });
+      }
       fsy.domain(ymin, ymax).nice();
       /*
    fy.domain(scale.checked ? [0, pv.max(dd, function(d) {return d.y})] : y.domain());

@@ -27,6 +27,7 @@ module OMF
           def self.build(buildProc, gDescr)
             b = self.new(gDescr)
             buildProc.call(b)
+            b
           end
           
           def initialize(gDescr)
@@ -34,7 +35,11 @@ module OMF
             @gDescr = gDescr
           end
           
-          def to_js()
+          def to_a()
+            @series
+          end
+          
+          def to_json()
             @series.to_json
           end
           
