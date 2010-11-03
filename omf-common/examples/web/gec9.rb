@@ -49,6 +49,8 @@ $DEF_OPTS = {
 $CACHE = {}
 
 def initGraphs(opts)
+  lineChart = 'line_chart_focus2'
+  lineChart = 'line_chart2'
   
   repo = opts[:repo]
   OMF::Common::Web::Graph3.addGraph('Position (T)', 'table2', {:updateEvery => 5}) do |g|
@@ -141,7 +143,7 @@ def initGraphs(opts)
       :yLabel =>  "RSSI"
 #      :yMin => 0
   }
-  OMF::Common::Web::Graph3.addGraph('WiMAX (RSSI)', 'line_chart_focus2', opts) do |g|
+  OMF::Common::Web::Graph3.addGraph('WiMAX (RSSI)', lineChart, opts) do |g|
     
     skip = g.session['skip'] ||= 0
     take = 10000
@@ -188,7 +190,7 @@ def initGraphs(opts)
       :yLabel =>  "CINR"
 #      :yMin => 0
   }
-  OMF::Common::Web::Graph3.addGraph('WiMAX (CINR)', 'line_chart_focus2', opts) do |g|
+  OMF::Common::Web::Graph3.addGraph('WiMAX (CINR)', lineChart, opts) do |g|
     skip = g.session['skip'] ||= 0
     take = 10000
     traces = {}
