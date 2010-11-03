@@ -30,6 +30,13 @@
 $TITLE = "Parknet"
 
 
+#GPS_SMOOTH_THRESHOLD = 0.00005
+#GPS_SMOOTH_THRESHOLD = 0.000005
+GPS_SMOOTH_THRESHOLD = 0.000002
+#GPS_SMOOTH_THRESHOLD = 0.000001
+
+
+
 $DEF_OPTS = {
   :debug => false,
   :port => 4000,
@@ -39,6 +46,7 @@ $DEF_OPTS = {
   :repoName => 'disconnecttest'
 }
 
+$CACHE = {}
 
 def initGraphs(opts)
   
@@ -61,20 +69,54 @@ def initGraphs(opts)
     :zoom => 14
   }
   OMF::Common::Web::Graph3.addGraph('Position (M)', 'map2', gopts) do |g|
+    lastValues = Hash.new
     skip = g.session['skip'] ||= 0
+    take = 10000
     traces = {}
-    t = repo[:GPSlogger_gps_data]
-    q = t.project(t[:oml_sender_id], t[:time], t[:lat], t[:lon]) 
-    q.skip(skip).take(5000).each do |r|  # skip always needs a take as well
+    cache = $CACHE[:gps] ||= []
+    do_cache = false
+    proc = lambda() do |r|  # skip always needs a take as well
+      if do_cache
+        cache << r.dup
+        skip += 1
+      end
+
       car, time, lat, lon = r.tuple
+      # Thierry - BEGIN
+      # Simple smoothing algo: 
+      # 1) ignore values too far (>GPS_SMOOTH_THRESHOLD) from previous one
+      # 2) ignore values out of our zone, i.e. lat != 40 and lon != [-74,-73] 
+      lastValues[car] = {:lat => lat, :lon => lon, :total => 0 , :skipped => 0} if lastValues[car].nil?
+      latOld = lastValues[car][:lat] ; lonOld = lastValues[car][:lon]
+      lastValues[car][:lat] = lat ; lastValues[car][:lon] = lon
+      lastValues[car][:total] += 1
+      if (lat - latOld).abs > GPS_SMOOTH_THRESHOLD || 
+         (lon - lonOld).abs > GPS_SMOOTH_THRESHOLD ||
+         lat.to_int != 40 || ! (lon.to_int == -73 || lon.to_int == -74)
+        lastValues[car][:skipped] += 1
+        next
+      end
+#      puts "TDEBUG KEEP - #{car} - #{lat} - #{lon}'"
+      # Thierry - END
       t = traces[car] ||= []
       t << [time, lat, lon]
-      skip += 1
     end
-    g.session['skip'] += skip
-    sopts = {:labels => ["Time", "Lat", "Lon"]} #, :record_id => 0}
+    
+    if (csize = cache.size) > skip
+      cache.slice(skip, take).each(&proc)
+      skip += csize
+      take -= csize
+    end
+    if (take > 0)
+      do_cache = true
+      t = repo[:GPSlogger_gps_data]
+      q = t.project(t[:oml_sender_id], t[:time], t[:lat], t[:lon]) 
+      q.skip(skip).take(take).each(&proc)
+    end
+    g.session['skip'] = skip
+
     traces.each do |name, values|
-      g.addSeries(values, {:label => name})
+      g.addSeries(values, :label => name)
     end
   end
 
@@ -100,24 +142,46 @@ def initGraphs(opts)
 #      :yMin => 0
   }
   OMF::Common::Web::Graph3.addGraph('WiMAX (RSSI)', 'line_chart_focus2', opts) do |g|
+    
     skip = g.session['skip'] ||= 0
+    take = 10000
     traces = {}
-    t = repo[:wimaxmonitor_wimaxstatus]
-    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:rssi]) 
-    q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
+    cache = $CACHE[:rssi] ||= []
+    do_cache = false
+    proc = lambda() do |r|  # skip always needs a take as well
       #id, time, sensor = r.tuple
+      if do_cache
+        cache << r.dup
+        skip += 1
+      end
       host, ts, rssi = r.tuple
       t = traces[host] ||= []
       t << [ts, rssi]
-      skip += 1
     end
-    g.session['skip'] += skip
+
+#puts "skip: #{skip} take: #{take} cache: #{cache.size}"
+    
+    if (csize = cache.size) > skip
+      cache.slice(skip, take).each(&proc)
+      skip += csize
+      take -= csize
+    end
+    if (take > 0)
+      do_cache = true
+      t = repo[:wimaxmonitor_wimaxstatus]
+      q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:rssi]) 
+      q.skip(skip).take(take).each(&proc)
+    end
+    g.session['skip'] = skip
+
+#puts "skip: #{skip} take: #{take} cache: #{cache.size}"
 
     traces.each do |name, values|
       g.addSeries(values, :label => name)
     end
   end
 
+  
   opts = {
       :updateEvery => 3,    
       :xLabel => "Time [sec]",      
@@ -126,17 +190,33 @@ def initGraphs(opts)
   }
   OMF::Common::Web::Graph3.addGraph('WiMAX (CINR)', 'line_chart_focus2', opts) do |g|
     skip = g.session['skip'] ||= 0
+    take = 10000
     traces = {}
-    t = repo[:wimaxmonitor_wimaxstatus]
-    q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:cinr]) 
-    q.skip(skip).take(1000).each do |r|  # skip always needs a take as well
+    cache = $CACHE[:cinr] ||= []
+    do_cache = false
+    proc = lambda() do |r|  # skip always needs a take as well
       #id, time, sensor = r.tuple
+      if do_cache
+        cache << r.dup
+        skip += 1
+      end
       host, ts, cinr = r.tuple
       t = traces[host] ||= []
       t << [ts, cinr]
-      skip += 1
     end
-    g.session['skip'] += skip
+
+    if (csize = cache.size) > skip
+      cache.slice(skip, take).each(&proc)
+      skip += csize
+      take -= csize
+    end
+    if (take > 0)
+      do_cache = true
+      t = repo[:wimaxmonitor_wimaxstatus]
+      q = t.project(t[:sender_hostname], t[:timestamp_epoch], t[:cinr]) 
+      q.skip(skip).take(take).each(&proc)
+    end
+    g.session['skip'] = skip
 
     traces.each do |name, values|
       g.addSeries(values, :label => name)
