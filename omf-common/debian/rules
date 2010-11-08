@@ -53,7 +53,8 @@ install: build
 	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	tar -C ruby -cf - --exclude='.svn' `find ruby/* -print | sed 's/^ruby\///'` | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	tar -cf - --exclude='.svn' share | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	
+	(cd debian/$(PKG_NAME)/usr/share/$(PKG_NAME); ./omf-gem-package.sh)
+
 # Build architecture-independent files here.
 binary-indep: build install
 # We have nothing to do by default.

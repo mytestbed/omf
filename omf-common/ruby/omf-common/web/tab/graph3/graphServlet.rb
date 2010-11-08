@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'json'
 require 'omf-common/web/tab/graph3/graph_description'
 

@@ -1,4 +1,4 @@
-
+require 'rubygems'
 require 'rexml/document'
 require 'time'
 require 'logger'

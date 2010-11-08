@@ -29,6 +29,8 @@
 # This file defines the Topology class that holds information about the nodes in
 # the experiment.
 #
+
+require 'rubygems'
 require 'gratr/import.rb'
 require 'gratr/dot.rb'
 

@@ -31,10 +31,11 @@
 # This current implementation uses the library XMPP4R.
 #
 
-require "xmpp4r"
-require "xmpp4r/pubsub"
-require "xmpp4r/pubsub/helper/servicehelper"
-require "xmpp4r/pubsub/helper/nodebrowser"
+require 'rubygems'
+require 'xmpp4r'
+require 'xmpp4r/pubsub'
+require 'xmpp4r/pubsub/helper/servicehelper'
+require 'xmpp4r/pubsub/helper/nodebrowser'
 require 'omf-common/mobject'
 #Jabber::debug = true
 

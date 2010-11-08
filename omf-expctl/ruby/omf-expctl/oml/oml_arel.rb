@@ -38,12 +38,12 @@ unless Array.respond_to? :extract_options!
   end
 end
 
+require 'rubygems'
 require 'arel'
 require 'active_record'
 require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/quoting'
 require 'uri'
-
 
 module OMF
   module ExperimentController

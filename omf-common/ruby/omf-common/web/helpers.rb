@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 #
 #
+require 'rubygems'
 require 'coderay'
 require 'ftools'
 require 'net/http'

@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'json'
 require 'omf-common/web/tab/graph3/series_builder'
 require 'omf-common/web/tab/graph3/network_builder'

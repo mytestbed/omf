@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'log4r/outputter/outputter'
 require 'log4r/formatter/formatter'
 

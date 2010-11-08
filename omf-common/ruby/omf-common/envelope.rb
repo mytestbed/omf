@@ -21,8 +21,10 @@
 #
 #
 
+require 'rubygems'
 require 'rexml/document'
-require 'xmlcanonicalizer'
+# xml canonicalizer:
+require 'wss4r/security/util/xmlcanonicalizer'
 
 module OMF
   module Envelope

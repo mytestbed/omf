@@ -1,4 +1,4 @@
-
+require 'rubygems'
 require 'time'
 require 'xmpp4r'
 require 'rexml/element'

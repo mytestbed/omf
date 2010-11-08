@@ -1,4 +1,4 @@
-
+require 'rubygems'
 require 'xmpp4r'
 require 'omf-common/mobject'
 require 'omf-common/omfXMPPServices'

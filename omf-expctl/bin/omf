@@ -28,6 +28,7 @@ require 'optparse'
 
 @version="-5.3"
 @ec_path="/usr/share/omf-expctl#{@version}/"
+@gempath="/usr/share/omf-common#{@version}/vendor/ruby/1.8"
 @this_app=File.basename(__FILE__)
 
 def parseOptions()
@@ -165,6 +166,7 @@ def run(cmd)
 
   omf_command = "/usr/bin/ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
   puts "DEBUG: Executing '#{omf_command}'" if @options[:debug]
+  ENV['GEM_PATH'] = @gempath
   exec omf_command
 end
 

@@ -27,9 +27,6 @@
 # This file provides support for querying OML results using the AREL library.
 #
 
-
-
-
 # Monkey patching Array to support the 'active_record' library
 #
 unless Array.respond_to? :extract_options!
@@ -41,6 +38,7 @@ unless Array.respond_to? :extract_options!
   end
 end
 
+require 'rubygems'
 require 'arel'
 require 'active_record'
 require 'active_record/connection_adapters/abstract/schema_definitions'
