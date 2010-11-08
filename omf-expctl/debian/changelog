@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu10) lucid; urgency=low
+
+  * now shipping our gems
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 08 Nov 2010 10:27:30 +0000
+
 omf-expctl-5.3 (1ubuntu9) lucid; urgency=low
 
   * latest trunk

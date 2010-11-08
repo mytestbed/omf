@@ -7,8 +7,9 @@ else
    gem install bundler --no-rdoc --no-ri --user-install
 fi 
 echo "Downloading and packaging gems required for OMF"
+echo "--- Errors regarding 'libfakeroot-sysv.so' are harmless and can be ignored. This may take a while! ---"
 if [ -d "vendor" ]; then
    rm -rf vendor
 fi
 bundle pack
-cd vendor/cache && gem fetch bundler
+cd vendor && gem fetch bundler

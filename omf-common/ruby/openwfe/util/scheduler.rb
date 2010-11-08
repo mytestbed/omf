@@ -40,9 +40,7 @@
 #
 
 require 'monitor'
-
 require 'openwfe/omf-common/otime'
-
 
 module OpenWFE
 
