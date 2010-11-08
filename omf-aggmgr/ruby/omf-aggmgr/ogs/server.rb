@@ -38,6 +38,7 @@ class AggmgrServer < MObject
   # execute when a request for 'myservice.mymethod' is received.
   @mounted_services = nil
 
+  # The underlying, implementation-specific server.
   attr_accessor :server
 
   def initialize(params)

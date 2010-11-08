@@ -101,7 +101,7 @@ def register(service,configFileName)
 
   if serviceClass.respond_to?(:mount) then
     MObject.debug(:gridservices, "Mounting legacy service #{serviceClass}")
-    serviceClass.mount(ServiceMounter.server(:http), path)
+    serviceClass.mount(ServiceMounter.server(:http).server, path)
   else
     MObject.debug(:gridservices, "Mounting service #{serviceClass}")
     ServiceMounter.mount(serviceClass)
