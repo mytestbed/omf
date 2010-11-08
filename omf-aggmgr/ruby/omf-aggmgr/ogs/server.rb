@@ -394,7 +394,20 @@ class XmppAggmgrServer < AggmgrServer
         make_dispatcher(domain, "/OMF/system")
       end
 
-      @connection.keep_alive
+      Thread.new {
+        while true
+          if @connection.connected?
+            @connection.keep_alive
+          else
+            debug "Trying to re-connect to XMPP server"
+            begin
+              @connection.connect
+            rescue Exception => e
+            end
+            sleep 3
+          end
+        end
+      }
     rescue Exception => e
       error "Exception!  #{e.message}"
     end
