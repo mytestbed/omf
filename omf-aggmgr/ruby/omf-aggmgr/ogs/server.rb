@@ -409,7 +409,20 @@ class XmppAggmgrServer < AggmgrServer
         end
       end
 
-      @connection.keep_alive
+      Thread.new {
+        while true
+          if @connection.connected?
+            @connection.keep_alive
+          else
+            debug "Trying to re-connect to XMPP server"
+            begin
+              @connection.connect
+            rescue Exception => e
+            end
+            sleep 3
+          end
+        end
+      }
     rescue Exception => e
       error "While starting XMPP connections: #{e.message}"
     end

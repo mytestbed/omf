@@ -231,7 +231,7 @@ module OMF
               warn "Error(#{error_count}) pinging XMPP server"
               if error_count > PING_RETRY_LIMIT
                 warn "Reached XMPP server ping retry limit -- disconnected from server"
-                raise ServerDisconnected "Ping retry limit reached"
+                Thread.exit
               end
             end
 
@@ -242,7 +242,10 @@ module OMF
               cmd = :stop
             end
           end
-        }
+        }.join
+        @connected = false
+        @do_keep_alive = false
+        return false
       end # keep_alive
     end # class Connection
 
