@@ -243,6 +243,11 @@ module OMF
             parent_el || el
           end
           
+          # Return underlying table object. Use with care
+          def _table()
+            @table
+          end
+          
         end # Column
         
         # This class takes a query, defined by the last relation, serializes
@@ -320,6 +325,11 @@ module OMF
           attr_reader :tuple
           attr_reader :schema
           
+          def [](name)
+            i = @name2schemaID[name.to_sym]
+            i >= 0 ? @tuple[i] : nil
+          end
+          
           def initialize(schema_el)
             parse_schema(schema_el)
             
@@ -341,12 +351,16 @@ module OMF
           
           private 
           def parse_schema(schema_el)
+            @name2schemaID = {}
+            i = 0
             @schema = schema_el.children.collect do |col_el|
               unless col_el.name == 'col'
                 raise "Expected element 'col', but found '#{col_el.name}'"
               end
               c_name = col_el.attributes['name']
               c_type = col_el.attributes['type']
+              @name2schemaID[c_name.to_sym] = i
+              i += 1
               ColSchema.new(c_name, c_type)
             end
           end

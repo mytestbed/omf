@@ -53,19 +53,25 @@ def initGraphs(opts)
   lineChart = 'line_chart2'
   
   repo = opts[:repo]
-  OMF::Common::Web::Graph3.addGraph('Position (T)', 'table2', {:updateEvery => 5}) do |g|
+  gopts = {:updateEvery => 5}
+  gopts = {}
+  OMF::Common::Web::Graph3.addGraph('Position (T)', 'table2', gopts) do |g|
     skip = g.session['skip'] ||= 0
+    take = 10000
+    take = 10
     s = []
     t = repo[:GPSlogger_gps_data]
-    q = t.project(t[:time], t[:lat], t[:lon]) 
-    q.skip(skip).take(10000).each do |r|  # skip always needs a take as well
+    q = t.project(t[:time].as(:ts), t[:lat], t[:lon]) 
+    q.skip(skip).take(take).each do |r|  # skip always needs a take as well
+      puts r.inspect
       s << r.tuple
     end
     g.session['skip'] += s.length
     sopts = {:labels => ["Time", "Lat", "Lon"]} #, :record_id => 0}
     g.addSeries(s, sopts)
   end
-  
+
+
   gopts = {
     :updateEvery => 3,
     :zoom => 14
@@ -224,6 +230,20 @@ def initGraphs(opts)
       g.addSeries(values, :label => name)
     end
   end
+  
+  OMF::Common::Web::Graph3.addGraph('WiMAX (CINR) [S]', 'table2', gopts) do |g|
+    t = repo[:wimaxmonitor_wimaxstatus]
+    # g.stream(t[:timestamp_epoch]) or g.stream(t) which defaults to t[:oml_sender_ts]
+    g.stream(t).project(t[:timestamp_epoch], t[:sender_hostname], t[:cinr]).each do |r|
+      s = g.series(label = r[:sender_hostname]) do |s|
+        # configure new series
+        s.label = label
+      end
+      puts r.inspect
+      s << r.tuple
+    end
+  end
+  
 
   opts = {
       :updateEvery => 3,    
