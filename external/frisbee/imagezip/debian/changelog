@@ -1,3 +1,9 @@
+imagezip (1.0.0-2ubuntu2) maverick; urgency=low
+
+  * build for Ubuntu maverick
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 09 Nov 2010 20:40:33 +1100
+
 imagezip (1.0.0-2ubuntu1) lucid; urgency=low
 
   * build for Ubuntu lucid

@@ -11,5 +11,5 @@ echo "--- Errors regarding 'libfakeroot-sysv.so' are harmless and can be ignored
 if [ -d "vendor" ]; then
    rm -rf vendor
 fi
-bundle pack
+rake=/usr/bin/rake bundle pack
 cd vendor && gem fetch bundler

@@ -1,3 +1,9 @@
+frisbee (1.0.3-2ubuntu2) maverick; urgency=low
+
+  * build for Ubuntu maverick
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 09 Nov 2010 20:38:14 +1100
+
 frisbee (1.0.3-2ubuntu1) lucid; urgency=low
 
   * build for Ubuntu lucid
