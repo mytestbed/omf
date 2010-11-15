@@ -212,14 +212,14 @@ get_kernel:
 	  if [ -f /usr/src/$(KERNEL_TAR) ] ; then \
 	    tar -xzf /usr/src/$(KERNEL_TAR) -C $(SOURCE); \
 	  else  \
-	    wget -P $(SOURCE) $(KERNEL_TAR_URL); \
+	    wget -c -P $(SOURCE) $(KERNEL_TAR_URL); \
 	    tar -xzf $(SOURCE)/$(KERNEL_TAR) -C $(SOURCE); \
 	  fi;\
 	fi
 
 get_bbox: 
 	if [ ! -r $(SOURCE)/$(BBOX_TAR) ] ; then \
-	wget -P $(SOURCE) $(BBOX_TAR_URL); \
+	wget -c -P $(SOURCE) $(BBOX_TAR_URL); \
 	fi
 
 install: kernel initramfs
