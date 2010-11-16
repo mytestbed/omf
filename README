@@ -23,10 +23,12 @@ Structure of the Orbit Management Framework OMF
 
 trunk /  
       external	   # Contains external software dependencies for OMF
+      omf-admin    # OMF Web Administration Interface
       omf-aggmgr   # OMF Aggregate Manager
       omf-common   # Ruby code shared among OMF applications
       omf-expctl   # OMF Experiment Controller
       omf-resctl   # OMF Resource Controller
+      omf-resmgr   # OMF Resource Manager
       pxe          # Build system for PXE kernel and rootfs
       visualizers  # visualization for the experiment controller
       visyoNet     # Visualization tools
