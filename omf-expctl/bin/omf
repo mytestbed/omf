@@ -119,13 +119,12 @@ def run(cmd)
   elsif (cmd == "stat")
     app="omf-expctl/statnode.rb"
     if @options[:summary]
-      # stat [-s] [DOMAIN]
-      args=["-s","system:topo:all","'#{@options[:aggregate]}'"]
+      # stat [-s] [DOMAIN] 
+      args=["-s","'#{@options[:aggregate]}'"]
     else
-      # stat "[TOPOLOGY]" [DOMAIN]
-      args=["'#{@options[:topology]}'", "'#{@options[:aggregate]}'"]
-    end
-    
+      # stat [DOMAIN] 
+      args=["'#{@options[:aggregate]}'"]
+    end 
   ########## OMF LOAD
   elsif (cmd == "load")
     app="omf-expctl.rb"

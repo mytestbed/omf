@@ -37,16 +37,14 @@ require 'omf-common/mobject'
 require 'omf-expctl/nodeHandler.rb'
 
 #
-# Get the status of nodes within a given topology
+# Get the status of nodes
 # Results will be displayed directly on STDOUT
 #
-# - topo = the Topology to query for
 # - domain =  the domain to query for
 #
-def getStatus(topo, domain)
-  # TODO: use the topology here instead of showing the status for all
+def getStatus(domain)
   puts "-----------------------------------------------"
-  puts " Testbed : #{domain}"
+  puts " Domain : #{domain}"
   url = "#{OConfig[:ec_config][:cmc][:url]}/allStatus?domain=#{domain}"
   response = NodeHandler.service_call(url, "Can't get node status from CMC")
   doc = REXML::Document.new(response.body)
@@ -79,7 +77,7 @@ def countNodeStatus(domain)
     nKO = (state.match(/^NODE/)) ? nKO + 1 : nKO
   }
   puts "-----------------------------------------------"
-  puts "Testbed : #{d}"
+  puts "Domain : #{d}"
   puts "Number of nodes in 'Power ON' state      : #{nON}"
   puts "Number of nodes in 'Power OFF' state     : #{nOFF}"
   puts "Number of nodes in 'Not Available' state : #{nKO}"
@@ -90,18 +88,16 @@ end
 # Main Execution loop of this software tool
 #
 begin
-  topocmd = ARGV[0] # topo or command
-  NodeHandler.instance.loadControllerConfiguration()
-  NodeHandler.instance.startLogger()
-  OConfig.loadTestbedConfiguration()
-  d = OConfig.domain ? OConfig.domain : "default"
-  if (topocmd == "-s" || topocmd == "--summary")
-    domain = ARGV[2] ? ARGV[2] : d
-    countNodeStatus(domain)
+  if (ARGV[0] == "-s" || ARGV[0] == "--summary")    
+    OConfig.config = ARGV[1] if !ARGV[1].empty?
+    NodeHandler.instance.loadControllerConfiguration()
+    NodeHandler.instance.startLogger()
+    countNodeStatus(OConfig.domain)
   else
-    Topology.useNodeClass = false
+    OConfig.config = ARGV[0] if !ARGV[0].empty?
+    NodeHandler.instance.loadControllerConfiguration()
+    NodeHandler.instance.startLogger()
     TraceState.init()
-    domain = ARGV[1] ? ARGV[1] : d
-    getStatus(topocmd, domain)
+    getStatus(OConfig.domain)
   end
 end

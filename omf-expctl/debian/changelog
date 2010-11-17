@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu12) lucid; urgency=low
+
+  * Backported r646 (omf stat fix) to the release
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 17 Nov 2010 15:24:42 +1100
+
 omf-expctl-5.3 (1ubuntu11) lucid; urgency=low
 
   * Updated to 5.3 the tutorials and app/proto definition in EC's repository 
