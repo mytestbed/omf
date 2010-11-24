@@ -6,15 +6,16 @@ module OMF
     module HTTP
       # [domain] :: Uri
       def HTTP.new_http_domain(domainspec)
-        lambda do |service, *args|
+        lambda do |address_maps, service, *args|
           service = service || ""
-          http_call(domainspec[:uri] + service, *args)
+          http_call(address_maps, domainspec[:uri] + service, *args)
         end
       end
 
       # [uri] :: Uri
+      # [address_maps] :: Array of blocks
       # [*args] :: [name,value]*
-      def HTTP.http_call(uri, *args)
+      def HTTP.http_call(address_maps, uri, *args)
         url = uri.to_s
         query = args.collect do |name, value|
           "#{name}=#{value}"

@@ -73,13 +73,13 @@ module OMF
         domain.request_subscriptions
         request_manager = RequestManager.new(domain)
 
-        lambda do |service, *args|
+        lambda do |address_maps, service, *args|
           service = service || ""
-          xmpp_call(request_manager, service, *args)
+          xmpp_call(request_manager, address_maps, service, *args)
         end
       end
 
-      def XMPP.xmpp_call(request_manager, uri, *args)
+      def XMPP.xmpp_call(request_manager, address_maps, uri, *args)
         if @@sender_id.nil?
           raise OMF::ServiceCall::ConfigError, "XMPP service calls need a sender ID \n(use OMF::ServiceCall::XMPP.sender_id=())"
         end
@@ -93,9 +93,16 @@ module OMF
                                      "message-id" => new_message_id.to_s,
                                      "service" => service,
                                      "method" => method)
+
+        hashargs = Hash.new
         args.each do |name, value|
           message.set_arg(name, value)
+          hashargs[name] = value
         end
+        address_maps = address_maps || []
+        pubsub_node = address_maps.collect { |m|
+          m.call(service, method, hashargs)
+        }.find { |x| not x.nil? } || "/OMF/system"
         r = request_manager.make_request(message, "/OMF/system")
         if r.kind_of? REXML::Element then
           doc = REXML::Document.new

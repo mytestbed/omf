@@ -69,6 +69,10 @@ module OMF
       Dispatch.instance.add_domain(domain)
     end
 
+    def ServiceCall.address_map(&block)
+      Dispatch.instance.address_map(&block)
+    end
+
     # ----- Exception classes -----
 
     class ServiceCallException < Exception; end
@@ -85,6 +89,9 @@ module OMF
 
       @domains = Array.new
       @services = Hash.new
+      @address_maps = Array.new
+
+      attr_reader :address_maps
 
       #
       # Add a new service call domain.  The +domainspec+ is a Hash
@@ -122,6 +129,13 @@ module OMF
         dom
       end
 
+      def address_map(&block)
+        @address_maps = @address_maps || []
+        if block_given?
+          @address_maps << block
+        end
+      end
+
       # [name] :: String
       def lookup_service(name)
         @services = @services || Hash.new
@@ -151,7 +165,8 @@ module OMF
       # [domain] :: domain Proc
       def get_service_list(domain)
         begin
-          xml = domain.call(Uri.new)
+          xml = domain.call(address_maps, Uri.new)
+          p xml.to_s
           xml.elements.collect("serviceGroups/serviceGroup") { |e| e.attributes["name"] }
         rescue ServiceCallException => e
           error "Trying to get service list from domain '#{domain}':  #{e.message}"
@@ -161,7 +176,7 @@ module OMF
 
       # [service] :: service Proc
       def get_service_method_list(service)
-        xml = service.call(Uri.new)
+        xml = service.call(@address_maps, Uri.new)
         if not xml.nil?
           xml.elements.collect("services/serviceGroup/service") do |e|
             name = e.attributes["name"]
@@ -178,9 +193,9 @@ module OMF
       # [domain] :: domain Proc
       # [service] :: Uri
       def new_service_proc(domain, service)
-        lambda do |method, *args|
+        lambda do |address_maps, method, *args|
           method = method || ''
-          domain.call(service + method, *args)
+          domain.call(address_maps, service + method, *args)
         end
       end
 
@@ -240,7 +255,7 @@ module OMF
         end
 
         def exec(method, *args)
-          @proc.call(Uri.new(method), *args)
+          @proc.call(Dispatch.instance.address_maps, Uri.new(method), *args)
         end
 
         def method_missing(m, *args)
