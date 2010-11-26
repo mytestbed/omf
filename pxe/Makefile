@@ -23,6 +23,7 @@ BBOX_DIR = busybox-$(BBOX_VERSION)
 BBOX_TAR = busybox-$(BBOX_VERSION).tar.bz2
 BBOX_URL = http://busybox.net/downloads
 BBOX_TAR_URL = $(BBOX_URL)/$(BBOX_TAR)
+KERNEL_BUILD_JOBS = `expr  $(shell grep "^processor" /proc/cpuinfo | wc -l)`
 
 # --------  START OF SITE DEPENDENT VARIABLES ---------
 #  In order to make this work for users outside of Winlab, the site
@@ -186,7 +187,7 @@ filesystem: dirs
 kernel: dirs get_kernel
 	if [ ! -r $(BUILD)/$(KERNEL_NAME) ] ; then \
 	  cp $(CONFIG)/$(KERNEL_CONFIG_FILE) $(SOURCE)/$(KERNEL_DIR)/.config ;\
-	  $(MAKE) -C $(SOURCE)/$(KERNEL_DIR) -j14 bzImage; \
+	  $(MAKE) -C $(SOURCE)/$(KERNEL_DIR) -j$(KERNEL_BUILD_JOBS) bzImage; \
           cp $(SOURCE)/$(KERNEL_DIR)/arch/x86/boot/bzImage \
 	    $(BUILD)/$(KERNEL_NAME) ; \
 	fi
