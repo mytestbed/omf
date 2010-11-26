@@ -23,7 +23,8 @@ BBOX_DIR = busybox-$(BBOX_VERSION)
 BBOX_TAR = busybox-$(BBOX_VERSION).tar.bz2
 BBOX_URL = http://busybox.net/downloads
 BBOX_TAR_URL = $(BBOX_URL)/$(BBOX_TAR)
-KERNEL_BUILD_JOBS = `expr  $(shell grep "^processor" /proc/cpuinfo | wc -l)`
+KERNEL_BUILD_JOBS = $(shell grep "^processor" /proc/cpuinfo | wc -l)
+LBITS = $(shell getconf LONG_BIT)
 
 # --------  START OF SITE DEPENDENT VARIABLES ---------
 #  In order to make this work for users outside of Winlab, the site
@@ -39,6 +40,7 @@ KERNEL_BUILD_JOBS = `expr  $(shell grep "^processor" /proc/cpuinfo | wc -l)`
 #  * If you are not building for Winlab, edit ./site.mk.
 #     (follow the example "nicta.mk")
 #
+
 -include ./site.mk
 APT_HOST ?= http://apt
 REPOSITORY ?= $(USER)@repository1
@@ -185,14 +187,17 @@ filesystem: dirs
 	echo "pxe-$(VER)" > $(ROOTFS)/.omf_imageid
 
 kernel: dirs get_kernel
+	if [ $(LBITS) != 32 ] ; then \
+	  echo "The OMF PXE image can only be built on a 32bit host at this time."; \
+          false; \
+	fi	
 	if [ ! -r $(BUILD)/$(KERNEL_NAME) ] ; then \
 	  cp $(CONFIG)/$(KERNEL_CONFIG_FILE) $(SOURCE)/$(KERNEL_DIR)/.config ;\
 	  $(MAKE) -C $(SOURCE)/$(KERNEL_DIR) -j$(KERNEL_BUILD_JOBS) bzImage; \
           cp $(SOURCE)/$(KERNEL_DIR)/arch/x86/boot/bzImage \
 	    $(BUILD)/$(KERNEL_NAME) ; \
 	fi
-
-# Note: current kernel expects init on initramfs on /init, not /sbin/init
+	# Note: current kernel expects init on initramfs on /init, not /sbin/init
 initramfs: dirs bbox filesystem omf enroll syslinux kexec \
 	getmac get_init_cpio
 	rm -f $(BUILD)/$(INITRAMFS) $(BUILD)/$(INITRAMFSGZ)
