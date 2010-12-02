@@ -184,7 +184,8 @@ class NodeSet < MObject
   #
   def startApplication(name)
     ctxt = @applications[name]
-    raise OEDLIllegalArgumentException.new(:group, :name) unless ctxt
+    raise OEDLIllegalArgumentException.new(:startApplication, :name, [],
+          "Cannot start unknown application '#{name}' in group '#{self}'") unless ctxt
     ctxt.startApplication(self)
   end
 

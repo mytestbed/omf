@@ -71,7 +71,7 @@ class RootNodeSetPath < NodeSetPath
   #
   # - app = Application to register
   #
-  def addApplication(app, &block)
+  def addApplication(app, context = {}, &block)
     if app.kind_of? String
       # if this is a one-off command line application
       # then create a default Application object to hold it
@@ -81,7 +81,7 @@ class RootNodeSetPath < NodeSetPath
       # real EC-compatible application (i.e. ruby wrapper)
     #  appInstance = app
     end
-    appInstance.instantiate(@nodeSet)
+    appInstance.instantiate(@nodeSet, context)
   end
 
   #

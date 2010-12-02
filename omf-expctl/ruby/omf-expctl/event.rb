@@ -105,7 +105,7 @@ class Event < MObject
             rescue SystemExit => ex
               raise ex
             rescue Exception => ex
-              lines << "Failed to execute tasks associated with Event"
+              lines << "Failed to execute tasks associated with Event '#{@name}'"
               lines << "Error (#{ex.class}): '#{ex}'"
               lines << "(More information in the log file)"
               NodeHandler.instance.display_error_msg(lines)

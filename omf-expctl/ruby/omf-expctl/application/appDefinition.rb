@@ -191,19 +191,13 @@ class AppDefinition < MObject
   end
   
   #
-  # Return the unique ID of this AppDefinition
+  # Instruct this AppDefinition that another instance
+  # of this application has been instantiated
   #
-  # This is not Thread safe
-  # (@instCounter is a shared resource)
+  #  [Return] the number of application instance created from this AppDefinition
   #
-  #  [Return] the ID for this AppDefinition
-  #
-  def getUniqueID()
-    id = @id.gsub(':', '_')
-    if ((cnt = @instCounter.incr()) > 1)
-      id = "#{id}_#{cnt}"
-    end
-    id
+  def addInstance()
+    return @instCounter.incr()
   end
 
   #

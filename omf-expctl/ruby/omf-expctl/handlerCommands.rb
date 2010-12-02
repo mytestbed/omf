@@ -54,7 +54,7 @@ class OEDLIllegalArgumentException < OEDLException
   def initialize(cmdName, argName, legalValues = [], message = nil)
     @cmdName = cmdName
     @argName = argName
-    message ||= "Illegal argument values for '#{argName}' in '#{cmdName}'"
+    message ||= "Illegal values for argument '#{argName}' in command '#{cmdName}'"
     super(message)
   end
 end
