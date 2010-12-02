@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu13) lucid; urgency=low
+
+  * better support for multiple application instances
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 02 Dec 2010 17:55:55 +1100
+
 omf-expctl-5.3 (1ubuntu12) lucid; urgency=low
 
   * Backported r646 (omf stat fix) to the release
