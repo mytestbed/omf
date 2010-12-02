@@ -250,6 +250,14 @@ class NodeAgent < MObject
     "Hostname of the local PubSub server to connect to") {|name|
       @config[:communicator][:xmpp][:pubsub_gateway] = name
     }
+    opts.on("--pubsub-port PORT",
+      "Port number of the Pubsub Gateway") {|port|
+        @config[:communicator][:xmpp][:pubsub_port] = port
+    }
+    opts.on("--pubsub-use-dnssrv",
+      "Look for DNS SRV record to locate the Pubsub Gateway") {
+        @config[:communicator][:xmpp][:pubsub_use_dnssrv] = true
+    }
     opts.on("--pubsub-user NAME",
       "Username for connecting to the local PubSub server (if not set, RC "+
       "will register its own new user)") {|name|

@@ -136,13 +136,17 @@ class OmfXMPPServices < MObject
   # - user = [String] username to connect to the home XMPP server  
   # - password = [String], password to connect to the home XMPP server
   # - host = [String] hostname of the home XMPP server   
+  # - port = [Fixnum] optional port number of the home XMPP server
+  # - useDnsSrv = [Bool] optional flag to enable DNS SRV record resolution
   #
-  def initialize(user, password, host)
+  def initialize(user, password, host, port = nil, useDnsSrv = nil)
 
     # Set internal attributes
     @userJID = "#{user}@#{host}"
     @password = password
     @homeServer = host
+    @port = port || 5222
+    @useDnsSrv = useDnsSrv || false
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
     @keepAliveThread = nil
@@ -161,13 +165,18 @@ class OmfXMPPServices < MObject
       return if @connecting 
       @connecting = true
     }
-    debug "Try to connect to Pubsub Gateway '#{@homeServer}'..."
-    # We are passing the hostname here to prevent xmpp4r from trying to resolve
-    # the DNS SRV record
+    debug "Try to connect to Pubsub Gateway '#{@homeServer}:#{@port}'..."
     begin
       success = call_with_timeout("Timing out while connecting to "+
                                   "PubSub Gateway '#{@homeServer}'") { 
-                                  @clientHelper.connect(@homeServer) }
+                                    if @useDnsSrv
+                                      # passing no hostname here will try to resolve a DNS
+                                      # SRV record through the host part of the JID
+                                      @clientHelper.connect(nil, @port)
+                                    else
+                                      # passing a hostname disables DNS SRV queries
+                                      @clientHelper.connect(@homeServer, @port)
+                                    end }
       raise Exception.new if !success
     rescue Exception => ex
       debug "Cannot connect to PubSub Gateway '#{@homeServer}'! "+

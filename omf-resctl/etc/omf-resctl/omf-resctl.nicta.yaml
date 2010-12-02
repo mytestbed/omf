@@ -26,7 +26,7 @@
     :xmpp:
       # Address of the PubSub server to use as gateway for PubSub communication
       :pubsub_gateway: 'norbit.npc.nicta.com.au'
-
+      #:pubsub_port: 5222
       # Address of the PubSub server which host the communication for my slice
       # Leave this commented if the pubsub groups for this slice are hosted on 
       # the same server as the 'pubsub_gateway'
@@ -38,6 +38,9 @@
       # your client to connect to your pubsub server)
       #:pubsub_user: 'my_RC_name' 
       #:pubsub_pwd: 'my_RC_password'
+      # set this to "true" if you have a DNS SRV record pointing to the
+      # real pubsub server hostname
+      :pubsub_use_dnssrv: false
 
   # Agent settings
   :agent:

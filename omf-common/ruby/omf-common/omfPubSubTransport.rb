@@ -60,7 +60,9 @@ class OMFPubSubTransport < MObject
     @@psGateway = opts[:config][:xmpp][:pubsub_gateway]
     raise "OMFPubSubTransport - Configuration is missing 'pubsub_gateway' "+
             "parameter!" if !@@psGateway
-
+    @@psPort = opts[:config][:xmpp][:pubsub_port]
+    @@useDnsSrv = opts[:config][:xmpp][:pubsub_use_dnssrv]
+    
     # Check if we are using message authentication  
     kl = nil
     aflag = opts[:config][:authenticate_messages] || false
@@ -83,7 +85,7 @@ class OMFPubSubTransport < MObject
     # Open a connection to the Gateway PubSub Server
     begin
       debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
-      @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway)
+      @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway, @@psPort, @@useDnsSrv)
     rescue Exception => ex
       raise "Failed to connect to Gateway PubSub Server '#{@@psGateway}' - "+
             "Error: '#{ex}'"
