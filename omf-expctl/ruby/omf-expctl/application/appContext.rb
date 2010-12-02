@@ -45,7 +45,8 @@ class AppContext < MObject
   attr_reader :app, :id, :bindings, :env
 
   def initialize(app, context)
-    @id = app.appDefinition.getUniqueID
+    instanceIndex = app.appDefinition.addInstance
+    @id = context[:id] ? context[:id] : @id = "#{app.appDefinition.id}##{instanceIndex}"
     @bindings = Hash.new
     @app = app
     
