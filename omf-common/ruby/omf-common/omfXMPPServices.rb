@@ -181,8 +181,8 @@ class OmfXMPPServices < MObject
                                     end }
       raise Exception.new if !success
     rescue Exception => ex
-      raise Exception.new if @connection_attempts == @max_retries
-      @max_retries++
+      raise Exception.new("Maximum number of connection attempts reached") if @connection_attempts == @max_retries
+      @connection_attempts+=1
       debug "Cannot connect to PubSub Gateway '#{@homeServer}'! "+
             "Retry in #{RECONNECT_INTERVAL}s ..."
       sleep RECONNECT_INTERVAL
