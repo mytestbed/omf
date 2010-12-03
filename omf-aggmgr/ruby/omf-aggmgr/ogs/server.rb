@@ -259,6 +259,8 @@ class XmppAggmgrServer < AggmgrServer
     @server = xmpp_params[:server]
     @user = xmpp_params[:user]
     @password = xmpp_params[:password]
+    @port = xmpp_params[:port]
+    @use_dnssrv = xmpp_params[:use_dnssrv]
     @connection = xmpp_params[:connection]
 
     @services = Hash.new

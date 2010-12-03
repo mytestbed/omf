@@ -98,6 +98,8 @@ module OMF
       @gateway = nil
       @user = nil
       @password = nil
+      @port = nil
+      @use_dnssrv = false
       @keep_alive_queue = nil
       @keep_alive_thread = nil
 
@@ -106,7 +108,7 @@ module OMF
       PING_INTERVAL = 10 # seconds
       PING_RETRY_LIMIT = 5
 
-      def initialize(gateway, user, password, client = nil)
+      def initialize(gateway, user, password, client = nil, port = nil, use_dnssrv = nil)
         if client.nil?
           raise Misconfigured, "Must specify XMPP gateway" if gateway.nil?
           raise Misconfigured, "Must specify XMPP user name" if user.nil?
@@ -117,6 +119,8 @@ module OMF
         @gateway = gateway
         @password = password
         @user = jid
+        @port = port || 5222
+        @use_dnssrv = use_dnssrv || false
 
         @do_keep_alive = false
 
@@ -154,7 +158,11 @@ module OMF
           begin
             clean_exceptions {
               nonblocking(:connect) {
-                @client.connect(@gateway)
+                if @use_dnssrv
+                  @client.connect(nil, @port)
+                else
+                  @client.connect(@gateway, @port)
+                end
               }
 
               # Register, but if the user is already registered, authenticate instead

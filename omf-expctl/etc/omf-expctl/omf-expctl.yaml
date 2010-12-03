@@ -73,6 +73,7 @@
         :xmpp:
           # Address of the server to use as gateway for PubSub communication
           :pubsub_gateway: 'norbit.npc.nicta.com.au'
+          #:pubsub_port: 5222
           # The 'pubsub_domain' is the hostname of the pubsub server on which
           # you would like to host your slice's communications. Leave this 
           # commented if you wish to host them on the 'pubsub_gateway' server
@@ -84,7 +85,10 @@
           # (do so only if you need to manually set user/password for 
           # your client to connect to your pubsub server)
           #:pubsub_user: 'my_EC_name' 
-          #:pubsub_pwd: 'my_EC_password' 
+          #:pubsub_pwd: 'my_EC_password'
+          # set this to "true" if you have a DNS SRV record pointing to the
+          # real pubsub server hostname
+          :pubsub_use_dnssrv: false
           
       # AM contact details. By default, the AM is contacted through the EC's XMPP
       # connection as specified in the ':communicator:' section above. In this

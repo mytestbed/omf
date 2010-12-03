@@ -132,7 +132,10 @@ def run(params)
   if not xmpp_params.nil?
     xmpp_connection = OMF::XMPP::Connection.new(xmpp_params[:server],
                                                 xmpp_params[:user],
-                                                xmpp_params[:password])
+                                                xmpp_params[:password],
+                                                nil,
+                                                xmpp_params[:port],
+                                                xmpp_params[:use_dnssrv])
     xmpp_params[:connection] = xmpp_connection
   end
 

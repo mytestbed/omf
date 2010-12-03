@@ -8,6 +8,8 @@
   :server: "norbit.npc.nicta.com.au"
   :user: "aggmgr"
   :password: "123"
+  :port: 5222
+  :use_dnssrv: false
 
 :http:
   :port: 5053
