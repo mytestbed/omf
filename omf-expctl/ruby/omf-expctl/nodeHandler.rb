@@ -584,6 +584,7 @@ class NodeHandler < MObject
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
     comm[:comms_name] = comm[:expID] = Experiment.ID
+    comm[:config][:xmpp][:pubsub_max_retries] = 1
     ECCommunicator.instance.init(comm)
 
     setupServiceCalls()

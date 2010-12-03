@@ -62,6 +62,7 @@ class OMFPubSubTransport < MObject
             "parameter!" if !@@psGateway
     @@psPort = opts[:config][:xmpp][:pubsub_port]
     @@useDnsSrv = opts[:config][:xmpp][:pubsub_use_dnssrv]
+    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries]
     
     # Check if we are using message authentication  
     kl = nil
@@ -85,7 +86,7 @@ class OMFPubSubTransport < MObject
     # Open a connection to the Gateway PubSub Server
     begin
       debug "Connecting to PubSub Gateway '#{@@psGateway}' as user '#{user}'"
-      @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway, @@psPort, @@useDnsSrv)
+      @@xmppServices = OmfXMPPServices.new(user, pwd, @@psGateway, @@psPort, @@useDnsSrv, @@max_retries)
     rescue Exception => ex
       raise "Failed to connect to Gateway PubSub Server '#{@@psGateway}' - "+
             "Error: '#{ex}'"
