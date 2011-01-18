@@ -8,5 +8,5 @@ opts = {
     :def_enabled => false, 
     :view_dir => File.dirname(__FILE__),      
 }
-Web.registerService Web::Code, opts
+OMF::Common::Web.registerService OMF::Common::Web::Code, opts
 

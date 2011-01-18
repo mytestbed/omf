@@ -7,4 +7,4 @@ opts = {
     :def_enabled => true, 
     :view_dir => File.dirname(__FILE__)
 }
-Web.registerService Web::Graph3, opts
+OMF::Common::Web.registerService OMF::Common::Web::Graph3, opts

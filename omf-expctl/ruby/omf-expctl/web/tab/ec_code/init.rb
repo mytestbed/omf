@@ -19,5 +19,5 @@ opts = {
           end
       
 }
-Web.registerService Web::Code, opts
+OMF::Common::Web.registerService OMF::Common::Web::Code, opts
 

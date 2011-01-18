@@ -8,4 +8,4 @@ opts = {
     :def_enabled => false, 
     :view_dir => File.dirname(__FILE__)
 }
-Web.registerService Web::GMap, opts
+OMF::Common::Web.registerService OMF::Common::Web::GMap, opts
