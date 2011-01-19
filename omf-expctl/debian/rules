@@ -48,7 +48,7 @@ install: build
 	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	tar -C ruby -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	cp ruby/omf-expctl.rb debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	svn info | grep Revision | cut -d ' ' -f 2 > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-expctl/REVISION
+	git rev-parse --short HEAD > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-expctl/REVISION
 	tar -C etc -cf - --exclude='.svn' omf-expctl | tar -xf - -C debian/$(PKG_NAME)/etc/
 	tar -cf - --exclude='.svn' bin | tar -xf - -C debian/$(PKG_NAME)/usr
 	tar -C share -cf - --exclude='.svn' repository | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
