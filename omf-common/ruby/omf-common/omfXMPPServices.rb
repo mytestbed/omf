@@ -427,6 +427,10 @@ class OmfXMPPServices < MObject
               "on domain '#{domain}'"
         return false
       end
+      if ("#{ex}"=="unexpected-request: ")
+        #debug "leave_pubsub_node - Unsubscribing from node '#{node}' failed as there was no subscription."
+        return true
+      end
       raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
             "on domain '#{domain}' - Error: '#{ex}'"
     end
