@@ -411,6 +411,9 @@ class OmfXMPPServices < MObject
               "on domain '#{domain}'"
         return false
       end
+      if ("#{ex}"=="unexpected-request: ")
+        return true
+      end
       raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
             "on domain '#{domain}' - Error: '#{ex}'"
     end
