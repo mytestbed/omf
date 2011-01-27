@@ -299,7 +299,21 @@ class AbstractDaemon < MObject
     }
     # Create thread which waits for application to exit
     Thread.new(@pid) {|pid|
-      ret = Process.waitpid2(-pid)
+      # try to attach to the process, repeat 4 times
+      # sometimes it takes a few seconds before we can attach to a process
+      retries = 4
+      begin
+        ret = Process.waitpid2(-pid)
+      rescue
+        if (retries -= 1) > 0
+          sleep 1
+          retry
+        else
+          error "Child exit status collection thread failed to wait for the process with 
+PGID #{pid}. After its termination, it will remain in the process list as a zombie."
+          ret = []
+        end
+      end
       status = ret[1]
       # app finished
       if ! status.success? && @running
