@@ -57,7 +57,7 @@ module OMF
 
   module Services
     def Services.method_missing(m, *args)
-      service = ServiceCall::Dispatch.instance.lookup_service(m)
+      service = ServiceCall::Dispatch.instance.lookup_service(m, *args)
       raise "Couldn't find a provider for service '#{m}' in OMF::Services module" if service.nil?
       service
     end
@@ -88,6 +88,7 @@ module OMF
       include Singleton
 
       @domains = Array.new
+      @domains_hash = Hash.new
       @services = Hash.new
       @address_maps = Array.new
 
@@ -115,6 +116,7 @@ module OMF
       # [domainspec] :: Hash
       def add_domain(domainspec)
         @domains = @domains || []
+        @domains_hash = @domains_hash || Hash.new
         type = domainspec[:type]
         uri = domainspec[:uri]
         raise "ServiceCall domainspec must have a :type (e.g. :http, :xmpp)" if type.nil?
@@ -126,6 +128,7 @@ module OMF
               else raise "Unknown ServiceCall domain type '#{type}'"
               end
         @domains << dom
+        @domains_hash[uri] = dom
         dom
       end
 
@@ -137,28 +140,55 @@ module OMF
       end
 
       # [name] :: String
-      def lookup_service(name)
+      def lookup_service(name, *args)
+        dom = nil
+        if not args.empty?
+          dom = args[0]
+        end
         @services = @services || Hash.new
-        service = @services[name]
-        if service.nil?
-          service = find_service(name)
-          @services[name] = service
+        service = nil
+        if dom.nil?
+          service = @services[name]
+          if service.nil?
+            service = find_service(name)
+            @services[name] = service
+          end
+        else
+          service = find_service(name, dom)
+          @services[name] = @services[name] || service
         end
         service
       end
 
       # [name] ::String
-      def find_service(name)
+      def find_service(name, domain = nil)
         if not @domains.nil?
-          @domains.each do |dom|
-            list = get_service_list(dom)
-            if (not list.nil?) and list.include?(name.to_s)
-              return Service.new(name, new_service_proc(dom, Uri.new(name)))
+          if domain.nil?
+            @domains.each do |dom|
+              list = get_service_list(dom)
+              if (not list.nil?) and list.include?(name.to_s)
+                return Service.new(name, new_service_proc(dom, Uri.new(name)))
+              else
+                p list
+                puts "get_service_list() return problem"
+              end
+            end
+          else
+            dom = @domains_hash[domain]
+            if not dom.nil?
+              list = get_service_list(dom)
+              if (not list.nil?) and list.include?(name.to_s)
+                return Service.new(name, new_service_proc(dom, Uri.new(name)))
+              else
+                raise NoService, "Service '#{name}' not offered on #{domain} -- can't make service call"
+              end
+            else
+              raise NoService, "No ServiceCall domain registered for '#{domain}' -- can't make service call"
             end
           end
           nil
         else
-          raise OMF::ServiceCall::NoService, "No ServiceCall domains registered -- can't make service calls!"
+          raise NoService, "No ServiceCall domains registered -- can't make service calls!"
         end
       end
 
@@ -166,7 +196,6 @@ module OMF
       def get_service_list(domain)
         begin
           xml = domain.call(address_maps, Uri.new)
-          p xml.to_s
           xml.elements.collect("serviceGroups/serviceGroup") { |e| e.attributes["name"] }
         rescue ServiceCallException => e
           error "Trying to get service list from domain '#{domain}':  #{e.message}"
