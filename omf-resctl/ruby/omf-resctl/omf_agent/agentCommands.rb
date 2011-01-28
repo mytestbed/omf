@@ -69,6 +69,9 @@ module AgentCommands
     'net/e1' => EthernetDevice.new('net/e1', 'eth1'),
     #'net/w2' => AironetDevice.new('net/w2', 'eth2')
   }
+  
+  SHRINKPART = "/usr/sbin/shrinkpart.sh"
+  GROWPART = "/usr/sbin/growpart.sh"
 
   # 
   # Return the Application ID for the OML Proxy Collection Server
@@ -486,6 +489,15 @@ module AgentCommands
     cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
     MObject.debug("AgentCommands", "Frisbee command: ", cmd)
     ExecApp.new('builtin:load_image', controller, cmd, true)
+    
+    if File.exists?(GROWPART)
+      if system("#{GROWPART} #{disk}")
+        MObject.debug("AgentCommands", "Successfully grew partition 1 of #{disk} after loading")
+      else
+        MObject.debug("AgentCommands", "Failed to grow partition 1 of #{disk} after loading")
+      end
+    end
+    
   end
 
   #
@@ -500,9 +512,26 @@ module AgentCommands
     imgPort = command.port
     disk = command.disk
     
+    if File.exists?(SHRINKPART)
+      if system("#{SHRINKPART} #{disk}")
+        MObject.debug("AgentCommands", "Successfully shrunk partition 1 of #{disk} before saving")
+      else
+        MObject.debug("AgentCommands", "Failed to shrink partition 1 of #{disk} before saving")
+      end
+    end
+    
     cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
     MObject.debug("AgentCommands", "Image save command: #{cmd}")
     ExecApp.new('builtin:save_image', controller, cmd, true)
+    
+    if File.exists?(GROWPART)
+      if system("#{GROWPART} #{disk}")
+        MObject.debug("AgentCommands", "Successfully grew partition 1 of #{disk} after saving")
+      else
+        MObject.debug("AgentCommands", "Failed to grow partition 1 of #{disk} after saving")
+      end
+    end
+    
   end
 
   def AgentCommands.NOOP(communicator, command)
