@@ -295,11 +295,15 @@ module OMF
         # Set the <result/> tag of this response message, giving it
         # the xml element as its sole child.
         #
-        # xml:: [REXML::Element]
+        # xml:: [REXML::Element or String]
         def set_result(xml)
           el = elements["result"]
           el = add_element("result") if el.nil?
-          el << xml
+          if xml.kind_of? REXML::Element
+            el << xml
+          else
+            el.add_text(xml)
+          end
         end
 
         #
