@@ -481,23 +481,15 @@ module AgentCommands
     mcAddress = command.address
     mcPort = command.port
     disk = command.disk
+    id = 'builtin:load_image'
 
     MObject.info("AgentCommands", "Image from ", mcAddress, ":", mcPort)
     ip = controller.controlIP
     raise "Could not get the IP address from the control interface. 
       Check the control_if parameter of this RC!" if ip == nil
-    cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
+    cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk} ; #{GROWPART} #{disk}"
     MObject.debug("AgentCommands", "Frisbee command: ", cmd)
     ExecApp.new('builtin:load_image', controller, cmd, true)
-    
-    if File.exists?(GROWPART)
-      if system("#{GROWPART} #{disk}")
-        MObject.debug("AgentCommands", "Successfully grew partition 1 of #{disk} after loading")
-      else
-        MObject.debug("AgentCommands", "Failed to grow partition 1 of #{disk} after loading")
-      end
-    end
-    
   end
 
   #
@@ -511,27 +503,11 @@ module AgentCommands
     imgHost = command.address
     imgPort = command.port
     disk = command.disk
+    id = 'builtin:save_image'
     
-    if File.exists?(SHRINKPART)
-      if system("#{SHRINKPART} #{disk}")
-        MObject.debug("AgentCommands", "Successfully shrunk partition 1 of #{disk} before saving")
-      else
-        MObject.debug("AgentCommands", "Failed to shrink partition 1 of #{disk} before saving")
-      end
-    end
-    
-    cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
+    cmd = "#{SHRINKPART} #{disk}; imagezip #{disk} - | nc -q 0 #{imgHost} #{imgPort} ; #{GROWPART} #{disk}"
     MObject.debug("AgentCommands", "Image save command: #{cmd}")
-    ExecApp.new('builtin:save_image', controller, cmd, true)
-    
-    if File.exists?(GROWPART)
-      if system("#{GROWPART} #{disk}")
-        MObject.debug("AgentCommands", "Successfully grew partition 1 of #{disk} after saving")
-      else
-        MObject.debug("AgentCommands", "Failed to grow partition 1 of #{disk} after saving")
-      end
-    end
-    
+    ExecApp.new(id, controller, cmd, true)
   end
 
   def AgentCommands.NOOP(communicator, command)

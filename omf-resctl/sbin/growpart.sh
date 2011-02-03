@@ -17,10 +17,13 @@ PART="$11"
 
 echo "-> Checking disk and partition sizes"
 
+# re-read partition table in case it has been changed by frisbee
+sfdisk -R $DISK
+
 CURSIZE=`sfdisk $PART -uB -s`
 TOTALSIZE=`sfdisk $DISK -uB -s`
 FIRSTBLOCK=`sfdisk $DISK -uB -l | grep $PART | awk '{ sub(/\+/,"");sub(/\-/,"");print $3 }'`
-NEWSIZE=$((TOTALSIZE-FIRSTBLOCK))
+NEWSIZE=$((TOTALSIZE-FIRSTBLOCK-1))
 
 if [ "$NEWSIZE" -le "$CURSIZE" ]; then
 	echo "-> Partition $PART already has the maximum size. Not growing it.";

@@ -57,6 +57,9 @@ $SFDISK -N1 $DISK >/dev/null <<P1
 y
 P1
 
+# re-read partition table
+sfdisk -R $DISK
+
 echo "-> Growing filesystem on $PART to partition size"
 
 resize2fs $PART
