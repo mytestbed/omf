@@ -1,0 +1,103 @@
+liblog4r-ruby (1.2-bugfix2) stable; urgency=low
+
+  * changed distribution to stable
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 07 Sep 2009 14:16:45 +1000
+
+liblog4r-ruby (1.2-bugfix1) testing; urgency=low
+
+  * fixed issue /usr/lib/ruby/1.8/log4r/logger.rb:141: warning: Object#id will
+    be deprecated; use Object#object_id
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 17 Apr 2009 20:40:41 +1000
+
+liblog4r-ruby (1.0.5-7) unstable; urgency=low
+
+  [ Lucas Nussbaum ]
+  * Use new Homepage dpkg header.
+
+  [ Vincent Fourmond ]
+  * Fix watchfile (Closes: #453605).
+  * Added Vcs* fields
+
+  [ Lucas Nussbaum ]
+  * Fixed Vcs* fields.
+  * Bumped standard-version to 3.7.3.
+
+ -- Lucas Nussbaum <lucas@lucas-nussbaum.net>  Wed, 19 Dec 2007 09:21:54 +0100
+
+liblog4r-ruby (1.0.5-6) unstable; urgency=low
+
+  * Adapated debian/control, debian/rules, and removed debian/control.in
+    to drop the Uploaders rule.
+
+ -- Paul van Tilburg <paulvt@debian.org>  Wed, 18 Apr 2007 23:11:46 +0200
+
+liblog4r-ruby (1.0.5-5) unstable; urgency=low
+
+  * Bumped standards version to 3.7.2; no changes required.
+  * debian/rules:
+      - modified the build/install system to use CDBS.  Upstream comes
+        without any build/install system, so using dh_install to copy stuff.
+      - added support for CDBS' simple-patchsys.
+  * debian/control.in:
+      moved the build-depends-indep on cdbs and debhelper to build-depends.
+  * debian/liblog4r-ruby1.8.docs:
+      removed because README is already installed by default.
+  * debian/patches:
+      + added 01_emailoutputter-postpone-smtp.patch to let the email
+        outputter open the SMTP connection only when needed (patch courtesy
+        of Marc Dequènes, closes #361349).
+      + added 02_emailoutputter-exception-reraise.patch that reraises
+        the exceptions caught by the emailoutputter so the environment
+        receives them too (closes: #361780).
+
+ -- Paul van Tilburg <paulvt@debian.org>  Wed,  4 Oct 2006 21:30:23 +0200
+
+liblog4r-ruby (1.0.5-4) unstable; urgency=low
+
+  [ Thierry Reding ]
+  * Now maintained by the Debian Ruby Extras team. (Closes: 349799)
+  * Uses the uploaders rule (build-depends on ruby-pkg-tools).
+  * Updated Standards-Version to 3.6.2, no changes.
+  * Changed Build-Depends to Build-Depends-Indep.
+
+  [ Paul van Tilburg ]
+  * Set the Maintainer field to me.  I will be mainly responsible for this
+    package.
+  * Updated the team substvar to @RUBY_EXTRAS_TEAM@ in control, update
+    the Build-Depend-Indep on ruby-pkg-tools.
+  * Added debian/watch file.
+
+ -- Paul van Tilburg <paulvt@debian.org>  Thu, 30 Mar 2006 13:51:07 +0200
+
+liblog4r-ruby (1.0.5-3) unstable; urgency=low
+
+  * Relax dependencies. (closes: 236807)
+  * sponsored by akira yamada <akira@debian.org>.
+
+ -- Mike Williams <mdub@dogbiscuit.org>  Sun, 13 Jun 2004 21:40:30 +1000
+
+liblog4r-ruby (1.0.5-2) unstable; urgency=low
+
+  * Fix lintian errors (with thanks to Akira Yamada).
+
+ -- Mike Williams <mdub@dogbiscuit.org>  Thu, 03 Jun 2004 21:48:24 +1000
+
+liblog4r-ruby (1.0.5-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Mike Williams <mdub@dogbiscuit.org>  Tue, 18 May 2004 22:11:39 +1000
+
+liblog4r-ruby (1.0.4-2) unstable; urgency=low
+
+  * Split into separate core and ruby-1.8 packages.
+
+ -- Mike Williams <mdub@dogbiscuit.org>  Mon,  8 Mar 2004 23:43:02 +1100
+
+liblog4r-ruby (1.0.4-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Mike Williams <mdub@dogbiscuit.org>  Mon,  8 Mar 2004 22:18:39 +1100
