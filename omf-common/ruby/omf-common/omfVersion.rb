@@ -51,8 +51,8 @@ module OMF
       # (Pkg script will create the REVISION file with the info from the
       # source repository, thus REVISION only exists in software installed
       # from a package. We use 'testing' when REVISION is not found)
-      revision = File.readable?("#{absPath}/REVISION") ? File.new("#{absPath}/REVISION").read().chomp("$").to_i : "testing"
-      version = "#{VERSION_MAJOR}.#{VERSION_MINOR}.#{revision}"
+      revision = File.readable?("#{absPath}/REVISION") ? File.new("#{absPath}/REVISION").read().chomp : "testing"
+      version = "#{VERSION_MAJOR}.#{VERSION_MINOR} (git #{revision})"
       return version
     end
   end
