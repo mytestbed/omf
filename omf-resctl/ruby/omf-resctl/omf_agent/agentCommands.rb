@@ -481,7 +481,6 @@ module AgentCommands
     mcAddress = command.address
     mcPort = command.port
     disk = command.disk
-    id = 'builtin:load_image'
 
     MObject.info("AgentCommands", "Image from ", mcAddress, ":", mcPort)
     ip = controller.controlIP
@@ -503,11 +502,10 @@ module AgentCommands
     imgHost = command.address
     imgPort = command.port
     disk = command.disk
-    id = 'builtin:save_image'
     
-    cmd = "#{SHRINKPART} #{disk}; imagezip #{disk} - | nc -q 0 #{imgHost} #{imgPort} ; #{GROWPART} #{disk}"
+    cmd = "#{SHRINKPART} #{disk}; imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}; #{GROWPART} #{disk}"
     MObject.debug("AgentCommands", "Image save command: #{cmd}")
-    ExecApp.new(id, controller, cmd, true)
+    ExecApp.new('builtin:save_image', controller, cmd, true)
   end
 
   def AgentCommands.NOOP(communicator, command)

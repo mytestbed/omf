@@ -3,6 +3,11 @@
 # (c) 2011 National ICT Australia
 # christoph.dwertmann@nicta.com.au
 
+# shrinks partition 1 and the file system in it to its minium size + 5%
+# this will only work on ext2/ext3 partitions
+# partition table entries 2-4 are deleted!
+# the start position of partition 1 is not touched
+
 die () {
     echo >&2 "$@"
     exit 1

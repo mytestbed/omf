@@ -15,7 +15,7 @@ saveimage:
       startPort: 9000
 
       # Time out netcat if image has not been transferred completely within TIMEOUT sec
-      timeout: 1200
+      timeout: 1800
       
       # Path to netcat binary
       ncBin: /bin/nc
