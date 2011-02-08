@@ -70,7 +70,7 @@ defEvent(:INTERRUPT, 1) do |event|
 end
 
 onEvent(:INTERRUPT) do |event|
-  MObject.info(:INTERRUPT, "\nUser-requested Interruption... Exiting Now!\n")
+  MObject.info(:INTERRUPT, "\n\nUser issued an Interruption. Stopping the experiment now! Please wait...\n")
   Experiment.done
 end
 
