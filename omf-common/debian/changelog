@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu11) lucid; urgency=low
+
+  * not displaying error message when unsubscribing fails
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 08 Feb 2011 03:03:32 +0000
+
 omf-common-5.3 (1ubuntu10) lucid; urgency=low
 
   * Bug Fixes on 5.3 
