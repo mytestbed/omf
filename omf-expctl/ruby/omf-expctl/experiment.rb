@@ -331,8 +331,10 @@ class Experiment
   end
 
   def Experiment.interrupt
-    @@is_running = false
-    TraceState.experiment(:status, "INTERRUPTED")
+    if @@is_running
+      @@is_running = false
+      TraceState.experiment(:status, "INTERRUPTED")
+    end
   end
 
   # 
@@ -341,7 +343,7 @@ class Experiment
   #
   def Experiment.close
     @@is_running = false
-    NodeHandler.exit(false)
+    NodeHandler.exit(true)
   end
   
   # Return true if experiment is on, otherwise return false
