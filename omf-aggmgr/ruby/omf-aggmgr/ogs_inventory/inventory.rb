@@ -221,6 +221,32 @@ class InventoryService < GridService
     }
     replyXML
   end
+  
+  #
+  # Implement 'getCmcIP' service using the 'service' method of AbstractService
+  #
+  s_description "Get the CMC IP address of a given resource for a given domain"
+  s_param :hrn, 'hrn', 'HRN of the resource'
+  s_param :domain, 'domain', 'testbed/domain for this given node'
+  service 'getCmcIP' do |hrn, domain|
+    # Retrieve the request parameter
+    tb = getTestbedConfig(domain, @@config)
+    # Query the inventory
+    result = nil
+    begin
+      inv = getInv(tb)
+      result = inv.getCmcIP(hrn, domain)
+    rescue Exception => ex
+      error "Inventory - getCmcIP() - Cannot connect to the Inventory Database - #{ex}"
+      result = :Error
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no CMC IP for HRN '#{hrn}' (domain: #{domain})"
+    replyXML = buildXMLReply("CMC_IP", result, msgEmpty) { |root,ip|
+      root.text = ip
+    }
+    replyXML
+  end
 
   #
   # Implement 'getHRN' service using the 'service' method of AbstractService
