@@ -122,19 +122,50 @@ class GridService < AbstractService
     begin
       doc = OMF::Services.inventory.getControlIP(hrn, domain)
     rescue Exception => e
-      MObject.error "Error trying to get control IP for resource '#{hrn}' in domain '#{domain}': #{e}"
+      MObject.error "Error trying to get control IP address for resource '#{hrn}' in domain '#{domain}': #{e}"
       raise ServiceError, e.message
     end
 
     # Parse the Reply to retrieve the control IP address
     ip = nil
     doc.root.elements.each("/CONTROL_IP") { |v|
-      ip = v.get_text.value
+      ip = v.get_text.value if !v.get_text.nil?
     }
-    # If no IP found in the reply... raise an error
-    if (ip == nil)
-      doc.root.elements.each('/ERROR') { |e|
-        MObject.error "GridService - No Control IP found for '#{hrn}' - val: #{e.get_text.value}"
+    # If no IP address found in the reply... raise an error
+    if (ip.nil?)
+      doc.root.elements.each('/CONTROL_IP/ERROR') { |e|
+        raise ServiceError, "GridService - No CMC IP address found for '#{hrn}' - Error: #{e.get_text.value}"
+      }
+    end
+    return ip
+  end
+
+  #
+  # Return the CMC IP address of a specific node on a given testbed. This
+  # method makes use of the Inventory GridService
+  #
+  # - url = URL to the Inventory GridService
+  # - name = HRN of the node to query
+  # - domain = name of the testbed to query
+  #
+  def self.getCmcIP(hrn, domain)
+    doc = nil
+    begin
+      doc = OMF::Services.inventory.getCmcIP(hrn, domain)
+    rescue Exception => e
+      MObject.error "Error trying to get CMC IP address for resource '#{hrn}' in domain '#{domain}': #{e}"
+      raise ServiceError, e.message
+    end
+
+    # Parse the Reply to retrieve the control IP address
+    ip = nil
+    doc.root.elements.each("/CMC_IP") { |v|
+      ip = v.get_text.value if !v.get_text.nil?
+    }
+    # If no IP address found in the reply... raise an error
+    if (ip.nil?)
+      doc.root.elements.each('/CMC_IP/ERROR') { |e|
+        raise ServiceError, "GridService - No CMC IP address found for '#{hrn}' - Error: #{e.get_text.value}"
       }
     end
     return ip
