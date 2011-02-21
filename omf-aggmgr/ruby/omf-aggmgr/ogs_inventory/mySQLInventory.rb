@@ -167,6 +167,58 @@ CONTROL_QS
       addr = ip
     }
     return addr
+  end  
+
+  #
+  # Query the Inventory database for the HRN of a specific node
+  # on a testbed.
+  #
+  # - hostname = hostname of the node to query
+  # - domain = name of the testbed to query (default=grid)
+  #
+  # [Return] the HRN of the node matching the query
+  #
+  def getHRN(hostname, domain = "grid")
+    qs = <<HRN_QS
+SELECT nodes.hrn
+  FROM nodes
+  LEFT JOIN locations ON nodes.location_id = locations.id
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.name='#{domain}'
+  AND nodes.hostname='#{hostname}';
+HRN_QS
+
+      addr = nil
+      runQuery(qs) { |i|
+        addr = i
+      }
+      return addr
+    end
+
+  #
+  # Query the Inventory database for the default disk of a specific node
+  # on a testbed.
+  #
+  # - hrn = hrn of the node to query
+  # - domain = name of the testbed to query (default=grid)
+  #
+  # [Return] the default disk of the node matching the query
+  #
+  def getDefaultDisk(hrn, domain = "grid")
+    qs = <<DD_QS
+SELECT nodes.disk
+  FROM nodes
+  LEFT JOIN locations ON nodes.location_id = locations.id
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.name='#{domain}'
+  AND nodes.hrn='#{hrn}';
+CONTROL_QS
+
+    addr = nil
+    runQuery(qs) { |ip|
+      addr = ip
+    }
+    return addr
   end 
   
   #
