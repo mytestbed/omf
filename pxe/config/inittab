@@ -11,7 +11,7 @@ tty4::askfirst:/bin/bash
 
 # Example of how to put a getty on a serial line (for a terminal)
 #
-::respawn:/sbin/getty -l /bin/bash -L -n ttyS0 9600 vt100
+::respawn:/sbin/getty -l /bin/bash -L -n ttyS0 115200 vt100
 
 
 # Stuff to do when restarting the init process
