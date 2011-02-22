@@ -169,6 +169,7 @@ module OMF
               nonblocking {
                 handle("conflict" => lambda { @client.auth(@password) }) {
                   @client.register(@password)
+                  @client.auth(@password)
                 }
               }
 
