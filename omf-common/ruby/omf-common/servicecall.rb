@@ -196,7 +196,15 @@ module OMF
       def get_service_list(domain)
         begin
           xml = domain.call(address_maps, Uri.new)
-          xml.elements.collect("serviceGroups/serviceGroup") { |e| e.attributes["name"] }
+          services = []
+          if xml.kind_of? REXML::Element then
+            services = xml.elements.collect("serviceGroups/serviceGroup") { |e| e.attributes["name"] }
+          elsif xml.kind_of? Array then
+            xml.each do |el|
+              services += el.elements.collect("serviceGroup") { |e| e.attributes["name"] }
+            end
+          end
+          services
         rescue ServiceCallException => e
           error "Trying to get service list from domain '#{domain}':  #{e.message}"
           return nil
@@ -255,6 +263,10 @@ module OMF
 
         def to_s
           @components.each { |c| c.to_s }.join("/")
+        end
+
+        def length
+          @components.length
         end
       end # class Uri
 
