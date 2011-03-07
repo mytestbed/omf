@@ -96,7 +96,13 @@ module OMF
         args.each do |name, value|
           message.set_arg(name, value)
         end
-        r = request_manager.make_request(message, "/OMF/system")
+
+        wait_multiple_responses = false
+        if uri.length == 0
+          wait_multiple_responses = true
+        end
+        r = request_manager.make_request(message, "/OMF/system", wait_multiple_responses)
+
         if r.kind_of? REXML::Element then
           doc = REXML::Document.new
           doc.add(r)
@@ -332,7 +338,7 @@ module OMF
         #
         # message:: [kind_of? Message]
         # node:: [String]
-        def make_request(message, node)
+        def make_request(message, node, wait_for_timeout = false)
           if not @matchers.has_key? node
             new_matcher(node)
           end
@@ -357,14 +363,24 @@ module OMF
             queue << :timeout
           }
 
-          response = queue.pop
-          if response == :timeout and queue.empty?
-            raise ServiceCall::Timeout, "Timeout waiting for ServiceCall:  #{message.to_s}"
-          elsif not queue.empty?
+          if not wait_for_timeout
             response = queue.pop
+            if response == :timeout and queue.empty?
+              raise ServiceCall::Timeout, "Timeout waiting for ServiceCall:  #{message.to_s}"
+            elsif not queue.empty?
+              response = queue.pop
+            end
+          else
+            responses = []
+            while (r = queue.pop) != :timeout
+              responses << r
+            end
+            if responses.empty?
+              raise ServiceCall::Timeout, "Timeout waiting for ServiceCall:  #{message.to_s}"
+            end
+            response = responses
           end
-
-          return response
+          response
         end
 
         #
@@ -457,7 +473,6 @@ module OMF
                 else
                   queue << response.result
                 end
-                remove(request_id)
               end
             end
           rescue Exception => e
