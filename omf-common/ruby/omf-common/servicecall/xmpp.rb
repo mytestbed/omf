@@ -97,9 +97,13 @@ module OMF
           message.set_arg(name, value)
         end
         r = request_manager.make_request(message, "/OMF/system")
-        doc = REXML::Document.new
-        doc.add(r)
-        doc
+        if r.kind_of? REXML::Element then
+          doc = REXML::Document.new
+          doc.add(r)
+          doc
+        else
+          r
+        end
       end
 
       def XMPP.new_message_id
@@ -445,8 +449,11 @@ module OMF
                 result = response.result
                 if status != "OK"
                   warn "Service call response error: #{status}"
+                  remove(request_id)
+                  raise status
                 elsif result.nil?
-                  warn "Service call returned OK but no result body was found"
+#                  warn "Service call returned OK but no result body was found"
+                  queue << ""
                 else
                   queue << response.result
                 end
