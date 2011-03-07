@@ -169,8 +169,7 @@ module OMF
               if (not list.nil?) and list.include?(name.to_s)
                 return Service.new(name, new_service_proc(dom, Uri.new(name)))
               else
-                p list
-                puts "get_service_list() return problem"
+                error "get_service_list() returned something strange: #{list}"
               end
             end
           else
