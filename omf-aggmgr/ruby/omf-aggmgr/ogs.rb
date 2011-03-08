@@ -102,6 +102,9 @@ def register(service,configFileName)
   if serviceClass.respond_to?(:mount) then
     MObject.debug(:gridservices, "Mounting legacy service #{serviceClass}")
     serviceClass.mount(ServiceMounter.server(:http).server, path)
+    # Make sure legacy HTTP services get reported in the service summary XML document
+    # (see AggmgrServer#all_services_summary)
+    ServiceMounter.aggmgr_server(:http).register_legacy_service_class(serviceClass)
   else
     MObject.debug(:gridservices, "Mounting service #{serviceClass}")
     ServiceMounter.mount(serviceClass)
@@ -143,7 +146,7 @@ def run(params)
 
   services = find_services(params, serviceDir)
   loadServices(services)
-  
+
   @stopping = false
   ["INT", "TERM"].each { |sig|
     trap(sig) {
@@ -174,7 +177,7 @@ end
 # load. Each dictinary contains three keys, :name, :require, config,
 # with the first one being the name of the service, followed by the
 # file to load (require) to load the code for this service and the
-# third one being the yaml file holding the service's configuration. 
+# third one being the yaml file holding the service's configuration.
 #
 # There are two ways to discover services. One is from the list
 # of services stored in param[:services] and the other one is
@@ -193,7 +196,7 @@ def find_services(params, serviceDir)
   else
     MObject.debug('gridservices', "Loading all available services from #{serviceDir}")
     Dir.foreach(serviceDir)  do |filename|
-      if (filename =~ /\.yaml$/) then   
+      if (filename =~ /\.yaml$/) then
         s = {}
         s[:name] = name = filename.split('.')[0]
         s[:require] = "omf-aggmgr/ogs_#{name}/#{name}"
@@ -207,7 +210,7 @@ end
 
 def loadServices(services)
   services.each do |s|
-    name = s[:name]  
+    name = s[:name]
     MObject.info(:gridservices, "Loading #{name} service module")
     file = s[:require]
     begin
