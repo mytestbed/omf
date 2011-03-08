@@ -100,6 +100,9 @@ def register(service,configFileName)
   if serviceClass.respond_to?(:mount) then
     MObject.debug(:gridservices, "Mounting legacy service #{serviceClass}")
     serviceClass.mount(ServiceMounter.server(:http), path)
+    # Make sure legacy HTTP services get reported in the service summary XML document
+    # (see AggmgrServer#all_services_summary)
+    ServiceMounter.aggmgr_server(:http).register_legacy_service_class(serviceClass)
   else
     MObject.debug(:gridservices, "Mounting service #{serviceClass}")
     ServiceMounter.mount(serviceClass)

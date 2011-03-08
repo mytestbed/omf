@@ -238,6 +238,9 @@ class HttpAggmgrServer < AggmgrServer
     @mounted_services[service_name] = service_class
   end
 
+  def register_legacy_service_class(service_class)
+    @mounted_services[service_class.serviceName] = service_class
+  end
 end
 
 class XmppAggmgrServer < AggmgrServer
