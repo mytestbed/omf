@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu12) lucid; urgency=low
+
+  * fixed AM XMPP issues (#361, #490, #439, #436)
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 09 Mar 2011 13:55:20 +1100
+
 omf-common-5.3 (1ubuntu11) lucid; urgency=low
 
   * not displaying error message when unsubscribing fails

@@ -1,3 +1,9 @@
+omf-expctl-5.3 (1ubuntu14) lucid; urgency=low
+
+  * fixed an issue with the EC not quitting on CTRL-C
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 10 Mar 2011 13:06:43 +1100
+
 omf-expctl-5.3 (1ubuntu13) lucid; urgency=low
 
   * better support for multiple application instances

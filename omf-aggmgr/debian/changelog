@@ -1,3 +1,9 @@
+omf-aggmgr-5.3 (1ubuntu11) lucid; urgency=low
+
+  * fixed AM XMPP issues (#361, #490, #439, #436)
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 09 Mar 2011 13:58:35 +1100
+
 omf-aggmgr-5.3 (1ubuntu10) lucid; urgency=low
 
   * Fixed Frisbee Service to support multiple load for same image on same testbed 
