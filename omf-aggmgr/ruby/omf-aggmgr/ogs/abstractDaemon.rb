@@ -52,6 +52,8 @@ class AbstractDaemon < MObject
   @@inst = Hash.new
   @@globalConfig = Hash.new
 
+  attr_reader :name, :pid
+
   #
   # Configure this Daemon instance through a hash of options
   #
@@ -119,6 +121,16 @@ class AbstractDaemon < MObject
   #
   def self.all
     return @@inst[self].nil? ? [] : @@inst[self].values
+  end
+
+  #
+  # Return the instances of all Daemons used by all Services,
+  # as a list of instances of subclasses of AbstractDaemon.
+  #
+  # [Return] a list of instances of AbstractDaemon subclasses.
+  #
+  def self.all_classes_instances
+    return @@inst.values.collect { |i| i.values }.flatten
   end
 
   #

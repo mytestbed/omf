@@ -152,6 +152,9 @@ def run(params)
     trap(sig) {
       if not @stopping then
         ServiceMounter.stop_services
+        AbstractDaemon.all_classes_instances.each do |inst|
+          inst.stop
+        end
         @stopping = true
       end
     }
