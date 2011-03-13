@@ -49,6 +49,7 @@ require 'yaml'
 require 'optparse'
 #####
 require 'omf-aggmgr/ogs/serviceMounter'
+require 'omf-aggmgr/ogs/abstractDaemon'
 
 #Jabber::debug = true
 
