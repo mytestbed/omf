@@ -359,6 +359,7 @@ class NodeAgent < MObject
     end
     # substitute hostname or mac addr, if required
     @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
+    @config[:agent][:name].gsub!(/%fqdn%/, `/bin/hostname --fqdn`.chomp)
     @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.chomp)
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
