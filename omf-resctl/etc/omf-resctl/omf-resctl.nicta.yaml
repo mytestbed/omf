@@ -49,11 +49,12 @@
     # Or this could also be passed as a command line parameter "--name"
     # This is either a fully defined string, e.g. "my_resource_name"
     # Or a string for which some values will be replaced by the running RC, 
-    # currently we support the values: %hostname% %macaddr%
+    # currently we support the values: %hostname%, %macaddr%, %fqdn%
     # For example, if you use "some_prefix.%hostname%.some_suffix"
     # Then if your hostname is 'node1', then your RC name will be
     # 'some_prefix.node1.some_suffix'
     # %macaddr% is replaced with the MAC address of the control interface
+    # %fqdn% is the fully qualified hostname (incl. domain part)
     :name: 'omf.nicta.%hostname%'
 
     # Name (i.e. unique HRN ID) of the slice to which this resource is assigned
