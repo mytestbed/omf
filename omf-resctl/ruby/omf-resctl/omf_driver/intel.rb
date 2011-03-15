@@ -55,18 +55,18 @@ class IntelDevice < WirelessDevice
     case prop
       when 'type'
         # 'value' defines type of operation
-        p = case
+        type = case
           when value == 'a' : 1
           when value == 'b' : 2
           when value == 'g' : 3
           else
             raise "Unknown type. Should be 'a', 'b', or 'g'."
         end
-        return "iwpriv #{@deviceName} set_mode #{p}"
+        return "iwpriv #{@deviceName} set_mode #{type}"
 
       when "mode"
         # 'value' defines mode of operation
-        p = case
+        mode = case
           when value == 'Managed' : 'managed'
           when value == 'managed' : 'managed'
           when value == 'Master' : 'master'
@@ -77,7 +77,7 @@ class IntelDevice < WirelessDevice
           else
             raise "Unknown mode '#{value}'. Should be 'managed', or 'ad-hoc'."
         end
-        return "/sbin/iwconfig #{@deviceName} mode #{value} essid dummy channel 1"
+        return "/sbin/iwconfig #{@deviceName} mode #{mode} essid dummy channel 1"
 
       when "essid"
         @essid = value
