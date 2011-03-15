@@ -1,3 +1,15 @@
+omf-resctl-5.3 (1ubuntu13-PuertoRico) lucid; urgency=low
+
+  * fixed case statements in RC wireless drivers
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 16 Mar 2011 04:45:58 +1100
+
+omf-resctl-5.3 (1ubuntu12) lucid; urgency=low
+
+  * added support for fqdn placeholder
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 15 Mar 2011 11:58:00 +1100
+
 omf-resctl-5.3 (1ubuntu11) lucid; urgency=low
 
   * Bug fixes on 5.3 

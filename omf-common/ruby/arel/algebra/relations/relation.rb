@@ -1,4 +1,4 @@
-require "activesupport"
+require "active_support"
 
 module Arel
   class Relation
