@@ -82,7 +82,7 @@ class AironetDevice < WirelessDevice
 
       when "bitrate"
         r = value.to_i
-        p = case
+        br = case
           when r == 1 : 2
           when r == 2 : 4
           when r == 5.5 : 11
@@ -90,7 +90,7 @@ class AironetDevice < WirelessDevice
           else
             raise "Unknown bitrate #{value}. Valid rates are 1, 2, 5.5, and 11."
         end
-        return "echo 'DataRates: #{value} 0 0 0 0' >> /proc/driver/aironet/#{@deviceName}/Config"
+        return "echo 'DataRates: #{br} 0 0 0 0' >> /proc/driver/aironet/#{@deviceName}/Config"
 
       when "frag_threshold"
         # 'value' is number of bytes after which payload is fragmented

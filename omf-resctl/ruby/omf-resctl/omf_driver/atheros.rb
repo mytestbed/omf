@@ -83,17 +83,17 @@ class AtherosDevice < WirelessDevice
     case prop
       when 'type'
         # 'value' defines type of operation
-        p = case
+        type = case
           when value == 'a' : 1
           when value == 'b' : 2
           when value == 'g' : 3
           else
             raise "Unknown type. Should be 'a', 'b', or 'g'."
         end
-        return "#{@iwpriv} #{@deviceName} mode #{p}"
+        return "#{@iwpriv} #{@deviceName} mode #{type}"
 
       when "mode"
-        p = case
+        mode = case
           when value == 'master' : 'ap'
           when value == 'Master' : 'ap'
           when value == 'managed' : 'sta'
@@ -127,10 +127,10 @@ class AtherosDevice < WirelessDevice
         if (@toolVersion < DEFAULT_WIFI_TOOL_VERSION)
           # Backward compatibility: NodeAgent will run with previous MADWIFI 
 	  # drivers
-          return "#{@iwconfig} #{@deviceName} mode #{value}"
+          return "#{@iwconfig} #{@deviceName} mode #{mode}"
         else
           return "#{@wlanconfig} #{@deviceName} destroy ; #{@wlanconfig} "+
-                 "#{@deviceName} create wlandev #{baseDevice} wlanmode #{p}"
+                 "#{@deviceName} create wlandev #{baseDevice} wlanmode #{mode}"
         end
 
       when "essid"
