@@ -124,7 +124,6 @@ def run(params)
     exit -1
   end
   $: << "#{params[:configDir]}/lib"
-  MObject.debug(:gridservices, "Library path: #{$:.join(':')}")
 
   if (! loadConfig(params))
     exit -1
