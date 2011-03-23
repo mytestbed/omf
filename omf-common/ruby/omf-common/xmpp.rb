@@ -102,6 +102,8 @@ module OMF
       @use_dnssrv = false
       @keep_alive_queue = nil
       @keep_alive_thread = nil
+      @connect_cbs = nil
+      @disconnect_cbs = nil
 
       attr_reader :client, :gateway, :user
 
@@ -134,6 +136,8 @@ module OMF
           @client = client
           @connected = true # Assume we're already connected
         end
+        @connect_cbs = Array.new
+        @disconnect_cbs = Array.new
       end
 
       def connected?
@@ -176,6 +180,7 @@ module OMF
               nonblocking { @client.send(Jabber::Presence.new) }
               @connected = true
             }
+            @connect_cbs.each { |cb| cb.call }
           rescue Exception => e
             @client.close
             @connected = false
@@ -186,6 +191,8 @@ module OMF
 
       def close
         return if not @own_client # Don't allow closing the client stream if we don't own it.
+        @disconnect_cbs.each { |cb| cb.call }
+
         @mutex.synchronize {
           clean_exceptions { nonblocking { @client.close } }
           @keep_alive_thread.wakeup if not @keep_alive_thread.nil?
@@ -254,8 +261,17 @@ module OMF
         }.join
         @connected = false
         @do_keep_alive = false
+        @disconnect_cbs.each { |cb| cb.call }
         return false
       end # keep_alive
+
+      def on_connect(&block)
+        @connect_cbs << block
+      end
+
+      def on_disconnect(&block)
+        @disconnect_cbs << block
+      end
     end # class Connection
 
     module PubSub
