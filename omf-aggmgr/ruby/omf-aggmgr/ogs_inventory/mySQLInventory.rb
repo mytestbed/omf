@@ -257,13 +257,17 @@ PXEIMAGE_QS
   #
   # [Return] a Set with the names of all the resources
   #
-  def getAllResources(domain = "grid")
-  qs = <<ALLRESOURCES_QS
+  def getAllResources(domain = "*")
+    where_clause = ""
+    if domain != "*" then
+      where_clause = "WHERE testbeds.name='#{domain}'"
+    end
+    qs = <<ALLRESOURCES_QS
 SELECT nodes.hrn
-  FROM nodes 
+  FROM nodes
   LEFT JOIN locations ON nodes.location_id = locations.id
   LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
-WHERE testbeds.name='#{domain}';
+#{where_clause};
 ALLRESOURCES_QS
 
     resources = Set.new
