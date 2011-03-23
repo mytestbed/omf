@@ -106,6 +106,7 @@ class AggmgrServer < MObject
   # Returns: REXML::Document
   #
   def all_services_summary
+    debug "Building service summary"
     doc = REXML::Document.new
     root = doc.add(REXML::Element.new("serviceGroups"))
     @mounted_services.each do |path, service_class|
