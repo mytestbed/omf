@@ -142,6 +142,36 @@ def run(params)
     xmpp_params[:connection] = xmpp_connection
   end
 
+  if not xmpp_connection.nil?
+    MObject.info :xmpp_connection, "Connecting to XMPP PubSub server '#{xmpp_params[:server]}' with user '#{xmpp_params[:user]}'"
+    begin
+      xmpp_connection.connect
+    rescue Exception => e
+      MObject.warn :xmpp_connection, "Connection to XMPP PubSub server failed; attempting to reconnect in the background"
+    end
+    Thread.new {
+      first = true
+      while true
+        if xmpp_connection.connected?
+          xmpp_connection.keep_alive
+        else
+          begin
+            xmpp_connection.connect
+            if first
+              MObject.debug :xmpp_connection, "XMPP server connection established OK"
+              first = false
+            else
+              MObject.debug :xmpp_connection, "Re-connected to XMPP server OK"
+            end
+          rescue Exception => e
+            MObject.debug :xmpp_connection, "Failed Trying to re-connect to XMPP server: #{e.class}"
+          end
+          sleep 3
+        end
+      end
+    }
+  end
+
   ServiceMounter.init(params)
 
   services = find_services(params, serviceDir)
@@ -151,16 +181,18 @@ def run(params)
   ["INT", "TERM"].each { |sig|
     trap(sig) {
       if not @stopping then
+        @stopping = true
         ServiceMounter.stop_services
+        MObject.info :gridservices, "Shutting down daemons"
         AbstractDaemon.all_classes_instances.each do |inst|
           inst.stop
         end
-        @stopping = true
       end
     }
   }
   Thread.new {
     if xmpp_params
+      MObject.debug :gridservices, "Setting up service call framework "
       OMF::ServiceCall::XMPP.sender_id = "aggmgr"
       OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
       begin
@@ -174,6 +206,11 @@ def run(params)
     end
     ServiceMounter.start_services
   }.join
+
+  if not xmpp_connection.nil?
+    MObject.info :gridservices, "Closing XMPP server connection"
+    xmpp_connection.close
+  end
 end
 
 # Return a an array of dictionaries each one describing a service to

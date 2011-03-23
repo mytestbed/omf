@@ -192,7 +192,7 @@ class HttpAggmgrServer < AggmgrServer
   end
 
   def stop
-    debug "Shutting down HTTP server"
+    info "Shutting down HTTP server"
     @server.shutdown
     @stopped = true
   end
@@ -267,7 +267,8 @@ class XmppAggmgrServer < AggmgrServer
     @connection = xmpp_params[:connection]
 
     @services = Hash.new
-    @listeners = Array.new
+    @listeners = Hash.new
+    @dispatcher_threads = Array.new
     @domains = Hash.new
   end
 
@@ -276,12 +277,13 @@ class XmppAggmgrServer < AggmgrServer
   # domain:: [OMF::XMPP::PubSub::Domain]
   # node:: [String]
   def make_dispatcher(domain, node)
-    debug "Creating dispatcher for node #{node} on domain #{domain.name}"
+    debug "Creating dispatcher on '#{domain.name}' for '#{node}'"
     listener = domain.listen_to_node(node)
 
-    @listeners << listener
+    @listeners[domain] = @listeners[domain] || []
+    @listeners[domain] << listener
 
-    Thread.new {
+    @dispatcher_threads << Thread.new {
       begin
         while msg = listener.queue.pop
           if msg == :stop
@@ -381,53 +383,54 @@ class XmppAggmgrServer < AggmgrServer
         warn "Received an exception in dispatcher loop for node #{node}: #{e.message}\n#{e.backtrace}"
         retry
       end
-      info "Shutting down XMPP PubSub dispatcher for node '#{node}' on domain '#{domain.name}'"
+      info "Shutting down XMPP dispatcher on '#{domain.name}' node '#{node}'"
       domain.unlisten(listener)
     }
   end
 
-  def start
-    info "Starting XMPP server: #{@server}"
-    begin
-      info "Connecting to XMPP PubSub server '#{@server}' with user '#{@user}'"
-      @connection.connect
-      info "...connected"
-
-      # We need to talk to at least one pubsub domain -- use the local
-      # gateway as the default domain.  In future, we'll need to talk to
-      # multiple domains, but the architecture isn't settled yet, so we
-      # leave it at just the local domain for the moment.
-      @domains[@server] = OMF::XMPP::PubSub::Domain.new(@connection, @server)
-      @domains.each_value do |domain|
-        # Get existing subscriptions from the server, unsubscribing
-        # from duplicates (to cleanup from crashes, etc.).
-        domain.request_subscriptions(nil, true)
-        # Only add the system node to start with.
-        begin
+  def setup_dispatchers
+    # We need to talk to at least one pubsub domain -- use the local
+    # gateway as the default domain.  In future, we'll need to talk to
+    # multiple domains, but the architecture isn't settled yet, so we
+    # leave it at just the local domain for the moment.
+    @domains[@server] = OMF::XMPP::PubSub::Domain.new(@connection, @server)
+    @domains.each_value do |domain|
+      # Get existing subscriptions from the server, unsubscribing
+      # from duplicates (to cleanup from crashes, etc.).
+      domain.request_subscriptions(nil, true)
+      # Only add the system node to start with.
+      begin
+        make_dispatcher(domain, "/OMF/system")
+        make_dispatcher(domain, "/OMF/default_slice")
+      rescue Exception => e
+        puts "'#{e.message}'"
+        if e.message == "item-not-found: " then
+          domain.create_node("/OMF/system")
           make_dispatcher(domain, "/OMF/system")
-        rescue Exception => e
-          puts "'#{e.message}'"
-          if e.message == "item-not-found: " then
-            domain.create_node("/OMF/system")
-            make_dispatcher(domain, "/OMF/system")
-          end
         end
       end
+    end
+  end
 
-      Thread.new {
-        while true
-          if @connection.connected?
-            @connection.keep_alive
-          else
-            debug "Trying to re-connect to XMPP server"
-            begin
-              @connection.connect
-            rescue Exception => e
-            end
-            sleep 3
-          end
-        end
-      }
+  def teardown_dispatchers
+    @domains.each_value do |domain|
+      @listeners[domain].each do |listener|
+        listener.queue << :stop
+        domain.unlisten(listener)
+      end if @listeners[domain]
+    end
+    info "Waiting for XMPP dispatcher threads to finish..."
+    @dispatcher_threads.each { |t| t.join }
+    info "...all XMPP dispatcher threads finished"
+  end
+
+  def start
+    first = true
+    info "Starting XMPP request server: #{@server}"
+    @connection.on_connect { setup_dispatchers }
+    @connection.on_disconnect { teardown_dispatchers }
+    setup_dispatchers
+    begin
     rescue Exception => e
       error "While starting XMPP connections: #{e.message}"
     end
@@ -435,16 +438,9 @@ class XmppAggmgrServer < AggmgrServer
   end
 
   def stop
-    info "Shutting down XMPP connection"
+    info "Shutting down XMPP request server"
     sleep 1
-    @domains.each_value do |domain|
-      # FIXME:  listener queues should be maintained for each domain
-      @listeners.each do |listener|
-        listener.queue << :stop
-        domain.unlisten(listener)
-      end
-    end
-    @connection.close
+    teardown_dispatchers
     info "...done"
     @stopped = true
   end
