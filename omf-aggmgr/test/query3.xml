@@ -1,0 +1,17 @@
+<request xmlns="http://schema.mytestbed.net/am/result/2/" id="11998164">
+  <result>
+    <format>CSV</format>
+  </result>
+  <query>
+    <repository name="demo-run-1"/>
+    <table tname="rtt_roundtrip"/>
+    <project>
+      <arg>
+        <col name="sender" table="rtt_roundtrip"/>
+      </arg>
+      <arg>
+        <col name="roundtrip" table="rtt_roundtrip"/>
+      </arg>
+    </project>
+  </query>
+</request> 

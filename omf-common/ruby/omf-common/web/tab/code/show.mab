@@ -1,3 +1,6 @@
+
+
+ 
 div.page_header do
 	div.page_header_links do
 #    link_to 'Edit', {:action => 'edit', :id => @publication}, :class => 'admin'

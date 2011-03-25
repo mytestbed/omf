@@ -1,0 +1,18 @@
+<request id='2159767280' xmlns='http://schema.mytestbed.net/am/result/2/'>
+  <result>
+    <format>xml</format>
+  </result>
+  <query>
+    <repository name='ol_rtt'/>
+    <table tname='rtt_roundtrip'/>
+    <project>
+      <arg type='string'>oml_ts_server</arg>
+      <arg type='string'>oml_sender_id</arg>
+      <arg type='string'>addr</arg>
+      <arg type='string'>roundtrip</arg>
+    </project>
+    <skip><arg type='decimal'>0</arg></skip>
+    <take><arg type='decimal'>20</arg></take>
+  </query>
+</request>
+

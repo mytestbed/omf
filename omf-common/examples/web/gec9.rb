@@ -42,6 +42,7 @@ $DEF_OPTS = {
   :port => 4000,
   :showTabs => [:graph3, :code],
   :serviceURL => 'http://localhost:5053/result2/query',
+  :serviceURL => 'http://srv.mytestbed.net:5053/result2/query',
   :repoName => 'gpswalk-eveleigh-sample',
   :repoName => 'disconnecttest'
 }

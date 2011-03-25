@@ -4,25 +4,28 @@ require 'time'
 require 'logger'
 require 'omf-common/mobject'
 
-require 'arel'
-#require 'arel/engines/sql/relations/table'
-require 'arel/table'
+require 'sequel'
 
 module OML
-  module Arel
+  module Sequel
     module XML
       module Server
 
         class Query
           
+          
           def self.parse(xmls, repoFactory = RepositoryFactory.new, logger = Logger.new(STDOUT))
-            doc = REXML::Document.new(xmls)
-            root = doc.root
+            if xmls.kind_of? String
+              doc = REXML::Document.new(xmls)
+              root = doc.root
+            else
+              root = xmls
+            end
             unless root.name == 'query'
               raise "XML fragment needs to start with 'query' but does start with '#{root.name}"
             end
             q = self.new(root, repoFactory, logger)
-            #q.relation
+            q.relation
           end
           
           def initialize(queryEl, repoFactory, logger)
@@ -31,10 +34,14 @@ module OML
             @logger = logger || Logger.new(STDOUT)
             @tables = {}
             @lastRel = nil
-            @sel_mgr = nil
+            @offset = 0
+            @limit = 0
             queryEl.children.each do |el|
               @lastRel = parse_el(el, @lastRel)
-            end            
+            end
+            if @limit > 0
+              @lastRel = @lastRel.limit(@limit, @offset)
+            end
           end
           
           def each(&block)
@@ -72,25 +79,26 @@ module OML
             if lastRel.nil?
               case name
               when /repository/
-                lastRel = parse_repository(el)
+                lastRel = repo = parse_repository(el)
+                @tables = repo.tables
                 @logger.debug "Created repository: #{lastRel}"
-              when /col/
-                lastRel = parse_column(el)
               else
-                raise "Need to start with 'table', or 'col' declaration, but does with '#{name}'"
+                raise "Need to start with 'table' declaration, but does with '#{name}'"
               end
             elsif name == 'table'
-              #lastRel = @repository.table_from_xml(el)
-              table = @repository.table_from_xml(el)
-              SelectManager.new(@engine, table)
+              lastRel = parse_table(el)
             elsif name == 'project'
               # turn all arguments into proper columns
-              cols = convert_to_cols(args)
-              lastRel = lastRel.project(*cols)              
-            elsif lastRel.kind_of?(::Arel::Table) && name  == 'as'
-              # keep track of all created tables
-              lastRel = lastRel.alias(*args)
-              @repository.add_table(args[0], lastRel)
+#              cols = convert_to_cols(args)
+              lastRel = lastRel.select(*args)              
+#            elsif lastRel.kind_of?(::Arel::Table) && name  == 'as'
+#              # keep track of all created tables
+#              lastRel = lastRel.alias(*args)
+#              @repository.add_table(args[0], lastRel)
+            elsif name == 'skip'
+              @offset = args[0].to_i
+            elsif name == 'take'
+              @limit = args[0].to_i
             else
               @logger.debug "Sending '#{name}' to #{lastRel.class}"
               lastRel = lastRel.send(name, *args)
@@ -120,13 +128,29 @@ module OML
           # Return the arguments defined in @parentEl as array
           def parse_arg(pel)
             res = nil
+            #col = nil
             pel.children.each do |el|
               if (el.kind_of? REXML::Text)
                 val = el.value
                 next if val.strip.empty? # skip text between els
                 return parse_arg_primitive(pel, val)
               else
-                res = parse_el(el, res)
+                name = el.name.downcase
+                case name
+                when /col/
+                  res = parse_column(el)
+                when /eq/
+                  if res.nil?
+                    raise "Missing 'col' definiton before 'eq'."
+                  end
+                  p = parse_args(el)
+                  unless p.length == 1
+                    raise "'eq' can only hnadle 1 argument, but is '#{p.inspect}'"
+                  end
+                  res = {res => p[0]}
+                else
+                  raise "Need to be 'col' declaration, but is '#{name}'"
+                end
               end
             end
             res
@@ -167,168 +191,122 @@ module OML
             unless colName = el.attributes['name']
               raise "Missing 'name' attribute for 'col' element"
             end
+            col = colName
             unless tblName = el.attributes['table']
               raise "Missing 'table' attribute for col '#{colName}'"
             end
-            unless table = @repository.table(tblName)
-              raise "Unknown table name '#{tblName}'"
+            unless @tables.member?(tblName.to_sym)
+              raise "Unknown table name '#{tblName}' (#{el})"
             end
-            unless col = table[colName]
-              raise "Unknown column '#{colName}'"
-            end
+            col = "#{tblName}__#{colName}"
+
             if colAlias = el.attributes['alias']
-              col = col.as(colAlias)
+              col = "#{col}___#{colAlias}"
             end
-            col
+            col.to_sym
+          end
+          
+          def parse_table(el)
+            unless name = el.attributes['tname']
+              raise "Missing 'tname' attribute for 'table' element"
+            end
+            if talias = el.attributes['talias']
+              name = "#{name}___#{talias}"
+              @tables << talias.to_sym
+            end
+            
+            @repository[name.to_sym]           
           end
           
         end # Query
         
         class RepositoryFactory
           
-          def initialize(repoClass, opts = {})
-            @repoClass = repoClass
+          def initialize(opts = {})
             @opts = opts
           end
 
           def create_from_xml(el, logger)
-            @repoClass.new(el, @opts, logger)
+            name = el ? el.attributes['name'] : nil
+            raise "<repository> is missing attribute 'name'" unless name
+            create(name, logger)
           end
 
-          def create(name, logger = Logger.new(STDOUT))
+          def create(database, logger = Logger.new(STDOUT))
             opts = @opts.dup
-            opts[:db_name] = name
-            @repoClass.new(nil, opts, logger)
+            if pre = opts[:database_prefix] 
+              database = pre + database
+              opts.delete(:database_prefix)
+            end
+            if post = opts[:database_postfix] 
+              database = database + post
+              opts.delete(:database_postfix)
+            end
+            opts[:database] = database
+            ::Sequel.connect(opts)
           end
           
         end # RepositoryFactory
         
-        class AbstractRepository < MObject
 
-          def initialize(repoEl = nil, opts = {}, logger = nil)
-            @opts = opts
-            @logger = logger || Logger.new(STDOUT)
-            @tables = {}
-            @firstTable = nil
-          end
-          
-          def table(name, aliaz = nil)
-            unless t = @tables[name] 
-              t = add_table(name, ::Arel::Table.new(name))
-            end
-            t
-          end
-          
-          # Return a table if there is only one known
-          def get_first_table()
-            @firstTable
-          end
-
-          def add_table(name, table)
-            @firstTable ||= table
-            @tables[name] = table 
-            table
-          end
-          
-          def table_from_xml(el)
-            tname = el.attributes['tname']
-            #table = @tables[tname] ||= Table(tname)
-            table = table(tname)
-            #table = Table(tname)
-            unless table #.table_exists?
-              raise "Unknown table '#{tname}'"
-            end
-            if (aliaz = el.attributes['alias'])
-              table = @tables[aliaz] ||= table.as(aliaz)
-              #table = table.as(aliaz)
-            end
-            table
-          end
-        end # AbstractRepository
-        
-        class SqliteRepository < AbstractRepository
-          def initialize(repoEl, opts, logger = nil)
-            super
-            @name = repoEl ? repoEl.attributes['name'] : opts[:db_name]
-            raise "Missing 'name' attribute for repository" unless @name
-            
-            require 'active_record'
-            ActiveRecord::Base.logger = @logger
-            db_dir = @opts[:db_dir] || @opts['db_dir'] || '.'
-            db_file = "#{db_dir}/#{@name}.sq3" # "omf-common/examples/web/test.sq3"
-            db_config = {
-                :adapter  => 'sqlite3',
-                :database => db_file,
-                :timeout  => 5000
-            }
-            debug "Connecting to database '#{db_file}'"
-            ActiveRecord::Base.establish_connection(db_config)
-            ::Arel::Table.engine = ::Arel::Sql::Engine.new(ActiveRecord::Base)
-          end
-        end # SqliteRepository
       
       end # Server
     end # XML
-  end # Arel
+  end # Sequel
 end # OML
 
-
-module Arel
-  class Table
-    def options()
-      @options || {}
-    end
-  end
-
-  class SelectManager
-    def each()
-#      puts self.inspect
-      puts self.to_sql
+module Sequel
+  class Dataset
+    CLASS2TYPE = {
+      TrueClass => 'boolean',
+      FalseClass => 'boolean',
+      String => 'string',
+      Symbol => 'string',            
+      Fixnum => 'decimal',
+      Float => 'double',
+      Time => 'dateTime'
+    }
+      
+    
+    def row_description(row)
+      n = naked
+      cols = n.columns
+      descr = {}
+      cols.collect do |cn|
+        cv = row[cn]
+        descr[cn] = CLASS2TYPE[cv.class]
+      end
+      descr
     end
   end
 end
 
 
-def test_arel_server()
-  factory = OML::Arel::XML::Server::RepositoryFactory.new(
-                OML::Arel::XML::Server::SqliteRepository, 
-                {:db_dir => 'omf-common/test'}
-            )
 
-  repo = factory.create('test')
-  t = repo.table('iperf_TCP_Info')
-  f = repo.add_table('t', t.alias('t'))
-f = t
-  sender = repo.table('_senders')
+def test_sequel_server()
 
-#  mgr = t.from f
-  mgr = ::Arel::SelectManager.new(::Arel::Table.engine, f)
-  mgr = t.project(f[:oml_sender_id].as('foo'), sender[:name]).from(sender).from(f).where(f[:oml_sender_id].eq(sender[:id]))
+  tests = []
 
-#              SelectManager.new(@engine, table)
-
-  puts mgr.to_sql
-
-exit
-
-  SqliteRepository.new()
-
-  s2 = %{
+  tests <<  %{
     <query>
       <repository name='test'/>
       <table tname='iperf_TCP_Info'/>
-      <as>
-        <arg type='string'>t</arg>
-      </as>
+      <project>
+        <arg><col name='Bandwidth_avg' table='iperf_TCP_Info'/></arg>
+      </project>
+    </query>
+  }
+
+  tests << %{
+    <query>
+      <repository name='test'/>
+      <table tname='iperf_TCP_Info' talias='t'/>
       <project>
         <arg>
           <col name='oml_sender_id' alias='foo' table='t'/>
         </arg>
         <arg>
-          <col name='oml_ts_server' table='t'/>
-          <as>
-            <arg type='string'>goo</arg>
-          </as>
+          <col name='oml_ts_server' table='t' alias='goo'/>
         </arg>
         <arg><col name='Bandwidth_avg' table='t'/></arg>
       </project>
@@ -348,62 +326,79 @@ exit
 #  accessed = mc2.where(mc2[:status].eq('Accessed')).project(:oml_ts_server, :name)
 #  q = mc.project(:name).join(accessed).on(mc[:name].eq(mc2[:name]))
   
-  s3 = %{
-  <query>
-    <repository name='prefetching_4'/>
-    <table tname='mediacontent'/>
-    <project>
-      <arg type='string'>name</arg>
-    </project>
-    <join>
-      <arg>
-        <repository name='prefetching_4'/>
-        <table tname='mediacontent' talias='mediacontent1'/>
-        <where>
-          <arg>
-            <col name='status' table='mediacontent' talias='mediacontent1'/>
-            <eq>
-              <arg type='string'>Accessed</arg>
-            </eq>
-          </arg>
-        </where>
-        <project>
-          <arg type='string'>oml_ts_server</arg>
-          <arg type='string'>name</arg>
-        </project>
-      </arg>
-    </join>
-    <on>
-      <arg>
-        <col name='name' table='mediacontent'/>
-        <eq>
-          <arg>
-            <col name='name' table='mediacontent' talias='mediacontent1'/>
-          </arg>
-        </eq>
-      </arg>
-    </on>
-  </query>
-  }
+#  tests << %{
+#    <query>
+#      <repository name='prefetching_4'/>
+#      <table tname='mediacontent'/>
+#      <project>
+#        <arg type='string'>name</arg>
+#      </project>
+#      <join>
+#        <arg>
+#          <table tname='mediacontent' talias='mediacontent1'/>
+#          <where>
+#            <arg>
+#              <col name='status' table='mediacontent' talias='mediacontent1'/>
+#              <eq>
+#                <arg type='string'>Accessed</arg>
+#              </eq>
+#            </arg>
+#          </where>
+#          <project>
+#            <arg type='string'>oml_ts_server</arg>
+#            <arg type='string'>name</arg>
+#          </project>
+#        </arg>
+#      </join>
+#      <on>
+#        <arg>
+#          <col name='name' table='mediacontent'/>
+#          <eq>
+#            <arg>
+#              <col name='name' table='mediacontent' talias='mediacontent1'/>
+#            </arg>
+#          </eq>
+#        </arg>
+#      </on>
+#    </query>
+#  }
+  
+  factory = OML::Sequel::XML::Server::RepositoryFactory.new(
+              :adapter => 'sqlite',
+              :database_prefix => '/Users/max/src/omf_mytestbed_net/omf-common/test/',
+              :database_postfix => '.sq3'
+            )
+
+  repo = factory.create('test')
+  puts repo.tables
+  
+  tests.each do |t|
+    ds = OML::Sequel::XML::Server::Query.parse(t, factory)
+    puts ds.inspect
+    puts ds.columns.inspect
+    puts ds.first.inspect
+  end
   
   first = true
   types = []
-  OML::Arel::XML::Server::Query.parse(s2, factory).relation.take(10).each do |r|
+  ds = OML::Sequel::XML::Server::Query.parse(tests[1], factory).limit(10)
+  ds.each do |r|
     if (first)
-      r.relation.attributes.each do |a| 
-        name = a.alias || a.name
-        type = a.column.sql_type
-        types << "#{name}:#{type}"
-      end
+      puts ds.row_description(r).inspect
+#      cols = ds.columns
+#      #cols.collect do |c|
+#      cols.each do |c|
+#        puts "#{c} : #{OML::Sequel::XML::Server::Query::CLASS2TYPE[r[c].class]}"
+#      end
       first = false
-      puts types.inspect
+#      puts types.inspect
     end
-    puts r.tuple.inspect
+    puts r.inspect
   end
   puts "QUERY: done"
 end
 
 if $0 == __FILE__
-  test_arel_server
+  test_sequel_server
 end
 

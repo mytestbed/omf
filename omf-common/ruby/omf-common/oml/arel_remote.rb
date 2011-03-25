@@ -274,7 +274,9 @@ module OMF
             result = req.add_element('result')
             result.add_element('format').text = 'xml'
             lastRel.to_xml(req.add_element('query'))
+            puts req.to_s
             resp = Net::HTTP.new(@url.host, @url.port).post(@url.path, req.to_s)
+            puts resp.body
             unless (ct = resp['Content-Type']) != 'text/html'
               raise "Server returns result in unknown mime type '#{ct}'"
             end
@@ -392,7 +394,7 @@ module OMF
              when :integer, :decimal
                @caster = lambda() do |v| v.to_i rescue v ? 1 : 0 end
                @type = :integer
-             when :float, :real
+             when :float, :real, :double
                @caster = lambda() do |v| v.to_f end
                @type = :float
              when :datetime, :timestamp, :time

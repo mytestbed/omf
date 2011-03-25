@@ -3,8 +3,13 @@ html do
   head do
     meta 'http-equiv' => "content-type", :content => "text/html;charset=UTF-8"
     title page_title # "OMF Portal: #{exp_id}"
+    javascript_include_tag 'require'
+    script  :type => 'text/javascript' do |s|
+      self << 'require.setNsUrl("", function(name) { return "/resource/js/" + name + ".js"; });'
+    end 
+
     javascript_include_tag :defaults
-    javascript_include_tag 'lightbox'
+#    javascript_include_tag 'lightbox'
     
 
     if (extra_includes = @helpers.instance_variable_get('@javascript_includes'))

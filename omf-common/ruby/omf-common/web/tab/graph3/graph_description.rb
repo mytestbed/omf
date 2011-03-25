@@ -13,7 +13,7 @@ module OMF
           
           DEF_VIS_TYPE = 'line_chart'
 
-          attr_reader :sessionID
+          attr_reader :sessionID, :js_uri
           
 #          def addLine(data, lopts = {})
 #            l = lopts.dup
@@ -43,15 +43,14 @@ module OMF
           # Return javascript calling the graph build function to visualise this
           # graph. Arguments to this function include the graph data and options.
           #
-          def build_js(func_name = nil)
+          def build_js(canvas = nil)
             d = data()
             gopts = (opts() || {}).dup
             gopts['session'] = @sessionID
-            unless func_name
-              func_name = func_name()
-            end
+            gopts['canvas'] = canvas if canvas
+            func_name = func_name()
             "var #{js_var_name()} = new #{func_name}(#{gopts.to_json});\n#{js_var_name()}.init(#{d.to_json});"
-	        end
+          end
           
           def js_var_name()
             "oml_#{self.hash.abs}"

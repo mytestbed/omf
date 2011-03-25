@@ -46,7 +46,7 @@ def startWebServer(opts)
   #opts[:DocumentRoot] ||= NodeHandler.WEB_ROOT()
   #opts[:AccessLog] ||= [[accLog, "%h \"%r\" %s %b"]]
   opts[:TabDir] ||= ['omf-common/web/tab']
-  opts[:ResourceDir] ||= ['omf-common/share/htdocs']
+  opts[:ResourcePath] ||= ["#{File.dirname($0)}/resources", 'omf-common/share/htdocs']
   opts[:ViewHelperClass] = ViewHelper
   opts[:StartServerThread] = false
   opts[:ShowTabs] = opts[:showTabs] || [:graph3]

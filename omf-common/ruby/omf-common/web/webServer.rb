@@ -35,6 +35,7 @@ require 'stringio'
 require 'omf-common/mobject'
 
 require 'omf-common/web/renderer'
+require 'omf-common/web/resourceHandler'
 #require 'omf-common/web/helpers'
 
 include WEBrick
@@ -61,7 +62,7 @@ module OMF
       #
       def self.start(port = 2000, args = {}, &block)
     
-
+        @@opts = args
         args[:Port] = port
         @@fileLoadFunc = args[:FileLoadFunc]
     
@@ -110,19 +111,22 @@ module OMF
           res['content-type'] = 'text/xml'
         end    
         
-        resourceDir = nil
-        (resourceDirChoices = (args[:ResourceDir] || [])).each do |dir|
-          if File.directory?(dir)
-            resourceDir = dir
-            break
-          end
-        end
-        if resourceDir
-          MObject.debug(:web, "Mounting /resource to #{resourceDir}")
-          @@server.mount("/resource", HTTPServlet::FileHandler, resourceDir, true)
-        else
-          MObject.error(:web, "Cannot find any of the resource directories '#{resourceDirChoices.join('::')}'")
-        end
+#        @@server.mount("/resource", ResourceHandler, args, true)
+        @@server.mount("/resource", ResourceHandler, args)
+
+#         resourceDir = nil
+#         (resourceDirChoices = (args[:ResourceDir] || [])).each do |dir|
+#           if File.directory?(dir)
+#             resourceDir = dir
+#             break
+#           end
+#         end
+#         if resourceDir
+#           MObject.debug(:web, "Mounting /resource to #{resourceDir}")
+#           @@server.mount("/resource", HTTPServlet::FileHandler, resourceDir, true)
+#         else
+#           MObject.error(:web, "Cannot find any of the resource directories '#{resourceDirChoices.join('::')}'")
+#         end
       
 #        Thread.new do
 #          begin
@@ -163,6 +167,7 @@ module OMF
         opts = opts.clone
         opts[:serviceClass] = serviceClass
         opts[:fileLoadFunc] = @@fileLoadFunc if @@fileLoadFunc
+        opts[:ResourcePath] = @@opts[:ResourcePath]
         @@available_services << opts
       end
       

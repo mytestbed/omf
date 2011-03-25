@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'json'
+#require 'omf-common/web/resourceHandler'
 require 'omf-common/web/tab/graph3/graph_description'
 
 module OMF
@@ -14,6 +15,11 @@ module OMF
           opts[:graphs] = @@graphs
           server.mount('/graph3/show', GraphServlet, opts)
           server.mount('/graph3/update', UpdateServlet, opts)
+
+          currDir = File.dirname(__FILE__)
+          opts[:ResourcePath].insert(0, currDir)
+          #puts ">>>>>>>>>>> #{ opts[:ResourcePath]}"
+          server.mount('/graph3/resource', ::OMF::Common::Web::ResourceHandler, opts)
           server.addTab(:graph3, "/graph3/show", 
             :name => "PV Graphs", :title => "All defined graphs", :class => self)
         end
@@ -87,13 +93,13 @@ module OMF
 #              session[:ts] = Time.now
               gd = GraphDescription.new(sessionID, gx)
               body = {:data => gd.data.to_a, :opts => gx[:gopts]}
+              puts "DATA: #{gd.inspect}"
               res.body = body.to_json
-	          else
+            else
               raise "Unknown graph" 
             end
           end
         end
-        
       end
     end
   end
