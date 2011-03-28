@@ -37,10 +37,10 @@ require "xmpp4r/pubsub/helper/servicehelper"
 require 'omf-common/mobject'
 #Jabber::debug = true
 
-GATEWAY_TIMEOUT = 10 # in sec
-RECONNECT_INTERVAL = 5 # in sec
+GATEWAY_TIMEOUT = 30 # in sec
+RECONNECT_INTERVAL = 10 # in sec
 PING_INTERVAL = 60 # in sec
-PING_THRESHOLD = 10 # in number of pings
+PING_ATTEMPTS = 10 # in number of pings
 
 #
 # This class subclasses 'Jabber::PubSub::ServiceHelper' because its 
@@ -140,7 +140,6 @@ class OmfXMPPServices < MObject
     @userJID = "#{user}@#{host}"
     @password = password
     @homeServer = host
-    @homeJID = "pubsub.#{host}"
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
     @keepAliveThread = nil
@@ -160,6 +159,9 @@ class OmfXMPPServices < MObject
       @connecting = true
     }
     debug "Try to connect to Pubsub Gateway '#{@homeServer}'..."
+    # In case "connect" was called even though we are already connected
+    # try close the connection first
+    @clientHelper.close
     # We are passing the hostname here to prevent xmpp4r from trying to resolve
     # the DNS SRV record
     begin
@@ -207,7 +209,7 @@ class OmfXMPPServices < MObject
   # Keep the connection to the PubSub server alive by sending a ping at
   # regular intervals, otherwise clients will be listed as "offline" 
   # by the PubSub server (e.g. Openfire) after a timeout
-  # if PING_THRESHOLD pings in a row fail, then try to reconnect
+  # if PING_ATTEMPTS pings in a row fail, then try to reconnect
   def keep_alive
     @keepAliveThread = Thread.new do
       while true do
@@ -220,7 +222,7 @@ class OmfXMPPServices < MObject
             # Kill this ping Thread if too many ping failures
             @pingTries += 1 if !success
             @pingTries = 0 if success
-            if @pingTries > PING_THRESHOLD 
+            if @pingTries > PING_ATTEMPTS 
               debug "Ping retry threshold reached, will try to reconnect!"
               break 
             end
@@ -242,7 +244,7 @@ class OmfXMPPServices < MObject
   # - domain = [String|Symbol] a name for this service
   # - serverID = [String] a ID for the server to interact with, following the
   #               XMPP convention we will prefix this ID with "pubsub."
-  # - &bock = the block of commands that will process any event coming from that
+  # - &block = the block of commands that will process any event coming from that
   #           XMPP server
   #
   def add_service(domain, &block)
