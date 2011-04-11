@@ -190,11 +190,12 @@ def run(params)
       end
     }
   }
+
   Thread.new {
     if xmpp_params
       MObject.debug :gridservices, "Setting up service call framework "
-      OMF::ServiceCall::XMPP.sender_id = "aggmgr"
-      OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
+      OMF::Services::XmppEndpoint.sender_id = "aggmgr"
+      OMF::Services::XmppEndpoint.connection=xmpp_connection
       begin
         OMF::ServiceCall.add_domain(:type => :xmpp,
                                     :uri => xmpp_params[:server])
