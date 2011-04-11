@@ -161,13 +161,7 @@ module OMF
 
           begin
             clean_exceptions {
-              nonblocking(:connect) {
-                if @use_dnssrv
-                  @client.connect(nil, @port)
-                else
-                  @client.connect(@gateway, @port)
-                end
-              }
+              nonblocking(:connect) {  @client.connect(@use_dnssrv ? nil : @gateway, @port) }
 
               # Register, but if the user is already registered, authenticate instead
               nonblocking {
@@ -181,7 +175,15 @@ module OMF
               @connected = true
             }
             @connect_cbs.each { |cb| cb.call }
+          rescue Jabber::ServerDisconnected => e
+            debug "XMPP server disconnected"
+            @client.close
+            @connected = false
+            @do_keep_alive = false
+            @keep_alive_thread.wakeup if not @keep_alive_thread.nil?
+            @disconnect_cbs.each { |cb| cb.call }
           rescue Exception => e
+            debug "Unknown exception in connect method: #{e}"
             @client.close
             @connected = false
             raise e
@@ -308,6 +310,8 @@ module OMF
         @mutex = nil
         @event_count = 0
 
+        @@domains = nil
+
         attr_reader :name
 
         def initialize(connection, domain)
@@ -321,6 +325,12 @@ module OMF
             @service_helper = PubSub::ServiceHelper.new(connection.client, "pubsub.#{domain}")
             @service_helper.add_event_callback { |event| process_event(event) }
           }
+          @@domains = @@domains || Hash.new
+          @@domains[domain] = self
+        end
+
+        def self.find(domain)
+          @@domains[domain] unless @@domains.nil?
         end
 
         def event_node(event)
@@ -481,7 +491,7 @@ module OMF
           @mutex.synchronize {
             unique_list.each do |sub|
               if not @subscriptions.has_key?(sub.node)
-                debug "Existing Subscription: #{sub.node}, #{sub.subid}"
+                debug "Existing Subscription:  #{sub.subid}, #{sub.node}"
                 @subscriptions[sub.node] = sub
               else
                 duplicates << sub

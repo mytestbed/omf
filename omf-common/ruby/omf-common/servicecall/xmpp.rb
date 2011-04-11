@@ -1,24 +1,161 @@
+#
+# Copyright 2010-2011 National ICT Australia (NICTA), Australia
+#
+# Copyright 2010-2011 WINLAB, Rutgers University, USA
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+
 require 'rubygems'
 require 'time'
 require 'xmpp4r'
 require 'rexml/element'
 require 'omf-common/xmpp'
-
-#Jabber::debug = true
+require 'omf-common/servicecall/endpoint'
+require 'omf-common/omfPubSubTransport'
 
 module OMF
+  module Services
+    class XmppEndpoint < Endpoint
+      register :xmpp
+
+      @@connection = nil
+      @@selector = nil
+      @@sender_id = nil
+
+      def self.connection=(connection)
+        @@connection = connection
+      end
+
+      # Borrow the connection from the "real" transport stack, if
+      # it exists This means we don't have to worry about
+      # splatting the main stack's pubsub subscriptions, etc., and
+      # we don't have to have double the traffic to the XMPP
+      # server.  It's a kludge...
+      def self.borrow_connection
+        client = OMFPubSubTransport.instance.xmpp_services.clientHelper
+        @@connection = OMF::XMPP::Connection.new("", "", "", client)
+      end
+
+      def self.sender_id=(id)
+        @@sender_id = id
+        @@sender_id
+      end
+
+      def self.pubsub_selector(&block)
+        @@selector = block
+      end
+
+      def initialize(type, uri, *args)
+        super(type, uri)
+        @message_id = 0
+        @pubsub_domain = nil
+        @request_manager = nil
+        opts = args[2] if args[2].kind_of? Hash
+        node = @@selector.call(opts) if not @@selector.nil?
+      end
+
+      def new_message_id
+        @message_id += 1
+      end
+
+      #
+      # Make sure the pubsub domain is set up, if possible.  If not possible,
+      # @pubsub_domain will be nil, e.g. no connection yet.
+      #
+      def ensure_request_manager
+        if (not @@connection.nil?) and @@connection.connected?
+          @pubsub_domain = OMF::XMPP::PubSub::Domain.find(domain)
+          if @pubsub_domain.nil?
+            @pubsub_domain = OMF::XMPP::PubSub::Domain.new(@@connection,
+                                                           domain)
+            @pubsub_domain.request_subscriptions unless @pubsub_domain.nil?
+          end
+          if @request_manager.nil?
+            @request_manager = OMF::ServiceCall::XMPP::RequestManager.new(@pubsub_domain)
+          end
+        else
+          debug "Not initializing ReqMan b/c #{@@connection}"
+          debug "--> is/is not connected? #{@@connection.connected?}" unless @@connected.nil?
+        end
+      end
+
+      def match?(type, uri, *args)
+        service = args[0]
+        method = args[1]
+        has_method?(service, method)
+      end
+
+      def send_request(service=nil, method=nil, *args)
+        ensure_request_manager
+        if @request_manager.nil?
+          raise "Unable to make service call -- not connected to XMPP server?"
+        end
+        debug "ServiceCall #{service}.#{method}"
+        # Build the message object
+        message = OMF::ServiceCall::XMPP::RequestMessage.new("sender" => @@sender_id,
+                                                             "message-id" => new_message_id.to_s,
+                                                             "service" => service,
+                                                             "method" => method)
+
+        opts = args.find { |a| a.kind_of? Hash }
+
+        pubsub_node = @@selector.call(opts) || "/OMF/system"
+
+        if args.length == 1 and args[0].kind_of? Hash
+          args[0].each_pair do |name, value|
+            message.set_arg(name.to_s, value)
+          end
+        else
+          args.each do |name, value|
+            message.set_arg(name, value)
+          end
+        end
+
+
+        wait_policy = :wait
+        if service.nil?
+          wait_policy = :multiple
+        elsif not opts.nil? and opts[:nonblocking]
+          wait_policy = :nowait
+        end
+        r = @request_manager.make_request(message, pubsub_node, wait_policy)
+
+        if r.kind_of? REXML::Element then
+          doc = REXML::Document.new
+          doc.add(r)
+          doc
+        else
+          r
+        end
+      end
+
+    end # class XmppEndpoint
+  end # module Services
+
   module ServiceCall
 
-    SERVICE_CALL_TIMEOUT = 5  # seconds
+    SERVICE_CALL_TIMEOUT = 10  # seconds
 
     module XMPP
       @@connection = nil
-      @@sender_id = nil
-      @@message_id = 0
-
-      def XMPP.sender_id=(id)
-        @@sender_id = id
-      end
 
       # Borrow the connection from the "real" transport stack, if
       # it exists This means we don't have to worry about
@@ -77,50 +214,6 @@ module OMF
           service = service || ""
           xmpp_call(request_manager, address_maps, service, *args)
         end
-      end
-
-      def XMPP.xmpp_call(request_manager, address_maps, uri, *args)
-        if @@sender_id.nil?
-          raise OMF::ServiceCall::ConfigError, "XMPP service calls need a sender ID \n(use OMF::ServiceCall::XMPP.sender_id=())"
-        end
-
-        # Work out the service name and method from the URI
-        service = uri.components[0]
-        method = uri.components[1]
-        MObject.debug "ServiceCall #{service}.#{method}"
-        # Build the message object
-        message = RequestMessage.new("sender" => @@sender_id,
-                                     "message-id" => new_message_id.to_s,
-                                     "service" => service,
-                                     "method" => method)
-
-        hashargs = Hash.new
-        args.each do |name, value|
-          message.set_arg(name, value)
-          hashargs[name] = value
-        end
-        address_maps = address_maps || []
-        pubsub_node = address_maps.collect { |m|
-          m.call(service, method, hashargs)
-        }.find { |x| not x.nil? } || "/OMF/system"
-
-        wait_multiple_responses = false
-        if uri.length == 0
-          wait_multiple_responses = true
-        end
-        r = request_manager.make_request(message, "/OMF/system", wait_multiple_responses)
-
-        if r.kind_of? REXML::Element then
-          doc = REXML::Document.new
-          doc.add(r)
-          doc
-        else
-          r
-        end
-      end
-
-      def XMPP.new_message_id
-        @@message_id += 1
       end
 
       class Message < REXML::Element
@@ -218,7 +311,7 @@ module OMF
           end
           result
         end
-     end
+     end # class Message
 
       class RequestMessage < Message
         @@name[self] = "service-request"
@@ -318,7 +411,12 @@ module OMF
         #
         def result
           if not elements["result"].nil?
-            elements["result"].elements[1]
+            r = elements["result"].elements[1]
+            if r.nil?
+              elements["result"].text
+            else
+              r
+            end
           else
             nil
           end
@@ -349,16 +447,17 @@ module OMF
         #
         # message:: [kind_of? Message]
         # node:: [String]
-        def make_request(message, node, wait_for_timeout = false)
-          if not @matchers.has_key? node
-            new_matcher(node)
-          end
-
+        def make_request(message, node, wait_policy = :wait)
           matcher = nil
           @mutex.synchronize {
+            if not @matchers.has_key? node
+              new_matcher(node)
+            end
             matcher = @matchers[node]
           }
-          queue = matcher.add(message)
+          if wait_policy != :nowait
+            queue = matcher.add(message)
+          end
 
           # FIXME:  Handle exceptions
           @domain.publish_to_node(node, message)
@@ -374,14 +473,14 @@ module OMF
             queue << :timeout
           }
 
-          if not wait_for_timeout
+          if wait_policy == :wait
             response = queue.pop
             if response == :timeout and queue.empty?
               raise ServiceCall::Timeout, "Timeout waiting for ServiceCall:  #{message.to_s}"
             elsif not queue.empty?
               response = queue.pop
             end
-          else
+          elsif wait_policy == :multiple
             responses = []
             while (r = queue.pop) != :timeout
               responses << r
@@ -391,7 +490,11 @@ module OMF
             end
             response = responses
           end
-          response
+          if wait_policy == :nowait
+            nil
+          else
+            response
+          end
         end
 
         #
@@ -403,9 +506,7 @@ module OMF
         def new_matcher(node)
           # FIXME:  Catch exceptions
           matcher = ResponseMatcher.new(node, @domain)
-          @mutex.synchronize {
-            @matchers[node] = matcher
-          }
+          @matchers[node] = matcher
         end
       end # class RequestManager
 
@@ -447,8 +548,8 @@ module OMF
           end
 
           @mutex.synchronize {
-            @outstanding[id] = nil
-            @queues[id] = nil
+            @outstanding.delete(id.to_i)
+            @queues.delete(id.to_i)
           }
         end
 
@@ -471,6 +572,8 @@ module OMF
               response = ResponseMessage.from_element(response)
               next if response.nil?
               request_id, queue = match_request(response)
+              rid = request_id.to_i
+
               if not request_id.nil?
                 status = response.status
                 result = response.result
@@ -479,7 +582,9 @@ module OMF
                   remove(request_id)
                   raise status
                 elsif result.nil?
-#                  warn "Service call returned OK but no result body was found"
+                  warn "Service call returned OK but no result body was found in:"
+                  warn response.to_s
+                  warn response.result.to_s
                   queue << ""
                 else
                   queue << response.result
@@ -503,6 +608,7 @@ module OMF
             request = @outstanding[id]
             queue = @queues[id]
           }
+
           if not request.nil? and not queue.nil? and response.response_to == request.sender
             [id, queue]
           else
@@ -513,80 +619,3 @@ module OMF
     end # module XMPP
   end # module ServiceCall
 end # module OMF
-
-def run
-
-  require 'omf-common/servicecall'
-  if false
-    domain = OMF::ServiceCall::XMPP.new_xmpp_domain(:uri => "203.143.170.124",
-                                                    :user => "abc",
-                                                    :password => "123",
-                                                    :sender_id => "ec_xyz")
-    domain.call("cmc/allStatus", ["name", "omf.nicta.node1"])
-  else
-    dom = OMF::ServiceCall.add_domain(:type => :xmpp,
-                                      :uri => "203.143.170.124",
-                                      :user => "abc",
-                                      :password => "123",
-                                      :sender_id => "ec_xyz")
-
-    if true
-      sp = OMF::ServiceCall::Dispatch.instance.new_service_proc(dom, OMF::ServiceCall::Dispatch::Uri.new("cmc"))
-
-      begin
-        result = sp.call("allStatus", ["name", "omf.nicta.node1"], ["domain", "norbit"])
-
-        puts "cmc.allStatus returned:"
-        result.elements.each("TESTBED_STATUS/detail/node") do |node|
-          puts "#{node.attributes["name"]}:\t#{node.attributes["state"]}"
-        end
-      rescue OMF::ServiceCall::Timeout => e
-        puts "Service call to 'cmc.allStatus' timed out"
-      end
-    end
-  end
-end
-
-def add_key(el, name, value)
-  el.add_element(REXML::Element.new(name).add_text(value))
-end
-
-def run2
-  doc = REXML::Document.new
-  resp = REXML::Element.new("service-response")
-  add_key(resp, "response-to", "x@y.z")
-  add_key(resp, "message-id", "42")
-  add_key(resp, "timestamp", "122345678")
-  add_key(resp, "status", "OK")
-  resp.add_element(REXML::Element.new("result").add_text("MY RESULT TEXT"))
-
-  puts "REL="
-  puts resp.to_s
-
-  y = OMF::ServiceCall::XMPP::ResponseMessage.from_element(resp)
-  puts y.to_s
-  p y.class()
-
-  req = REXML::Element.new("service-request")
-  add_key(req, "sender", "x@y.z")
-  add_key(req, "message-id", "42")
-  add_key(req, "timestamp", "122345678")
-  add_key(req, "service", "cmc")
-  add_key(req, "method", "allStatus")
-  args = req.add_element(REXML::Element.new("arguments"))
-  arg = args.add_element("argument")
-  arg.add_element("name").add_text("name")
-  arg.add_element("value").add_text("omf.nicta.node1")
-  arg = args.add_element("argument")
-  arg.add_element("name").add_text("domain")
-  arg.add_element("value").add_text("norbit")
-
-  puts "REQ="
-  puts req.to_s
-  y = OMF::ServiceCall::XMPP::RequestMessage.from_element(req)
-
-  puts y.to_s
-
-end
-
-run if __FILE__ == $PROGRAM_NAME
