@@ -54,7 +54,7 @@ module OMF
         service = service.to_s
         method = method.to_s
         if @services.nil?
-          get_service_list
+          get_service_list(service)
         end
         s = @services[service]
         if s.nil?
@@ -76,32 +76,46 @@ module OMF
         end
       end # make_request
 
-      def get_service_list
-        begin
-          xml = send_request # Request with no service or method gets the full list
-        rescue ServiceCallException => e
-          error "Trying to get service list from domain '#{domain}':  #{e.message}"
-          return nil
-        else
-          services = []
-          if xml.kind_of? REXML::Element then
-            services = xml.elements.collect("serviceGroups/serviceGroup") do |e|
-              e.attributes["name"]
+      def get_service_list(target=nil)
+        found = Queue.new
+        @services = Hash.new if @services.nil?
+        Thread.new {
+          begin
+            # Request with no service or method gets the full list
+            xml = send_request { |r|
+              # r must be a REXML::Element
+              servs = r.elements.collect("serviceGroup") do |e|
+                e.attributes["name"]
+              end
+              servs.each { |s|
+                @services[s] = :pending
+                found << :found if s == target
+              }
+            }
+          rescue ServiceCallException => e
+            error "Trying to get service list from domain '#{domain}':  #{e.message}"
+            return nil
+          else
+            services = []
+            if xml.kind_of? REXML::Element then
+              services = xml.elements.collect("serviceGroups/serviceGroup") do |e|
+                e.attributes["name"]
+              end
+            elsif xml.kind_of? Array then
+              xml.each do |el|
+                services += el.elements.collect("serviceGroup") { |e| e.attributes["name"] }
+              end
             end
-          elsif xml.kind_of? Array then
-            xml.each do |el|
-              services += el.elements.collect("serviceGroup") { |e| e.attributes["name"] }
-            end
+            services.each { |s| @services[s] = :pending }
+            found << :not_found
           end
-          @services = Hash.new
-          services.each { |s| @services[s] = :pending }
-          services
-        end
+        }
+        x = found.pop
       end # get_service_list
 
       def get_service_method_list(service)
         if @services[service].nil?
-          get_service_list
+          get_service_list(service)
         end
         begin
           xml = send_request(service) # Request with no method gets the method list
@@ -124,7 +138,7 @@ module OMF
 
       def has_service?(service)
         if @services.nil?
-          get_service_list
+          get_service_list(service)
         end
         @services.has_key?(service) and not @services[service].nil?
       end

@@ -103,7 +103,7 @@ module OMF
         has_method?(service, method)
       end
 
-      def send_request(service=nil, method=nil, *args)
+      def send_request(service=nil, method=nil, *args, &block)
         ensure_request_manager
         if @request_manager.nil?
           raise "Unable to make service call -- not connected to XMPP server?"
@@ -136,7 +136,7 @@ module OMF
         elsif not opts.nil? and opts[:nonblocking]
           wait_policy = :nowait
         end
-        r = @request_manager.make_request(message, pubsub_node, wait_policy)
+        r = @request_manager.make_request(message, pubsub_node, wait_policy, &block)
 
         if r.kind_of? REXML::Element then
           doc = REXML::Document.new
@@ -155,67 +155,6 @@ module OMF
     SERVICE_CALL_TIMEOUT = 10  # seconds
 
     module XMPP
-      @@connection = nil
-
-      # Borrow the connection from the "real" transport stack, if
-      # it exists This means we don't have to worry about
-      # splatting the main stack's pubsub subscriptions, etc., and
-      # we don't have to have double the traffic to the XMPP
-      # server.  It's a kludge...
-      def XMPP.borrow_connection
-        client = OMFPubSubTransport.instance.xmpp_services.clientHelper
-        @@connection = OMF::XMPP::Connection.new("", "", "", client)
-      end
-
-      # connection:: [OMF::XMPP::Connection]
-      def XMPP.set_connection(connection)
-        @@connection = connection
-      end
-
-      def XMPP.connection
-        @@connection
-      end
-
-      def XMPP.new_xmpp_domain(domainspec)
-        pubsub_domain = domainspec[:uri]
-
-        if @@connection.nil?
-          conn = domainspec[:conn]
-          if conn
-            XMPP.borrow_connection
-          else
-            # create the gateway connection
-            gw = domainspec[:gateway] || pubsub_domain
-            user = domainspec[:user]
-            password = domainspec[:password]
-            @@sender_id = domainspec[:sender_id] || user
-            @@connection = OMF::XMPP::Connection.new(gw.to_s, user, password)
-          end
-        end
-
-        if not @@connection.connected?
-          begin
-            MObject.debug :xmpp, "XMPP service caller connecting to XMPP server #{@@connection.gateway} as #{@@connection.user}..."
-            @@connection.connect
-            if not @@connection.connected?
-              raise ServiceCall::NoService, "Attemping to connect to XMPP server failed"
-            end
-            MObject.debug :xmpp, "done"
-          rescue OMF::XMPP::XmppError => e
-            raise ServiceCall::NoService, e.message
-          end
-        end
-
-        domain = OMF::XMPP::PubSub::Domain.new(@@connection, pubsub_domain)
-        domain.request_subscriptions
-        request_manager = RequestManager.new(domain)
-
-        lambda do |address_maps, service, *args|
-          service = service || ""
-          xmpp_call(request_manager, address_maps, service, *args)
-        end
-      end
-
       class Message < REXML::Element
         # These three Hashes are populated by subclasses
         @@name = Hash.new # Tag name for the root tag of this type of message
@@ -447,7 +386,7 @@ module OMF
         #
         # message:: [kind_of? Message]
         # node:: [String]
-        def make_request(message, node, wait_policy = :wait)
+        def make_request(message, node, wait_policy = :wait, &block)
           matcher = nil
           @mutex.synchronize {
             if not @matchers.has_key? node
@@ -484,6 +423,9 @@ module OMF
             responses = []
             while (r = queue.pop) != :timeout
               responses << r
+              if block_given?
+                block.call(r)
+              end
             end
             if responses.empty?
               raise ServiceCall::Timeout, "Timeout waiting for ServiceCall:  #{message.to_s}"
