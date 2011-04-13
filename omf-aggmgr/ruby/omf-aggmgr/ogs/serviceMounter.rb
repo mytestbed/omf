@@ -103,7 +103,18 @@ class ServiceMounter < MObject
     end
   end
 
+  #
+  # Return the underlying server object for the type of server
+  #
   def self.server(type)
+    @@servers[type]
+  end
+
+  #
+  # Return the AggmgrServer subclass instance that manages servers of
+  # given type.
+  #
+  def self.aggmgr_server(type)
     @@servers[type]
   end
 end

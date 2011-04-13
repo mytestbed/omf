@@ -49,6 +49,7 @@ require 'yaml'
 require 'optparse'
 #####
 require 'omf-aggmgr/ogs/serviceMounter'
+require 'omf-aggmgr/ogs/abstractDaemon'
 
 #Jabber::debug = true
 
@@ -102,6 +103,9 @@ def register(service,configFileName)
   if serviceClass.respond_to?(:mount) then
     MObject.debug(:gridservices, "Mounting legacy service #{serviceClass}")
     serviceClass.mount(ServiceMounter.server(:http).server, path)
+    # Make sure legacy HTTP services get reported in the service summary XML document
+    # (see AggmgrServer#all_services_summary)
+    ServiceMounter.aggmgr_server(:http).register_legacy_service_class(serviceClass)
   else
     MObject.debug(:gridservices, "Mounting service #{serviceClass}")
     ServiceMounter.mount(serviceClass)
@@ -120,7 +124,6 @@ def run(params)
     exit -1
   end
   $: << "#{params[:configDir]}/lib"
-  MObject.debug(:gridservices, "Library path: #{$:.join(':')}")
 
   if (! loadConfig(params))
     exit -1
@@ -139,24 +142,60 @@ def run(params)
     xmpp_params[:connection] = xmpp_connection
   end
 
+  if not xmpp_connection.nil?
+    MObject.info :xmpp_connection, "Connecting to XMPP PubSub server '#{xmpp_params[:server]}' with user '#{xmpp_params[:user]}'"
+    begin
+      xmpp_connection.connect
+    rescue Exception => e
+      MObject.warn :xmpp_connection, "Connection to XMPP PubSub server failed; attempting to reconnect in the background"
+    end
+    Thread.new {
+      first = true
+      while true
+        if xmpp_connection.connected?
+          xmpp_connection.keep_alive
+        else
+          begin
+            xmpp_connection.connect
+            if first
+              MObject.debug :xmpp_connection, "XMPP server connection established OK"
+              first = false
+            else
+              MObject.debug :xmpp_connection, "Re-connected to XMPP server OK"
+            end
+          rescue Exception => e
+            MObject.debug :xmpp_connection, "Failed Trying to re-connect to XMPP server: #{e.class}"
+          end
+          sleep 3
+        end
+      end
+    }
+  end
+
   ServiceMounter.init(params)
 
   services = find_services(params, serviceDir)
   loadServices(services)
-  
+
   @stopping = false
   ["INT", "TERM"].each { |sig|
     trap(sig) {
       if not @stopping then
-        ServiceMounter.stop_services
         @stopping = true
+        ServiceMounter.stop_services
+        MObject.info :gridservices, "Shutting down daemons"
+        AbstractDaemon.all_classes_instances.each do |inst|
+          inst.stop
+        end
       end
     }
   }
+
   Thread.new {
     if xmpp_params
-      OMF::ServiceCall::XMPP.sender_id = "aggmgr"
-      OMF::ServiceCall::XMPP.set_connection(xmpp_connection)
+      MObject.debug :gridservices, "Setting up service call framework "
+      OMF::Services::XmppEndpoint.sender_id = "aggmgr"
+      OMF::Services::XmppEndpoint.connection=xmpp_connection
       begin
         OMF::ServiceCall.add_domain(:type => :xmpp,
                                     :uri => xmpp_params[:server])
@@ -168,13 +207,18 @@ def run(params)
     end
     ServiceMounter.start_services
   }.join
+
+  if not xmpp_connection.nil?
+    MObject.info :gridservices, "Closing XMPP server connection"
+    xmpp_connection.close
+  end
 end
 
 # Return a an array of dictionaries each one describing a service to
 # load. Each dictinary contains three keys, :name, :require, config,
 # with the first one being the name of the service, followed by the
 # file to load (require) to load the code for this service and the
-# third one being the yaml file holding the service's configuration. 
+# third one being the yaml file holding the service's configuration.
 #
 # There are two ways to discover services. One is from the list
 # of services stored in param[:services] and the other one is
@@ -193,7 +237,7 @@ def find_services(params, serviceDir)
   else
     MObject.debug('gridservices', "Loading all available services from #{serviceDir}")
     Dir.foreach(serviceDir)  do |filename|
-      if (filename =~ /\.yaml$/) then   
+      if (filename =~ /\.yaml$/) then
         s = {}
         s[:name] = name = filename.split('.')[0]
         s[:require] = "omf-aggmgr/ogs_#{name}/#{name}"
@@ -207,7 +251,7 @@ end
 
 def loadServices(services)
   services.each do |s|
-    name = s[:name]  
+    name = s[:name]
     MObject.info(:gridservices, "Loading #{name} service module")
     file = s[:require]
     begin

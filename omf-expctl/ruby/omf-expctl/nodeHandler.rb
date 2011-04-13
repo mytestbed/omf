@@ -1,7 +1,7 @@
 #
-# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+# Copyright (c) 2006-2011 National ICT Australia (NICTA), Australia
 #
-# Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
+# Copyright (c) 2004-2011 WINLAB, Rutgers University, USA
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -708,8 +708,8 @@ class NodeHandler < MObject
     domains.each do |domain|
       OMF::ServiceCall.add_domain(domain)
     end
-    OMF::ServiceCall::XMPP.sender_id=Experiment.ID
-    
+    OMF::Services::XmppEndpoint.sender_id=Experiment.ID
+    OMF::Services::XmppEndpoint.borrow_connection
   end
 
   #

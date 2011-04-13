@@ -35,6 +35,7 @@
 
 require 'omf-common/servicecall'
 require 'omf-aggmgr/ogs/serviceMounter'
+require 'omf-aggmgr/ogs/gridService'
 
 class SliceManagerService < GridService
 

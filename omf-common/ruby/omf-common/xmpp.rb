@@ -102,6 +102,8 @@ module OMF
       @use_dnssrv = false
       @keep_alive_queue = nil
       @keep_alive_thread = nil
+      @connect_cbs = nil
+      @disconnect_cbs = nil
 
       attr_reader :client, :gateway, :user
 
@@ -134,6 +136,8 @@ module OMF
           @client = client
           @connected = true # Assume we're already connected
         end
+        @connect_cbs = Array.new
+        @disconnect_cbs = Array.new
       end
 
       def connected?
@@ -157,13 +161,7 @@ module OMF
 
           begin
             clean_exceptions {
-              nonblocking(:connect) {
-                if @use_dnssrv
-                  @client.connect(nil, @port)
-                else
-                  @client.connect(@gateway, @port)
-                end
-              }
+              nonblocking(:connect) {  @client.connect(@use_dnssrv ? nil : @gateway, @port) }
 
               # Register, but if the user is already registered, authenticate instead
               nonblocking {
@@ -176,7 +174,16 @@ module OMF
               nonblocking { @client.send(Jabber::Presence.new) }
               @connected = true
             }
+            @connect_cbs.each { |cb| cb.call }
+          rescue Jabber::ServerDisconnected => e
+            debug "XMPP server disconnected"
+            @client.close
+            @connected = false
+            @do_keep_alive = false
+            @keep_alive_thread.wakeup if not @keep_alive_thread.nil?
+            @disconnect_cbs.each { |cb| cb.call }
           rescue Exception => e
+            debug "Unknown exception in connect method: #{e}"
             @client.close
             @connected = false
             raise e
@@ -186,6 +193,8 @@ module OMF
 
       def close
         return if not @own_client # Don't allow closing the client stream if we don't own it.
+        @disconnect_cbs.each { |cb| cb.call }
+
         @mutex.synchronize {
           clean_exceptions { nonblocking { @client.close } }
           @keep_alive_thread.wakeup if not @keep_alive_thread.nil?
@@ -254,8 +263,17 @@ module OMF
         }.join
         @connected = false
         @do_keep_alive = false
+        @disconnect_cbs.each { |cb| cb.call }
         return false
       end # keep_alive
+
+      def on_connect(&block)
+        @connect_cbs << block
+      end
+
+      def on_disconnect(&block)
+        @disconnect_cbs << block
+      end
     end # class Connection
 
     module PubSub
@@ -292,6 +310,8 @@ module OMF
         @mutex = nil
         @event_count = 0
 
+        @@domains = nil
+
         attr_reader :name
 
         def initialize(connection, domain)
@@ -305,6 +325,12 @@ module OMF
             @service_helper = PubSub::ServiceHelper.new(connection.client, "pubsub.#{domain}")
             @service_helper.add_event_callback { |event| process_event(event) }
           }
+          @@domains = @@domains || Hash.new
+          @@domains[domain] = self
+        end
+
+        def self.find(domain)
+          @@domains[domain] unless @@domains.nil?
         end
 
         def event_node(event)
@@ -465,7 +491,7 @@ module OMF
           @mutex.synchronize {
             unique_list.each do |sub|
               if not @subscriptions.has_key?(sub.node)
-                debug "Existing Subscription: #{sub.node}, #{sub.subid}"
+                debug "Existing Subscription:  #{sub.subid}, #{sub.node}"
                 @subscriptions[sub.node] = sub
               else
                 duplicates << sub
