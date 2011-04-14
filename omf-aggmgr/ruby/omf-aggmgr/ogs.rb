@@ -194,8 +194,25 @@ def run(params)
   Thread.new {
     if xmpp_params
       MObject.debug :gridservices, "Setting up service call framework "
-      OMF::Services::XmppEndpoint.sender_id = "aggmgr"
+      OMF::Services::XmppEndpoint.sender_id = xmpp_params[:user]
       OMF::Services::XmppEndpoint.connection=xmpp_connection
+      OMF::Services::XmppEndpoint.pubsub_selector { |opts|
+        if opts.nil?
+          slice = nil; hrn = nil;
+        else
+          hrn = opts["hrn"] || opts[:hrn] || opts["name"] || opts[:name]
+          slice = opts["sliceID"] || opts[:sliceID]
+        end
+
+        if slice.nil?
+          "/OMF/system"
+        elsif hrn.nil?
+          "/OMF/#{slice}"
+        else
+          "/OMF/#{slice}/#{hrn}"
+        end
+      }
+
       begin
         OMF::ServiceCall.add_domain(:type => :xmpp,
                                     :uri => xmpp_params[:server])
