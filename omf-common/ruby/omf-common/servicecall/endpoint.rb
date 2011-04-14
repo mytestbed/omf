@@ -92,25 +92,26 @@ module OMF
                 found << :found if s == target
               }
             }
+            found << :not_found
           rescue ServiceCallException => e
             error "Trying to get service list from domain '#{domain}':  #{e.message}"
             return nil
           else
-            services = []
-            if xml.kind_of? REXML::Element then
-              services = xml.elements.collect("serviceGroups/serviceGroup") do |e|
-                e.attributes["name"]
-              end
-            elsif xml.kind_of? Array then
-              xml.each do |el|
-                services += el.elements.collect("serviceGroup") { |e| e.attributes["name"] }
-              end
-            end
-            services.each { |s| @services[s] = :pending }
+#            services = []
+#            if xml.kind_of? REXML::Element then
+#              services = xml.elements.collect("serviceGroups/serviceGroup") do |e|
+#                e.attributes["name"]
+#              end
+#            elsif xml.kind_of? Array then
+#              xml.each do |el|
+#                services += el.elements.collect("serviceGroup") { |e| e.attributes["name"] }
+#              end
+#            end
+#            services.each { |s| @services[s] = :pending }
             found << :not_found
           end
         }
-        x = found.pop
+        found.pop
       end # get_service_list
 
       def get_service_method_list(service)
@@ -180,7 +181,7 @@ module OMF
 
       #
       # Find an endpoint to satisfy a request.  The request must be
-      # satisfied by and endpoint on a domain of the given type and at
+      # satisfied by an endpoint on a domain of the given type and at
       # the specified uri; but if the modifiers suggest a different
       # type and uri, look for one matching those instead.
       #

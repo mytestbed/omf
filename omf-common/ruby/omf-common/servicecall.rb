@@ -132,21 +132,8 @@ module OMF
 
         # Got a domain; now look for an endpoint to talk to on that domain.
         endpoints = Services.endpoints
-        # First narrow down to all domains matching the type (http/xmpp/...) and uri
-        if false
-          endpoint = endpoints.find do |e|
-            e.type == domain[:type] and
-              e.domain == domain[:uri]
-          end
-
-          if endpoint.nil?
-            endpoint = Endpoint.init(domain[:type], domain[:uri])
-            Services.endpoints << endpoint
-          end
-        end
-
         endpoint = Endpoint.find(domain[:type], domain[:uri],
-                                 modifiers, *args)
+                                 modifiers, name.to_s, m.to_s, *args)
 
         endpoint.make_request(name, m, *args)
       end
