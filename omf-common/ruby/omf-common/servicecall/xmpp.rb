@@ -432,6 +432,7 @@ module OMF
             end
             response = responses
           end
+          matcher.remove(message)
           if wait_policy == :nowait
             nil
           else
