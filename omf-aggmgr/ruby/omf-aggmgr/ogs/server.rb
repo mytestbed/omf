@@ -309,6 +309,8 @@ class XmppAggmgrServer < AggmgrServer
 #                debug "Ignoring future message #{request.message_id}"
 #              else
 
+              send_response = true
+
               if true # Accept all messages regardless of timestamp
                 sender = request.sender
                 message_id = request.message_id
@@ -325,13 +327,14 @@ class XmppAggmgrServer < AggmgrServer
                     if method.nil? and not service_class.nil?
                       result = service_description(service_class)
                       status = "OK"
+                    elsif method.nil? and service_class.nil?
+                      send_response = false # we don't serve this service, don't respond
                     end
                   else
                     result = all_services_summary
                     status = "OK"
                   end
                 else
-
                   arguments = request.arguments
                   service_hash = @services[service]
 
@@ -340,7 +343,7 @@ class XmppAggmgrServer < AggmgrServer
                     proc = service_hash[method]
                     if proc.nil?
                       # return an error response
-                      status = "#{service}.#{method}: Method not supported"
+                      error_result = "#{service}.#{method}: Method not supported"
                     else
                       begin
                         result = proc.call(arguments)
@@ -354,6 +357,8 @@ class XmppAggmgrServer < AggmgrServer
                         status = error_result
                       end
                     end
+                  else
+                    send_response = false # we don't serve this service, don't respond
                   end
                 end
 
@@ -361,18 +366,20 @@ class XmppAggmgrServer < AggmgrServer
                   result = nil
                 end
 
-                response = ResponseMessage.new("response-to" => sender,
-                                               "message-id" => message_id,
-                                               "status" => status)
-                if not result.nil?
-                  response.set_result(result)
-                end
+                if send_response
+                  response = ResponseMessage.new("response-to" => sender,
+                                                 "message-id" => message_id,
+                                                 "status" => status)
+                  if not result.nil?
+                    response.set_result(result)
+                  end
 
-                begin
-                  domain.publish_to_node(node, response)
-                rescue Exception => e
-                  error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
-                end
+                  begin
+                    domain.publish_to_node(node, response)
+                  rescue Exception => e
+                    error "Error sending service-response (for request from #{sender} on node #{node}): #{e.message}"
+                  end
+                end # send_response
               end # message not stale
             else
               # Ignore messages that are not <service-request/>'s
