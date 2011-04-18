@@ -523,7 +523,7 @@ module OMF
                 if status != "OK"
                   warn "Service call response error: #{status}"
                   remove(request_id)
-                  raise status
+                  queue << OMF::ServiceCall::Error.new(response.result)
                 elsif result.nil?
                   warn "Service call returned OK but no result body was found in:"
                   warn response.to_s
