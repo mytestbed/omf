@@ -26,7 +26,8 @@
 #
 # == Description
 #
-# This file defines the RootGroupNodeSet class and its sub-class DefinedGroupNodeSet
+# This file defines the RootGroupNodeSet class and its sub-class 
+# DefinedGroupNodeSet
 #
 require 'omf-expctl/node/abstractGroupNodeSet'
 
@@ -63,9 +64,10 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   end
 
   #
-  # This method executes a block of command on ALL the node in ALL the groups of NodeSets
-  # Note that a node can be a member of two different groups, this method executes the block
-  # twice for such a node.
+  # This method executes a block of command on ALL the node in ALL the groups 
+  # of NodeSets
+  # Note that a node can be a member of two different groups, this method 
+  # executes the block twice for such a node.
   #
   # - &block = the block of command to execute
   #
@@ -73,16 +75,18 @@ class RootGroupNodeSet < AbstractGroupNodeSet
     #debug("Running 'each' in RootGroupNodeSet")
     @@groups.each_value { |g|
       if g.kind_of?(BasicNodeSet)
-        debug("Running each for #{g}")
+        # This debug generates large log file when many groups are defined
+        #debug("Running each for #{g}") 
         g.eachNode &block
       end
     }
   end
 
   #
-  # This method executes a block of command on ALL unique nodes in ALL the groups of NodeSets
-  # Note that a node can be a member of two different groups, this method executes the block
-  # only once for such a node.
+  # This method executes a block of command on ALL unique nodes in ALL the 
+  # groups of NodeSets
+  # Note that a node can be a member of two different groups, this method 
+  # executes the block only once for such a node.
   #
   # - &block = the block of command to execute
   #

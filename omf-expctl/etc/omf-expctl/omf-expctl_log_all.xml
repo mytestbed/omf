@@ -15,18 +15,10 @@
 
   <!-- loggers -->
   <logger name="nodeHandler" outputters="log, console, web" level="DEBUG" trace="true"/>
+  
   <logger name="nodeHandler::web" outputters="log, console, web" level="WARN"/>
   <logger name="nodeHandler::web::access" outputters="log" level="INFO"/>
   <logger name="nodeHandler::web::access" outputters="console, web" level="WARN"/>
-
-  <!-- To streamline log file... -->
-  <!-- 1) Only log ERROR-level messages from the Communication stack -->
-  <logger name="nodeHandler::OmfXMPPServices" outputters="log, console, web" level="ERROR"/>
-  <logger name="nodeHandler::OMFPubSubTransport" outputters="log, console, web" level="ERROR"/>
-  <logger name="nodeHandler::ECCommunicator" outputters="log, console, web" level="ERROR"/>
-  <!-- 2) Only log ERROR-level messages from the ALLGROUP NodeSet and the Every-block loop -->
-  <logger name="nodeHandler::set::_ALLGROUPS_" outputters="log, console, web" level="ERROR"/>
-  <logger name="nodeHandler::every" outputters="log, console, web" level="ERROR"/>
   
   <!--
   <logger name="client" level="INFO" outputters="client, console"/>

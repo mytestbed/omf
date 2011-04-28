@@ -619,8 +619,17 @@ class NodeSet < MObject
   # - code = the description of the change(s) to report
   #
   def update(sender, code)
+
+    # If this is a node REMOVED update and this group is empty
+    # then mark it as removed as well, and notify any observers
+    if ((code == :node_is_removed) && empty?)
+      @@groups.delete(@groupName)
+      changed
+      notify_observers(self, :group_is_removed)
+      return
+    end
     # This is a node UP or REMOVED update
-    if ((code == :node_is_up) || (code == :node_is_removed))
+    if (((code == :node_is_up) || (code == :node_is_removed)) || (code == :group_is_removed))
       # Check if ALL the nodes in this NodeSet are Up
       if (up?)
         # Yes? Then mark this group as UP!

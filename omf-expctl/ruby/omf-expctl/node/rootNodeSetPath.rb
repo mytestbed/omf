@@ -304,6 +304,10 @@ class RootNodeSetPath < NodeSetPath
     @nodeSet.up?
   end
 
+  def empty?()
+    @nodeSet.empty?
+  end
+
   #
   # Return a String describing the NodeSet associated to this Root Path
   #

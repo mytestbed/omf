@@ -48,6 +48,7 @@ class Node < MObject
   W0_IF = "eth2"
   W_ADHOC = "ad-hoc"
 
+  STATUS_REMOVED = 'REMOVED'
   STATUS_DOWN = 'DOWN'
   STATUS_POWERED_ON = 'POWERED_ON'
   STATUS_POWERED_OFF = 'POWERED_OFF'
@@ -343,8 +344,7 @@ class Node < MObject
   # imgHost = Name or IP address of host which will contain the saved image
   # disk = Disk containing the image to save (e.g. '/dev/sda')
   #
-  def saveImage(imgName = nil,
-                domain = OConfig.domain)
+  def saveImage(imgName = nil, domain = OConfig.domain)
     
     begin
       disk = OMF::Services.inventory.getDefaultDisk(@nodeID, OConfig.domain).elements[1].text
@@ -467,25 +467,36 @@ class Node < MObject
   end
 
   #
-  # Enrol this Resource into the experiment
+  # Send the ENROLL message to this resource
   #
-  def enroll(index)
-    @index = index
-    desiredImage = @image.nil? ? "*" : @image
-    # Send an ENROLL command to this resource
-    # First listen for messages on that new resource address
-    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
-    ECCommunicator.instance.listen(addr)
-    # Now, Directly use the Communicator send method as this message needs to
+  def send_enroll()
+    # Directly use the Communicator send method as this message needs to
     # be sent even if the resource is not in the "UP" state
+    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+    addr.expID = nil # Same address as the resource but with no expID set
+    desiredImage = @image.nil? ? "*" : @image
     cmd = ECCommunicator.instance.create_message(:cmdtype => :ENROLL,
                                                 :expID => Experiment.ID,
                                                 :image => desiredImage,
                                                 :target => @nodeID,
-                                                :index => @index)
+                                                :index => @index,
+                                                :enrollKey => @enrollKey)
+    ECCommunicator.instance.send_message(addr, cmd)
+  end
+
+  #
+  # Enrol this Resource into the experiment
+  #
+  def enroll(index)
+    @index = index
+    # Send an ENROLL command to this resource
+    # First listen for messages on that new resource address
+    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+    ECCommunicator.instance.listen(addr)
     addr.expID = nil # Same address as the resource but with no expID set
     ECCommunicator.instance.listen(addr)
-    ECCommunicator.instance.send_message(addr, cmd)
+    # Then send the ENROLL message
+    send_enroll
   end
 
   # 
@@ -521,10 +532,12 @@ class Node < MObject
   # reset this time. This avoids us to send many resets 
   #
   def reset()
+    return if (@nodeStatus == STATUS_REMOVED)
     if (@nodeStatus == STATUS_RESET) && 
        ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
       return
     else
+      ECCommunicator.instance.send_reset(@nodeID)
       changed
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)
@@ -532,6 +545,7 @@ class Node < MObject
       CMC::nodeReset(@nodeID)
       @checkedInAt = -1
       @poweredAt = Time.now
+      @enrollKey = @enrollKey + 1
       changed
       notify_observers(self, :after_resetting_node)
     end
@@ -625,10 +639,17 @@ class Node < MObject
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
   def enrolled(cmdObj)
+    return if (@nodeStatus == STATUS_REMOVED)
     # First, If this is the first ENROLLED that we received, set the state to UP
     # and perform the associated tasks
     if @nodeStatus != STATUS_UP
-      #@isUp = true
+      # Before proceeding, check if this ENROLLED correspond to the latest
+      # enroll request we sent, if not ignore it and resend an enroll with the 
+      # current key
+      if cmdObj.enrollKey != @enrollKey.to_s
+        send_enroll 
+        return
+      end
       setStatus(STATUS_UP)
       @checkedInAt = Time.now
       debug "Node #{self} is Up and Enrolled"
@@ -674,7 +695,8 @@ class Node < MObject
   #
   def notifyRemoved()
     ECCommunicator.instance.send_reset(@nodeID)
-    setStatus(STATUS_DOWN)
+    setStatus(STATUS_REMOVED)
+    @groups.clear
     changed
     notify_observers(self, :node_is_removed)
   end
@@ -723,6 +745,7 @@ class Node < MObject
     @image = nil
     @poweredAt = -1
     @checkedInAt = -1
+    @enrollKey = 1
 
     @properties = Hash.new
     TraceState.nodeAdd(self, @nodeID)
@@ -751,6 +774,7 @@ class Node < MObject
   # - args = Array of parameters for this command
   #
   def send(cmdObj)
+    return if (@nodeStatus == STATUS_REMOVED)
     if @nodeStatus == STATUS_UP
       cmdObj.target = @nodeID
       addr = ECCommunicator.instance.make_address(:name => @nodeID)
@@ -765,6 +789,7 @@ class Node < MObject
   # Send all deferred messages if there are any and if all the nodes are up
   # 
   def send_deferred()
+    return if (@nodeStatus == STATUS_REMOVED)
     #if (@deferred.size > 0 && @isUp)
     if (@deferred.size > 0 && @nodeStatus == STATUS_UP)
       da = @deferred

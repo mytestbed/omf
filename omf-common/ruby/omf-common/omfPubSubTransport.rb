@@ -208,7 +208,14 @@ class OMFPubSubTransport < MObject
   end
 
   def event_source(event)
-    return event.first_element("items").attributes['node']
+    begin
+      source = event.first_element("items").attributes['node']
+    rescue Exception => ex
+      source = 'unknown'
+      debug "Cannot extract source node from PubSub event - "+
+            "Error: '#{ex}' - Event: '#{event}'"
+    end
+    return source
   end
 
   def event_to_message(event)
@@ -238,8 +245,10 @@ class OMFPubSubTransport < MObject
         return nil
       end
     rescue Exception => ex
-      debug "Cannot extract message from PubSub event '#{envelope}'"
-      debug "Error: '#{ex}'\nEvent received on '#{event_source(event)}')"
+      debug "Cannot extract message from '#{event_source(event)}' - '#{event}'"
+      debug "Error: '#{ex}'"
+      #bt = ex.backtrace 
+      #debug "Trace: '#{bt.join("\n\t")}'\n"
       return
     end
   end
