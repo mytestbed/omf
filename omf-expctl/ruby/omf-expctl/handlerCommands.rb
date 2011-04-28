@@ -80,6 +80,10 @@ class OEDLExecutionException < OEDLException
   end   
 end
 
+class EmptyGroup
+  def method_missing(name, *args, &block) return true end
+end
+
 
 module OMF
   module ExperimentController
@@ -239,7 +243,8 @@ end
 def group(groupName, &block)
   ns = NodeSet[groupName.to_s]
   if (ns == nil)
-    raise "Undefined node set '#{groupName}'"
+    warn "Undefined node set '#{groupName}'"
+    return EmptyGroup.new
   end
   return RootNodeSetPath.new(ns, nil, nil, block)
 end

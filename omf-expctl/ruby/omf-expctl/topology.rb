@@ -89,10 +89,10 @@ class Topology < MObject
   # - node = the Node (object) to remove 
   #
   def self.removeNode(node)
-    @@topologies.values.each {|t|
-      t.removeNode(node)
+    @@topologies.each_pair {|uri,top|
+      top.removeNode(node)
+      @@topologies.delete(uri) if top.empty?
     }
-    
     if ((n = Node[node.nodeID]) != nil)
       n.notifyRemoved()
     end
