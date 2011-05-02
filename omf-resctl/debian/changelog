@@ -1,3 +1,9 @@
+omf-resctl-5.3 (1ubuntu14) lucid; urgency=low
+
+  * release 5.3.1
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 02 May 2011 17:38:27 +1000
+
 omf-resctl-5.3 (1ubuntu13-PuertoRico) lucid; urgency=low
 
   * fixed case statements in RC wireless drivers

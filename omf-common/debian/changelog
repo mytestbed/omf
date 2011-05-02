@@ -1,3 +1,9 @@
+omf-common-5.3 (1ubuntu13) lucid; urgency=low
+
+  * release 5.3.1
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 02 May 2011 17:37:15 +1000
+
 omf-common-5.3 (1ubuntu12) lucid; urgency=low
 
   * fixed AM XMPP issues (#361, #490, #439, #436)
