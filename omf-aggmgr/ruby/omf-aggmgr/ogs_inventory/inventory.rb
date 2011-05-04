@@ -249,6 +249,33 @@ class InventoryService < GridService
   end
 
   #
+  # Implement 'getSwitchPort' service using the 'service' method of AbstractService
+  #
+  s_description "Get the switch IP address and port of the primary network interface of a node"
+  s_param :hrn, 'hrn', 'HRN of the resource'
+  s_param :domain, 'domain', 'testbed/domain for this given node'
+  service 'getSwitchPort' do |hrn, domain|
+    # Retrieve the request parameter
+    tb = getTestbedConfig(domain, @@config)
+    # Query the inventory
+    result = nil
+    begin
+      inv = getInv(tb)
+      result = inv.getSwitchPort(hrn, domain)
+    rescue Exception => ex
+      error "Inventory - getSwitchPort() - Cannot connect to the Inventory Database - #{ex}"
+      result = :Error
+    end
+    # Build and Set the XML response
+    msgEmpty = "Inventory has no switch IP/port for HRN '#{hrn}' (domain: #{domain})"
+    replyXML = buildXMLReply("SWITCH_IP_PORT", result, msgEmpty) { |root,ip|
+      root.text = ip
+    }
+    replyXML
+  end
+
+
+  #
   # Implement 'getHRN' service using the 'service' method of AbstractService
   #
   s_description "Get the HRN for a certain hostname on a given domain"

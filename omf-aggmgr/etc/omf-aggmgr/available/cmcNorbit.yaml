@@ -3,6 +3,9 @@ cmcn:
   # listAll: return array of x/y coodinates of all nodes in '[x,y]' form.
   # listStatus: return array of x/y coodinates of all nodes in '[x, y, STATUS]' form.
   #
+  switch_user: 'admin'
+  switch_pw: ''
+
   testbed:
     
     # These are the configuration parameters for the default testbed

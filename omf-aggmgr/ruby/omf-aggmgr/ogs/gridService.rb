@@ -172,6 +172,37 @@ class GridService < AbstractService
   end
 
   #
+  # Return the switch IP address and port of a specific node on a given testbed. This
+  # method makes use of the Inventory GridService
+  #
+  # - url = URL to the Inventory GridService
+  # - name = HRN of the node to query
+  # - domain = name of the testbed to query
+  #
+  def self.getSwitchPort(hrn, domain)
+    doc = nil
+    begin
+      doc = OMF::Services.inventory.getSwitchPort(hrn, domain)
+    rescue Exception => e
+      MObject.error "Error trying to get switch IP address/port for resource '#{hrn}' in domain '#{domain}': #{e}"
+      raise ServiceError, e.message
+    end
+
+    # Parse the Reply to retrieve the control IP address
+    ip = nil
+    doc.root.elements.each("/SWITCH_IP_PORT") { |v|
+      ip = v.get_text.value if !v.get_text.nil?
+    }
+    # If no IP address found in the reply... raise an error
+    if (ip.nil?)
+      doc.root.elements.each('/SWITCH_IP_PORT/ERROR') { |e|
+        raise ServiceError, "GridService - No switch IP address/port found for '#{hrn}' - Error: #{e.get_text.value}"
+      }
+    end
+    return ip
+  end
+
+  #
   # Return an Array of Human Readable Names (HRN's) of all resources in a testbed.
   #
   # - url = URL to the Inventory GridService

@@ -68,32 +68,6 @@ class CmcNorbitService < GridService
       next true
     end
   end
- 
-  #
-  # Implement 'reset' service using the 'service' method of AbstractService
-  #
-  # Note: Correct behaviour of 'reset' is
-  #       - if node is already ON, then reset/reboot it
-  #       - if node is OFF then turn it ON
-  #
-  s_description 'Reset a resource (hard)'
-  s_param :hrn, 'hrn', 'hrn of the resource'
-  s_param :domain, 'domain', 'domain for request.'
-  service 'reset' do |hrn, domain|
-    reset(hrn, domain)
-  end
-  
-  #
-  # Implement 'reboot' service using the 'service' method of AbstractService
-  #
-  # Soft reboot via telnet or SSH
-  #
-  s_description 'Reboot a resource (soft)'
-  s_param :hrn, 'hrn', 'hrn of the resource'
-  s_param :domain, 'domain', 'domain for request.'
-  service 'reboot' do |hrn, domain|
-    reboot(hrn, domain)
-  end
 
   #
   # Implement 'offHard' service using the 'service' method of AbstractService
@@ -120,26 +94,45 @@ class CmcNorbitService < GridService
   end
 
   #
-  # Implement 'allStatus' service using the 'service' method of AbstractService
+  # Implement 'reboot' service using the 'service' method of AbstractService
   #
-  # NOTE:
-  # At NICTA, we do not have the CM card operational on our nodes yet...
-  # We use the information in the CMC Stub config file to implement a 'allStatus'
+  # Soft reboot via telnet or SSH
   #
-  # TODO: if still not CM card operational after a while, then this should
-  # really use information from the Inventory instead
+  s_description 'Reboot a resource (soft)'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'reboot' do |hrn, domain|
+    reboot(hrn, domain)
+  end
+
   #
-  s_description 'Returns the status of all nodes in the testbed'
-  s_param :domain, '[domain]', 'domain for request.'
-  service 'allStatus' do |domain|
-    root = REXML::Element.new('TESTBED_STATUS')
+  # Implement 'reset' service using the 'service' method of AbstractService
+  #
+  # Note: Correct behaviour of 'reset' is
+  #       - if node is already ON, then reset/reboot it
+  #       - if node is OFF then turn it ON
+  #
+  s_description 'Reset a resource (hard)'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'reset' do |hrn, domain|
+    reset(hrn, domain)
+  end
+
+  #
+  # Implement 'status' service using the 'service' method of AbstractService
+  #
+  # Return the power state of a given node
+  #
+  s_description 'Return the power state of a given node'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'status' do |hrn, domain|
+    root = REXML::Element.new('NODE_STATUS')
     detail = root.add_element('detail')
-    nodes = listAllNodes(domain)
-    nodes.each { |n|
-      state = poweredOn?("#{n}", domain) ? 'POWERON' : 'POWEROFF'
-      attr = {'hrn' => "#{n}", 'state' => "#{state}" }
-      detail.add_element('node', attr)
-    }
+    state = poweredOn?(hrn, domain) ? 'POWERON' : 'POWEROFF'
+    attr = {'hrn' => hrn, 'state' => "#{state}" }
+    detail.add_element('node', attr)
     root
   end
 
@@ -175,17 +168,36 @@ class CmcNorbitService < GridService
   end
   
   def self.poweredOn?(hrn, domain)
-    powered = nil
-    tn = openTelnet(hrn, domain)
-    tn.cmd("state") {|recvdata|
-      if recvdata.include? 'Node is powered on'
-        powered = true
-      elsif recvdata.include? 'off'
-        powered = false
-      end
-    }
-    closeTelnet(tn)
-    raise "CMCNORBIT - Failed to check power state of '#{hrn}' at #{ip}" if powered.nil?
+    ip_port = getSwitchPort(hrn, domain).split(":")
+    begin
+      switch_ip = ip_port[0]
+      switch_port = ip_port[1]
+    rescue
+      raise "CMCNORBIT - Failed to check power state of node '#{hrn}'"
+    end
+        
+    switch_user = @@config['switch_user']
+    switch_pw = @@config['switch_pw']
+
+    tn = Net::Telnet::new('Host' => switch_ip, "Dump_log" => "/tmp/output_log_switch", "Prompt" => /[\>\#]/n)
+    tn.cmd('String' => switch_user, 'Match' => /Password:/n)
+    tn.cmd(switch_pw)
+    tn.cmd('String' => "enable", 'Match' => /Password:/n)
+    tn.cmd(switch_pw)
+    state = tn.cmd("show port 0/#{switch_port}")
+    if state.include? "Up"
+      MObject.debug("Node '#{hrn}' is powered on.")
+      powered = true
+    elsif state.include? "Down"
+      MObject.debug("Node '#{hrn}' is powered down.")
+      powered = false
+    else
+      MObject.debug("Error checking power state of node '#{hrn}'.")
+      powered = nil
+    end
+    tn.puts("logout") # use puts, don't wait for prompt as cmd does
+    tn.close
+    raise "CMCNORBIT - Failed to check power state of node '#{hrn}'" if powered.nil?
     powered
   end
   
@@ -213,6 +225,15 @@ class CmcNorbitService < GridService
   def self.closeTelnet(tn)
     tn.puts "exit"
     tn.close
+  end
+  
+  #
+  # Configure the service through a hash of options
+  #
+  # - config = the Hash holding the config parameters for this service
+  #
+  def self.configure(config)
+    @@config = config
   end
   
 end

@@ -167,7 +167,34 @@ CONTROL_QS
       addr = ip
     }
     return addr
+  end 
+  
+  #
+  # Query the Inventory database for the switch IP address and switch port of a specific node
+  # on a testbed.
+  #
+  # - hrn = HRN of the node to query
+  # - domain = name of the testbed to query (default=grid)
+  #
+  # [Return] switch ip:port of the node matching the query
+  #
+  def getSwitchPort(hrn, domain = "grid")
+    qs = <<CONTROL_QS
+SELECT locations.switch_ip, locations.switch_port
+  FROM locations
+  LEFT JOIN nodes ON locations.id = nodes.location_id
+  LEFT JOIN testbeds ON locations.testbed_id = testbeds.id
+WHERE testbeds.name='#{domain}'
+  AND nodes.hrn='#{hrn}';
+CONTROL_QS
+
+    addr = nil
+    runQuery(qs) { |ip, port| 
+      addr = "#{ip}:#{port}" if !ip.empty? && !port.empty?
+    }
+    return addr
   end  
+  
 
   #
   # Query the Inventory database for the HRN of a specific node
@@ -188,12 +215,12 @@ WHERE testbeds.name='#{domain}'
   AND nodes.hostname='#{hostname}';
 HRN_QS
 
-      addr = nil
-      runQuery(qs) { |i|
-        addr = i
-      }
-      return addr
-    end
+    addr = nil
+    runQuery(qs) { |i|
+      addr = i
+    }
+    return addr
+  end
 
   #
   # Query the Inventory database for the default disk of a specific node
@@ -214,13 +241,13 @@ WHERE testbeds.name='#{domain}'
   AND nodes.hrn='#{hrn}';
 DD_QS
 
-      disk = nil
-      runQuery(qs) { |i|
-        disk = i
-      }
-      return disk
-    end
-  
+    disk = nil
+    runQuery(qs) { |i|
+      disk = i
+    }
+    return disk
+  end
+
   #
   # Query the Inventory database for the name of the PXE image being that should
   # be used for a given node on a testbed.
