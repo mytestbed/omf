@@ -87,15 +87,15 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   # - &block = the block of command to execute
   #
   def eachUniqueNode(&block)
-    #allUniqueNode = Set.new
-    #@@groups.each_value { |g|
-    #  if g.kind_of?(BasicNodeSet)
-    #    g.eachNode { |n| allUniqueNode.add(n) }
-    #  end
-    #}
-    #debug("Running eachUniqueNode for {#{allUniqueNode.to_a.join(", ")}}")
-    #allUniqueNode.each &block
-    Node.each(&block)
+    allUniqueNode = Set.new
+    @@groups.each_value { |g|
+      if g.kind_of?(BasicNodeSet)
+        g.eachNode { |n| allUniqueNode.add(n) }
+      end
+    }
+    debug("Running eachUniqueNode for #{allUniqueNode.to_a.join(', ')}")
+    allUniqueNode.each &block
+    #Node.each(&block)
   end
 
   #

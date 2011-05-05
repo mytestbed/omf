@@ -83,7 +83,7 @@ class Node < MObject
   # [Return] an existing or a new Node object 
   #
   def Node.at! (name)
-    n = @@nodes[name]
+    n = @@nodes[name.to_s]
     if !n.kind_of?(Node)
       #
       # Checking the CMC for active node might not be useful anymore, as we
