@@ -60,8 +60,8 @@ class CmcStubService < GridService
   #       - if node is OFF then turn it ON
   #
   s_description 'Switch ON a resource'
-  s_param :name, 'name', 'name of the resource'
-  service 'on' do |name|
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  service 'on' do |hrn|
     true
   end
 
@@ -84,10 +84,10 @@ class CmcStubService < GridService
   #       - if node is OFF then turn it ON
   #
   s_description 'Reset a resource'
-  s_param :name, 'name', 'name of the resource'
+  s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'reset' do |name, domain|
-    reboot(name, domain)
+  service 'reset' do |hrn, domain|
+    reboot(hrn, domain)
     true
   end
 
@@ -100,10 +100,10 @@ class CmcStubService < GridService
   # We use the NA's 'REBOOT' command to implement a 'offHard'
   #
   s_description 'Switch off a node HARD (immediately) at a specific coordinate'
-  s_param :name, 'name', 'name of the resource'
+  s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'offHard' do |name, domain|
-    reboot(name, domain)
+  service 'offHard' do |hrn, domain|
+    reboot(hrn, domain)
     true
   end
 
@@ -115,10 +115,10 @@ class CmcStubService < GridService
   # We use the NA's 'REBOOT' command to implement a 'offSoft'
   #
   s_description 'Switch off a node SOFT (execute halt) at a specific coordinate'
-  s_param :name, 'name', 'name of the resource'
+  s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'offSoft' do |name, domain|
-    reboot(name, domain)
+  service 'offSoft' do |hrn, domain|
+    reboot(hrn, domain)
     true
   end
 
@@ -182,7 +182,7 @@ class CmcStubService < GridService
     detail = root.add_element('detail')
     nodes = listAllNodes(domain)
     nodes.each { |n|
-      attr = {'name' => "#{n}", 'state' => 'POWERON' }
+      attr = {'hrn' => "#{n}", 'state' => 'POWERON' }
       detail.add_element('node', attr)
     }
     root

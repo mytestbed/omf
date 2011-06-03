@@ -1,5 +1,5 @@
 --- 
-cmcn:
+cmc:
   # listAll: return array of x/y coodinates of all nodes in '[x,y]' form.
   # listStatus: return array of x/y coodinates of all nodes in '[x, y, STATUS]' form.
   #

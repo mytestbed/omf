@@ -47,7 +47,7 @@ require 'omf-aggmgr/ogs/gridService'
 class CmcNorbitService < GridService
 
   # name used to register/mount the service, the service's url will be based on it
-  name 'cmcn'
+  name 'cmc'
   description 'Power control for testbed nodes equipped with a CM2 card'
   @@config = nil
 
@@ -62,11 +62,7 @@ class CmcNorbitService < GridService
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'  
   service 'on' do |hrn, domain|
-    if !poweredOn?(hrn, domain)
-      next powerToggle(hrn, domain) 
-    else
-      next true
-    end
+    exec(hrn,domain,"on")
   end
 
   #
@@ -76,11 +72,7 @@ class CmcNorbitService < GridService
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offHard' do |hrn, domain|
-    if poweredOn?(hrn, domain)
-      next powerToggle(hrn, domain) 
-    else
-      next true
-    end
+    exec(hrn,domain,"off")
   end
   
   #
@@ -91,6 +83,9 @@ class CmcNorbitService < GridService
   s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |hrn, domain|
     reboot(hrn, domain)
+    # give the node some time to shut down, then power off
+    sleep 10
+    exec(hrn,domain,"off")
   end
 
   #
@@ -116,7 +111,7 @@ class CmcNorbitService < GridService
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'reset' do |hrn, domain|
-    reset(hrn, domain)
+    exec(hrn,domain,"reset")
   end
 
   #
@@ -124,13 +119,31 @@ class CmcNorbitService < GridService
   #
   # Return the power state of a given node
   #
-  s_description 'Return the power state of a given node'
+  s_description 'Return the AC power state of a given node'
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'status' do |hrn, domain|
     root = REXML::Element.new('NODE_STATUS')
     detail = root.add_element('detail')
     state = poweredOn?(hrn, domain) ? 'POWERON' : 'POWEROFF'
+    attr = {'hrn' => hrn, 'state' => "#{state}" }
+    detail.add_element('node', attr)
+    root
+  end
+
+
+  #
+  # Implement 'acstatus' service using the 'service' method of AbstractService
+  #
+  # Return the AC power state of a given node
+  #
+  s_description 'Return the AC power state of a given node'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'acstatus' do |hrn, domain|
+    root = REXML::Element.new('NODE_STATUS')
+    detail = root.add_element('detail')
+    state = hasACPower?(hrn, domain) ? 'POWERON' : 'POWEROFF'
     attr = {'hrn' => hrn, 'state' => "#{state}" }
     detail.add_element('node', attr)
     root
@@ -147,7 +160,7 @@ class CmcNorbitService < GridService
 
   def self.reboot(hrn, domain)
     MObject.debug("Sending REBOOT cmd to '#{hrn}'")
-    ip = getCmcIP(hrn, domain)
+    ip = getControlIP(hrn, domain)
     begin
       cmd = `nmap #{ip} -p22-23`
       #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
@@ -167,13 +180,13 @@ class CmcNorbitService < GridService
     true
   end
   
-  def self.poweredOn?(hrn, domain)
+  def self.hasACPower?(hrn, domain)
     ip_port = getSwitchPort(hrn, domain).split(":")
     begin
       switch_ip = ip_port[0]
       switch_port = ip_port[1]
     rescue
-      raise "CMCNORBIT - Failed to check power state of node '#{hrn}'"
+      raise "CMCNORBIT - Failed to check AC power state of node '#{hrn}'"
     end
         
     switch_user = @@config['switch_user']
@@ -186,39 +199,64 @@ class CmcNorbitService < GridService
     tn.cmd(switch_pw)
     state = tn.cmd("show port 0/#{switch_port}")
     if state.include? "Up"
-      MObject.debug("Node '#{hrn}' is powered on.")
+      MObject.debug("Node '#{hrn}' has AC power.")
       powered = true
     elsif state.include? "Down"
-      MObject.debug("Node '#{hrn}' is powered down.")
+      MObject.debug("Node '#{hrn}' has no AC power.")
       powered = false
     else
-      MObject.debug("Error checking power state of node '#{hrn}'.")
+      MObject.debug("Error checking AC power state of node '#{hrn}'.")
       powered = nil
     end
     tn.puts("logout") # use puts, don't wait for prompt as cmd does
     tn.close
-    raise "CMCNORBIT - Failed to check power state of node '#{hrn}'" if powered.nil?
+    raise "CMCNORBIT - Failed to check AC power state of node '#{hrn}'" if powered.nil?
     powered
   end
   
-  def self.powerToggle(hrn, domain)
+  def self.poweredOn?(hrn, domain)
     tn = openTelnet(hrn, domain)
-    tn.puts "pcpwr"
+    retval = tn.cmd("state").include? "ON"
     closeTelnet(tn)
-    true
+    return retval
   end
-
-  def self.reset(hrn, domain)
+  
+  def self.exec(hrn, domain, cmd)
+    retval = false
     tn = openTelnet(hrn, domain)
-    tn.puts "pcres"
+    # for reset and off commands, do a soft reboot if the node has no CM2
+    # this can be removed when all nodes have CM2
+    if tn == false
+      if cmd != "on"
+        MObject.debug("Do a soft reset instead")
+        reboot(hrn, domain)
+      end
+      return true
+    end    
+    (0..10).each {
+      reply = tn.cmd(cmd)
+      if reply.include? "OK"
+        retval = true
+        break
+      end
+      MObject.debug("CM2 card replied with '#{reply}' to command '#{cmd}' for '#{hrn}'. Retrying in 2s.")
+      sleep 2
+    }
     closeTelnet(tn)
-    true
+    return retval
   end
 
   def self.openTelnet(hrn, domain)
     ip = getCmcIP(hrn, domain)
-    tn = Net::Telnet::new('Host' => ip, "Dump_log" => "/tmp/output_log")
-    tn.waitfor("Prompt" => /CM2\> /n)
+    begin
+      tn = Net::Telnet::new('Host' => ip, "Dump_log" => "/tmp/output_log", "Prompt" => /\> /n)
+    rescue
+      MObject.debug("Failed to connect to CM2 at '#{ip}'")
+      return false
+    end
+    tn.waitfor("Prompt" => /\> /n)
+    # in case we are in serial pass through mode, exit it here
+    tn.cmd("---")
     return tn
   end
 
