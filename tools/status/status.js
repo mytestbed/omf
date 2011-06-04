@@ -25,9 +25,15 @@ $(document).ready(function(){
 		return false;
 	});
 	
-	$('input').map(function() {
+	$('input').filter(function() {
 		//alert($(this).attr("cm"));
-		if ($(this).attr("cm") == "refresh") this.click();
-	})
+		return $(this).attr("cm") == "refresh";
+	}).click();
+	
+	$('input').filter(function() {
+		return $(this).attr("map") != "";
+	}).click(function() {
+		$('#map').html("<img src=../"+$(this).attr("map")+".png>");
+	});
 	
 });

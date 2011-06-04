@@ -1,13 +1,8 @@
 <?php
 
-$nodes = array();
 $prefix = "omf.nicta.";
 $cm_url = "http://localhost:5053/cmc/";
 $domain = "norbit";
-
-function extract_numbers($string) {
-	return ereg_replace("[^0-9]", "", $string); 
-}
 
 if (!empty($_POST['node'])) {
 	$node = ereg_replace("[^a-z0-9]", "", $_POST['node']);
@@ -17,11 +12,9 @@ if (!empty($_POST['node'])) {
 	if ($action != "refresh") {
 		$url = $cm_url.$action ."?domain=".$domain."&hrn=".$prefix.$node;
 		file_get_contents($url);
-	} else {
-		//echo $_POST['action'];
 	}
 	
-	exec('nmap 10.0.0.'.extract_numbers($node).' -p 22-23', $output);
+	exec('nmap 10.0.0.'.ereg_replace("[^0-9]", "", $node).' -p 22-23', $output);
 	
 	if (in_array("22/tcp open   ssh",$output)) {
 		echo "<SPAN style='BACKGROUND-COLOR: lightgreen'>&nbsp;Powered On, SSH&nbsp;</SPAN>";
@@ -40,19 +33,8 @@ if (!empty($_POST['node'])) {
 			}
 		}
 	}
-	
-	// states = ["<SPAN style='BACKGROUND-COLOR: crimson'>&nbsp;No AC Power&nbsp;</SPAN>", "<SPAN style='BACKGROUND-COLOR: orangered'>&nbsp;Powered Off&nbsp;</SPAN>", "<SPAN style='BACKGROUND-COLOR: gold'>&nbsp;Powered On, no Telnet/SSH&nbsp;</SPAN>", "<SPAN style='BACKGROUND-COLOR: yellow'>&nbsp;Powered On, Telnet (PXE)&nbsp;</SPAN>", "<SPAN style='BACKGROUND-COLOR: lightgreen'>&nbsp;Powered On, SSH&nbsp;</SPAN>"]
-
-	
 	exit;
 }
-
-
-
-for ($i = 1; $i <= 38; $i++) {
-	array_push($nodes, "node".$i);
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -64,19 +46,23 @@ for ($i = 1; $i <= 38; $i++) {
   <script src="jquery.js"></script>
   <script src="status.js"></script>
 </head>
-<body onload=''>
+<body>
 
+<center>
 <h1>NORBIT Testbed Status</h1>
 
 <table>
   <tr>
     <th>Node</th>
     <th>Status</th>
-    <th></th>
-    <th></th>
   </tr>
 
 <?php 
+
+$nodes = array();
+for ($i = 1; $i <= 39; $i++) {
+	array_push($nodes, "node".$i);
+}
 
 $oddrow = true;
 
@@ -90,18 +76,26 @@ foreach($nodes as $node) {
 ?>
   <td><?= $prefix.$node ?></td>
 	<td align="center"><div id="<?= $node ?>"><img src=ajax-loader.gif></div></td>
-	<td><form method="post" class="button_to"><input type="submit" name="<?= $node ?>" value="Refresh" cm="refresh"/></form></td>
-	<td><form method="post" class="button_to"><input type="submit" name="<?= $node ?>" value="Reboot" cm="reboot"/></form></td>
-	<td><form method="post" class="button_to"><input type="submit" name="<?= $node ?>" value="Power On" cm="on"/></form></td>
-	<td><form method="post" class="button_to"><input type="submit" name="<?= $node ?>" value="Soft Power Off" cm="offSoft"/></form></td>
-	<td><form method="post" class="button_to"><input type="submit" name="<?= $node ?>" value="Hard Power Off" cm="offHard"/></form></td>		
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Refresh" cm="refresh"/></form></td>
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Reboot" cm="reboot"/></form></td>
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Power On" cm="on"/></form></td>
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Soft Power Off" cm="offSoft"/></form></td>
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Hard Power Off" cm="offHard"/></form></td>		
 </tr>
 <?php	
 }
 ?>
-
 </table>
+<h2>Maps</h2>
+<form>
+  <input type="button" value="L3N Map" map="L3N"/>
+  <input type="button" value="L4N Map" map="L4N"/>
+  <input type="button" value="L4S Map" map="L4S"/>
+  <input type="button" value="L5S Map" map="L5S"/>
+</form>
 
+<div id="map"></div>
+</center>
 </body>
 </html>
 
