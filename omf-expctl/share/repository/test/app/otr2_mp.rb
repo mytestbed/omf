@@ -21,43 +21,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+
+# This is an OMF Definition for the existing application called 'otr2_mp'
+# This definition will allow OMF entities to use and instrument this application
+# Note: the application 'otr2_mp' was contributed by a student and is not 
+# officially supported by the OMF/OML team
 #
-require 'omf-expctl/application/appDefinition'
+defApplication('test:app:otr2_mp', 'otr2_mp') do |a|
 
-defApplication('test:app:otr2_mp', 'otr2_mp') { |a|
-
+  a.path = "/bin/otr2_mp"
   a.version(1, 1, 2)
   a.shortDescription = "Programmable traffic sink"
   a.description = <<TEXT
 otr is a configurable traffic sink. It contains port to receive
 packet streams via various transport options, such as TCP and UDP.
-This version add support to multiple routes.
+This modified version introduces multipath routing, ie. OTG sends pkt via
+multiple paths to the destination.
 TEXT
 
-  #defProperty(name, description, mnemonic = nil, options = nil)
+  # Define the properties that can be configured for this application
+  # 
+  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  #
   a.defProperty('sink', 'Processing to do with received packets [udpi|udpmi]', nil, {:type => :string, :dynamic => false})
   a.defProperty('udpmi:local_host', 'IP address of the local host ', nil, {:type => :string, :dynamic => false})
   a.defProperty("debug-level", "debug level [integer]")
 
-  a.path = "/bin/otr2_mp"
-}
-
-if $0 == __FILE__
-  require 'omf-expctl/appDefinition'
-  require 'stringio'
-  require 'rexml/document'
-  include REXML
-
-  sio = StringIO.new()
-  a = AppDefinition['test:app:otr2_mp']
-  a.to_xml.write(sio, 2)
-  sio.rewind
-  puts sio.read
-  sio.rewind
-  doc = Document.new(sio)
-  t = AppDefinition.from_xml(doc.root)
-  puts
-  puts "-------------------------"
-  puts
-  t.to_xml.write($stdout, 2)
+  # Note: here we should have some Measurement Point definition...
 end

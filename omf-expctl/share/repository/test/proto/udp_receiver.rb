@@ -31,7 +31,7 @@
 # existing application otr2.
 # It allows OMF entities to use and instrument this traffic receiver
 #
-defPrototype("test:proto:udp_receiver") { |p|
+defPrototype("test:proto:udp_receiver") do |p|
   p.name = "UDP_Receiver"
   p.description = "Nodes which receive UDP packets"
 
@@ -46,10 +46,10 @@ defPrototype("test:proto:udp_receiver") { |p|
   # and finally, define what measurements should be collected
   # for each application.
   #
-  p.addApplication("test:app:otr2") { |otr|
+  p.addApplication("test:app:otr2") do |otr|
 
     otr.bindProperty('udp:local_host', 'localHost')
     otr.bindProperty('udp:local_port', 'localPort')
     otr.measure('udp_in', :samples => 1)
-  }
-}
+  end
+end

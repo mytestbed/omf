@@ -21,31 +21,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#
-#
-# Define a prototype
-#
 
-defPrototype("test:proto:receiver2_mp") { |p|
+# This is an OMF Prototype definition
+# This prototype contains a single UDP traffic sink, which uses the
+# existing modified application otr2_mp.
+# Note: the application 'otr2_mp' was contributed by a student and is not 
+# officially supported by the OMF/OML team
+#
+defPrototype("test:proto:receiver2_mp") do |p|
   
   p.name = "Receiver2-Multipah"
   p.description = "Nodes which receive packets from multiple paths"
-
+  # List properties of prototype
   p.defProperty('sink', 'Task to perform on received packets', 'udpmi')
   p.defProperty('localHost', 'Host that generate the packets')
   p.defProperty('debugLevel', 'Level of debug messages to output', 0)
 
-  p.addApplication(:otr2_mp, "test:app:otr2_mp") { |otr|
-
+  # Define applications to be installed on this type of node,
+  # bind the application properties to the prototype properties.
+  #
+  p.addApplication("test:app:otr2_mp") do |otr|
     otr.bindProperty('sink')
     otr.bindProperty('udpmi:local_host', 'localHost')
     otr.bindProperty('debug-level', 'debugLevel')
-  
-  }
-
-}
-
-if $0 == __FILE__
-  p.to_xml.write($stdout, 2)
-  puts
+  end
 end

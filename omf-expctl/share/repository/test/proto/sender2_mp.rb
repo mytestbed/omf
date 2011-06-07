@@ -21,14 +21,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#
-#
-# Define a prototype containing a single
-# traffic generator (otg).
-#
 
-
-defPrototype("test:proto:sender2_mp") { |p|
+# This is an OMF Prototype definition
+# This prototype contains a single UDP traffic generator, which uses the
+# existing modified application otg2_mp.
+# Note: the application 'otg2_mp' was contributed by a student and is not 
+# officially supported by the OMF/OML team
+#
+defPrototype("test:proto:sender2_mp") do |p|
   p.name = "Sender2-Multipath"
   p.description = "A node which transmit a stream of packets over multiple paths"
   # List properties of prototype
@@ -41,21 +41,14 @@ defPrototype("test:proto:sender2_mp") { |p|
 
 
   # Define applications to be installed on this type of node,
-  # bind the application properties to the prototype properties,
-  # and finally, define what measurements should be collected
-  # for each application.
+  # bind the application properties to the prototype properties.
   #
-  p.addApplication(:otg2_mp, "test:app:otg2_mp") {|otg|
+  p.addApplication("test:app:otg2_mp") {|otg|
     otg.bindProperty('protocol')
     otg.bindProperty('generator')
     otg.bindProperty('udpm:local_host', 'localHost')
     otg.bindProperty('udpm:dst_host', 'destinationHost')
     otg.bindProperty('debug-level', 'debugLevel')
     otg.bindProperty('udpm:disjoint', 'disjointPath')
-  }
-}
-
-if $0 == __FILE__
-  p.to_xml.write($stdout, 2)
-  puts
+  end
 end

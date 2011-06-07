@@ -28,7 +28,7 @@
 # existing application otg2.
 # It allows OMF entities to use and instrument this traffic generator
 #
-defPrototype("test:proto:udp_sender") { |p|
+defPrototype("test:proto:udp_sender") do |p|
   p.name = "UDP_Sender"
   p.description = "A node which transmit unicast CBR UDP packets"
 
@@ -48,7 +48,7 @@ defPrototype("test:proto:udp_sender") { |p|
   # and finally, define what measurements should be collected
   # for each application.
   #
-  p.addApplication("test:app:otg2") {|otg|
+  p.addApplication("test:app:otg2") do |otg|
     otg.bindProperty('udp:broadcast', 'broadcast')	
     otg.bindProperty('udp:dst_host', 'destinationHost')
     otg.bindProperty('udp:dst_port', 'destinationPort')
@@ -57,5 +57,5 @@ defPrototype("test:proto:udp_sender") { |p|
     otg.bindProperty('cbr:size', 'packetSize')
     otg.bindProperty('cbr:rate', 'rate')
     otg.measure('udp_out', :samples => 1)
-  }
-}
+  end
+end

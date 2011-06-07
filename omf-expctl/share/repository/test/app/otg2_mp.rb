@@ -22,56 +22,35 @@
 # THE SOFTWARE.
 #
 #
-#
-# Create an application representation from scratch
-#
-require 'omf-expctl/application/appDefinition'
 
-defApplication('test:app:otg2_mp', 'otg2_mp') {|a|
+# This is an OMF Definition for the existing application called 'otg2_mp'
+# This definition will allow OMF entities to use and instrument this application
+# Note: the application 'otg2_mp' was contributed by a student and is not 
+# officially supported by the OMF/OML team
+# 
+defApplication('test:app:otg2', 'otg2') do |a|
+
+  a.path = "/usr/bin/otg2_mp"
   a.version(1, 1, 2)
-  a.shortDescription = "Programmable traffic generator v2"
+  a.shortDescription = "Programmable *multipath* traffic generator v2"
   a.description = <<TEXT
 OTG is a configurable traffic generator. It contains generators
 producing various forms of packet streams and port for sending
 these packets via various transports, such as TCP and UDP.
-Version 2 introduces multipath routing, ie. OTG sends pkt via
+This modified version introduces multipath routing, ie. OTG sends pkt via
 multiple paths to the destination.
 TEXT
 
-  # defProperty(name, description, mnemonic, type, isDynamic = false, constraints = nil)
+  # Define the properties that can be configured for this application
+  # 
+  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  #
   a.defProperty('protocol', 'Protocol to use [udpm|udp|tcp]')
   a.defProperty('generator', 'Generator to use [cbr|expoo]')
-
   a.defProperty('udpm:local_host', 'IP address of the local host [string]')
   a.defProperty('udpm:dst_host', 'IP address of the destination host [string]')
   a.defProperty('udpm:disjoint', 'Flag to use (or not) disjoint paths [0 or 1]')
-
   a.defProperty("debug-level", "debug level [integer]")
 
-  a.path = "/bin/otg2_mp"
-}
-
-
-if $0 == __FILE__
-  require 'omf-expctl/appDefinition'
-  require 'stringio'
-  require 'rexml/document'
-  include REXML
-
-  sio = StringIO.new()
-  a = AppDefinition['test:app:otg2_mp']
-  a.to_xml.write(sio, 2)
-  sio.rewind
-  puts sio.read
-
-  sio.rewind
-  doc = Document.new(sio)
-  t = AppDefinition.from_xml(doc.root)
-
-  puts
-  puts "-------------------------"
-  puts
-  t.to_xml.write($stdout, 2)
-
- end
-
+  # Note: here we should have some Measurement Point definition...
+end
