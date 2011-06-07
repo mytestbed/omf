@@ -6,14 +6,13 @@ $domain = "norbit";
 
 if (!empty($_POST['node'])) {
 	$node = ereg_replace("[^a-z0-9]", "", $_POST['node']);
-	$action = ereg_replace("[^a-z]", "", $_POST['action']);
+	$action = ereg_replace("[^a-zA-Z]", "", $_POST['action']);
 	
 	//sleep ( rand ( 1, 3));
 	if ($action != "refresh") {
 		$url = $cm_url.$action ."?domain=".$domain."&hrn=".$prefix.$node;
 		file_get_contents($url);
 	}
-	
 	exec('nmap 10.0.0.'.ereg_replace("[^0-9]", "", $node).' -p 22-23', $output);
 	
 	if (in_array("22/tcp open   ssh",$output)) {
@@ -78,6 +77,7 @@ foreach($nodes as $node) {
 	<td align="center"><div id="<?= $node ?>"><img src=ajax-loader.gif></div></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Refresh" cm="refresh"/></form></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Reboot" cm="reboot"/></form></td>
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Reset" cm="reset"/></form></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Power On" cm="on"/></form></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Soft Power Off" cm="offSoft"/></form></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Hard Power Off" cm="offHard"/></form></td>		
