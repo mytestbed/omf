@@ -269,14 +269,25 @@ class AbstractDaemon < MObject
       end
       if (good)
         begin
-          info "Checking port #{port}..."
+          info "Checking port TCP:#{port}..."
           serv = TCPServer.new(port)
         rescue
           good = false
-          info "Port #{port} is in use!"
+          info "Port TCP:#{port} is in use!"
         else
           serv.close
-          info "Port #{port} is free!"
+          info "Port TCP:#{port} is free!"
+          begin
+            info "Checking port UDP:#{port}..."
+            serv = UDPSocket.new
+	    serv.bind(nil,port)
+          rescue
+            good = false
+            info "Port UDP:#{port} is in use!"
+          else
+            serv.close
+            info "Port UDP:#{port} is free!"
+	  end
         end
       end
       return port if (good)

@@ -14,7 +14,7 @@ frisbee:
       # Directory images are stored
       imageDir: /var/lib/omf-images-5.3
       #defaultImage: orbit-baseline
-      defaultImage: norbix
+      defaultImage: baseline.ndz
 
       # max bandwidth for frisbee server
       bandwidth: 50000000

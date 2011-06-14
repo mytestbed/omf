@@ -12,6 +12,7 @@ if (!empty($_POST['node'])) {
 	if ($action != "refresh") {
 		$url = $cm_url.$action ."?domain=".$domain."&hrn=".$prefix.$node;
 		file_get_contents($url);
+		sleep(1);
 	}
 	exec('nmap 10.0.0.'.ereg_replace("[^0-9]", "", $node).' -p 22-23', $output);
 	
@@ -59,7 +60,7 @@ if (!empty($_POST['node'])) {
 <?php 
 
 $nodes = array();
-for ($i = 1; $i <= 39; $i++) {
+for ($i = 1; $i <= 38; $i++) {
 	array_push($nodes, "node".$i);
 }
 
