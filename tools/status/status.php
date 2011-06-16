@@ -8,11 +8,9 @@ if (!empty($_POST['node'])) {
 	$node = ereg_replace("[^a-z0-9]", "", $_POST['node']);
 	$action = ereg_replace("[^a-zA-Z]", "", $_POST['action']);
 	
-	//sleep ( rand ( 1, 3));
 	if ($action != "refresh") {
 		$url = $cm_url.$action ."?domain=".$domain."&hrn=".$prefix.$node;
 		file_get_contents($url);
-		sleep(1);
 	}
 	exec('nmap 10.0.0.'.ereg_replace("[^0-9]", "", $node).' -p 22-23', $output);
 	
@@ -25,12 +23,12 @@ if (!empty($_POST['node'])) {
 		if (strstr(file_get_contents($url),"POWERON")) {
 			echo "<SPAN style='BACKGROUND-COLOR: gold'>&nbsp;Powered On, no Telnet/SSH&nbsp;</SPAN>";
 		} else {
-			$url = $cm_url."acstatus?domain=".$domain."&hrn=".$prefix.$node;
-			if (strstr(file_get_contents($url),"POWERON")) {
+			//$url = $cm_url."acstatus?domain=".$domain."&hrn=".$prefix.$node;
+			//if (strstr(file_get_contents($url),"POWERON")) {
 				echo "<SPAN style='BACKGROUND-COLOR: orangered'>&nbsp;Powered Off&nbsp;</SPAN>";
-			} else {
-				echo "<SPAN style='BACKGROUND-COLOR: crimson'>&nbsp;No AC Power&nbsp;</SPAN>";
-			}
+			//} else {
+			//	echo "<SPAN style='BACKGROUND-COLOR: crimson'>&nbsp;No AC Power&nbsp;</SPAN>";
+			//}
 		}
 	}
 	exit;
@@ -50,6 +48,7 @@ if (!empty($_POST['node'])) {
 
 <center>
 <h1>NORBIT Testbed Status</h1>
+Push the buttons only when you have a current reservation for the nodes.
 
 <table>
   <tr>
@@ -77,6 +76,7 @@ foreach($nodes as $node) {
   <td><?= $prefix.$node ?></td>
 	<td align="center"><div id="<?= $node ?>"><img src=ajax-loader.gif></div></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Refresh" cm="refresh"/></form></td>
+	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Blink" cm="blink"/></form></td>	
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Reboot" cm="reboot"/></form></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Reset" cm="reset"/></form></td>
 	<td><form method="post"><input type="submit" name="<?= $node ?>" value="Power On" cm="on"/></form></td>
@@ -87,12 +87,18 @@ foreach($nodes as $node) {
 }
 ?>
 </table>
+<br>
+<form>
+  <input type="button" value="Turn All Nodes On" all="on"/>
+  <input type="button" value="Turn All Nodes Off (soft)" all="softoff"/>
+</form>
+<br>
 <h2>Maps</h2>
 <form>
-  <input type="button" value="L3N Map" map="L3N"/>
-  <input type="button" value="L4N Map" map="L4N"/>
-  <input type="button" value="L4S Map" map="L4S"/>
-  <input type="button" value="L5S Map" map="L5S"/>
+  <input class="map" type="button" value="L3N Map" map="L3N"/>
+  <input class="map" type="button" value="L4N Map" map="L4N"/>
+  <input class="map" type="button" value="L4S Map" map="L4S"/>
+  <input class="map" type="button" value="L5S Map" map="L5S"/>
 </form>
 
 <div id="map"></div>

@@ -16,6 +16,7 @@ print "<body bgcolor=#d0d0d0>
 <table><tr><td width=20%></td><td width=60%>
 <h3>Status of the NICTA Testbed</h3>
   Please manually reload this page to see the current testbed status. <br><br>
+<a href='http://norbit.npc.nicta.com.au/status/'>Click here for the new status page</a><br><br>
 <table border cellpadding=2>";
 
 my $root="http://norbit.npc.nicta.com.au";

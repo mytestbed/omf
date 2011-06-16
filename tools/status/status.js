@@ -1,5 +1,5 @@
-$(document).ready(function(){
-	
+$(window).load(function(){
+
 	$('input').click(function() {
 		//alert("Thanks for visiting!");
 		
@@ -25,15 +25,34 @@ $(document).ready(function(){
 		return false;
 	});
 	
+	// click all refresh buttons after loading
 	$('input').filter(function() {
 		//alert($(this).attr("cm"));
 		return $(this).attr("cm") == "refresh";
 	}).click();
 	
+	// click all offsoft buttons when the alloffsoft button is pressed
 	$('input').filter(function() {
-		return $(this).attr("map") != "";
+		return $(this).attr("all") == "softoff";
 	}).click(function() {
-		$('#map').html("<img src=../"+$(this).attr("map")+".png>");
+		$('input').filter(function() {
+			return $(this).attr("cm") == "offSoft";
+		}).click();
 	});
-	
+
+	// click all on buttons when the allon button is pressed
+	$('input').filter(function() {
+		return $(this).attr("all") == "on";
+	}).click(function() {
+		$('input').filter(function() {
+			return $(this).attr("cm") == "on";
+		}).click();
+	});
+
+	// map buttons (match "map" class)
+	$(".map").click(function() {
+		$('#map').html("<img src=../"+$(this).attr("map")+".png>");
+		$('html, body').animate({scrollTop: $(document).height()}, 1);
+	});
+
 });

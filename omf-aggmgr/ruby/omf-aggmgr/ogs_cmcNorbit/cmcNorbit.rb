@@ -169,10 +169,10 @@ class CmcNorbitService < GridService
       #MObject.debug("TDEBUG - SSH - '#{ssh}'")
       elsif cmd.include? "23/tcp open"
         tn = Net::Telnet::new('Host' => ip)
-        tn.puts "root"
-        tn.puts "reboot"
+        tn.cmd "root"
+        tn.cmd "reboot"
         tn.close
-        #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
+        #MObject.debug("TDEBUG - TELNET - '#{ip}'")
       end
     rescue Exception => ex
       MObject.debug("CMCNORBIT - Failed to send REBOOT to '#{hrn}' at #{ip} - Exception: #{ex}")
