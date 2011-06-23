@@ -189,7 +189,9 @@ class NodeAgent < MObject
     info "\n\n------------ RESET ------------\n"
     ExecApp.killAll
     AgentCommands.reset_links
-    Device.unload
+    AgentCommands::DEV_MAPPINGS.each do |key,device|
+      device.unload
+    end
     resetState
     RCCommunicator.instance.reset
   end
@@ -429,9 +431,17 @@ if (LSPCI)
   IO.popen("#{LSPCI} | grep 'Ethernet controller: Atheros' | /usr/bin/wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/atheros'
-      MObject.info "Have Atheros cards"
+      MObject.info "Have Atheros cards - Using MadWifi driver"
       AgentCommands::DEV_MAPPINGS['net/w0'] = AtherosDevice.new('net/w0', 'ath0')
       AgentCommands::DEV_MAPPINGS['net/w1'] = AtherosDevice.new('net/w1', 'ath1')
+    end
+  }
+  IO.popen("#{LSPCI} | grep 'Network controller: Atheros' | /usr/bin/wc -l") {|p|
+    if p.gets.to_i > 0
+      require 'omf-resctl/omf_driver/ath9k'
+      MObject.info "Have Atheros cards - Using ath9k driver"
+      AgentCommands::DEV_MAPPINGS['net/w0'] = Ath9kDevice.new('net/w0', 'wlan0')
+      AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
     end
   }
 end

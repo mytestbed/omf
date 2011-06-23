@@ -41,13 +41,13 @@ class Device < MObject
   #
   # Unload device driver (i.e. kernel module)
   #
-  def self.unload
+  def unload
     @@driverLoaded.each_key { |driver|
       reply = `/sbin/modprobe -r #{driver}`
       if ! $?.success?
         raise "Problems unloading module #{driver} -- #{reply}"
       end
-      MObject.info(:Device, "Unloaded #{driver} driver")
+      info "Unloaded #{driver} driver"
     }
     @@driverLoaded = Hash.new
   end
@@ -90,6 +90,13 @@ class Device < MObject
     result = Hash.new
     begin
       cmd = getConfigCmd(prop, value)
+      if cmd.nil?
+        msg = "Some config parameters are missing, could not configure "+
+              "'#{path}' for now, waiting for other parameters."
+        result[:info] = msg
+        result[:success] = true
+        return result
+      end
       debug "configure cmd: #{cmd}"
       reply = `#{cmd}`
       if $?.success?
