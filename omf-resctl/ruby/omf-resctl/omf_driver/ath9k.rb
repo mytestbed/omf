@@ -153,6 +153,11 @@ class Ath9kDevice < WirelessDevice
               "/sbin/ifconfig #{deviceName} up ; "+
               "#{@iw} dev #{@deviceName} ibss join #{@essid} #{FREQUENCY[@channel.to_i]}"
       when :monitor
+        return nil if @channel.nil? || @essid.nil?
+        clean = `#{@iw} dev #{@deviceName} del`
+        cmd = "#{@iw} phy #{@baseDevice} interface add #{@deviceName} type monitor ; "+
+              "/sbin/ifconfig #{deviceName} up ; "+
+              "#{@iw} dev #{@deviceName} set freq #{FREQUENCY[@channel.to_i]}"
     else
       raise "Unknown mode '#{value}'. Should be 'master', 'managed', "+
             "'adhoc', or monitor."
