@@ -501,7 +501,7 @@ class Node < MObject
     addr = ECCommunicator.instance.make_address(:name => @nodeID) 
     cmd = ECCommunicator.instance.create_message(:cmdtype => :SET_DISCONNECTION,
                        :target => @nodeID,
-                       :omlURL => OConfig[:ec_config][:oml][:url],
+                       :omlURL => OConfig[:ec_config][:omluri],
                        :exp => exp)
     ECCommunicator.instance.send_message(addr, cmd)
   end
