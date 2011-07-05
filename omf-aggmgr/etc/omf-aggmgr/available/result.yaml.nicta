@@ -9,4 +9,4 @@ result:
   sqlite3_path: '/usr/bin/sqlite3'  
 
   # Path to the directory holding the experiment measurement databases
-  database_path: '/tmp'  
+  database_path: '/var/lib/oml2'  
