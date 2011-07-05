@@ -44,12 +44,12 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   wait 10
   allGroups.startApplications
   wait 10
-  info "TEST - Sender WIFI"
-  group('Sender').exec("/sbin/wlanconfig ath0 ; ifconfig ath0")
-  wait 10
-  info "TEST - Receiver WIFI"
-  group('Receiver').exec("/sbin/wlanconfig ath0 ; ifconfig ath0")
-  wait 10
+  info "TEST - Running ifconfig on Sender"
+  group('Sender').exec("ifconfig")
+  wait 15
+  info "TEST - Running ifconfig on Receiver"
+  group('Receiver').exec("ifconfig")
+  wait 15
   allGroups.stopApplications
   Experiment.done
 end
