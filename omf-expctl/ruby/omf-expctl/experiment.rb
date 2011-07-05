@@ -273,12 +273,11 @@ class Experiment
     # If -r flag was set on the command line
     # Reset the nodes before starting the experiment if -r flag was set
     if NodeHandler.NODE_RESET
-      MObject.info "Reset flag is set - Resetting the resources"
+      MObject.info("Experiment", "Resetting resources which are already ON")
       OMF::ExperimentController::CmdContext.instance.allGroups.powerReset
-    # If not, just make sure the nodes are ON
-    else
-      OMF::ExperimentController::CmdContext.instance.allGroups.powerOn
     end
+    MObject.info("Experiment", "Switching ON resources which are OFF")
+    OMF::ExperimentController::CmdContext.instance.allGroups.powerOn
 
     # If this is a disconnected experiment, purge all Events defined on this 
     # EC for this experiment (the slave ECs will be responsible for acting
