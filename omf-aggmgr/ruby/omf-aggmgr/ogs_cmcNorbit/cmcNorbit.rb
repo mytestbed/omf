@@ -131,7 +131,6 @@ class CmcNorbitService < GridService
     root
   end
 
-
   #
   # Implement 'acstatus' service using the 'service' method of AbstractService
   #
@@ -147,15 +146,6 @@ class CmcNorbitService < GridService
     attr = {'hrn' => hrn, 'state' => "#{state}" }
     detail.add_element('node', attr)
     root
-  end
-
-  #
-  # Configure the service through a hash of options
-  #
-  # - config = the Hash holding the config parameters for this service
-  #
-  def self.configure(config)
-    @@config = config
   end
 
   def self.reboot(hrn, domain)

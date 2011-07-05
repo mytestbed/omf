@@ -61,27 +61,54 @@ class CmcStubService < GridService
   #
   s_description 'Switch ON a resource'
   s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'  
   service 'on' do |hrn|
     true
   end
 
   #
-  # Implement 'nodeSetOn' service using the 'service' method of AbstractService
+  # Implement 'offHard' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return true (OK)
   #
-  s_description 'Switch on a set of nodes'
-  s_param :nodes, 'setDecl', 'set of nodes to switch on'
-  service 'nodeSetOn' do |nodes|
+  s_description 'Switch off a node HARD (immediately) at a specific coordinate'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'  
+  service 'offHard' do |hrn, domain|
     true
   end
 
   #
-  # Implement 'reset' service using the 'service' method of AbstractService
+  # Implement 'offSoft' service using the 'service' method of AbstractService
   # In this Stub CMC, this will always return true (OK)
   #
-  # Note: Correct behaviour of 'reset' is
-  #       - if node is already ON, then reset/reboot it
-  #       - if node is OFF then turn it ON
+  s_description 'Switch off a node SOFT (execute halt) at a specific coordinate'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'offSoft' do |hrn, domain|
+    true
+  end
+
+  #
+  # Implement 'reboot' service using the 'service' method of AbstractService
+  # In this Stub CM, this will try to send a REBOOT command to the RC on the 
+  # resource using Telnet or SSH.
+  # Regardless of the result, this will always return true (OK)
+  #
+  s_description 'Reboot a resource (soft)'
+  s_param :hrn, 'hrn', 'hrn of the resource'
+  s_param :domain, 'domain', 'domain for request.'
+  service 'reboot' do |hrn, domain|
+    reboot(hrn, domain)
+    true
+  end
+
+
+
+  #
+  # Implement 'reset' service using the 'service' method of AbstractService
+  # In this Stub CM, this will try to send a REBOOT command to the RC on the 
+  # resource using Telnet or SSH.
+  # Regardless of the result, this will always return true (OK)
   #
   s_description 'Reset a resource'
   s_param :hrn, 'hrn', 'hrn of the resource'
@@ -92,99 +119,20 @@ class CmcStubService < GridService
   end
 
   #
-  # Implement 'offHard' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return true (OK)
+  # Implement 'status' service using the 'service' method of AbstractService
+  # In this Stub CMC, this will always return true (POWERON)
   #
-  # NOTE:
-  # At NICTA, we do not have the CM card operational on our nodes yet...
-  # We use the NA's 'REBOOT' command to implement a 'offHard'
+  # Return the power state of a given node
   #
-  s_description 'Switch off a node HARD (immediately) at a specific coordinate'
+  s_description 'Return the AC power state of a given node'
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
-  service 'offHard' do |hrn, domain|
-    reboot(hrn, domain)
-    true
-  end
-
-  #
-  # Implement 'offSoft' service using the 'service' method of AbstractService
-  #
-  # NOTE:
-  # At NICTA, we do not have the CM card operational on our nodes yet...
-  # We use the NA's 'REBOOT' command to implement a 'offSoft'
-  #
-  s_description 'Switch off a node SOFT (execute halt) at a specific coordinate'
-  s_param :hrn, 'hrn', 'hrn of the resource'
-  s_param :domain, 'domain', 'domain for request.'
-  service 'offSoft' do |hrn, domain|
-    reboot(hrn, domain)
-    true
-  end
-
-  #
-  # Implement 'allOffHard' service using the 'service' method of AbstractService
-  # In this Stub CMC, this will always return true (OK)
-  #
-  s_description 'Switch off ALL nodes HARD (immediately)'
-  service 'allOffHard' do
-    true
-  end
-
-  #
-  # Implement 'allOffSoft' service using the 'service' method of AbstractService
-  #
-  # NOTE:
-  # At NICTA, we do not have the CM card operational on our nodes yet...
-  # We use the NA's 'REBOOT' command to implement a 'allOffSoft'
-  #
-  s_description 'Switch off ALL nodes SOFT (execute halt)'
-  s_param :domain, '[domain]', 'domain for request.'
-  service 'allOffSoft' do |domain|
-    nodes = listAllNodes(domain)
-    nodes.each { |n|
-      reboot(n, domain)
-    }
-    true
-  end
-
-  #
-  # Implement 'getAllNodes' service using the 'service' method of AbstractService
-  #
-  # NOTE:
-  # At NICTA, we do not have the CM card operational on our nodes yet...
-  # We use the information in the CMC Stub config file to implement a 'getAllNodes'
-  #
-  # TODO: if still not CM card operational after a while, then this should
-  # really use information from the Inventory instead
-  #
-  s_description 'Returns a list of all nodes in the testbed'
-  s_param :domain, '[domain]', 'domain for request.'
-  service 'getAllNodes' do |domain|
-    nodes = listAllNodes(domain)
-    nodes.inspect
-  end
-
-  #
-  # Implement 'allStatus' service using the 'service' method of AbstractService
-  #
-  # NOTE:
-  # At NICTA, we do not have the CM card operational on our nodes yet...
-  # We use the information in the CMC Stub config file to implement a 'allStatus'
-  #
-  # TODO: if still not CM card operational after a while, then this should
-  # really use information from the Inventory instead
-  #
-  s_description 'Returns the status of all nodes in the testbed'
-  s_param :domain, '[domain]', 'domain for request.'
-  service 'allStatus' do |domain|
-    root = REXML::Element.new('TESTBED_STATUS')
+  service 'status' do |hrn, domain|
+    root = REXML::Element.new('NODE_STATUS')
     detail = root.add_element('detail')
-    nodes = listAllNodes(domain)
-    nodes.each { |n|
-      attr = {'hrn' => "#{n}", 'state' => 'POWERON' }
-      detail.add_element('node', attr)
-    }
+    state = poweredOn?(hrn, domain) ? 'POWERON' : 'POWEROFF'
+    attr = {'hrn' => hrn, 'state' => "POWERON" }
+    detail.add_element('node', attr)
     root
   end
 
@@ -202,18 +150,16 @@ class CmcStubService < GridService
     ip = getControlIP(hrn, domain)
     begin
       cmd = `nmap #{ip} -p22-23`
-      #MObject.debug("TDEBUG - NMAP - '#{cmd}'")
       if cmd.include? "22/tcp open"
         ssh = `ssh -o CheckHostIP=no -o StrictHostKeyChecking=no #{ip} reboot`
-      #MObject.debug("TDEBUG - SSH - '#{ssh}'")
       elsif cmd.include? "23/tcp open"
         tn = Net::Telnet::new('Host' => ip)
         tn.puts "root"
         tn.puts "reboot"
-        #MObject.debug("TDEBUG - TELNET - '#{ssh}'")
       end
     rescue Exception => ex
-      MObject.debug("CMCSTUB - Failed to send REBOOT to '#{hrn}' at #{ip} - Exception: #{ex}")
+      MObject.debug("CMCSTUB - Failed to send REBOOT to '#{hrn}' at #{ip} - "+
+                    "Exception: #{ex}")
     end
   end
 
