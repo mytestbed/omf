@@ -456,6 +456,14 @@ if (LSPCI)
       AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
     end
   }
+  IO.popen("#{LSPCI} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | /usr/bin/wc -l") {|p|
+    if p.gets.to_i > 0
+      require 'omf-resctl/omf_driver/wimaxcu'
+      MObject.info "Found Intel WiMAX - using wimaxcu interface"
+      AgentCommands::DEV_MAPPINGS['net/x0'] = WimaxcuDevice.new('net/x0', 'wmx0')
+      AgentCommands::DEV_MAPPINGS['net/x1'] = WimaxcuDevice.new('net/x1', 'wmx1')
+    end
+  }
 end
 
 #

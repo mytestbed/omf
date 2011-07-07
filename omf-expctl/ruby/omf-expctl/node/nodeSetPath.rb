@@ -45,29 +45,31 @@ class NodeSetPath < MObject
   # List of valid 'PATHS' for a NodeSet
   VALID_PATHS_WITH_VALUES = {
     "mode=" => %r{net/[ew][01]},
+    "profile=" => %r{net/[x][01]},
+    "network=" => %r{net/[x][01]},
     "type=" => %r{net/[ew][01]},
     "rts=" => %r{net/[ew][01]},
     "rate=" => %r{net/[ew][01]},
     "essid=" => %r{net/[ew][01]},
-    "ip=" => %r{net/[ew][01]},
+    "ip=" => %r{net/[ewx][01]},
     "channel=" => %r{net/[ew][01]},
     "tx_power=" => %r{net/[ew][01]},
-    "netmask=" => %r{net/[ew][01]},
-    "mac=" => %r{net/[ew][01]},
-    "mtu=" => %r{net/[ew][01]},
-    "arp=" => %r{net/[ew][01]},
-    "enforce_link=" => %r{net/[ew][01]},
-    "route" => %r{net/[ew][01]},
-    "filter" => %r{net/[ew][01]},
+    "netmask=" => %r{net/[ewx][01]},
+    "mac=" => %r{net/[ewx][01]},
+    "mtu=" => %r{net/[ewx][01]},
+    "arp=" => %r{net/[ewx][01]},
+    "enforce_link=" => %r{net/[ewx][01]},
+    "route" => %r{net/[ewx][01]},
+    "filter" => %r{net/[ewx][01]},
     "net" => //
   }
   VALID_PATHS_WITHOUT_VALUES = {
-    "down" => %r{net/[ew][01]},
-    "up" => %r{net/[ew][01]},
+    "down" => %r{net/[ewx][01]},
+    "up" => %r{net/[ewx][01]},
   }
   VALID_PATHS = VALID_PATHS_WITH_VALUES.merge(VALID_PATHS_WITHOUT_VALUES)
   VALID_PATHS_RE = {
-    /[ew][01]/ => /net/
+    /[ewx][01]/ => /net/
   }
 
   #
