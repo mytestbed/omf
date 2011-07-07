@@ -68,23 +68,29 @@ class CmcStubService < GridService
 
   #
   # Implement 'offHard' service using the 'service' method of AbstractService
+  # In this Stub CM, this will try to send a REBOOT command to the RC on the 
+  # resource using Telnet or SSH.
   # In this Stub CMC, this will always return true (OK)
   #
   s_description 'Switch off a node HARD (immediately) at a specific coordinate'
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'  
   service 'offHard' do |hrn, domain|
+    reboot(hrn, domain)
     true
   end
 
   #
   # Implement 'offSoft' service using the 'service' method of AbstractService
+  # In this Stub CM, this will try to send a REBOOT command to the RC on the 
+  # resource using Telnet or SSH.
   # In this Stub CMC, this will always return true (OK)
   #
   s_description 'Switch off a node SOFT (execute halt) at a specific coordinate'
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |hrn, domain|
+    reboot(hrn, domain)
     true
   end
 
