@@ -65,7 +65,11 @@ class ResultService < LegacyGridService
     path = nil
     begin
       path = "#{@@config['database_path']}/#{experimentID}.sq3"
-      database = SQLite3::Database.new(path)
+      if File.exist?(path)
+        database = SQLite3::Database.new(path)
+      else
+        return nil
+      end
     rescue Exception => ex
       error "Result - Error opening Experiment Database --- PATH: '#{path}' --- '#{ex}'"
     end
@@ -206,6 +210,7 @@ class ResultService < LegacyGridService
     result = database = nil
     begin
       database = getDatabase(id)
+      raise "Database not found" if database.nil?
       database.type_translation = true if format == "json"
       resultColumns, *resultRows = database.execute2(sqlQuery)
     rescue Exception => ex
