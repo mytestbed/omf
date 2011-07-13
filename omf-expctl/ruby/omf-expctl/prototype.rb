@@ -31,6 +31,7 @@
 require "omf-common/omfVersion.rb"
 require "omf-expctl/parameter.rb"
 require "omf-expctl/application/application.rb"
+require "omf-expctl/moteApplication/moteApplication.rb"
 #require "omf-expctl/oml/oml_mpoint.rb"
 require "rexml/document"
 

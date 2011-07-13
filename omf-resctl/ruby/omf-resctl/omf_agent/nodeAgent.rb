@@ -60,7 +60,7 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentName, :agentSlice, :config, :controlIP
+  attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport, :motetype
 
   attr_accessor :allowDisconnection, :enrolled, :index
 
@@ -298,6 +298,18 @@ class NodeAgent < MObject
     opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and "+
       "message signing (default is no)") { |auth|
       @config[:communicator][:authenticate_messages] = (auth.downcase == "yes") 
+    }
+
+    # Mote-related Options
+    opts.on('--moteport PORT',
+      "For RCs servicing MoteApplications, this is the USB port that the RC "+
+      "will bind") {|port|
+      @moteport = port
+    }
+    opts.on('--motetype TYPE',
+      "For RCs servicing MoteApplications, this is the type of mote that is "+
+      "connected to this RC") {|mtype|
+      @motetype = mtype
     }
 
     # General Options

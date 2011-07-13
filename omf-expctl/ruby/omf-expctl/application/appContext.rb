@@ -163,7 +163,6 @@ class AppContext < MObject
             + " not in '#{pdef.keys.join(', ')}'."
     end
     arguments = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
-    argg = substitute_values(arguments) 
     cmd.cmdLineArgs = substitute_values(arguments) 
     #cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
     # Ask the NodeSet to send the Command Object 

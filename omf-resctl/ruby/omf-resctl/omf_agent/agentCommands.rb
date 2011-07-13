@@ -39,6 +39,8 @@ require 'omf-resctl/omf_driver/ethernet'
 require 'omf-resctl/omf_agent/nodeAgent'
 require 'net/http'
 require 'uri'
+require 'digest/md5'
+
 
 module AgentCommands
 
@@ -717,6 +719,113 @@ module AgentCommands
     # Tell the Master EC that from now on we can be disconnected
     return {:success => :OK, :reason => :DISCONNECT_READY}
   end
+
+  #
+  # Command 'MOTE_EXECUTE'
+  # Execute a program to communicate with a mote on the resource 
+  # running this RC. Similar to EXECUTE but we add port switch
+  # at the end based on an attibute of the RC.
+  #
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.MOTE_EXECUTE(communicator, command)
+      id = command.appID
+      # Dump the XML description of the OML configuration into a file, if any
+      useOML = false
+      if (xmlDoc = command.omlConfig) != nil
+        configPath = nil
+        xmlDoc.each_element("omlc") { |omlc|
+          configPath = "/tmp/#{omlc.attributes['exp_id']}-#{id}.xml"
+        }
+        f = File.new(configPath, "w+")
+        xmlDoc.each_element {|el|
+          f << el.to_s
+        }
+        useOML = true
+        f.close
+        MObject.info "MOTE_EXECUTE, OML CONFIG FILE created"
+      end
+      # Set the full command line and execute it
+      cmdLine = ""
+      cmdLine = cmdLine + "env -i #{command.env} " if command.env != nil
+      cmdLine = cmdLine + "OML_CONFIG=#{configPath} " if useOML
+      cmdLine = cmdLine + "#{command.gatewayExecutable} #{command.cmdLineArgs}"
+      cmdLine = cmdLine + " --moteport #{controller.moteport} --motetype #{controller.motetype}"
+      MObject.info "Executing: '#{cmdLine}'"
+      ExecApp.new(id, controller, cmdLine)
+  end
+
+  #
+  # Command 'MOTE_INSTALL'
+  # Install a mote application. 
+  # Check if binary repository is already in the RC.
+  # If not, fetch it and extract it into the path given by the command
+  # Then change the moteExecutable (to give it a unique address)
+  # Finally load the moteExecutable image into the mote
+  #
+  # - controller = the instance of this RC
+  # - communicator = the instance of this RC's communicator
+  # - command = the command to execute
+  #
+  def AgentCommands.MOTE_INSTALL(communicator, command)
+    id = command.appID
+
+    # Check if the application we are trying to install is for the 
+    # correct mote type (the mote type that the RC is connected to)
+    if (command.moteType != controller.motetype)
+      msg =  "Mote type for this application is #{command.moteType} " +
+             "and the mote handled by this RC is '#{controller.motetype}'"
+      MObject.error("AgentCommands: MOTE_INSTALL", msg)
+      return {:success => :ERROR, :reason => :WRONG_MOTE_TYPE, :info => msg}
+    end
+
+    # Check if the tar archive is already at the RC. (use the MD5 hash)
+    url = command.image
+    installRoot = command.path
+    filename = url.split('/')[-1]
+    repository = installRoot + "/" + filename
+    if File.exist?(repository) && command.hashkey == Digest::MD5.hexdigest(File.read(repository))
+      MObject.info "Repository #{repository} already exists and " +
+                   "has the correct hash value. Nothing to tranfer."
+      cmd = ""
+    else
+      MObject.info "Installing repository from '#{url}' into '#{installRoot}'"
+      cmd = "cd #{installRoot}/; wget -m -nd -q #{url};" +
+            " tar -C #{installRoot} -xf #{filename};"
+    end
+
+    # Extract the address this mote should have based on the RC's name
+    moteName = controller.agentName
+    if moteName =~ /mote(\d+)/
+      # if the mote name has a number in it in the form moteN, then use that number  
+      addr = Integer($1)
+    else
+      # else create a hash from the name and keep the last two hex digits
+      # so you end up with an addr in [0..255]
+      addr = Digest::MD5.hexdigest(moteName)[-2..-1].hex
+    end
+
+    MObject.info "This mote will have addr: #{addr}."
+
+    img = command.moteExecutable
+    # Delete any image files produced previously
+    cmd += " rm -f #{img}.out-#{addr};"
+    # Based on moteExecutable produce an image file for the specific mote addr 
+    cmd += " ./tools/tos-set-symbols --objcopy ./tools/msp430-objcopy" +
+           " --objdump ./tools/msp430-objdump" +
+           " --target ihex #{img} #{img}.out-#{addr}" +
+           " TOS_NODE_ID=#{addr} ActiveMessageAddressC$addr=#{addr} 2>&1;"
+    # Program the mote with the produced image
+    cmd += " ./tools/tos-bsl --#{controller.motetype} -c #{controller.moteport}" +
+           "  -r -e -I -p #{img}.out-#{addr} 2>&1;"
+
+    MObject.info "Executing command: '#{cmd}'"
+    ExecApp.new(id, controller, cmd)
+  end
+
+
+
 
 end
 

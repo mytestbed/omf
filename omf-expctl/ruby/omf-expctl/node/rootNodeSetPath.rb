@@ -85,6 +85,17 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
+  # Add a new MOTE Application to the NodeSet associated with this Root Path
+  #
+  # - app = Application to register
+  #
+  def addMoteApplication(app, &block)
+    debug "Creation of a mote app instance from: #{app}"
+    appInstance = MoteApplication.new(app, &block)
+    appInstance.instantiate(@nodeSet)
+  end
+
+  #
   # Trigger boot from PXE Image for the nodes in the NodeSet associated to 
   # this Root Path
   #
