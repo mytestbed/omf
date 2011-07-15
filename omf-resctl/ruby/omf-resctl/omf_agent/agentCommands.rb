@@ -234,13 +234,15 @@ module AgentCommands
   # Command 'EXIT'
   # Terminate an application running on this resource
   # First try to send the message 'exit' on the app's STDIN
-  # If no succes, then send a Kill signal to the process
+  # If no success, then send a Kill signal to the process
   #
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
   def AgentCommands.EXIT(communicator, command)
     id = command.appID
+    # return silently if the application has exited already
+    return if ExecApp[id].nil?
     begin
       # First try sending 'exit' on the app's STDIN
       MObject.debug("Sending 'exit' message to STDIN of application: #{id}")
