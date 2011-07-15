@@ -39,10 +39,10 @@ require 'xmpp4r/pubsub/helper/nodebrowser'
 require 'omf-common/mobject'
 #Jabber::debug = true
 
-GATEWAY_TIMEOUT = 10 # in sec
-RECONNECT_INTERVAL = 5 # in sec
+GATEWAY_TIMEOUT = 30 # in sec
+RECONNECT_INTERVAL = 10 # in sec
 PING_INTERVAL = 60 # in sec
-PING_THRESHOLD = 10 # in number of pings
+PING_ATTEMPTS = 10 # in number of pings
 
 #
 # This class subclasses 'Jabber::PubSub::ServiceHelper' because its 
@@ -231,7 +231,7 @@ class OmfXMPPServices < MObject
   # Keep the connection to the PubSub server alive by sending a ping at
   # regular intervals, otherwise clients will be listed as "offline" 
   # by the PubSub server (e.g. Openfire) after a timeout
-  # if PING_THRESHOLD pings in a row fail, then try to reconnect
+  # if PING_ATTEMPTS pings in a row fail, then try to reconnect
   def keep_alive
     @keepAliveThread = Thread.new do
       while true do
@@ -244,7 +244,7 @@ class OmfXMPPServices < MObject
             # Kill this ping Thread if too many ping failures
             @pingTries += 1 if !success
             @pingTries = 0 if success
-            if @pingTries > PING_THRESHOLD 
+            if @pingTries > PING_ATTEMPTS 
               debug "Ping retry threshold reached, will try to reconnect!"
               break 
             end
