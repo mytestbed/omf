@@ -167,7 +167,15 @@ class OmfXMPPServices < MObject
       @connecting = true
     }
     @connection_attempts = 1
-    debug "Try to connect to Pubsub Gateway '#{@homeServer}:#{@port}'..."
+    debug "Try to connect to Pubsub Gateway '#{@homeServer}'..."
+    # In case "connect" was called even though we are already connected
+    # try close the connection first.
+    # Ignore any exception in doing so (e.g. if there is no previous connection)
+    begin 
+      @clientHelper.close if !@clientHelper.nil?
+    rescue Exception => ex
+      debug "Cannot close a previous (if any) connection to PubSub Gateway '#{@homeServer}'"
+    end
     begin
       success = call_with_timeout("Timing out while connecting to "+
                                   "PubSub Gateway '#{@homeServer}'") { 
