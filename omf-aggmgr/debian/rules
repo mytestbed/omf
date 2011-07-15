@@ -58,6 +58,7 @@ install: build
 	mkdir -p debian/$(PKG_NAME)/var/lib/$(PKG_NAME)
 	mv debian/$(PKG_NAME)/etc/$(PKG_NAME)/*.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
 	(cd debian/$(PKG_NAME)/usr/share/$(PKG_NAME); $(PWD)/../gem-package.sh)
+	cp misc/inventory.sql debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
 
 # Build architecture-independent files here.
 binary-indep: build install
