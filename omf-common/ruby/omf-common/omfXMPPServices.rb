@@ -166,8 +166,22 @@ class OmfXMPPServices < MObject
       return if @connecting 
       @connecting = true
     }
+<<<<<<< HEAD
     @connection_attempts = 1
     debug "Try to connect to Pubsub Gateway '#{@homeServer}:#{@port}'..."
+=======
+    debug "Try to connect to Pubsub Gateway '#{@homeServer}'..."
+    # In case "connect" was called even though we are already connected
+    # try close the connection first.
+    # Ignore any exception in doing so (e.g. if there is no previous connection)
+    begin 
+      @clientHelper.close if !@clientHelper.nil?
+    rescue Exception => ex
+      debug "Cannot close a previous (if any) connection to PubSub Gateway '#{@homeServer}'"
+    end
+    # We are passing the hostname here to prevent xmpp4r from trying to resolve
+    # the DNS SRV record
+>>>>>>> 9a59ab6... Fixed bug #556, ignore any exception when we try to close a session with the XMPP server from previous instance runs
     begin
       success = call_with_timeout("Timing out while connecting to "+
                                   "PubSub Gateway '#{@homeServer}'") { 
