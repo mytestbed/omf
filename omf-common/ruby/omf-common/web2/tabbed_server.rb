@@ -106,8 +106,8 @@ if $0 == __FILE__
     end
   end
   
-  require 'omf-common/web2/tab/graph/oml_endpoint'
-  t1 = OMF::Common::OML::OMLTable.new('s1', [[:x], [:y]], :max_size => 20)
+  require 'omf-common/web2/tab/graph/oml_table'
+  t1 = OMF::Common::OML::OmlTable.new('s1', [[:x], [:y]], :max_size => 20)
   Thread.new do
     i = 0
     while true
@@ -122,6 +122,7 @@ if $0 == __FILE__
     end
   end
   
+  
   require 'omf-common/web2/tab/graph/graph_service'
   i = 0
   gopts = {
@@ -134,7 +135,8 @@ if $0 == __FILE__
     # end,
     # :data_source_interval => 2, # call data source proc every 2 seconds
     :viz_type => 'line_chart',
-    :viz_opts => {} 
+    :viz_opts => {},
+    :dynamic => true
   }
   OMF::Common::Web2::Graph.addGraph('Graph DS', gopts) do |g, rows|
     #puts "HIHHH #{rows.inspect}"
@@ -144,9 +146,22 @@ if $0 == __FILE__
     [{:label => "AAA", :data => data}]
   end
   
+  require 'omf-common/web2/tab/graph/oml_endpoint'
+  ep = OMF::Common::OML::OmlEndpoint.new(3000)
+  toml = OMF::Common::OML::OmlTable.new('oml', [[:x], [:y]], :max_size => 20)
+  ep.on_new_stream() do |s|
+    puts "New stream: #{s}"
+    s.on_new_vector() do |v|
+      #puts "New vector: #{v.to_a(true).join('|')}"      
+      toml.add_row(v.select(:oml_ts, :value))
+    end
+  end
+  ep.run()
+  
+    
   gopts2 = {
     #:query => ms[:foo]....
-    :data_source => t1,
+    :data_source => toml,
     :viz_type => 'line_chart',
     :viz_opts => {},
     :dynamic => true 
