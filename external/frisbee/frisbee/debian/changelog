@@ -1,3 +1,9 @@
+frisbee (1.0.3-2ubuntu3) natty; urgency=low
+
+  * moving to natty
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 05 Aug 2011 23:31:35 +1000
+
 frisbee (1.0.3-2ubuntu2) maverick; urgency=low
 
   * build for Ubuntu maverick
