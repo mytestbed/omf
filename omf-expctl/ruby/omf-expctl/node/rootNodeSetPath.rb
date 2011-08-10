@@ -224,9 +224,9 @@ class RootNodeSetPath < NodeSetPath
   # This method enroll to the experiment all nodes in the NodeSet of this Root 
   # Path.
   #
-  def configure(path, value, status = "unknown")
+  def enroll()
     index = 1
-    @nodeSet.eachUniqueNode { |n| n.configure(path, index, value); index = index + 1 }
+    @nodeSet.eachUniqueNode { |n| n.enroll(index); index = index + 1 }
   end
 
   def set_disconnection 

@@ -308,17 +308,13 @@ class Experiment
       Experiment.done
     end
  
-    # Resource Life Cycle - Step: Configuration 
-    # 1- Configure this resource into this experiment
-    OMF::ExperimentController::CmdContext.instance.allGroups.configure(['exp', 'configure'], Experiment.ID)
+    # Now we can Enroll the nodes!
+    OMF::ExperimentController::CmdContext.instance.allGroups.enroll
+
     # If this is a disconnected experiment, inform the resources about it
     if @@disconnectionAllowed
      OMF::ExperimentController::CmdContext.instance.allGroups.set_disconnection
     end
-
-    # Resource Life Cycle - Step: Start
-    #
-    # Do nothing for now here
   end
 
   #

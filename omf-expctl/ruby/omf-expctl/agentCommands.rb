@@ -46,14 +46,14 @@ module AgentCommands
     okReason = reply.reason
     message = reply.message
     case okReason
+      when 'ENROLLED'
+        # when we receive the first ENROLLED, send a NOOP message to the RC. 
+        # This is necessary since if RC is reset or restarted, it might
+        # receive the last ENROLL command again, depending on the kind of 
+        # transport being used. In any case, sending a NOOP would prevent this.
+        communicator.send_noop(reply.target) if !sender.isUp
+        sender.enrolled(reply)
       when 'CONFIGURED'
-        # NOTE: This is for GEC9 only, it should be changed along when we 
-        # introduce the new resource scheme for OMF 5.4
-        if (reply.path == nil) || (reply.path == "exp/configure")
-          communicator.send_noop(reply.target) if !sender.isUp
-          sender.enrolled(reply)
-          return
-        end
 	# Reports the good news to our resource object
         sender.configure(reply.path.split("/"), reply.value, "CONFIGURED.OK")
         # HACK!!! Start
