@@ -202,7 +202,7 @@ class RCCommunicator < OmfCommunicator
     return false if !super(message)
     # 2 - Perform RC-specific validations
     # - Ignore messages for/from unknown Slice and Experiment ID
-    if (message.cmdType != :CONFIGURE) && (message.cmdType != :RESET) &&
+    if (message.cmdType != :ENROLL) && (message.cmdType != :RESET) &&
        ((message.sliceID != @@sliceID) || (message.expID != @@expID))
       debug "Ignoring message with unknown slice "+
             "and exp IDs: '#{message.sliceID}' and '#{message.expID}'"

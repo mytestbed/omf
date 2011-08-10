@@ -92,39 +92,34 @@ module AgentCommands
   # - communicator = the instance of this RC's communicator
   # - command = the command to execute
   #
-  # NOTE: 
-  # Due to GEC9 deadline, only minor modifications are made to this 
-  # to conform the RC to the agreed resource life cycle, which we will
-  # fully introduce in OMF 5.4. For now this plays the role of an 
-  # initial "CONFIGURE" in the resource's life cycle.
-  def AgentCommands.INITIAL_CONFIGURE(communicator, command)
+  def AgentCommands.ENROLL(communicator, command)
     # Check if we are already 'enrolled' or not
     if controller.enrolled
-      msg = "Resource Controller already configured in an experiment! - "+
-            "ignoring this CONFIGURE command!"
+      msg = "Resource Controller already enrolled! - "+
+            "ignoring this ENROLL command!"
       MObject.debug("AgentCommands", msg)
-      return {:success => false, :info => msg}
+      return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg}
       #return
     end
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
-    # if not, then ignore this CONFIGURE
+    # if not, then ignore this ENROLL
     communicator.set_EC_address
     desiredImage = command.image
     if (desiredImage != controller.imageName() && desiredImage != '*')
       msg = "Requested Image: '#{desiredImage}' - "+
             "Current Image: '#{controller.imageName()}'"
       MObject.debug("AgentCommands", msg)
-      return {:success => false, :info => msg}
+      return {:success => :ERROR, :reason => :WRONG_IMAGE, :info => msg}
     end
     # Now instruct the communicator to listen for messages addressed to 
     # our new groups
     if !communicator.listen_to_experiment(command.expID) ||
        !communicator.listen_to_group(command.target)
-      msg = "Failed to Process CONFIGURE command! "+
+      msg = "Failed to Process ENROLL command! "+
             "Maybe it came from an old experiment - ignoring it!"
       MObject.error("AgentCommands", msg)
-      return {:success => false, :info => msg}
+      return {:success => :ERROR, :reason => :OLD_ENROLL, :info => msg}
     end
     # All is good, enroll this Resource Controller
     controller.enrolled = true
@@ -132,7 +127,7 @@ module AgentCommands
     communicator.set_EC_address(command.ecaddress)
     msg = "Enrolled into Experiment ID: '#{command.expID}'"
     MObject.debug("AgentCommands", msg)
-    return {:success => :OK, :reason => :CONFIGURED, :info => msg}
+    return {:success => :OK, :reason => :ENROLLED, :info => msg}
   end
 
   #
@@ -150,10 +145,14 @@ module AgentCommands
             "for this alias '#{command.name}'- ignoring it!"
       MObject.debug("AgentCommands", msg)
       return {:success => :ERROR, :reason => :WRONG_ALIAS, :info => msg}
+      #communicator.send_error_reply("Failed to process ALIAS command"+
+      #                        "Cannot listen on the ALIAS address", command) 
+      #return
     end
-    msg = "Configured into a new group: '#{command.name}'"
+    msg = "Enrolled into a new group: '#{command.name}'"
     MObject.debug("AgentCommands", msg)
-    return {:success => :OK, :reason => :CONFIGURED, :info => msg}
+    return {:success => :OK, :reason => :ENROLLED, :info => msg}
+    #communicator.send_enrolled_reply(command.name)
   end
 
   #
@@ -456,9 +455,7 @@ module AgentCommands
       else
 	result[:info] = "Unknown resource '#{type}/#{id}' in 'configure'"
       end
-    elsif path == "exp/configure" 
-      result = AgentCommands.INITIAL_CONFIGURE(communicator, command)
-    else 
+    else
       result[:info] = "Expected path '#{path}' to contain three levels"
     end
     MObject.debug("AgentCommands", result[:info])
