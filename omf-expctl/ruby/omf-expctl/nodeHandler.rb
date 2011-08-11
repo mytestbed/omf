@@ -269,7 +269,11 @@ class NodeHandler < MObject
       puts "HTTP/GET #{url}"
     else
       begin
-        response = Net::HTTP.get_response(URI.parse(url))
+	uri = URI.parse(url)
+	http = Net::HTTP.new(uri.host, uri.port)
+	http.read_timeout = 120
+	request = Net::HTTP::Get.new(uri.request_uri)
+	response = http.request(request)
         if (! response.kind_of? Net::HTTPSuccess)
           raise ServiceException.new(response, error_msg)
         end
