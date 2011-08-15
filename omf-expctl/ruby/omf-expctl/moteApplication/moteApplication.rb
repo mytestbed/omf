@@ -102,7 +102,7 @@ class MoteApplication < Application
       end
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :MOTE_INSTALL,
-                                  :appID => "#{@appID}/install",
+                                  :appID => "#{appID}/install",
                                   :image => url,
                                   :path => ".",
                                   :hashkey => Digest::MD5.hexdigest(File.read(repository)),
