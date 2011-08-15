@@ -84,7 +84,7 @@ class MoteApplication < Application
   #
   # - nodeSet = the NodeSet object on which to install the application
   #
-  def install(nodeSet)
+  def install(nodeSet, appID)
 
     if (repository = @appDefinition.appPackage) != nil
 
@@ -102,7 +102,7 @@ class MoteApplication < Application
       end
       nodeSet.send(ECCommunicator.instance.create_message(
                                   :cmdtype => :MOTE_INSTALL,
-                                  :appID => "#{@appDefinition.uri}/install",
+                                  :appID => "#{@appID}/install",
                                   :image => url,
                                   :path => ".",
                                   :hashkey => Digest::MD5.hexdigest(File.read(repository)),
