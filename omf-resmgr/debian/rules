@@ -47,7 +47,7 @@ install: build
 	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	tar -C ruby -cf - --exclude='.svn' omf-resmgr | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	cp ruby/omf-resmgr.rb debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	git rev-parse --short HEAD > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-resmgr/REVISION
+	if [ `which git` ]; then git rev-parse --short HEAD > debian/$(PKG_NAME)/usr/share/$(PKG_NAME)/omf-resmgr/REVISION; fi
 	tar -C etc -cf - --exclude='.svn' omf-resmgr | tar -xf - -C debian/$(PKG_NAME)/etc/
 	tar -cf - --exclude='.svn' sbin | tar -xf - -C debian/$(PKG_NAME)/usr
 	
