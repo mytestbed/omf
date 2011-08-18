@@ -26,7 +26,7 @@
 
 export LANG=c
 
-VER=5.3
+VER=5.4
 APP=omf-resmgr.rb
 if [ -e /usr/share/omf-resmgr-$VER/$APP ]; then
    PDIR=/usr/share/omf-resmgr-$VER

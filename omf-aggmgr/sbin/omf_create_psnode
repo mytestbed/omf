@@ -26,7 +26,7 @@
 
 export LANG=c
 
-VER=-5.3
+VER=-5.4
 APP=omf_create_psnode.rb
 if [ -e /usr/share/omf-aggmgr$VER/omf-aggmgr/$APP ]; then
    PDIR=/usr/share/omf-aggmgr$VER/omf-aggmgr

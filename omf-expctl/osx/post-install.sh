@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION="5.3"
+VERSION="5.4"
 REVISION="trunk"
 INDIR="/tmp/omf-install-tmp/"
 

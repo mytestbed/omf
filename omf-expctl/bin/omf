@@ -26,7 +26,7 @@
 
 require 'optparse'
 
-@version="-5.3"
+@version="-5.4"
 @ec_path="/usr/share/omf-expctl#{@version}/"
 @gempath="/usr/share/omf-common#{@version}/vendor/ruby/1.8:/usr/share/omf-expctl#{@version}/vendor/ruby/1.8"
 @this_app=File.basename(__FILE__)

@@ -18,9 +18,9 @@
     # set this to true or false if you want to enable or disable signature checks and message signing                                       
     :authenticate_messages: false
     # your RSA/DSA SSH private key file
-    :private_key: '/etc/omf-resctl-5.3/id_rsa'
+    :private_key: '/etc/omf-resctl-5.4/id_rsa'
     # directory holding the public keys of your OMF peers
-    :public_key_dir: '/etc/omf-resctl-5.3/peer_keys'
+    :public_key_dir: '/etc/omf-resctl-5.4/peer_keys'
     
     :type: 'xmpp'
     :xmpp:

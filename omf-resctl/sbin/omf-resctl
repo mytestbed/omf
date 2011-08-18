@@ -26,7 +26,7 @@
 
 export LANG=c
 
-VER=5.3
+VER=5.4
 APP=omf-resctl/nodeAgent.rb
 if [ -e /usr/share/omf-resctl-$VER/$APP ]; then
    PDIR=/usr/share/omf-resctl-$VER

@@ -2,9 +2,9 @@
 # Build the Orbit PXE kernel image and initramfs
 #
 NAME = omf-pxe
-VER = 5.3
+VER = 5.4
 
-OMF_RELEASE=5.3
+OMF_RELEASE=5.4
 DEB_REP=debian
 KORG_URL = http://mirror.aarnet.edu.au/pub/ftp.kernel.org/linux/kernel/v
 KERNEL_VERSION = 2

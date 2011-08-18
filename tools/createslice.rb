@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -I/usr/share/omf-common-5.3
+#!/usr/bin/ruby -I/usr/share/omf-common-5.4
 
 require 'omf-common/omfPubSubMessage.rb'
 require "pubsubTester"

@@ -11,7 +11,7 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-NAME=omf-aggmgr-5.3
+NAME=omf-aggmgr-5.4
 CFG=/etc/$NAME/omf-aggmgr.yaml
 PIDFILE=/var/run/$NAME.pid
 

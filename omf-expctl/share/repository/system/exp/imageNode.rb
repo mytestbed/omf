@@ -86,7 +86,7 @@ end
 #
 defGroup('image', prop.nodes) {|n|
    n.pxeImage("#{prop.domain.value}", setPXE=true)
-   n.image = "pxe-5.3"
+   n.image = "pxe-5.4"
 }
 
 def outputTopologyFile(type, nset)
@@ -232,7 +232,7 @@ OMF::Common::Web.mapProc('/progress') {|req, res|
       <h1>Imaging Progress</h1>
       <table class="grid">
 }
-  # TODO: port this to OMF 5.3
+  # TODO: port this to OMF 5.4
   # (1 .. OConfig[:tb_config][:default][:y_max]).each { |y|
   #   body << "<tr class='row'>"
   #   (1 .. OConfig[:tb_config][:default][:x_max]).each { |x|

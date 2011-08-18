@@ -80,10 +80,10 @@ module ManagerCommands
        begin  
         #sliverCmd = ResourceManager.instance.config[:manager][:sliver][sliverType.to_sym] 
         sliverCmd = 'echo 1 > /proc/sys/net/ipv4/ip_forward; echo 1 > /proc/sys/net/ipv4/conf/control/proxy_arp;
-                    echo 1 > /proc/sys/net/ipv4/conf/venet0/proxy_arp; vzctl create %CTID% --ostemplate omf-5.3; 
+                    echo 1 > /proc/sys/net/ipv4/conf/venet0/proxy_arp; vzctl create %CTID% --ostemplate omf-5.4; 
                     vzctl start %CTID%; vzctl set %CTID% --ipadd %SLIVER_ADDR%; 
                     vzctl set %CTID% --nameserver %SLIVER_NS%; vzctl exec %CTID% ifconfig venet0:0 %SLIVER_ADDR%; 
-                    vzctl exec %CTID% omf-resctl-5.3 --name %SLIVER_NAME% --slice %SLICE_NAME% &'
+                    vzctl exec %CTID% omf-resctl-5.4 --name %SLIVER_NAME% --slice %SLICE_NAME% &'
         sliverCmd = sliverCmd.gsub(/%CTID%/, "#{ctid}")
         sliverCmd = sliverCmd.gsub(/%SLIVER_NAME%/, sliverName)
         sliverCmd = sliverCmd.gsub(/%SLIVER_ADDR%/, sliverAddress)
@@ -214,16 +214,16 @@ end
 # creating a sliver using OpenVZ:
 # 
 # echo 1 > /proc/sys/net/ipv4/ip_forward
-# vzctl create 1 --ostemplate omf-5.3
+# vzctl create 1 --ostemplate omf-5.4
 # vzctl start 1
 # vzctl set 1 --ipadd 10.0.1.30
 # vzctl set 1 --nameserver 10.0.0.200
-# vzctl exec 1 omf-resctl-5.3 --name omf.nicta.node30_1 --slice omf.nicta.slice1 &
+# vzctl exec 1 omf-resctl-5.4 --name omf.nicta.node30_1 --slice omf.nicta.slice1 &
 # 
 # destroy sliver:
 # vzctl stop 1
 # vzctl destroy 1
 
 
-# echo 1 > /proc/sys/net/ipv4/ip_forward; vzctl create 1 --ostemplate omf-5.3; vzctl start 1; vzctl set 1 --ipadd 10.0.1.30; vzctl set 1 --nameserver 10.0.0.200; vzctl exec 1 omf-resctl-5.3 --name omf.nicta.node30_1 --slice omf.nicta.slice1 &
+# echo 1 > /proc/sys/net/ipv4/ip_forward; vzctl create 1 --ostemplate omf-5.4; vzctl start 1; vzctl set 1 --ipadd 10.0.1.30; vzctl set 1 --nameserver 10.0.0.200; vzctl exec 1 omf-resctl-5.4 --name omf.nicta.node30_1 --slice omf.nicta.slice1 &
 

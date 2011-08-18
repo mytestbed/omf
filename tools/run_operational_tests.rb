@@ -4,7 +4,7 @@ require "fileutils"
 
 # Some constant
 OMLURI = "tcp:norbit.npc.nicta.com.au:3003"
-ECPATH = "/usr/bin/omf-5.3"
+ECPATH = "/usr/bin/omf-5.4"
 ECOPTS = "-O -l system:exp:stdlib,system:exp:eventlib,system:exp:testlib"
 TESTPATH = "test:exp"
 LOGPATH = "/tmp"

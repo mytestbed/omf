@@ -831,7 +831,7 @@ end
 
   #
   # This used to be in the devel code on netem
-  # However, OMF 5.3 does not have any clean support for dynamically updating
+  # However, OMF 5.4 does not have any clean support for dynamically updating
   # topologies during an experiment execution. Moreover, doing such thing 
   # (dynamically updating topologies) is not used by IREEL, which is the main
   # user of Link Emulation in OMF. 

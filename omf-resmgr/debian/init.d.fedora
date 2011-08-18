@@ -11,7 +11,7 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-NAME=omf-resmgr-5.3
+NAME=omf-resmgr-5.4
 PIDFILE=/var/run/$NAME.pid
 
 test -x /usr/sbin/$NAME || exit 0

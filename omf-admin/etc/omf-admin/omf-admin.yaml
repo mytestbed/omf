@@ -24,7 +24,7 @@
     :value: 5454
     :desc: Port used by the web interface (requires restart of the omf-admin daemon)
   :rdir: 
-    :value: /usr/share/omf-common-5.3/share/htdocs
+    :value: /usr/share/omf-common-5.4/share/htdocs
     :desc: Resource directory containing the CSS
 :communication: 
   :xmppserver: 

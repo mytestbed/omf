@@ -89,7 +89,7 @@
     :sliver:
 
       # An sliver on a OMF yellow-box node 
-      :omf: /usr/sbin/omf-resctl-5.3 --name %RESOURCE_NAME% --slice %SLICE_NAME%
+      :omf: /usr/sbin/omf-resctl-5.4 --name %RESOURCE_NAME% --slice %SLICE_NAME%
 
       # An sliver on a PlanetLab machine 
       :planetlab: do_some_stuff_here

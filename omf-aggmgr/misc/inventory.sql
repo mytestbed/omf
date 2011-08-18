@@ -5,7 +5,7 @@
 -- Host: localhost
 -- Generation Time: Jul 15, 2011 at 12:42 PM
 -- Server version: 5.1.54
--- PHP Version: 5.3.5-1ubuntu7.2
+-- PHP Version: 5.4.5-1ubuntu7.2
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
@@ -226,8 +226,8 @@ CREATE TABLE IF NOT EXISTS `pxeimages` (
 --
 
 INSERT INTO `pxeimages` (`id`, `image_name`, `short_description`) VALUES
-(4, 'omf-5.3.1', '5.3.1 testing'),
-(5, 'omf-5.3', '5.3 PXE image');
+(4, 'omf-5.4.1', '5.4.1 testing'),
+(5, 'omf-5.4', '5.4 PXE image');
 
 -- --------------------------------------------------------
 

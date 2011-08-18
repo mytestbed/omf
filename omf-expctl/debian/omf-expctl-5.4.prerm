@@ -2,7 +2,7 @@
 
 set -e
 
-VER=5.3
+VER=5.4
 update-alternatives --remove omf /usr/bin/omf-$VER
 					
 # dh_installdeb will replace this with shell code automatically

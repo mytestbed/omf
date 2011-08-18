@@ -14,7 +14,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-NAME=omf-admin-5.3
+NAME=omf-admin-5.4
 
 test -x /usr/sbin/$NAME || exit 0
 

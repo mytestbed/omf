@@ -15,7 +15,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-NAME=omf-aggmgr-5.3
+NAME=omf-aggmgr-5.4
 CFG=/etc/$NAME/omf-aggmgr.yaml
 
 test -x /usr/sbin/$NAME || exit 0

@@ -14,7 +14,7 @@ class AdminConfig
       @@config = {
         :webinterface => {
           :port => {:desc => "Port used by the web interface (requires restart of the omf-admin daemon)", :value => 5454},
-          :rdir => {:desc => 'Resource directory containing the CSS', :value => '/usr/share/omf-common-5.3/share/htdocs'}
+          :rdir => {:desc => 'Resource directory containing the CSS', :value => '/usr/share/omf-common-5.4/share/htdocs'}
         },
         :communication => {
           :xmppserver => {:desc => "XMPP Server", :value => "norbit.npc.nicta.com.au"}

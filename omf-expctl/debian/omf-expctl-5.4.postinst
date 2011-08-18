@@ -16,7 +16,7 @@ set -e
 # the debian-policy package
 #
 
-VER=5.3
+VER=5.4
 
 case "$1" in
     install|configure)

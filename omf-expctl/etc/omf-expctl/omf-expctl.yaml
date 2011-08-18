@@ -47,7 +47,7 @@
       # This is the Path where EC should look for its repository of built-in 
       # experiments (e.g. example experiments, maintenance experiments, etc...)
       :repository:
-        :path: ["../share/repository", "/usr/share/omf-expctl-5.3/repository"]
+        :path: ["../share/repository", "/usr/share/omf-expctl-5.4/repository"]
 
       # URI to the OML server to use for this EC 
       # (can be overwritten on the EC command line)
@@ -82,7 +82,7 @@
       # retrieve applications from the EC via HTTP.
       :web:
         :host: '10.0.0.200'
-        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"]
+        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.4/share/htdocs"]
 
       :communicator:
       
@@ -134,7 +134,7 @@
     :p2p:
       :domain: 'planetlab'
       :repository:
-         :path: [".", "../share/repository", "/usr/share/omf-expctl-5.3/repository"]
+         :path: [".", "../share/repository", "/usr/share/omf-expctl-5.4/repository"]
       :inventory:
         :url: 'http://planetlab-europe-07.ipv6.lip6.fr:5053/inventory'
 #      :web:
@@ -151,13 +151,13 @@
       :domain: 'planetlab'
       :slice: 'ost_securexmpp'
       :repository:
-        :path: ["../share/repository", "/usr/share/omf-expctl-5.3/repository"]
+        :path: ["../share/repository", "/usr/share/omf-expctl-5.4/repository"]
       :inventory:
         :url: 'http://mytestbed.net:5053/inventory'
 
       :web:
         :host: '10.0.0.200'
-        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"]
+        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.4/share/htdocs"]
 
       :communicator:
       

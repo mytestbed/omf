@@ -10,10 +10,10 @@
     :default:
       :domain: 'local'
       :repository:
-        :path: ["../share/repository", "/usr/share/omf-expctl-5.3/repository"]
+        :path: ["../share/repository", "/usr/share/omf-expctl-5.4/repository"]
       :web:
         :host: 'localhost'
-        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"]
+        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.4/share/htdocs"]
       :communicator:
         :type: 'udplocal'
         :udplocal:
