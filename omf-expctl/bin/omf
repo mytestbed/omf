@@ -125,8 +125,7 @@ def run(cmd)
     else
       # stat [DOMAIN] 
       args=["'#{@options[:aggregate]}'"]
-    end
-    
+    end 
   ########## OMF LOAD
   elsif (cmd == "load")
     app="omf-expctl.rb"
@@ -179,18 +178,19 @@ def help(cmd = nil)
   elsif (cmd == "stat")
     puts "Returns the status of the nodes in a testbed"
   	puts "Usage:"
-  	puts "      #{@this_app} #{cmd} [-h] [-s] [-c AGGREGATE]"
+  	puts "      #{@this_app} #{cmd} [-h] [-s] [-t TOPOLOGY] [-c AGGREGATE]"
   	puts " "
   	puts "      With: "
   	puts "      -h, --help                print this help message"
   	puts "      -s, --summary             print a summary of the node status for the testbed"
   	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
+  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
   	puts " "
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd}"
   	puts "                    #{@this_app} #{cmd} -s"
-  	puts "                    #{@this_app} #{cmd} -s -c sb1"
-  	puts "                    #{@this_app} #{cmd} -c grid"
+  	puts "                    #{@this_app} #{cmd} -t omf.nicta.node1,omf.nicta.node2 -c sb1"
+  	puts "                    #{@this_app} #{cmd} -t system:topo:all -c grid"
   	puts " "
   elsif (cmd == "tell")
     puts "Switch ON/OFF and reboot the nodes in a testbed"
@@ -212,9 +212,9 @@ def help(cmd = nil)
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd} -a on -t system:topo:all -c grid"
   	puts "                    #{@this_app} #{cmd} -a on -t omf.nicta.node1"
-  	puts "                    #{@this_app} #{cmd} -a offs -t omf.nicta.node1,omf.nicta.node2 -c sb1 "
-  	puts "                    #{@this_app} #{cmd} -a offh -t system:topo:all"
-  	puts "                    #{@this_app} #{cmd} -a offh -t topo_grid_active"
+  	puts "                    #{@this_app} #{cmd} offs  -t omf.nicta.node1,omf.nicta.node2 -c sb1 "
+  	puts "                    #{@this_app} #{cmd} offh  -t system:topo:all"
+  	puts "                    #{@this_app} #{cmd} offh  -t topo_grid_active"
   	puts " "
   elsif (cmd == "load")
     puts "Install a given disk image on the nodes in a testbed"
