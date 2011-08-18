@@ -1,3 +1,9 @@
+omf-resctl-5.4 (1) natty; urgency=low
+
+  * renamed to 5.4
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 18 Aug 2011 19:20:15 +1000
+
 omf-resctl-5.3 (1ubuntu9) maverick; urgency=low
 
   * latest trunk
