@@ -46,7 +46,7 @@ require 'omf-common/web2/tab/graph/graph_service'
 i = 0
 gopts = {
   :data_source => t1,
-  :default_label => 'random',  
+  :default_label => 'randomst',  
   :viz_type => 'line_chart',
   :viz_opts => {},
   :dynamic => true # push data to browser
@@ -84,9 +84,9 @@ opts = {
     :verify_peer => false
   },
   
-  :tabs => {
-    :foo => {:name => 'Foo', :order => 1, :class => Foo},
-    :goo => {:name => 'Goo', :order => 3}
-  }
+  # :tabs => {
+    # :foo => {:name => 'Foo', :order => 1, :class => Foo},
+    # :goo => {:name => 'Goo', :order => 3}
+  # }
 }
 OMF::Common::Web2.start(opts)

@@ -3,8 +3,8 @@ require 'omf-common/oml/arel_remote'
 
 module OMF
   module Common
-    module Web
-      module Graph3
+    module Web2
+      module Graph
         # Serial data sets consist of a series of ordered records. 
         #
         class SeriesBuilder
@@ -61,7 +61,11 @@ module OMF
         
           def self.build(buildProc, gDescr)
             b = self.new(gDescr)
-            buildProc.call(b)
+            begin
+              buildProc.call(b)
+            rescue Exception => ex
+              raise ex
+            end
             b
           end
           
@@ -74,8 +78,8 @@ module OMF
             @series
           end
           
-          def to_json()
-            @series.to_json
+          def to_json(state = nil)
+            @series.to_json(state)
           end
           
         end # SeriesBuilder

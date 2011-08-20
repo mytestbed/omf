@@ -4,7 +4,7 @@ module OMF
   module Common; end
 end
 
-
+require 'omf-common/oml/oml_tuple'
 
 module OMF::Common::OML
         
@@ -106,13 +106,13 @@ module OMF::Common::OML
           parse_schema(value.join(':'))
         else
           @header[key] = value[0].strip
-          puts "HEADER: #{key}: #{@header[key]}"
+          debug "HEADER: #{key}: #{@header[key]}"
         end
       end
     end
 
     def parse_schema(desc)
-      puts "SCHEMA: #{desc}"
+      debug "SCHEMA: #{desc}"
       els = desc.split(' ')
       #puts "ELS: #{els.inspect}"
       index = els.shift.to_i - 1
@@ -120,10 +120,10 @@ module OMF::Common::OML
       sname = els.shift
       schema = els.collect do |el|
         name, type = el.split(':')
-        [name.to_sym, type.to_sym]
+        {:name => name.to_sym, :type => type.to_sym}
       end
       
-      @streams[index] = row = OmlVector.new(schema, sname)
+      @streams[index] = row = OmlTuple.new(schema, sname)
       @endpoint.report_new_stream(row)
     end
 
@@ -150,145 +150,7 @@ module OMF::Common::OML
                      
   end # OMLEndpoint
   
-  # This class represents the schema of an OML measurement stream.
-  #
-  class OmlSchema < MObject
-    
-    # Return the col name at a specific index
-    #
-    def name_at(index)
-      @schema[index][0]
-    end
-    
-    # Return the column names as an array
-    #
-    def names
-      @schema.collect do |name, type, typeProc| name end
-    end
-
-    # Return the col type at a specific index
-    #
-    def type_at(index)
-      @schema[index][1]
-    end
-    
-    # Register a proc to be called when a new vector arrived
-    # on this stream.
-    #
-    def on_new_vector(key = :_, &proc)
-      if proc
-        @on_new_vector_proc[key] = proc
-      else
-        @on_new_vector_proc.delete key
-      end
-    end
-    
-    
-    attr_reader :stream_name
-
-    def initialize(schema, sname)
-      @schema = schema
-      @stream_name = sname
-      @on_new_vector_proc = {}
-    end
-  end # OmlSchema
   
-  # This class represents a single vector from an OML measurement stream.
-  # It provides various methods to access the vectors elements.
-  #
-  # NOTE: Do not store the vector itself, but make a copy as the instance may be 
-  # reused over various rows by the sender.
-  #
-  class OmlVector < OmlSchema
-    
-    # Return a specific element of the vector identified either
-    # by it's name, or its col index
-    #
-    def [](name_or_index)
-      @vprocs[name_or_index].call(@raw)
-    end
-    
-    # Return the elements of the vector as an array
-    def to_a(include_index_ts = false)
-      res = []
-      r = @raw
-      if include_index_ts
-        res << @vprocs[:oml_ts].call(r)
-        res << @vprocs[:oml_seq_no].call(r)
-      end
-      @schema.each do |name, type|
-        res << @vprocs[name].call(r)
-      end
-      res
-    end
-    
-    # Return an array including the values for the names elements
-    # given as parameters.
-    #
-    def select(*col_names)
-      r = @raw
-      col_names.collect do |n|
-        @vprocs[n].call(r)
-      end
-    end
-        
-    attr_reader :ts, :seq_no
-
-    def ts
-      @raw[0].to_f
-    end
-    
-    def seq_no
-      @raw[1].to_i
-    end
-    
-    def initialize(schema, sname)
-      super
-      @raw = []
-#      puts "SCHEMA: #{schema.inspect}"
-      
-      i = 0
-      @vprocs = {}
-      schema.each do |name, type|
-        j = i + 2; # need to create a locally scoped variable for the following lambdas
-        @vprocs[name] = @vprocs[i] = case type      
-          when :string : lambda do |r| r[j] end
-          when :double : lambda do |r| r[j].to_f end
-          else raise "Unrecognized OML type '#{type}'"
-        end
-        i += 1
-      end
-      @vprocs[:oml_ts] = lambda do |r| r[0].to_f end
-      @vprocs[:oml_seq_no] = lambda do |r| r[1].to_i end
-    end
-    
-    # Parse the array of strings into the proper typed vector elements
-    #
-    # NOTE: We assume that each element is only called at most once, with some
-    # never called. We therefore delay typecasting to the get function without
-    # keeping the casted values (would increase lookup time)
-    #
-    def parse_row(els)
-      @raw = els
-      #puts "RAW: #{els.length} #{els.join(' ')}"
-      
-      # ts, index, *rest = els
-      # @ts = ts.to_f
-      # @seq_no = index.to_i
-# 
-      # @row.clear
-      # rest.each_index do |i|
-        # name, unused, typeProc = @schema[i]
-        # value = rest[i]
-        # @row << typeProc.call(value)
-      # end
-      
-      @on_new_vector_proc.each_value do |proc|
-        proc.call(self)
-      end
-      
-    end
-  end # OmlVector
 end
 
 if $0 == __FILE__

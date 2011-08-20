@@ -9,6 +9,9 @@ module OMF
   module Common
     module OML
       module Arel
+        class ArelException < Exception; end
+        class ArelRemoteException < ArelException; end
+
         class Serializable < MObject
           
           protected
@@ -276,6 +279,9 @@ module OMF
             lastRel.to_xml(req.add_element('query'))
             puts req.to_s
             resp = Net::HTTP.new(@url.host, @url.port).post(@url.path, req.to_s)
+            if (resp.code != 200) 
+              raise ArelRemoteException, resp.body
+            end
             puts resp.body
             unless (ct = resp['Content-Type']) != 'text/html'
               raise "Server returns result in unknown mime type '#{ct}'"

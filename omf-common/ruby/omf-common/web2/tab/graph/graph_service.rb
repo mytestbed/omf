@@ -1,20 +1,17 @@
+
+module OMF::Common::Web2; module Tab; module Graph
+end; end; end
+
 require 'json'
 require 'omf-common/mobject'
-require 'omf-common/web2/tab/graph/graph'
 require 'omf-common/web2/tab/graph/graph_card'
-require 'omf-common/web2/tab/graph/graph_widget'
-require 'omf-common/web2/tab/graph/series_cache'
 
-module OMF::Common::Web2::Graph
+require 'omf-common/web2/widget/graph/graph'
+require 'omf-common/web2/widget/graph/graph_widget'
+
+module OMF::Common::Web2::Tab::Graph
   
   class GraphService < MObject
-    
-    # def self.create(req, opts)
-      # sid = req.params['sid']
-      # gid = (req.params['id'] || 0).to_i
-      # session = ::OMF::Common::Web2::SessionStore["#{sid}/#{gid}"]
-      # inst = session[:inst] ||= self.new(gid, opts)
-    # end
     
     def initialize(tab_id, opts)
       puts "GraphService: #{opts.inspect}"
@@ -73,11 +70,11 @@ module OMF::Common::Web2::Graph
     def get_widget(req, opts)
       gid = opts[:graph_id] = (req.params['gid'] || 0).to_i
       unless (widget = @widgets[gid])
-        if gd = OMF::Common::Web2::Graph[gid]
+        if gd = OMF::Common::Web2::Widget::Graph[gid]
           addr = [req.params['sid'], @tab_id, gid].join(':')
-          widget = @widgets[gid] = GraphWidget.new(addr, gd)
+          widget = @widgets[gid] = ::OMF::Common::Web2::Widget::Graph::GraphWidget.new(addr, gd)
         else
-          if OMF::Common::Web2::Graph.count > 0
+          if OMF::Common::Web2::Widget::Graph.count > 0
             opts[:flash] = {:alert => "Unknown graph id '#{gid}'"}
           else
             opts[:flash] = {:alert => "No graphs defined"}

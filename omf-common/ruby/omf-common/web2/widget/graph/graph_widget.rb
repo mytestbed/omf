@@ -1,7 +1,7 @@
 
 require 'erector'
 
-module OMF::Common::Web2::Graph
+module OMF::Common::Web2; module Widget::Graph
   
   # Maintains the context for a particular graph rendering within a specific session.
   # It is primarily called upon maintaining communication withthe browser and will
@@ -58,8 +58,10 @@ module OMF::Common::Web2::Graph
     def content()
       div :id => @base_id, :class => "oml_#{@js_uri}" do
         #p @opts.inspect
-        javascript(%{          
-          require(['/resource/js/graph/#{@js_uri}.js'], function() {
+        #p get_static_js
+        javascript(%{  
+          var l = L;        
+          L.require('OML.#{@gd.vizType}', ['graph/#{@js_uri}'], function() {
             #{get_static_js}
             #{get_dynamic_js}        
           });
@@ -69,7 +71,8 @@ module OMF::Common::Web2::Graph
     
     def get_static_js()
       if @data_source
-        @gopts[:data] = [{:data => @data_source.rows}]
+        #@gopts[:data] = [{:data => @data_source.rows}]
+        @gopts[:data] = @data_source.rows
       end
       "var #{@js_var_name} = new #{@js_func_name}(#{@gopts.to_json});"
     end
@@ -128,4 +131,4 @@ module OMF::Common::Web2::Graph
     end
   end # GraphWidget
   
-end
+end; end 

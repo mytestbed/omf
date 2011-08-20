@@ -11,9 +11,9 @@ class Page < Erector::Widget
 #          stylesheet_link_tag 'ie'
 #        self << '<![endif]-->'
 
-  depends_on :js, "/resource/js/require2.js"
+  depends_on :js, "/resource/js/require3.js"
   depends_on :script, %{
-    /* require.setNsUrl("", function(name) { return "/resource/js/" + name + ".js"; }); */
+    L.baseURL = "/resource";
     if (typeof(OML) == "undefined") { OML = {}; }
   }
   
@@ -69,9 +69,7 @@ class Page < Erector::Widget
   def render_card
     div :class => "card card_#{@active_id}" do
       div :class => 'card_header' do
-        div :class => 'actions' do
-          a 'Action', :class => 'action', :href => '/foo'
-        end
+        render_card_actions
         h1 @card_title || 'Missing :card_title'
       end
       render_card_nav
@@ -88,6 +86,13 @@ class Page < Erector::Widget
     end
   end
 
+  def render_card_actions
+    return  # Following is just an example
+    div :class => 'actions' do
+      a 'Action', :class => 'action', :href => '/foo'
+    end
+  end
+  
   def render_card_nav
     if @card_nav
       div :class => 'card_nav' do

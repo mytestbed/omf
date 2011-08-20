@@ -5,6 +5,6 @@ register_tab(
     :name => 'Graph', 
     :priority => 400, 
     :def_enabled => true, 
-    :class => OMF::Common::Web2::Graph::GraphService
+    :class => OMF::Common::Web2::Tab::Graph::GraphService
 )
 

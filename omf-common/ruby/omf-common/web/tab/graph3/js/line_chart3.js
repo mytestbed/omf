@@ -2,6 +2,22 @@ if (typeof(OML) == "undefined") {
   OML = {};
  }
 
+if (typeof(d3.each) == 'undefined') {
+  d3.each = function(array, f) {
+    var i = 0,
+	n = array.length,
+	a = array[0],
+	b;
+    if (arguments.length == 1) {
+      while (++i < n) if (a < (b = array[i])) a = b;
+    } else {
+      a = f(a);
+      while (++i < n) if (a < (b = f(array[i]))) a = b;
+    }
+    return a;
+  };
+};
+
 OML['lineChart'] = function(opts) { 
   this.opts = opts || {};
   this.data = null;
@@ -64,21 +80,47 @@ OML['lineChart'] = function(opts) {
   };
 
   this.update = function(data) {
+    var self = this;
     this.data = data;
     var o = this.opts;
+    var ca = this.chart_area;
 
-    var x_max = this.x_max = d3.max(data, function(d) {return d3.max(d, function(d) {return d.x})});
-    var x_min = this.x_min = d3.min(data, function(d) {return d3.min(d, function(d) {return d.x})});
+    
+    //    var x_max = this.x_max = d3.max(data, function(d) {return d3.max(d, function(d) {return d.x})});
+    var x_max = this.x_max = d3.max(data, function(d) {return d[d.length - 1].x;});
+    var x_max_cnt = d3.max(data, function(d) {return d.length});
+    var x_min = this.x_min = d3.min(data, function(d) {return d[0].x;});
+    var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([ca.x, ca.x + ca.w]);
+
+    if (x_max_cnt > ca.w) {
+      // To much data, downsample
+      var data2 = [];
+      data.map(function(l) {
+	  var xcurr = -999999;
+	  var l2 = [];
+	  l.map(function(d) {
+	      var x = Math.round(self.x(d.x));
+	      if (x > xcurr) {
+		l2.push(d);
+		xcurr = x + 1; // add a 'spare' pixel between consecutive points
+	      }
+	    });
+	  data2.push(l2);
+	});
+      data = data2;
+    }
+
+
+    //    var x_min = this.x_min = d3.min(data, function(d) {return d3.min(d, function(d) {return d.x})});
     var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(d) {return d3.max(d, function(d) {return d.y})});
     var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(d) {return d3.min(d, function(d) {return d.y})});
-
-    var ca = this.chart_area;
     var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([ca.y, ca.y + ca.h]);
-    var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([ca.x, ca.x + ca.w]);
+
 
     var line = d3.svg.line()
       .x(function(d) { return x(d.x) })
-      .y(function(d) { return -1 * y(d.y); });
+      .y(function(d) { return -1 * y(d.y); })
+      ;
 
     var self = this;
     var lines = this.graph_layer.selectAll(".chart")
@@ -324,5 +366,4 @@ OML['lineChart'] = function(opts) {
 
   this.init(opts);
 };
-
 

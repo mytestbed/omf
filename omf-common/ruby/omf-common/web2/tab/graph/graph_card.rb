@@ -1,6 +1,6 @@
 require 'omf-common/web2/page'
 
-module OMF::Common::Web2::Graph
+module OMF::Common::Web2::Tab::Graph
   
   class GraphCard < Page
     depends_on :js, "/resource/js/d3.js"
@@ -14,7 +14,7 @@ module OMF::Common::Web2::Graph
     def render_card_nav
       div :class => 'card_nav' do
         ul do
-          ::OMF::Common::Web2::Graph.each_with_index do |g, i| 
+          ::OMF::Common::Web2::Widget::Graph.each_with_index do |g, i| 
             klass = (i == @graph_id) ? 'selected' : nil
             li :class => klass do
               a g.name, :href => "/graph/show?gid=#{i}&sid=#{@session_id}"

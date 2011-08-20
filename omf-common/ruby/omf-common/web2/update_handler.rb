@@ -14,14 +14,17 @@ module OMF::Common::Web2
       begin
         id = req.params['id'] || ""
         comp_path = id.split(':')
-        h = self.find_tab_from_path(comp_path)
+        h = SessionStore.find_tab_from_path(comp_path)
+        Thread.current["sessionID"] = h[:sid]
+        tab_inst = h[:tab_inst]
+        sub_path = h[:sub_path]
+        tab_inst.on_ws_open(req, sub_path.dup)
+        body, headers = tab_inst.on_update(req, sub_path.dup)
       rescue Exception => ex
-        return [412, nil, ex.to_s]
+        b = ex.to_s + "\n" + ex.backtrace.join("\n")
+        return [412, {"Content-Type" => 'text'}, b]
       end
       
-      Thread.current["sessionID"] = h[:sid]
-      tab_inst = h[:tab_inst]
-      body, headers = tab_inst.on_update(req, h[])
       if headers.kind_of? String
         headers = {"Content-Type" => headers}
       end

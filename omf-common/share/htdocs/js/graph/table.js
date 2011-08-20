@@ -1,41 +1,61 @@
 
-/*
-require_obj('$.ui', {url: ['/resource/css/table.css', 'jquery', 'jquery-ui-1.8.4.custom.min']}, function() { 
-*/
-require_obj('$.ui', {url: ['/resource/css/table.css', 'jquery', 'jquery-ui-1.8.4.custom.min']}, function() { 
 
+//L.provide('OML.table', ["table.css", ["jquery.js", "jquery-ui-1.8.4.custom.min.js"]],
+L.provide('OML.table', ["table.css", ["jquery.js", "jquery.dataTables.js"]], function () {
+  if (typeof(OML) == "undefined") {
+    OML = {};
+  }
+  
   OML['table'] = function(opts){
     this.opts = opts;
 
     this.init = function(opts) {
       /* create table template */
       var base_el = opts.base_el || '#table'
+      
+      
       var tid = base_el.substr(1) + "_t";
+      var tbid = base_el.substr(1) + "_tb";
       var h = "<table id='" + tid;
       h += "' cellpadding='0' cellspacing='0' border='0' class='oml_table' width='100%'>";
       h += "<thead><tr>";
-      var labels = opts.labels;
-      for (var i = 0; i < labels.length; i++) {
-        h += "<th class='oml_c" + i + " oml_" + labels[i] + "'>" + labels[i] + "</th>";
+      var schema = this.schema = opts.schema;
+      if (schema) {
+        for (var i = 0; i < schema.length; i++) {
+          var col = schema[i];
+          h += "<th class='oml_c" + i + " oml_" + col.name + "'>" + col.name + "</th>";
+        }
       }
       h += "</tr></thead>";
-      h += "<thead id='data_th'></thead>";
+      h += "<tbody id='" + tbid + "'></tbody>";
       h += "</table>";
       $(base_el).prepend(h);
       this.table_el = $('#' + tid);
+      this.tbody_el = $('#' + tbid);      
+       
+      // var b = $(base_el)
+      // b.dataTable();
+      this.dataTable = this.table_el.dataTable();
        
       var data = opts.data;
       if (data) this.update(data);
     };
 
     this.update = function(data) {
-      // there should only be one series and it's name should be '_'
-      var rows = data[0].data;
-      this.render_rows(rows, false);
+      this.render_rows(data, false);
     };
 
     /* Add rows */
-    this.render_rows = function(rows, update){
+    this.render_rows = function(rows, update) {
+      if (this.dataTable) {
+        this.dataTable.fnAddData(rows);
+        // var rcnt = rows.length;
+        // for (var i = 0; i < rcnt; i++) {
+          // var row = rows[i];
+          // this.dataTable.fnAddData(row)
+        // }
+        return;
+      }
 
       var rcnt = rows.length;
       if (rcnt <= 0) {
@@ -66,12 +86,14 @@ require_obj('$.ui', {url: ['/resource/css/table.css', 'jquery', 'jquery-ui-1.8.4
         rid = 'tr' + (oid + i);
         var labels = opts.labels;
         var tr = "<tr class='" + row_class + "' id='" + rid + "'>";
+        var schema = this.schema;
         for (var j = 0; j < ccnt; j++) {
-          /** if (record_id != j) { 
-            tr += "<td>" + row[j] + "</td>";
+          tr += "<td class='oml_c" + j;
+          var col = schema[i];
+          if (col) {
+            tr += " oml_" + col.name;
           }
-          **/
-          tr += "<td class='oml_c" + j + " oml_" + labels[j] + "'>" + row[j] + "</th>";
+          tr += "'>" + row[j] + "</th>";
         }
         tr += "</tr>"
         tbody.prepend(tr);
@@ -82,7 +104,6 @@ require_obj('$.ui', {url: ['/resource/css/table.css', 'jquery', 'jquery-ui-1.8.4
     };
     
     this.init(opts);
-
   }
 });
 

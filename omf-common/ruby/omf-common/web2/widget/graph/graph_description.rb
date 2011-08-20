@@ -1,6 +1,8 @@
 
-module OMF::Common::Web2::Graph
+module OMF::Common::Web2; module Widget; module Graph
+end; end; end
 
+module OMF::Common::Web2::Widget::Graph
   class GraphDescription < MObject
     
     attr_reader :name, :vizType, :vizOpts, :opts
@@ -9,10 +11,11 @@ module OMF::Common::Web2::Graph
       @name = name
       @vizType = vizType
       @opts = opts
-      @vizOpts = @opts[:gopts] || {}
+      @vizOpts = @opts[:viz_opts] || {}
+      puts "VIZ_OPTS >>>> #{@vizOpts.inspect}"
     end
         
     private
 
   end # GraphDescription
-end
+end # OMF::Common::Web2::Widget::Graph

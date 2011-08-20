@@ -1,32 +1,32 @@
 
-div.oml-lineGraph {
+div.oml-line-chart {
   margin: 20px;
 }
 
-.oml-lineGraph path {
+.oml-line-chart path {
   stroke-width: 2;
   fill: none;
 }
 
-.oml-lineGraph line {
+.oml-line-chart line {
   stroke: black;
 }
 
-.oml-lineGraph .grids {
+.oml-line-chart .grids {
   stroke: #ccc;
   stroke-width: 1;
 }
 
-.oml-lineGraph text {
+.oml-line-chart text {
   font-family: Arial;
   font-size: 9pt;
 }
 
-.oml-lineGraph .oml-lineGraph .graph-area {
+.oml-line-chart .oml-line-chart .graph-area {
   cursor: crosshair;
 }
 
-.oml-lineGraph .select-rect {
+.oml-line-chart .select-rect {
   cursor: hand;
   fill: #FF8080;
   fill-opacity: 0.4;

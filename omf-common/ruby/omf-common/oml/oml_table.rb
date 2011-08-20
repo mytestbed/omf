@@ -8,8 +8,10 @@ module OMF::Common::OML
   # a common schema.
   #
   class OmlTable < MObject
+    attr_reader :name
     attr_accessor :max_size
     attr_reader :rows
+    attr_reader :schema
     
     # 
     # tname - Name of table
@@ -17,11 +19,12 @@ module OMF::Common::OML
     # opts -
     #   :max_size - keep table to that size by dropping older rows
     #
-    def initialize(tname, schema, opts = {})
+    def initialize(tname, schema, opts = {}, &onRowProc)
       #@endpoint = endpoint
       @name = tname
       @schema = schema
       @opts = opts
+      @onRowProc = onRowProc
       @rows = []
       @max_size = opts[:max_size]
       @on_row_added = {}
@@ -51,12 +54,13 @@ module OMF::Common::OML
       if @onRowProc
         row = @onRowProc.call(row)
       end
-      if row 
-        @rows << row
-        if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
-          @rows.shift # not necessarily fool proof, but fast
-        end
+      return unless row 
+
+      @rows << row
+      if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
+        @rows.shift # not necessarily fool proof, but fast
       end
+
       #puts "add_row"
       @on_row_added.each_value do |proc|
         #puts "call: #{proc.inspect}"

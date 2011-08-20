@@ -61,7 +61,7 @@ module OMF::Common::Web2
         end
       else
         tabs = @available_tabs.values.sort do |a, b| 
-                 a[:order] <=> b[:order] 
+                 (a[:priority] || 1000) <=> (b[:priority] || 1000) 
                end
         @enabled_tabs = @available_tabs 
       end 
@@ -97,8 +97,9 @@ module OMF::Common::Web2
       end
       
       opts = @opts.dup
-      opts[:active_id] = tab[:id]
-      opts[:session_id] = req.params['sid']
+      opts[:tab_id] = tab_id = tab[:id]
+      opts[:session_id] = session_id = req.params['sid']
+      opts[:update_path] = "/_update?id=#{session_id}:#{tab_id}"
       component = find_card_instance(tab, req)
       component.method(action).call(req, opts)
     end
