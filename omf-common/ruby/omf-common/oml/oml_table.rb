@@ -1,5 +1,5 @@
 
-
+require 'omf_common'
 
 
 module OMF::Common::OML
