@@ -59,3 +59,10 @@
 
     # Name (i.e. unique HRN ID) of the slice to which this resource is assigned
     :slice: default_slice
+
+  # Mote settings
+  # Uncomment and set the following parameters if this resource has
+  # a Mote device attached to it
+  #:mote:
+    #:moteport: /dev/ttyUSB0
+    #:motetype: telosb

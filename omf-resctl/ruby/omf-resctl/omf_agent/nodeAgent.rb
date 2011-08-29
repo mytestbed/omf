@@ -392,6 +392,12 @@ class NodeAgent < MObject
       @controlIF = @config[:communicator][:control_if]
       @controlIP = `ifconfig #{@controlIF} | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`.chomp
     end
+
+    # Use Mote configuration parameters from Config File if defined
+    if @config[:mote][:moteport] != nil && @config[:mote][:motetype] != nil
+      @moteport = @config[:mote][:moteport]
+      @motetype = @config[:mote][:motetype]
+    end
   end
 
   ################################################

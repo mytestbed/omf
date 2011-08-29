@@ -86,7 +86,7 @@ class MoteApplication < Application
   #
   def install(nodeSet, appID)
 
-    if (repository = @appDefinition.appPackage) != nil
+    if (rep = @appDefinition.appPackage) != nil
 
       # Install App from TAR archive using wget + tar 
       if File.exists?(rep)
@@ -105,7 +105,7 @@ class MoteApplication < Application
                                   :appID => "#{appID}/install",
                                   :image => url,
                                   :path => ".",
-                                  :hashkey => Digest::MD5.hexdigest(File.read(repository)),
+                                  :hashkey => Digest::MD5.hexdigest(File.read(rep)),
                                   :moteExecutable => @appDefinition.moteExecutable,
                                   :gatewayExecutable => @appDefinition.gatewayExecutable,
                                   :moteType => @appDefinition.moteType,
