@@ -158,7 +158,9 @@ ul#mainTabs a:visited {
     padding:4px 8px 6px;
 		border-left: 1px solid #E5E5E5;
 		border-top: 1px solid #E5E5E5;
-	border-right: 1px solid #E5E5E5;		
+  	border-right: 1px solid #E5E5E5;		
+    border-top-right-radius: 6px;
+    border-top-left-radius: 6px;
 }
 
 ul#mainTabs li.tabs_last a:link, 

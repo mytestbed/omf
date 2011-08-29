@@ -48,6 +48,7 @@ ep.on_new_stream() do |stream|
     #create_table([:oml_ts_server, :rssi], stream, 'line_chart')
   when 'GPSlogger_gps_data'
     t = stream.capture_in_table(:oml_ts_server, :oml_sender_id, :lat, :lon)
+    init_graph(t, 'map')
   end
   init_graph(t, 'table')
   #create_table(select, stream, 'table')
