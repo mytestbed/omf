@@ -12,5 +12,5 @@
   :use_dnssrv: false
 
 :http:
-  :port: 5053
+  :port: 5054
   
