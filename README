@@ -30,6 +30,4 @@ trunk /
       omf-resctl   # OMF Resource Controller
       omf-resmgr   # OMF Resource Manager
       pxe          # Build system for PXE kernel and rootfs
-      visualizers  # visualization for the experiment controller
-      visyoNet     # Visualization tools
-
+      tools	   # Miscellaneous tools for testing OMF

@@ -1,14 +1,14 @@
-source :rubygems
-#source :rubyforge
-#source :gemcutter
+# list all required gems here
+# dependencies are added automatically
+# optionally specify gem version using "-v"
 
-gem "xmpp4r", "0.5"
-gem "log4r", "1.1.8"
-gem "json", "1.4.6"
-gem "markaby", "0.7.1"
-gem "coderay", "0.9.4" 
-gem "arel", "1.0.1"
-gem "wss4r", "0.5"
-#gem "ruby-ldap"
-#gem "sqlite3-ruby"
-#gem "mysql"
+xmpp4r -v 0.5
+log4r -v 1.1.8
+json -v 1.4.6
+markaby -v 0.7.1
+coderay -v 0.9.4 
+arel -v 1.0.1
+wss4r -v 0.5
+#ruby-ldap
+#sqlite3-ruby
+#mysql

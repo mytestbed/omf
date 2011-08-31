@@ -2,7 +2,7 @@ Source: omf-aggmgr-5.4
 Section: science
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
-Build-Depends: debhelper (>= 5), libmysqlclient-dev, ruby1.8-dev
+Build-Depends: debhelper (>= 5), rubygems
 Standards-Version: 3.7.2
 
 Package: omf-aggmgr-5.4
