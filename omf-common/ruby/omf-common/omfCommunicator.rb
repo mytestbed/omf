@@ -59,9 +59,10 @@ class OmfCommunicator < MObject
       @@domain = opts[:config][:xmpp][:pubsub_domain] || 
                  opts[:config][:xmpp][:pubsub_gateway] || nil
     when 'mock'
-      @@sent = Array.new
+      require 'omf-common/omfMockTransport'      
+      @@transport = OMFMockTransport.new
+      @@transport.init(opts) 
       @@domain = 'mock_domain'
-      return # Uses the default Mock OmfCommunicator
     when 'udplocal'
       require 'omf-common/omfUDPLocalTransport'
       @@transport = OMFUDPLocalTransport.instance.init(opts)
@@ -99,17 +100,11 @@ class OmfCommunicator < MObject
   end
 
   def create_address(opts)
-    return @@transport.get_new_address(opts) if @@transport
-    addr = HashPlus.new
-    opts.each { |k,v| addr[k] = v} if opts
-    return addr
+    return @@transport.get_new_address(opts)
   end
 
   def create_message(opts = nil)
-    return @@transport.get_new_message(opts) if @@transport
-    cmd = HashPlus.new
-    opts.each { |k,v| cmd[k] = v} if opts
-    return cmd
+    return @@transport.get_new_message(opts)
   end
 
   def send_message(addr, message)
@@ -117,13 +112,7 @@ class OmfCommunicator < MObject
       warn "No address defined! Cannot send message '#{message}'"
       return false
     end
-    if @@transport
-      return @@transport.send(addr, message)
-    else
-      debug "Sending command '#{message}'"
-      @@sent << [addr, message]
-      return false
-    end
+    return @@transport.send(addr, message)
   end  
 
   def listen(addr)
@@ -139,13 +128,13 @@ class OmfCommunicator < MObject
   end
 
   def stop
-    @@transport.stop if @@transport
+    @@transport.stop
   end
 
   def reset
     @@already_queueing = false
     @@queue.clear
-    @@transport.reset if @@transport
+    @@transport.reset
   end
 
   #############################

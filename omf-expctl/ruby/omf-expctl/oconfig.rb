@@ -157,7 +157,7 @@ module OConfig
     str = File.new(file).read()
     if evalRuby
       begin
-        eval(str, OMF::ExperimentController::CmdContext.instance._binding(),
+        eval(str, OMF::EC::CmdContext.instance._binding(),
              uri)
       rescue Exception => ex
         if ex.kind_of?(OEDLException)

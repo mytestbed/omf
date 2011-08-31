@@ -42,7 +42,7 @@ require 'date'
 #
 # This class defines an experimental Node on the testbed
 #
-class Node < MObject
+class OMF::EC::Node < MObject
   include Observable
 
   W0_IF = "eth2"

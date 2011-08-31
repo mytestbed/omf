@@ -94,7 +94,6 @@ begin
   NodeHandler.instance.loadControllerConfiguration()
   NodeHandler.instance.startLogger()
   TraceState.init()
-  include OMF::ExperimentController::Commands
-  rootns = OMF::ExperimentController::Commands.defGroup("_ALLGROUPS_",topo)
+  rootns = OMF::EC::Commands.defGroup("_ALLGROUPS_",topo)
   tellNode(cmd,rootns,OConfig.domain)
 end

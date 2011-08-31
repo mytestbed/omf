@@ -22,6 +22,10 @@
 # THE SOFTWARE.
 #
 #
+module OMF
+  module EC; end 
+end
+
 require 'omf-expctl/nodeHandler'
 
 startTime = Time.now
@@ -60,24 +64,23 @@ rescue ServiceException => sex
 rescue Exception => ex
   if Experiment.running?
     begin
-      bt = ex.backtrace.join("\n\t")
       MObject.fatal('run', "----------")
       MObject.fatal('run', "  A fatal error was encountered while running your"+
                            " experiment.")
-      MObject.fatal('run', "  Exception (#{ex.class}): #{ex}")
-      MObject.fatal('run', "  For more information see the EC log file")
-      MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
-      MObject.fatal('run', "  (or see config file to find the log's location)")
-      MObject.debug('run', "\n\nTrace:\n\t#{bt}\n")
-      MObject.fatal('run', "----------")
     rescue Exception
     end
   else 
     MObject.fatal('run', "----------")
     MObject.fatal('run', "  Exception raised, no experiment running.")
-    MObject.fatal('run', "  Exception: '#{ex}'.")
-    MObject.fatal('run', "----------")
   end
+    MObject.fatal('run', "  Exception (#{ex.class}): #{ex}")
+    MObject.fatal('run', "  For more information see the EC log file")
+    MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
+    MObject.fatal('run', "  (or see config file to find the log's location)")
+    bt = ex.backtrace.join("\n\t")
+    MObject.debug('run', "Trace:\n\t#{bt}\n")
+    MObject.fatal('run', "----------")
+
 end
 
 # If EC is called in 'interactive' mode, then start a Ruby interpreter

@@ -269,11 +269,11 @@ class NodeHandler < MObject
       puts "HTTP/GET #{url}"
     else
       begin
-	uri = URI.parse(url)
-	http = Net::HTTP.new(uri.host, uri.port)
-	http.read_timeout = 120
-	request = Net::HTTP::Get.new(uri.request_uri)
-	response = http.request(request)
+      	uri = URI.parse(url)
+      	http = Net::HTTP.new(uri.host, uri.port)
+      	http.read_timeout = 120
+      	request = Net::HTTP::Get.new(uri.request_uri)
+      	response = http.request(request)
         if (! response.kind_of? Net::HTTPSuccess)
           raise ServiceException.new(response, error_msg)
         end
@@ -362,8 +362,8 @@ class NodeHandler < MObject
         
     Profiler__::start_profile if @doProfiling
 
-    startWebServer()
-    info "Web interface available at: #{OMF::Common::Web::url}"
+    # startWebServer()
+    # info "Web interface available at: #{OMF::Common::Web::url}"
 
     begin 
       require 'omf-expctl/handlerCommands'      
@@ -381,10 +381,10 @@ class NodeHandler < MObject
       Experiment.load(@@expFile)
       Experiment.start
     end
-    
+
     if interactive?
       require 'omf-expctl/console'
-      OMF::ExperimentController::Console.start
+      OMF::EC::Console.start
     end
 
     # Now block until the Experiment is Done...
@@ -588,8 +588,13 @@ class NodeHandler < MObject
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
     comm[:comms_name] = comm[:expID] = Experiment.ID
+
     # The EC should only try to connect to the XMPP server once
-    comm[:config][:xmpp][:pubsub_max_retries] = 1
+    # TODO: The next line should NOT be here, but in the relevant transport
+    if (comm[:config][:xmpp])
+      comm[:config][:xmpp][:pubsub_max_retries] = 1
+    end
+
     ECCommunicator.instance.init(comm)
 
     setupServiceCalls()
@@ -680,6 +685,8 @@ class NodeHandler < MObject
   #           :type :http
   #           :uri  'http://norbit.npc.nicta.com.au:5053'
   #
+  # TODO: Most of thes following should NOT be here, but in the Service layer
+  #
   def setupServiceCalls()
     domains = []
 
@@ -712,8 +719,10 @@ class NodeHandler < MObject
     domains.each do |domain|
       OMF::ServiceCall.add_domain(domain)
     end
-    OMF::Services::XmppEndpoint.sender_id=Experiment.ID
-    OMF::Services::XmppEndpoint.borrow_connection
+    if type == 'xmpp'
+      OMF::Services::XmppEndpoint.sender_id=Experiment.ID
+      OMF::Services::XmppEndpoint.borrow_connection
+    end
   end
 
   #
