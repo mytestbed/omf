@@ -394,9 +394,9 @@ class NodeAgent < MObject
     end
 
     # Use Mote configuration parameters from Config File if defined
-    if @config[:mote][:moteport] != nil && @config[:mote][:motetype] != nil
-      @moteport = @config[:mote][:moteport]
-      @motetype = @config[:mote][:motetype]
+    if not @config[:mote].nil?
+      @moteport = @config[:mote][:moteport] if not @config[:mote][:moteport].nil?
+      @motetype = @config[:mote][:motetype] if not @config[:mote][:motetype].nil?
     end
   end
 

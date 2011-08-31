@@ -1,9 +1,9 @@
-source :rubygems
-#source :rubyforge
-#source :gemcutter
+# list all required gems here
+# dependencies are added automatically
+# optionally specify gem version using "-v"
 
-gem "activesupport", "3.0.0"
-gem "activerecord", "3.0.0"
-gem "arel", "1.0.1"
-gem "gratr", "0.4.3"
-gem "rdp-rb-readline", "0.2.0.1"
+rdp-rb-readline -v 0.2.0.1
+activesupport -v 3.0.0
+activerecord -v 3.0.0
+arel -v 1.0.1
+gratr -v 0.4.3

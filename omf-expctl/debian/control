@@ -2,12 +2,12 @@ Source: omf-expctl-5.4
 Section: science
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
-Build-Depends: debhelper (>= 5)
+Build-Depends: debhelper (>= 5), rake
 Standards-Version: 3.7.2
 
 Package: omf-expctl-5.4
 Architecture: all
-Depends: omf-common-5.4, ruby
+Depends: omf-common-5.4, rake
 Description: OMF Experiment Controller
  Controls experiments in the OMF testbed.
 
