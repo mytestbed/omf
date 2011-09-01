@@ -432,7 +432,7 @@ class Topology < MObject
           return 
         end
       end
-      @nodes.add(Node.at!(name))
+      @nodes.add(OMF::EC::Node.at!(name))
     rescue ResourceException => re
       if @strict
         raise "Topology - Failed to add resource '#{name}' to topology "+

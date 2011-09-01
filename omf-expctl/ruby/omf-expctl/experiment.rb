@@ -48,7 +48,7 @@ class Experiment
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
   @@disconnectionAllowed = false
-  @@sliceID = nil
+  @@sliceID = "default_slice"  
   @@domain = nil
   @@is_running = false
 
@@ -196,7 +196,7 @@ class Experiment
   # Set the Root Document for this Experiment
   #
   def Experiment.documentRoot=(path)
-    OMF::ExperimentController::Web::documentRoot(path)
+    OMF::EC::Web::documentRoot(path)
   end
 
   # 
@@ -274,10 +274,10 @@ class Experiment
     # Reset the nodes before starting the experiment if -r flag was set
     if NodeHandler.NODE_RESET
       MObject.info("Experiment", "Resetting resources which are already ON")
-      OMF::ExperimentController::CmdContext.instance.allGroups.powerReset
+      OMF::OMF::ECinstance.allGroups.powerReset
     end
     MObject.info("Experiment", "Switching ON resources which are OFF")
-    OMF::ExperimentController::CmdContext.instance.allGroups.powerOn
+    OMF::EC::CmdContext.instance.allGroups.powerOn
 
     # If this is a disconnected experiment, purge all Events defined on this 
     # EC for this experiment (the slave ECs will be responsible for acting
@@ -291,12 +291,12 @@ class Experiment
       # the resources
       Event.purge_all
       # Create a new event to detect when all resources are done 
-      OMF::ExperimentController::CmdContext.instance.\
+      OMF::EC::CmdContext.instance.\
       defEvent(:EXPERIMENT_DONE, DISCONNECT_INTERVAL) do |event|
         MObject.info("Experiment","Waiting for all resources to report back...")
         event.fire if Node.all_reconnected?
       end
-      OMF::ExperimentController::CmdContext.instance.\
+      OMF::EC::CmdContext.instance.\
       onEvent(:EXPERIMENT_DONE) { |node| Experiment.close }
       ECCommunicator.instance.allow_retry
     end
@@ -309,11 +309,11 @@ class Experiment
     end
  
     # Now we can Enroll the nodes!
-    OMF::ExperimentController::CmdContext.instance.allGroups.enroll
+    OMF::EC::CmdContext.instance.allGroups.enroll
 
     # If this is a disconnected experiment, inform the resources about it
     if @@disconnectionAllowed
-     OMF::ExperimentController::CmdContext.instance.allGroups.set_disconnection
+     OMF::EC::CmdContext.instance.allGroups.set_disconnection
     end
   end
 

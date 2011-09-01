@@ -147,6 +147,7 @@ class ECCommunicator < OmfCommunicator
     resources = []
     addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
     resource_prefix = "#{addr.generate_address}/"
+    debug "Resource prefix <#{resource_prefix}>"
     nodes = list_nodes(@@domain)
     nodes.each{|node|
       next if !node.include?(resource_prefix)

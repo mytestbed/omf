@@ -8,11 +8,24 @@
 :econtroller:
   :config:
     :default:
-      :domain: 'local'
+      :domain: 'norbit'
+      :slice: 'default_slice'
       :repository:
-        :path: ["omf-expctl/share/repository"]
-      :web:
-        :host: 'localhost'
-        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.4/share/htdocs"]
+        :path: 
+          - omf-expctl/share/repository
       :communicator:
-        :type: 'mock'
+        :authenticate_messages: false
+        # your RSA/DSA SSH private key file
+        :private_key: '~/.ssh/id_rsa'
+        # directory holding the public keys of your OMF peers
+        :public_key_dir: '~/.omf-expctl/peer_keys'
+        
+        :type: 'xmpp'
+        :xmpp:
+          :pubsub_gateway: 'norbit.npc.nicta.com.au'
+          :pubsub_use_dnssrv: false
+
+      :services:
+        -
+          :type: :http
+          :uri: 'http://norbit.npc.nicta.com.au:5053'

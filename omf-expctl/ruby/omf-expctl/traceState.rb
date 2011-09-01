@@ -289,7 +289,7 @@ class TraceState < MObject
 
     nodesEl = NodeHandler::NODES_EL
     n[:root] = el = NodeElement.new(node, name, nodesEl, nil, name)
-    n[:status] = el.add_element("status", {'value' => Node::STATUS_DOWN})
+    n[:status] = el.add_element("status", {'value' => OMF::EC::Node::STATUS_DOWN})
 
     n[:image] = imgEl = el.add_element("image")
     imgEl.text = "Unknown"

@@ -38,6 +38,9 @@ require 'omf-common/mobject'
 class OMFMockTransport < MObject 
 
   def init(opts)
+    #puts "MOCK: #{opts.inspect}"
+    @mopts = opts[:config][:mock] || {}
+    puts "MOCK: #{@mopts.inspect}"
     return self
   end
 
@@ -74,7 +77,8 @@ class OMFMockTransport < MObject
   end
   
   def list_nodes(domain)
-    nodes = []
+    puts "LIST: #{@mopts[:resources].inspect}"
+    @mopts[:resources] || []
   end
 
 

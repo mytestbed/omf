@@ -61,6 +61,9 @@ module OMF
     end
 
     def Services.add_domain(domainspec)
+      # Soemthing is severly broken here
+# puts "ADD_DOMAIN >>>> #{domainspec.inspect}"
+#raise "ADD"
       type = domainspec[:type]
       uri = domainspec[:uri]
       raise "ServiceCall domainspec must have a :type (e.g. :http, :xmpp)" if type.nil?
@@ -107,6 +110,7 @@ module OMF
       end
 
       def method_missing(m, *args)
+
         if not modifiers.nil?
           tl = Endpoint.types.find_all { |t| modifiers.has_key? t }
           if tl.length > 1
@@ -132,6 +136,7 @@ module OMF
 
         # Got a domain; now look for an endpoint to talk to on that domain.
         endpoints = Services.endpoints
+      puts ">>>>> REQUESTING SERVICE #{self.inspect}::#{domain.inspect}::#{endpoints.inspect}"
         endpoint = Endpoint.find(domain[:type], domain[:uri],
                                  modifiers, name.to_s, m.to_s, *args)
 

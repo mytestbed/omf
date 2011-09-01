@@ -87,12 +87,14 @@ end
 
 module OMF::EC
   module Commands
+    
+    DEPRECATED = ["whenAll", "whenAllUp", "whenAllEqual", "whenAllInstalled"]
 
     #
     # Display warnings about commands that we are not deprecating in this
     # OMF release, and which will be removed in future releases
     #
-    def warn_deprecated_command(cmd)
+    def _warn_deprecated_command(cmd)
       warn "\n'#{cmd}' is deprecated! Please use 'defEvent' and 'onEvent' commands"
       warn "Deprecated commands will be removed in future OMF versions"
       warn "Moreover, they may not allow the use of some features in this version"
@@ -336,7 +338,7 @@ module OMF::EC
     #            returns 'true'
     #
     def whenAll(nodesSelector, nodeTest, interval = 5, triggerValue = nil, &block)
-      warn_deprecated_command("whenAll")
+      _warn_deprecated_command("whenAll")
       ns = NodeSet[nodesSelector]
       if ns == nil
         raise "WhenAll: Unknown node set '#{nodesSelector}"
@@ -424,7 +426,7 @@ module OMF::EC
     #            returns 'true'
     #
     def whenAllEqual(nodesSelector, nodeTest, triggerValue, interval = 5, &block)
-      warn_deprecated_command("whenAllEqual")
+      _warn_deprecated_command("whenAllEqual")
       whenAll(nodesSelector, nodeTest, interval, triggerValue, &block)
     end
     
@@ -442,7 +444,7 @@ module OMF::EC
       # Check if this EC instance is set to run in Disconnection Mode
       # If yes, then returned now because whatever is asked from this whenAll 
       # should be executed by the whenAll of the slave EC on the disconnected mode
-      warn_deprecated_command("whenAllUp")
+      _warn_deprecated_command("whenAllUp")
       whenAll("*", "status[@value='UP']", &block)
     end
     
@@ -457,7 +459,7 @@ module OMF::EC
     # - &block = the code-block to execute/evaluate against the 'installed' nodes 
     #
     def whenAllInstalled(&block)
-      warn_deprecated_command("whenAllInstalled")
+      _warn_deprecated_command("whenAllInstalled")
       whenAllEqual("*", "apps/app/status/@value", "INSTALLED.OK", &block)
     end
     
@@ -655,15 +657,16 @@ module OMF::EC
     # Reporting/Debugging support:
     # print the XML tree of states/attributs of EC
     #
-    def ls(xpath = nil)
+    def lsx(xpath = nil)
       root = NodeHandler::ROOT_EL
+      formatter = REXML::Formatters::Pretty.new()
       if xpath.nil?
-        root.write($stdout, 2)
+        formatter.write(root, $stdout)
       else
         res = REXML::XPath.match(root, xpath)
         res.inject(true) {|isFirst, el|
           puts "\n--------------------------" unless isFirst
-          el.write($stdout, 2)
+          formatter.write(el, $stdout)
           false
         }
       end
@@ -674,7 +677,7 @@ module OMF::EC
     # Reporting/Debugging support:
     # print the XML tree of states/attributs of EC
     #
-    def ls2(xpath = nil)
+    def ls(xpath = nil)
       root = NodeHandler::ROOT_EL
       if xpath.nil?
         res = NodeHandler::ROOT_EL.children
@@ -694,7 +697,7 @@ module OMF::EC
         end
         puts "#{e.name}#{as} #{e.text}" 	
       end
-      '' # supress additional output from IRB
+      nil # supress additional output from IRB
     end
     
           
@@ -702,7 +705,14 @@ module OMF::EC
       NodeHandler.exit(true)
       "Going to exit in a sec" 
     end
-
+    
+    def help()
+      m = self.methods - Module.methods - DEPRECATED
+      m = m - ["warn", "info", "error"]
+      m = m.select do |n| !n.start_with? '_' end
+      m.sort.join(" ")
+    end
+    
   end
 end
 

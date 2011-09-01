@@ -70,7 +70,7 @@ class OMF::EC::Node < MObject
   #
   # [Return] a Node object or 'nil' if no node exits at that location
   #
-  def Node.[] (name)
+  def self.[] (name)
     #n = @@nodes[x][y]
     ## take care of ArrayMD elements
     #return n.kind_of?(Node) ? n : nil
@@ -83,7 +83,7 @@ class OMF::EC::Node < MObject
   #
   # [Return] an existing or a new Node object 
   #
-  def Node.at! (name)
+  def self.at! (name)
     n = @@nodes[name.to_s]
     if !n.kind_of?(Node)
       #
@@ -102,7 +102,7 @@ class OMF::EC::Node < MObject
       
       resources = NodeHandler.RESOURCES
       if resources.include?(name)
-        n = Node.new(name)
+        n = self.new(name)
       else
         raise ResourceException.new("Resource '#{name}' could not be found in the current slice!")
       end
@@ -117,7 +117,7 @@ class OMF::EC::Node < MObject
   #
   # [Return] an Array of Node objects
   #
-  def Node.match(xpathExpr)
+  def self.match(xpathExpr)
     m = REXML::XPath.match(NodeHandler::ROOT_EL, "nodes/#{xpathExpr}")
     nodes = Set.new
     m.each { |ne|
@@ -133,7 +133,7 @@ class OMF::EC::Node < MObject
   # 
   # - &block = the code-block to execute
   #
-  def Node.each(&block)
+  def self.each(&block)
     #@@nodes.each(&block)
     @@nodes.each_value(&block)
   end
@@ -146,8 +146,8 @@ class OMF::EC::Node < MObject
   #
   # [Return] true/false
   #
-  def Node.all_reconnected?
-    Node.each { |n|
+  def self.all_reconnected?
+    self.each { |n|
       return false if !n.reconnected
     }
     return true
@@ -490,7 +490,7 @@ class OMF::EC::Node < MObject
   def enroll(index)
     @index = index
     # Send an ENROLL command to this resource
-    # First listen for messages on that new resource address
+    # First self. for messages on that new resource address
     addr = ECCommunicator.instance.make_address(:name => @nodeID) 
     ECCommunicator.instance.listen(addr)
     addr.expID = nil # Same address as the resource but with no expID set

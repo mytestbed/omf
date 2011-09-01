@@ -54,21 +54,24 @@ module OMF::EC
       
       def _run()
         require 'readline'
+        sleep 0.1  # seems to be a race condition with setting the @thread variable
         #puts "111"
-        binding = OMF::ExperimentController::CmdContext.instance._binding()
+        binding = OMF::EC::CmdContext.instance._binding()
         while (@thread) do
           #puts "222"
           line = Readline::readline('> ')
           Readline::HISTORY.push(line)
           begin                    
-            res = eval(line, binding, __FILE__, __LINE__).inspect
+            res = eval(line, binding, __FILE__, __LINE__)
             if (res)
-              puts res # >>>>>>>>>>> <#{line}> <#{x}>"
+              puts res.kind_of?(String) ? res : res.inspect
+               # >>>>>>>>>>> <#{line}> <#{x}>"
             end
           rescue Exception => ex
             puts "EXCEPTION: #{ex}"
           end
         end        
+        puts "Console DONE"
       end      
       
       
