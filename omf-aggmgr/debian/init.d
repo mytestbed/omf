@@ -29,10 +29,10 @@ if [ ! -f $CFG ]; then
 	exit 0
 fi
 
-PORT=`grep :port: $CFG | awk '{ print $2 }'`
+PORT=`ruby -e "require 'yaml';y = YAML.load_file('$CFG'); puts y[:http][:port]" 2>/dev/null`
 
-if [[ $PORT != ${PORT//[^0-9]/} ]] || [ "$PORT" == "" ]; then
-       echo "No port number configured in '$CFG'. Exiting."
+if [ $? -ne 0 ] || [ $PORT != ${PORT//[^0-9]/} ] || [ "$PORT" == "" ]; then
+       echo "No '[:http][:port:]' number configured in '$CFG'. Exiting."
        exit 0
 fi
 
