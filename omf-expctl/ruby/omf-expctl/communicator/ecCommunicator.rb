@@ -170,7 +170,7 @@ class ECCommunicator < OmfCommunicator
       return false
     end
     # - Ignore message from unknown RCs
-    if (Node[message.target] == nil)
+    if (OMF::EC::Node[message.target] == nil)
       debug "Ignoring command with unknown target '#{message.target}'"
       return false
     end

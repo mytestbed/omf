@@ -656,73 +656,18 @@ class NodeHandler < MObject
     OConfig.init_from_yaml(@configFile)
   end
 
-  #
-  # Set up the domains that the service call architecture uses to make
-  # calls to the Aggregate Manager services.  There can be multiple
-  # AM's listening on different domains, including both HTTP and XMPP
-  # domains.
-  #
-  # The EC's YAML file is inspected via OConfig to determine what
-  # domains to use.  If there is an XMPP communicator configured, we
-  # add that as the first domain to use when requesting a particular
-  # service.  We then add the domains found in OConfig[:ec_config][:services]
-  #
-  # For XMPP communicator domain, we grab the required information
-  # directly from the OConfig[:ec_config][:communicator] item.  For
-  # the rest, each item under OConfig[:ec_config][:services] must be a
-  # hash containing a :type field, either :xmpp or :http, and a :uri
-  # field specifying the location of the AM.  For instance, for an
-  # XMPP AM and an HTTP AM, the YAML file might look like:
-  #
-  # :econtroller:
-  #   :config:
-  #     :default:
-  #       :services:
-  #         -
-  #           :type :xmpp
-  #           :uri  'norbit.npc.nicta.com.au'
-  #         -
-  #           :type :http
-  #           :uri  'http://norbit.npc.nicta.com.au:5053'
-  #
-  # TODO: Most of thes following should NOT be here, but in the Service layer
-  #
   def setupServiceCalls()
-    domains = []
-
-    comm = OConfig[:ec_config][:communicator]
-    if comm.nil?
-      raise "Can't find communciator configuration for setting up service calls"
-    end
-
-    type = comm[:type]
-    xmpp_gw = nil
-    xmpp_domain = nil
-    if type == 'xmpp'
-      xmpp = comm[:xmpp]
-      xmpp_gw = xmpp[:pubsub_gateway]
-      xmpp_domain = xmpp[:pubsub_domain]
-    end
-
-    if not xmpp_domain.nil?
-      domains << { :type => :xmpp, :uri => xmpp_domain, :conn => true }
-    elsif not xmpp_gw.nil?
-      domains << { :type => :xmpp, :uri => xmpp_gw, :conn => true }
-    end
-
-    services = OConfig[:ec_config][:services] || []
-    services.each do |domain|
-      domain[:conn] = true
-      domains << domain
-    end
-
-    domains.each do |domain|
-      OMF::ServiceCall.add_domain(domain)
-    end
-    if type == 'xmpp'
+    opts = OConfig[:ec_config][:services] || []
+    OMF::Services.init(opts, NodeHandler.JUST_PRINT)
+    
+    # This is quite a kludge - no idea why we need this
+    #
+    comm = OConfig[:ec_config][:communicator] || {}
+    if comm[:type] == 'xmpp'
       OMF::Services::XmppEndpoint.sender_id=Experiment.ID
       OMF::Services::XmppEndpoint.borrow_connection
     end
+    
   end
 
   #

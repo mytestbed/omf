@@ -45,6 +45,123 @@ require 'omf-common/servicecall/http'
 
 module OMF
   module Services
+    
+    #
+    # Set up the domains that the service call architecture uses to make
+    # calls to the Aggregate Manager services.  There can be multiple
+    # AM's listening on different domains, including both HTTP and XMPP
+    # domains.
+    #
+    # The +opts+ hash describes what
+    # domains to use.  If there is an XMPP communicator configured, we
+    # add that as the first domain to use when requesting a particular
+    # service.  We then add the domains found in OConfig[:ec_config][:services]
+    #
+    # For XMPP communicator domain, we grab the required information
+    # directly from the OConfig[:ec_config][:communicator] item.  For
+    # the rest, each item under OConfig[:ec_config][:services] must be a
+    # hash containing a :type field, either :xmpp or :http, and a :uri
+    # field specifying the location of the AM.  For instance, for an
+    # XMPP AM and an HTTP AM, the YAML file might look like:
+    #
+    # :econtroller:
+    #   :config:
+    #     :default:
+    #       :services:
+    #         -
+    #           :type :xmpp
+    #           :domain: foo  # optionally restrict to specific domain
+    #           :services:   # optionally restrict to specific set of services
+    #             - cmc
+    #           :uri  'norbit.npc.nicta.com.au'
+    #         -
+    #           :type :http
+    #           :uri  'http://norbit.npc.nicta.com.au:5053'
+    #
+    #
+    def self.init(service_descriptions, just_print = false)
+      @just_print = just_print
+      domains = []
+      
+      service_descriptions.each do |sd|
+        type = sd.delete(:type)
+        services = sd.delete(:services)
+        domain = sd.delete(:domain) || '_' # '_' default
+        ep = Endpoint.create(type, sd)
+        if services
+          services.each do |s|
+            @@endpoints["#{domain}/#{s}"] = ep
+          end
+        else
+          @@endpoints[domain] = ep
+        end
+      end
+  
+      # comm = OConfig[:ec_config][:communicator]
+      # if comm.nil?
+        # raise "Can't find communciator configuration for setting up service calls"
+      # end
+#   
+      # type = comm[:type]
+      # xmpp_gw = nil
+      # xmpp_domain = nil
+      # if type == 'xmpp'
+        # xmpp = comm[:xmpp]
+        # xmpp_gw = xmpp[:pubsub_gateway]
+        # xmpp_domain = xmpp[:pubsub_domain]
+      # end
+#   
+      # if not xmpp_domain.nil?
+        # domains << { :type => :xmpp, :uri => xmpp_domain, :conn => true }
+      # elsif not xmpp_gw.nil?
+        # domains << { :type => :xmpp, :uri => xmpp_gw, :conn => true }
+      # end
+  
+      # opts.each do |service|
+        # type = service[:type]
+        # uri = service[:uri]
+        # raise "ServiceCall service spec must have a :type (e.g. :http, :xmpp)" if type.nil?
+        # raise "ServiceCall service spec must have a :uri (location of the service provider)" if uri.nil?
+# 
+        # service[:conn] = true
+        # @@domains[type] = @@domains[type] || []
+        # @@domains[type] << service
+      # end
+
+    end
+    
+    def self.call(opts)
+      service = opts.delete(:service)
+      action = opts.delete(:action)
+      target = opts.delete(:target)
+      raise 'Missing service name for service call' unless service        
+      raise 'Missing action for service call' unless action
+      raise 'Missing target of service call' unless target
+      
+      if !target.kind_of? Enumerable
+        target = [target]
+      end
+      puts ">>>>> REQUESTING SERVICE #{service}/#{action}::#{target.inspect}"
+
+      domains = {}      
+      target.each do |hrn|
+        # hrn should really be a class
+        domain = hrn.split('.')[0 .. -2].join('.')
+        (domains[domain] ||= []) << hrn
+      end
+      results = []
+      domains.each do |domain, targets|
+        endpoint = find_endpoint(domain, service)
+        results << endpoint.make_request(service, action, targets, domain, opts)
+      end
+      # Should somehow combine results
+      if results.length > 1
+        fatal "Don't know yet how to combine results from multiple serive endpoints"
+      end
+      results[0]
+    end
+    
+    
     #
     # Route a service invocation to a method dispatcher.
     #
@@ -52,46 +169,53 @@ module OMF
     # args[:domain] can specify which pubsub domain the call should be routed to
     # args[:noreply] == true means the (multiple) remote responders should not send a reply
     #
-    def Services.method_missing(m, args = nil)
-      service = @@services[m] || Service.new(m)
-      @@services[m] = service
-      raise "Couldn't find a provider for service '#{m}' in OMF::Services module" if service.nil?
-      service.modifiers = args
-      service
-    end
+    # def self.method_missing(m, args = nil)
+      # # The following code doesn't look very thread safe to me. 
+      # # Let's just create a separate object
+      # #
+      # # service = Service.new(m)
+      # # @@services[m] = service
+      # # raise "Couldn't find a provider for service '#{m}' in OMF::Services module" if service.nil?
+      # # service.modifiers = args
+      # # service
+      # Service.new(m, args)
+    # end
 
-    def Services.add_domain(domainspec)
-      # Soemthing is severly broken here
-# puts "ADD_DOMAIN >>>> #{domainspec.inspect}"
-#raise "ADD"
-      type = domainspec[:type]
-      uri = domainspec[:uri]
-      raise "ServiceCall domainspec must have a :type (e.g. :http, :xmpp)" if type.nil?
-      raise "ServiceCall domainspec must have a :uri (location of the service provider)" if uri.nil?
-      @@domains[type] = @@domains[type] || []
-      @@domains[type] << domainspec
-    end
+    # def Services.add_domain(domainspec)
+      # # Soemthing is severly broken here
+# # puts "ADD_DOMAIN >>>> #{domainspec.inspect}"
+# #raise "ADD"
+    # end
 
     class ServiceCallException < Exception; end
-    class Timeout < ServiceCallException; end
-    class ProtocolError < ServiceCallException; end
+    # class Timeout < ServiceCallException; end
+    # class ProtocolError < ServiceCallException; end
     class NoService < ServiceCallException; end
     class ConfigError < ServiceCallException; end
-    class Error < ServiceCallException; end
+#    class Error < ServiceCallException; end
 
     private
 
-    @@domains = Hash.new
-    @@services = Hash.new
-    @@endpoints = Array.new
-
-    def Services.domains
-      @@domains
+    # @@domains = Hash.new
+    # @@services = Hash.new
+    @@endpoints = Hash.new
+    
+    def self.find_endpoint(domain, service)
+      ep = @@endpoints["#{domain}/#{service}"] || @@endpoints[domain] || @@endpoints["_/#{service}"] || @@endpoints['_']
+      unless ep
+        raise NoService.new("Can't find service endpoint for '#{domain}/#{service}'")
+      end
+      ep
     end
+    
 
-    def Services.endpoints
-      @@endpoints
-    end
+    # def Services.domains
+      # @@domains
+    # end
+# 
+    # def Services.endpoints
+      # @@endpoints
+    # end
 
     #
     # A proto-service call.  It just encapsulates the name of the
@@ -103,13 +227,17 @@ module OMF
     #
     class Service < MObject
       attr_reader :name
-      attr_accessor :modifiers
+      attr_reader :modifiers
 
-      def initialize(name)
+      def initialize(name, modifiers)
         @name = name
+        @modifiers = modifiers
       end
+      
 
       def method_missing(m, *args)
+        fatal  ">>>>> SHOULD NOT BE HERE"
+        raise "WHO?"
 
         if not modifiers.nil?
           tl = Endpoint.types.find_all { |t| modifiers.has_key? t }

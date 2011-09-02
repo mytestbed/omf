@@ -39,15 +39,11 @@ module CMC
   # Switch a given node ON
   #
   def CMC.nodeOn(name)
-    if NodeHandler.JUST_PRINT
-      puts ">> CMC: Switch on node '#{name}'"
-    else
-      begin
-        OMF::Services.cmc.on(name)
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't switch ON node '#{name}'")
-      end
-    end
+#    begin
+      OMF::Services.call(:service => :cmc, :action => :on, :target => name)
+#    rescue Exception => ex
+#      MObject.debug("CMC", "Can't switch ON node '#{name}'")
+#    end
   end
 
   #
@@ -56,14 +52,10 @@ module CMC
   # - set = a String describing the set of nodes to switch ON
   #
   def CMC.nodeSetOn(set)
-    if NodeHandler.JUST_PRINT
-      puts ">> CMC: Switch on nodes #{set}"
-    else
-      begin
-        OMF::Services.cmc.nodeseton(set)
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't switch ON nodes '#{set}'")
-      end
+    begin
+      OMF::Services.call(:service => :cmc, :action => :nodeseton, :target => set)
+    rescue Exception => ex
+      MObject.debug("CMC", "Can't switch ON nodes '#{set}'")
     end
   end
 
@@ -72,14 +64,10 @@ module CMC
   # (i.e. similar to a push of 'power' button)
   #
   def CMC.nodeOffHard(name)
-    if NodeHandler.JUST_PRINT
-      puts "CMC: Switch of node #{name}"
-    else
-      begin
-        OMF::Services.cmc.offhard(name)
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't switch OFF node '#{name}'")
-      end
+    begin
+      OMF::Services.call(:service => :cmc, :action => :offhard, :target => name)
+    rescue Exception => ex
+      MObject.debug("CMC", "Can't switch OFF node '#{name}'")
     end
   end
 
@@ -88,14 +76,10 @@ module CMC
   # (i.e. similar to a console call to 'halt -p' on the node)
   #
   def CMC.nodeOffSoft(name)
-    if NodeHandler.JUST_PRINT
-      puts "CMC: Switch of node #{name}"
-    else
-      begin
-        OMF::Services.cmc.offsoft(name)
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't switch OFF node '#{name}'")
-      end
+    begin
+      OMF::Services.call(:service => :cmc, :action => :offsoft, :target => name)
+    rescue Exception => ex
+      MObject.debug("CMC", "Can't switch OFF node '#{name}'")
     end
   end
 
@@ -104,14 +88,10 @@ module CMC
   # (i.e. similar to a push of 'power' button)
   #
   def CMC.nodeAllOffHard()
-    if NodeHandler.JUST_PRINT
-      puts "CMC: Switch off hard node"
-    else
-      begin
-        OMF::Services.cmc.alloffhard
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't switch OFF all nodes")
-      end
+    begin
+      OMF::Services.call(:service => :cmc, :action => :alloffhard, :target => :all)
+    rescue Exception => ex
+      MObject.debug("CMC", "Can't switch OFF all nodes")
     end
   end
 
@@ -120,14 +100,10 @@ module CMC
   # (i.e. similar to a console call to 'halt -p' on the node)
   #
   def CMC.nodeAllOffSoft()
-    if NodeHandler.JUST_PRINT
-      puts "CMC: Switch off soft node"
-    else
-      begin
-        OMF::Services.cmc.alloffsoft
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't switch OFF all nodes")
-      end
+    begin
+      OMF::Services.call(:service => :cmc, :action => :alloffsoft, :target => :all)
+    rescue Exception => ex
+      MObject.debug("CMC", "Can't switch OFF all nodes")
     end
   end
 
@@ -135,14 +111,10 @@ module CMC
   # Reset a particular node
   #
   def CMC.nodeReset(name)
-    if NodeHandler.JUST_PRINT
-      puts "CMC: Reset node #{name}"
-    else
-      begin
-        OMF::Services.cmc.reset(name)
-      rescue Exception => ex
-        MObject.debug("CMC", "Can't reset node '#{name}'")
-      end
+    begin
+      OMF::Services.call(:service => :cmc, :action => :reset, :target => name)
+    rescue Exception => ex
+      MObject.debug("CMC", "Can't reset node '#{name}'")
     end
   end
 end
