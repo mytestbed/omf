@@ -34,7 +34,7 @@ require 'omf-common/omfPubSubTransport'
 module OMF
   module Services
     class XmppEndpoint < Endpoint
-      register :xmpp
+      #register :xmpp
 
       @@connection = nil
       @@selector = nil
@@ -63,12 +63,11 @@ module OMF
         @@selector = block
       end
 
-      def initialize(type, uri, *args)
-        super(type, uri)
+      def initialize(opts)
+        super()
         @message_id = 0
         @pubsub_domain = nil
         @request_manager = nil
-        opts = args[2] if args[2].kind_of? Hash
         node = @@selector.call(opts) if not @@selector.nil?
       end
 
@@ -103,7 +102,7 @@ module OMF
         has_method?(service, method)
       end
 
-      def send_request(service=nil, method=nil, *args, &block)
+      def send_request(service, method, targets, domain, opts)
         ensure_request_manager
         if @request_manager.nil?
           raise "Unable to make service call -- not connected to XMPP server?"
@@ -115,19 +114,23 @@ module OMF
                                                              "service" => service,
                                                              "method" => method)
 
-        opts = args.find { |a| a.kind_of? Hash }
+#        opts = args.find { |a| a.kind_of? Hash }
 
         pubsub_node = @@selector.call(opts) || "/OMF/system"
 
-        if args.length == 1 and args[0].kind_of? Hash
-          args[0].each_pair do |name, value|
-            message.set_arg(name.to_s, value)
-          end
-        else
-          args.each do |name, value|
-            message.set_arg(name, value)
-          end
+        opts.each_pair do |name, value|
+          message.set_arg(name.to_s, value)
         end
+
+        # if args.length == 1 and args[0].kind_of? Hash
+          # args[0].each_pair do |name, value|
+            # message.set_arg(name.to_s, value)
+          # end
+        # else
+          # args.each do |name, value|
+            # message.set_arg(name, value)
+          # end
+        # end
 
 
         wait_policy = :wait

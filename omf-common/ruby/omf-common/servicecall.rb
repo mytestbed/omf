@@ -141,7 +141,7 @@ module OMF
       if !target.kind_of? Enumerable
         target = [target]
       end
-      puts ">>>>> REQUESTING SERVICE #{service}/#{action}::#{target.inspect}"
+      #puts ">>>>> REQUESTING SERVICE #{service}/#{action}::#{target.inspect}"
 
       domains = {}      
       target.each do |hrn|
@@ -225,87 +225,87 @@ module OMF
     # invocation).  The method_missing method implements the endpoint
     # lookup and actually makes the desired call.
     #
-    class Service < MObject
-      attr_reader :name
-      attr_reader :modifiers
-
-      def initialize(name, modifiers)
-        @name = name
-        @modifiers = modifiers
-      end
-      
-
-      def method_missing(m, *args)
-        fatal  ">>>>> SHOULD NOT BE HERE"
-        raise "WHO?"
-
-        if not modifiers.nil?
-          tl = Endpoint.types.find_all { |t| modifiers.has_key? t }
-          if tl.length > 1
-            raise "Can't specify more than one domain modifier in service call:  found #{tl.join(', ')}"
-          elsif tl.length == 1
-            modifiers[:type] = tl[0]
-            modifiers[:uri] = modifiers[tl[0]]
-          end
-        end
-
-#        modifiers.each_pair { |k, v| puts "#{k} -> #{v}" } unless modifiers.nil?
-
-        domain_hash = OMF::Services.domains
-
-        # Find a domain first
-
-        # TBD: implement a sort/filter to come up with a candidate
-        # list, and evaluate each one in turn.  For now: just pick the
-        # first one, trying :xmpp first and then :http :-)
-        domain = domain_hash[:xmpp] || domain_hash[:http]
-        domain = domain[0] unless domain.nil? or not domain.kind_of? Array or domain.empty?
-        raise NoService, "No domain found for service call to #{name}.#{m}" if domain.nil?
-
-        # Got a domain; now look for an endpoint to talk to on that domain.
-        endpoints = Services.endpoints
-      puts ">>>>> REQUESTING SERVICE #{self.inspect}::#{domain.inspect}::#{endpoints.inspect}"
-        endpoint = Endpoint.find(domain[:type], domain[:uri],
-                                 modifiers, name.to_s, m.to_s, *args)
-
-        endpoint.make_request(name, m, *args)
-      end
-    end # class Service
+    # class Service < MObject
+      # attr_reader :name
+      # attr_reader :modifiers
+# 
+      # def initialize(name, modifiers)
+        # @name = name
+        # @modifiers = modifiers
+      # end
+#       
+# 
+      # def method_missing(m, *args)
+        # fatal  ">>>>> SHOULD NOT BE HERE"
+        # raise "WHO?"
+# 
+        # if not modifiers.nil?
+          # tl = Endpoint.types.find_all { |t| modifiers.has_key? t }
+          # if tl.length > 1
+            # raise "Can't specify more than one domain modifier in service call:  found #{tl.join(', ')}"
+          # elsif tl.length == 1
+            # modifiers[:type] = tl[0]
+            # modifiers[:uri] = modifiers[tl[0]]
+          # end
+        # end
+# 
+# #        modifiers.each_pair { |k, v| puts "#{k} -> #{v}" } unless modifiers.nil?
+# 
+        # domain_hash = OMF::Services.domains
+# 
+        # # Find a domain first
+# 
+        # # TBD: implement a sort/filter to come up with a candidate
+        # # list, and evaluate each one in turn.  For now: just pick the
+        # # first one, trying :xmpp first and then :http :-)
+        # domain = domain_hash[:xmpp] || domain_hash[:http]
+        # domain = domain[0] unless domain.nil? or not domain.kind_of? Array or domain.empty?
+        # raise NoService, "No domain found for service call to #{name}.#{m}" if domain.nil?
+# 
+        # # Got a domain; now look for an endpoint to talk to on that domain.
+        # endpoints = Services.endpoints
+      # puts ">>>>> REQUESTING SERVICE #{self.inspect}::#{domain.inspect}::#{endpoints.inspect}"
+        # endpoint = Endpoint.find(domain[:type], domain[:uri],
+                                 # modifiers, name.to_s, m.to_s, *args)
+# 
+        # endpoint.make_request(name, m, *args)
+      # end
+    # end # class Service
   end
 
-  module ServiceCall
-
-    #
-    # Add a new service call domain.  The +domainspec+ is a Hash
-    # that specifies the name, the type of domain, and any other
-    # required parameters.  For instance, for an HTTP domain, we use:
-    #
-    # add_domain(:type => :http,
-    #            :uri  => "http://norbit.nicta.com.au:5053")
-    #
-    # For an XMPP domain, use:
-    #
-    # add_domain(:type => :xmpp,
-    #            :uri  => "norbit.npc.nicta.com.au",
-    #            :user => "joe",
-    #            :password => "123")
-    #
-    # The :type key must be present in the Hash, or an exception
-    # will be raised.  It is used to dispatch the domain creation to
-    # the relevant protocol API.
-    #
-    # [domainspec] :: Hash
-    def ServiceCall.add_domain(domain)
-      OMF::Services::add_domain(domain)
-    end
-
-    # ----- Exception classes -----
-
-    class ServiceCallException < Exception; end
-    class Timeout < ServiceCallException; end
-    class ProtocolError < ServiceCallException; end
-    class NoService < ServiceCallException; end
-    class ConfigError < ServiceCallException; end
-    class Error < ServiceCallException; end
-  end # module ServiceCall
+  # module ServiceCall
+# 
+    # #
+    # # Add a new service call domain.  The +domainspec+ is a Hash
+    # # that specifies the name, the type of domain, and any other
+    # # required parameters.  For instance, for an HTTP domain, we use:
+    # #
+    # # add_domain(:type => :http,
+    # #            :uri  => "http://norbit.nicta.com.au:5053")
+    # #
+    # # For an XMPP domain, use:
+    # #
+    # # add_domain(:type => :xmpp,
+    # #            :uri  => "norbit.npc.nicta.com.au",
+    # #            :user => "joe",
+    # #            :password => "123")
+    # #
+    # # The :type key must be present in the Hash, or an exception
+    # # will be raised.  It is used to dispatch the domain creation to
+    # # the relevant protocol API.
+    # #
+    # # [domainspec] :: Hash
+    # def ServiceCall.add_domain(domain)
+      # OMF::Services::add_domain(domain)
+    # end
+# 
+    # # ----- Exception classes -----
+# 
+    # class ServiceCallException < Exception; end
+    # class Timeout < ServiceCallException; end
+    # class ProtocolError < ServiceCallException; end
+    # class NoService < ServiceCallException; end
+    # class ConfigError < ServiceCallException; end
+    # class Error < ServiceCallException; end
+  # end # module ServiceCall
 end # module OMF
