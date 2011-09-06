@@ -85,27 +85,8 @@ class OMF::EC::Node < MObject
   #
   def self.at! (name)
     n = @@nodes[name.to_s]
-    if !n.kind_of?(Node)
-      #
-      # Checking the CMC for active node might not be useful anymore, as we
-      # already wait for nodes to 'enroll', i.e. inactive Nodes will never
-      # enroll and thus will be excluded of the experiment after the enroll
-      # timeout. Furthermore, we will in the future use a more dynamic way
-      # of checking for active nodes (eg. sending a request directly to the
-      # node's pubsub, and waiting for replies from node itself or AM).
-      #
-      #if CMC::nodeActive?(name)
-        #n = Node.new(name)
-      #else
-      #  raise ResourceException.new("Node #{name} is NOT active")
-      #end
-      
-      resources = NodeHandler.RESOURCES
-      if resources.include?(name)
-        n = self.new(name)
-      else
-        raise ResourceException.new("Resource '#{name}' could not be found in the current slice!")
-      end
+    if !n.kind_of?(OMF::EC::Node)
+      n = self.new(name)
     end
     return n
   end

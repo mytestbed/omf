@@ -141,22 +141,6 @@ class ECCommunicator < OmfCommunicator
                            :domain => @@domain, :name => name)
   end
   
-  # list resources in the current slice 
-  # that have a corresponding pubsub node on the XMPP server
-  def list_resources
-    resources = []
-    addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
-    resource_prefix = "#{addr.generate_address}/"
-    debug "Resource prefix <#{resource_prefix}>"
-    nodes = list_nodes(@@domain)
-    nodes.each{|node|
-      next if !node.include?(resource_prefix)
-      node.slice!(resource_prefix)
-      resources << node if !node.empty?
-    }
-    resources
-  end
-
   private
 
   def valid_message?(message)
