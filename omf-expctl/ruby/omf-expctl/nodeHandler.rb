@@ -577,13 +577,6 @@ class NodeHandler < MObject
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
     comm[:comms_name] = comm[:expID] = Experiment.ID
-
-    # The EC should only try to connect to the XMPP server once
-    # TODO: The next line should NOT be here, but in the relevant transport
-    if (comm[:config][:xmpp])
-      comm[:config][:xmpp][:pubsub_max_retries] = 1
-    end
-
     ECCommunicator.instance.init(comm)
 
     setupServiceCalls()

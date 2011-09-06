@@ -62,7 +62,9 @@ class OMFPubSubTransport < MObject
             "parameter!" if !@@psGateway
     @@psPort = opts[:config][:xmpp][:pubsub_port]
     @@useDnsSrv = opts[:config][:xmpp][:pubsub_use_dnssrv]
-    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries]
+    # The EC should only try to connect to the XMPP server once
+    # unless specified otherwise
+    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries] || 1 
     
     # Check if we are using message authentication  
     kl = nil
