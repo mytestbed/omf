@@ -2,13 +2,15 @@ require 'omf-common/servicecall'
 
 def run
   uri = "http://localhost:5053"
-  OMF::ServiceCall.add_domain(:type => :http,
-                              :uri => uri)
+  
+  h = Hash.new(:type => :http, :uri => uri)
+  
+  OMF::Services.init(h)
 
-  cmc = OMF::Services.cmc
+  cmc = OMF::Services.call(:service => :cmc, :action => :status, :target => "omf.nicta.node1")
   cmc.inspect
+  p cmc
 
-  p cmc.allStatus("norbit").to_s
 end
 
 run if __FILE__ == $PROGRAM_NAME
