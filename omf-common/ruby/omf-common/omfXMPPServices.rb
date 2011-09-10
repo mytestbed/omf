@@ -140,6 +140,7 @@ class OmfXMPPServices < MObject
   # - useDnsSrv = [Bool] optional flag to enable DNS SRV record resolution
   #
   def initialize(user, password, host, port = nil, useDnsSrv = nil, max_retries = nil)
+    super('transport::xmpp_svc')
 
     # Set internal attributes
     @userJID = "#{user}@#{host}"
