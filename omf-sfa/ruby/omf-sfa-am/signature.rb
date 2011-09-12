@@ -1,5 +1,5 @@
 
-module OMF; module GENI; module AM
+module OMF::GENI::AM
   class Signature
 
     # The xml _content_ (provided as string) should
@@ -34,4 +34,4 @@ module OMF; module GENI; module AM
     end
 
   end # Signature
-end; end; end # OMF::GENI::AM
+end # OMF::GENI::AM

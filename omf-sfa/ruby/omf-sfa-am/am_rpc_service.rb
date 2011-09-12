@@ -4,9 +4,10 @@ require 'time'
 require 'zlib'
 require 'base64'
 require 'openssl'
-require 'xmlsec'
+#require 'xmlsec'
 require 'tempfile'
 require 'xmlrpc/parser'
+require 'omf-common/mobject2'
 
 require 'omf_sfa_am'
 
@@ -39,7 +40,8 @@ module OMF::SFA::AM
       end
     end
     
-    def self.rpc()
+    def self.rpc(mappings = nil)
+      raise "Unexpected argument '#{mappings}' for rpc" if mappings
       @@mappings
     end
   end # AbstractService
@@ -47,9 +49,10 @@ module OMF::SFA::AM
   class NotAuthorizedException < XMLRPC::FaultException; end
   
   class AMService < AbstractService
+    include OMF::Common::Loggable
     
-    
-    implement ServiceAPI
+    #implement ServiceAPI
+    implement AMServiceAPI
 
     def get_version
       {
@@ -60,6 +63,8 @@ module OMF::SFA::AM
   
     def list_resources(credentials, options)
       check_credentials(:ListResources, credentials)
+      debug 'CreateSliver: Options: ', options.inspect
+      
       only_available = options["geni_available"]
       compressed = options["geni_compressed"]
       slice_urn = options["geni_slice_urn"]
@@ -73,14 +78,15 @@ module OMF::SFA::AM
   
     def create_sliver(slice_urn, credentials, rspec, users)
       check_credentials(:CreateSliver, credentials)
-      puts "SICE URN: #{slice_urn}"
-      puts "RPSEC: #{rspec}"
-      puts "USERS: #{users.inspect}"
+      debug 'CreateSliver: SICE URN: ', slice_urn, ' RSPEC: ', rspec, ' USERS: ', users
       rspec
     end
   
     def sliver_status(slice_urn, credentials)
       check_credentials(:SliverStatus, credentials)
+      
+      debug('SliverStatus for ', slice_urn)
+      
       status = {}
       status['geni_urn'] = slice_urn
       status['geni_status'] = 'ready'
@@ -95,7 +101,7 @@ module OMF::SFA::AM
       status
     end
   
-    def renew_sliver(slice_urn,credentials, expiration_time)
+    def renew_sliver(slice_urn, credentials, expiration_time)
       check_credentials(:RenewSliver, credentials)
       true
     end
@@ -115,7 +121,7 @@ module OMF::SFA::AM
     private 
   
     def get_resources(slice_urn, available_only)
-      p = 'urn:publicid:IDN+mytestbed.net+'
+      p = 'urn:publicid:IDN+am1.mytestbed.net+'
       Nokogiri::XML::Builder.new do |xml|
         now = Time.now
         xml.rspec('xmlns' => 'http://www.protogeni.net/resources/rspec/0.1',
@@ -124,7 +130,7 @@ module OMF::SFA::AM
                   'valid_until' => (now + 86400).iso8601,
                   'type' => 'advertisement'
                   ) do
-          xml.resource('component_manager_uuid' => p + 'authority+cm',
+          xml.resource('component_manager_uuid' => p + 'am',
                    'component_name' => 'pc1',
                    'component_uuid' => p + 'node+pc1'
                    ) do
@@ -142,7 +148,7 @@ module OMF::SFA::AM
       peer_cert_s = @request.env['rack.peer_cert']
       raise "Missing peer cert" unless peer_cert_s
       peer_cert = OpenSSL::X509::Certificate.new(peer_cert_s)
-      puts "SEC IN ********************"
+      #puts "SEC IN ********************"
       #puts peer_cert.inspect 
       #puts 
       begin 
@@ -150,18 +156,11 @@ module OMF::SFA::AM
       rescue Exception => ex
         puts "EX: #{ex}\n#{ex.backtrace.join("\n")}"
       end
-      puts "SEC OUT ********************"
+      #puts "SEC OUT ********************"
   
       #raise NotAuthorizedException.new(99, 'Insufficient credentials')
     end
-  
-  
-  
-    # Define public RPC interface
-    #
-  #  rpc 'GetVersion' => :get_version
-  #  rpc 'ListResources' => :list_resources
-  
+    
   end # AMService
   
 end # module
