@@ -55,9 +55,17 @@ module OMF::SFA::AM
     implement AMServiceAPI
 
     def get_version
+      debug 'GetVersion'
       {
         :geni_api => 1,
-        :omf_am => "0.1"
+        :omf_am => "0.1",
+        :ad_rspec_versions => [{ 
+          :type => 'ProtoGENI',
+          :version => '2',
+          :namespace => 'http://www.protogeni.net/resources/rspec/2',
+          :schema => 'http://www.protogeni.net/resources/rspec/2/ad.xsd',
+          :extensions => []
+        }]
       }
     end
   

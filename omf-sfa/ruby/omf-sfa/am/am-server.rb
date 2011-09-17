@@ -4,6 +4,7 @@ require 'rack/showexceptions'
 require 'thin'
 require 'rack/rpc'
 require 'omf-common/mobject2'
+require 'omf-common/load_yaml'
 
 
 require 'omf-sfa-am/am_rpc_service'
@@ -47,6 +48,18 @@ opts = {
 }
 
 OMF::Common::Loggable.init_log 'am_server'
+config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../etc/omf-sfa'])[:omf_sfa_am]
+
 #as = OMF::SFA::AM::AMService.new
 #as.class.rpc
-AMTest.start(opts)
+config[:endpoints].each do |ep|
+  case type = ep.delete(:type).to_sym
+  when :xmlrpc
+    AMTest.start(opts)
+  else   
+    raise "Unknown endpoint type '#{type}'"
+  end
+end
+
+
+#
