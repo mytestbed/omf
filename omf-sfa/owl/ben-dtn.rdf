@@ -1,0 +1,1698 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY ben "http://geni-orca.renci.org/owl/ben.rdf#" >
+    <!ENTITY dtn "http://geni-orca.renci.org/owl/dtn.owl#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY layer3 "http://geni-orca.renci.org/owl/layer.owl#2" >
+    <!ENTITY layer2 "http://geni-orca.renci.org/owl/layer.owl#10" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY ethernet "http://geni-orca.renci.org/owl/ethernet.owl#" >
+    <!ENTITY topology "http://geni-orca.renci.org/owl/topology.owl#" >
+    <!ENTITY collections "http://geni-orca.renci.org/owl/collections.owl#" >
+    <!ENTITY Polatis "http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/" >
+    <!ENTITY Polatis4 "http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/" >
+    <!ENTITY Polatis3 "http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/" >
+    <!ENTITY Infinera4 "http://geni-orca.renci.org/owl/ben.rdf#UNC/Infinera/" >
+    <!ENTITY Infinera "http://geni-orca.renci.org/owl/ben.rdf#Duke/Infinera/" >
+    <!ENTITY Infinera2 "http://geni-orca.renci.org/owl/ben.rdf#NCSU/Infinera/" >
+    <!ENTITY Polatis2 "http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/" >
+    <!ENTITY Infinera3 "http://geni-orca.renci.org/owl/ben.rdf#Renci/Infinera/" >
+    <!ENTITY DTN3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/" >
+    <!ENTITY DTN4 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/" >
+    <!ENTITY DTN "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/" >
+    <!ENTITY DTN2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/" >
+    <!ENTITY f13 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f1/" >
+    <!ENTITY f23 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f2/" >
+    <!ENTITY f22 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f2/" >
+    <!ENTITY f1 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f1/" >
+    <!ENTITY f12 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f1/" >
+    <!ENTITY f2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f2/" >
+    <!ENTITY f24 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f2/" >
+    <!ENTITY fB8 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/" >
+    <!ENTITY f14 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f1/" >
+    <!ENTITY fB7 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/2/" >
+    <!ENTITY t2B2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t2B/1/" >
+    <!ENTITY fB3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/" >
+    <!ENTITY fB2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/" >
+    <!ENTITY t1B3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t1B/1/" >
+    <!ENTITY fB5 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/2/" >
+    <!ENTITY fB6 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/2/" >
+    <!ENTITY fB "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/" >
+    <!ENTITY t1B6 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/t1B/1/" >
+    <!ENTITY t1B4 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t1B/2/" >
+    <!ENTITY fB4 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/" >
+    <!ENTITY t2B3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t2B/1/" >
+    <!ENTITY t1B "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t1B/1/" >
+    <!ENTITY t1B2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t1B/1/" >
+    <!ENTITY t1B5 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t1B/2/" >
+    <!ENTITY t2B "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t2B/1/" >
+    <!ENTITY fiber3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/fiber/" >
+    <!ENTITY fiber4 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/fiber/" >
+    <!ENTITY fiber2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/fiber/" >
+    <!ENTITY ocgB3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1/" >
+    <!ENTITY ocgB4 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/ocgB/1/" >
+    <!ENTITY fiber "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/fiber/" >
+    <!ENTITY fiber5 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/fiber/" >
+    <!ENTITY ocgB2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1/" >
+    <!ENTITY ocgB5 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1/" >
+    <!ENTITY ocgB "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1/" >
+    <!ENTITY TenGigabitEthernet9 "http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/7/" >
+    <!ENTITY TenGigabitEthernet3 "http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/2/1/" >
+    <!ENTITY TenGigabitEthernet5 "http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/1/" >
+    <!ENTITY TenGigabitEthernet12 "http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/8/" >
+    <!ENTITY TenGigabitEthernet8 "http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/7/" >
+    <!ENTITY TenGigabitEthernet13 "http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/8/" >
+    <!ENTITY TenGigabitEthernet "http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/1/" >
+    <!ENTITY TenGigabitEthernet7 "http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/3/" >
+    <!ENTITY TenGigabitEthernet2 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/1/" >
+    <!ENTITY TenGigabitEthernet6 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/2/" >
+    <!ENTITY TenGigabitEthernet4 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/3/" >
+    <!ENTITY TenGigabitEthernet10 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/7/" >
+    <!ENTITY TenGigabitEthernet11 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/8/" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/ben-dtn.rdf#"
+     xml:base="http://geni-orca.renci.org/owl/ben-dtn.rdf"
+     xmlns:t1B4="&DTN;t1B/2/"
+     xmlns:t1B3="&DTN3;t1B/1/"
+     xmlns:t1B2="&DTN2;t1B/1/"
+     xmlns:dtn="http://geni-orca.renci.org/owl/dtn.owl#"
+     xmlns:t1B5="&DTN2;t1B/2/"
+     xmlns:t1B6="&DTN4;t1B/1/"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:t2B2="&DTN3;t2B/1/"
+     xmlns:t2B3="&DTN;t2B/1/"
+     xmlns:Polatis4="&ben;NCSU/Polatis/"
+     xmlns:Polatis2="&ben;Renci/Polatis/"
+     xmlns:Polatis3="&ben;Duke/Polatis/"
+     xmlns:DTN="http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/"
+     xmlns:Infinera4="&ben;UNC/Infinera/"
+     xmlns:Infinera2="&ben;NCSU/Infinera/"
+     xmlns:Infinera3="&ben;Renci/Infinera/"
+     xmlns:ben="http://geni-orca.renci.org/owl/ben.rdf#"
+     xmlns:DTN4="http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/"
+     xmlns:DTN3="http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/"
+     xmlns:DTN2="http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/"
+     xmlns:TenGigabitEthernet2="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/1/"
+     xmlns:t2B="&DTN2;t2B/1/"
+     xmlns:Infinera="&ben;Duke/Infinera/"
+     xmlns:ocgB="&DTN2;fB/1/ocgB/1/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:TenGigabitEthernet9="http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/7/"
+     xmlns:TenGigabitEthernet7="http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/3/"
+     xmlns:TenGigabitEthernet8="http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/7/"
+     xmlns:TenGigabitEthernet5="http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/1/"
+     xmlns:TenGigabitEthernet6="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/2/"
+     xmlns:TenGigabitEthernet3="http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/2/1/"
+     xmlns:TenGigabitEthernet4="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/3/"
+     xmlns:layer2="&layer;10"
+     xmlns:Polatis="&ben;UNC/Polatis/"
+     xmlns:layer3="&layer;2"
+     xmlns:f12="&DTN;f1/"
+     xmlns:f14="&DTN2;f1/"
+     xmlns:f13="&DTN3;f1/"
+     xmlns:fiber="&DTN2;fB/1/fiber/"
+     xmlns:fB="&DTN2;fB/1/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:ethernet="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xmlns:t1B="&DTN;t1B/1/"
+     xmlns:f1="&DTN4;f1/"
+     xmlns:topology="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:f2="&DTN;f2/"
+     xmlns:collections="http://geni-orca.renci.org/owl/collections.owl#"
+     xmlns:f23="&DTN3;f2/"
+     xmlns:f22="&DTN4;f2/"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:f24="&DTN2;f2/"
+     xmlns:fB2="&DTN4;fB/1/"
+     xmlns:fB3="&DTN;fB/1/"
+     xmlns:fiber5="&DTN2;fB/2/fiber/"
+     xmlns:fiber4="&DTN4;fB/1/fiber/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:TenGigabitEthernet10="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/7/"
+     xmlns:ocgB2="&DTN;fB/1/ocgB/1/"
+     xmlns:TenGigabitEthernet11="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/8/"
+     xmlns:fB8="&DTN3;fB/1/"
+     xmlns:fiber3="&DTN3;fB/1/fiber/"
+     xmlns:TenGigabitEthernet="http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/1/"
+     xmlns:fB6="&DTN;fB/2/"
+     xmlns:ocgB5="&DTN2;fB/2/ocgB/1/"
+     xmlns:fiber2="&DTN;fB/1/fiber/"
+     xmlns:fB7="&DTN3;fB/2/"
+     xmlns:fB4="&DTN2;fB/2/"
+     xmlns:ocgB4="&DTN4;fB/1/ocgB/1/"
+     xmlns:TenGigabitEthernet12="http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/8/"
+     xmlns:fB5="&DTN4;fB/2/"
+     xmlns:TenGigabitEthernet13="http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/8/"
+     xmlns:ocgB3="&DTN3;fB/1/ocgB/1/">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/ben.rdf"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/collections.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/ethernet.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#element -->
+
+    <owl:ObjectProperty rdf:about="&collections;element"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG -->
+
+    <owl:ObjectProperty rdf:about="&dtn;OCG"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#TenGbase-R -->
+
+    <owl:ObjectProperty rdf:about="&dtn;TenGbase-R"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WDM -->
+
+    <owl:ObjectProperty rdf:about="&dtn;WDM"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#availableLambdaSet -->
+
+    <owl:ObjectProperty rdf:about="&dtn;availableLambdaSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#availableOCGSet -->
+
+    <owl:ObjectProperty rdf:about="&dtn;availableOCGSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#connector -->
+
+    <owl:ObjectProperty rdf:about="&dtn;connector"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#hasTimeSlotGranularity -->
+
+    <owl:ObjectProperty rdf:about="&dtn;hasTimeSlotGranularity"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ocg -->
+
+    <owl:ObjectProperty rdf:about="&dtn;ocg"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ocgGroup -->
+
+    <owl:ObjectProperty rdf:about="&dtn;ocgGroup"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ocgLine -->
+
+    <owl:ObjectProperty rdf:about="&dtn;ocgLine"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#polish -->
+
+    <owl:ObjectProperty rdf:about="&dtn;polish"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#usedLambdaSet -->
+
+    <owl:ObjectProperty rdf:about="&dtn;usedLambdaSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#usedOCGSet -->
+
+    <owl:ObjectProperty rdf:about="&dtn;usedOCGSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#hasBitRate -->
+
+    <owl:ObjectProperty rdf:about="&layer;hasBitRate"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#lowerBound -->
+
+    <owl:ObjectProperty rdf:about="&layer;lowerBound"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#switchingCapability -->
+
+    <owl:ObjectProperty rdf:about="&layer;switchingCapability"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#upperBound -->
+
+    <owl:ObjectProperty rdf:about="&layer;upperBound"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#connectionDirection -->
+
+    <owl:ObjectProperty rdf:about="&topology;connectionDirection"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInputInterface -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasInputInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInterface -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasOutputInterface -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasOutputInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasSwitchMatrix -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasSwitchMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#interfaceOf -->
+
+    <owl:ObjectProperty rdf:about="&topology;interfaceOf"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#linkTo -->
+
+    <owl:ObjectProperty rdf:about="&topology;linkTo"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#locatedAt -->
+
+    <owl:ObjectProperty rdf:about="&topology;locatedAt"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#size -->
+
+    <owl:DatatypeProperty rdf:about="&collections;size"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#maxOCG -->
+
+    <owl:DatatypeProperty rdf:about="&dtn;maxOCG"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#maxWavelength -->
+
+    <owl:DatatypeProperty rdf:about="&dtn;maxWavelength"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#label_ID -->
+
+    <owl:DatatypeProperty rdf:about="&layer;label_ID"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hostName -->
+
+    <owl:DatatypeProperty rdf:about="&topology;hostName"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#managementIP -->
+
+    <owl:DatatypeProperty rdf:about="&topology;managementIP"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberNetworkElement -->
+
+    <owl:Class rdf:about="&dtn;FiberNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaLabelSet -->
+
+    <owl:Class rdf:about="&dtn;LambdaLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaNetworkElement -->
+
+    <owl:Class rdf:about="&dtn;LambdaNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaSwitchingMatrix -->
+
+    <owl:Class rdf:about="&dtn;LambdaSwitchingMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGLabel -->
+
+    <owl:Class rdf:about="&dtn;OCGLabel"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGLabelSet -->
+
+    <owl:Class rdf:about="&dtn;OCGLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGNetworkElement -->
+
+    <owl:Class rdf:about="&dtn;OCGNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGSwitchingMatrix -->
+
+    <owl:Class rdf:about="&dtn;OCGSwitchingMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODUSwitchingMatrix -->
+
+    <owl:Class rdf:about="&dtn;ODUSwitchingMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WavelengthLabel -->
+
+    <owl:Class rdf:about="&dtn;WavelengthLabel"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <owl:Class rdf:about="&ethernet;EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelRange -->
+
+    <owl:Class rdf:about="&layer;LabelRange"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelSet -->
+
+    <owl:Class rdf:about="&layer;LabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Interface -->
+
+    <owl:Class rdf:about="&topology;Interface"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/7/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet8;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#Duke/Cisco/6509/TenGigabitEthernet/2/8/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet13;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/7/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet10;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/8/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet11;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/7/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet9;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#UNC/Cisco/6509/TenGigabitEthernet/3/8/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet12;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/LambdaSwitchingMatrix -->
+
+    <dtn:LambdaSwitchingMatrix rdf:about="#Duke/Infinera/DTN/LambdaSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;LambdaNetworkElement"/>
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;OTU2"/>
+    </dtn:LambdaSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/OCGSwitchingMatrix -->
+
+    <dtn:OCGSwitchingMatrix rdf:about="#Duke/Infinera/DTN/OCGSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;OTU4"/>
+    </dtn:OCGSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/ODUSwitchingMatrix -->
+
+    <dtn:ODUSwitchingMatrix rdf:about="#Duke/Infinera/DTN/ODUSwitchingMatrix">
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;ODU1"/>
+        <layer:switchingCapability rdf:resource="&dtn;ODUNetworkElement"/>
+    </dtn:ODUSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#Duke/Infinera/DTN/f1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label
+            >Duke/Infinera/DTN/f1</rdfs:label>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f1/ocg/1 -->
+
+    <dtn:OCGNetworkElement rdf:about="#Duke/Infinera/DTN/f1/ocg/1">
+        <rdf:type rdf:resource="&topology;Interface"/>
+    </dtn:OCGNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f2/fiber -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/f2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label
+            >DTN-Infinera-Duke:l2</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <dtn:OCG rdf:resource="#Duke/Infinera/DTN/f2/ocg/1"/>
+        <dtn:connector rdf:resource="&dtn;LC-Connector"/>
+        <dtn:polish rdf:resource="&dtn;PC"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f2/ocg/1 -->
+
+    <dtn:OCGNetworkElement rdf:about="#Duke/Infinera/DTN/f2/ocg/1">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+    </dtn:OCGNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/fiber -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/fB/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <topology:hasInputInterface rdf:resource="#Duke/Infinera/DTN/f1/fiber"/>
+        <topology:hasOutputInterface rdf:resource="#Duke/Infinera/DTN/f2/fiber"/>
+        <dtn:availableOCGSet rdf:resource="#Duke/Infinera/DTN/fB/1/fiber/availableOCGSet"/>
+        <dtn:usedOCGSet rdf:resource="#Duke/Infinera/DTN/fB/1/fiber/usedOCGSet"/>
+        <dtn:OCG rdf:resource="#Duke/Infinera/DTN/fB/1/ocgB/1"/>
+        <topology:interfaceOf rdf:resource="&ben;Duke/Infinera/DTN"/>
+        <topology:linkTo rdf:resource="&ben;Duke/Polatis/f7-23"/>
+        <dtn:connector rdf:resource="&dtn;LC-Connector"/>
+        <dtn:polish rdf:resource="&dtn;PC"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/fiber/availableOCGSet -->
+
+    <layer:LabelSet rdf:about="#Duke/Infinera/DTN/fB/1/fiber/availableOCGSet">
+        <collections:size rdf:datatype="&xsd;int">4</collections:size>
+        <collections:element rdf:resource="#Duke/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/fiber/ocgLabel/1 -->
+
+    <dtn:OCGLabel rdf:about="#Duke/Infinera/DTN/fB/1/fiber/ocgLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+        <dtn:ocgGroup rdf:resource="&dtn;OCG1"/>
+    </dtn:OCGLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/fiber/usedOCGSet -->
+
+    <layer:LabelSet rdf:about="#Duke/Infinera/DTN/fB/1/fiber/usedOCGSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1 -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/fB/1/ocgB/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3-l1</rdfs:label>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+        <topology:hasInputInterface rdf:resource="#Duke/Infinera/DTN/f1/ocg/1"/>
+        <topology:hasOutputInterface rdf:resource="#Duke/Infinera/DTN/f2/ocg/1"/>
+        <dtn:ocg rdf:resource="#Duke/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+        <dtn:availableLambdaSet rdf:resource="#Duke/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet"/>
+        <dtn:usedLambdaSet rdf:resource="#Duke/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet -->
+
+    <dtn:LambdaLabelSet rdf:about="#Duke/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet">
+        <collections:size rdf:datatype="&xsd;int">10</collections:size>
+        <collections:element rdf:resource="#Duke/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1"/>
+    </dtn:LambdaLabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1 -->
+
+    <layer:LabelRange rdf:about="#Duke/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1">
+        <layer:lowerBound rdf:resource="#Duke/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1"/>
+        <layer:upperBound rdf:resource="#Duke/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10"/>
+    </layer:LabelRange>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1 -->
+
+    <dtn:WavelengthLabel rdf:about="#Duke/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10 -->
+
+    <dtn:WavelengthLabel rdf:about="#Duke/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10">
+        <layer:label_ID rdf:datatype="&xsd;float">10</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet -->
+
+    <layer:LabelSet rdf:about="#Duke/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/2/fiber -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/fB/2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label>1-a-4</rdfs:label>
+        <dtn:OCG rdf:resource="#Duke/Infinera/DTN/fB/2/ocgB/1"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/2/ocgB/1 -->
+
+    <dtn:OCGNetworkElement rdf:about="#Duke/Infinera/DTN/fB/2/ocgB/1">
+        <rdf:type rdf:resource="&topology;Interface"/>
+    </dtn:OCGNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t1B/1/ethernet -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/t1B/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t1B/1/fiber -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/t1B/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label>1-a-3-t1-1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet8;fiber"/>
+        <dtn:ocgLine rdf:resource="#Duke/Infinera/DTN/fB/1/fiber"/>
+        <dtn:WDM rdf:resource="#Duke/Infinera/DTN/t1B/1/lambda"/>
+        <topology:interfaceOf rdf:resource="&ben;Duke/Infinera/DTN"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t1B/1/lambda -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/t1B/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <rdfs:label>1-a-3-t1-1</rdfs:label>
+        <dtn:TenGbase-R rdf:resource="#Duke/Infinera/DTN/t1B/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t2B/1/ethernet -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#Duke/Infinera/DTN/t2B/1/ethernet">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t2B/1/fiber -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/t2B/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-4-t1-1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet13;fiber"/>
+        <dtn:WDM rdf:resource="#Duke/Infinera/DTN/t2B/1/lambda"/>
+        <dtn:ocgLine rdf:resource="#NCSU/Infinera/DTN/fB/2/fiber"/>
+        <topology:interfaceOf rdf:resource="&ben;Duke/Infinera/DTN"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/t2B/1/lambda -->
+
+    <topology:Interface rdf:about="#Duke/Infinera/DTN/t2B/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-4-t1-1</rdfs:label>
+        <dtn:TenGbase-R rdf:resource="#Duke/Infinera/DTN/t2B/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/LambdaSwitchingMatrix -->
+
+    <dtn:LambdaSwitchingMatrix rdf:about="#NCSU/Infinera/DTN/LambdaSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;LambdaNetworkElement"/>
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;OTU2"/>
+    </dtn:LambdaSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/OCGSwitchingMatrix -->
+
+    <dtn:OCGSwitchingMatrix rdf:about="#NCSU/Infinera/DTN/OCGSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;OTU4"/>
+    </dtn:OCGSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/ODUSwitchingMatrix -->
+
+    <dtn:ODUSwitchingMatrix rdf:about="#NCSU/Infinera/DTN/ODUSwitchingMatrix">
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;ODU1"/>
+        <layer:switchingCapability rdf:resource="&dtn;ODUNetworkElement"/>
+    </dtn:ODUSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NCSU/Infinera/DTN/f1/fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f1/ocg/1 -->
+
+    <dtn:OCGNetworkElement rdf:about="#NCSU/Infinera/DTN/f1/ocg/1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f2/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NCSU/Infinera/DTN/f2/fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f2/ocg/1 -->
+
+    <dtn:OCGNetworkElement rdf:about="#NCSU/Infinera/DTN/f2/ocg/1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NCSU/Infinera/DTN/fB/1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <topology:hasInputInterface rdf:resource="#NCSU/Infinera/DTN/f1/fiber"/>
+        <topology:hasOutputInterface rdf:resource="#NCSU/Infinera/DTN/f2/fiber"/>
+        <dtn:availableOCGSet rdf:resource="#NCSU/Infinera/DTN/fB/1/fiber/availableOCGSet"/>
+        <dtn:OCG rdf:resource="#NCSU/Infinera/DTN/fB/1/ocgB/1"/>
+        <topology:interfaceOf rdf:resource="&ben;NCSU/Infinera/DTN"/>
+        <topology:linkTo rdf:resource="&ben;NCSU/Polatis/f7-23"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/fiber/availableOCGSet -->
+
+    <dtn:OCGLabelSet rdf:about="#NCSU/Infinera/DTN/fB/1/fiber/availableOCGSet">
+        <collections:size rdf:datatype="&xsd;int">4</collections:size>
+        <collections:element rdf:resource="#NCSU/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+    </dtn:OCGLabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/fiber/ocgLabel/1 -->
+
+    <dtn:OCGLabel rdf:about="#NCSU/Infinera/DTN/fB/1/fiber/ocgLabel/1">
+        <layer:label_ID>1</layer:label_ID>
+        <dtn:ocgGroup rdf:resource="&dtn;OCG1"/>
+    </dtn:OCGLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/ocgB/1 -->
+
+    <topology:Interface rdf:about="#NCSU/Infinera/DTN/fB/1/ocgB/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+        <dtn:ocg rdf:resource="#NCSU/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+        <dtn:availableLambdaSet rdf:resource="#NCSU/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet -->
+
+    <dtn:LambdaLabelSet rdf:about="#NCSU/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet">
+        <collections:size rdf:datatype="&xsd;int">10</collections:size>
+        <collections:element rdf:resource="#NCSU/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1"/>
+    </dtn:LambdaLabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1 -->
+
+    <layer:LabelRange rdf:about="#NCSU/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1">
+        <layer:lowerBound rdf:resource="#NCSU/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1"/>
+        <layer:upperBound rdf:resource="#NCSU/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10"/>
+    </layer:LabelRange>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1 -->
+
+    <dtn:WavelengthLabel rdf:about="#NCSU/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10 -->
+
+    <dtn:WavelengthLabel rdf:about="#NCSU/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10">
+        <layer:label_ID rdf:datatype="&xsd;float">10</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/2/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NCSU/Infinera/DTN/fB/2/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/t1B/1/ethernet -->
+
+    <topology:Interface rdf:about="#NCSU/Infinera/DTN/t1B/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/t1B/1/fiber -->
+
+    <topology:Interface rdf:about="#NCSU/Infinera/DTN/t1B/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <dtn:ocgLine rdf:resource="#NCSU/Infinera/DTN/fB/1/ocgB/1"/>
+        <dtn:WDM rdf:resource="#NCSU/Infinera/DTN/t1B/1/lambda"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/t1B/1/lambda -->
+
+    <topology:Interface rdf:about="#NCSU/Infinera/DTN/t1B/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <dtn:TenGbase-R rdf:resource="#NCSU/Infinera/DTN/t1B/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/LambdaSwitchingMatrix -->
+
+    <dtn:LambdaSwitchingMatrix rdf:about="#Renci/Infinera/DTN/LambdaSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;LambdaNetworkElement"/>
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;OTU2"/>
+    </dtn:LambdaSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/OCGSwitchingMatrix -->
+
+    <dtn:OCGSwitchingMatrix rdf:about="#Renci/Infinera/DTN/OCGSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;OTU4"/>
+    </dtn:OCGSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/ODUSwitchingMatrix -->
+
+    <dtn:ODUSwitchingMatrix rdf:about="#Renci/Infinera/DTN/ODUSwitchingMatrix">
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;ODU1"/>
+        <layer:switchingCapability rdf:resource="&dtn;ODUNetworkElement"/>
+    </dtn:ODUSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f1/fiber -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/f1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label
+            >Renci/Infinera/DTN/f1</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <dtn:OCG rdf:resource="#Renci/Infinera/DTN/f1/ocg/1"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f1/ocg/1 -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/f1/ocg/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f2/fiber -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/f2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label
+            >DTN-Infinera-Renci:l2</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <dtn:OCG rdf:resource="#Renci/Infinera/DTN/f2/ocg/1"/>
+        <dtn:connector rdf:resource="&dtn;LC-Connector"/>
+        <dtn:polish rdf:resource="&dtn;PC"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f2/ocg/1 -->
+
+    <dtn:OCGNetworkElement rdf:about="#Renci/Infinera/DTN/f2/ocg/1">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+    </dtn:OCGNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/fiber -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/fB/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <topology:hasInputInterface rdf:resource="#Renci/Infinera/DTN/f1/fiber"/>
+        <topology:hasOutputInterface rdf:resource="#Renci/Infinera/DTN/f2/fiber"/>
+        <dtn:availableOCGSet rdf:resource="#Renci/Infinera/DTN/fB/1/fiber/availableOCGSet"/>
+        <dtn:usedOCGSet rdf:resource="#Renci/Infinera/DTN/fB/1/fiber/usedOCGSet"/>
+        <dtn:OCG rdf:resource="#Renci/Infinera/DTN/fB/1/ocgB/1"/>
+        <topology:interfaceOf rdf:resource="&ben;Renci/Infinera/DTN"/>
+        <topology:linkTo rdf:resource="&ben;Renci/Polatis/f6-22"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/fiber/availableOCGSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/1/fiber/availableOCGSet">
+        <collections:size rdf:datatype="&xsd;int">4</collections:size>
+        <collections:element rdf:resource="#Renci/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/fiber/ocgLabel/1 -->
+
+    <dtn:OCGLabel rdf:about="#Renci/Infinera/DTN/fB/1/fiber/ocgLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+        <dtn:ocgGroup rdf:resource="&dtn;OCG1"/>
+    </dtn:OCGLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/fiber/usedOCGSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/1/fiber/usedOCGSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1 -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/fB/1/ocgB/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3-l1</rdfs:label>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+        <topology:hasInputInterface rdf:resource="#Renci/Infinera/DTN/f1/ocg/1"/>
+        <topology:hasOutputInterface rdf:resource="#Renci/Infinera/DTN/f2/ocg/1"/>
+        <dtn:ocg rdf:resource="#Renci/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+        <dtn:availableLambdaSet rdf:resource="#Renci/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet"/>
+        <dtn:usedLambdaSet rdf:resource="#Renci/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet">
+        <collections:size rdf:datatype="&xsd;int">10</collections:size>
+        <collections:element rdf:resource="#Renci/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1 -->
+
+    <layer:LabelRange rdf:about="#Renci/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1">
+        <layer:lowerBound rdf:resource="#Renci/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1"/>
+        <layer:upperBound rdf:resource="#Renci/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10"/>
+    </layer:LabelRange>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1 -->
+
+    <dtn:WavelengthLabel rdf:about="#Renci/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10 -->
+
+    <dtn:WavelengthLabel rdf:about="#Renci/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10">
+        <layer:label_ID rdf:datatype="&xsd;float">10</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/fiber -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/fB/2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-4</rdfs:label>
+        <dtn:availableOCGSet rdf:resource="#Renci/Infinera/DTN/fB/2/fiber/availableOCGSet"/>
+        <dtn:usedOCGSet rdf:resource="#Renci/Infinera/DTN/fB/2/fiber/usedOCGSet"/>
+        <dtn:OCG rdf:resource="#Renci/Infinera/DTN/fB/2/ocgB/1"/>
+        <topology:interfaceOf rdf:resource="&ben;Renci/Infinera/DTN"/>
+        <topology:linkTo rdf:resource="&ben;Renci/Polatis/f7-23"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/fiber/availableOCGSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/2/fiber/availableOCGSet">
+        <collections:size rdf:datatype="&xsd;int">4</collections:size>
+        <collections:element rdf:resource="#Renci/Infinera/DTN/fB/2/fiber/ocgLabel/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/fiber/ocgLabel/1 -->
+
+    <dtn:OCGLabel rdf:about="#Renci/Infinera/DTN/fB/2/fiber/ocgLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+        <dtn:ocgGroup rdf:resource="&dtn;OCG1"/>
+    </dtn:OCGLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/fiber/usedOCGSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/2/fiber/usedOCGSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1 -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/fB/2/ocgB/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-4-l1</rdfs:label>
+        <dtn:ocg rdf:resource="#Renci/Infinera/DTN/fB/2/fiber/ocgLabel/1"/>
+        <dtn:availableLambdaSet rdf:resource="#Renci/Infinera/DTN/fB/2/ocgB/1/availableLambdaSet"/>
+        <dtn:usedLambdaSet rdf:resource="#Renci/Infinera/DTN/fB/2/ocgB/1/usedLambdaSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1/availableLambdaSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/2/ocgB/1/availableLambdaSet">
+        <collections:size rdf:datatype="&xsd;int">10</collections:size>
+        <collections:element rdf:resource="#Renci/Infinera/DTN/fB/2/ocgB/1/availableLambdaSet/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1/availableLambdaSet/1 -->
+
+    <layer:LabelRange rdf:about="#Renci/Infinera/DTN/fB/2/ocgB/1/availableLambdaSet/1">
+        <layer:lowerBound rdf:resource="#Renci/Infinera/DTN/fB/2/ocgB/1/lambdaLabel/1"/>
+        <layer:upperBound rdf:resource="#Renci/Infinera/DTN/fB/2/ocgB/1/lambdaLabel/10"/>
+    </layer:LabelRange>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1/lambdaLabel/1 -->
+
+    <dtn:WavelengthLabel rdf:about="#Renci/Infinera/DTN/fB/2/ocgB/1/lambdaLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1/lambdaLabel/10 -->
+
+    <dtn:WavelengthLabel rdf:about="#Renci/Infinera/DTN/fB/2/ocgB/1/lambdaLabel/10">
+        <layer:label_ID rdf:datatype="&xsd;float">10</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/ocgB/1/usedLambdaSet -->
+
+    <layer:LabelSet rdf:about="#Renci/Infinera/DTN/fB/2/ocgB/1/usedLambdaSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t1B/1/ethernet -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/t1B/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t1B/1/fiber -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/t1B/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label>1-a-3-t1-1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet10;fiber"/>
+        <dtn:ocgLine rdf:resource="#Renci/Infinera/DTN/fB/1/fiber"/>
+        <dtn:WDM rdf:resource="#Renci/Infinera/DTN/t1B/1/lambda"/>
+        <topology:interfaceOf rdf:resource="&ben;Renci/Infinera/DTN"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t1B/1/lambda -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/t1B/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <rdfs:label>1-a-3-t1-1</rdfs:label>
+        <dtn:TenGbase-R rdf:resource="#Renci/Infinera/DTN/t1B/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t2B/1/ethernet -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#Renci/Infinera/DTN/t2B/1/ethernet">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t2B/1/fiber -->
+
+    <topology:Interface rdf:about="#Renci/Infinera/DTN/t2B/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label>1-a-4-t1-1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet11;fiber"/>
+        <dtn:WDM rdf:resource="#Renci/Infinera/DTN/t2B/1/lambda"/>
+        <dtn:ocgLine rdf:resource="#UNC/Infinera/DTN/fB/2/fiber"/>
+        <topology:interfaceOf rdf:resource="&ben;Renci/Infinera/DTN"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/t2B/1/lambda -->
+
+    <dtn:LambdaNetworkElement rdf:about="#Renci/Infinera/DTN/t2B/1/lambda">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label>1-a-4-t1-1</rdfs:label>
+        <dtn:TenGbase-R rdf:resource="#Renci/Infinera/DTN/t2B/1/ethernet"/>
+    </dtn:LambdaNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/LambdaSwitchingMatrix -->
+
+    <dtn:LambdaSwitchingMatrix rdf:about="#UNC/Infinera/DTN/LambdaSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;LambdaNetworkElement"/>
+    </dtn:LambdaSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/OCGSwitchingMatrix -->
+
+    <dtn:OCGSwitchingMatrix rdf:about="#UNC/Infinera/DTN/OCGSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&dtn;OCGNetworkElement"/>
+    </dtn:OCGSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/ODUSwitchingMatrix -->
+
+    <dtn:ODUSwitchingMatrix rdf:about="#UNC/Infinera/DTN/ODUSwitchingMatrix">
+        <dtn:hasTimeSlotGranularity rdf:resource="&dtn;ODU1"/>
+        <layer:switchingCapability rdf:resource="&dtn;ODUNetworkElement"/>
+    </dtn:ODUSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#UNC/Infinera/DTN/f1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label
+            >UNC/Infinera/DTN/f1</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <dtn:OCG rdf:resource="#UNC/Infinera/DTN/f1/ocg/1"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f1/ocg/1 -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/f1/ocg/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f2/fiber -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/f2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label
+            >DTN-Infinera-UNC:l2</rdfs:label>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <dtn:OCG rdf:resource="#UNC/Infinera/DTN/f2/ocg/1"/>
+        <dtn:connector rdf:resource="&dtn;LC-Connector"/>
+        <dtn:polish rdf:resource="&dtn;PC"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f2/ocg/1 -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/f2/ocg/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#UNC/Infinera/DTN/fB/1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:maxOCG rdf:datatype="&xsd;integer">4</dtn:maxOCG>
+        <topology:hasInputInterface rdf:resource="#UNC/Infinera/DTN/f1/fiber"/>
+        <topology:hasOutputInterface rdf:resource="#UNC/Infinera/DTN/f2/fiber"/>
+        <dtn:availableOCGSet rdf:resource="#UNC/Infinera/DTN/fB/1/fiber/availableOCGSet"/>
+        <dtn:usedOCGSet rdf:resource="#UNC/Infinera/DTN/fB/1/fiber/usedOCGSet"/>
+        <dtn:OCG rdf:resource="#UNC/Infinera/DTN/fB/1/ocgB/1"/>
+        <topology:interfaceOf rdf:resource="&ben;UNC/Infinera/DTN"/>
+        <topology:linkTo rdf:resource="&ben;UNC/Polatis/f6-22"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/fiber/availableOCGSet -->
+
+    <layer:LabelSet rdf:about="#UNC/Infinera/DTN/fB/1/fiber/availableOCGSet">
+        <collections:size rdf:datatype="&xsd;int">4</collections:size>
+        <collections:element rdf:resource="#UNC/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/fiber/ocgLabel/1 -->
+
+    <dtn:OCGLabel rdf:about="#UNC/Infinera/DTN/fB/1/fiber/ocgLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+        <dtn:ocgGroup rdf:resource="&dtn;OCG1"/>
+    </dtn:OCGLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/fiber/usedOCGSet -->
+
+    <layer:LabelSet rdf:about="#UNC/Infinera/DTN/fB/1/fiber/usedOCGSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1 -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/fB/1/ocgB/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3-l1</rdfs:label>
+        <dtn:maxWavelength rdf:datatype="&xsd;integer">10</dtn:maxWavelength>
+        <topology:hasInputInterface rdf:resource="#UNC/Infinera/DTN/f1/ocg/1"/>
+        <topology:hasOutputInterface rdf:resource="#UNC/Infinera/DTN/f2/ocg/1"/>
+        <dtn:ocg rdf:resource="#UNC/Infinera/DTN/fB/1/fiber/ocgLabel/1"/>
+        <dtn:availableLambdaSet rdf:resource="#UNC/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet"/>
+        <dtn:usedLambdaSet rdf:resource="#UNC/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet -->
+
+    <layer:LabelSet rdf:about="#UNC/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet">
+        <collections:size rdf:datatype="&xsd;int">10</collections:size>
+        <collections:element rdf:resource="#UNC/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1 -->
+
+    <layer:LabelRange rdf:about="#UNC/Infinera/DTN/fB/1/ocgB/1/availableLambdaSet/1">
+        <layer:lowerBound rdf:resource="#UNC/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1"/>
+        <layer:upperBound rdf:resource="#UNC/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10"/>
+    </layer:LabelRange>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1 -->
+
+    <dtn:WavelengthLabel rdf:about="#UNC/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/1">
+        <layer:label_ID rdf:datatype="&xsd;float">1</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10 -->
+
+    <dtn:WavelengthLabel rdf:about="#UNC/Infinera/DTN/fB/1/ocgB/1/lambdaLabel/10">
+        <layer:label_ID rdf:datatype="&xsd;float">10</layer:label_ID>
+    </dtn:WavelengthLabel>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet -->
+
+    <layer:LabelSet rdf:about="#UNC/Infinera/DTN/fB/1/ocgB/1/usedLambdaSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/2/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#UNC/Infinera/DTN/fB/2/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:OCG rdf:resource="#UNC/Infinera/DTN/fB/2/ocgB/1"/>
+        <topology:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/2/ocgB/1 -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/fB/2/ocgB/1">
+        <rdf:type rdf:resource="&dtn;OCGNetworkElement"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t1B/1/ethernet -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/t1B/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t1B/1/fiber -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/t1B/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3-t1-1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet9;fiber"/>
+        <dtn:ocgLine rdf:resource="#UNC/Infinera/DTN/fB/1/fiber"/>
+        <dtn:WDM rdf:resource="#UNC/Infinera/DTN/t1B/1/lambda"/>
+        <topology:interfaceOf rdf:resource="&ben;UNC/Infinera/DTN"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t1B/1/lambda -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/t1B/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-3-t1-1</rdfs:label>
+        <dtn:TenGbase-R rdf:resource="#UNC/Infinera/DTN/t1B/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t2B/1/ethernet -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/t2B/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t2B/1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#UNC/Infinera/DTN/t2B/1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-4-t1-1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet12;fiber"/>
+        <dtn:ocgLine rdf:resource="#NCSU/Infinera/DTN/fB/2/fiber"/>
+        <dtn:WDM rdf:resource="#UNC/Infinera/DTN/t2B/1/lambda"/>
+        <topology:interfaceOf rdf:resource="&ben;UNC/Infinera/DTN"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/t2B/1/lambda -->
+
+    <topology:Interface rdf:about="#UNC/Infinera/DTN/t2B/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">1-a-4-t1-1</rdfs:label>
+        <dtn:TenGbase-R rdf:resource="#UNC/Infinera/DTN/t2B/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke -->
+
+    <rdf:Description rdf:about="&ben;Duke"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Infinera/DTN -->
+
+    <rdf:Description rdf:about="&ben;Duke/Infinera/DTN">
+        <rdfs:label>DTN</rdfs:label>
+        <topology:managementIP>192.168.202.5</topology:managementIP>
+        <topology:hostName>dtn-1.duke.ben</topology:hostName>
+        <topology:hasSwitchMatrix rdf:resource="#Duke/Infinera/DTN/LambdaSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#Duke/Infinera/DTN/OCGSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#Duke/Infinera/DTN/ODUSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#Duke/Infinera/DTN/fB/1/fiber"/>
+        <topology:hasInterface rdf:resource="#Duke/Infinera/DTN/fB/2/fiber"/>
+        <topology:hasInterface rdf:resource="#Duke/Infinera/DTN/t1B/1/fiber"/>
+        <topology:hasInterface rdf:resource="#Duke/Infinera/DTN/t2B/1/fiber"/>
+        <topology:locatedAt rdf:resource="&ben;Duke"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f7-23 -->
+
+    <rdf:Description rdf:about="&ben;Duke/Polatis/f7-23"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU -->
+
+    <rdf:Description rdf:about="&ben;NCSU"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Infinera/DTN -->
+
+    <rdf:Description rdf:about="&ben;NCSU/Infinera/DTN">
+        <rdfs:label>DTN</rdfs:label>
+        <topology:hostName>dtn-1.ncsu.ben</topology:hostName>
+        <topology:managementIP>192.168.204.5</topology:managementIP>
+        <topology:hasSwitchMatrix rdf:resource="#NCSU/Infinera/DTN/LambdaSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#NCSU/Infinera/DTN/OCGSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#NCSU/Infinera/DTN/ODUSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#NCSU/Infinera/DTN/fB/1/fiber"/>
+        <topology:hasInterface rdf:resource="#NCSU/Infinera/DTN/fB/2/fiber"/>
+        <topology:hasInterface rdf:resource="#NCSU/Infinera/DTN/t1B/1/fiber"/>
+        <topology:locatedAt rdf:resource="&ben;NCSU"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f7-23 -->
+
+    <rdf:Description rdf:about="&ben;NCSU/Polatis/f7-23"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci -->
+
+    <rdf:Description rdf:about="&ben;Renci"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Infinera/DTN -->
+
+    <rdf:Description rdf:about="&ben;Renci/Infinera/DTN">
+        <rdfs:label>DTN</rdfs:label>
+        <topology:hostName>dtn-1.renci.ben</topology:hostName>
+        <topology:managementIP>192.168.201.5</topology:managementIP>
+        <topology:hasSwitchMatrix rdf:resource="#Renci/Infinera/DTN/LambdaSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#Renci/Infinera/DTN/OCGSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#Renci/Infinera/DTN/ODUSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#Renci/Infinera/DTN/fB/1/fiber"/>
+        <topology:hasInterface rdf:resource="#Renci/Infinera/DTN/fB/2/fiber"/>
+        <topology:hasInterface rdf:resource="#Renci/Infinera/DTN/t1B/1/fiber"/>
+        <topology:hasInterface rdf:resource="#Renci/Infinera/DTN/t2B/1/fiber"/>
+        <topology:locatedAt rdf:resource="&ben;Renci"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f6-22 -->
+
+    <rdf:Description rdf:about="&ben;Renci/Polatis/f6-22"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f7-23 -->
+
+    <rdf:Description rdf:about="&ben;Renci/Polatis/f7-23"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC -->
+
+    <rdf:Description rdf:about="&ben;UNC"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Infinera/DTN -->
+
+    <rdf:Description rdf:about="&ben;UNC/Infinera/DTN">
+        <rdfs:label>DTN</rdfs:label>
+        <topology:managementIP>192.168.203.5</topology:managementIP>
+        <topology:hostName>dtn-1.unc.ben</topology:hostName>
+        <topology:hasSwitchMatrix rdf:resource="#UNC/Infinera/DTN/LambdaSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#UNC/Infinera/DTN/OCGSwitchingMatrix"/>
+        <topology:hasSwitchMatrix rdf:resource="#UNC/Infinera/DTN/ODUSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#UNC/Infinera/DTN/fB/1/fiber"/>
+        <topology:hasInterface rdf:resource="#UNC/Infinera/DTN/fB/2/fiber"/>
+        <topology:hasInterface rdf:resource="#UNC/Infinera/DTN/t1B/1/fiber"/>
+        <topology:hasInterface rdf:resource="#UNC/Infinera/DTN/t2B/1/fiber"/>
+        <topology:locatedAt rdf:resource="&ben;UNC"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f6-22 -->
+
+    <rdf:Description rdf:about="&ben;UNC/Polatis/f6-22"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LC-Connector -->
+
+    <rdf:Description rdf:about="&dtn;LC-Connector"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaNetworkElement -->
+
+    <rdf:Description rdf:about="&dtn;LambdaNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG1 -->
+
+    <rdf:Description rdf:about="&dtn;OCG1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGNetworkElement -->
+
+    <rdf:Description rdf:about="&dtn;OCGNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU1 -->
+
+    <rdf:Description rdf:about="&dtn;ODU1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODUNetworkElement -->
+
+    <rdf:Description rdf:about="&dtn;ODUNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU2 -->
+
+    <rdf:Description rdf:about="&dtn;OTU2"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU4 -->
+
+    <rdf:Description rdf:about="&dtn;OTU4"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#PC -->
+
+    <rdf:Description rdf:about="&dtn;PC"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#10G -->
+
+    <rdf:Description rdf:about="&layer;10G"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#BIDirectional -->
+
+    <rdf:Description rdf:about="&layer;BIDirectional"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

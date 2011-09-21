@@ -1,0 +1,247 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY request "http://geni-orca.renci.org/owl/request.owl#" >
+    <!ENTITY ethernet "http://geni-orca.renci.org/owl/ethernet.owl#" >
+    <!ENTITY topology "http://geni-orca.renci.org/owl/topology.owl#" >
+    <!ENTITY collections "http://geni-orca.renci.org/owl/collections.owl#" >
+    <!ENTITY UNC "http://geni-orca.renci.org/owl/uncVMSite.rdf#UNC/" >
+    <!ENTITY id-mp-Request1 "http://geni-orca.renci.org/owl/id-mp-Request1.rdf#" >
+    <!ENTITY Duke "http://geni-orca.renci.org/owl/dukevmsite.rdf#Duke/" >
+    <!ENTITY Renci "http://geni-orca.renci.org/owl/rencivmsite.rdf#Renci/" >
+    <!ENTITY UNCVMSite "http://geni-orca.renci.org/owl/uncVMSite.rdf#UNCVMSite/" >
+    <!ENTITY uncvmsite "http://geni-orca.renci.org/owl/uncvmsite.rdf#uncvmsite/" >
+    <!ENTITY UNCVMSite2 "http://geni-orca.renci.org/owl/uncvmsite.rdf#UNCVMSite/" >
+    <!ENTITY DukeVMSite "http://geni-orca.renci.org/owl/dukevmsite.rdf#DukeVMSite/" >
+    <!ENTITY rencivmsite "http://geni-orca.renci.org/owl/rencivmsite.rdf#rencivmsite/" >
+    <!ENTITY RenciVMSite "http://geni-orca.renci.org/owl/rencivmsite.rdf#RenciVMSite/" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/id-mp-Request1.rdf#"
+     xml:base="http://geni-orca.renci.org/owl/id-mp-Request1.rdf"
+     xmlns:Duke="http://geni-orca.renci.org/owl/dukevmsite.rdf#Duke/"
+     xmlns:UNC="http://geni-orca.renci.org/owl/uncVMSite.rdf#UNC/"
+     xmlns:RenciVMSite="http://geni-orca.renci.org/owl/rencivmsite.rdf#RenciVMSite/"
+     xmlns:DukeVMSite="http://geni-orca.renci.org/owl/dukevmsite.rdf#DukeVMSite/"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:Renci="http://geni-orca.renci.org/owl/rencivmsite.rdf#Renci/"
+     xmlns:uncvmsite="http://geni-orca.renci.org/owl/uncvmsite.rdf#uncvmsite/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:id-mp-Request1="http://geni-orca.renci.org/owl/id-mp-Request1.rdf#"
+     xmlns:UNCVMSite2="http://geni-orca.renci.org/owl/uncvmsite.rdf#UNCVMSite/"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:ethernet="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xmlns:request="http://geni-orca.renci.org/owl/request.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:topology="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:rencivmsite="http://geni-orca.renci.org/owl/rencivmsite.rdf#rencivmsite/"
+     xmlns:collections="http://geni-orca.renci.org/owl/collections.owl#"
+     xmlns:UNCVMSite="http://geni-orca.renci.org/owl/uncVMSite.rdf#UNCVMSite/">
+    <owl:Ontology rdf:about=""/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#element -->
+
+    <owl:ObjectProperty rdf:about="&collections;element"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#atLayer -->
+
+    <owl:ObjectProperty rdf:about="&layer;atLayer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#inDomain -->
+
+    <owl:ObjectProperty rdf:about="&request;inDomain"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInterface -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasInterface"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#bandwidth -->
+
+    <owl:DatatypeProperty rdf:about="&layer;bandwidth"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#endingTime -->
+
+    <owl:DatatypeProperty rdf:about="&request;endingTime"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#startingTime -->
+
+    <owl:DatatypeProperty rdf:about="&request;startingTime"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#Reservation -->
+
+    <owl:Class rdf:about="&request;Reservation"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkConnection -->
+
+    <owl:Class rdf:about="&topology;NetworkConnection"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dukevmsite.rdf#Duke/Euca -->
+
+    <rdf:Description rdf:about="&Duke;Euca">
+        <request:inDomain rdf:resource="&DukeVMSite;Domain"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dukevmsite.rdf#DukeVMSite/Domain -->
+
+    <rdf:Description rdf:about="&DukeVMSite;Domain"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <rdf:Description rdf:about="&ethernet;EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/id-mp-Request1.rdf#id-mp-request-1 -->
+
+    <request:Reservation rdf:about="#id-mp-request-1">
+        <request:startingTime
+            >2010-06-07T13:00:00Z</request:startingTime>
+        <request:endingTime
+            >2010-06-08T13:00:00Z</request:endingTime>
+        <layer:atLayer rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <collections:element rdf:resource="#id-mp-request-1/conn/1"/>
+        <collections:element rdf:resource="#id-mp-request-1/conn/2"/>
+        <collections:element rdf:resource="#id-mp-request-1/conn/3"/>
+    </request:Reservation>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/id-mp-Request1.rdf#id-mp-request-1/conn/1 -->
+
+    <topology:NetworkConnection rdf:about="#id-mp-request-1/conn/1">
+        <layer:bandwidth rdf:datatype="&xsd;long">100000000</layer:bandwidth>
+        <topology:hasInterface rdf:resource="&Renci;Euca"/>
+        <topology:hasInterface rdf:resource="&UNC;Euca"/>
+    </topology:NetworkConnection>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/id-mp-Request1.rdf#id-mp-request-1/conn/2 -->
+
+    <topology:NetworkConnection rdf:about="#id-mp-request-1/conn/2">
+        <layer:bandwidth rdf:datatype="&xsd;long">100000000</layer:bandwidth>
+        <topology:hasInterface rdf:resource="&Duke;Euca"/>
+        <topology:hasInterface rdf:resource="&Renci;Euca"/>
+    </topology:NetworkConnection>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/id-mp-Request1.rdf#id-mp-request-1/conn/3 -->
+
+    <topology:NetworkConnection rdf:about="#id-mp-request-1/conn/3">
+        <layer:bandwidth rdf:datatype="&xsd;long">100000000</layer:bandwidth>
+        <topology:hasInterface rdf:resource="&Duke;Euca"/>
+        <topology:hasInterface rdf:resource="&UNC;Euca"/>
+    </topology:NetworkConnection>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/rencivmsite.rdf#Renci/Euca -->
+
+    <rdf:Description rdf:about="&Renci;Euca">
+        <request:inDomain rdf:resource="&rencivmsite;Domain"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/rencivmsite.rdf#rencivmsite/Domain -->
+
+    <rdf:Description rdf:about="&rencivmsite;Domain"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/uncVMSite.rdf#UNC/Euca -->
+
+    <rdf:Description rdf:about="&UNC;Euca">
+        <request:inDomain rdf:resource="&uncvmsite;Domain"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/uncvmsite.rdf#uncvmsite/Domain -->
+
+    <rdf:Description rdf:about="&uncvmsite;Domain"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY orca "http://geni-orca.renci.org/owl/orca.owl#" >
+    <!ENTITY storage "http://geni-orca.renci.org/owl/storage.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY compute "http://geni-orca.renci.org/owl/compute.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/orca.owl#"
+     xml:base="http://geni-orca.renci.org/owl/orca.owl"
+     xmlns:orca="http://geni-orca.renci.org/owl/orca.owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:compute="http://geni-orca.renci.org/owl/compute.owl#"
+     xmlns:storage="http://geni-orca.renci.org/owl/storage.owl#">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/storage.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#hasUnitServer -->
+
+    <owl:ObjectProperty rdf:about="&compute;hasUnitServer"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#cpuCapacity -->
+
+    <owl:DatatypeProperty rdf:about="&compute;cpuCapacity"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#maxNumUnitServer -->
+
+    <owl:DatatypeProperty rdf:about="&compute;maxNumUnitServer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#memoryCapacity -->
+
+    <owl:DatatypeProperty rdf:about="&compute;memoryCapacity"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#numUnitServer -->
+
+    <owl:DatatypeProperty rdf:about="&compute;numUnitServer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/orca.owl#maxNumORCAUnitServer -->
+
+    <owl:DatatypeProperty rdf:about="#maxNumORCAUnitServer">
+        <rdfs:subPropertyOf rdf:resource="&compute;maxNumUnitServer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/orca.owl#numORCAUnitServer -->
+
+    <owl:DatatypeProperty rdf:about="#numORCAUnitServer">
+        <rdfs:subPropertyOf rdf:resource="&compute;numUnitServer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#LargeServerSize -->
+
+    <owl:Class rdf:about="&compute;LargeServerSize"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#MediumServerSize -->
+
+    <owl:Class rdf:about="&compute;MediumServerSize"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#SmallServerSize -->
+
+    <owl:Class rdf:about="&compute;SmallServerSize"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#UnitServer -->
+
+    <owl:Class rdf:about="&compute;UnitServer"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/orca.owl#ORCALargeServerSize -->
+
+    <compute:LargeServerSize rdf:about="#ORCALargeServerSize">
+        <compute:hasUnitServer rdf:resource="#ORCAUnitServer"/>
+    </compute:LargeServerSize>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/orca.owl#ORCAMediumServerSize -->
+
+    <compute:MediumServerSize rdf:about="#ORCAMediumServerSize">
+        <compute:hasUnitServer rdf:resource="#ORCAUnitServer"/>
+    </compute:MediumServerSize>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/orca.owl#ORCASmallServerSize -->
+
+    <compute:SmallServerSize rdf:about="#ORCASmallServerSize">
+        <compute:hasUnitServer rdf:resource="#ORCAUnitServer"/>
+    </compute:SmallServerSize>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/orca.owl#ORCAUnitServer -->
+
+    <compute:UnitServer rdf:about="#ORCAUnitServer">
+        <compute:cpuCapacity rdf:datatype="&xsd;float">1.2</compute:cpuCapacity>
+        <compute:memoryCapacity rdf:datatype="&xsd;float">1.7</compute:memoryCapacity>
+    </compute:UnitServer>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

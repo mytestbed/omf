@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY UNC2 "http://geni-orca.renci.org/owl/ben.rdf#UNC/" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY request "http://geni-orca.renci.org/owl/request.owl#" >
+    <!ENTITY ethernet "http://geni-orca.renci.org/owl/ethernet.owl#" >
+    <!ENTITY topology "http://geni-orca.renci.org/owl/topology.owl#" >
+    <!ENTITY Renci2 "http://geni-orca.renci.org/owl/ben.rdf#Renci/" >
+    <!ENTITY collections "http://geni-orca.renci.org/owl/collections.owl#" >
+    <!ENTITY UNC "http://geni-orca.renci.org/owl/ben-dell.rdf#UNC/" >
+    <!ENTITY request-6509 "http://geni-orca.renci.org/owl/request-6509.rdf#" >
+    <!ENTITY Dell "http://geni-orca.renci.org/owl/ben.rdf#Duke/Dell/" >
+    <!ENTITY Dell2 "http://geni-orca.renci.org/owl/ben.rdf#Renci/Dell/" >
+    <!ENTITY Renci "http://geni-orca.renci.org/owl/ben-dell.rdf#Renci/" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/request-6509.rdf#"
+     xml:base="http://geni-orca.renci.org/owl/request-6509.rdf"
+     xmlns:UNC="http://geni-orca.renci.org/owl/ben-dell.rdf#UNC/"
+     xmlns:request-6509="http://geni-orca.renci.org/owl/request-6509.rdf#"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:Renci="http://geni-orca.renci.org/owl/ben-dell.rdf#Renci/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:Dell2="&Renci2;Dell/"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:ethernet="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xmlns:request="http://geni-orca.renci.org/owl/request.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:Renci2="http://geni-orca.renci.org/owl/ben.rdf#Renci/"
+     xmlns:topology="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:Dell="http://geni-orca.renci.org/owl/ben.rdf#Duke/Dell/"
+     xmlns:collections="http://geni-orca.renci.org/owl/collections.owl#"
+     xmlns:UNC2="http://geni-orca.renci.org/owl/ben.rdf#UNC/">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/request.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#element -->
+
+    <owl:ObjectProperty rdf:about="&collections;element"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#atLayer -->
+
+    <owl:ObjectProperty rdf:about="&layer;atLayer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInterface -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasInterface"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#bandwidth -->
+
+    <owl:DatatypeProperty rdf:about="&layer;bandwidth"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#endingTime -->
+
+    <owl:DatatypeProperty rdf:about="&request;endingTime"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#startingTime -->
+
+    <owl:DatatypeProperty rdf:about="&request;startingTime"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasURN -->
+
+    <owl:DatatypeProperty rdf:about="&topology;hasURN"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request.owl#Reservation -->
+
+    <owl:Class rdf:about="&request;Reservation"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Device -->
+
+    <owl:Class rdf:about="&topology;Device"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkConnection -->
+
+    <owl:Class rdf:about="&topology;NetworkConnection"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/VMSite -->
+
+    <topology:Device rdf:about="&Renci2;VMSite"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/VMSite -->
+
+    <topology:Device rdf:about="&UNC2;VMSite"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <rdf:Description rdf:about="&ethernet;EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request-6509.rdf#reservation-renci-unc-vm-1 -->
+
+    <request:Reservation rdf:about="#reservation-renci-unc-vm-1">
+        <request:endingTime
+            >2009-07-07T:20:00:00:00Z</request:endingTime>
+        <request:startingTime
+            >2009-07-07T:13:00:00:00Z</request:startingTime>
+        <topology:hasURN
+            >urn:publicid:IDN+geni-orca.renci.org+reservation+renci-vm-1</topology:hasURN>
+        <layer:atLayer rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <collections:element rdf:resource="#reservation-renci-unc-vm-1/conn/1"/>
+    </request:Reservation>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/request-6509.rdf#reservation-renci-unc-vm-1/conn/1 -->
+
+    <topology:NetworkConnection rdf:about="#reservation-renci-unc-vm-1/conn/1">
+        <layer:bandwidth rdf:datatype="&xsd;long">100000000</layer:bandwidth>
+        <topology:hasInterface rdf:resource="&Renci2;VMSite"/>
+        <topology:hasInterface rdf:resource="&UNC2;VMSite"/>
+    </topology:NetworkConnection>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

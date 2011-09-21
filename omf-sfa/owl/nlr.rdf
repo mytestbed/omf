@@ -1,0 +1,901 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY ben "http://geni-orca.renci.org/owl/ben.rdf#" >
+    <!ENTITY dtn "http://geni-orca.renci.org/owl/dtn.owl#" >
+    <!ENTITY wgs84_pos "http://www.w3.org/2003/01/geo/wgs84_pos#" >
+    <!ENTITY mass "http://geni-orca.renci.org/owl/mass.rdf#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY domain "http://geni-orca.renci.org/owl/domain.owl#" >
+    <!ENTITY nlr "http://geni-orca.renci.org/owl/nlr.rdf#nlr/" >
+    <!ENTITY layer2 "http://geni-orca.renci.org/owl/layer.owl#10" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY NLR "http://geni-orca.renci.org/owl/nlr.rdf#NLR/" >
+    <!ENTITY ethernet "http://geni-orca.renci.org/owl/ethernet.owl#" >
+    <!ENTITY location "http://geni-orca.renci.org/owl/location.owl#" >
+    <!ENTITY topology "http://geni-orca.renci.org/owl/topology.owl#" >
+    <!ENTITY starlight "http://geni-orca.renci.org/owl/starlight.rdf#" >
+    <!ENTITY BBN "http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/" >
+    <!ENTITY collections "http://geni-orca.renci.org/owl/collections.owl#" >
+    <!ENTITY Mass "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Mass/" >
+    <!ENTITY Renci "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/" >
+    <!ENTITY Houston "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/" >
+    <!ENTITY StarLight "http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/" >
+    <!ENTITY Cisco "http://geni-orca.renci.org/owl/nlr.rdf#Duke/Cisco/6509/" >
+    <!ENTITY Cisco3 "http://geni-orca.renci.org/owl/nlr.rdf#Mass/Cisco/6509/" >
+    <!ENTITY Cisco2 "http://geni-orca.renci.org/owl/nlr.rdf#Renci/Cisco/6509/" >
+    <!ENTITY Cisco6 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/" >
+    <!ENTITY Cisco5 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/" >
+    <!ENTITY Cisco4 "http://geni-orca.renci.org/owl/nlr.rdf#StarLight/Cisco/6509/" >
+    <!ENTITY Cisco8 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/" >
+    <!ENTITY Cisco7 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/" >
+    <!ENTITY NetworkService "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Domain/NetworkService/1/" >
+    <!ENTITY TenGigabitEthernet5 "http://geni-orca.renci.org/owl/nlr.rdf#Mass/Cisco/6509/TenGigabitEthernet/1/2/" >
+    <!ENTITY TenGigabitEthernet7 "http://geni-orca.renci.org/owl/nlr.rdf#Mass/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet "http://geni-orca.renci.org/owl/nlr.rdf#Duke/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet4 "http://geni-orca.renci.org/owl/nlr.rdf#Renci/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet2 "http://geni-orca.renci.org/owl/nlr.rdf#Renci/Cisco/6509/TenGigabitEthernet/1/2/" >
+    <!ENTITY TenGigabitEthernet9 "http://geni-orca.renci.org/owl/mass.rdf#UMass/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet16 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/" >
+    <!ENTITY TenGigabitEthernet17 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet14 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/" >
+    <!ENTITY TenGigabitEthernet11 "http://geni-orca.renci.org/owl/nlr.rdf#StarLight/Cisco/6509/TenGigabitEthernet/1/3/" >
+    <!ENTITY TenGigabitEthernet8 "http://geni-orca.renci.org/owl/nlr.rdf#StarLight/Cisco/6509/TenGigabitEthernet/1/2/" >
+    <!ENTITY TenGigabitEthernet18 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet6 "http://geni-orca.renci.org/owl/nlr.rdf#StarLight/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet3 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/1/" >
+    <!ENTITY TenGigabitEthernet19 "http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/2/" >
+    <!ENTITY TenGigabitEthernet21 "http://geni-orca.renci.org/owl/learn.rdf#Learn/NLR/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet20 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEtherent "http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/TenGigabitEtherent/1/1/" >
+    <!ENTITY TenGigabitEthernet12 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/" >
+    <!ENTITY TenGigabitEthernet15 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/" >
+    <!ENTITY TenGigabitEthernet13 "http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/" >
+    <!ENTITY TenGigabitEthernet10 "http://geni-orca.renci.org/owl/starlight.rdf#StarLight/Cisco/6509/TenGigabitEthernet/1/1/" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/nlr.rdf#"
+     xml:base="http://geni-orca.renci.org/owl/nlr.rdf"
+     xmlns:NetworkService="&NLR;Domain/NetworkService/1/"
+     xmlns:TenGigabitEthernet21="http://geni-orca.renci.org/owl/learn.rdf#Learn/NLR/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:location="http://geni-orca.renci.org/owl/location.owl#"
+     xmlns:TenGigabitEthernet20="&NLR;Houston/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:Cisco="http://geni-orca.renci.org/owl/nlr.rdf#Duke/Cisco/6509/"
+     xmlns:mass="http://geni-orca.renci.org/owl/mass.rdf#"
+     xmlns:dtn="http://geni-orca.renci.org/owl/dtn.owl#"
+     xmlns:Cisco7="&NLR;StarLight/Cisco/6509/"
+     xmlns:StarLight="&NLR;StarLight/"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:Cisco8="&NLR;Houston/Cisco/6509/"
+     xmlns:Cisco5="&NLR;Renci/Cisco/6509/"
+     xmlns:Cisco6="&NLR;BBN/Cisco/6509/"
+     xmlns:Cisco3="http://geni-orca.renci.org/owl/nlr.rdf#Mass/Cisco/6509/"
+     xmlns:nlr="http://geni-orca.renci.org/owl/nlr.rdf#nlr/"
+     xmlns:Cisco4="http://geni-orca.renci.org/owl/nlr.rdf#StarLight/Cisco/6509/"
+     xmlns:BBN="&NLR;BBN/"
+     xmlns:Cisco2="http://geni-orca.renci.org/owl/nlr.rdf#Renci/Cisco/6509/"
+     xmlns:wgs84_pos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+     xmlns:ben="http://geni-orca.renci.org/owl/ben.rdf#"
+     xmlns:TenGigabitEthernet2="&Cisco2;TenGigabitEthernet/1/2/"
+     xmlns:Mass="&NLR;Mass/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:TenGigabitEthernet9="&mass;UMass/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet7="&Cisco3;TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet8="&Cisco4;TenGigabitEthernet/1/2/"
+     xmlns:TenGigabitEthernet5="&Cisco3;TenGigabitEthernet/1/2/"
+     xmlns:TenGigabitEthernet6="&Cisco4;TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet3="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/1/"
+     xmlns:TenGigabitEthernet4="&Cisco2;TenGigabitEthernet/1/1/"
+     xmlns:layer2="&layer;10"
+     xmlns:starlight="http://geni-orca.renci.org/owl/starlight.rdf#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:ethernet="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xmlns:domain="http://geni-orca.renci.org/owl/domain.owl#"
+     xmlns:topology="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:collections="http://geni-orca.renci.org/owl/collections.owl#"
+     xmlns:TenGigabitEthernet19="http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/2/"
+     xmlns:TenGigabitEthernet18="&NLR;Renci/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet17="&NLR;BBN/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet16="&NLR;BBN/Cisco/6509/TenGigabitEthernet/1/2/"
+     xmlns:Houston="&NLR;Houston/"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:Renci="&NLR;Renci/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:TenGigabitEthernet10="&starlight;StarLight/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet11="&Cisco4;TenGigabitEthernet/1/3/"
+     xmlns:TenGigabitEtherent="&NLR;Houston/Cisco/6509/TenGigabitEtherent/1/1/"
+     xmlns:TenGigabitEthernet="&Cisco;TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet14="&NLR;Renci/Cisco/6509/TenGigabitEthernet/1/2/"
+     xmlns:TenGigabitEthernet15="&NLR;StarLight/Cisco/6509/TenGigabitEthernet/1/1/"
+     xmlns:TenGigabitEthernet12="&NLR;StarLight/Cisco/6509/TenGigabitEthernet/1/3/"
+     xmlns:NLR="http://geni-orca.renci.org/owl/nlr.rdf#NLR/"
+     xmlns:TenGigabitEthernet13="&NLR;StarLight/Cisco/6509/TenGigabitEthernet/1/2/">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/domain.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#element -->
+
+    <owl:ObjectProperty rdf:about="&collections;element"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasAccessMethod -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasAccessMethod"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasResourceType -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasResourceType"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasService -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasService"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasTopology -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasTopology"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#TenGbase-R -->
+
+    <owl:ObjectProperty rdf:about="&dtn;TenGbase-R"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WDM -->
+
+    <owl:ObjectProperty rdf:about="&dtn;WDM"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#availableVLANSet -->
+
+    <owl:ObjectProperty rdf:about="&ethernet;availableVLANSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#atLayer -->
+
+    <owl:ObjectProperty rdf:about="&layer;atLayer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#hasBitRate -->
+
+    <owl:ObjectProperty rdf:about="&layer;hasBitRate"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#switchingCapability -->
+
+    <owl:ObjectProperty rdf:about="&layer;switchingCapability"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/location.owl#locatedAt -->
+
+    <owl:ObjectProperty rdf:about="&location;locatedAt"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInterface -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasSwitchMatrix -->
+
+    <owl:ObjectProperty rdf:about="&topology;hasSwitchMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#interfaceOf -->
+
+    <owl:ObjectProperty rdf:about="&topology;interfaceOf"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#linkTo -->
+
+    <owl:ObjectProperty rdf:about="&topology;linkTo"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#size -->
+
+    <owl:DatatypeProperty rdf:about="&collections;size"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#bandwidth -->
+
+    <owl:DatatypeProperty rdf:about="&layer;bandwidth"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#isLabelProducer -->
+
+    <owl:DatatypeProperty rdf:about="&layer;isLabelProducer"/>
+    
+
+
+    <!-- http://www.w3.org/2003/01/geo/wgs84_pos#lat -->
+
+    <owl:DatatypeProperty rdf:about="&wgs84_pos;lat"/>
+    
+
+
+    <!-- http://www.w3.org/2003/01/geo/wgs84_pos#long -->
+
+    <owl:DatatypeProperty rdf:about="&wgs84_pos;long"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#Set -->
+
+    <owl:Class rdf:about="&collections;Set"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#NetworkService -->
+
+    <owl:Class rdf:about="&domain;NetworkService"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberNetworkElement -->
+
+    <owl:Class rdf:about="&dtn;FiberNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaNetworkElement -->
+
+    <owl:Class rdf:about="&dtn;LambdaNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <owl:Class rdf:about="&ethernet;EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetSwitchingMatrix -->
+
+    <owl:Class rdf:about="&ethernet;EthernetSwitchingMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelRange -->
+
+    <owl:Class rdf:about="&layer;LabelRange"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelSet -->
+
+    <owl:Class rdf:about="&layer;LabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/location.owl#Location -->
+
+    <owl:Class rdf:about="&location;Location"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Device -->
+
+    <owl:Class rdf:about="&topology;Device"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Interface -->
+
+    <owl:Class rdf:about="&topology;Interface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkDomain -->
+
+    <owl:Class rdf:about="&topology;NetworkDomain"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-6509.rdf#Renci/Cisco/6509/TenGigabitEthernet/3/2/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet19;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci -->
+
+    <rdf:Description rdf:about="&ben;Renci"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Node -->
+
+    <rdf:Description rdf:about="&domain;Node"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#ORCAActor -->
+
+    <rdf:Description rdf:about="&domain;ORCAActor"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#VLAN -->
+
+    <rdf:Description rdf:about="&domain;VLAN"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <rdf:Description rdf:about="&ethernet;EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#10G -->
+
+    <rdf:Description rdf:about="&layer;10G"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/learn.rdf#Learn/NLR/Cisco/6509/TenGigabitEthernet/1/1/fiber -->
+
+    <rdf:Description rdf:about="&TenGigabitEthernet21;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/mass.rdf#UMass -->
+
+    <rdf:Description rdf:about="&mass;UMass"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN -->
+
+    <location:Location rdf:about="#NLR/BBN">
+        <wgs84_pos:lat>42.389741</wgs84_pos:lat>
+        <wgs84_pos:long>-71.147504</wgs84_pos:long>
+    </location:Location>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509 -->
+
+    <topology:Device rdf:about="#NLR/BBN/Cisco/6509">
+        <rdfs:label>6509</rdfs:label>
+        <topology:hasSwitchMatrix rdf:resource="#NLR/BBN/Cisco/6509/EthernetSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+        <topology:hasInterface rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/fiber"/>
+    </topology:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/EthernetSwitchingMatrix -->
+
+    <ethernet:EthernetSwitchingMatrix rdf:about="#NLR/BBN/Cisco/6509/EthernetSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&ethernet;EthernetNetworkElement"/>
+    </ethernet:EthernetSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/ethernet -->
+
+    <topology:Interface rdf:about="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/BBN/Cisco/6509/availableVLANSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/fiber -->
+
+    <topology:Interface rdf:about="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <topology:interfaceOf rdf:resource="#NLR/BBN/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/lambda"/>
+        <topology:linkTo rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/fiber"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/lambda -->
+
+    <topology:Interface rdf:about="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/ethernet -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/ethernet">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/BBN/Cisco/6509/availableVLANSet"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <topology:interfaceOf rdf:resource="#NLR/BBN/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/lambda"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/lambda -->
+
+    <dtn:LambdaNetworkElement rdf:about="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/lambda">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/2/ethernet"/>
+    </dtn:LambdaNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Cisco/6509/availableVLANSet -->
+
+    <layer:LabelSet rdf:about="#NLR/BBN/Cisco/6509/availableVLANSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/Csico/6509/availableLabelSet/1 -->
+
+    <layer:LabelRange rdf:about="#NLR/BBN/Csico/6509/availableLabelSet/1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/BBN/PoP -->
+
+    <collections:Set rdf:about="#NLR/BBN/PoP">
+        <location:locatedAt rdf:resource="#NLR/BBN"/>
+        <collections:element rdf:resource="#NLR/BBN/Cisco/6509"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Domain/NetworkService/1 -->
+
+    <domain:NetworkService rdf:about="#NLR/Domain/NetworkService/1">
+        <domain:hasTopology rdf:resource="&domain;Node"/>
+        <domain:hasAccessMethod rdf:resource="&domain;ORCAActor"/>
+        <layer:atLayer rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/Domain/NetworkService/1/availableVLANSet"/>
+    </domain:NetworkService>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Domain/NetworkService/1/availableVLANSet -->
+
+    <layer:LabelSet rdf:about="#NLR/Domain/NetworkService/1/availableVLANSet">
+        <collections:size rdf:datatype="&xsd;int">10</collections:size>
+        <domain:hasResourceType rdf:resource="&domain;VLAN"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston -->
+
+    <location:Location rdf:about="#NLR/Houston">
+        <wgs84_pos:lat>29.762884</wgs84_pos:lat>
+        <wgs84_pos:long>-95.383061</wgs84_pos:long>
+    </location:Location>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509 -->
+
+    <topology:Device rdf:about="#NLR/Houston/Cisco/6509">
+        <topology:hasSwitchMatrix rdf:resource="#NLR/Houston/Cisco/6509/EthernetSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+    </topology:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/EthernetSwitchingMatrix -->
+
+    <ethernet:EthernetSwitchingMatrix rdf:about="#NLR/Houston/Cisco/6509/EthernetSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&ethernet;EthernetNetworkElement"/>
+    </ethernet:EthernetSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/TenGigabitEtherent/1/1/etherent -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#NLR/Houston/Cisco/6509/TenGigabitEtherent/1/1/etherent">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label
+            >houston.layer2.nlr.net:TenGigabitEthernet1/1</rdfs:label>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label
+            >houston.layer2.nlr.net:TenGigabitEthernet1/1</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet21;fiber"/>
+        <topology:interfaceOf rdf:resource="#NLR/Houston/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/lambda"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/lambda -->
+
+    <dtn:LambdaNetworkElement rdf:about="#NLR/Houston/Cisco/6509/TenGigabitEthernet/1/1/lambda">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/Houston/Cisco/6509/TenGigabitEtherent/1/1/etherent"/>
+    </dtn:LambdaNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Houston/PoP -->
+
+    <collections:Set rdf:about="#NLR/Houston/PoP">
+        <location:locatedAt rdf:resource="#NLR/Houston"/>
+        <collections:element rdf:resource="#NLR/Houston/Cisco/6509"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Mass/PoP -->
+
+    <collections:Set rdf:about="#NLR/Mass/PoP">
+        <location:locatedAt rdf:resource="&mass;UMass"/>
+        <collections:element rdf:resource="#NLR/BBN/Cisco/6509"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509 -->
+
+    <topology:Device rdf:about="#NLR/Renci/Cisco/6509">
+        <rdfs:label>6509</rdfs:label>
+        <topology:hasSwitchMatrix rdf:resource="#NLR/Renci/Cisco/6509/EthernetSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+        <topology:hasInterface rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/fiber"/>
+    </topology:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/EthernetSwitchingMatrix -->
+
+    <ethernet:EthernetSwitchingMatrix rdf:about="#NLR/Renci/Cisco/6509/EthernetSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&ethernet;EthernetNetworkElement"/>
+    </ethernet:EthernetSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/ethernet -->
+
+    <topology:Interface rdf:about="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/Renci/Cisco/6509/availableVLANSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/fiber -->
+
+    <topology:Interface rdf:about="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/fiber">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <dtn:WDM rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/lambda"/>
+        <topology:linkTo rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/lambda -->
+
+    <topology:Interface rdf:about="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <topology:interfaceOf rdf:resource="#NLR/Renci/Cisco/6509"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/ethernet -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/ethernet">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label
+            >rale.layer2.nlr.net:TenGigabitEthernet2/2</rdfs:label>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/Renci/Cisco/6509/availableVLANSet"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/fiber -->
+
+    <topology:Interface rdf:about="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <rdfs:label
+            >rale.layer2.nlr.net:TenGigabitEthernet2/2</rdfs:label>
+        <topology:linkTo rdf:resource="&TenGigabitEthernet19;fiber"/>
+        <topology:interfaceOf rdf:resource="#NLR/Renci/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/lambda"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/lambda -->
+
+    <dtn:LambdaNetworkElement rdf:about="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/lambda">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/2/ethernet"/>
+    </dtn:LambdaNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Cisco/6509/availableVLANSet -->
+
+    <layer:LabelSet rdf:about="#NLR/Renci/Cisco/6509/availableVLANSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/Csico/6509/availableLabelSet/1 -->
+
+    <layer:LabelRange rdf:about="#NLR/Renci/Csico/6509/availableLabelSet/1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/Renci/PoP -->
+
+    <collections:Set rdf:about="#NLR/Renci/PoP">
+        <location:locatedAt rdf:resource="&ben;Renci"/>
+        <collections:element rdf:resource="#NLR/Renci/Cisco/6509"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509 -->
+
+    <topology:Device rdf:about="#NLR/StarLight/Cisco/6509">
+        <rdfs:label>6509</rdfs:label>
+        <topology:hasSwitchMatrix rdf:resource="#NLR/StarLight/Cisco/6509/EthernetSwitchingMatrix"/>
+        <topology:hasInterface rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+        <topology:hasInterface rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/fiber"/>
+    </topology:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/EthernetSwitchingMatrix -->
+
+    <ethernet:EthernetSwitchingMatrix rdf:about="#NLR/StarLight/Cisco/6509/EthernetSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&ethernet;EthernetNetworkElement"/>
+    </ethernet:EthernetSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/ethernet -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/ethernet">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/StarLight/Cisco/6509/availableVLANSet"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <topology:linkTo rdf:resource="#NLR/Renci/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+        <topology:interfaceOf rdf:resource="#NLR/StarLight/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/lambda"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/lambda -->
+
+    <dtn:LambdaNetworkElement rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/lambda">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/1/ethernet"/>
+    </dtn:LambdaNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/ethernet -->
+
+    <ethernet:EthernetNetworkElement rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/ethernet">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/StarLight/Cisco/6509/availableVLANSet"/>
+    </ethernet:EthernetNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/fiber -->
+
+    <topology:Interface rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/fiber">
+        <rdf:type rdf:resource="&dtn;FiberNetworkElement"/>
+        <topology:linkTo rdf:resource="#NLR/BBN/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+        <topology:interfaceOf rdf:resource="#NLR/StarLight/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/lambda"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/lambda -->
+
+    <dtn:LambdaNetworkElement rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/lambda">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/2/ethernet"/>
+    </dtn:LambdaNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/ethernet -->
+
+    <topology:Interface rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/ethernet">
+        <rdf:type rdf:resource="&ethernet;EthernetNetworkElement"/>
+        <rdfs:label
+            >chic.layer2.nlr.net:GigabitEthernet9/10</rdfs:label>
+        <layer:bandwidth rdf:datatype="&xsd;long">10000000000</layer:bandwidth>
+        <layer:hasBitRate rdf:resource="&layer;10G"/>
+        <ethernet:availableVLANSet rdf:resource="#NLR/StarLight/Cisco/6509/availableVLANSet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/fiber -->
+
+    <dtn:FiberNetworkElement rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/fiber">
+        <rdf:type rdf:resource="&topology;Interface"/>
+        <rdfs:label
+            >chic.layer2.nlr.net:GigabitEthernet9/10</rdfs:label>
+        <topology:interfaceOf rdf:resource="#NLR/StarLight/Cisco/6509"/>
+        <dtn:WDM rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/lambda"/>
+        <topology:linkTo rdf:resource="&starlight;StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+    </dtn:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/lambda -->
+
+    <topology:Interface rdf:about="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/lambda">
+        <rdf:type rdf:resource="&dtn;LambdaNetworkElement"/>
+        <dtn:TenGbase-R rdf:resource="#NLR/StarLight/Cisco/6509/TenGigabitEthernet/1/3/ethernet"/>
+    </topology:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Cisco/6509/availableVLANSet -->
+
+    <layer:LabelSet rdf:about="#NLR/StarLight/Cisco/6509/availableVLANSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/Csico/6509/availableLabelSet/1 -->
+
+    <layer:LabelRange rdf:about="#NLR/StarLight/Csico/6509/availableLabelSet/1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#NLR/StarLight/PoP -->
+
+    <collections:Set rdf:about="#NLR/StarLight/PoP">
+        <collections:element rdf:resource="#NLR/StarLight/Cisco/6509"/>
+        <location:locatedAt rdf:resource="&starlight;StarLight"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/nlr.rdf#nlr/Domain -->
+
+    <topology:NetworkDomain rdf:about="#nlr/Domain">
+        <layer:isLabelProducer rdf:datatype="&xsd;boolean">true</layer:isLabelProducer>
+        <collections:element rdf:resource="#NLR/BBN/PoP"/>
+        <domain:hasService rdf:resource="#NLR/Domain/NetworkService/1"/>
+        <collections:element rdf:resource="#NLR/Houston/PoP"/>
+        <collections:element rdf:resource="#NLR/Mass/PoP"/>
+        <collections:element rdf:resource="#NLR/Renci/PoP"/>
+        <collections:element rdf:resource="#NLR/StarLight/PoP"/>
+    </topology:NetworkDomain>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/starlight.rdf#StarLight -->
+
+    <rdf:Description rdf:about="&starlight;StarLight"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/starlight.rdf#StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber -->
+
+    <rdf:Description rdf:about="&starlight;StarLight/Cisco/6509/TenGigabitEthernet/1/1/fiber"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

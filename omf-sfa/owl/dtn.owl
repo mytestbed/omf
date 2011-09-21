@@ -1,0 +1,1165 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY dtn "http://geni-orca.renci.org/owl/dtn.owl#" >
+    <!ENTITY dtn7 "http://geni-orca.renci.org/owl/dtn.owl#2" >
+    <!ENTITY dtn2 "http://geni-orca.renci.org/owl/dtn.owl#1" >
+    <!ENTITY dtn5 "http://geni-orca.renci.org/owl/dtn.owl#25" >
+    <!ENTITY dtn3 "http://geni-orca.renci.org/owl/dtn.owl#10" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY layer6 "http://geni-orca.renci.org/owl/layer.owl#1" >
+    <!ENTITY layer3 "http://geni-orca.renci.org/owl/layer.owl#2" >
+    <!ENTITY dtn6 "http://geni-orca.renci.org/owl/dtn.owl#125" >
+    <!ENTITY layer2 "http://geni-orca.renci.org/owl/layer.owl#10" >
+    <!ENTITY layer4 "http://geni-orca.renci.org/owl/layer.owl#40" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY dtn4 "http://geni-orca.renci.org/owl/dtn.owl#1000" >
+    <!ENTITY layer5 "http://geni-orca.renci.org/owl/layer.owl#100" >
+    <!ENTITY ndl "http://geni-orca.renci.org/owl/topology.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/dtn.owl#"
+     xml:base="http://geni-orca.renci.org/owl/dtn.owl"
+     xmlns:layer2="&layer;10"
+     xmlns:dtn4="&dtn;1000"
+     xmlns:dtn5="&dtn;25"
+     xmlns:layer4="&layer;40"
+     xmlns:dtn2="&dtn;1"
+     xmlns:layer3="&layer;2"
+     xmlns:dtn3="&dtn;10"
+     xmlns:layer6="&layer;1"
+     xmlns:layer5="&layer;100"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:ndl="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:dtn6="&dtn;125"
+     xmlns:dtn7="&dtn;2"
+     xmlns:dtn="http://geni-orca.renci.org/owl/dtn.owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/layer.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/topology.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#1000base-X -->
+
+    <owl:ObjectProperty rdf:about="#1000base-X">
+        <rdfs:domain rdf:resource="#LambdaNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OC192-in-Lambda -->
+
+    <owl:ObjectProperty rdf:about="#OC192-in-Lambda">
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OC768-in-Lambda -->
+
+    <owl:ObjectProperty rdf:about="#OC768-in-Lambda">
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG -->
+
+    <owl:ObjectProperty rdf:about="#OCG">
+        <rdfs:domain rdf:resource="#FiberNetworkElement"/>
+        <rdfs:range rdf:resource="#OCGNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU-in-Lambda -->
+
+    <owl:ObjectProperty rdf:about="#ODU-in-Lambda">
+        <rdfs:domain rdf:resource="#LambdaNetworkElement"/>
+        <rdfs:range rdf:resource="#ODUSwitchingMatrix"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#TenGbase-R -->
+
+    <owl:ObjectProperty rdf:about="#TenGbase-R">
+        <rdfs:domain rdf:resource="#LambdaNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WDM -->
+
+    <owl:ObjectProperty rdf:about="#WDM">
+        <rdfs:range rdf:resource="#LambdaNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#FiberNetworkElement"/>
+                    <rdf:Description rdf:about="#OCGNetworkElement"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#availableLambdaSet -->
+
+    <owl:ObjectProperty rdf:about="#availableLambdaSet">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#OCGNetworkElement"/>
+        <rdfs:range rdf:resource="&layer;LabelSet"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;availableLabelSet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#availableOCGSet -->
+
+    <owl:ObjectProperty rdf:about="#availableOCGSet">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#FiberNetworkElement"/>
+        <rdfs:range rdf:resource="&layer;LabelSet"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;availableLabelSet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#centralFrequency -->
+
+    <owl:ObjectProperty rdf:about="#centralFrequency">
+        <rdfs:range rdf:resource="#CentralFrequency"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#centralWavelength -->
+
+    <owl:ObjectProperty rdf:about="#centralWavelength">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="#CentralWavelength"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#hasOTNUnitBitRate -->
+
+    <owl:ObjectProperty rdf:about="#hasOTNUnitBitRate">
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#hasTimeSlotGranularity -->
+
+    <owl:ObjectProperty rdf:about="#hasTimeSlotGranularity">
+        <rdfs:domain rdf:resource="#ODUSwitchingMatrix"/>
+        <rdfs:range rdf:resource="&layer;BitRate"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ocg -->
+
+    <owl:ObjectProperty rdf:about="#ocg">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="#OCGLabel"/>
+        <rdfs:domain rdf:resource="#OCGNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;label"/>
+        <rdfs:domain rdf:resource="&ndl;Interface"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ocgGroup -->
+
+    <owl:ObjectProperty rdf:about="#ocgGroup">
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ocgLine -->
+
+    <owl:ObjectProperty rdf:about="#ocgLine">
+        <rdfs:comment
+            >In DTN, a DLM (hosting the trib TAM ports) can be wired to an OCG port (must be the right OCG group, DLM is OCG specific) as the prefered crossconnect line side end point.</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+        <rdfs:range rdf:resource="&ndl;Interface"/>
+        <rdfs:domain rdf:resource="&ndl;Interface"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#odu -->
+
+    <owl:ObjectProperty rdf:about="#odu">
+        <rdfs:range rdf:resource="#ODULabel"/>
+        <rdfs:domain rdf:resource="#ODUNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;label"/>
+        <rdfs:domain rdf:resource="&ndl;Interface"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#oduUnit -->
+
+    <owl:ObjectProperty rdf:about="#oduUnit">
+        <rdfs:range rdf:resource="#ODU"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#otuUnit -->
+
+    <owl:ObjectProperty rdf:about="#otuUnit">
+        <rdfs:range rdf:resource="#OTU"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#spacingDistance -->
+
+    <owl:ObjectProperty rdf:about="#spacingDistance">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="#SpacingDistance"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#strand -->
+
+    <owl:ObjectProperty rdf:about="#strand">
+        <rdfs:subPropertyOf rdf:resource="&layer;label"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#usedLambdaSet -->
+
+    <owl:ObjectProperty rdf:about="#usedLambdaSet">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#OCGNetworkElement"/>
+        <rdfs:range rdf:resource="&layer;LabelSet"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;usedLabelSet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#usedOCGSet -->
+
+    <owl:ObjectProperty rdf:about="#usedOCGSet">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#FiberNetworkElement"/>
+        <rdfs:range rdf:resource="&layer;LabelSet"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;usedLabelSet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#wavelength -->
+
+    <owl:ObjectProperty rdf:about="#wavelength">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#LambdaNetworkElement"/>
+        <rdfs:range rdf:resource="#WavelengthLabel"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;label"/>
+        <rdfs:domain rdf:resource="&ndl;Interface"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#AdaptationProperty -->
+
+    <owl:ObjectProperty rdf:about="&layer;AdaptationProperty"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#availableLabelSet -->
+
+    <owl:ObjectProperty rdf:about="&layer;availableLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#feature -->
+
+    <owl:ObjectProperty rdf:about="&layer;feature"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#hasBitRate -->
+
+    <owl:ObjectProperty rdf:about="&layer;hasBitRate"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#label -->
+
+    <owl:ObjectProperty rdf:about="&layer;label"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#switchingCapability -->
+
+    <owl:ObjectProperty rdf:about="&layer;switchingCapability"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#usedLabelSet -->
+
+    <owl:ObjectProperty rdf:about="&layer;usedLabelSet"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#maxOCG -->
+
+    <owl:DatatypeProperty rdf:about="#maxOCG">
+        <rdfs:domain rdf:resource="#FiberNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;maxLabelSet"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#maxTimeSlot -->
+
+    <owl:DatatypeProperty rdf:about="#maxTimeSlot">
+        <rdfs:subPropertyOf rdf:resource="&layer;maxLabelSet"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#maxWavelength -->
+
+    <owl:DatatypeProperty rdf:about="#maxWavelength">
+        <rdfs:domain rdf:resource="#OCGNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;maxLabelSet"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#numOTNUnitBitRate -->
+
+    <owl:DatatypeProperty rdf:about="#numOTNUnitBitRate">
+        <rdfs:subPropertyOf rdf:resource="&layer;metric"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#ODU"/>
+                    <rdf:Description rdf:about="#OTU"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#sn -->
+
+    <owl:DatatypeProperty rdf:about="#sn">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="&layer;Label"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#maxLabelSet -->
+
+    <owl:DatatypeProperty rdf:about="&layer;maxLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#metric -->
+
+    <owl:DatatypeProperty rdf:about="&layer;metric"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#CentralFrequency -->
+
+    <owl:Class rdf:about="#CentralFrequency">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+        <rdfs:subClassOf rdf:resource="&xsd;float"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#CentralWavelength -->
+
+    <owl:Class rdf:about="#CentralWavelength">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+        <rdfs:subClassOf rdf:resource="&xsd;float"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#CladdingType -->
+
+    <owl:Class rdf:about="#CladdingType">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ConnectorType -->
+
+    <owl:Class rdf:about="#ConnectorType">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberLabel -->
+
+    <owl:Class rdf:about="#FiberLabel">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberNetworkElement -->
+
+    <owl:Class rdf:about="#FiberNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#availableOCGSet"/>
+                <owl:someValuesFrom rdf:resource="#OCGLabelSet"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#maxOCG"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="&xsd;integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberSwitchingMatrix -->
+
+    <owl:Class rdf:about="#FiberSwitchingMatrix">
+        <rdfs:subClassOf rdf:resource="&ndl;SwitchMatrix"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;switchingCapability"/>
+                <owl:allValuesFrom rdf:resource="#FiberNetworkElement"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaLabelSet -->
+
+    <owl:Class rdf:about="#LambdaLabelSet">
+        <rdfs:subClassOf rdf:resource="&layer;LabelSet"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaNetworkElement -->
+
+    <owl:Class rdf:about="#LambdaNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#otuUnit"/>
+                <owl:onClass rdf:resource="#OTU"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment
+            >For the OTN network, the OTU and OCh are treated as the same layer. A specific OTU type (1,2,3,4) is defined by the #timeslot constraint.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaSwitchingMatrix -->
+
+    <owl:Class rdf:about="#LambdaSwitchingMatrix">
+        <rdfs:subClassOf rdf:resource="&ndl;SwitchMatrix"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;switchingCapability"/>
+                <owl:allValuesFrom rdf:resource="#LambdaNetworkElement"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGGroup -->
+
+    <owl:Class rdf:about="#OCGGroup">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#centralWavelength"/>
+                <owl:onClass rdf:resource="#CentralWavelength"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#spacingDistance"/>
+                <owl:onClass rdf:resource="#SpacingDistance"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#centralFrequency"/>
+                <owl:onClass rdf:resource="#CentralFrequency"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#maxWavelength"/>
+                <owl:someValuesFrom rdf:resource="&xsd;integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGLabel -->
+
+    <owl:Class rdf:about="#OCGLabel">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGLabelSet -->
+
+    <owl:Class rdf:about="#OCGLabelSet">
+        <rdfs:subClassOf rdf:resource="&layer;LabelSet"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGNetworkElement -->
+
+    <owl:Class rdf:about="#OCGNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#ocgGroup"/>
+                <owl:onClass rdf:resource="#OCGGroup"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#maxWavelength"/>
+                <owl:cardinality rdf:datatype="&xsd;nonNegativeInteger">10</owl:cardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#availableLambdaSet"/>
+                <owl:someValuesFrom rdf:resource="#LambdaLabelSet"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGSwitchingMatrix -->
+
+    <owl:Class rdf:about="#OCGSwitchingMatrix">
+        <rdfs:subClassOf rdf:resource="&ndl;SwitchMatrix"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;switchingCapability"/>
+                <owl:allValuesFrom rdf:resource="#OCGNetworkElement"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU -->
+
+    <owl:Class rdf:about="#ODU">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODULabel -->
+
+    <owl:Class rdf:about="#ODULabel">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODUNetworkElement -->
+
+    <owl:Class rdf:about="#ODUNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#odu"/>
+                <owl:onClass rdf:resource="#ODU"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment
+            >For the OTN network, from [GMPLS] perspective, all ODU format are treated as in the same layer, so that they can be linked together in a connection.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODUSwitchingMatrix -->
+
+    <owl:Class rdf:about="#ODUSwitchingMatrix">
+        <rdfs:subClassOf rdf:resource="&ndl;SwitchMatrix"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;switchingCapability"/>
+                <owl:someValuesFrom rdf:resource="#ODUNetworkElement"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU -->
+
+    <owl:Class rdf:about="#OTU">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SonetNetworkElement -->
+
+    <owl:Class rdf:about="#SonetNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SpacingDistance -->
+
+    <owl:Class rdf:about="#SpacingDistance">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+        <rdfs:subClassOf rdf:resource="&xsd;float"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#TransceiverType -->
+
+    <owl:Class rdf:about="#TransceiverType">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WavelengthLabel -->
+
+    <owl:Class rdf:about="#WavelengthLabel">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#AdaptationProperty -->
+
+    <owl:Class rdf:about="&layer;AdaptationProperty"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#BitRate -->
+
+    <owl:Class rdf:about="&layer;BitRate"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Feature -->
+
+    <owl:Class rdf:about="&layer;Feature"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Label -->
+
+    <owl:Class rdf:about="&layer;Label"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelSet -->
+
+    <owl:Class rdf:about="&layer;LabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Layer -->
+
+    <owl:Class rdf:about="&layer;Layer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Interface -->
+
+    <owl:Class rdf:about="&ndl;Interface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#LayerNetworkElement -->
+
+    <owl:Class rdf:about="&ndl;LayerNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#SwitchMatrix -->
+
+    <owl:Class rdf:about="&ndl;SwitchMatrix"/>
+    
+
+
+    <!-- http://www.w3.org/2001/XMLSchema#float -->
+
+    <owl:Class rdf:about="&xsd;float"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#1000base-X -->
+
+    <layer:AdaptationProperty rdf:about="#1000base-X"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#CWDM -->
+
+    <SpacingDistance rdf:about="#CWDM"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FC-Connector -->
+
+    <ConnectorType rdf:about="#FC-Connector"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberNetworkElement -->
+
+    <layer:Layer rdf:about="#FiberNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#GBIC -->
+
+    <TransceiverType rdf:about="#GBIC"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LC-Connector -->
+
+    <ConnectorType rdf:about="#LC-Connector"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#LambdaNetworkElement -->
+
+    <layer:Layer rdf:about="#LambdaNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#MultiMode -->
+
+    <CladdingType rdf:about="#MultiMode"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OC192-in-Lambda -->
+
+    <layer:AdaptationProperty rdf:about="#OC192-in-Lambda"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OC768-in-Lambda -->
+
+    <layer:AdaptationProperty rdf:about="#OC768-in-Lambda"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG -->
+
+    <layer:AdaptationProperty rdf:about="#OCG"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG1 -->
+
+    <OCGGroup rdf:about="#OCG1">
+        <sn rdf:datatype="&xsd;integer">1</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG2 -->
+
+    <OCGGroup rdf:about="#OCG2">
+        <sn rdf:datatype="&xsd;integer">2</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG3 -->
+
+    <OCGGroup rdf:about="#OCG3">
+        <sn rdf:datatype="&xsd;integer">3</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG4 -->
+
+    <OCGGroup rdf:about="#OCG4">
+        <sn rdf:datatype="&xsd;integer">4</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG5 -->
+
+    <OCGGroup rdf:about="#OCG5">
+        <sn rdf:datatype="&xsd;integer">5</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG6 -->
+
+    <OCGGroup rdf:about="#OCG6">
+        <sn rdf:datatype="&xsd;integer">6</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG7 -->
+
+    <OCGGroup rdf:about="#OCG7">
+        <sn rdf:datatype="&xsd;integer">7</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCG8 -->
+
+    <OCGGroup rdf:about="#OCG8">
+        <sn rdf:datatype="&xsd;integer">8</sn>
+    </OCGGroup>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OCGNetworkElement -->
+
+    <layer:Layer rdf:about="#OCGNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU-in-Lambda -->
+
+    <layer:AdaptationProperty rdf:about="#ODU-in-Lambda"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU0 -->
+
+    <ODU rdf:about="#ODU0">
+        <layer:hasBitRate rdf:resource="&layer;1G25"/>
+    </ODU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU1 -->
+
+    <ODU rdf:about="#ODU1">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">1</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </ODU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU2 -->
+
+    <ODU rdf:about="#ODU2">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">4</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </ODU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU3 -->
+
+    <ODU rdf:about="#ODU3">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">16</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </ODU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODU4 -->
+
+    <ODU rdf:about="#ODU4">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">40</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </ODU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODUNetworkElement -->
+
+    <layer:Layer rdf:about="#ODUNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ODUflex -->
+
+    <ODU rdf:about="#ODUflex"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTNUnitBitRate -->
+
+    <layer:BitRate rdf:about="#OTNUnitBitRate">
+        <layer:hasBitRate rdf:resource="&layer;1G25"/>
+    </layer:BitRate>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU1 -->
+
+    <OTU rdf:about="#OTU1">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">1</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </OTU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU2 -->
+
+    <OTU rdf:about="#OTU2">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">4</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </OTU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU3 -->
+
+    <OTU rdf:about="#OTU3">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">16</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </OTU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#OTU4 -->
+
+    <OTU rdf:about="#OTU4">
+        <numOTNUnitBitRate rdf:datatype="&xsd;integer">40</numOTNUnitBitRate>
+        <hasOTNUnitBitRate rdf:resource="#OTNUnitBitRate"/>
+    </OTU>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SC-Connector -->
+
+    <ConnectorType rdf:about="#SC-Connector"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SFP -->
+
+    <TransceiverType rdf:about="#SFP"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#ST-Connector -->
+
+    <ConnectorType rdf:about="#ST-Connector"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SingleLambda -->
+
+    <SpacingDistance rdf:about="#SingleLambda"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SingleMode -->
+
+    <CladdingType rdf:about="#SingleMode"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#SonetNetworkElement -->
+
+    <layer:Layer rdf:about="#SonetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#TenGbase-R -->
+
+    <layer:AdaptationProperty rdf:about="#TenGbase-R"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WDM -->
+
+    <layer:AdaptationProperty rdf:about="#WDM"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WWDM-bands -->
+
+    <SpacingDistance rdf:about="#WWDM-bands"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#WWDM-windows -->
+
+    <SpacingDistance rdf:about="#WWDM-windows"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#X2 -->
+
+    <TransceiverType rdf:about="#X2"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#XENPAK -->
+
+    <TransceiverType rdf:about="#XENPAK"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#XFP -->
+
+    <TransceiverType rdf:about="#XFP"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#XPAK -->
+
+    <TransceiverType rdf:about="#XPAK"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#spacing100GHz -->
+
+    <SpacingDistance rdf:about="#spacing100GHz"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#spacing12.5GHz -->
+
+    <SpacingDistance rdf:about="#spacing12.5GHz"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#spacing25GHz -->
+
+    <SpacingDistance rdf:about="#spacing25GHz"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#spacing50GHz -->
+
+    <SpacingDistance rdf:about="#spacing50GHz"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#1G25 -->
+
+    <rdf:Description rdf:about="&layer;1G25"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

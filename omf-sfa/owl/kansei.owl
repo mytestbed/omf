@@ -1,0 +1,511 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY dc "http://purl.org/dc/elements/1.1/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY kansei "http://geni-orca.renci.org/owl/kansei.owl#" >
+    <!ENTITY domain "http://geni-orca.renci.org/owl/domain.owl#" >
+    <!ENTITY storage "http://geni-orca.renci.org/owl/storage.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY compute "http://geni-orca.renci.org/owl/compute.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/kansei.owl#"
+     xml:base="http://geni-orca.renci.org/owl/kansei.owl"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:kansei="http://geni-orca.renci.org/owl/kansei.owl#"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:domain="http://geni-orca.renci.org/owl/domain.owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:compute="http://geni-orca.renci.org/owl/compute.owl#"
+     xmlns:storage="http://geni-orca.renci.org/owl/storage.owl#">
+    <owl:Ontology rdf:about="http://geni-orca.renci.org/owl/kansei.owl">
+        <dc:contributor>Ilia Baldine</dc:contributor>
+        <rdfs:comment>KanseiGenie compute element ontology</rdfs:comment>
+        <rdfs:isDefinedBy>RENCI
+UNC-Chapel Hill
+Sep. 8 2011
+ibaldin@renci.org</rdfs:isDefinedBy>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/compute.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/domain.owl"/>
+        <owl:versionIRI rdf:resource="http://geni-orca.renci.org/owl/kansei-v1.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/storage.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#switchingCapability -->
+
+    <rdf:Description rdf:about="&layer;switchingCapability">
+        <rdfs:subPropertyOf rdf:resource="&layer;tunnelingCapability"/>
+    </rdf:Description>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#ATmega128L -->
+
+    <owl:Class rdf:about="&kansei;ATmega128L">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&kansei;AtmelAVR8"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vendor"/>
+                        <owl:hasValue rdf:resource="&compute;Atmel"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;clockFrequency"/>
+                        <owl:hasValue>16MHz</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUCores"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#IMoteCE -->
+
+    <owl:Class rdf:about="&kansei;IMoteCE">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&kansei;IMote"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&kansei;PXA271"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;None"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>256kB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>32MB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&kansei;KanseiGenieCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#IntelCeleronM -->
+
+    <owl:Class rdf:about="&kansei;IntelCeleronM">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&compute;x86"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vendor"/>
+                        <owl:hasValue rdf:resource="&compute;Intel"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUCores"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#KanseiGenieCE -->
+
+    <owl:Class rdf:about="&kansei;KanseiGenieCE">
+        <rdfs:subClassOf rdf:resource="&compute;ClassifiedComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#KanseiGenieTestbed -->
+
+    <owl:Class rdf:about="&kansei;KanseiGenieTestbed">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&compute;virtualize"/>
+                <owl:someValuesFrom rdf:resource="&kansei;KanseiGenieCE"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;Testbed"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#LaptopKanseiCE -->
+
+    <owl:Class rdf:about="&kansei;LaptopKanseiCE">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&kansei;IntelCeleronM"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;None"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>200MB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>80GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&kansei;KanseiGenieCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#MSP430 -->
+
+    <owl:Class rdf:about="&kansei;MSP430">
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#MoteType -->
+
+    <owl:Class rdf:about="&kansei;MoteType">
+        <rdfs:subClassOf rdf:resource="&compute;ComputeElementType"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#PXA271 -->
+
+    <owl:Class rdf:about="&kansei;PXA271">
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#PXA55 -->
+
+    <owl:Class rdf:about="&kansei;PXA55">
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#StarGateCE -->
+
+    <owl:Class rdf:about="&kansei;StarGateCE">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&kansei;StarGate"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&kansei;PXA55"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;None"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>64MB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>32MB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&kansei;KanseiGenieCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#TelosBCE -->
+
+    <owl:Class rdf:about="&kansei;TelosBCE">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&kansei;TelosB"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&kansei;MSP430"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;None"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>10KB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>1MB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&kansei;KanseiGenieCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#XSMCE -->
+
+    <owl:Class rdf:about="&kansei;XSMCE">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&kansei;XSM"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&kansei;ATmega128L"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;None"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>4KB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>512KB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&kansei;KanseiGenieCE"/>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#ATmega128L -->
+
+    <owl:NamedIndividual rdf:about="&kansei;ATmega128L">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#AtmelAVR8 -->
+
+    <owl:NamedIndividual rdf:about="&kansei;AtmelAVR8">
+        <rdf:type rdf:resource="&compute;CPUArchitecture"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#IMote -->
+
+    <owl:NamedIndividual rdf:about="&kansei;IMote">
+        <rdf:type rdf:resource="&kansei;MoteType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#IMoteCE -->
+
+    <owl:NamedIndividual rdf:about="&kansei;IMoteCE">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#IntelCeleronM -->
+
+    <owl:NamedIndividual rdf:about="&kansei;IntelCeleronM">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#LaptopKanseiCE -->
+
+    <owl:NamedIndividual rdf:about="&kansei;LaptopKanseiCE">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#MSP430 -->
+
+    <owl:NamedIndividual rdf:about="&kansei;MSP430">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#PXA271 -->
+
+    <owl:NamedIndividual rdf:about="&kansei;PXA271">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#PXA55 -->
+
+    <owl:NamedIndividual rdf:about="&kansei;PXA55">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#StarGate -->
+
+    <owl:NamedIndividual rdf:about="&kansei;StarGate">
+        <rdf:type rdf:resource="&kansei;MoteType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#StarGateCE -->
+
+    <owl:NamedIndividual rdf:about="&kansei;StarGateCE">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#TelosB -->
+
+    <owl:NamedIndividual rdf:about="&kansei;TelosB">
+        <rdf:type rdf:resource="&kansei;MoteType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#TelosBCE -->
+
+    <owl:NamedIndividual rdf:about="&kansei;TelosBCE">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#XSM -->
+
+    <owl:NamedIndividual rdf:about="&kansei;XSM">
+        <rdf:type rdf:resource="&kansei;MoteType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/kansei.owl#XSMCE -->
+
+    <owl:NamedIndividual rdf:about="&kansei;XSMCE">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.3.22702) http://owlapi.sourceforge.net -->
+
