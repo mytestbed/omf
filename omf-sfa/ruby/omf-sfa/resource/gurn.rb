@@ -9,23 +9,22 @@ module OMF::SFA::Resource
     @@def_prefix = 'urn:publicid:IDN+mytestbed.net'
     @@name2obj = {}
     
-    def self.create(name, context = nil)
-      puts "GUID: #{name}###{context}"
+    def self.sfa_create(name, context)
+      #puts "GUID: #{name}###{context}"
+
       obj = @@name2obj[name]
       return obj if obj
       
       # sfa_default_prefix()
       unless name.start_with?('urn')
-        if context.respond_to?(:sfa_class)
-          type =  context.sfa_class
+        if context.class.respond_to?(:sfa_class)
+          type =  context.class.sfa_class
           name = "#{@@def_prefix}+#{type}+#{name}"
-        elsif context
-          name = "#{@@def_prefix}+#{context}+#{name}"
         else
           name = "#{@@def_prefix}+#{name}"
         end
       end
-      return self.new(name)
+      return @@name2obj[name] = self.new(name)
     end
     
     def self.default_prefix=(prefix)

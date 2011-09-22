@@ -10,10 +10,13 @@ module OMF::SFA::Resource
     sfa :component_name, String, :attribute => true # "planetlab3-dsl.cs.cornell.edu" 
     sfa :exclusive, :boolean, :is_attribute => true #="false"> 
        
-    def initialize(component_name, component_id = nil)
+    def initialize(component_name = nil, component_id = nil)
+      puts "COM: #{component_name}"
       super(component_name)
-      self.component_name = component_name
-      self.component_id = component_id || component_name
+      # if component_name
+        # self.component_name = component_name
+        # self.component_id = component_id || component_name
+      # end
     end
   end
   

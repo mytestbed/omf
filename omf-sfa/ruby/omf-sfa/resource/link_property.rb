@@ -18,17 +18,22 @@ module OMF::SFA::Resource
      sfa :source_id, GURN, :attribute => true
      sfa :dest_id, GURN, :attribute => true
      
-     @@opts2obj = {}
+     #@@opts2obj = {}  # not sure if shared link properties make sense
      
-     def self.create(opts = {})
+     def self.sfa_create(name_or_def = {}, context = nil)
+       #puts "LINK_PROP: #{name_or_def.inspect}||||#{context}"       
        # o = @@opts2obj[opts]
        # return o if o
        
-       o = self.new
-       opts.each do |k, v|
-         o.sfa_property_set(k, v)
+       if name_or_def.kind_of? Hash
+         o = self.new
+         name_or_def.each do |k, v|
+           o.sfa_property_set(k, v)
+         end
+         return o
+       else
+         raise "Expected Hash as first argument, but got '#{name_or_def.inspect}' instead"
        end
-       o
      end
    end
 end # OMF::SFA::Resource

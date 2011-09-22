@@ -23,8 +23,9 @@ module OMF::SFA
           if name
             sfa_defs()['_class_'] = opts.merge(:name => name.to_s)
           else
-            #puts ">>> #{sfa_def_for('_class_').inspect}"
-            sfa_def_for('_class_')
+            c = sfa_def_for('_class_')
+            #puts ">>> #{c.inspect}"
+            c ? c[:name] : nil
           end
         end
         
@@ -39,19 +40,12 @@ module OMF::SFA
               @values[name] ||= []
             end
             define_method "#{name}_add".to_sym do |val|
-              # if (type == GURN)
-                # val = GURN.create(val, self)
-              # end
-              # @values[name] = val
+              val = self.class.sfa_cast_property_value(val, name, self, type)
               (@values[name] ||= []) << val
             end
             
           else
             define_method "#{name}=".to_sym do |val|
-              # if (type == GURN)
-                # val = GURN.create(val, self)
-              # end
-              # @values[name] = val
               sfa_property_set(name, val)
             end
             define_method name.to_sym do 
@@ -61,9 +55,7 @@ module OMF::SFA
           # This may break in 1.9, then use the cleaner 'define_singleton_method'
           (class << self; self; end).instance_eval do
             define_method "default_#{name}=".to_sym do |val|
-              if (type == GURN)
-                val = GURN.create(val)
-              end
+              val = sfa_cast_property_value(val, name, self, type)
               sfa_def_for(name)[:default] = val
             end
           end  
@@ -115,10 +107,39 @@ module OMF::SFA
           sfa_defs()[name.to_s]
         end
         
+        def sfa_cast_property_value(value, property_name, context, type = nil)
+          name = property_name.to_s
+          unless type
+            pdef = sfa_def_for(name)
+            raise "Unknow SFA property '#{name}'" unless pdef
+            type = pdef[:type]
+          end
+          if type.kind_of?(Symbol)
+            if type == :boolean
+              unless value.kind_of?(TrueClass) || value.kind_of?(FalseClass)
+                raise "Wrong type for '#{name}', is #{value.type}, but should be #{type}"
+              end
+            else 
+              raise "Unknown type '#{type}', use real Class"
+            end
+          elsif !(value.kind_of?(type))
+            if type.respond_to? :sfa_create
+              value = type.sfa_create(value, context)
+            else
+              raise "Wrong type for '#{name}', is #{value.class}, but should be #{type}"
+            end
+  #          puts "XXX>>> #{name}--#{! value.kind_of?(type)}--#{value.class}||#{type}||#{pdef.inspect}"
+            
+          end
+          value
+        end
+        
+        
       end
       
-      def initialize(*args)
-        super *args
+      def initialize()
+        puts ">>>> BASE"
+        super
         @values = {}
       end
       
@@ -131,30 +152,11 @@ module OMF::SFA
       end
       
       def sfa_class()
-        self.class.sfa_class()[:name]
+        self.class.sfa_class()
       end
       
       def sfa_property_set(name, value)
-        pdef = self.class.sfa_def_for(name)
-        raise "Unknow SFA property '#{name}'" unless pdef
-        type = pdef[:type]
-        if type.kind_of?(Symbol)
-          if type == :boolean
-            unless value.kind_of?(TrueClass) || value.kind_of?(FalseClass)
-              raise "Wrong type for '#{name}', is #{value.type}, but should be #{type}"
-            end
-          else 
-            raise "Unknown type '#{type}', use real Class"
-          end
-        elsif !(value.kind_of?(type))
-          if type.respond_to? :create
-            value = type.create(value)
-          else
-            raise "Wrong type for '#{name}', is #{value.class}, but should be #{type}"
-          end
-#          puts "XXX>>> #{name}--#{! value.kind_of?(type)}--#{value.class}||#{type}||#{pdef.inspect}"
-          
-        end
+        value = self.class.sfa_cast_property_value(value, name, self)
         @values[name.to_s] = value
       end
       
@@ -163,8 +165,8 @@ module OMF::SFA
       end
 
       def _xml_name()
-        if pd = self.class.sfa_class
-          return pd[:name]
+        if pd = self.sfa_class
+          return pd
         end
         self.class.name.gsub('::', '_')
       end
