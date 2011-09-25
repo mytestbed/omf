@@ -1,7 +1,6 @@
 
 
-require 'omf-sfa/resource/component'
-require 'omf-sfa/resource/interface'
+require 'omf-sfa/resource/network'
 require 'omf-sfa/resource/link_property'
 
 module OMF::SFA::Resource
@@ -15,13 +14,14 @@ module OMF::SFA::Resource
           # <link_type name="ipv4"/>    
       # </link>  
   
-  class Link < Component
-    sfa_class 'link'
+  class Link < Network
     
-    sfa :link_type, String, :content_attribute => :name
-
-    sfa :interfaces, Interface, :inline => true, :has_many => true
-    sfa :properties, LinkProperty, :inline => true, :has_many => true
+    property :link_type, String
+    #has 2, :interfaces
+    
+    sfa_class 'link'
+    sfa :link_type, :content_attribute => :name
+    #sfa :properties, LinkProperty, :inline => true, :has_many => true
 
     # Override xml serialization of 'interface' 
     def _to_sfa_property_xml(pname, value, res_el, pdef, obj2id, opts)
@@ -34,7 +34,6 @@ module OMF::SFA::Resource
       end
       super
     end
-
   end
   
 end # OMF::SFA

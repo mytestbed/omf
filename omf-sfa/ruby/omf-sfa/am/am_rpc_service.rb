@@ -129,6 +129,21 @@ module OMF::SFA::AM
     private 
   
     def get_resources(slice_urn, available_only)
+      l = OMF::SFA::Resource::Link.create()
+      n1 = OMF::SFA::Resource::Node.create()
+      i1 = OMF::SFA::Resource::Interface.create(:node => n1, :network => l)
+      n2 = OMF::SFA::Resource::Node.create()
+      i2 = OMF::SFA::Resource::Interface.create(:node => n2, :network => l)
+      OMF::SFA::Resource::Component.sfa_advertisement_xml([l, n1, n2])
+    end
+
+
+
+def create_link()
+  l = Link.create()
+  
+  n = Node.first  
+
       p = 'urn:publicid:IDN+am1.mytestbed.net+'
       Nokogiri::XML::Builder.new do |xml|
         now = Time.now
