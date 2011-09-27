@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: omf-resctl-5.4
 Architecture: all
-Depends: wget, omf-common-5.4, wireless-tools, pciutils, iw, hostapd
+Depends: wget, omf-common-5.4, wireless-tools, pciutils, iw, hostapd, usbutils
 Description: OMF Resource Controller
  Client application for the OMF Experiment Controller.
 

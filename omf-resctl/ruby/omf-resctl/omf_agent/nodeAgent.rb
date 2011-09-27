@@ -437,8 +437,18 @@ else
   MObject.info "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
 end
 
+if (File.exist?("/usr/sbin/lsusb"))
+  # Debian/Ubuntu
+  LSUSB="/usr/sbin/lsusb"
+elsif (File.exist?("/sbin/lsusb"))
+  # Fedora
+  LSUSB="/sbin/lsusb"
+else
+  MObject.info "lsusb not found, unable to detect the wireless hardware. Please install the 'usbutils' package."
+end
+
 if (LSPCI)
-  IO.popen("#{LSPCI} | grep 'Network controller: Intel' | /usr/bin/wc -l") {|p|
+  IO.popen("#{LSPCI} | grep 'Network controller: Intel' | wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/intel'
       MObject.info "Have Intel cards"
@@ -446,7 +456,7 @@ if (LSPCI)
       AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
     end
   }
-  IO.popen("#{LSPCI} | grep 'Ethernet controller: Atheros' | /usr/bin/wc -l") {|p|
+  IO.popen("#{LSPCI} | grep 'Ethernet controller: Atheros' | wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/atheros'
       MObject.info "Have Atheros cards - Using MadWifi driver"
@@ -454,7 +464,7 @@ if (LSPCI)
       AgentCommands::DEV_MAPPINGS['net/w1'] = AtherosDevice.new('net/w1', 'ath1')
     end
   }
-  IO.popen("#{LSPCI} | grep 'Network controller: Atheros' | /usr/bin/wc -l") {|p|
+  IO.popen("#{LSPCI} | grep 'Network controller: Atheros' | wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/ath9k'
       MObject.info "Have Atheros cards - Using ath9k driver"
@@ -462,14 +472,21 @@ if (LSPCI)
       AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
     end
   }
-  IO.popen("#{LSPCI} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | /usr/bin/wc -l") {|p|
-    if p.gets.to_i > 0
-      require 'omf-resctl/omf_driver/wimaxcu'
-      MObject.info "Found Intel WiMAX - using wimaxcu interface"
-      AgentCommands::DEV_MAPPINGS['net/x0'] = WimaxcuDevice.new('net/x0', 'wmx0')
-      AgentCommands::DEV_MAPPINGS['net/x1'] = WimaxcuDevice.new('net/x1', 'wmx1')
-    end
+  wimax_count = 0
+  IO.popen("#{LSPCI} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | wc -l") {|p|
+    wimax_count += p.gets.to_i
   }
+  if (LSUSB)
+    IO.popen("#{LSUSB} | grep 'Intel Corp. WiMAX Connection 2400m' | wc -l") {|u|
+      wimax_count += u.gets.to_i
+    }
+  end
+  if wimax_count > 0
+    require 'omf-resctl/omf_driver/wimaxcu'
+    MObject.info "Found Intel WiMAX - using wimaxcu interface"
+    AgentCommands::DEV_MAPPINGS['net/x0'] = WimaxcuDevice.new('net/x0', 'wmx0')
+    AgentCommands::DEV_MAPPINGS['net/x1'] = WimaxcuDevice.new('net/x1', 'wmx1')
+  end
 end
 
 #

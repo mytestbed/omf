@@ -62,7 +62,7 @@ class WimaxcuDevice < WimaxDevice
         return nil if @network.nil?
         cmd = "#{@wimaxcu} ron ; #{@wimaxcu} dconnect; #{@wimaxcu} connect network #{@network};"
     else
-      raise "Unknown mode '#{@mode}'. Should be 'profile', or 'network'"
+      raise "Unknown mode '#{@mode}'. Should be 'profile' or 'network'"
     end
     return cmd
   end
@@ -80,7 +80,7 @@ class WimaxcuDevice < WimaxDevice
     @propertyList[prop.to_sym] = value
     case prop
       when "profile"
-		@mode = :profile
+        @mode = :profile
         @profile = value
         return buildCmd
 
