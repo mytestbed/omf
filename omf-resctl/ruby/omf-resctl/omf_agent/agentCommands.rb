@@ -705,6 +705,9 @@ module AgentCommands
     MObject.debug("Starting Slave RC with: '#{cmd}'")
     ExecApp.new(:SLAVE_RC, controller, cmd)
     
+    # wait for the Slave RC to start
+    sleep 10
+    
     # Now Start a Slave EC
     cmd = "#{SLAVE_EC_CMD} -C #{SLAVE_EC_CFG} "+
                           "--slice #{controller.agentSlice} "+
