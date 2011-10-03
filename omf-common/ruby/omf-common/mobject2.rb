@@ -140,6 +140,7 @@ module OMF::Common
   
   class MObject
     include Loggable
+    extend Loggable    
     
     def initialize(logCategory = nil)
       _logger(logCategory)

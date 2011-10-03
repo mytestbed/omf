@@ -2,34 +2,6 @@ require 'rubygems'
 require 'dm-core'
 
 
-
-
-
-      
-
-
-
-module Pagination
-  module ClassMethods
-    def foo
-      puts 'FOO CLASS'
-    end
-  end
-  module InstanceMethods
-    def foo
-      puts "FOO INSTANCE #{self.class}"
-    end
-  end
-end
-
-class R
-  include DataMapper::Resource
-    
-    property :id,   Serial
-    property :rtype, Discriminator
-  
-end
-
 DataMapper::Logger.new($stdout, :debug)
 #DataMapper.setup(:default, :adapter => :in_memory)
 DataMapper.setup(:default, :adapter => 'yaml', :path => '/tmp/test.yaml')
