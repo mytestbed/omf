@@ -89,7 +89,7 @@ module OMF::SFA
           when 'AnnotationProperty'
             # ignore
           else
-            warn "Unknown eleement '#{el.node_name}' in '#{@uri}'"
+            warn "Unknown element '#{el.node_name}' in '#{@uri}'"
           end
         end
 
