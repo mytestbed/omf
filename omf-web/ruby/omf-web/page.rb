@@ -4,6 +4,11 @@ class Page < Erector::Widget
   
   depends_on :css, "/resource/css/omf_ec.css"
   depends_on :css, '/resource/css/yui-grids-min.css'
+  
+  # HACK ALERT! THe next two lines shouldn't be here
+  depends_on :js, '/resource/js/jquery.js'
+  depends_on :js, '/resource/js/jquery.periodicalupdater.js'
+  
 #  depends_on :css, "coderay.css"
 #  depends_on :css, "/css/salsa_picante.css", :media => "print"
 

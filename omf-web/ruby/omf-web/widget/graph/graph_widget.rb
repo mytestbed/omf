@@ -36,13 +36,21 @@ module OMF::Web::Widget::Graph
     # respective graph widget and hand it on.
     #
     def on_ws_open(ws)
+      puts ">>>> ON_WS_OPEN"
       @ws = ws
       if @data_source
-        @data_source.on_row_added(self) do |row|
-          #puts "ROW: #{row.inspect}"
-          update = [{:data => @data_source.rows}]
-          ws.send_data update.to_json
-        end
+        if @data_source.respond_to? :on_row_added
+          @data_source.on_row_added(self) do |row|
+            #puts "ROW: #{row.inspect}"
+            update = [{:data => @data_source.rows}]
+            ws.send_data update.to_json
+          end
+        elsif @data_source.respond_to? :on_update
+          @data_source.on_update(self) do |data|
+            update = [{:data => data}]
+            ws.send_data update.to_json
+          end
+        end        
       end
     end
     
@@ -52,6 +60,15 @@ module OMF::Web::Widget::Graph
         # cancel callback
         @data_source.on_row_added(self)
       end
+    end
+    
+    def update()
+      data = nil
+      if @data_source
+        data = @data_source.update(self)
+      end
+      
+      {:data => data, :opts => {}}.to_json  
     end
     
 
@@ -70,14 +87,15 @@ module OMF::Web::Widget::Graph
     end
     
     def get_static_js()
-      if @data_source
-        #@gopts[:data] = [{:data => @data_source.rows}]
+      if @data_source.respond_to? :rows
         @gopts[:data] = @data_source.rows
+      elsif @data_source.respond_to? :init
+        @gopts[:data] = @data_source.init(self)
       end
       "var #{@js_var_name} = new #{@js_func_name}(#{@gopts.to_json});"
     end
     
-    def get_dynamic_js()
+    def get_dynamic_js2()
       return "" unless (dopts = @gd.opts[:dynamic])
       
       dopts = {} if dopts == true # :dynamic => true is valid option
@@ -129,6 +147,58 @@ module OMF::Web::Widget::Graph
         }
       }
     end
+
+    def get_dynamic_js()
+      return "" unless (dopts = @gd.opts[:dynamic])
+      
+      dopts = {} if dopts == true # :dynamic => true is valid option
+      unless (updateInterval = dopts[:updateInterval]) 
+        updateInterval = 3
+      end 
+      %{
+        var ws#{@base_id};
+        if (false) {
+          var url = 'ws://' + window.location.host + '/_ws';
+          var ws = ws#{@base_id} = new WebSocket(url);
+          ws.onopen = function() {
+            ws.send('id:#{@widget_id}');
+          };
+          ws.onmessage = function(evt) {
+            // evt.data contains received string.
+            var msg = eval(evt.data);
+            //var data = msg['data'];
+            //var opts = msg['opts'];
+            var data = msg;
+            //#{@js_var_name}.append(data);
+            #{@js_var_name}.update(data);
+          };
+          ws.onclose = function() {
+            var status = "onclose";
+          };
+          ws.onerror = function(evt) {
+            var status = "onerror";
+          };
+        } else {
+          //L.provide('OML.updater', ["jquery", "jquery.periodicalupdater.js"], function () {
+              $.PeriodicalUpdater('/_update?id=#{@widget_id}', {
+                  method: 'get',          // method; get or post
+                  data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
+                  minTimeout: #{updateInterval * 1000},       // starting value for the timeout in milliseconds
+                  maxTimeout: #{4 * updateInterval * 1000},       // maximum length of time between requests
+                  multiplier: 2,          // if set to 2, timerInterval will double each time the response hasn't changed (up to maxTimeout)
+                  type: 'json',           // response type - text, xml, json, etc.  See $.ajax config options
+                  maxCalls: 0,            // maximum number of calls. 0 = no limit.
+                  autoStop: 0             // automatically stop requests after this many returns of the same data. 0 = disabled.
+              }, function(reply) {
+                  var data = reply['data'];
+                  var opts = reply['opts'];
+                  #{@js_var_name}.append(data);
+              });
+          //});
+        }
+      }
+    end
+    
   end # GraphWidget
   
 end

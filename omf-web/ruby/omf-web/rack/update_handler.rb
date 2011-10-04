@@ -1,5 +1,6 @@
 
 require 'omf-common/mobject'
+require 'omf-web/session_store'
 
 module OMF::Web::Rack
       
@@ -14,11 +15,10 @@ module OMF::Web::Rack
       begin
         id = req.params['id'] || ""
         comp_path = id.split(':')
-        h = SessionStore.find_tab_from_path(comp_path)
+        h = OMF::Web::SessionStore.find_tab_from_path(comp_path)
         Thread.current["sessionID"] = h[:sid]
         tab_inst = h[:tab_inst]
         sub_path = h[:sub_path]
-        tab_inst.on_ws_open(req, sub_path.dup)
         body, headers = tab_inst.on_update(req, sub_path.dup)
       rescue Exception => ex
         b = ex.to_s + "\n" + ex.backtrace.join("\n")

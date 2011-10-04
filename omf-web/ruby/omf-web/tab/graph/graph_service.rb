@@ -46,6 +46,18 @@ module OMF::Web::Tab::Graph
       end
       w.on_ws_close(ws)
     end
+    
+    #body, headers = tab_inst.on_update(req, sub_path.dup)
+    def on_update(req, path)
+      puts ">>>> ON_UPDATE #{path.inspect}"
+      widget_id = path[0]
+      unless (widget_id && (w = @widgets[widget_id.to_i]))
+        raise "Unknown graph widget '#{widget_id}'"
+      end
+      body = w.update()
+      # puts "DATA: #{gd.inspect}"
+      [body.to_json, "text/json"]
+    end
 
     def update(req, opts)
       gID = req.params['id']
