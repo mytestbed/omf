@@ -1,21 +1,13 @@
 
 
 require 'omf-web/tabbed_server'
+require 'omf-common/oml/network'
+require 'omf-web/tab/graph/init'
 
 # Define data sources
 #
 
-# This one creates a data stream internally
-require 'omf-common/oml/oml_table'
 
-
-# This defines an OML endpoint. It expects a stream from the 
-# OML example generator on port 3000.
-#
-# % ./oml_example --oml-config config_text_stream.xml
-#
-require 'omf-common/oml/oml_sql_source'
-require 'omf-web/tab/graph/init'
 #
 # Configure graph displays
 #
@@ -35,35 +27,75 @@ def init_graph(name, data, viz_type = 'network', viz_opts = {})
   OMF::Web::Widget::Graph.addGraph(name, gopts) 
 end
 
-class NetworkDescription
-  def initialize(nodes, links)
-    @nodes = nodes
-    @links = links
-  end
+# class NetworkDescription
+  # def initialize(nodes, links)
+    # @nodes = nodes
+    # @links = links
+  # end
+#   
+  # def update(context)
+    # @nodes[0]["capacity"] = rand
+    # @links[0]["load"] = rand
+    # nw = {:nodes => @nodes, :links => @links}
+    # nw
+  # end
+#   
+  # def init(context)
+    # update(context)
+  # end
+# end
+
+include OMF::Common::OML
   
-  def update(context)
-    @nodes[0]["capacity"] = rand
-    @links[0]["load"] = rand
-    nw = {:nodes => @nodes, :links => @links}
-    nw
-  end
-  
-  def init(context)
-    update(context)
+nw = OmlNetwork.new 
+nw.create_node :n0, :x => 0.2, :y => 0.2, :capacity =>  0.3
+nw.create_node :n1, :x => 0.5, :y => 0.5, :capacity =>  0.5
+nw.create_node :n2, :x => 0.6, :y => 0.8, :capacity =>  0.8
+
+nw.create_link :l01, :n0, :n1, :load => 0.8
+nw.create_link :l12, :n1, :n2, :load => 0.4
+
+
+Thread.new do
+  begin
+    loop do
+      sleep 2
+      nw.transaction do 
+        nw.links.each do |link|
+          l = link[:load] + 0.2
+          link[:load] = l > 1 ? 0.2 : l
+        end
+        nw.nodes.each do |node|
+          c = node[:capacity] + 0.2
+          node[:capacity] = c > 1 ? 0.2 : c
+        end
+      end
+    end
+  rescue Exception => ex
+    puts ex
+    puts ex.backtrace.join("\n")
   end
 end
 
-nw = NetworkDescription.new([
-    {"name" => "n1","x" => 100,"y" => 30, "capacity" =>  0.3},
-    {"name" => "n2","x" => 60,"y" => 160, "capacity" =>  0.5},
-    {"name" => "n3","x" => 150,"y" => 210, "capacity" =>  0.8}
-  ],
-  [
-    {"from" => 1,"to" => 0,"load" => 0.3},
-    {"from" => 2,"to" => 0,"load" => 0.8}
-  ]
-)
-init_graph 'foo', nw, 'network'
+# Move one node
+Thread.new do
+  begin
+    loop do
+      sleep 0.5
+      nw.transaction do 
+        m = nw.nodes.first
+        x = m[:x] + 0.05
+        m[:x] = x > 0.9 ? 0.1 : x
+      end
+    end
+  rescue Exception => ex
+    puts ex
+    puts ex.backtrace.join("\n")
+  end
+end
+
+
+init_graph 'Simple', nw, 'network'
 
 
 

@@ -3,7 +3,7 @@ require 'omf-web/page'
 module OMF::Web::Tab::Graph
   
   class GraphCard < Page
-    depends_on :js, "/resource/js/d3.js"
+    #depends_on :js, "/resource/js/d3.js"
     depends_on :css, "/resource/css/graph.css"
   
     def initialize(graph_widget, opts)
@@ -25,15 +25,15 @@ module OMF::Web::Tab::Graph
     end # render_card_nav
     
     def render_card_body
-      return unless @gd
+      return unless @widget
       
-      if (prefix = @gd.opts[:prefix])
+      if (prefix = @widget.opts[:prefix])
         p prefix
       end
       
       widget @gwidget        
       
-      if (postfix = @gd.opts[:postfix])
+      if (postfix = @widget.opts[:postfix])
         p postfix
       end
   

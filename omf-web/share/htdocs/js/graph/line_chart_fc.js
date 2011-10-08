@@ -1,4 +1,4 @@
-L.provide('OML.line_chart_fc', ["d3", "graph/line_chart"], function () {
+L.provide('OML.line_chart_fc', ["d3/d3", "graph/line_chart"], function () {
 
   OML['line_chart_fc'] = function(opts) {
     this.version = "0.5";

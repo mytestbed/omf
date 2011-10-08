@@ -1,42 +1,40 @@
 
 require 'rack/websocket'
-require 'omf-common/mobject'
+#require 'omf-common/mobject2'
+require 'omf-web/session_store'
 
 module OMF::Web::Rack
   
   class WebsocketHandler < ::Rack::WebSocket::Application
-    def on_open(env)
-  
-      # EM.add_timer(15) do
-        # send_data "This message should show-up 15 secs later"
-      # end
-      puts "client connected2"      
-    end
+#    include OMF::Common::MObject
   
     def on_message(env, msg)
       begin
-        puts "message received: " + msg
+        #puts "message received: " + msg
         
         ma = msg.split(':')
         cmd = ma.shift.to_sym
         if (cmd == :id)
           begin
-            h = SessionStore.find_tab_from_path(ma)
+            h = OMF::Web::SessionStore.find_tab_from_path(ma)
+            Thread.current["sessionID"] = h[:sid]
+            @tab_inst = h[:tab_inst]
+            @sub_path = h[:sub_path]
+            @tab_inst.on_ws_open(self, @sub_path.dup)
           rescue Exception => ex
+            puts ">>>> ERROR: #{ex}"
+            puts ">>>> ERROR: #{ex.backtrace.join("\n")}"
             send_data("{error: '#{ex.to_s}'}")
             return
           end
-          Thread.current["sessionID"] = h[:sid]
-          @tab_inst = h[:tab_inst]
-          @sub_path = h[:sub_path]
-          @tab_inst.on_ws_open(self, @sub_path.dup)
+
         else
           send_data("{error: 'Unknown command -#{cmd}-'}")
         end
       rescue Exception => ex
         MObject.error('web::websocket', ex)
       end
-      puts "message processed"      
+      #puts "message processed"      
     end
   
     def on_close(env)

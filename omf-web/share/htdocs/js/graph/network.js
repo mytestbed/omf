@@ -1,4 +1,4 @@
-L.provide('OML.network', ["d3"], function () {
+L.provide('OML.network', ["d3/d3"], function () {
 
   if (typeof(OML) == "undefined") OML = {};
     
@@ -31,125 +31,109 @@ L.provide('OML.network', ["d3"], function () {
                  ;
   
       this.graph_layer = g.append("svg:g");
-      // g.append("svg:line")
-        // .attr("x1", ca.x)
-        // .attr("y1", -1 * ca.y)
-        // .attr("x2", ca.x + ca.w)
-        // .attr("y2", -1 * ca.y);
-//   
-      // g.append("svg:line")
-        // .attr("x1", ca.x)
-        // .attr("y1", -1 * ca.y)
-        // .attr("x2", ca.x)
-        // .attr("y2", -1 * (ca.y + ca.h));
-  
-      //this.process_schema();
-      var data = o.data;
-      if (data) this.update(data);
+      var data = this.data = o.data;
+      if (data) this.redraw();
     };
   
-    this.append = function(data) {
-      this.update(data);      
+    this.append = function(a_data) {
+      var data = this.data;
+      data.nodes = $.extend(data.nodes, a_data.nodes);
+      data.links = $.extend(data.links, a_data.links);      
+      this.redraw();   
+    };
+
+    this.update = function(data) {
+      this.data = data;
+      this.redraw();
     };
     
-    this.update = function(data) {
+    this.redraw = function() {
       var self = this;
-      this.data = data;
+      var data = this.data;
       var o = this.opts;
       var ca = this.chart_area;
-  
-      /* 'data' should be an an array (each line) of arryas (each tuple)
-       * The following code assumes that the tuples are sorted in ascending 
-       * value associated with the x-axis. 
-       */
       
-// var c = d3.scale.linear().range([
-     // "rgb(0, 88, 36)",
-     // "rgb(255, 255, 204)",
-     // "rgb(227, 26, 28)"
-   // ]).domain([0, 0.5, 1]);
-var c = d3.scale.linear()
-    .domain([-1, 0, 1])
-    .range(["red", "white", "green"]);
-    
-var c = d3.scale.linear()
-    .domain([0, 1])
-    .range(["blue", "red"]);
-
-
-
-
-var vis = this.base_layer;
-
-
-    var link = vis.selectAll("line.link")
-        .data(data.links)
-        .style("stroke", function(d) { return c(d.load); })
-        .style("stroke-width", function(d) { return d.w = 10 * d.load; })
+      var x = function(d) {
+        var x = d.x * ca.w + ca.x;
+        return x;
+      };
+      var y = function(d) {
+        var y = -1 * (d.y * ca.h + ca.y);
+        return y;
+      };
+      var c = d3.scale.linear()
+          .domain([0, 0.8, 1])
+          .range(["green", "yellow", "red"]);
+          
+      var vis = this.base_layer;
+      var link = vis.selectAll("line.link")
+        .data(d3.values(data.links))
+          .style("stroke", function(d) { return c(d.load); })
+          .style("stroke-width", function(d) { return d.w = 10 * d.load; })
+          .attr("x1", function(d) { return x(data.nodes[d.from]); })
+          .attr("y1", function(d) { return y(data.nodes[d.from]); })
+          .attr("x2", function(d) { return x(data.nodes[d.to]); })
+          .attr("y2", function(d) { return y(data.nodes[d.to]); })
         .enter().append("svg:line")
-        .attr("class", "link")
-        .style("stroke-width", function(d) {
-           return d.w = 10 * d.load;
-        })
-        .style("stroke", function(d) {
-          var col = c(d.load);  
-          return c(d.load); 
-        })
-        .attr("x1", function(d) { return data.nodes[d.from].x; })
-        .attr("y1", function(d) { return -1 * data.nodes[d.from].y; })
-        .attr("x2", function(d) { return data.nodes[d.to].x;})
-        .attr("y2", function(d) { return -1 * data.nodes[d.to].y; })
-       .on("mouseover", function() {
-          d3.select(this).transition()
-           .style("stroke-width", function(d) {
-             return d.w + 3
-           })
-          .delay(0)
-           .duration(300)
-       })
-       .on("mouseout", function() {
-          d3.select(this).transition()
-           .style("stroke-width", function(d) {return d.w})
-           .delay(0)
-           .duration(300)
-       })
-       ;
+          .attr("class", "link")
+          .style("stroke", function(d) { return c(d.load); })
+          .style("stroke-width", function(d) { return d.w = 10 * d.load; })
+          .attr("x1", function(d) { return x(data.nodes[d.from]); })
+          .attr("y1", function(d) { return y(data.nodes[d.from]); })
+          .attr("x2", function(d) { return x(data.nodes[d.to]); })
+          .attr("y2", function(d) { return y(data.nodes[d.to]); })
+          .on("mouseover", function() {
+            d3.select(this).transition()
+             .style("stroke-width", function(d) {
+               return d.w + 3
+             })
+            .delay(0)
+            .duration(300)
+          })
+          .on("mouseout", function() {
+            d3.select(this).transition()
+             .style("stroke-width", function(d) {return d.w})
+             .delay(0)
+             .duration(300)
+          })
+          ;
 
- var node = vis.selectAll("circle.node")
-       .data(data.nodes)
+     var node = vis.selectAll("circle.node")
+       .data(d3.values(data.nodes))
+         .attr("cx", function(d) { return x(d); })
+         .attr("cy", function(d) { return y(d); })
           .attr("r", function(d) {
             return d.r = d.capacity * 10 + 3;
           })
           .style("fill", function(d) { return c(d.capacity); })
-     .enter().append("svg:circle")
-       .attr("class", "node")
-       .attr("x", function(d) { return d.x; })
-       .attr("cx", function(d) { return d.x; })
-       .attr("cy", function(d) { return -1 * d.y; })
-       .attr("r", function(d) {
-          return d.r = d.capacity * 10 + 3;
-        })
-      .style("fill", function(d) { return c(d.capacity); })
-       .style("stroke", "gray")
-       .style("stroke-width", 1)
-       .attr("fixed", true)
-       //.call(force.drag)
-       .on("mouseover", function() {
-          d3.select(this).transition()
-           .attr("r", function(d) {return d.r + 2 ;})
-          .style("stroke", "black")
-           .style("stroke-width", 3)
-           .delay(0)
-           .duration(300)
-       })
-       .on("mouseout", function() {
-          d3.select(this).transition()
-           .style("stroke", "gray")
-           .style("stroke-width", 1)
-           .attr("r", function(d) {return d.r;})
-           .delay(0)
-           .duration(300)
-       })
+       .enter().append("svg:circle")
+         .attr("class", "node")
+         .attr("cx", function(d) { return x(d); })
+         .attr("cy", function(d) { return y(d); })
+         .attr("r", function(d) {
+            return d.r = d.capacity * 10 + 3;
+          })
+         .style("fill", function(d) { return c(d.capacity); })
+         .style("stroke", "gray")
+         .style("stroke-width", 1)
+         .attr("fixed", true)
+         //.call(force.drag)
+         .on("mouseover", function() {
+            d3.select(this).transition()
+             .attr("r", function(d) {return d.r + 2 ;})
+            .style("stroke", "black")
+             .style("stroke-width", 3)
+             .delay(0)
+             .duration(300)
+         })
+         .on("mouseout", function() {
+            d3.select(this).transition()
+             .style("stroke", "gray")
+             .style("stroke-width", 1)
+             .attr("r", function(d) {return d.r;})
+             .delay(0)
+             .duration(300)
+         })
        .transition()
           .attr("r", function(d) {
             return d.r = d.capacity * 10 + 3;
@@ -157,9 +141,7 @@ var vis = this.base_layer;
           .delay(0)
        ;      
     };
-    
-    
-    
+     
     this.init_svg = function(w, h) {
       var opts = this.opts;
 
@@ -171,16 +153,6 @@ var vis = this.base_layer;
         .attr("width", w)
         .attr("height", h)
         .attr('class', 'oml-network');
-      if (opts.x) {
-        // the next two lines do the same, but only one works 
-        // in the specific context
-        vis.attr("x", opts.x);
-        vis.style("margin-left", opts.x + "px"); 
-      }
-      if (opts.y) {
-        vis.attr("y", opts.y);
-        vis.style("margin-top", opts.y + "px"); 
-      }
       return vis;
     }
   

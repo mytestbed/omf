@@ -20,7 +20,6 @@ module OMF::Common::OML
     #   :max_size - keep table to that size by dropping older rows
     #
     def initialize(tname, schema, opts = {}, &onRowProc)
-      #@endpoint = endpoint
       @name = tname
       @schema = schema
       @opts = opts
@@ -30,16 +29,12 @@ module OMF::Common::OML
       @on_row_added = {}
     end
     
-    # def [](key)
-      # @endpoint[key]
-    # end
-
     def on_row(&callback)
       @onRowProc = callback
     end
     
     def on_row_added(key, &proc)
-      puts "on_row_added: #{proc.inspect}"
+      #puts "on_row_added: #{proc.inspect}"
       if proc
         @on_row_added[key] = proc
       else

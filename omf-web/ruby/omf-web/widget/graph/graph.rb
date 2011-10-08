@@ -19,19 +19,26 @@ module OMF::Web::Widget::Graph
   #          server.mount('/graph3/resource', ::OMF::Common::Web::ResourceHandler, opts)
   end
   
+  # Register a graph which can be visualized through a +GraphWidget+
+  #
+  # name - Name of graph
+  # opts -
+  #   :viz_type - Type of graph, reqires equally named js file describing how it should be rendered
+  #   :???
+  # 
   def self.addGraph(name, opts = {})
     vizType = opts[:viz_type]
     raise "Missing :viz_type in 'addGraph'" unless vizType
     @@graphs << GraphDescription.new(name, vizType, opts)
   end
   
-  def self.addNetworkGraph(name, opts = {}, &netProc)
-    g = {}
-    g[:name] = name
-    g[:gopts] = opts.dup
-    g[:netProc] = netProc
-    @@graphs << g
-  end
+  # def self.addNetworkGraph(name, opts = {}, &netProc)
+    # g = {}
+    # g[:name] = name
+    # g[:gopts] = opts.dup
+    # g[:netProc] = netProc
+    # @@graphs << g
+  # end
   
   def self.[](id)
     @@graphs[id]

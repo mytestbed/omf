@@ -1,4 +1,4 @@
-L.provide('OML.line_chart', ["d3"], function () {
+L.provide('OML.line_chart', ["d3/d3"], function () {
 
   if (typeof(OML) == "undefined") OML = {};
   
