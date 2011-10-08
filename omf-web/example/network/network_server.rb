@@ -55,6 +55,13 @@ nw.create_node :n2, :x => 0.6, :y => 0.8, :capacity =>  0.8
 nw.create_link :l01, :n0, :n1, :load => 0.8
 nw.create_link :l12, :n1, :n2, :load => 0.4
 
+require 'omf-oml/table'
+node_table = OMF::OML::OmlTable.new('nodes', [[:name, Integer], [:capacity, Integer]])
+nw.on_update(node_table) do |el|
+  if el.kind_of? NetworkElement
+    node_table.add_row(el.attributes) 
+  end
+end
 
 Thread.new do
   begin

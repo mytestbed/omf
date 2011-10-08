@@ -71,7 +71,7 @@ module OMF::Web::Widget::Graph
       @ws = nil
       if @data_source
         # cancel callback
-        @data_source.on_row_added(self)
+        #@data_source.on_row_added(self)
       end
     end
     
@@ -144,8 +144,8 @@ module OMF::Web::Widget::Graph
             var status = "onerror";
           };
         } else {
-          require(['/resource/js/jquery.js'], function() {
-            require(['/resource/js/jquery.periodicalupdater.js'], function() {
+          L.require(null, ['jquery.js'], function() {
+            L.require(null, ['/resource/js/jquery.periodicalupdater.js'], function() {
               $.PeriodicalUpdater('/_update?id=#{@widget_id}', {
                   method: 'get',          // method; get or post
                   data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
