@@ -98,7 +98,7 @@ module OMF::Web::Widget::Graph
         #p get_static_js
         javascript(%{  
           var l = L;        
-          L.require('OML.#{@gd.vizType}', ['graph/#{@js_uri}'], function() {
+          L.require('#OML.#{@gd.vizType}', 'graph/#{@js_uri}', function() {
             #{get_static_js}
             #{get_dynamic_js}        
           });
@@ -123,9 +123,10 @@ module OMF::Web::Widget::Graph
       unless (updateInterval = dopts[:updateInterval]) 
         updateInterval = 3
       end 
-      %{
+      res = <<END_OF_JS
         var ws#{@base_id};
-        if (window.WebSocket) {
+        //if (window.WebSocket) {
+        if (false) {
           var url = 'ws://' + window.location.host + '/_ws';
           var ws = ws#{@base_id} = new WebSocket(url);
           ws.onopen = function() {
@@ -144,8 +145,7 @@ module OMF::Web::Widget::Graph
             var status = "onerror";
           };
         } else {
-          L.require(null, ['jquery.js'], function() {
-            L.require(null, ['/resource/js/jquery.periodicalupdater.js'], function() {
+          L.require(['jquery.js', '/resource/js/jquery.periodicalupdater.js'], function() {
               $.PeriodicalUpdater('/_update?id=#{@widget_id}', {
                   method: 'get',          // method; get or post
                   data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
@@ -158,12 +158,12 @@ module OMF::Web::Widget::Graph
               }, function(reply) {
                   var data = reply['data'];
                   var opts = reply['opts'];
-                  #{@js_var_name}.append(data);
+                  //#{@js_var_name}.append(data);
+                  #{@js_var_name}.update(data);  // right now we are sending the entire graph
               });
-            });
           });
         }
-      }
+END_OF_JS
     end
 
 

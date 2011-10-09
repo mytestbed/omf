@@ -54,7 +54,7 @@ module OMF::Web::Tab::Graph
     
     #body, headers = tab_inst.on_update(req, sub_path.dup)
     def on_update(req, path)
-      puts ">>>> ON_UPDATE"
+      #puts ">>>> ON_UPDATE"
       w = find_widget(path[0])
       body = w.on_update()
       [body.to_json, "text/json"]

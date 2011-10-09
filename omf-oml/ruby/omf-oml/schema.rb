@@ -8,6 +8,17 @@ module OMF::OML
   #
   class OmlSchema < MObject
     
+    CLASS2TYPE = {
+      TrueClass => 'boolean',
+      FalseClass => 'boolean',
+      String => 'string',
+      Symbol => 'string',            
+      Fixnum => 'decimal',
+      Float => 'double',
+      Time => 'dateTime'
+    }
+
+    
     # Return the col name at a specific index
     #
     def name_at(index)
@@ -29,6 +40,15 @@ module OMF::OML
     def each_column(&block)
       @schema.each do |c| 
        block.call(c) 
+      end
+    end
+    
+    def describe
+      @schema.collect do |name, type|
+        if type.kind_of? Class
+          type = CLASS2TYPE[type] || 'unknown'
+        end
+        {:name => name, :type => type}
       end
     end
     

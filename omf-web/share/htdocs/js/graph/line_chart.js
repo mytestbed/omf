@@ -42,28 +42,6 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
   
       var vis = this.init_svg(w, h);
       
-      // var base_el = o.base_el || "body";
-      // if (typeof(base_el) == "string") {
-        // base_el = d3.select(base_el);
-      // }
-      // base_el.attr("style", "width:" + w + "px;height:" + h + "px");    
-//   
-//       
-      // var vis = base_el.append("svg:svg")
-        // .attr("class", "oml-lineGraph")
-        // .attr("width", w)
-        // .attr("height", h);
-      // if (o.x) {
-        // // the next two lines do the same, but only one works 
-        // // in the specific context
-        // vis.attr("x", o.x);
-        // vis.style("margin-left", o.x + "px"); 
-      // }
-      // if (o.y) {
-        // vis.attr("y", o.y);
-        // vis.style("margin-top", o.y + "px"); 
-      // }
-  
       var g =  this.base_layer = vis.append("svg:g")
                  .attr("transform", "translate(0, " + h + ")");
   
@@ -81,13 +59,28 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
         .attr("y2", -1 * (ca.y + ca.h));
   
       this.process_schema();
-      var data = o.data;
-      if (data) this.update(data);
+      var data = this.data = o.data;
+      if (data) this.redraw();
+      
     };
-  
+    
+    this.append = function(a_data) {
+      // TODO: THIS DOESN'T WORK
+      //var data = this.data;
+      this.redraw();   
+    };
+
     this.update = function(data) {
-      var self = this;
       this.data = data;
+      this.redraw();
+    };
+
+  
+    this.redraw = function() {
+      var self = this;
+      var data = this.data;
+      if (data.length == 0) return;
+      
       var o = this.opts;
       var ca = this.chart_area;
   
@@ -416,9 +409,11 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
     this.process_schema = function() {
       var o = this.opts;
       var i = 0;
+      var mapping = o.mapping || {};
       var m = this.mapping = {};
-      if (o.schema) {
-        o.schema.map(function(c) {
+      var schema = o.schema;
+      if (schema) {
+        schema.map(function(c) {
           ['x_axis', 'y_axis', 'group_by'].map(function(k) {
             if (c.name == o.mapping[k]) {
               m[k] = i
@@ -460,41 +455,41 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
   };
 })
 
-var AAA = function(x) {
-  this.x = x;
-}
-
-AAA.prototype = {
-  aaa: function() {
-    var x = arguments;
-    return this.x;
-  },
-
-  bbb: function() {
-    return this.x;
-  }
-}
-
-var AAA_1 = new AAA(5);
-var AAA_2 = AAA_1.aaa(7, 'a');
-
-var BBB = function(x) {
-  this.x = x;
-}
-
-BBB.prototype = {
-  
-  bbb: function() {
-    return 2 * this.x;
-  }
-}
-
-BBB.prototype.prototype = AAA;
-
-
-var BBB_1 = new BBB(5);
-var BBB_2 = BBB_1.aaa(7, 'a');
-var BBB_3 = BBB_1.bbb();
+// var AAA = function(x) {
+  // this.x = x;
+// }
+// 
+// AAA.prototype = {
+  // aaa: function() {
+    // var x = arguments;
+    // return this.x;
+  // },
+// 
+  // bbb: function() {
+    // return this.x;
+  // }
+// }
+// 
+// var AAA_1 = new AAA(5);
+// var AAA_2 = AAA_1.aaa(7, 'a');
+// 
+// var BBB = function(x) {
+  // this.x = x;
+// }
+// 
+// BBB.prototype = {
+//   
+  // bbb: function() {
+    // return 2 * this.x;
+  // }
+// }
+// 
+// BBB.prototype.prototype = AAA;
+// 
+// 
+// var BBB_1 = new BBB(5);
+// var BBB_2 = BBB_1.aaa(7, 'a');
+// var BBB_3 = BBB_1.bbb();
 /*
   Local Variables:
   mode: Javascript

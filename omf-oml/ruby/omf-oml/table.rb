@@ -75,6 +75,10 @@ module OMF::OML
       end
     end
     
+    def describe()
+      rows
+    end
+    
   end # OMLTable
 
 end

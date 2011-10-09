@@ -3,19 +3,47 @@ L = new function() {
   this.baseURL = null;
 
 
-  this.require = function(obj_name, deps, onReady) {
+  // deps: module name starting with '#'
+  // onReady: last argument should be a function
+  //
+  this.require = function(deps, onReady) {
+    var deps = Array.prototype.slice.call(arguments);  
+    var onReady = deps.pop();
+    
+    var absDeps = this._calculate_required(deps);
+    
     this._pending_require.push({
-      obj_name: obj_name, onReady: onReady
+      deps: absDeps, onReady: onReady
     });
     this._load(deps, true);
     this._checkAllPending(); // we may already have everything we need
   };
   
+  this._calculate_required = function(deps) {    
+    var fDeps = this._arr_flatten(deps);
+    var absDeps = [];
+    var i = fDeps.length;
+    for (; i;) {
+      var d = fDeps[--i];
+      if (d[0] == '#') {
+        // module
+        //modules.push(d.split('#')[1]);
+        absDeps.push(d);
+      } else {
+        absDeps.push(this._getAbsoluteUrl(d));
+      }
+    }
+    return absDeps;
+  };
+  
+  
   // Provides 'obj_name' after loading all 'deps' and executing 'onReady'
   //
   this.provide = function(obj_name, deps, onReady) {
+    var absDeps = this._calculate_required(deps);
+
     this._pending_provide.push({
-      obj_name: obj_name, deps: this._arr_flatten(deps), onReady: onReady
+      obj_name: obj_name, deps: absDeps, onReady: onReady
     });
     this._load(deps, true);
     this._checkAllPending(); // we may already have everything we need
@@ -34,7 +62,8 @@ L = new function() {
         var url = urls.shift();
         if (urls.length > 0) {
           var self = this;
-          this.provide(null, [url], function() { 
+          // load one at a time 
+          this.require(url, function() {
             self._load(urls, false);
           });
         }
@@ -46,22 +75,25 @@ L = new function() {
   }
     
   this._loadOne = function(url) {
-    if (this._requested[url] == true) return;
-    this._requested[url] = true;
-    var sel = this._createDomFor(url);
+    if (url[0] == '#') {
+      return; // modules are 'provided'
+    }
+    var abs_url = this._getAbsoluteUrl(url);
+    if (this._requested[abs_url] == true) return;
+    this._requested[abs_url] = true;
+    var sel = this._createDomFor(abs_url);
     sel.async = true;
     var hel = document.getElementsByTagName("head")[0];
     hel.appendChild(sel);
   };
   
   this._createDomFor = function(url) {
-    var abs_url = this._getAbsoluteUrl(url);
-    var ext = abs_url.split(".").pop();
+    var ext = url.split(".").pop();
     var sel;
     var self = this;
     if (ext != "css") {  // this is a bit of a hack!
       sel = document.createElement("script");      
-      sel.src = abs_url;
+      sel.src = url;
       sel.onload = sel.onreadystatechange = function () {
         if (!(this.readyState
             && this.readyState !== "complete"
@@ -74,7 +106,7 @@ L = new function() {
       
     } else { // css
       sel = document.createElement("link");      
-      sel.href = abs_url;
+      sel.href = url;
       sel.rel = "stylesheet";
       sel.type ="text/css";
       // there is no consistent support for detecting the successful loading of
@@ -104,7 +136,6 @@ L = new function() {
   this._loaded = {};
   this._pending_require = [];
   this._pending_provide = [];
-  this._provided = {};  
   
   this._onLoad = function(url) {
     this._loaded[url] = true;
@@ -117,14 +148,29 @@ L = new function() {
   }
 
   this._checkAllPendingRequire = function() {
-    var pending = this._pending_require;
+    var pending = this._pending_require.slice(0);
     var l = pending.length;
     var still_pending = [];
     for (; l;) {
       var p = pending[--l];
-      if (this._provided[p.obj_name]) {
-        if (p.onReady) {
-          p.onReady();
+      if (this._all_loaded(p.deps)) {
+        if (p.processed != true) { // avoid infinite recursions
+          p.processed = true
+          if (p.onReady) {
+            //try {
+              p.onReady();
+            // } catch(err) {
+              // //Handle errors here
+              // var st = printStackTrace({e: err});  
+              // console.log(st.join('\n'));            
+              // var x = err;
+            // }
+            
+            // As onReady may call this library as well, better start
+            // checking from scratch
+            this._checkAllPendingRequire();
+            return;
+          }            
         }
       } else {
         still_pending.push(p);
@@ -133,19 +179,46 @@ L = new function() {
     this._pending_require = still_pending;
   }
   
+  // Return true if all dependencies are met
+  // this._checkOnePendingRequire = function(descr) {
+    // var deps = descr.deps;
+    // if (! this._all_loaded(deps)) {
+      // return false;
+    // }
+    // var modules = descr.modules;
+    // // Also need to check on pending modules
+    // if (descr.onReady) {
+      // descr.onReady();
+    // }
+    // return true;
+  // }
+  
   this._checkAllPendingProvide = function() {
-    var pending = this._pending_provide;
+    var pending = this._pending_provide.slice(0);
     var l = pending.length;
     var still_pending = [];
     for (; l;) {
       var p = pending[--l];
       if (this._all_loaded(p.deps)) {
-        if (p.onReady) {
-          p.onReady();
-        }
-        if (p.obj_name) {
-          this._provided[p.obj_name] = true;
-        }        
+        if (p.processed != true) { // avoid infinite recursions
+          p.processed = true
+          if (p.onReady) {
+            try {
+              p.onReady();
+            } catch(err) {
+              //Handle errors here
+              var s = printStackTrace({e: err});
+              console.log(s);            
+            }
+          }  
+          if (p.obj_name) {
+            this._loaded["#" + p.obj_name] = true;
+          }
+          // As onReady may call this library as well, better start
+          // checking from scratch
+          this._checkAllPendingProvide();
+          return;          
+        }  
       } else {
         still_pending.push(p);
       }

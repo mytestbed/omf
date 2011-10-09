@@ -1,7 +1,8 @@
 
 
+require 'omf-oml/network'
+
 require 'omf-web/tabbed_server'
-require 'omf-common/oml/network'
 require 'omf-web/tab/graph/init'
 
 # Define data sources
@@ -11,7 +12,7 @@ require 'omf-web/tab/graph/init'
 #
 # Configure graph displays
 #
-def init_graph(name, data, viz_type = 'network', viz_opts = {})
+def init_graph(name, data, viz_type = 'network', opts = {})
   #  i = 0
   def_viz_opts = {
     #:schema => table.schema    
@@ -19,33 +20,18 @@ def init_graph(name, data, viz_type = 'network', viz_opts = {})
   
   gopts = {
     :data_source => data,
-    :dynamic => true,
+    :dynamic => {
+      :updateInterval => 1
+    },
     :viz_type => viz_type,
     # :viz_type => 'map',    
-    :viz_opts => def_viz_opts.merge(viz_opts)
+    :viz_opts => def_viz_opts.merge(opts)
   }
   OMF::Web::Widget::Graph.addGraph(name, gopts) 
 end
 
-# class NetworkDescription
-  # def initialize(nodes, links)
-    # @nodes = nodes
-    # @links = links
-  # end
-#   
-  # def update(context)
-    # @nodes[0]["capacity"] = rand
-    # @links[0]["load"] = rand
-    # nw = {:nodes => @nodes, :links => @links}
-    # nw
-  # end
-#   
-  # def init(context)
-    # update(context)
-  # end
-# end
 
-include OMF::Common::OML
+include OMF::OML
   
 nw = OmlNetwork.new 
 nw.create_node :n0, :x => 0.2, :y => 0.2, :capacity =>  0.3
@@ -56,10 +42,16 @@ nw.create_link :l01, :n0, :n1, :load => 0.8
 nw.create_link :l12, :n1, :n2, :load => 0.4
 
 require 'omf-oml/table'
-node_table = OMF::OML::OmlTable.new('nodes', [[:name, Integer], [:capacity, Integer]])
-nw.on_update(node_table) do |el|
-  if el.kind_of? NetworkElement
-    node_table.add_row(el.attributes) 
+
+s = OmlSchema.new [[:ts, Float], [:name, String], [:capacity, Integer]]
+node_table = OMF::OML::OmlTable.new('nodes', s)
+start = Time.now
+nw.on_update(node_table) do |uset|
+  t = Time.now - start
+  uset.each do |el|
+    if el.node?
+      node_table.add_row [t, el.name, el[:capacity]]
+    end
   end
 end
 
@@ -90,7 +82,7 @@ Thread.new do
     loop do
       sleep 0.5
       nw.transaction do 
-        m = nw.nodes.first
+        m = nw.node(:n2)
         x = m[:x] + 0.05
         m[:x] = x > 0.9 ? 0.1 : x
       end
@@ -102,11 +94,11 @@ Thread.new do
 end
 
 
-init_graph 'Simple', nw, 'network'
-
-
-
-
+init_graph 'Network', nw, 'network'
+init_graph 'Nodes', node_table, 'line_chart', {
+  :schema => node_table.schema.describe,
+  :mapping => {:x_axis => :ts, :y_axis => :capacity, :group_by => :name}
+}
 
 
 # Configure the web server

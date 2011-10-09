@@ -1,10 +1,12 @@
 require 'monitor'
 require 'json'
 require 'set'
-require 'omf_common'
+require 'omf-common/mobject'
+require 'oml'
 
 
-module OMF::Common::OML
+
+module OMF::OML
   
   class OmlNetworkAlreadyExistException < Exception; end  
   class OmlNodeAlreadyExistException < Exception; end
@@ -202,6 +204,13 @@ module OMF::Common::OML
       @attributes        
     end
     
+    def node?
+      false
+    end
+    
+    def link?
+      false
+    end
     
     protected
     
@@ -221,6 +230,10 @@ module OMF::Common::OML
     
     def initialize(name, attributes, network)
       super
+    end
+    
+    def node?
+      true
     end
   end # NetworkNode  
 
@@ -253,6 +266,10 @@ module OMF::Common::OML
     def to=(node)
       @attributes[:to] = node.el_id if node        
       @toNode = _set(node, @toNode)
+    end
+    
+    def link?
+      true
     end
   end # NetworkLink  
 
