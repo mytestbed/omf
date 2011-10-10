@@ -47,7 +47,7 @@ s = OmlSchema.new [[:ts, Float], [:name, String], [:capacity, Integer]]
 node_table = OMF::OML::OmlTable.new('nodes', s)
 start = Time.now
 node_table.on_row_added(node_table) do |row|
-  puts "ROW>>> #{row.class}"
+  #puts "ROW>>> #{row.inspect}"
   t2, node_name, capacity = row
   nw.node(node_name)[:capacity] = capacity
   # uset.each do |el|
@@ -72,7 +72,7 @@ Thread.new do
       t = Time.now - start
       nw.nodes.each do |node|
         c = node[:capacity] + 0.2
-        c > 1 ? 0.2 : c
+        c = c > 1 ? 0.2 : c
         node_table.add_row [t, node.name, c]
       end
     end

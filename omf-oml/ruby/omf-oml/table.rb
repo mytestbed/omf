@@ -26,6 +26,8 @@ module OMF::OML
     #   :max_size - keep table to that size by dropping older rows
     #
     def initialize(tname, schema, opts = {}, &on_before_row_added)
+      super tname
+      
       #@endpoint = endpoint
       @name = tname
       unless schema.kind_of? OmlSchema
