@@ -1,4 +1,6 @@
 
+require 'monitor'
+
 require 'oml'
 require 'omf-oml/schema'
 
@@ -9,6 +11,8 @@ module OMF::OML
   # a common schema.
   #
   class OmlTable < MObject
+    include MonitorMixin
+    
     attr_reader :name
     attr_accessor :max_size
     attr_reader :rows
@@ -54,24 +58,26 @@ module OMF::OML
       end
     end
     
-    # NOTE: May need a monitor if used in multi-threaded environments
+    # NOTE: +on_row_added+ callbacks are done within the monitor. 
     #
     def add_row(row)
-      #puts row.inspect
-      if @on_before_row_added
-        row = @on_before_row_added.call(row)
-      end
-      return unless row 
-
-      @rows << row
-      if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
-        @rows.shift # not necessarily fool proof, but fast
-      end
-
-      #puts "add_row"
-      @on_row_added.each_value do |proc|
-        #puts "call: #{proc.inspect}"
-        proc.call(row)
+      synchronize do
+        #puts row.inspect
+        if @on_before_row_added
+          row = @on_before_row_added.call(row)
+        end
+        return unless row 
+  
+        @rows << row
+        if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
+          @rows.shift # not necessarily fool proof, but fast
+        end
+  
+        #puts "add_row"
+        @on_row_added.each_value do |proc|
+          #puts "call: #{proc.inspect}"
+          proc.call(row)
+        end
       end
     end
     

@@ -73,8 +73,8 @@ module OMF::OML
       i = 0
       @vprocs = {}
       schema.each_column do |col| #
-        name = col[:name]
-        type = col[:type]
+        name = col[:name] || raise("Ill-formed schema '#{schema}'")
+        type = col[:type] || raise("Ill-formed schema '#{schema}'")
         j = i + 2; # need to create a locally scoped variable for the following lambdas
         @vprocs[name] = @vprocs[i] = case type      
           when :string : lambda do |r| r[j] end

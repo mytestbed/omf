@@ -46,17 +46,20 @@ require 'omf-oml/table'
 s = OmlSchema.new [[:ts, Float], [:name, String], [:capacity, Integer]]
 node_table = OMF::OML::OmlTable.new('nodes', s)
 start = Time.now
-nw.on_update(node_table) do |uset|
-  t = Time.now - start
-  uset.each do |el|
-    if el.node?
-      node_table.add_row [t, el.name, el[:capacity]]
-    end
-  end
+node_table.on_row_added(node_table) do |row|
+  puts "ROW>>> #{row.class}"
+  t2, node_name, capacity = row
+  nw.node(node_name)[:capacity] = capacity
+  # uset.each do |el|
+    # if el.node?
+      # node_table.add_row [t, el.name, el[:capacity]]
+    # end
+  # end
 end
 
 Thread.new do
   begin
+    start = Time.now
     loop do
       sleep 2
       nw.transaction do 
@@ -64,10 +67,13 @@ Thread.new do
           l = link[:load] + 0.2
           link[:load] = l > 1 ? 0.2 : l
         end
-        nw.nodes.each do |node|
-          c = node[:capacity] + 0.2
-          node[:capacity] = c > 1 ? 0.2 : c
-        end
+      end
+        
+      t = Time.now - start
+      nw.nodes.each do |node|
+        c = node[:capacity] + 0.2
+        c > 1 ? 0.2 : c
+        node_table.add_row [t, node.name, c]
       end
     end
   rescue Exception => ex
@@ -94,7 +100,18 @@ Thread.new do
 end
 
 
-init_graph 'Network', nw, 'network'
+init_graph 'Network', nw, 'network', {
+  :mapping => {
+    :node => {
+      :radius => {:value => :capacity, :scale => 20, :min => 4},
+      :fill_color => {:value => :capacity, :scale => :green_yellow80_red}
+    },
+    :link => {
+      :stroke_width => {:value => :load, :scale => 20},
+      :stroke_color => {:value => :load, :scale => :green_yellow80_red}
+    }
+  }
+}
 init_graph 'Nodes', node_table, 'line_chart', {
   :schema => node_table.schema.describe,
   :mapping => {:x_axis => :ts, :y_axis => :capacity, :group_by => :name}

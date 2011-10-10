@@ -14,6 +14,7 @@ module OMF::Web
   # GUI style
   #
   # opts:
+  #   :server => STRING              - Server address to bind to [0.0.0.0]
   #   :port => INT                   - Port to listen on [4000]
   #   :page_title => STRING          - Main title of web page
   #   :use_tabs => [:tabName, ...]   - Tabs to show and in which order [ALL]
@@ -57,7 +58,9 @@ module OMF::Web
       end
     end
     
-    s = ::Thin::Server.new('localhost', 4040) do
+    server = opts[:server] || '0.0.0.0'
+    port = opts[:port] ? opts[:port] : 4040
+    s = ::Thin::Server.new(server, port) do
       use ::Rack::ShowExceptions
       use ::Rack::Lint
       
