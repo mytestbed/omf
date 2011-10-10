@@ -93,6 +93,7 @@ rm -f liblog4r-ruby-1*rpm libxmpp4r-ruby-1*rpm
 
 read -p "Do you want to upload the RPMs to mytestbed.net (y/n)?"
 if [ "$REPLY" == "y" ]; then
-	scp omf-*.rpm mytestbed.net:/var/www/packages/rpm/5.4/f14/noarch/
-	ssh mytestbed.net createrepo /var/www/packages/rpm/5.4/f14/noarch/
+	scp omf-*.rpm mytestbed.net:/var/www/packages/rpm/5.3/f14/noarch/
+	ssh mytestbed.net createrepo /var/www/packages/rpm/5.3/f14
+	ssh mytestbed.net createrepo /var/www/packages/rpm/5.3/f8
 fi

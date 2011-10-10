@@ -55,7 +55,7 @@ install: build
 	mv debian/$(PKG_NAME)/usr/sbin/omf-aggmgr debian/$(PKG_NAME)/usr/sbin/$(PKG_NAME)
 	mv debian/$(PKG_NAME)/usr/sbin/omf_create_psnode debian/$(PKG_NAME)/usr/sbin/omf_create_psnode-$(VERSION)
 	mkdir -p debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
-	mkdir -p debian/$(PKG_NAME)/var/lib/$(PKG_NAME)
+	mkdir -p debian/$(PKG_NAME)/var/lib/omf-images-$(VER)
 	mkdir -p debian/$(PKG_NAME)/etc/$(PKG_NAME)/enabled
 	mv debian/$(PKG_NAME)/etc/$(PKG_NAME)/*.yaml debian/$(PKG_NAME)/usr/share/doc/$(PKG_NAME)/examples
 	(cd debian/$(PKG_NAME)/usr/share/$(PKG_NAME); $(PWD)/../gem-package.sh)

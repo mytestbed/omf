@@ -439,6 +439,9 @@ class ExperimentProperty < MObject
   #
   def self.create(name, value = nil, description = nil)
     name = name.to_s
+    # http://stackoverflow.com/questions/4378670/what-is-a-ruby-regex-to-match-a-function-name
+    raise OEDLIllegalCommandException.new("method_name", "Illegal operation,
+ Experiment Property '#{name}' is not a valid Ruby method name.") if /[@$"]/ =~ name.to_sym.inspect
     p = nil
     if (p = @@properties[name]) != nil
       p.value = value if value != nil

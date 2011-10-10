@@ -62,7 +62,7 @@ class OMFPubSubTransport < MObject
             "parameter!" if !@@psGateway
     @@psPort = opts[:config][:xmpp][:pubsub_port]
     @@useDnsSrv = opts[:config][:xmpp][:pubsub_use_dnssrv]
-    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries]
+    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries] || 0
     
     # Check if we are using message authentication  
     kl = nil

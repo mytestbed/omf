@@ -268,8 +268,8 @@ class InventoryService < GridService
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no switch IP/port for HRN '#{hrn}' (domain: #{domain})"
-    replyXML = buildXMLReply("SWITCH_IP_PORT", result, msgEmpty) { |root,ip|
-      root.text = ip
+    replyXML = buildXMLReply("SWITCH_IP_PORT", result, msgEmpty) { |root,port|
+      root.text = port
     }
     replyXML
   end
@@ -321,8 +321,8 @@ class InventoryService < GridService
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no HRN for host '#{hostname}' (domain: #{domain})"
-    replyXML = buildXMLReply("HRN", result, msgEmpty) { |root,ip|
-      root.text = ip
+    replyXML = buildXMLReply("HRN", result, msgEmpty) { |root,hrn|
+      root.text = hrn
     }
     replyXML
   end
@@ -347,8 +347,8 @@ class InventoryService < GridService
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no default disk for HRN '#{hrn}' (domain: #{domain})"
-    replyXML = buildXMLReply("disk", result, msgEmpty) { |root,ip|
-      root.text = ip
+    replyXML = buildXMLReply("disk", result, msgEmpty) { |root,disk|
+      root.text = disk 
     }
     replyXML
   end

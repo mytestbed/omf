@@ -29,7 +29,7 @@ case "$1" in
     update-alternatives --install /usr/bin/omf omf /usr/bin/omf-$VER 50
 
     cd /usr/share/omf-expctl-$VER/gems/1.8
-    echo "Installing gems for OMF"
+    echo "Installing gems for OMF to $PWD"
     rake=/usr/bin/rake GEM_PATH=$PWD gem install --no-ri --no-rdoc -l -f -i . cache/*.gem
     ;;
     

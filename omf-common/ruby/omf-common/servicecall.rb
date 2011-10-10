@@ -64,16 +64,18 @@ module OMF
     # field specifying the location of the AM.  For instance, for an
     # XMPP AM and an HTTP AM, the YAML file might look like:
     #
-    # :econtroller:
-    #   :config:
-    #     :default:
+    # :aggmgr:
     #       :services:
     #         -
     #           :type :xmpp
+    #           :uri  'norbit.npc.nicta.com.au'
+    #           :port: 5222
+    #           :use_dnssrv: false
+    #           :user: "aggmgr"
+    #           :password: "123"
     #           :domain: foo  # optionally restrict to specific domain
     #           :services:   # optionally restrict to specific set of services
-    #             - cmc
-    #           :uri  'norbit.npc.nicta.com.au'
+    #             - cmc    
     #         -
     #           :type :http
     #           :uri  'http://norbit.npc.nicta.com.au:5053'

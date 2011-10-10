@@ -21,4 +21,4 @@ pxe:
   #
   testbed:
     default: 
-      inventory_url: 'http://internal1.orbit-lab.org:5053/inventory'
+      inventory_url: 'http://internal1.orbit-lab.org:5054/inventory'
