@@ -112,7 +112,7 @@ init_graph 'Network', nw, 'network', {
     }
   }
 }
-init_graph 'Nodes', node_table, 'line_chart', {
+init_graph 'Nodes', node_table, 'line_chart_fc', {
   :schema => node_table.schema.describe,
   :mapping => {:x_axis => :ts, :y_axis => :capacity, :group_by => :name}
 }

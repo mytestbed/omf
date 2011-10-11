@@ -1,4 +1,4 @@
-L.provide('OML.line_chart_fc', ["d3/d3", "graph/line_chart"], function () {
+L.provide('OML.line_chart_fc', ["d3/d3", "graph/line_chart", '#OML.line_chart'], function () {
 
   OML['line_chart_fc'] = function(opts) {
     this.version = "0.5";
@@ -57,6 +57,10 @@ L.provide('OML.line_chart_fc', ["d3/d3", "graph/line_chart"], function () {
       if (data) this.update(data);
     };
   
+    this.append = function(data) {
+      this.context.append(data);
+    };
+
     this.update = function(data) {
       this.context.update(data);
     };
