@@ -8,8 +8,6 @@
   <!-- loggers -->
   <logger name="nodeHandler" outputters="console" level="DEBUG" trace="true"/>
   <logger name="nodeHandler::web" outputters="console" level="INFO"/>
-
-  <logger name="nodeHandler::transport" outputters="console" level="INFO"/>
   
 
   <logger name="nodeHandler::comm" outputters="console" level="INFO"/>

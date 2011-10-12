@@ -195,12 +195,6 @@ class OMFPubSubTransport < MObject
 
   #############################
   #############################
-  
-  protected
-  
-  def initialize()
-    super('transport::xmpp_t')
-  end
 
   private
 
