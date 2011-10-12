@@ -119,7 +119,7 @@ class CmcNorbitService < GridService
   #
   # Return the power state of a given node
   #
-  s_description 'Return the AC power state of a given node'
+  s_description 'Return the power state of a given node'
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'status' do |hrn, domain|

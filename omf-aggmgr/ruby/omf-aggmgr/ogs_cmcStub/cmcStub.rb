@@ -130,13 +130,12 @@ class CmcStubService < GridService
   #
   # Return the power state of a given node
   #
-  s_description 'Return the AC power state of a given node'
+  s_description 'Return the power state of a given node'
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'status' do |hrn, domain|
     root = REXML::Element.new('NODE_STATUS')
     detail = root.add_element('detail')
-    state = poweredOn?(hrn, domain) ? 'POWERON' : 'POWEROFF'
     attr = {'hrn' => hrn, 'state' => "POWERON" }
     detail.add_element('node', attr)
     root
