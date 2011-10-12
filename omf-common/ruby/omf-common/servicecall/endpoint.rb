@@ -41,8 +41,6 @@ module OMF
       def self.create(type, opts)
         case type
         when :xmpp
-          require 'omf-common/servicecall/xmpp'
-          return XmppEndpoint.new(opts)
         when :http
           require 'omf-common/servicecall/http'
           return HttpEndpoint.new(opts)
@@ -54,7 +52,7 @@ module OMF
       
       # :domain -- the domain that this endpoint sits on (uri)
       # :type -- the type of domain that this endpoint sits on (:xmpp, :http)
-      #attr_reader :domain, :type, :attributes
+      attr_reader :domain, :type, :attributes
 
       @@types = Hash.new
 
@@ -69,37 +67,30 @@ module OMF
         raise "#{self.class}#send_request must be implemented by subclasses"
       end
 
-      def make_request(service, method, targets, domain, opts)
-        send_request(service, method, targets, domain, opts)
-        
-        # Do we really need to all this checking? The HTTP transport
-        # throws an exception anyway if we call a service or a method which doesn't exit.
-        # The XMPP endpoint will most likely be quiet, but this can be for other reasons.
-        #
-         
-        # service = service.to_s
-        # method = method.to_s
-        # if @services.nil?
-          # get_service_list(service)
-        # end
-        # s = @services[service]
-        # if s.nil?
-          # raise NoService, "Tried to call unknown service #{service}"
-        # else
-          # get_service_method_list(service) if s == :pending
-          # s = @services[service]
-          # m = s[method]
-          # if m.nil?
-            # raise NoService, "Tried to call unknown method #{service}.#{method}"
-          # else
-            # if args.length == 1 and args[0].kind_of? Hash then
-              # key_value_args = args
-            # else
-              # key_value_args = m.zip(args)
-            # end
-            # send_request(service, method, *key_value_args)
-          # end
-        # end
+      def make_request(service, method, *args)
+        service = service.to_s
+        method = method.to_s
+        if @services.nil?
+          get_service_list(service)
+        end
+        s = @services[service]
+        if s.nil?
+          raise NoService, "Tried to call unknown service #{service}"
+        else
+          get_service_method_list(service) if s == :pending
+          s = @services[service]
+          m = s[method]
+          if m.nil?
+            raise NoService, "Tried to call unknown method #{service}.#{method}"
+          else
+            if args.length == 1 and args[0].kind_of? Hash then
+              key_value_args = args
+            else
+              key_value_args = m.zip(args)
+            end
+            send_request(service, method, *key_value_args)
+          end
+        end
       end # make_request
 
       def get_service_list(target=nil)
@@ -181,7 +172,6 @@ module OMF
           false
         end
       end
-      
       #
       # Return true if this instance of an Endpoint subclass should service
       # the given query.
@@ -190,63 +180,63 @@ module OMF
         raise "Subclasses of OMF::Services::Endpoint must implement match? method"
       end
 
-      # #
-      # # Initialize a new endpoint of given type at given uri.  *args
-      # # should be the arguments to a service call that needs to be
-      # # made to the eventual endpoint.
-      # #
-      # def self.init(type, uri, *args)
-        # raise "Unknown ServiceDomain type #{type}" if @@types[type].nil?
-        # @@types[type].new(type, uri, *args)
-      # end
-# 
-      # def self.register(type)
-        # @@types[type] = self
-      # end
-# 
-      # @@endpoints = Hash.new
-# 
-      # #
-      # # Find an endpoint to satisfy a request.  The request must be
-      # # satisfied by an endpoint on a domain of the given type and at
-      # # the specified uri; but if the modifiers suggest a different
-      # # type and uri, look for one matching those instead.
-      # #
-      # def self.find(type, uri, modifiers, *args)
-        # alt_type = nil
-        # alt_uri = nil
-        # if not modifiers.nil?
-          # if not modifiers[:type].nil?
-            # alt_type = modifiers[:type]
-            # alt_uri = modifiers[:uri]
-          # else
-            # alt_type = @@types.find { |t| modifiers.has_key? t }
-            # alt_uri = modifiers[alt_type] unless alt_type.nil?
-          # end
-        # end
-        # type = alt_type || type
-        # uri = alt_uri || uri
-        # endpoints = @@endpoints[type]
-        # if endpoints.nil?
-          # # If no endpoint of the right type, instantiate a new one
-          # endpoint = self.init(type, uri, *args)
-          # @@endpoints[type] = [endpoint]
-          # endpoint
-        # else
-          # # Otherwise, search for one that matches the query
-          # endpoints = @@endpoints[type]
-          # endpoint = endpoints.find { |e| e.match?(type, uri, *args) }
-          # if endpoint.nil?
-            # endpoint = self.init(type, uri, *args)
-          # end
-          # endpoints << endpoint
-          # endpoint
-        # end
-      # end # self.find
-# 
-      # def self.types
-        # @@types.keys
-      # end
-    end # class Endpoint
+      #
+      # Initialize a new endpoint of given type at given uri.  *args
+      # should be the arguments to a service call that needs to be
+      # made to the eventual endpoint.
+      #
+      def self.init(type, uri, *args)
+        raise "Unknown ServiceDomain type #{type}" if @@types[type].nil?
+        @@types[type].new(type, uri, *args)
+      end
+
+      def self.register(type)
+        @@types[type] = self
+      end
+
+      @@endpoints = Hash.new
+
+      #
+      # Find an endpoint to satisfy a request.  The request must be
+      # satisfied by an endpoint on a domain of the given type and at
+      # the specified uri; but if the modifiers suggest a different
+      # type and uri, look for one matching those instead.
+      #
+      def self.find(type, uri, modifiers, *args)
+        alt_type = nil
+        alt_uri = nil
+        if not modifiers.nil?
+          if not modifiers[:type].nil?
+            alt_type = modifiers[:type]
+            alt_uri = modifiers[:uri]
+          else
+            alt_type = @@types.find { |t| modifiers.has_key? t }
+            alt_uri = modifiers[alt_type] unless alt_type.nil?
+          end
+        end
+        type = alt_type || type
+        uri = alt_uri || uri
+        endpoints = @@endpoints[type]
+        if endpoints.nil?
+          # If no endpoint of the right type, instantiate a new one
+          endpoint = self.init(type, uri, *args)
+          @@endpoints[type] = [endpoint]
+          endpoint
+        else
+          # Otherwise, search for one that matches the query
+          endpoints = @@endpoints[type]
+          endpoint = endpoints.find { |e| e.match?(type, uri, *args) }
+          if endpoint.nil?
+            endpoint = self.init(type, uri, *args)
+          end
+          endpoints << endpoint
+          endpoint
+        end
+      end # self.find
+
+      def self.types
+        @@types.keys
+      end
+    end # class Endpoing
   end # module Services
 end # module OMF

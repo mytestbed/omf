@@ -24,26 +24,24 @@
 #
 
 require 'net/http'
-require 'cgi'
 require 'timeout'
 require 'omf-common/servicecall/endpoint'
 
 module OMF
   module Services
     class HttpEndpoint < Endpoint
-      #register(:http)
+      register(:http)
 
       attr_reader :url
       def initialize(opts)
         super()
         @url = opts[:url]
-        raise ConfigError.new("Missing 'url' option for HTTP endpoint") unless @url
       end
       
-      # def make_request(service, method, targets, domain, opts)
-        # puts ">>>> MAKE REQUEST: service: #{service}, mathod:#{method}, targets: #{targets.inspect}, domain: #{domain}, opts: #{opts.inspect}"
-        # #send_request()
-      # end      
+      def make_request(service, method, targets, domain, opts)
+        puts ">>>> MAKE REQUEST: service: #{service}, mathod:#{method}, targets: #{targets.inspect}, domain: #{domain}, opts: #{opts.inspect}"
+        #send_request()
+      end      
 
       def match?(type, uri, *args)
         return false if not (type == @type and uri == @domain)
@@ -52,33 +50,19 @@ module OMF
         has_method?(service, method)
       end
 
-      def send_request(service, method, targets, domain, opts)
-        #puts ">>>> service #{service}, method #{method}, targets #{targets.inspect}, domain #{domain}, opts #{opts.inspect})"
-        uri = "#{@url}/#{service}/#{method}"
-        opts[:domain] ||= domain
-        opts[:hrn] ||= targets  # BUG ALERT - not sure if this is the right way
-        query = opts.collect do |name, value|
-          "#{CGI.escape(name.to_s)}=#{CGI.escape(value.to_s)}"
+      def send_request(service=nil, method=nil, *args)
+        uri = url
+        if not service.nil?
+          uri = uri + "/" + service.to_s
+          if not method.nil?
+            uri = uri + "/" + method.to_s
+          end
         end
-        (uri += '?' + query.join('&')) unless query.empty?
-        
-        # uri = url
-        # if not service.nil?
-          # uri = uri + "/" + service.to_s
-          # if not method.nil?
-            # uri = uri + "/" + method.to_s
-          # end
-        # end
-        # query = args.collect do |name, value|
-          # "#{name}=#{value}"
-        # end
-        # uri = [uri, query.join('&')].delete_if{ |s| s == "" }.join('?')
-
-        debug "calling url '#{uri}'"
-        puts ">>> FAKING OK RETURN - Remove as soon as we have tested this"
-        return ""
-        
-        
+        query = args.collect do |name, value|
+          "#{name}=#{value}"
+        end
+        uri = [uri, query.join('&')].delete_if{ |s| s == "" }.join('?')
+        puts "URI = #{uri}"
         begin
           resp = Net::HTTP.get_response(URI.parse(uri))
         rescue TimeoutError, Errno::ETIMEDOUT => e

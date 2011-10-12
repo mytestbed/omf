@@ -28,5 +28,4 @@
       :services:
         -
           :type: :http
-          :domain: omf.nicta
-          :url: 'http://norbit.npc.nicta.com.au:5053'
+          :uri: 'http://norbit.npc.nicta.com.au:5053'
