@@ -27,40 +27,23 @@ require 'omf-common/mobject'
 
 module OMF
   module Services
-    
-    class EndpointException < Exception; end
-    class UnknownEndpointException < EndpointException; end
-
     #
     # A service endpoint is a single communications endpoint that
     # offers AM services.  Examples:  an HTTP endpoint (specified by
     # a URL) or pubsub node on an XMPP server.
     #
     class Endpoint < MObject
-      
-      def self.create(type, opts)
-        case type
-        when :xmpp
-        when :http
-          require 'omf-common/servicecall/http'
-          return HttpEndpoint.new(opts)
-        when :mock
-        else
-          raise EndpointException.new("Unknown enpoint type '#{type}'")
-        end
-      end
-      
       # :domain -- the domain that this endpoint sits on (uri)
       # :type -- the type of domain that this endpoint sits on (:xmpp, :http)
       attr_reader :domain, :type, :attributes
 
       @@types = Hash.new
 
-      def initialize()
-        # @services = nil
-        # @domain = name
-        # @type = type
-        # @attributes = Hash.new
+      def initialize(type, name)
+        @services = nil
+        @domain = name
+        @type = type
+        @attributes = Hash.new
       end
 
       def send_request(service=nil, method=nil, *args)

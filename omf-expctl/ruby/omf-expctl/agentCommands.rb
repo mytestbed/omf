@@ -42,7 +42,7 @@ module AgentCommands
   # - reply = the reply to process
   #
   def AgentCommands.OK(communicator, reply)
-    sender = OMF::EC::Node[reply.target]
+    sender = Node[reply.target]
     okReason = reply.reason
     message = reply.message
     case okReason
@@ -80,7 +80,7 @@ module AgentCommands
   # - reply = the reply to process
   #
   def AgentCommands.WARN(communicator, reply)
-    sender = OMF::EC::Node[reply.target]
+    sender = Node[reply.target]
     MObject.warn("AgentCommands", "sender: '#{reply.target}' ('#{sender}') - "+
                  "msg: '#{reply.message}'")
   end
@@ -94,7 +94,7 @@ module AgentCommands
   # - command = the command to process
   #
   def AgentCommands.APP_EVENT(communicator, command)
-    sender = OMF::EC::Node[command.target]
+    sender = Node[command.target]
     eventName = command.value
     appId = command.appID
     message = command.message
@@ -113,7 +113,7 @@ module AgentCommands
   # - command = the command to process
   #
   def AgentCommands.DEV_EVENT(communicator, command)
-    sender = OMF::EC::Node[command.target]
+    sender = Node[command.target]
     eventName = command.value
     devName = command.appID
     message = command.message
@@ -132,7 +132,7 @@ module AgentCommands
   # - reply = the reply to process
   #
   def AgentCommands.ERROR(communicator, reply)
-    sender = OMF::EC::Node[reply.target]
+    sender = Node[reply.target]
     errorReason = reply.reason
     message = reply.message
     lines = Array.new
@@ -189,7 +189,7 @@ module AgentCommands
   # - command = the command to process
   #
   def AgentCommands.END_EXPERIMENT(communicator, command)
-    sender = OMF::EC::Node[command.target]
+    sender = Node[command.target]
     if Experiment.disconnection_allowed? 
       MObject.info("#{sender}", 
                    "Received End of Experiment from resource '#{sender}'")
@@ -217,7 +217,7 @@ module AgentCommands
   # - reply = the reply to process
   #
   #def AgentCommands.WRONG_IMAGE(communicator, reply)
-  #  sender = OMF::EC::Node[reply.target]
+  #  sender = Node[reply.target]
   #  MObject.debug("AgentCommands", "WRONG_IMAGE from: '#{reply.target}' - "+
   #                "Desired: '#{sender.image}' - Installed: '#{reply.image}'")
   #  sender.reset()

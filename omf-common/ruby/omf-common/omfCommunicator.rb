@@ -81,14 +81,7 @@ class OmfCommunicator < MObject
     # Start the Thread that will process message from Transport
     Thread.new {
         while message = @@queue.pop
-          begin 
-            dispatch_message(message)
-          rescue Exception => ex
-            error "Exception while dispatching message (#{ex.class}): #{ex}"
-            debug("Message:\t#{message}")            
-            bt = ex.backtrace.join("\n\t")
-            debug("Trace:\n\t#{bt}\n")
-          end
+          dispatch_message(message)
         end
     }
     @@started = true
@@ -130,9 +123,7 @@ class OmfCommunicator < MObject
       return @@transport.listen(addr) 
     elsif @@transport
       @@already_queueing = true
-      return @@transport.listen(addr) do |message|
-        @@queue << message
-      end 
+      return @@transport.listen(addr) { |message| @@queue << message } 
     end
   end
 
@@ -160,10 +151,8 @@ class OmfCommunicator < MObject
       proc = @@communicator_commands[msg.cmdType]
       proc.call(msg) if not proc.nil?
     rescue Exception => ex
-      error "Failed to process Communicator-specific task '#{msg.cmdType}' (#{ex})"
-      debug("Message:\t#{msg}")            
-      bt = ex.backtrace.join("\n\t")
-      debug("Trace:\n\t#{bt}\n")
+      error "Failed to process Communicator-specific task '#{msg.cmdType}'\n" +
+            "Error: '#{ex}'\n" + "Raw message: '#{msg.to_s}'"
       return ex
     end
     # 3 - Dispatch the message to the OMF entity
@@ -171,9 +160,8 @@ class OmfCommunicator < MObject
       proc = @@valid_commands[msg.cmdType]
       proc.call(self, msg) if not proc.nil?
     rescue Exception => ex
-      error "Failed to process command '#{msg.cmdType}' (#{ex})"
-      bt = ex.backtrace.join("\n\t")
-      debug("Trace:\n\t#{bt}\n")
+      error "Failed to process the command '#{msg.cmdType}'\n" +
+            "Error: #{err}\n" + "Trace: #{err.backtrace.join("\n")}" 
       return ex
     end
   end

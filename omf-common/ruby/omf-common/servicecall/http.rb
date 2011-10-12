@@ -33,15 +33,10 @@ module OMF
       register(:http)
 
       attr_reader :url
-      def initialize(opts)
-        super()
-        @url = opts[:url]
+      def initialize(type, name, *args)
+        super(type, name)
+        @url = name
       end
-      
-      def make_request(service, method, targets, domain, opts)
-        puts ">>>> MAKE REQUEST: service: #{service}, mathod:#{method}, targets: #{targets.inspect}, domain: #{domain}, opts: #{opts.inspect}"
-        #send_request()
-      end      
 
       def match?(type, uri, *args)
         return false if not (type == @type and uri == @domain)

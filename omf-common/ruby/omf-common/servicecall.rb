@@ -45,6 +45,7 @@ require 'omf-common/servicecall/http'
 
 module OMF
   module Services
+<<<<<<< HEAD
     
     #
     # Set up the domains that the service call architecture uses to make
@@ -164,6 +165,8 @@ module OMF
     end
     
     
+=======
+>>>>>>> parent of 37bc73e... Started to re-write the way service calls are performed. Most of the code is there for HTTP service calls, but it doesn't make the actual HTTP call. XMPP is not supported yet. Also a lot of code is now no longer used and needs to be removed.
     #
     # Route a service invocation to a method dispatcher.
     #
@@ -171,53 +174,46 @@ module OMF
     # args[:domain] can specify which pubsub domain the call should be routed to
     # args[:noreply] == true means the (multiple) remote responders should not send a reply
     #
-    # def self.method_missing(m, args = nil)
-      # # The following code doesn't look very thread safe to me. 
-      # # Let's just create a separate object
-      # #
-      # # service = Service.new(m)
-      # # @@services[m] = service
-      # # raise "Couldn't find a provider for service '#{m}' in OMF::Services module" if service.nil?
-      # # service.modifiers = args
-      # # service
-      # Service.new(m, args)
-    # end
+    def Services.method_missing(m, args = nil)
+      service = @@services[m] || Service.new(m)
+      @@services[m] = service
+      raise "Couldn't find a provider for service '#{m}' in OMF::Services module" if service.nil?
+      service.modifiers = args
+      service
+    end
 
-    # def Services.add_domain(domainspec)
-      # # Soemthing is severly broken here
-# # puts "ADD_DOMAIN >>>> #{domainspec.inspect}"
-# #raise "ADD"
-    # end
+    def Services.add_domain(domainspec)
+      # Soemthing is severly broken here
+# puts "ADD_DOMAIN >>>> #{domainspec.inspect}"
+#raise "ADD"
+      type = domainspec[:type]
+      uri = domainspec[:uri]
+      raise "ServiceCall domainspec must have a :type (e.g. :http, :xmpp)" if type.nil?
+      raise "ServiceCall domainspec must have a :uri (location of the service provider)" if uri.nil?
+      @@domains[type] = @@domains[type] || []
+      @@domains[type] << domainspec
+    end
 
     class ServiceCallException < Exception; end
-    # class Timeout < ServiceCallException; end
-    # class ProtocolError < ServiceCallException; end
+    class Timeout < ServiceCallException; end
+    class ProtocolError < ServiceCallException; end
     class NoService < ServiceCallException; end
     class ConfigError < ServiceCallException; end
-#    class Error < ServiceCallException; end
+    class Error < ServiceCallException; end
 
     private
 
-    # @@domains = Hash.new
-    # @@services = Hash.new
-    @@endpoints = Hash.new
-    
-    def self.find_endpoint(domain, service)
-      ep = @@endpoints["#{domain}/#{service}"] || @@endpoints[domain] || @@endpoints["_/#{service}"] || @@endpoints['_']
-      unless ep
-        raise NoService.new("Can't find service endpoint for '#{domain}/#{service}'")
-      end
-      ep
-    end
-    
+    @@domains = Hash.new
+    @@services = Hash.new
+    @@endpoints = Array.new
 
-    # def Services.domains
-      # @@domains
-    # end
-# 
-    # def Services.endpoints
-      # @@endpoints
-    # end
+    def Services.domains
+      @@domains
+    end
+
+    def Services.endpoints
+      @@endpoints
+    end
 
     #
     # A proto-service call.  It just encapsulates the name of the
@@ -229,17 +225,13 @@ module OMF
     #
     class Service < MObject
       attr_reader :name
-      attr_reader :modifiers
+      attr_accessor :modifiers
 
-      def initialize(name, modifiers)
+      def initialize(name)
         @name = name
-        @modifiers = modifiers
       end
-      
 
       def method_missing(m, *args)
-        fatal  ">>>>> SHOULD NOT BE HERE"
-        raise "WHO?"
 
         if not modifiers.nil?
           tl = Endpoint.types.find_all { |t| modifiers.has_key? t }
