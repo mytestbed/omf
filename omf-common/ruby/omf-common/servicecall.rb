@@ -45,7 +45,6 @@ require 'omf-common/servicecall/http'
 
 module OMF
   module Services
-<<<<<<< HEAD
     
     #
     # Set up the domains that the service call architecture uses to make
@@ -164,9 +163,6 @@ module OMF
       results[0]
     end
     
-    
-=======
->>>>>>> parent of 37bc73e... Started to re-write the way service calls are performed. Most of the code is there for HTTP service calls, but it doesn't make the actual HTTP call. XMPP is not supported yet. Also a lot of code is now no longer used and needs to be removed.
     #
     # Route a service invocation to a method dispatcher.
     #
