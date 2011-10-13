@@ -7,9 +7,9 @@ VER = 5.4
 OMF_RELEASE=5.4
 DEB_REP=debian
 KORG_URL = http://mirror.aarnet.edu.au/pub/ftp.kernel.org/linux/kernel/v
-KERNEL_VERSION = 2
-KERNEL_PATCHLEVEL = 6
-KERNEL_SUBLEVEL = 34
+KERNEL_VERSION = 3
+KERNEL_PATCHLEVEL = 0
+KERNEL_SUBLEVEL = 4
 KERNEL_EXTRAVERSION = 
 KERNEL_MAIN_VER=$(KERNEL_VERSION).$(KERNEL_PATCHLEVEL).$(KERNEL_SUBLEVEL)
 KVER = $(KERNEL_MAIN_VER)$(KERNEL_EXTRAVERSION)
@@ -76,17 +76,14 @@ SOURCE = src
 # Dump temp data
 TEMP = tmp
 
-# Add new libs as necessary, and move to uClibc ASAP, this means killing 
-# all ruby slowly
-LIB =	/lib/ld-linux.so.2 /lib/libc.so.6 /lib/libm.so.6 /lib/libpthread.so.0 
-LIB +=	/lib/libdl.so.2 /lib/libcrypt.so.1 
-LIB +=	/lib/libnss_dns.so.2 /lib/libresolv.so.2
+LIB =	/lib/i386-linux-gnu/ld-linux.so.2 /lib/i386-linux-gnu/libc.so.6 /lib/i386-linux-gnu/libm.so.6 /lib/i386-linux-gnu/libpthread.so.0 
+LIB +=	/lib/i386-linux-gnu/libdl.so.2 /lib/i386-linux-gnu/libcrypt.so.1 
+LIB +=	/lib/i386-linux-gnu/libnss_dns.so.2 /lib/i386-linux-gnu/libresolv.so.2
 # Currently nodeagent requires lspci, which requires libpci. Remove this 
 # if not needed.
 LIB += /usr/lib/libpci.so.3
 # for ruby1.8
-LIB +=  /lib/librt.so.1
-UCLIBC = /lib/ld-uClibc.so.0 /lib/libc.so.0 /lib/libm.so.0
+LIB +=  /lib/i386-linux-gnu/librt.so.1
 
 #all: apt-get-update kernel initramfs
 all: kernel initramfs
@@ -95,6 +92,10 @@ apt-get-update:
 	sudo apt-get update
 
 dirs:
+	if [ $(LBITS) != 32 ] ; then \
+	  echo "The OMF PXE image can only be built on a 32bit host at this time."; \
+          false; \
+	fi
 	install -d $(BUILD) $(ROOTFS) $(SOURCE) $(TEMP)
 
 bbox: 	get_bbox
@@ -116,7 +117,7 @@ omf:
 	sed -i 's/OMF_RELEASE/$(OMF_RELEASE)/g' $(ROOTFS)/etc/init.d/rcS.actual
 
 syslinux: omf
-	dpkg -x $(SOURCE)/omf/syslinux* $(TEMP)
+	for file in `ls $(SOURCE)/omf/syslinux*`; do dpkg -x $$file $(TEMP); done
 	install -m 755 $(TEMP)/$(PXE_PATH)/$(PXE_SRC)  $(BUILD)/$(PXE_DST)
 
 getmac:
@@ -187,10 +188,6 @@ filesystem: dirs
 	echo "pxe-$(VER)" > $(ROOTFS)/.omf_imageid
 
 kernel: dirs get_kernel
-	if [ $(LBITS) != 32 ] ; then \
-	  echo "The OMF PXE image can only be built on a 32bit host at this time."; \
-          false; \
-	fi	
 	if [ ! -r $(BUILD)/$(KERNEL_NAME) ] ; then \
 	  cp $(CONFIG)/$(KERNEL_CONFIG_FILE) $(SOURCE)/$(KERNEL_DIR)/.config ;\
 	  $(MAKE) -C $(SOURCE)/$(KERNEL_DIR) -j$(KERNEL_BUILD_JOBS) bzImage; \
