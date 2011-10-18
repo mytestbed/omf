@@ -30,9 +30,9 @@
 #
 require 'set'
 require 'omf-common/mobject'
-require 'omf-expctl/prototype'
 require 'omf-expctl/node/node'
 require 'omf-expctl/experiment'
+require 'omf-expctl/application/application'
 require 'observer'
 
 #

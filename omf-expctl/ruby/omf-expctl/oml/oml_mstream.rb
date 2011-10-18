@@ -29,6 +29,7 @@
 #
 
 require "omf-expctl/oml/filter"
+require 'omf-expctl/application/application'
 
 module OMF
   module ExperimentController
