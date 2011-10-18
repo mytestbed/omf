@@ -29,7 +29,7 @@
 #
 
 require "omf-expctl/oml/filter"
-require 'omf-expctl/application/application'
+require "omf-expctl/handlerCommands.rb"
 
 module OMF
   module ExperimentController
