@@ -221,6 +221,31 @@ class NodeHandler < MObject
   end
   
   #
+  # @@allowmissing Flag:
+  # When 'true', continue experiment even if some nodes did not check in
+  # Default is 'false'
+  #
+  @@allowmissing = false
+
+  #
+  # Return the value of the 'shutdown' flag
+  #
+  # [Return] true/false (default 'false')
+  #
+  def NodeHandler.ALLOWMISSING()
+    return @@allowmissing
+  end
+
+  #
+  # Set the value of the 'shutdown' flag
+  #
+  # - flag = true/false
+  #
+  def NodeHandler.ALLOWMISSING=(flag)
+    @@allowmissing= flag
+  end
+
+  #
   # Reset Flag: 
   # When 'true', reset nodes before the experiment
   # Default is 'false'
@@ -405,6 +430,11 @@ class NodeHandler < MObject
       "\n\n\tExperimentName is the filename of the experiment script\n" +
       "\t[EXP_OPTIONS] are any options defined in the experiment script\n" +
       "\t[OPTIONS] are any of the following:\n\n" 
+
+    opts.on("-a", "--allow-missing",
+    "If set, continue experiment even if some nodes did not check in") {
+      @@allowmissing = true
+    }
 
     opts.on("-C", "--configfile FILE", 
     "File containing local configuration parameters") {|file|

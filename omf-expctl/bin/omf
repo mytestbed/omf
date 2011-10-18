@@ -129,7 +129,7 @@ def run(cmd)
   ########## OMF LOAD
   elsif (cmd == "load")
     app="omf-expctl.rb"
-    args=["-r -S pxe_slice -s system:exp:imageNode", "--", 
+    args=["-a -r -S pxe_slice -s system:exp:imageNode", "--",
           "--nodes '#{@options[:topology]}'", 
           "--image '#{@options[:image]}'", 
           "--timeout '#{@options[:timeout]}'"]

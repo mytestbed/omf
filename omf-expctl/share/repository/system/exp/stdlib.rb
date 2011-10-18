@@ -34,7 +34,7 @@
 #
 
 # Define some properties that we will use in this 
-defProperty('resetDelay', 210, 
+defProperty('resetDelay', 210,
             "Time to wait before assuming that node didn't boot")
 defProperty('resetTries', 1, 
             "Number of reset tries before declaring node dead")
@@ -77,14 +77,21 @@ everyNS('*', 10) { |ns|
               n.reset()
             else
               MObject.warn('stdlib', "Giving up on node ", n)
-              Topology.removeNode(n)
-              if Topology.empty?
-                MObject.info("stdlib", " ")
-                MObject.info("stdlib", "No resources available for this "+
-                             "experiment. Closing the experiment now!" )
-                MObject.info("stdlib", "Please wait and ignore remaining "+
-                             "messages...")
-                MObject.info("stdlib", " ")
+              if NodeHandler.ALLOWMISSING
+                Topology.removeNode(n)
+                if Topology.empty?
+                  MObject.info("stdlib", " ")
+                  MObject.info("stdlib", "No resources available for this "+
+                               "experiment. Closing the experiment now!" )
+                  MObject.info("stdlib", "Please wait and ignore remaining "+
+                               "messages...")
+                  MObject.info("stdlib", " ")
+                  Experiment.close
+                end
+              else
+                MObject.error('stdlib', "One or more nodes failed to check in " +
+                  "to your experiment. To ignore and continue, use the '-a'"+
+                " flag. Exiting now.")
                 Experiment.close
               end
             end
