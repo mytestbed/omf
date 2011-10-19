@@ -34,6 +34,9 @@ class AggmgrServer < MObject
 
   @stopped = nil
 
+  # List of default slices that we should always serve
+  @default_slices = []
+
   # Hash of Hashes.  @services[myservice][mymethod] is a block to
   # execute when a request for 'myservice.mymethod' is received.
   @mounted_services = nil
@@ -45,6 +48,8 @@ class AggmgrServer < MObject
     super(self.class)
     @stopped = true
     @mounted_services = Hash.new
+    @default_slices = params[:default_slices]
+    info "Serving the default slices: '#{@default_slices.inspect}'"
   end
 
   #
@@ -406,15 +411,18 @@ class XmppAggmgrServer < AggmgrServer
       # Get existing subscriptions from the server, unsubscribing
       # from duplicates (to cleanup from crashes, etc.).
       domain.request_subscriptions(nil, true)
-      # Only add the system node to start with.
-      begin
-        make_dispatcher(domain, "/OMF/system")
-        make_dispatcher(domain, "/OMF/default_slice")
-      rescue Exception => e
-        puts "'#{e.message}'"
-        if e.message == "item-not-found: " then
-          domain.create_node("/OMF/system")
-          make_dispatcher(domain, "/OMF/system")
+      # Add the system node and the nodes for each default slice
+      nlist = @default_slices
+      nlist << "system"
+      nlist.each do |node|
+        begin
+          make_dispatcher(domain, "OMF/#{node}")
+        rescue Exception => e
+          puts "'#{e.message}'"
+          if e.message == "item-not-found: " then
+            domain.create_node("/OMF/#{node}")
+            make_dispatcher(domain, "/OMF/#{node}")
+          end
         end
       end
     end
