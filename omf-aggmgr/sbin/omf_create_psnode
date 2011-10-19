@@ -27,12 +27,12 @@
 export LANG=c
 
 VER=-5.4
-APP=omf_create_psnode.rb
+APP=omf_create_sysnode.rb
 if [ -e /usr/share/omf-aggmgr$VER/omf-aggmgr/$APP ]; then
    PDIR=/usr/share/omf-aggmgr$VER/omf-aggmgr
 else
    echo "Cannot find the ruby module location ($APP)."
    exit 1;
 fi
-export GEM_PATH=/usr/share/omf-common-$VER/vendor/ruby/1.8
+export GEM_PATH=/usr/share/omf-common$VER/gems/1.8
 exec ruby -I/usr/share/omf-common$VER $PDIR/$APP $*
