@@ -432,7 +432,7 @@ class NodeHandler < MObject
       "\t[OPTIONS] are any of the following:\n\n" 
 
     opts.on("-a", "--allow-missing",
-    "If set, continue experiment even if some nodes did not check in") {
+    "Continue experiment even if some nodes did not check in") {
       @@allowmissing = true
     }
 

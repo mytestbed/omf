@@ -38,27 +38,32 @@ defProperty('image', 'baseline.ndz', "Image to load on nodes")
 defProperty('domain', nil, "Domain of the nodes to image")
 defProperty('outpath', "/tmp", "Path where to place the topology files resulting from this image")
 defProperty('outprefix', "#{Experiment.ID}", "Prefix to use for the topology files resulting from this image")
-# The following value of 800sec for timeout is based on trial imaging experiments 
-defProperty('timeout', 800, "Stop the imaging process <timeout> sec after the last node has powered up")
+# The following value of 1200sec for timeout is based on trial imaging experiments 
+defProperty('timeout', 1200, "Stop the imaging process <timeout> sec after the last node has powered up")
 
 # Define some constants
-MSG_FAILED = <<TEXT
-# This creates a Topology wih the resources, for which the image loading failed.
-# On these resources, the 'frisbee' client raised an error during its execution.
+MSG_CHECKINFAILED = <<TEXT
+# This creates a Topology with the resources which did not check in to the load experiment.
+# These nodes may have failed to boot into the PXE image or start the RC from within.
+#
+TEXT
+MSG_IMAGEFAILED = <<TEXT
+# This creates a Topology with the resources for which the image loading failed.
+# On these resources, the 'frisbee' client may have raised an error during its execution.
 # Please check the EC log file for the 'frisbee' client error message.
 #
 TEXT
 MSG_TIMEOUT = <<TEXT
-# This creates a Topology wih the resources, for which the image loading timed-out.
+# This creates a Topology with the resources for which the image loading timed out.
 # These nodes did not finish imaging before the timeout limit.
 # Most of the time this is caused by some disk or network problems.
 #
 TEXT
 MSG_SUCCESS = <<TEXT
-# This creates a Topology wih the resources which have successfully been imaged.
+# This creates a Topology with the resources which have successfully been imaged.
 #
 TEXT
-MESSAGES = {:failed => MSG_FAILED, :timeout => MSG_TIMEOUT, :success => MSG_SUCCESS}
+MESSAGES = {:checkinfailed => MSG_CHECKINFAILED, :imagefailed => MSG_IMAGEFAILED, :timeout => MSG_TIMEOUT, :success => MSG_SUCCESS}
 
 
 #
@@ -81,12 +86,15 @@ if (prop.timeout.value.to_i == 0)
   exit -1
 end
 
+@allNodes = []
+
 #
 # Define the group of node to image and set them into PXE boot 
 #
 defGroup('image', prop.nodes) {|n|
    n.pxeImage("#{prop.domain.value}", setPXE=true)
    n.image = "pxe-5.4"
+   n.eachNode { |m| @allNodes << m }
 }
 
 def outputTopologyFile(type, nset)
@@ -177,17 +185,22 @@ everyNS('image', 10) { |ns|
       # we are done
       info " ----------------------------- "
       info " Imaging Process Done " 
-      if nodesWithErrorList.length > 0
-	 f = outputTopologyFile(:failed, nodesWithErrorList)
-         info " - #{nodesWithErrorList.length} node(s) failed - Topology saved at: '#{f}'"
+      nodesWhichNeverCheckedIn = @allNodes - nodesWithErrorList - nodesPendingList - nodesWithSuccessList
+      if (l = nodesWhichNeverCheckedIn.length) > 0
+        f = outputTopologyFile(:checkinfailed, nodesWhichNeverCheckedIn)
+        info " #{l} node#{"s" if l>1} failed to check in - Topology saved in '#{f}'"
       end
-      if nodesPendingList.length > 0
-	 f = outputTopologyFile(:timeout, nodesPendingList)
-         info " - #{nodesPendingList.length} node(s) timed-out - Topology saved at: '#{f}'"
+      if (l = nodesWithErrorList.length) > 0
+        f = outputTopologyFile(:imagefailed, nodesWithErrorList)
+        info " #{l} node#{"s" if l>1} failed to image the disk - Topology saved in '#{f}'"
       end
-      if nodesWithSuccessList.length > 0
-	 f = outputTopologyFile(:success, nodesWithSuccessList)
-         info " - #{nodesWithSuccessList.length} node(s) successfully imaged - Topology saved at: '#{f}'"
+      if (l = nodesPendingList.length) > 0
+        f = outputTopologyFile(:timeout, nodesPendingList)
+        info " #{l} node#{"s" if l>1} timed out - Topology saved in '#{f}'"
+      end
+      if (l = nodesWithSuccessList.length) > 0
+        f = outputTopologyFile(:success, nodesWithSuccessList)
+        info " #{l} node#{"s" if l>1} successfully imaged - Topology saved in '#{f}'"
       end
       info " ----------------------------- "
       ns.pxeImage("#{prop.domain.value}", setPXE=false)
@@ -205,7 +218,7 @@ everyNS('image', 10) { |ns|
 onEvent(:ALL_UP) {
   # Only execute imaging if node set is not empty!
   # (e.g. in rare occasions no node managed to come up and register to EC, when this
-  # happens, we need to exit quietly from this 'whenAllUp')
+  # happens, we need to exit quietly from this 'onEvent(:ALL_UP)')
   nodeCount = 0 
   allGroups.eachNode { |n|
     nodeCount += 1
