@@ -254,6 +254,7 @@ class XmppAggmgrServer < AggmgrServer
 
   include OmfProtocol
   include OMF::ServiceCall::XMPP
+  OPREFIX = "/OMF"
 
   attr_reader :domains, :connection
 
@@ -416,12 +417,12 @@ class XmppAggmgrServer < AggmgrServer
       nlist << "system"
       nlist.each do |node|
         begin
-          make_dispatcher(domain, "OMF/#{node}")
+          make_dispatcher(domain, "#{OPREFIX}/#{node}")
         rescue Exception => e
           puts "'#{e.message}'"
           if e.message == "item-not-found: " then
-            domain.create_node("/OMF/#{node}")
-            make_dispatcher(domain, "/OMF/#{node}")
+            domain.create_node("#{OPREFIX}/#{node}")
+            make_dispatcher(domain, "#{OPREFIX}/#{node}")
           end
         end
       end
