@@ -48,7 +48,7 @@ class Experiment
   @@expPropsOverride = Hash.new  # from command line options
   @@expID = nil
   @@disconnectionAllowed = false
-  @@sliceID = "default_slice"  
+  @@sliceID = nil # default slice ID will be setup by EC based on its config file  
   @@domain = nil
   @@is_running = false
 
