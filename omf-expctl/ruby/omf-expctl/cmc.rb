@@ -43,7 +43,9 @@ module CMC
       puts ">> CMC: Switch on node '#{name}'"
     else
       begin
+puts ">>>>> CMC: nodeOn '#{name}' - 1"
         OMF::Services.cmc.on(name)
+puts ">>>>> CMC: nodeOn '#{name}' - 2"
       rescue Exception => ex
         MObject.debug("CMC", "Can't switch ON node '#{name}'")
       end
