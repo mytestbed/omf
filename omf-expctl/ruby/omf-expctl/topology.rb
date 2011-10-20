@@ -95,7 +95,7 @@ class Topology < MObject
       top.removeNode(node)
       @@topologies.delete(uri) if top.empty?
     }
-    if ((n = Node[node.nodeID]) != nil)
+    if ((n = OMF::EC::Node[node.nodeID]) != nil)
       n.notifyRemoved()
     end
   end
@@ -454,7 +454,7 @@ class Topology < MObject
       raise "Topology - failed to remove node '#{node}' from topology "+
             "'#{uri}'. No topology change allowed (flag 'strict' set)"
     end
-    if ((n = Node[node.nodeID]) != nil)
+    if ((n = OMF::EC::Node[node.nodeID]) != nil)
       @nodes.delete(n) 
     end
   end
@@ -502,12 +502,12 @@ class Topology < MObject
           "and/or edges were defined" if !@graph 
     @edges = getGraphEdges(@graph) 
     @graph.vertices.each { |source|
-      srcNode = Node[source[1]]
+      srcNode = OMF::EC::Node[source[1]]
       raise "Cannot configure link for unknown resource "+
             "'#{source[0]}'" if !srcNode
       @graph.adjacent(source).each { |destination|
         if @graph.edge?(source, destination)
-	  dstNode = Node[destination[1]]  
+	  dstNode = OMF::EC::Node[destination[1]]  
           raise "Cannot configure link of unknown resource "+
                 "'#{destination[0]}'" if !dstNode
           linkSpec = @edges[source+destination].label
@@ -563,7 +563,7 @@ class Topology < MObject
     edges = getGraphEdges(@graph)
     @graph.vertices.each { |source|
       s   = eval(source[1])
-      nodeSrc = Node[s[0],s[1]]
+      nodeSrc = OMF::EC::Node[s[0],s[1]]
       @graph.adjacent(source).each { |dest|
         if (@graph.edge?(source,dest))
           d = eval(dest[1])
@@ -619,7 +619,7 @@ class Topology < MObject
 		netem = 1
  	        values[10] =  ["#{param[:duplication].to_s}"]
               end
-              nodeDst = Node[d[0],d[1]]
+              nodeDst = OMF::EC::Node[d[0],d[1]]
 	      ipDst=nodeDst.ipExp?() #!!!! BROKEN!!!!
 	      values[0]= ipDst
 	      #Port filtered

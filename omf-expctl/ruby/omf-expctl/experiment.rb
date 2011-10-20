@@ -294,7 +294,7 @@ class Experiment
       OMF::EC::CmdContext.instance.\
       defEvent(:EXPERIMENT_DONE, DISCONNECT_INTERVAL) do |event|
         MObject.info("Experiment","Waiting for all resources to report back...")
-        event.fire if Node.all_reconnected?
+        event.fire if OMF::EC::Node.all_reconnected?
       end
       OMF::EC::CmdContext.instance.\
       onEvent(:EXPERIMENT_DONE) { |node| Experiment.close }

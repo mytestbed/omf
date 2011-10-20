@@ -251,7 +251,7 @@ module OMF::EC
     end
     
     def resource(resName)
-      res = Node[resName]
+      res = OMF::EC::Node[resName]
       return res
     end
     
