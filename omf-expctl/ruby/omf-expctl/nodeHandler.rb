@@ -380,7 +380,12 @@ class NodeHandler < MObject
     # info "Web interface available at: #{OMF::Common::Web::url}"
 
     begin 
-      require 'omf-expctl/handlerCommands'      
+      require 'omf-expctl/handlerCommands'
+      if (@defaultLibs)
+        @defaultLibs.split(',').each { |f|
+          Experiment.load(f)
+        }
+      end
       if (@extraLibs)
         @extraLibs.split(',').each { |f|
           Experiment.load(f)
@@ -418,7 +423,8 @@ class NodeHandler < MObject
 
     @interactive = false
     @doProfiling = false
-    @extraLibs = 'system:exp:stdlib,system:exp:eventlib'
+    @defaultLibs = 'system:exp:stdlib,system:exp:eventlib'
+    @extraLibs = nil
     @logConfigFile = nil
     @finalStateFile = nil
     @webPort = 4000
@@ -455,8 +461,8 @@ class NodeHandler < MObject
     "Run the experiment controller in interactive mode") { @interactive = true }
 
     opts.on("-l", "--libraries LIST", 
-    "Comma separated list of additional files to load [#{@extraLibs}]") {|list|
-      @extraLibs = list
+    "Comma separated list of libraries to load (defaults to [#{@defaultLibs}])") {|list|
+      @defaultLibs = list
     }
 
     opts.on("--log FILE", 
@@ -519,7 +525,7 @@ class NodeHandler < MObject
       Experiment.tags = tags
     }
 
-    opts.on_tail("-w", "--web-ui", 
+    opts.on("-w", "--web-ui",
     "Control experiment through web interface") { 
       @web_ui = true 
     }
@@ -535,6 +541,11 @@ class NodeHandler < MObject
 
     opts.on_tail("-v", "--version", "Show the version\n") { |v| 
       puts VERSION_STRING; exit 
+    }
+
+    opts.on("-x", "--extra-libs LIST",
+    "Comma separated list of libraries to load in addition to [#{@defaultLibs}]") {|list|
+      @extraLibs = list
     }
 
     opts.on("--slave-mode EXPID", 

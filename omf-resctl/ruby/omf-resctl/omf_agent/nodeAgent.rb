@@ -317,11 +317,6 @@ class NodeAgent < MObject
       "Run the agent in interactive mode") {
         @interactive = true
     }
-    opts.on("-l", "--libraries LIST",
-      "Comma separated list of additional files to load "+
-      "[#{@extraLibs}]") {|list|
-        @extraLibs = list
-    }
     opts.on("--log FILE",
       "File containing logging configuration information") {|file|
         @logConfigFile = file
