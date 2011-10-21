@@ -1,4 +1,4 @@
-source('~/src/omf_mytestbed_net/omf-common/R/oml/R/oml.R')
+source('../R/oml.R')
 
 #r <- OML('srv.mytestbed.net:5053')$repo('demo-run-1')
 

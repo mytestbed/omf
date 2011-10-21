@@ -29,9 +29,10 @@
 # This file defines the ResultService class.
 #
 
-require 'omf-common/oml/arel_server'
+require 'omf-oml/sequel/sequel_server'
 require 'omf-aggmgr/ogs/legacyGridService'
 
+require 'json'
 require 'stringio'
 
 #
@@ -90,7 +91,8 @@ class Result2Service < LegacyGridService
     end
 
     @@mutex.synchronize do
-      q = OML::Arel::XML::Server::Query.new(qel, @@factory, @@res_logger)
+      q = OMF::OML::Sequel::Server::Query.new(qel, @@factory, @@res_logger)
+      q = q.relation
       
       resp_opts = {:req_id => request.attributes['id'] }
       #puts resp_opts.inspect
@@ -131,21 +133,23 @@ class Result2Service < LegacyGridService
     schema_el = res.add_element('schema')
     rows_el = res.add_element('rows')    
     row_count = 0
+    
+    first = true  
+    mapping = nil  
     q.each do |r|
       if (row_count == 0)
-        r.relation.attributes.each do |a| 
-          name = a.alias || a.name
-          type = a.column.sql_type
+        schema = q.schema_for_row(r)
+        schema.each do |col|
           schema_el.add_element('col', {
-            'name' => name,
-            'type' => type
+            'name' => col[:name],
+            'type' => col[:type]
           })
         end
+        mapping = schema.collect do |c| c[:name] end
       end 
       rel = rows_el.add_element('r')
-      r.tuple.each do |re|
-        #puts re
-        rel.add_element('c').text = re.to_s
+      mapping.each do |cn|
+        rel.add_element('c').text = r[cn].to_s
       end
       row_count += 1
     end
@@ -161,19 +165,18 @@ class Result2Service < LegacyGridService
     if ref_id = resp_opts[:req_id]
       response['refid'] = ref_id
     end
-    first = true
-    schema = response['schema'] = []
+    
     rows = response['rows'] = []
+
+    first = true
+    mapping = nil
     q.each do |r|
-      if (first)
-        r.relation.attributes.each do |a| 
-          name = a.alias || a.name
-          type = a.column.sql_type
-          schema << {:name => name, :type => type}
-        end
+      if first 
+        schema = response['schema'] = q.schema_for_row(r)
+        mapping = schema.collect do |c| c[:name] end
         first = false
-      end 
-      rows << r.tuple
+      end
+      rows << mapping.collect do |cn| r[cn] end
     end
     reply = result.to_json
     reply
@@ -181,8 +184,20 @@ class Result2Service < LegacyGridService
 
   def self.formatCSV(q, resp_opts)
     reply = StringIO.new
+    first = true
+    mapping = nil
     q.each do |r|
-      reply << r.tuple.join(';') << "\n"
+      if first 
+        schema = q.schema_for_row(r)
+        reply << '# '
+        schema.each do |c|
+          reply << c[:name] << ':' << c[:type] << ' '
+        end
+        reply << "\n"
+        mapping = schema.collect do |c| c[:name] end
+        first = false
+      end
+      reply << mapping.collect do |cn| r[cn] end.join(';') << "\n"
     end
     reply.string
   end
@@ -197,9 +212,13 @@ class Result2Service < LegacyGridService
     error("Missing database adapter declaration") unless adapter
     case adapter
     when 'sqlite3'
-      @@factory = OML::Arel::XML::Server::RepositoryFactory.new(
-                    OML::Arel::XML::Server::SqliteRepository, 
-                    config['sqlite3'] #{:db_dir => 'omf-common/test'}
+      cfg = config['sqlite3']
+      db_dir = cfg['db_dir'] || '/tmp'
+      db_dir << '/' unless db_dir.end_with? "/"
+      @@factory = OMF::OML::Sequel::Server::RepositoryFactory.new(
+                    :adapter => 'sqlite',
+                    :database_prefix => db_dir,
+                    :database_postfix => cfg['db_ext'] || '.sq3'
                   )
     else
       error("Unknown result2 adapter '#{adapter}")

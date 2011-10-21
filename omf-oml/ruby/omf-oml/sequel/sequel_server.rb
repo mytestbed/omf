@@ -47,11 +47,11 @@ module OMF::OML::Sequel
       end
       
       def each(&block)
-        sel_mgr = relation
-        unless sel_mgr.kind_of? SelectionManager
-          raise "Can only be called on SELECT statement"
-        end
-        puts sel_mgr.engine
+        # sel_mgr = relation
+        # unless sel_mgr.kind_of? SelectionManager
+          # raise "Can only be called on SELECT statement"
+        # end
+        # puts sel_mgr.engine
         relation.each(&block)
       end
   
@@ -264,7 +264,6 @@ module Sequel
       Time => 'dateTime'
     }
       
-    
     def row_description(row)
       n = naked
       cols = n.columns
@@ -274,6 +273,16 @@ module Sequel
         descr[cn] = CLASS2TYPE[cv.class]
       end
       descr
+    end
+    
+    def schema_for_row(row)
+      n = naked
+      cols = n.columns
+      descr = {}
+      cols.collect do |cn|
+        cv = row[cn]
+        {:name => cn, :type => CLASS2TYPE[cv.class]}
+      end
     end
   end
 end
@@ -382,6 +391,8 @@ def test_sequel_server()
   ds.each do |r|
     if (first)
       puts ds.row_description(r).inspect
+      puts ds.schema_for_row(r).inspect
+      #puts (ds.schema_for_row(r).methods - Object.new.methods).sort
 #      cols = ds.columns
 #      #cols.collect do |c|
 #      cols.each do |c|

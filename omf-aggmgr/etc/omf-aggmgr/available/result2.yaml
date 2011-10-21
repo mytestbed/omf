@@ -9,3 +9,4 @@ result2:
 
   sqlite3:
     db_dir: 'omf-aggmgr/test'
+    db_ext: '.sq3'
