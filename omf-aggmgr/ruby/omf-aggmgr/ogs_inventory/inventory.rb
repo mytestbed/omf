@@ -173,7 +173,7 @@ class InventoryService < GridService
   #
   # Implement 'getListOfResources' service using the 'service' method of AbstractService
   #
-  s_description "Get a list of the names of all available resources on a given domain"
+  s_description "Get a list of the HRNs of all available resources on a given domain"
   s_param :domain, 'domain', 'testbed/domain for this query'
   service 'getListOfResources' do |domain|
     tb = getTestbedConfig(domain, @@config)
@@ -355,7 +355,7 @@ class InventoryService < GridService
   
   # the following service calls are mainly used by omf-admin:
 
-  s_description "Get list of nodes defined in the inventory"
+  s_description "Get detailed list of nodes defined in the inventory"
   service 'getAllNodes' do
     tb = getTestbedConfig(nil, @@config)
     # Query the inventory
