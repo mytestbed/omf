@@ -171,15 +171,14 @@ module OMF
     # args[:noreply] == true means the (multiple) remote responders should not send a reply
     #
     def Services.method_missing(m, args = nil)
-puts ">>>>> TDB - Services.method_missing - m(#{m.class}): '#{m}' - args: '#{args.inspect}'"
-puts ">>>>> TDB - Services.method_missing - m found in @@services - '#{@@services[m]}'" if @@services[m] 
-puts ">>>>> TDB - Services.method_missing - size of @@services - '#{@@services.length}'" 
-@@services.each { |s| puts ">>>>> TDB - Services.method_missing - s(#{s.class}): '#{s}'" } 
+#puts ">>>>> TDB - Services.method_missing - m(#{m.class}): '#{m}' - args: '#{args.inspect}'"
+#puts ">>>>> TDB - Services.method_missing - m found in @@services - '#{@@services[m]}'" if @@services[m] 
+#puts ">>>>> TDB - Services.method_missing - size of @@services - '#{@@services.length}'" 
+#@@services.each { |s| puts ">>>>> TDB - Services.method_missing - s(#{s.class}): '#{s}'" } 
 
       service = @@services[m] || Service.new(m)
       @@services[m] = service
       raise "Couldn't find a provider for service '#{m}' in OMF::Services module" if service.nil?
-puts ">>>>> TDB - Services.method_missing - m is: '#{@@services[m]}'" 
       service.modifiers = args
       service
     end
@@ -230,15 +229,12 @@ puts ">>>>> TDB - Services.method_missing - m is: '#{@@services[m]}'"
       attr_accessor :modifiers
 
       def initialize(name)
-puts ">>>>> TDB - Service - new - name: '#{name}'" 
         @name = name
       end
 
       def method_missing(m, *args)
-puts ">>>>> TDB - Service - method_missing - m: '#{m}' - modifiers: '#{modifiers}' - 1" 
 
         if not modifiers.nil?
-puts ">>>>> TDB - Service - method_missing - m: '#{m}' - modifiers: '#{modifiers}' - *" 
           tl = Endpoint.types.find_all { |t| modifiers.has_key? t }
           if tl.length > 1
             raise "Can't specify more than one domain modifier in service call:  found #{tl.join(', ')}"
@@ -247,7 +243,6 @@ puts ">>>>> TDB - Service - method_missing - m: '#{m}' - modifiers: '#{modifiers
             modifiers[:uri] = modifiers[tl[0]]
           end
         end
-puts ">>>>> TDB - Service - method_missing - m: '#{m}' - modifiers: '#{modifiers}' - 2" 
 
 #        modifiers.each_pair { |k, v| puts "#{k} -> #{v}" } unless modifiers.nil?
 
@@ -264,12 +259,8 @@ puts ">>>>> TDB - Service - method_missing - m: '#{m}' - modifiers: '#{modifiers
 
         # Got a domain; now look for an endpoint to talk to on that domain.
         endpoints = Services.endpoints
-puts ">>>>> TDB - Service - method_missing - looking for endpoint - '#{domain[:type]}' - '#{domain[:uri]}' - '#{name.to_s}' - '#{m.to_s}' - '#{args}'" 
-      #puts ">>>>> REQUESTING SERVICE #{self.inspect}::#{domain.inspect}::#{endpoints.inspect}"
         endpoint = Endpoint.find(domain[:type], domain[:uri],
                                  modifiers, name.to_s, m.to_s, *args)
-puts ">>>>> TDB - Service - method_missing - e: '#{endpoint.inspect}'" 
-
         endpoint.make_request(name, m, *args)
       end
     end # class Service

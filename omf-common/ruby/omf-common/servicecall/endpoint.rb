@@ -51,24 +51,15 @@ module OMF
       end
 
       def make_request(service, method, *args)
-
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 1" 
-
         service = service.to_s
         method = method.to_s
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 2" 
         if @services.nil?
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 3a" 
           get_service_list(service)
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 3b" 
         end
         s = @services[service]
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 4" 
         if s.nil?
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 5" 
           raise NoService, "Tried to call unknown service #{service}"
         else
-puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args}' - 6" 
           get_service_method_list(service) if s == :pending
           s = @services[service]
           m = s[method]
@@ -86,14 +77,11 @@ puts ">>>>> TDB - Endpoint - make_request - '#{service}' - '#{method}' - '#{args
       end # make_request
 
       def get_service_list(target=nil)
-puts ">>>>> TDB - Endpoint - get_service_list - target '#{target}'"
         found = Queue.new
         @services = Hash.new if @services.nil?
-puts ">>>>> TDB - Endpoint - get_service_list - target '#{target}' - @services: '#{@services}'"
         Thread.new {
           begin
             # Request with no service or method gets the full list
-puts ">>>>> TDB - Endpoint - get_service_list - Thread - 1"
             xml = send_request { |r|
               # r must be a REXML::Element
               servs = r.elements.collect("serviceGroup") do |e|
@@ -104,9 +92,7 @@ puts ">>>>> TDB - Endpoint - get_service_list - Thread - 1"
                 found << :found if s == target
               }
             }
-puts ">>>>> TDB - Endpoint - get_service_list - Thread - 2"
             found << :not_found
-puts ">>>>> TDB - Endpoint - get_service_list - Thread - 3 - found: '#{found.inspect}'"
           rescue ServiceCallException => e
             error "Trying to get service list from domain '#{domain}':  #{e.message}"
             return nil
