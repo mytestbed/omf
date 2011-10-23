@@ -9,11 +9,13 @@ source('../R/oml.R')
 #q <- t$project(t['sender']$as('s'), t['roundtrip']$as('rtt'))
 
 o <- OML('127.0.0.1:5053')
+o <- OML('srv.mytestbed.net:5053')
 t <- o$repo('ol_rtt')$table('rtt_roundtrip')
 q <- t$project(t['oml_ts_server']$as('t'), t['addr'], t['roundtrip']$as('rtt'))
 
 data = q$data()
 #plot(data$t, data$rtt)
+
 slice = data[data$rtt < 1, 'rtt']
 plot(density(slice))
 rug(slice)

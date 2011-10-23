@@ -105,7 +105,8 @@ setMethodS3("data", "OmlRelation", function(this, pel = NA) {
 
   url = this$.getRepo()$serviceURI()
   handle = getCurlHandle()
-  header = c(Accept = "text/xml", 'Content-Type' = "text/xml; charset=utf-8")
+  #header = c(Accept = "text/csv", 'Content-Type' = "text/xml; charset=utf-8")
+  header = c('Content-Type' = "text/xml; charset=utf-8")
   readerF= basicTextGatherer()
   headerF = basicTextGatherer()
   body = saveXML(r)
@@ -121,6 +122,7 @@ setMethodS3("data", "OmlRelation", function(this, pel = NA) {
   if (status != 200) {
     throw(paste("OML::Web::", status, ": ", readerF$value(), sep = ''))
   }
+
   rh = parseHTTPHeader(headerF$value())
   ct = rh[['Content-Type']]
   if (ct == 'text/csv') {
