@@ -7,7 +7,7 @@ require 'omf-common/mobject2'
 require 'omf-common/load_yaml'
 
 
-require 'omf-sfa-am/am_rpc_service'
+require 'omf-sfa/am/am_rpc_service'
 
 module AMTest
   
@@ -48,7 +48,7 @@ opts = {
 }
 
 OMF::Common::Loggable.init_log 'am_server'
-config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../etc/omf-sfa'])[:omf_sfa_am]
+config = OMF::Common::YAML.load('omf-sfa-am', :path => [File.dirname(__FILE__) + '/../../../etc/omf-sfa'])[:omf_sfa_am]
 
 #as = OMF::SFA::AM::AMService.new
 #as.class.rpc

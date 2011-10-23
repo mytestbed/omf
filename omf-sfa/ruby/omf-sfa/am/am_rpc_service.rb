@@ -11,8 +11,8 @@ require 'omf-common/mobject2'
 
 require 'omf_sfa_am'
 
-require 'omf-sfa-am/am_api'
-require 'omf-sfa-am/credential'
+require 'omf-sfa/am/am_api'
+require 'omf-sfa/am/credential'
   
 module OMF::SFA::AM
   
