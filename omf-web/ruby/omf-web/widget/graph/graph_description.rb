@@ -1,6 +1,4 @@
 
-module OMF::Web; module Widget; module Graph
-end; end; end
 
 module OMF::Web::Widget::Graph
   class GraphDescription < MObject
