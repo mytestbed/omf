@@ -16,12 +16,15 @@ if (!empty($_POST['node'])) {
 	
 	if (in_array("22/tcp open   ssh",$output)) {
 		echo "<SPAN style='BACKGROUND-COLOR: lightgreen'>&nbsp;Powered On, SSH&nbsp;</SPAN>";
-	} else if (in_array("23/tcp open   telnet",$output)) {
+	} elseif (in_array("23/tcp open   telnet",$output)) {
 		echo "<SPAN style='BACKGROUND-COLOR: yellow'>&nbsp;Powered On, Telnet (PXE)&nbsp;</SPAN>";
 	} else {
 		$url = $cm_url."status?domain=".$domain."&hrn=".$prefix.$node;
-		if (strstr(file_get_contents($url),"POWERON")) {
+		$state = file_get_contents($url);
+		if (strstr($state,"POWERON")) {
 			echo "<SPAN style='BACKGROUND-COLOR: gold'>&nbsp;Powered On, no Telnet/SSH&nbsp;</SPAN>";
+		} elseif (strstr($state,"UNKNOWN")) {
+			echo "<SPAN style='BACKGROUND-COLOR: lightgrey'>&nbsp;Unknown&nbsp;</SPAN>";
 		} else {
 			//$url = $cm_url."acstatus?domain=".$domain."&hrn=".$prefix.$node;
 			//if (strstr(file_get_contents($url),"POWERON")) {
@@ -94,14 +97,10 @@ foreach($nodes as $node) {
 </form>
 <br>
 <h2>Maps</h2>
-<form>
-  <input class="map" type="button" value="L3N Map" map="L3N"/>
-  <input class="map" type="button" value="L4N Map" map="L4N"/>
-  <input class="map" type="button" value="L4S Map" map="L4S"/>
-  <input class="map" type="button" value="L5S Map" map="L5S"/>
-</form>
-
-<div id="map"></div>
+<img src=../L3N.png>
+<img src=../L4N.png>
+<img src=../L4S.png>
+<img src=../L5S.png>
 </center>
 </body>
 </html>
