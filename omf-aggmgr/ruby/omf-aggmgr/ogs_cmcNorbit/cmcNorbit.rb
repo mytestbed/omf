@@ -125,7 +125,7 @@ class CmcNorbitService < GridService
   service 'status' do |hrn, domain|
     root = REXML::Element.new('NODE_STATUS')
     detail = root.add_element('detail')
-    state = poweredOn?(hrn, domain) ? 'POWERON' : 'POWEROFF'
+    state = poweredOn?(hrn, domain)
     attr = {'hrn' => hrn, 'state' => "#{state}" }
     detail.add_element('node', attr)
     root
@@ -206,23 +206,18 @@ class CmcNorbitService < GridService
   
   def self.poweredOn?(hrn, domain)
     tn = openTelnet(hrn, domain)
-    retval = tn.cmd("state").include? "ON"
-    closeTelnet(tn)
-    return retval
+    if tn == false
+      return 'UNKNOWN'
+    else
+      retval = tn.cmd("state")
+      closeTelnet(tn)
+      return (retval.include? "ON") ? 'POWERON' : 'POWEROFF'
+    end
   end
   
   def self.exec(hrn, domain, cmd)
+    return false if (tn = openTelnet(hrn, domain)) == false
     retval = false
-    tn = openTelnet(hrn, domain)
-    # for reset and off commands, do a soft reboot if the node has no CM2
-    # this can be removed when all nodes have CM2
-    if tn == false
-      if cmd != "on"
-        MObject.debug("Do a soft reset instead")
-        reboot(hrn, domain)
-      end
-      return true
-    end    
     (0..10).each {
       reply = tn.cmd(cmd)
       if reply.include? "OK"
