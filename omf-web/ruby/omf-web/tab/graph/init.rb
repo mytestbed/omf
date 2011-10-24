@@ -11,7 +11,7 @@ OMF::Web::Tab.register_tab(
     :id => :graph,
     :name => 'Graph', 
     :priority => 400, 
-    :def_enabled => true, 
+    :def_enabled => false, 
     :class => OMF::Web::Tab::Graph::GraphService
 )
 

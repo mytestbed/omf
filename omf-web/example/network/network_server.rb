@@ -126,7 +126,8 @@ opts = {
     :private_key_file => "#{File.dirname(__FILE__)}/debug/server.key", 
     :verify_peer => false
   },
-  :page_title => 'Network Demo'
+  :page_title => 'Network Demo',
+  :use_tabs => [:graph, :log]
   # :tabs => {
     # :foo => {:name => 'Foo', :order => 1, :class => Foo},
     # :goo => {:name => 'Goo', :order => 3}

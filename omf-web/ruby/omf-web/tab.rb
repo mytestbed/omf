@@ -13,6 +13,18 @@ module OMF::Web::Tab
     @@available_tabs[name]
   end
   
+  # Return an array of tabs wiht their ':def_enabled' set to true. 
+  # The array is ordered in 
+  # declared tab priority
+  #
+  def self.default_tabs()
+    @@available_tabs.values.select do |t| 
+      t[:def_enabled]
+    end.sort do |a, b| 
+      (a[:priority] || 1000) <=> (b[:priority] || 1000) 
+    end
+  end
+  
   # Return an array of available tabs. The array is ordered in 
   # declared tab priority
   #

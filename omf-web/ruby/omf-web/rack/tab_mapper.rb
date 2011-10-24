@@ -61,7 +61,7 @@ module OMF::Web::Rack
           t
         end
       else
-        tabs = OMF::Web::Tab.available_tabs()
+        tabs = OMF::Web::Tab.default_tabs()
       end
       @enabled_tabs = {} 
       tabs.each do |t| 
