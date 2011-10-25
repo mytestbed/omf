@@ -107,14 +107,18 @@ def run(cmd)
     
   ########## OMF TELL    
   elsif (cmd == "tell")
-    app="omf-expctl/tellnode.rb"
+    app="omf-expctl.rb"
     # needs an action
     if @options[:action].empty?
       help(cmd)
       exit 1
     end
-    # tell [COMMAND] "[TOPOLOGY]" [DOMAIN]
-    args=["'#{@options[:action]}'", "'#{@options[:topology]}'", "'#{@options[:aggregate]}'"]
+    args=["system:exp:tell"]
+    if !@options[:aggregate].empty?
+      args << "-c '#{@options[:aggregate]}'"
+    end
+    args << "-- --command '#{@options[:action]}'"
+    args << "--nodes '#{@options[:topology]}'"
     
   ########## OMF STAT
   elsif (cmd == "stat")
@@ -123,12 +127,8 @@ def run(cmd)
     if !@options[:aggregate].empty?
       args << "-c '#{@options[:aggregate]}'"
     end
-    args << "--"
-    if !@options[:topology].empty?
-      args << "--nodes '#{@options[:topology]}'"
-    end
+    args << "-- --nodes '#{@options[:topology]}'"
     if @options[:summary]
-      # stat [-s] [DOMAIN] 
       args << ["--summary true"]
     end
   ########## OMF LOAD
@@ -210,16 +210,19 @@ def help(cmd = nil)
   	puts "      on              turn node(s) ON"
   	puts "      offs            turn node(s) OFF (soft)"
   	puts "      offh            turn node(s) OFF (hard)"
+  	puts "      reboot          reboots node(s) (soft)"
+  	puts "      reset           resets node(s) (hard)"
   	puts " "
   	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
-  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
+  	puts "      -t, --topology TOPOLOGY   a valid topology file or description (defaults to 'system:topo:all')"
   	puts " "
   	puts "      Some Examples: " 
+  	puts "                    #{@this_app} #{cmd} -a reset"
   	puts "                    #{@this_app} #{cmd} -a on -t system:topo:all -c grid"
-  	puts "                    #{@this_app} #{cmd} -a on -t omf.nicta.node1"
-  	puts "                    #{@this_app} #{cmd} -a offs  -t omf.nicta.node1,omf.nicta.node2 -c sb1 "
-  	puts "                    #{@this_app} #{cmd} -a offh  -t system:topo:all"
-  	puts "                    #{@this_app} #{cmd} -a offh  -t topo_grid_active"
+  	puts "                    #{@this_app} #{cmd} -a reboot -t omf.nicta.node1"
+  	puts "                    #{@this_app} #{cmd} -a offs -t omf.nicta.node1,omf.nicta.node2 -c sb1"
+  	puts "                    #{@this_app} #{cmd} -a offh -t system:topo:all"
+  	puts "                    #{@this_app} #{cmd} -a reset -t topo_grid_active"
   	puts " "
   elsif (cmd == "load")
     puts "Install a given disk image on the nodes in a testbed"
@@ -229,7 +232,7 @@ def help(cmd = nil)
     puts "      With: "
     puts "      -h, --help                print this help message"
     puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
-    puts "      -t, --topology TOPOLOGY   a valid topology file or description"
+    puts "      -t, --topology TOPOLOGY   a valid topology file or description (defaults to 'system:topo:all')"
     puts "                                (if a file 'TOPOLOGY' doesn't exist, interpret it as a comma-separated list of nodes)"
     puts "      -i, --image IMAGE         disk image to load"
     puts "                                (default is 'baseline.ndz', the latest stable baseline image)"
@@ -243,8 +246,7 @@ def help(cmd = nil)
     puts " "
     puts "      Some Examples: " 
     puts "                    #{@this_app} #{cmd}"
-#    puts "                    #{@this_app} #{cmd} -t all"
-#    puts "                    #{@this_app} #{cmd} -t all -i baseline-2.4.ndz"
+    puts "                    #{@this_app} #{cmd} -t system:topo:all -i baseline-2.4.ndz"
     puts "                    #{@this_app} #{cmd} -t omf.nicta.node1 -i wireless-2.6.ndz"
     puts "                    #{@this_app} #{cmd} -t omf.nicta.node1,omf.nicta.node2 -i baseline.ndz -o 400"
     puts "                    #{@this_app} #{cmd} -t system:topo:circle -i my_Own_Image.ndz"

@@ -33,7 +33,7 @@
 # Define the experiment properties
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
-defProperty('nodes', 'omf.nicta.node1,omf.nicta.node2', "Nodes to image")
+defProperty('nodes', 'system:topo:all', "Nodes to image")
 defProperty('image', 'baseline.ndz', "Image to load on nodes")
 defProperty('domain', nil, "Domain of the nodes to image")
 defProperty('outpath', "/tmp", "Path where to place the topology files resulting from this image")

@@ -97,7 +97,7 @@ class CmcNorbitService < GridService
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'reboot' do |hrn, domain|
-    return reboot(hrn, domain)
+    reboot(hrn, domain)
   end
 
   #

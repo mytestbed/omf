@@ -17,11 +17,16 @@ rescue
 end
 
 tuples = []
- 
+
+$stderr.print " Talking to the CMC service, please wait"
+
 topo.eachNode {|n|
-  tuples << ["#{n.to_s}", "#{OMF::Services.cmc.status(n.to_s, OConfig.domain).first_element("NODE_STATUS/detail/node").attributes['state']}"]
+  tuples << ["#{n.to_s}", "#{OMF::Services.cmc.status(n.to_s, OConfig.domain).
+    first_element("NODE_STATUS/detail/node").attributes['state']}"]
+  $stderr.print "."
 }
 
+puts
 puts "-----------------------------------------------"
 puts " Domain: #{OConfig.domain}"
 if property.summary.value
