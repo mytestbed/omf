@@ -118,14 +118,19 @@ def run(cmd)
     
   ########## OMF STAT
   elsif (cmd == "stat")
-    app="omf-expctl/statnode.rb"
+    app="omf-expctl.rb"
+    args=["system:exp:stat"]
+    if !@options[:aggregate].empty?
+      args << "-c '#{@options[:aggregate]}'"
+    end
+    args << "--"
+    if !@options[:topology].empty?
+      args << "--nodes '#{@options[:topology]}'"
+    end
     if @options[:summary]
       # stat [-s] [DOMAIN] 
-      args=["-s","'#{@options[:aggregate]}'"]
-    else
-      # stat [DOMAIN] 
-      args=["'#{@options[:aggregate]}'"]
-    end 
+      args << ["--summary true"]
+    end
   ########## OMF LOAD
   elsif (cmd == "load")
     app="omf-expctl.rb"
@@ -184,7 +189,7 @@ def help(cmd = nil)
   	puts "      -h, --help                print this help message"
   	puts "      -s, --summary             print a summary of the node status for the testbed"
   	puts "      -c, --config AGGREGATE    use testbed AGGREGATE"
-  	puts "      -t, --topology TOPOLOGY   a valid topology file or description"
+  	puts "      -t, --topology TOPOLOGY   a valid topology file or description (defaults to 'system:topo:all')"
   	puts " "
   	puts "      Some Examples: " 
   	puts "                    #{@this_app} #{cmd}"

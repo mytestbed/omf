@@ -97,7 +97,7 @@ class CmcNorbitService < GridService
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'
   service 'reboot' do |hrn, domain|
-    reboot(hrn, domain)
+    return reboot(hrn, domain)
   end
 
   #
@@ -166,8 +166,9 @@ class CmcNorbitService < GridService
       end
     rescue Exception => ex
       MObject.debug("CMCNORBIT - Failed to send REBOOT to '#{hrn}' at #{ip} - Exception: #{ex}")
+      return REXML::Element.new('ERROR')
     end
-    true
+    REXML::Element.new('OK')
   end
   
   def self.hasACPower?(hrn, domain)
@@ -205,23 +206,19 @@ class CmcNorbitService < GridService
   end
   
   def self.poweredOn?(hrn, domain)
-    tn = openTelnet(hrn, domain)
-    if tn == false
-      return 'UNKNOWN'
-    else
-      retval = tn.cmd("state")
-      closeTelnet(tn)
-      return (retval.include? "ON") ? 'POWERON' : 'POWEROFF'
-    end
+    return 'UNKNOWN' if (tn = openTelnet(hrn, domain)) == false
+    retval = tn.cmd("state")
+    closeTelnet(tn)
+    return (retval.include? "ON") ? 'POWERON' : 'POWEROFF'
   end
   
   def self.exec(hrn, domain, cmd)
-    return false if (tn = openTelnet(hrn, domain)) == false
-    retval = false
+    retval = REXML::Element.new('ERROR')
+    return retval if (tn = openTelnet(hrn, domain)) == false
     (0..10).each {
       reply = tn.cmd(cmd)
       if reply.include? "OK"
-        retval = true
+        retval = REXML::Element.new('OK')
         break
       end
       MObject.debug("CM2 card replied with '#{reply}' to command '#{cmd}' for '#{hrn}'. Retrying in 2s.")

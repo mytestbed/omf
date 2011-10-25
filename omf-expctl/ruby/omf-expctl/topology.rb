@@ -469,22 +469,22 @@ class Topology < MObject
   #           which contains the declaration of a node or a group of nodes
   # 
   def addNodes(nodes)
-    # Option 1: 'nodes' is a Hash
-    if nodes.kind_of?(Hash) 
+    if nodes.kind_of?(String)
+      nodes.split(",").each {|n|
+        addNode(n)
+      }
+    elsif nodes.kind_of?(Hash) 
       nodes.each { |k,v|
         addNode(k,eval(v))
       }
-      return
+    elsif nodes.kind_of?(Array)
+      nodes.each {|n|
+        addNodes(n)
+      }
+    else
+      raise "Parameter to 'addNodes' must be of type Array, Hash or "+
+            "comma-separated String, but is #{nodes.class.to_s}."
     end
-    # Sanity Check
-    if ! nodes.kind_of?(Array)
-      raise "Parameter to 'addNodes' need to be of type Array, but is "+
-            "#{nodes.class.to_s}."
-    end
-    # Option 2: 'nodes' is an Array
-    nodes.each {|n|
-      addNodes(n)
-    }
   end
 
   #
@@ -689,8 +689,9 @@ attr_accessor :strict
   #
   def add(selector)
     if (selector.kind_of?(String))
-      error "Unexpected selector declaration '#{selector}'. "+
-            "Please report as bug."
+      selector.split(',').each {|node|
+        addNode(node)
+      }
     elsif selector.kind_of?(Array)
       selector.each {|node|
         addNode(node)
