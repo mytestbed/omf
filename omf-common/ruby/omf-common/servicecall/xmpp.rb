@@ -115,7 +115,7 @@ module OMF
                                                              "service" => service,
                                                              "method" => method)
         opts = args.find { |a| a.kind_of? Hash }
-#puts ">>>>> TDB - XMPP - send_request - 1 - @@selector: '#{@@selector.inspect}'"
+#puts ">>>>> TDB - XMPP - send_request - 1 - @@selector: '#{@@selector}'"
 #puts ">>>>> TDB - XMPP - send_request - 1 - opts: '#{opts}'"
         pubsub_node = !@@selector.nil? ? @@selector.call(opts) : "/OMF/system"
 #puts ">>>>> TDB - XMPP - send_request - psnode: '#{pubsub_node}'"

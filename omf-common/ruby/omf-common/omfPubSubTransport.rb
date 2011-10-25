@@ -62,7 +62,7 @@ class OMFPubSubTransport < MObject
             "parameter!" if !@@psGateway
     @@psPort = opts[:config][:xmpp][:pubsub_port]
     @@useDnsSrv = opts[:config][:xmpp][:pubsub_use_dnssrv]
-    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries] || 0
+    @@max_retries = opts[:config][:xmpp][:pubsub_max_retries]
     
     # Check if we are using message authentication  
     kl = nil
@@ -188,10 +188,6 @@ class OMFPubSubTransport < MObject
   def xmpp_services
     @@xmppServices
   end
-  
-  def list_nodes(domain)
-    @@xmppServices.list_nodes(domain)
-  end
 
   #############################
   #############################
@@ -245,6 +241,10 @@ class OMFPubSubTransport < MObject
         return nil
       end
     rescue Exception => ex
+      # For now Service Calls related message are processed by their own 
+      # comm stack, so ignore them here.
+      return if item.first_element("service-request") || item.first_element("service-response")
+      # Log an error for any other unknown events 
       debug "Cannot extract message from '#{event_source(event)}' - '#{event}'"
       debug "Error: '#{ex}'"
       #bt = ex.backtrace 

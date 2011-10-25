@@ -63,7 +63,7 @@ class CmcStubService < GridService
   s_param :hrn, 'hrn', 'hrn of the resource'
   s_param :domain, 'domain', 'domain for request.'  
   service 'on' do |hrn|
-    true
+    result = REXML::Element.new('OK')
   end
 
   #
@@ -77,7 +77,7 @@ class CmcStubService < GridService
   s_param :domain, 'domain', 'domain for request.'  
   service 'offHard' do |hrn, domain|
     reboot(hrn, domain)
-    true
+    result = REXML::Element.new('OK')
   end
 
   #
@@ -91,7 +91,7 @@ class CmcStubService < GridService
   s_param :domain, 'domain', 'domain for request.'
   service 'offSoft' do |hrn, domain|
     reboot(hrn, domain)
-    true
+    result = REXML::Element.new('OK')
   end
 
   #
@@ -105,10 +105,8 @@ class CmcStubService < GridService
   s_param :domain, 'domain', 'domain for request.'
   service 'reboot' do |hrn, domain|
     reboot(hrn, domain)
-    true
+    result = REXML::Element.new('OK')
   end
-
-
 
   #
   # Implement 'reset' service using the 'service' method of AbstractService
@@ -121,7 +119,7 @@ class CmcStubService < GridService
   s_param :domain, 'domain', 'domain for request.'
   service 'reset' do |hrn, domain|
     reboot(hrn, domain)
-    true
+    result = REXML::Element.new('OK')
   end
 
   #

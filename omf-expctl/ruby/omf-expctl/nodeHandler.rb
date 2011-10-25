@@ -744,6 +744,14 @@ class NodeHandler < MObject
     if type == 'xmpp'
       OMF::Services::XmppEndpoint.sender_id=Experiment.ID
       OMF::Services::XmppEndpoint.borrow_connection
+      OMF::Services::XmppEndpoint.pubsub_selector { |opts|
+        #hrn = opts.nil? ? nil : opts["hrn"] || opts[:hrn] || opts["name"] || opts[:name]
+        #node = hrn.nil? ? "/OMF/#{Experiment.sliceID}/resources" : "/OMF/#{Experiment.sliceID}/#{hrn}"
+        #node
+        # For now Service Calls are always sent to the AMs listening on the 
+        # resources pubsub node of the slice.
+        "/OMF/#{Experiment.sliceID}/resources"
+      }
     end
   end
 
