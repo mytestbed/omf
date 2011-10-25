@@ -1,0 +1,11 @@
+<log4r_config>
+  <pre_config>
+    <global level="DEBUG"/>
+  </pre_config>
+  <!-- outputters -->
+  <outputter type="StdoutOutputter" name="console" level="DEBUG"/>
+  <outputter type="OMF::Web::Widget::Log::LogOutputter" name="web" level="DEBUG"/>
+	
+  <!-- loggers -->
+  <logger name="test" outputters="console, web" level="DEBUG" trace="true"/>
+</log4r_config>

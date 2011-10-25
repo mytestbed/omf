@@ -64,7 +64,7 @@ class Page < Erector::Widget
       ul :id => 'mainTabs' do
         @tabs.each do |h|
           li do
-            opts = {:href => "/#{h[:id]}/show?sid=#{@session_id}"}
+            opts = {:href => "/#{h[:id]}/show?sid=#{Thread.current["sessionID"]}"}
             opts[:class] = 'current' if h[:id] == @active_id
             a h[:name], opts
           end

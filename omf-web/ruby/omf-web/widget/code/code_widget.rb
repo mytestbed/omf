@@ -12,8 +12,10 @@ module OMF::Web::Widget::Code
     
     attr_reader :name, :opts
     
-    def initialize(widget_id, description)
-      @widget_id = widget_id  
+    def initialize(description)
+      @widget_id = "w#{object_id}"
+      OMF::Web::SessionStore[@widget_id] = self
+
       @description = description 
       @name = description.name
     end

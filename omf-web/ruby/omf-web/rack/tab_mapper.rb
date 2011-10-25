@@ -73,7 +73,10 @@ module OMF::Web::Rack
     
     def call(env)
       req = ::Rack::Request.new(env)
-      sessionID = req.params['sid'] ||= "s#{(rand * 10000000).to_i}"
+      sessionID = req.params['sid']
+      if sessionID.nil? || sessionID.empty?
+        sessionID = "s#{(rand * 10000000).to_i}"
+      end
       Thread.current["sessionID"] = sessionID
       
       body, headers = render_page(req)
@@ -105,8 +108,8 @@ module OMF::Web::Rack
       
       opts = @opts.dup
       opts[:tab_id] = tab_id = tab[:id]
-      opts[:session_id] = session_id = req.params['sid']
-      opts[:update_path] = "/_update?id=#{session_id}:#{tab_id}"
+      #opts[:session_id] = session_id = req.params['sid']
+      #opts[:update_path] = "/_update?id=#{session_id}:#{tab_id}"
       component = find_card_instance(tab, req)
       component.method(action).call(req, opts)
     end
@@ -114,9 +117,8 @@ module OMF::Web::Rack
     
     def find_card_instance(tab, req)
       sid = req.params['sid']
-      session = OMF::Web::SessionStore[sid]
       tab_id = tab[:id]
-      inst = session[tab_id] ||= tab[:class].new(tab_id, (@tab_opts[tab_id] || {}))
+      inst = OMF::Web::SessionStore[tab_id] ||= tab[:class].new(tab_id, (@tab_opts[tab_id] || {}))
     end
     
     def render_unknown_card(comp_name, req)

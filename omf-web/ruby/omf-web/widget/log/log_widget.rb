@@ -1,36 +1,42 @@
-require 'erector'
 
-module OMF::Web::Widget::Graph
+require 'erector'
+require 'omf-web/session_store'
+
+module OMF::Web::Widget::Log
   
-  # Maintains the context for a particular graph rendering within a specific session.
+  # Maintains the context for a particular log rendering within a specific session.
   # It is primarily called upon maintaining communication with the browser and will
   # create the necessary html and javascript code for that.
   #
-  class GraphWidget < Erector::Widget
-    depends_on :css, "/resource/css/graph.css"
+  class LogWidget < Erector::Widget
     
-    attr_reader :name, :opts
+    # def self.[](wid, opts = {})
+      # w = nil
+      # if wid
+        # w = OMF::Web::SessionStore[wid]
+      # end
+      # unless w
+        # w = self.new(opts)
+        # puts ">>>> Creating new log widget #{w.widget_id}"
+#         
+      # end
+      # w
+    # end
     
-    def initialize(gd)
+    depends_on :css, "/resource/css/log.css"
+    #depends_on :js, "/resource/css/log.css"    
+    
+    attr_reader :name, :widget_id, :opts
+    
+    def initialize(opts = {})
       @widget_id = "w#{object_id}"
       OMF::Web::SessionStore[@widget_id] = self
-
-      @gd = gd
-      @opts = gd.opts
-      @data_source = @opts[:data_source]
-      @name = @gd.name
-      @js_uri = @gd.vizType # || DEF_VIS_TYPE # @opts[:gopts][:gtype] || 'matrix'
+      @opts = opts
       @base_id = "g#{object_id.abs}"
       @base_el = "\##{@base_id}"
       
       @js_var_name = "oml_#{object_id.abs}"
-      @js_func_name = 'OML.' + @js_uri.gsub("::", "_")
-
-      @gopts = @gd.vizOpts.dup
-      #@gopts['session'] = session_id
-      # gopts['canvas'] = canvas if canvas
-      # gopts['data'] = data()
-      @gopts['base_el'] = @base_el
+      @js_func_name = 'OML.log_table'
       
     end
     
@@ -39,53 +45,27 @@ module OMF::Web::Widget::Graph
     #
     def on_ws_open(ws)
       #puts ">>>> ON_WS_OPEN"
-      @ws = ws
-      if @data_source
-        if @data_source.respond_to? :on_update
-          @data_source.on_update(self) do |cs|
-            begin
-              data = cs.describe
-              #puts "SENDING '#{data.to_json}'"
-              ws.send_data data.to_json
-              #r = {'a' =>  2}; ws.send_data r.to_json              
-            rescue Exception => ex
-              warn ex
-            end
-          end
-        # if @data_source.respond_to? :on_row_added
-          # @data_source.on_row_added(self) do |row|
-            # #puts "ROW: #{row.inspect}"
-            # update = [{:data => @data_source.rows}]
-            # ws.send_data update.to_json
-          # end
-        # elsif @data_source.respond_to? :on_update
-          # @data_source.on_update(self) do |data|
-            # update = [{:data => data}]
-            # ws.send_data update.to_json
-          # end
-        else
-          warn "Data source '#{@data_source}' does not support monitoring"
-        end        
-      end
+      # begin
+        # data = cs.describe
+        # #puts "SENDING '#{data.to_json}'"
+        # ws.send_data data.to_json
+        # #r = {'a' =>  2}; ws.send_data r.to_json              
+      # rescue Exception => ex
+        # warn ex
+      # end
     end
     
     def on_ws_close(ws)
       @ws = nil
-      if @data_source
-        # cancel callback
-        #@data_source.on_row_added(self)
-      end
     end
     
-    # Called when graph is dynamic and browser doesn't support web sockets
+    # Called when log is dynamic and browser doesn't support web sockets
     #
-    # Currently we simply send back the entire graph data as we don't want to maintain
-    # unnecessary state and also assume that most experimenters use modern browsers which
-    # include support for web sockets.
     #
     def on_update(req)
-      res = {:data => _data(), :opts => {}}
-      [res.to_json, "text/json"]
+      #{:data => _data(), :opts => {}}
+      
+      [{:data => {}, :opts => {}}.to_json, "text/json"]
     end
     
     def _data()
@@ -96,12 +76,9 @@ module OMF::Web::Widget::Graph
     end
 
     def content()
-      div :id => @base_id, :class => "oml_#{@js_uri}" do
-        #p @opts.inspect
-        #p get_static_js
+      div :id => @base_id, :class => "oml_log" do
         javascript(%{  
-          var l = L;        
-          L.require('#OML.#{@gd.vizType}', 'graph/#{@js_uri}', function() {
+          L.require('\##{@js_func_name}', 'log/table.js', function() {
             #{get_static_js}
             #{get_dynamic_js}        
           });
@@ -110,18 +87,14 @@ module OMF::Web::Widget::Graph
     end
     
     def get_static_js()
-      @gopts[:data] = _data()
-      # if @data_source.respond_to? :rows
-        # @gopts[:data] = @data_source.rows
-      # elsif @data_source.respond_to? :init
-        # @gopts[:data] = @data_source.init(self)
-      # end
-      "var #{@js_var_name} = new #{@js_func_name}(#{@gopts.to_json});"
+      # @gopts[:data] = _data()
+      # "var #{@js_var_name} = new #{@js_func_name}(#{@gopts.to_json});"
+      gopts = {:base_el => @base_id}
+      "var #{@js_var_name} = new #{@js_func_name}(#{gopts.to_json});"
     end
     
     def get_dynamic_js()
-      return "" unless (dopts = @gd.opts[:dynamic])
-      
+      dopts = @opts[:dynamic] || true
       dopts = {} if dopts == true # :dynamic => true is valid option
       unless (updateInterval = dopts[:updateInterval]) 
         updateInterval = 3
@@ -161,7 +134,6 @@ module OMF::Web::Widget::Graph
               }, function(reply) {
                   var data = reply['data'];
                   var opts = reply['opts'];
-                  //#{@js_var_name}.append(data);
                   #{@js_var_name}.update(data);  // right now we are sending the entire graph
               });
           });
@@ -174,3 +146,4 @@ END_OF_JS
   end # GraphWidget
   
 end
+

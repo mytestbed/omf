@@ -3,7 +3,8 @@ require 'log4r/outputter/outputter'
 require 'log4r/formatter/formatter'
 
 
-module OMF::Web::Tab::Log
+module OMF::Web::Widget::Log
+  
   class LogOutputter < Log4r::Outputter
     @@instance = nil
     
@@ -12,6 +13,7 @@ module OMF::Web::Tab::Log
     end
     
     def initialize(name = 'remote', hash={})
+      puts ">>>> LOG_OUTPUTTER"
       super(name, hash)
       self.formatter = (hash[:formatter] or hash['formatter'] or WebFormatter.new)
 
