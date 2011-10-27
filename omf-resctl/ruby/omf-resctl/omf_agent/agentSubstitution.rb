@@ -41,29 +41,31 @@
 # itself, so that your own substitution method can access the agent's attributes and
 # methods to build your own substitute string
 
-# Substitute '%index%' with the unique index number that was assigned to this agent
-def index(controller)
-  return controller.index
-end
+module AgentSubstitutions
 
-# Substitute '%hostname%' with the hostname of this agent as given by /bin/hostname
-def hostname(controller)
-  return `/bin/hostname`.chomp
-end
+  # Substitute '%index%' with the unique index number that was assigned to this agent
+  def AgentSubstitutions.index(controller)
+    return controller.index
+  end
 
-# FOR WINLAB...
-#
-# Substitute '%x%' by the X coordinate of this agent's node
-# Substitute '%y%' by the Y coordinate of this agent's node
-# Assumptions: 
-# - this agent's control interface has been set in its YAML config file
-# - the corresponding IP is of the form: AAA.BBB.x.y 
-# (e.g. 10.11.1.1 for node1-1 on interface eth1 on sandbox1 at WINLAB)
-def x(controller)
-  return controller.controlIP.split('.')[2]
-  #return `/sbin/ifconfig control`.split("\n")[1].split('addr:')[1].split[0].split('.')[2]
-end
-def y(controller)
-  return controller.controlIP.split('.')[3]
-  #return `/sbin/ifconfig control`.split("\n")[1].split('addr:')[1].split[0].split('.')[3]
+  # Substitute '%hostname%' with the hostname of this agent as given by /bin/hostname
+  def AgentSubstitutions.hostname(controller)
+    return `/bin/hostname`.chomp
+  end
+
+  # FOR WINLAB...
+  #
+  # Substitute '%x%' by the X coordinate of this agent's node
+  # Substitute '%y%' by the Y coordinate of this agent's node
+  # Assumptions: 
+  # - this agent's control interface has been set in its YAML config file
+  # - the corresponding IP is of the form: AAA.BBB.x.y 
+  # (e.g. 10.11.1.1 for node1-1 on interface eth1 on sandbox1 at WINLAB)
+  def AgentSubstitutions.x(controller)
+    return controller.controlIP.split('.')[2]
+  end
+  def AgentSubstitutions.y(controller)
+    return controller.controlIP.split('.')[3]
+  end
+
 end

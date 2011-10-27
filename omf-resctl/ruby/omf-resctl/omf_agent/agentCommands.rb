@@ -204,7 +204,7 @@ module AgentCommands
       # substitution patterns and corresponding values
       require "omf-resctl/omf_agent/agentSubstitution"
       begin
-        value = method(key).call(controller)
+        value = AgentSubstitutions.method(key).call(controller)
       rescue Exception => ex
         value = nil
       end
