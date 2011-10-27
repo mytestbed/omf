@@ -376,8 +376,11 @@ class NodeHandler < MObject
         
     Profiler__::start_profile if @doProfiling
 
-    # startWebServer()
-    # info "Web interface available at: #{OMF::Common::Web::url}"
+    # For now leave this commented, Max re-vamped the webserver and this is 
+    # now broken and the new webserver is on the web2 branch, which will be
+    # merged to the master soon (before 5.4 release)
+    #startWebServer()
+    #info "Web interface available at: #{OMF::Common::Web::url}"
 
     begin 
       require 'omf-expctl/handlerCommands'
