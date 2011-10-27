@@ -184,7 +184,8 @@ module AgentCommands
     cmdLine = cmdLine + "env -i #{command.env} " if command.env != nil
     cmdLine = cmdLine + "OML_CONFIG=#{configPath} " if useOML
     arguments = AgentCommands.substitute_values(controller, command.cmdLineArgs)
-    cmdLine = cmdLine + "#{command.path} #{arguments}"
+    path = AgentCommands.substitute_values(controller, command.path)
+    cmdLine = cmdLine + "#{path} #{arguments}"
     MObject.debug "Executing: '#{cmdLine}'"
     ExecApp.new(id, controller, cmdLine)
   end
@@ -198,22 +199,27 @@ module AgentCommands
     allKey.each { |k|
       key = k[1..-1].chop
       value = nil
-      case key
-      when "index"
-        value = controller.index
-      when "hostname"
-        value = `/bin/hostname`.chomp
-      else
+      # Try to do substitutions based on our library of known patterns
+      # Resource providers may augment that library with other types of
+      # substitution patterns and corresponding values
+      require "omf-resctl/omf_agent/agentSubstitution"
+      begin
+        value = method(key).call(controller)
+      rescue Exception => ex
+        value = nil
+      end
+      if value.nil?
         # Check if this is a valid path
         if (type, id, prop = key.split(".")).length >= 3
           if (device = DEV_MAPPINGS["#{type}/#{id}"]) != nil
             value = device.get_property_value(prop.to_sym)
           end
-        end 
+        end
       end
+      # Now do the substitution
       result.gsub!("#{k}","#{value}") if value
     }
-    return result 
+    return result
   end
 
 
