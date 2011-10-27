@@ -548,15 +548,16 @@ class NodeSet < MObject
   end
 
   def loadData(srcPath, dstPath = '/')
-      procName = "exec:#{@@execsCount += 1}:loadData"   
-       if File.exists?(srcPath)
+      procName = "exec:#{@@execsCount += 1}:loadData"
+      if !(srcPath =~ URI::regexp).nil?
+        # we've been given a valid URL
+        # the file is already being served from somewhere
+        url=srcPath
+      elsif File.exists?(srcPath)
          # We first have to mount the local file to a URL on our webserver
         url_dir="/data/#{srcPath.gsub('/', '_')}"
         url="#{OMF::Common::Web.url()}#{url_dir}"
         OMF::Common::Web.mapFile(url_dir, srcPath)
-      elsif srcPath[0..6]=="http://"
-        # the file is already being served from somewhere
-        url=srcPath
       else
         raise OEDLIllegalArgumentException.new(:group,:loadData,nil,"#{srcPath} is not a valid filename or URL") 
       end

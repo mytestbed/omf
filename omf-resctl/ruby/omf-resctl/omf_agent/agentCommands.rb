@@ -300,32 +300,32 @@ module AgentCommands
     id = command.appID
     url = command.image
     installRoot = command.path
-
-    MObject.debug("AgentCommands", "Unpacking '#{url}' into '#{installRoot}'")
     
-    file = "/#{File.basename(url)}"
+    file = "/tmp/#{File.basename(url)}"
     eTagFile = "#{file}.etag"
     download = true
     cmd = ""
     remoteETag = nil
 
-    if file.empty?
+    if File.basename(url).empty?
       msg = "Failed to parse URL '#{url}'"
       MObject.debug("AgentCommands", msg)
       return {:success => :ERROR, :reason => :INVALID_URL, :info => msg}
     end
     
     # get the ETag from the HTTP header
-    begin
-      uri = URI.parse(url)
-      res = Net::HTTP.start(uri.host, uri.port) {|http|
-        header = http.request_head(url)
-        remoteETag = header['etag']
-      }      
-    rescue Exception => err
-      msg = "Failed to access URL '#{url}', error: '#{err}'"
-      MObject.debug("AgentCommands", msg)
-      return {:success => :ERROR, :reason => :DL_FAILED, :info => msg}
+    if (url =~ URI.regexp("https")) or (url =~ URI.regexp("http"))
+      begin
+        uri = URI.parse(url)
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
+          header = http.request_head(url)
+          remoteETag = header['etag']
+        }
+      rescue Exception => err
+        msg = "Failed to access URL '#{url}', error: '#{err}'"
+        MObject.debug("AgentCommands", msg)
+        return {:success => :ERROR, :reason => :DL_FAILED, :info => msg}
+      end
     end
     
     # if we have the file and its ETag locally, 
@@ -343,8 +343,8 @@ module AgentCommands
     if download
       MObject.debug("AgentCommands", "Downloading '#{url}'")
       # -m -nd overwrites existing files
-      cmd="wget -P / -m -nd -q #{url};"
-      if !remoteETag.empty?
+      cmd="wget -O #{file} -m -nd -q #{url};"
+      if !remoteETag.nil?
         f=File.open(eTagFile,'w')
         f.write remoteETag
         f.close
@@ -353,6 +353,7 @@ module AgentCommands
       MObject.debug("AgentCommands", "'#{file}' already exists and is "+
                     "identical to '#{url}', not downloading")
     end
+    MObject.debug("AgentCommands", "Unpacking '#{url}' into '#{installRoot}'")
     cmd += "tar -C #{installRoot} -xf #{file}"
     ExecApp.new(id, controller, cmd)
   end

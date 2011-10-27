@@ -128,15 +128,15 @@ class Application < MObject
                                   :package => rpmPackage))
                                   
     elsif (rep = @appDefinition.appPackage) != nil
-      # Install App from TAR archive using wget + tar 
-      if File.exists?(rep)
+      # Install App from TAR archive using wget + tar
+      if !(rep =~ URI::regexp).nil?
+        # the tarball is already being served from somewhere
+        url=rep
+      elsif File.exists?(rep)
         # We first have to mount the local TAR file to a URL on our webserver
         url_dir="/install/#{rep.gsub('/', '_')}"
         url="#{OMF::Common::Web.url()}#{url_dir}"
         OMF::Common::Web.mapFile(url_dir, rep)
-      elsif rep[0..6]=="http://"
-        # the tarball is already being served from somewhere
-        url=rep
       else
         raise OEDLIllegalArgumentException.new(:defApplication,:appPackage,nil,"#{rep} is not a valid filename or URL") 
       end
