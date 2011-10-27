@@ -21,7 +21,7 @@ module OMF::Web::Widget::Code
     end
         
     def content()
-      div :id => @base_id, :class => "oml_code" do
+      div :id => @base_id, :class => "oml_code CodeRay" do
         rawtext render_code
       end
     end

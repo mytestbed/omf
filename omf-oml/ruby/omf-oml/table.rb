@@ -1,7 +1,7 @@
 
 require 'monitor'
 
-require 'oml'
+require 'omf-oml'
 require 'omf-oml/schema'
 
 

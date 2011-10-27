@@ -10,7 +10,7 @@ module OMF::Web::Widget::Graph
       @vizType = vizType
       @opts = opts
       @vizOpts = @opts[:viz_opts] || {}
-      puts "VIZ_OPTS >>>> #{@vizOpts.inspect}"
+#      puts "VIZ_OPTS >>>> #{@vizOpts.inspect}"
     end
         
     private

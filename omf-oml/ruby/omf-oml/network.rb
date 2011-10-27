@@ -2,7 +2,7 @@ require 'monitor'
 require 'json'
 require 'set'
 require 'omf-common/mobject'
-require 'oml'
+require 'omf-oml'
 
 
 
@@ -60,17 +60,32 @@ module OMF::OML
       @nodes.values
     end
     
-    def node(name)
+    # Return the node named +name+. If the node doesn't exist and
+    # +new_opts+ is a Hash, create a new one and return that.
+    #
+    def node(name, new_opts = nil)
       return name if name.kind_of? NetworkNode
-      @name2node[name.to_sym]
+      node = @name2node[name.to_sym]
+      if node.nil? && !new_opts.nil?
+        node = create_node(name, new_opts)
+      end
+      node
     end
 
     def links()
       @links.values
     end
     
-    def link(name)
-      @name2link[name.to_sym]
+    # Return the link named +name+. If the link doesn't exist and
+    # +new_opts+ is a Hash, create a new one and return that.
+    #
+    def link(name, new_opts = nil)
+      return name if name.kind_of? NetworkLink
+      link = @name2link[name.to_sym]
+      if link.nil? && !new_opts.nil?
+        link = create_link(name, nil, nil, new_opts)
+      end
+      link
     end
 
   
@@ -103,8 +118,17 @@ module OMF::OML
       end
     end
     
+    #
+    # opts
+    #   :from - fromNode if +fromNode+ is nil
+    #   :to - fromNode if +toNode+ is nil
+    #   ...  - rest of options passed on to +NetworkLink+ constructor
+    #    
     def create_link(name = nil, fromNode = nil, toNode = nil, attributes = {})
       name = name.to_sym if name
+      fromNode = attributes.delete(:from) unless fromNode
+      toNode = attributes.delete(:to) unless toNode
+            
       synchronize do
         if name && @name2link[name]
           raise OmlLinkAlreadyExistException.new(name)
@@ -196,6 +220,16 @@ module OMF::OML
     
     def []=(name, value)
       @attributes[name] = _set(value, @attributes[name])
+    end
+    
+    # Update the element's attributes. The +attributes+ argument
+    # is expected to be a hash with the key identifying the attribute
+    # name and the value being the new value to set that attribute to.
+    #
+    def update(attributes)
+      attributes.each do |name, value|
+        self[name] = value
+      end
     end
     
     # Return the current state of the network element as hash

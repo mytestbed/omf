@@ -1,6 +1,6 @@
 
 require 'omf-common/mobject'
-require 'omf_oml'
+require 'omf-oml'
 
 require 'omf-oml/tuple'
 

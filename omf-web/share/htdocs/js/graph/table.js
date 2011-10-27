@@ -1,7 +1,6 @@
 
 
-//L.provide('OML.table', ["table.css", ["jquery.js", "jquery-ui-1.8.4.custom.min.js"]],
-L.provide('OML.log_table', ["table.css", ["jquery.js", "jquery.dataTables.js"]], function () {
+L.provide('OML.table', ["table.css", ["jquery.js", "jquery.dataTables.js"]], function () {
   if (typeof(OML) == "undefined") {
     OML = {};
   }

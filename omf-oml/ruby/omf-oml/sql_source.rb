@@ -108,9 +108,18 @@ module OMF::OML
     #
     # The argument to this method are either a list of columns to 
     # to capture in the table, or an array of column names and
-    # an option hash to be provided to the +OmlTable+ constructor
+    # an option hash to be provided to the +OmlTable+ constructor.
     #
-    def capture_in_table(*args)
+    # If a block is provided, any arriving tuple is executed by the block
+    # which is expected to return an array which is added to the table
+    # or nil in which case nothing is added.
+    #
+    # opts:
+    #   :schema - use this schema instead for the table
+    #   :name   - name to use for table
+    #   ....    - remaining options to be passed to table constructur
+    #
+    def capture_in_table(*args, &block)
       if args.length == 1 && args[0].kind_of?(Array)
         select = args[0]
       elsif args.length == 2 && args[1].kind_of?(Hash)
@@ -121,11 +130,29 @@ module OMF::OML
         select = args
       end
       
-      tschema = select.collect do |cname| {:name => cname} end
-      t = OMF::Common::OML::OmlTable.new(stream_name, tschema)
-      self.on_new_tuple() do |v|
-        #puts "New vector(#{stream.stream_name}): #{v.select(*select).join('|')}"
-        t.add_row(v.select(*select))   
+      if (tschema = opts.delete(:schema))
+        unless tschema[0].kind_of? Hash
+          tschema = tschema.collect do |cname| {:name => cname} end
+        end 
+      else
+        tschema = select.collect do |cname| {:name => cname} end
+      end
+      tname = opts.delete(:name) || stream_name
+      t = OMF::OML::OmlTable.new(tname, tschema, opts)
+      if block
+        self.on_new_tuple() do |v|
+          #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
+          row = block.call(v.select(*select))
+          if row
+            raise "Expected kind of Array, but got '#{row.inspect}'" unless row.kind_of?(Array)
+            t.add_row(row)
+          end  
+        end
+      else
+        self.on_new_tuple() do |v|
+          #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
+          t.add_row(v.select(*select))   
+        end
       end
       t
     end

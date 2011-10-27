@@ -1,6 +1,6 @@
 
 require 'omf-common/mobject'
-require 'oml'
+require 'omf-oml'
 
 module OMF::OML
   
@@ -44,18 +44,20 @@ module OMF::OML
     end
     
     def describe
-      @schema.collect do |name, type|
-        if type.kind_of? Class
-          type = CLASS2TYPE[type] || 'unknown'
-        end
-        {:name => name, :type => type}
-      end
+      # @schema.collect do |name, type|
+        # if type.kind_of? Class
+          # type = CLASS2TYPE[type] || 'unknown'
+        # end
+        # {:name => name, :type => type}
+      # end
+      @schema
     end
     
     # schema_description - Array containing [name, type*] for every column in table
     #   TODO: define format of TYPE
     #
     def initialize(schema_description)
+      debug "schema: '#{schema_description.inspect}'"
       @schema = schema_description
       #@on_new_vector_proc = {}
     end

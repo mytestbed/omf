@@ -19,7 +19,7 @@ module OMF::Web::Widget::Graph
       @opts = gd.opts
       @data_source = @opts[:data_source]
       @name = @gd.name
-      @js_uri = @gd.vizType # || DEF_VIS_TYPE # @opts[:gopts][:gtype] || 'matrix'
+      @js_uri = @gd.vizType
       @base_id = "g#{object_id.abs}"
       @base_el = "\##{@base_id}"
       

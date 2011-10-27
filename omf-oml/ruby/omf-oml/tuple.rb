@@ -1,6 +1,6 @@
 
 require 'omf-common/mobject'
-require 'omf/oml'
+require 'omf-oml'
 require 'omf-oml/schema'
 
 module OMF::OML
