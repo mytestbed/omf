@@ -108,11 +108,15 @@ module OMF::OML
     #
     # The argument to this method are either a list of columns to 
     # to capture in the table, or an array of column names and
-    # an option hash to be provided to the +OmlTable+ constructor.
+    # an option hash  or just 
+    # the option hash to be provided to the +OmlTable+ constructor.
     #
     # If a block is provided, any arriving tuple is executed by the block
     # which is expected to return an array which is added to the table
-    # or nil in which case nothing is added.
+    # or nil in which case nothing is added. If a selector array is given the 
+    # block is called with an array of values in the order of the columns
+    # listed in the selector. Otherwise, the block is called directly 
+    # with the tuple.
     #
     # opts:
     #   :schema - use this schema instead for the table
@@ -120,8 +124,12 @@ module OMF::OML
     #   ....    - remaining options to be passed to table constructur
     #
     def capture_in_table(*args, &block)
-      if args.length == 1 && args[0].kind_of?(Array)
-        select = args[0]
+      if args.length == 1
+        if args[0].kind_of?(Array)
+          select = args[0]
+        elsif args[0].kind_of?(Hash)
+          opts = args[0]
+        end
       elsif args.length == 2 && args[1].kind_of?(Hash)
         select = args[0]
         opts = args[1]
@@ -142,7 +150,11 @@ module OMF::OML
       if block
         self.on_new_tuple() do |v|
           #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
-          row = block.call(v.select(*select))
+          if select
+            row = block.call(v.select(*select))
+          else
+            row = block.call(v)
+          end             
           if row
             raise "Expected kind of Array, but got '#{row.inspect}'" unless row.kind_of?(Array)
             t.add_row(row)

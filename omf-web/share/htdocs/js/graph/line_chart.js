@@ -150,12 +150,50 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
           .attr("stroke", function(d, i) { 
               return self.color(i); 
             })
+          .on("mouseover", function(data, i) {
+            var group_by = self.mapping.group_by;
+            if (group_by) {
+              var name = data[0][group_by];
+              self.on_selected({'name': name});
+            }
+          })
+          .on("mouseout", function() {
+            self.on_deselected({});
+          })         
           ;
       lines.exit().remove();
+
   
       this.update_ticks();
       this.update_selection({});
     };
+    
+    this.on_selected = function(evt) {
+      var name = evt.name;
+      var vis = this.graph_layer;
+      var group_by = this.mapping.group_by;
+      if (group_by) {
+        vis.selectAll(".chart")
+         .filter(function(d) {
+           var dname = d[0][group_by];
+           return dname != name;
+         })
+         .transition()
+           .style("opacity", 0.1)
+           .delay(0)
+           .duration(300);
+      }
+    }
+
+    this.on_deselected = function(evt) {
+      var vis = this.graph_layer;
+      vis.selectAll(".chart")
+       .transition()
+         .style("opacity", 1.0)         
+         .delay(0)
+         .duration(300)
+    }
+    
     
     // Split tuple array into array of tuple arrays grouped by 
     // the tuple element at +index+.

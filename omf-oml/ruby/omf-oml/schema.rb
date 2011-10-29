@@ -37,6 +37,10 @@ module OMF::OML
       @schema[index][:type]
     end
     
+    def columns
+      @schema
+    end
+    
     def each_column(&block)
       @schema.each do |c| 
        block.call(c) 

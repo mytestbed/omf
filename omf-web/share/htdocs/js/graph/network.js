@@ -40,22 +40,22 @@ L.provide('OML.network', ["d3/d3"], function () {
       };
       this.graph_layer = g.append("svg:g");
       var data = this.data = o.data;
-      if (data) this.redraw();
+      if (data) this.redraw({});
     };
   
     this.append = function(a_data) {
       var data = this.data;
       data.nodes = $.extend(data.nodes, a_data.nodes);
       data.links = $.extend(data.links, a_data.links);      
-      this.redraw();   
+      this.redraw({});   
     };
 
     this.update = function(data) {
       this.data = data;
-      this.redraw();
+      this.redraw({});
     };
     
-    this.redraw = function() {
+    this.redraw = function(ropts) {
       var self = this;
       var data = this.data;
       var o = this.opts;
@@ -73,7 +73,8 @@ L.provide('OML.network', ["d3/d3"], function () {
       var c = d3.scale.linear()
           .domain([0, 0.8, 1])
           .range(["green", "yellow", "red"]);
-         
+      
+      this._func = {};
       var lmapping = mapping.link; 
       var lstroke = c(0);
       var lstroke_width = 4;
@@ -81,6 +82,8 @@ L.provide('OML.network', ["d3/d3"], function () {
         lstroke_width = this.property_mapper('stroke_width', lmapping.stroke_width, lstroke_width);
         lstroke = this.property_mapper('stroke', lmapping.stroke_color, lstroke);
       } 
+      this._func.lstroke = lstroke;
+      this._func.lstroke_width = lstroke_width;
         
       var nmapping = mapping.node; 
       var nfill = "white";
@@ -89,7 +92,9 @@ L.provide('OML.network', ["d3/d3"], function () {
         nfill = this.property_mapper('fill', nmapping.fill_color, nfill);
         nradius = this.property_mapper('radius', nmapping.radius, nradius);
       } 
-
+      this._func.nfill = nfill;
+      this._func.nradius = nradius;
+      
           
       var vis = this.base_layer;
       var link = vis.selectAll("line.link")
@@ -115,27 +120,35 @@ L.provide('OML.network', ["d3/d3"], function () {
           .attr("x2", function(d) { return x(data.nodes[d.to]); })
           .attr("y2", function(d) { return y(data.nodes[d.to]); })
           .on("mouseover", function() {
-            d3.select(this).transition()
-             .style("stroke-width", function(d) {
-               return d.stroke_width + 3
-             })
-            .delay(0)
-            .duration(300)
+             var name = this.__data__.name;
+             self.on_link_selected({'name': name});
           })
           .on("mouseout", function() {
-            d3.select(this).transition()
-             .style("stroke-width", function(d) {return d.stroke_width})
-             .delay(0)
-             .duration(300)
-          })
+            self.on_link_deselected({});
+          })         
+          
+          // .on("mouseover", function() {
+            // d3.select(this).transition()
+             // .style("stroke-width", function(d) {
+               // return d.stroke_width + 3
+             // })
+            // .delay(0)
+            // .duration(300)
+          // })
+          // .on("mouseout", function() {
+            // d3.select(this).transition()
+             // .style("stroke-width", function(d) {return d.stroke_width})
+             // .delay(0)
+             // .duration(300)
+          // })
           ;
 
      var node = vis.selectAll("circle.node")
        .data(d3.values(data.nodes))
          .attr("cx", function(d) { return x(d); })
          .attr("cy", function(d) { return y(d); })
-          .attr("r", nradius)
-          .style("fill", nfill)
+         .attr("r", nradius)
+         .style("fill", nfill)
        .enter().append("svg:circle")
          .attr("class", "node")
          .attr("cx", function(d) { return x(d); })
@@ -147,27 +160,14 @@ L.provide('OML.network', ["d3/d3"], function () {
          .attr("fixed", true)
          //.call(force.drag)
          .on("mouseover", function() {
-            d3.select(this).transition()
-             .attr("r", function(d) {
-               return d.radius + 2 ;
-             })
-             .style("stroke", "black")
-             .style("stroke-width", 3)
-             .delay(0)
-             .duration(300)
+            var name = this.__data__.name;
+            self.on_node_selected({'name': name});
          })
          .on("mouseout", function() {
-            d3.select(this).transition()
-             .style("stroke", "gray")
-             .style("stroke-width", 1)
-             .attr("r", function(d) {return d.radius;})
-             .delay(0)
-             .duration(300)
-         })
-       .transition()
-          .attr("r", function(d) {
-            return d.r = d.capacity * 10 + 3;
-          })
+           self.on_node_deselected({});
+         })         
+        .transition()
+          .attr("r", nradius)
           .delay(0)
        ;      
     };
@@ -186,6 +186,53 @@ L.provide('OML.network', ["d3/d3"], function () {
       return vis;
     }
   
+    this.on_node_selected = function(evt) {
+      var name = evt.name;
+      var vis = this.base_layer;
+      vis.selectAll("circle.node")
+       .filter(function(d) {
+         return d.name != name;
+       })
+       .transition()
+         .style("stroke", "lightgray")
+         .style("fill", "rgb(240,240,240)")               
+         .delay(0)
+         .duration(300);
+    }
+    
+    this.on_node_deselected = function(evt) {
+      var vis = this.base_layer;
+      var nfill = this._func.nfill;
+      vis.selectAll("circle.node")
+       .transition()
+         .style("stroke", "gray")
+         .style("fill", nfill)
+         .delay(0)
+         .duration(300);   
+    }
+
+    this.on_link_selected = function(evt) {
+      var name = evt.name;
+      var vis = this.base_layer;
+      vis.selectAll("line.link")
+       .filter(function(d) {
+         return d.name != name;
+       })
+       .transition()
+         .style("opacity", 0.1)
+         .delay(0)
+         .duration(300);
+    }
+
+    this.on_link_deselected = function(evt) {
+      var vis = this.base_layer;
+      vis.selectAll("line.link")
+       .transition()
+         .style("opacity", 1.0)         
+         .delay(0)
+         .duration(300)
+    }
+
     this.property_mapper = function(name, sm, def_value) {
       var mapper_f;
       if (typeof(sm) != "undefined") {
