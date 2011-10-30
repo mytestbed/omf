@@ -107,6 +107,7 @@ module OMF::Web::Rack
       end
       
       opts = @opts.dup
+      opts[:active_id] = comp_name.to_sym
       opts[:tab_id] = tab_id = tab[:id]
       #opts[:session_id] = session_id = req.params['sid']
       #opts[:update_path] = "/_update?id=#{session_id}:#{tab_id}"

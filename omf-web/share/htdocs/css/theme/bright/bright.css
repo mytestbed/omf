@@ -25,6 +25,7 @@
 #hd #tab_menu li {
   display: inline-block;
   list-style: none;
+  margin-right: 15px;
 }
 
 #hd #tab_menu a {
@@ -34,13 +35,12 @@
 #hd #tab_menu .tab_text {
   color: #ccc;
   font-size: 16px;  
-  padding: 0 5px;
   text-decoration: none;
   line-height: 25px;  
   display: block;
 }
 
-#hd #tab_menu li.selected .tab_text {
+#hd #tab_menu li.current .tab_text {
   color: white;  
   border-bottom: 4px solid #F47030;
   font-weight: bold;
