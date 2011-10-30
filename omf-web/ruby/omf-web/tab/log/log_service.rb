@@ -15,24 +15,10 @@ module OMF::Web::Tab::Log
     end
     
     def show(req, opts)
-      puts "Service: #{opts.inspect}"
-
-      #puts "Widget>>> #{widget.to_html}"
       opts[:card_title] ||= 'Log'
       OMF::Web::Theme.require 'widget_page'
       [OMF::Web::Theme::WidgetPage.new(@widget, opts).to_html, 'text/html']
     end
-    
-    # def update(req, opts)
-      # id = req.params['id']
-      # if (!@shown || gID.nil?)
-        # body = "ERROR: Missing 'id' or expired session"
-      # else
-        # body = {:data => gd.data.to_a, :opts => gx[:gopts]}
-      # end
-      # # puts "DATA: #{body.inspect}"
-      # [body.to_json, "text/json"]
-    # end
   end # LogService   
  
 end # module
