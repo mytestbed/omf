@@ -77,7 +77,7 @@ module OMF::Web
           require 'omf-web/rack/websocket_handler'
           run OMF::Web::Rack::WebsocketHandler.new # :backend => { :debug => true }
         end
-      rescue
+      rescue Exception => ex
         # Report that we don't have web socket support
       end
       map '/_update' do
