@@ -1,12 +1,12 @@
+    
+require 'omf-web/tab/common/abstract_service'
 
-#require 'omf-web/tab/log/log_outputter'
 require 'omf-web/session_store'
-require 'omf-web/tab/common/widget_page'
 require 'omf-web/widget/log/log_widget'
 
 
 module OMF::Web::Tab::Log
-  class LogService < MObject
+  class LogService < OMF::Web::Tab::AbstractService
 
     def initialize(tab_id, opts = {})
       @tab_id = tab_id
@@ -19,7 +19,8 @@ module OMF::Web::Tab::Log
 
       #puts "Widget>>> #{widget.to_html}"
       opts[:card_title] ||= 'Log'
-      [OMF::Web::Tab::WidgetPage.new(@widget, opts).to_html, 'text/html']
+      OMF::Web::Theme.require 'widget_page'
+      [OMF::Web::Theme::WidgetPage.new(@widget, opts).to_html, 'text/html']
     end
     
     # def update(req, opts)

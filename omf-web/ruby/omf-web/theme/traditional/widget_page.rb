@@ -1,6 +1,6 @@
-require 'omf-web/page'
+require 'omf-web/theme/traditional/page'
 
-module OMF::Web::Tab
+module OMF::Web::Theme
   
   class WidgetPage < Page
     
@@ -28,5 +28,5 @@ module OMF::Web::Tab
     end
   end # Widget
   
-end
+end # OMF::Web::Theme
 

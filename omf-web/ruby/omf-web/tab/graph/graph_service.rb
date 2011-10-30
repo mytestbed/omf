@@ -2,21 +2,19 @@
 
 
 require 'json'
-require 'omf-common/mobject'
-#require 'omf-web/tab/graph/graph_card'
-require 'omf-web/tab/common/multi_card_page'
+require 'omf-web/tab/common/abstract_service'
 
 require 'omf-web/widget/graph/graph'
 require 'omf-web/widget/graph/graph_widget'
 
 module OMF::Web::Tab::Graph
   
-  class GraphService < MObject
+  class GraphService < OMF::Web::Tab::AbstractService
     
     def initialize(tab_id, opts)
       debug "New GraphService: #{opts.inspect}"
       @widgets = []
-      @tab_id = tab_id
+      super
     end
     
     def show(req, opts)
@@ -36,31 +34,11 @@ module OMF::Web::Tab::Graph
       if opts[:widget] = widget
         opts[:card_title] = widget.name
       end
+
+      require 'omf-web/tab/graph/graph_page'
       page = GraphPage.new(widget, opts)
       [page.to_html, 'text/html']
     end
-    
-    # # A dynamic grph may open a web socket back to this service. Find the 
-    # # respective graph widget and hand it on.
-    # #
-    # def on_ws_open(ws, sub_path = [])
-      # puts ">>>> Service: ON_WS_OPEN"      
-      # w = find_widget(sub_path.shift)
-      # w.on_ws_open(ws)
-    # end
-#     
-    # def on_ws_close(ws, sub_path = [])
-      # w = find_widget(sub_path.shift)      
-      # w.on_ws_close(ws)
-    # end
-#     
-    # #body, headers = tab_inst.on_update(req, sub_path.dup)
-    # def on_update(req, path)
-      # #puts ">>>> ON_UPDATE"
-      # w = find_widget(path[0])
-      # body = w.on_update()
-      # [body.to_json, "text/json"]
-    # end
     
     private
   
@@ -72,18 +50,5 @@ module OMF::Web::Tab::Graph
     end
     
   end # GraphService
-  
-  class GraphPage < OMF::Web::Tab::MultiCardPage
-
-    def initialize(widget, opts)
-      super widget, :graph, OMF::Web::Widget::Graph, opts
-    end
     
-    def render_card_body
-      return unless @widget
-      widget @widget        
-    end
-    
-  end # GraphCard
-  
 end

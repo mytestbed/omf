@@ -1,22 +1,15 @@
 
-#require 'json'
-require 'omf-common/mobject'
+require 'omf-web/tab/common/abstract_service'
 require 'omf-web/widget/code'
 require 'omf-web/widget/code/code_widget'
-#require 'omf-web/tab/code/code_card'
-require 'omf-web/tab/common/multi_card_page'
-
-#require 'omf-web/widget/graph/graph'
-#require 'omf-web/widget/graph/graph_widget'
 
 module OMF::Web::Tab::Code
   
-  class CodeService < MObject
+  class CodeService < OMF::Web::Tab::AbstractService
     
     def initialize(tab_id, opts)
-      debug "New CodeService: #{opts.inspect}"
+      super
       @widgets = []
-      @tab_id = tab_id
     end 
     
     def show(req, opts)
@@ -36,7 +29,8 @@ module OMF::Web::Tab::Code
         opts[:card_title] = widget.name
       end
       
-      page = OMF::Web::Tab::MultiCardPage.new(widget, :code, OMF::Web::Widget::Code, opts)
+      OMF::Web::Theme.require 'multi_card_page'
+      page = OMF::Web::Theme::MultiCardPage.new(widget, :code, OMF::Web::Widget::Code, opts)
       [page.to_html, 'text/html']
     end
 

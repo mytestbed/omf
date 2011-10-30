@@ -3,10 +3,10 @@
 require 'erector'
 require 'rack'
 require 'omf_web'
-require 'omf-web/page'
 require 'omf-web/rack/multi_file'
 require 'omf-web/session_store'
 require 'omf-web/rack/tab_mapper'
+require 'omf-web/theme/theme_manager'
 
 module OMF::Web
       
@@ -24,6 +24,10 @@ module OMF::Web
     require 'rack'
     require 'rack/showexceptions'
     require 'thin'
+    
+    OMF::Web::Theme.theme = opts[:theme]
+    OMF::Web::Theme.require 'page'
+
 
     static_dirs = opts[:static_dirs] || ["#{File.dirname(__FILE__)}/../../share/htdocs", "./resources"]
     

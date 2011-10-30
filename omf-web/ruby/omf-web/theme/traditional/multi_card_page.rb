@@ -1,6 +1,6 @@
-require 'omf-web/page'
+require 'omf-web/theme/traditional/page'
 
-module OMF::Web::Tab
+module OMF::Web::Theme
   
   class MultiCardPage < Page
     

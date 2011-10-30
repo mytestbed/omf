@@ -2,16 +2,12 @@ require 'erector'
 
 class Page < Erector::Widget
   
-  depends_on :css, "/resource/css/omf_ec.css"
+  depends_on :css, "/resource/css/theme/bright.css"
   depends_on :css, '/resource/css/yui-grids-min.css'
   
   depends_on :js, '/resource/js/jquery.js'
   depends_on :js, '/resource/js/stacktrace.js'
   
-  # HACK ALERT! THe next two lines shouldn't be here
-#  depends_on :js, '/resource/js/jquery.periodicalupdater.js'
-  
-#  depends_on :css, "coderay.css"
 #  depends_on :css, "/css/salsa_picante.css", :media => "print"
 
 #        self << '<!--[if IE]>'
