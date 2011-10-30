@@ -123,11 +123,11 @@ module OMF::Web::Rack
     end
     
     def render_unknown_card(comp_name, req)
+      warn "Request for unknown component '#{comp_name}'"
       popts = @opts.dup
       popts[:active_id] = 'unknown'
-      popts[:body_text] = %{No idea on how you got here. To select any of the available 
-        components, please click on one of the tabs above.}
-      popts[:card_title] = "Error: Unknown component '#{comp_name}'"
+      popts[:flash] = {:alert => %{Unknonw component '#{comp_name}'. To select any of the available 
+        components, please click on one of the tabs above.}}
 
       OMF::Web::Theme.require 'page'      
       [OMF::Web::Theme::Page.new(popts).to_html, 'text/html']

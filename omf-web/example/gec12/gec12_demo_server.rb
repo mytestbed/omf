@@ -31,17 +31,30 @@ def init_graph(name, data, viz_type = 'network', opts = {})
   OMF::Web::Widget::Graph.addGraph(name, gopts) 
 end
 
-files = ['visualization.rb', 'oml.rb']
+
+require 'omf-web/tab/two_column/two_column_service'
+$lwidgets = []
+$rwidgets = []
+OMF::Web::Tab.register_tab(
+    :id => :overview,
+    :name => 'Overview', 
+    :priority => 999, 
+    :class => OMF::Web::Tab::TwoColumn::TwoColumn,
+    :opts => { 
+      :layout => :layout_66_33,
+      :left => $lwidgets,
+      :right => $rwidgets
+    }
+)
+
+
+files = ['visualization.rb']
 
 files.each do |fn|
   fp = "#{File.dirname(__FILE__)}/#{fn}"
-  puts "FILE>>> #{fp}"
   OMF::Web::Widget::Code.addCode(fn, :file => fp)
   load(fp) 
 end
-
-
-
 
 
 # Configure the web server
@@ -53,7 +66,7 @@ opts = {
     :verify_peer => false
   },
   :page_title => 'Mobility First',
-  :use_tabs => [:graph, :code, :log],
-  :theme => :traditional
+  :use_tabs => [:overview, :graph, :code, :log],
+  :theme => :bright
 }
 OMF::Web.start(opts)

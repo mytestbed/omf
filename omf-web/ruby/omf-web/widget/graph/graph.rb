@@ -29,7 +29,8 @@ module OMF::Web::Widget::Graph
   def self.addGraph(name, opts = {})
     vizType = opts[:viz_type]
     raise "Missing :viz_type in 'addGraph'" unless vizType
-    @@graphs << GraphDescription.new(name, vizType, opts)
+    @@graphs << (gd = GraphDescription.new(name, vizType, opts))
+    gd
   end
   
   # def self.addNetworkGraph(name, opts = {}, &netProc)

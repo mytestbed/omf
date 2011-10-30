@@ -1,7 +1,5 @@
 L.provide('OML.network', ["d3/d3"], function () {
 
-  if (typeof(OML)) OML = {};
-    
   OML['network'] = function(opts) { 
     this.opts = opts || {};
     this.data = null;

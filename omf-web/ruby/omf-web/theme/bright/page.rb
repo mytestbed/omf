@@ -83,6 +83,10 @@ module OMF::Web::Theme
       render_card_body
     end
     
+    def render_card_body
+      # Overide
+    end
+    
     
     def render_widget(widget)
       div :class => :widget_container do
@@ -130,92 +134,92 @@ module OMF::Web::Theme
     
     
     
-    def render_tabs
-      div :id => 'tabs' do
-        ul :id => 'mainTabs' do
-          @tabs.each do |h|
-            li do
-              opts = {:href => "/#{h[:id]}/show?sid=#{Thread.current["sessionID"]}"}
-              opts[:class] = 'current' if h[:id] == @active_id
-              a h[:name], opts
-            end
-          end
-        end
-      end
-    end
-    
-    def render_card
-      div :class => "card card_#{@active_id}" do
-        div :class => 'card_header' do
-          render_card_actions
-          h1 @card_title || 'Missing :card_title'
-        end
-        render_card_nav
-              
-        if @announcement
-          div :class => 'card_announcement' do 
-            text @announcement
-          end
-        end
-  
-        div :class => 'card_body' do
-          render_card_body
-        end
-      end
-    end
-  
-    def render_card_actions
-      return  # Following is just an example
-      div :class => 'actions' do
-        a 'Action', :class => 'action', :href => '/foo'
-      end
-    end
-    
-    def render_card_nav
-      if @card_nav
-        div :class => 'card_nav' do
-          ul do
-            @card_nav.each do |cn|
-              li :class => cn[:selected] ? 'selected' : nil do
-                a cn[:name] || 'Missing :name', :href => cn[:href] || 'missing/:href'
-              end
-            end
-          end
-        end
-      end
-    end
-      
-    def render_card_body
-      if @body_text
-        p @body_text
-      end
-    end
-    
-    def render_sidebar
-      div :class => 'panel' do
-        h1 'Commands'
-        
-        ul do
-          li do
-            a 'New', :href => 'new', :class => 'action'
-          end
-          li do
-            a 'Update', :href => 'new', :class => 'action'
-          end
-        end
-      end
-      
-      div :class => 'panel help_panel' do
-        h1 'Help'
-        render_help_text
-      end
-    end
-    
-    def render_help_text
-      p do
-        text 'Help is soon coming to a screen near you'
-      end    
-    end
+    # def render_tabs
+      # div :id => 'tabs' do
+        # ul :id => 'mainTabs' do
+          # @tabs.each do |h|
+            # li do
+              # opts = {:href => "/#{h[:id]}/show?sid=#{Thread.current["sessionID"]}"}
+              # opts[:class] = 'current' if h[:id] == @active_id
+              # a h[:name], opts
+            # end
+          # end
+        # end
+      # end
+    # end
+#     
+    # def render_card
+      # div :class => "card card_#{@active_id}" do
+        # div :class => 'card_header' do
+          # render_card_actions
+          # h1 @card_title || 'Missing :card_title'
+        # end
+        # render_card_nav
+#               
+        # if @announcement
+          # div :class => 'card_announcement' do 
+            # text @announcement
+          # end
+        # end
+#   
+        # div :class => 'card_body' do
+          # render_card_body
+        # end
+      # end
+    # end
+#   
+    # def render_card_actions
+      # return  # Following is just an example
+      # div :class => 'actions' do
+        # a 'Action', :class => 'action', :href => '/foo'
+      # end
+    # end
+#     
+    # def render_card_nav
+      # if @card_nav
+        # div :class => 'card_nav' do
+          # ul do
+            # @card_nav.each do |cn|
+              # li :class => cn[:selected] ? 'selected' : nil do
+                # a cn[:name] || 'Missing :name', :href => cn[:href] || 'missing/:href'
+              # end
+            # end
+          # end
+        # end
+      # end
+    # end
+#       
+    # def render_card_body
+      # if @body_text
+        # p @body_text
+      # end
+    # end
+#     
+    # def render_sidebar
+      # div :class => 'panel' do
+        # h1 'Commands'
+#         
+        # ul do
+          # li do
+            # a 'New', :href => 'new', :class => 'action'
+          # end
+          # li do
+            # a 'Update', :href => 'new', :class => 'action'
+          # end
+        # end
+      # end
+#       
+      # div :class => 'panel help_panel' do
+        # h1 'Help'
+        # render_help_text
+      # end
+    # end
+#     
+    # def render_help_text
+      # p do
+        # text 'Help is soon coming to a screen near you'
+      # end    
+    # end
     
 
   
