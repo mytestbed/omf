@@ -72,9 +72,13 @@ module OMF::Web
 #            run Rack::File.new("omf-common/share/htdocs")
         run OMF::Web::Rack::MultiFile.new(static_dirs)
       end
-      map '/_ws' do
-        require 'omf-web/rack/websocket_handler'
-        run OMF::Web::Rack::WebsocketHandler.new # :backend => { :debug => true }
+      begin
+        map '/_ws' do
+          require 'omf-web/rack/websocket_handler'
+          run OMF::Web::Rack::WebsocketHandler.new # :backend => { :debug => true }
+        end
+      rescue
+        # Report that we don't have web socket support
       end
       map '/_update' do
         require 'omf-web/rack/update_handler'
