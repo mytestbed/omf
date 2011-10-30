@@ -127,6 +127,8 @@ module OMF::Web::Rack
       popts[:body_text] = %{No idea on how you got here. To select any of the available 
         components, please click on one of the tabs above.}
       popts[:card_title] = "Error: Unknown component '#{comp_name}'"
+
+      OMF::Web::Theme.require 'page'      
       [OMF::Web::Theme::Page.new(popts).to_html, 'text/html']
     end
 

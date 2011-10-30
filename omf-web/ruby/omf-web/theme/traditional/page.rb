@@ -3,7 +3,7 @@ require 'omf-web/theme/common/abstract_page'
 module OMF::Web::Theme
   class Page < AbstractPage 
 
-    depends_on :css, "/resource/css/omf_ec.css"
+    depends_on :css, "/resource/css/theme/traditional.css"
     depends_on :css, '/resource/css/yui-grids-min.css'
     
     def content

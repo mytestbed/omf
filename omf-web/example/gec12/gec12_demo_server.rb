@@ -53,6 +53,7 @@ opts = {
     :verify_peer => false
   },
   :page_title => 'Mobility First',
-  :use_tabs => [:graph, :code, :log]
+  :use_tabs => [:graph, :code, :log],
+  :theme => :traditional
 }
 OMF::Web.start(opts)
