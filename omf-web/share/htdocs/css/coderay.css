@@ -1,10 +1,12 @@
 .CodeRay {
-  background-color: hsl(0,0%,95%);
-  border: 1px solid silver;
+/*  background-color: hsl(0,0%,95%);
+  border: 1px solid silver;*/  
   color: black;
 }
+
 .CodeRay pre {
   margin: 0px;
+  
 }
 
 span.CodeRay { white-space: pre; border: 0px; padding: 2px; }
@@ -13,22 +15,26 @@ table.CodeRay { border-collapse: collapse; width: 100%; padding: 2px; }
 table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 
 .CodeRay .line-numbers {
-  background-color: hsl(180,65%,90%);
+  background-color: #ddd;
   color: gray;
   text-align: right;
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
+  margin-right: 10px;
 }
+.CodeRay span.line-numbers { 
+  padding: 0px 6px; 
+  text-size: 80%;
+ }
 .CodeRay .line-numbers a {
-  background-color: hsl(180,65%,90%) !important;
+  background-color: #ddd !important;   
   color: gray !important;
   text-decoration: none !important;
 }
 .CodeRay .line-numbers a:target { color: blue !important; }
 .CodeRay .line-numbers .highlighted { color: red !important; }
 .CodeRay .line-numbers .highlighted a { color: red !important; }
-.CodeRay span.line-numbers { padding: 0px 4px; }
 .CodeRay .line { display: block; float: left; width: 100%; }
 .CodeRay .code { width: 100%; }
 .CodeRay .code pre { overflow: auto; }
@@ -67,7 +73,7 @@ table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 .CodeRay .hex { color:#02b }
 .CodeRay .imaginary { color:#f00 }
 .CodeRay .include { color:#B44; font-weight:bold }
-.CodeRay .inline { background-color: hsla(0,0%,0%,0.07); color: black }
+.CodeRay .inline { color: black }
 .CodeRay .inline-delimiter { font-weight: bold; color: #666 }
 .CodeRay .instance-variable { color:#33B }
 .CodeRay .integer  { color:#00D }
@@ -88,16 +94,16 @@ table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 .CodeRay .regexp .content { color:#808 }
 .CodeRay .regexp .delimiter { color:#404 }
 .CodeRay .regexp .modifier { color:#C2C }
-.CodeRay .regexp { background-color:hsla(300,100%,50%,0.06); }
+.CodeRay .regexp { }
 .CodeRay .reserved { color:#080; font-weight:bold }
 .CodeRay .shell .content { color:#2B2 }
 .CodeRay .shell .delimiter { color:#161 }
-.CodeRay .shell { background-color:hsla(120,100%,50%,0.06); }
+.CodeRay .shell { }
 .CodeRay .string .char { color: #b0b }
 .CodeRay .string .content { color: #D20 }
 .CodeRay .string .delimiter { color: #710 }
 .CodeRay .string .modifier { color: #E40 }
-.CodeRay .string { background-color:hsla(0,100%,50%,0.05); }
+.CodeRay .string {  }
 .CodeRay .symbol .content { color:#A60 }
 .CodeRay .symbol .delimiter { color:#630 }
 .CodeRay .symbol { color:#A60 }

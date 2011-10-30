@@ -10,7 +10,7 @@ module OMF::Web::Widget::Code
     # opts:
     #  :file - Name of file to take content from
     #
-    def initialize(name, opts)
+    def initialize(name, opts = {})
       @name = name
       @opts = opts
     end
@@ -39,6 +39,11 @@ module OMF::Web::Widget::Code
       else
         :text
       end
+    end
+    
+    def create_widget
+      require 'omf-web/widget/code/code_widget'
+      OMF::Web::Widget::Code::CodeWidget.new(self)
     end
 
     private

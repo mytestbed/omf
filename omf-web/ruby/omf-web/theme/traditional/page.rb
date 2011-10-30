@@ -3,8 +3,8 @@ require 'omf-web/theme/common/abstract_page'
 module OMF::Web::Theme
   class Page < AbstractPage 
 
-    depends_on :css, "/resource/css/theme/traditional.css"
-    depends_on :css, '/resource/css/yui-grids-min.css'
+    depends_on :css, "/resource/css/theme/traditional/traditional.css"
+    depends_on :css, '/resource/css/theme/traditional/yui-grids-min.css'
     
     def content
       div :id => 'header' do

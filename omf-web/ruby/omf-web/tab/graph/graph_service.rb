@@ -22,7 +22,7 @@ module OMF::Web::Tab::Graph
       unless (widget = @widgets[tid])
         if gd = OMF::Web::Widget::Graph[tid]
           #addr = [req.params['sid'], @tab_id, gid].join(':')
-          widget = @widgets[tid] = OMF::Web::Widget::Graph::GraphWidget.new(gd)
+          widget = @widgets[tid] = gd.create_widget
         else
           if OMF::Web::Widget::Graph.count > 0
             opts[:flash] = {:alert => "Unknown graph id '#{tid}'"}

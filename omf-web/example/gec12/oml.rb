@@ -1,3 +1,5 @@
+
+
 require 'omf-oml/table'
 require 'omf-oml/sql_source'
 
@@ -48,9 +50,12 @@ def click_mon_link_stats(stream)
     set_link(from, to, :sett => sett, :lett => lett, :bitrate => bitrate)
     [ts, "l#{from}-#{to}", sett, lett, bitrate]
   end
-  init_graph t.name, t, 'line_chart_fc', 
+  init_graph t.name, t, 'line_chart', 
     :mapping => {:group_by => :link, :x_axis => :ts, :y_axis => :sett},
-    :schema => t.schema.describe
+    :schema => t.schema.describe,
+    :margin => {:left => 80, :bottom => 40},
+    :yaxis => {:ticks => 6},
+    :stroke_width => 4
   t
 end
 
@@ -88,7 +93,10 @@ def click_mon_routing_stats(stream)
   
   init_graph table.name, table, 'line_chart', 
     :mapping => {:group_by => :node, :x_axis => :ts, :y_axis => :curr_stored_chunks},
-    :schema => table.schema.describe
+    :schema => table.schema.describe,
+    :margin => {:left => 80, :bottom => 40},
+    :yaxis => {:ticks => 6},
+    :stroke_width => 4    
   table  
 end
 
@@ -108,3 +116,6 @@ ep.on_new_stream() do |stream|
   end
 end
 ep.run()
+
+
+

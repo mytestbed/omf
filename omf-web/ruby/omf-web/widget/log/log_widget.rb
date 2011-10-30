@@ -1,5 +1,5 @@
 
-require 'erector'
+require 'omf-web/widget/abstract_widget'
 require 'omf-web/session_store'
 
 module OMF::Web::Widget::Log
@@ -8,36 +8,19 @@ module OMF::Web::Widget::Log
   # It is primarily called upon maintaining communication with the browser and will
   # create the necessary html and javascript code for that.
   #
-  class LogWidget < Erector::Widget
-    
-    # def self.[](wid, opts = {})
-      # w = nil
-      # if wid
-        # w = OMF::Web::SessionStore[wid]
-      # end
-      # unless w
-        # w = self.new(opts)
-        # puts ">>>> Creating new log widget #{w.widget_id}"
-#         
-      # end
-      # w
-    # end
+  class LogWidget < OMF::Web::Widget::AbstractWidget
     
     depends_on :css, "/resource/css/log.css"
-    #depends_on :js, "/resource/css/log.css"    
-    
-    attr_reader :name, :widget_id, :opts
     
     def initialize(opts = {})
-      @widget_id = "w#{object_id}"
-      OMF::Web::SessionStore[@widget_id] = self
-      @opts = opts
+      raise "BOOO #{opts.inspect}" unless opts.kind_of?(Hash)
+      super opts
+      
       @base_id = "g#{object_id.abs}"
       @base_el = "\##{@base_id}"
       
       @js_var_name = "oml_#{object_id.abs}"
       @js_func_name = 'OML.log_table'
-      
     end
     
     # A dynamic grph may open a web socket back to this service. Find the 

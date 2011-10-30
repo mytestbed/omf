@@ -4,13 +4,12 @@ div.oml-line-chart {
 }
 
 .oml-line-chart path {
-  stroke-width: 2;
   fill: none;
 }
 
-.oml-line-chart line {
+/*.oml-line-chart line {
   stroke: black;
-}
+}*/
 
 .oml-line-chart .grids {
   stroke: #ccc;

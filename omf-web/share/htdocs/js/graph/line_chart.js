@@ -129,6 +129,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
       var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([ca.y, ca.y + ca.h]);
   
   
+      var stroke_width = o.stroke_width ? o.stroke_width : 2;
       var line = d3.svg.line()
         .x(function(t) { return x(t[x_index]) })
         .y(function(t) { return -1 * y(t[y_index]); })
@@ -140,7 +141,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
                     .attr("d", function(d) { return line(d); });
       lines.enter()
         .append("svg:path")
-          .attr("stroke-width", 2)
+          .attr("stroke-width", stroke_width)
           .attr("d", function(d) {
               var l = line(d);
               return l;

@@ -13,9 +13,30 @@ module OMF::Web::Theme
       if (typeof(OML) == "undefined") { OML = {}; }
     }
     
-    def initialize(opts = {})
+    def initialize(opts)
       super opts
     end
+    
+    def render_flash
+      return unless @flash
+      if @flash[:notice] 
+        div :class => 'flash_notice flash' do
+          text @flash[:notice]
+        end
+      end
+      if @flash[:alert]
+        div :class => 'flash_alert flash' do
+          a = @flash[:alert]
+          if a.kind_of? Array
+            ul do
+              a.each do |t| li t end
+            end
+          else
+            text a
+          end
+        end
+      end
+    end # render_flesh
     
   
     def to_html(opts = {})

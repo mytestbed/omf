@@ -118,7 +118,8 @@ module OMF::Web::Rack
     def find_card_instance(tab, req)
       sid = req.params['sid']
       tab_id = tab[:id]
-      inst = OMF::Web::SessionStore[tab_id] ||= tab[:class].new(tab_id, (@tab_opts[tab_id] || {}))
+      topts = (OMF::Web::Tab.description_for(tab_id) || {})[:opts]
+      inst = OMF::Web::SessionStore[tab_id] ||= tab[:class].new(tab_id, topts || {})
     end
     
     def render_unknown_card(comp_name, req)

@@ -1,5 +1,5 @@
 
-require 'erector'
+require 'omf-web/widget/abstract_widget'
 require 'coderay'
 #require 'ftools'
 
@@ -7,14 +7,14 @@ module OMF::Web::Widget::Code
   
   # Maintains the context for a particular code rendering within a specific session.
   #
-  class CodeWidget < Erector::Widget
+  class CodeWidget < OMF::Web::Widget::AbstractWidget
+    
     depends_on :css, "/resource/css/coderay.css"
     
     attr_reader :name, :opts
     
     def initialize(description)
-      @widget_id = "w#{object_id}"
-      OMF::Web::SessionStore[@widget_id] = self
+      super description.opts
 
       @description = description 
       @name = description.name

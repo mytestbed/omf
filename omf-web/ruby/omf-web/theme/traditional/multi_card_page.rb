@@ -28,6 +28,8 @@ module OMF::Web::Theme
       return unless @widget
       widget @widget        
     end
-  end # SubMenuCard
+    
+    
+  end # MultiCardPage
   
 end

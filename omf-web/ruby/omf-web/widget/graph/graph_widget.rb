@@ -1,4 +1,4 @@
-require 'erector'
+require 'omf-web/widget/abstract_widget'
 
 module OMF::Web::Widget::Graph
   
@@ -6,14 +6,13 @@ module OMF::Web::Widget::Graph
   # It is primarily called upon maintaining communication with the browser and will
   # create the necessary html and javascript code for that.
   #
-  class GraphWidget < Erector::Widget
+  class GraphWidget < OMF::Web::Widget::AbstractWidget
     depends_on :css, "/resource/css/graph.css"
     
     attr_reader :name, :opts
     
     def initialize(gd)
-      @widget_id = "w#{object_id}"
-      OMF::Web::SessionStore[@widget_id] = self
+      super gd.opts
 
       @gd = gd
       @opts = gd.opts

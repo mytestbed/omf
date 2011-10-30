@@ -14,8 +14,8 @@ module OMF::Web::Theme
     end
     
     def render_card_nav
-      div :class => 'card_nav' do
-        ul do
+      div :id => 'card_nav' do
+        ol do
           @items_class.each_with_index do |g, i| 
             klass = (i == @card_id) ? 'selected' : nil
             li :class => klass do
@@ -25,11 +25,15 @@ module OMF::Web::Theme
         end
       end            
     end # render_card_nav
-    
+
     def render_card_body
+      render_card_nav
       return unless @widget
-      widget @widget        
+      div :id => :card_content do 
+        render_widget @widget
+      end        
     end
+    
   end # SubMenuCard
   
 end

@@ -1,62 +1,134 @@
 require 'omf-web/theme/common/abstract_page'
 
-puts "=============== BRIGHT PAGE"
-
 module OMF::Web::Theme
   class Page < OMF::Web::Theme::AbstractPage
     
-    depends_on :css, "/resource/css/theme/bright.css"
-    depends_on :css, '/resource/css/yui-grids-min.css'
-    
-    depends_on :js, '/resource/js/jquery.js'
-    depends_on :js, '/resource/js/stacktrace.js'
-    
-  #  depends_on :css, "/css/salsa_picante.css", :media => "print"
-  
-  #        self << '<!--[if IE]>'
-  #          stylesheet_link_tag 'ie'
-  #        self << '<![endif]-->'
-  
-    depends_on :js, "/resource/js/require3.js"
-    depends_on :script, %{
-      L.baseURL = "/resource";
-      if (typeof(OML) == "undefined") { OML = {}; }
-    }
-    
-    def initialize(opts = {})
+    depends_on :css, '/resource/css/theme/bright/reset-fonts-grids.css'
+    depends_on :css, "/resource/css/theme/bright/bright.css"
+   
+    def initialize(opts)
       super opts
     end
-    
+ 
     def content
-      div :id => 'header' do
-        div :class => 'top_menu' do
-          render_top_menu
+      div :id => 'doc3' do
+        div :id => 'hd' do
+          render_top_line
+          h1 @page_title || 'Missing :page_title'
         end
-  
-        h1 @page_title || 'Missing :page_title'
-        render_tabs
-      end
-      div :class => 'yui3-g', :id => 'page' do
-        div :class => 'yui3-u', :id => 'main' do
-          render_flash
-          render_card
-          div :class => 'card_bottom' do # just for cosmetics
-            text nbsp
-          end
-          div :id => :footer do
-            render_footer
-          end
+        div :id => 'bd' do
+          render_body
         end
-  
-        div :class => 'yui3-u', :id => 'sidebar' do
-          render_sidebar
+        div :id => 'ft' do
+          render_footer
         end
       end
-    end  # content
-    
-    def render_top_menu
-      a 'Log in', :href => '/login'
     end
+    
+    def render_top_line
+      div :id => :top_line do
+        render_tab_menu
+        render_tools_menu
+      end
+    end
+        
+    def render_tabs
+      div :id => 'tabs' do
+        ul :id => 'mainTabs' do
+          @tabs.each do |h|
+            li do
+              opts = {:href => "/#{h[:id]}/show?sid=#{Thread.current["sessionID"]}"}
+              opts[:class] = 'current' if h[:id] == @active_id
+              a h[:name], opts
+            end
+          end
+        end
+      end
+    end
+            
+    def render_tab_menu
+      ol :id => :tab_menu do
+        @tabs.each do |h|
+          lopts = h[:id] == @active_id ? {:class => :current} : {}
+          li lopts do 
+            a :href => "/#{h[:id]}/show?sid=#{Thread.current["sessionID"]}" do
+              span h[:name], :class => :tab_text
+            end
+          end
+        end
+      end
+    end
+            
+    def render_tab_menu2
+      ol :id => :tab_menu do
+        [:first, :second].each do |n|
+          opts = n == :second ? {:class => :selected} : {}
+          li opts do 
+            a :href => n do
+              span n, :class => :tab_text
+            end
+          end
+        end
+      end
+    end
+
+    def render_tools_menu
+      div :id => :tools_menu do
+        a 'Log in', :href => '/login'
+      end
+    end
+    
+    def render_body
+      render_flash
+      render_card_body
+    end
+    
+    
+    def render_widget(widget)
+      div :class => :widget_container do
+        render_widget_header(widget)
+        render_widget_body(widget)
+        render_widget_footer(widget)        
+      end
+    end
+
+    def render_widget_header(widget)
+      div :class => :widget_header do
+        span widget.name, :class => :widget_title 
+      end
+    end
+
+    def render_widget_body(widget_inst)
+      id = "b#{widget_inst.widget_id}"
+      div :class => :widget_body, :id => id do
+        widget widget_inst
+      end
+      javascript %{
+        var aa = $("\##{id}");
+        $("\##{id}").resize(function() {
+          $.doTimeout('resize', 250, function() {
+            var i;
+          });
+        });
+       }
+    end
+
+    def render_widget_footer(widget)
+      # NOTHING
+    end
+
+    
+    def render_footer
+      span :style => 'float:right;margin-right:10pt' do
+        text '20111030'
+      end
+      ##                   image_tag 'logo-bottom.gif', {:align => 'right', :style => 'margin-right:10pt
+      text 'Brought to you by the TEMPO Team'
+    end
+
+    ############ MAKE SURE WE NEED THE REST    
+    
+    
     
     def render_tabs
       div :id => 'tabs' do
@@ -145,51 +217,8 @@ module OMF::Web::Theme
       end    
     end
     
-    def render_flash
-      return unless @flash
-      if @flash[:notice] 
-        div :class => 'flash_notice flash' do
-          text @flash[:notice]
-        end
-      end
-      if @flash[:alert]
-        div :class => 'flash_alert flash' do
-          a = @flash[:alert]
-          if a.kind_of? Array
-            ul do
-              a.each do |t| li t end
-            end
-          else
-            text a
-          end
-        end
-      end
-    end # render_flesh
-    
-    def render_footer
-      span :style => 'float:right;margin-right:10pt' do
-        text '200809280'
-      end
-      ##                   image_tag 'logo-bottom.gif', {:align => 'right', :style => 'margin-right:10pt
-      text 'Brought to you by the TEMPO Team'
-    end
+
   
-    def to_html(opts = {})
-      b = super
-      e = render_externals
-     
-      r = Erector.inline do
-        instruct
-        html do
-          head do
-            text! e
-          end
-          body do
-            text! b
-          end
-        end
-      end
-      r.to_html(opts)  
-    end
+
   end # class Page
 end # OMF::Web::Theme

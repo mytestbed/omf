@@ -9,11 +9,6 @@ module OMF::Web::Tab::Graph
       super widget, :graph, OMF::Web::Widget::Graph, opts
     end
     
-    def render_card_body
-      return unless @widget
-      widget @widget        
-    end
-    
   end # GraphCard
   
 end
