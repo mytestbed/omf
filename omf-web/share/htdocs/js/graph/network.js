@@ -37,6 +37,13 @@ L.provide('OML.network', ["d3/d3"], function () {
                                 .range(["green", "red"])
       };
       this.graph_layer = g.append("svg:g");
+      
+      var self = this;
+      OHUB.bind("graph.highlighted", function(evt) {
+        if (evt.source == self) return;
+        self.on_highlighted(evt);
+      });
+      
       var data = this.data = o.data;
       if (data) this.redraw({});
     };
@@ -117,12 +124,12 @@ L.provide('OML.network', ["d3/d3"], function () {
           .attr("y1", function(d) { return y(data.nodes[d.from]); })
           .attr("x2", function(d) { return x(data.nodes[d.to]); })
           .attr("y2", function(d) { return y(data.nodes[d.to]); })
-          .on("mouseover", function() {
-             var name = this.__data__.name;
-             self.on_link_selected({'name': name});
+          .on("mouseover", function(data) {
+            var name = data.name;
+            self.on_highlighted({'elements': [{'name': name, 'type': 'link'}]});
           })
           .on("mouseout", function() {
-            self.on_link_deselected({});
+            self.on_dehighlighted({});
           })         
           
           // .on("mouseover", function() {
@@ -157,13 +164,13 @@ L.provide('OML.network', ["d3/d3"], function () {
          .style("stroke-width", 1)
          .attr("fixed", true)
          //.call(force.drag)
-         .on("mouseover", function() {
-            var name = this.__data__.name;
-            self.on_node_selected({'name': name});
-         })
-         .on("mouseout", function() {
-           self.on_node_deselected({});
-         })         
+          .on("mouseover", function(data) {
+            var name = data.name;
+            self.on_highlighted({'elements': [{'name': name, 'type': 'node'}]});
+          })
+          .on("mouseout", function() {
+            self.on_dehighlighted({});
+          })         
         .transition()
           .attr("r", nradius)
           .delay(0)
@@ -184,12 +191,35 @@ L.provide('OML.network', ["d3/d3"], function () {
       return vis;
     }
   
-    this.on_node_selected = function(evt) {
-      var name = evt.name;
+    this.on_highlighted = function(evt) {
+      var els = evt.elements;
+      var links = _.filter(els, function(el) { return  el.type == 'link'});
+      if (links.length > 0) { this._on_links_highlighted(links); }
+      var nodes = _.filter(els, function(el) { return  el.type == 'node'});
+      if (nodes.length > 0) { this._on_nodes_highlighted(nodes); }
+
+      if (evt.source == null) {
+        evt.source = this;
+        OHUB.trigger("graph.highlighted", evt);
+      }
+    }
+
+    this.on_dehighlighted = function(evt) {
+      this._on_links_dehighlighted();
+      this._on_nodes_dehighlighted();
+
+      if (evt.source == null) {
+        evt.source = this;
+        OHUB.trigger("graph.dehighlighted", evt);
+      }
+    }
+  
+    this._on_nodes_highlighted = function(nodes) {
+      var names = _.map(nodes, function(el) { return el.name});
       var vis = this.base_layer;
       vis.selectAll("circle.node")
        .filter(function(d) {
-         return d.name != name;
+         return ! _.include(names, d.name);
        })
        .transition()
          .style("stroke", "lightgray")
@@ -198,7 +228,8 @@ L.provide('OML.network', ["d3/d3"], function () {
          .duration(300);
     }
     
-    this.on_node_deselected = function(evt) {
+    
+    this._on_nodes_dehighlighted = function() {
       var vis = this.base_layer;
       var nfill = this._func.nfill;
       vis.selectAll("circle.node")
@@ -209,12 +240,12 @@ L.provide('OML.network', ["d3/d3"], function () {
          .duration(300);   
     }
 
-    this.on_link_selected = function(evt) {
-      var name = evt.name;
+    this._on_links_highlighted = function(links) {
+      var names = _.map(links, function(el) { return el.name});
       var vis = this.base_layer;
       vis.selectAll("line.link")
        .filter(function(d) {
-         return d.name != name;
+         return ! _.include(names, d.name);
        })
        .transition()
          .style("opacity", 0.1)
@@ -222,7 +253,7 @@ L.provide('OML.network', ["d3/d3"], function () {
          .duration(300);
     }
 
-    this.on_link_deselected = function(evt) {
+    this._on_links_dehighlighted = function() {
       var vis = this.base_layer;
       vis.selectAll("line.link")
        .transition()

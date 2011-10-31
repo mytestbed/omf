@@ -5,12 +5,17 @@ module OMF::Web::Theme
     
     
     depends_on :js, '/resource/js/jquery.js'
-    depends_on :js, '/resource/js/stacktrace.js'
+    #depends_on :js, '/resource/js/stacktrace.js'
+    depends_on :js, '/resource/js/underscore.js'
+    depends_on :js, '/resource/js/backbone.js'    
     depends_on :js, "/resource/js/require3.js"
   
     depends_on :script, %{
       L.baseURL = "/resource";
-      if (typeof(OML) == "undefined") { OML = {}; }
+      OML = {};
+        
+      var OHUB = {};
+      _.extend(OHUB, Backbone.Events);
     }
     
     def initialize(opts)

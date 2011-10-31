@@ -45,10 +45,11 @@ def set_node(nid, opts)
 end
 
 def click_mon_link_stats(stream)
-  opts = {:name => 'Link State', :schema => [:ts, :link, :sett, :lett, :bitrate] }
+  opts = {:name => 'Link State', :schema => [:ts, :link, :sett, :lett, :bitrate], :max_size => 200}
   select = [:oml_ts_server, :id, :neighbor_id, :sett_usec, :lett_usec, :bitrate_mbps]
   t = stream.capture_in_table(select, opts) do |ts, from, to, sett, lett, bitrate|
     set_link(from, to, :sett => sett, :lett => lett, :bitrate => bitrate)
+    sleep 0.1
     [ts, "l#{from}-#{to}", sett, lett, bitrate]
   end
   gopts = {
@@ -88,7 +89,7 @@ def click_mon_routing_stats(stream)
   end
   #puts "TSCHEMA>>>> #{tschema.inspect}"
   node_id = select.find_index(:id)
-  opts = {:name => 'Node State', :schema => tschema}
+  opts = {:name => 'Node State', :schema => tschema, :max_size => 200}
   table = stream.capture_in_table(select, opts) do |row|
     nopts = {}
     tschema.each_with_index do |cd, i|
@@ -109,7 +110,7 @@ def click_mon_routing_stats(stream)
     :yaxis => {:ticks => 6},
     :stroke_width => 4    
   }
-  init_graph(table.name, table, 'line_chart', gopts)
+  init_graph(table.name, table, 'line_chart_fc', gopts)
   $rwidgets << init_graph(table.name, table, 'line_chart', gopts.merge(
     :height => 200, :width => 300,
     :xaxis => {:ticks => 3},

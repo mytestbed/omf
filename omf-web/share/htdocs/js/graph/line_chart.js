@@ -59,6 +59,17 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
         .attr("y2", -1 * (ca.y + ca.h));
   
       this.process_schema();
+      
+      var self = this;
+      OHUB.bind("graph.highlighted", function(evt) {
+        if (evt.source == self) return;
+        self.on_highlighted(evt);
+      });
+      OHUB.bind("graph.dehighlighted", function(evt) {
+        if (evt.source == self) return;
+        self.on_dehighlighted(evt);
+      });
+      
       var data = this.data = o.data;
       if (data) this.redraw();
       
@@ -151,15 +162,15 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
           .attr("stroke", function(d, i) { 
               return self.color(i); 
             })
-          .on("mouseover", function(data, i) {
+          .on("mouseover", function(data) {
             var group_by = self.mapping.group_by;
             if (group_by) {
               var name = data[0][group_by];
-              self.on_selected({'name': name});
+              self.on_highlighted({'elements': [{'name': name}]});
             }
           })
           .on("mouseout", function() {
-            self.on_deselected({});
+            self.on_dehighlighted({});
           })         
           ;
       lines.exit().remove();
@@ -169,30 +180,38 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
       this.update_selection({});
     };
     
-    this.on_selected = function(evt) {
-      var name = evt.name;
+    this.on_highlighted = function(evt) {
+      var els = evt.elements;
+      var names = _.map(els, function(el) { return el.name});
       var vis = this.graph_layer;
       var group_by = this.mapping.group_by;
       if (group_by) {
         vis.selectAll(".chart")
          .filter(function(d) {
            var dname = d[0][group_by];
-           return dname != name;
+           return ! _.include(names, dname);
          })
          .transition()
            .style("opacity", 0.1)
            .delay(0)
            .duration(300);
       }
+      var x = evt.source;
+      if (evt.source == null) {
+        evt.source = this;
+        OHUB.trigger("graph.highlighted", evt);
+      }
     }
 
-    this.on_deselected = function(evt) {
+    this.on_dehighlighted = function(evt) {
       var vis = this.graph_layer;
       vis.selectAll(".chart")
        .transition()
          .style("opacity", 1.0)         
          .delay(0)
          .duration(300)
+      evt.source = this;
+      OHUB.trigger("graph.dehighlighted", evt);
     }
     
     
