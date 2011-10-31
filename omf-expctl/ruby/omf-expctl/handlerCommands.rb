@@ -138,9 +138,6 @@ module OMF::EC
     # [Return] the newly created Topology object
     #
     def defTopology(refName, nodeArray = nil, &block)
-      if (nodeArray != nil && !nodeArray.kind_of?(Array))
-        raise OEDLIllegalArgumentException.new(:defTopology, nodeArray) 
-      end
       topo = Topology.create(refName, nodeArray)
       if (! block.nil?)
         block.call(topo)
