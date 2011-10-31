@@ -48,13 +48,13 @@ OMF::Web::Tab.register_tab(
 )
 
 
-files = ['visualization.rb']
+files = ['gec12-53.rb', 'visualization.rb', 'gec12_demo_server.rb']
 
 files.each do |fn|
   fp = "#{File.dirname(__FILE__)}/#{fn}"
   OMF::Web::Widget::Code.addCode(fn, :file => fp)
-  load(fp) 
 end
+load "#{File.dirname(__FILE__)}/visualization.rb"
 
 
 # Configure the web server

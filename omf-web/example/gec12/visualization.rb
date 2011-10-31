@@ -29,8 +29,8 @@ def set_link(from, to, opts)
   lname = "l#{from}-#{to}"
   fn = "n#{from}"
   tn = "n#{to}"
-  fromNode = $nw.node(from, :x => $node_loc[fn][0], :y => $node_loc[fn][1])
-  toNode = $nw.node(to, :x => $node_loc[tn][0], :y => $node_loc[tn][1])
+  fromNode = $nw.node(fn, :x => $node_loc[fn][0], :y => $node_loc[fn][1])
+  toNode = $nw.node(tn, :x => $node_loc[tn][0], :y => $node_loc[tn][1])
   
   link = $nw.link(lname, :from => fromNode, :to => toNode)
   link.update(opts)
@@ -40,7 +40,8 @@ end
 def set_node(nid, opts)
   name = "n#{nid}"
   node = $nw.node(name, {})
-  node.update(opts)
+  node.update(opts.merge(:x => $node_loc[name][0], :y => $node_loc[name][1]))
+  #puts "set_node: #{node.inspect}"
   node
 end
 
@@ -49,7 +50,7 @@ def click_mon_link_stats(stream)
   select = [:oml_ts_server, :id, :neighbor_id, :sett_usec, :lett_usec, :bitrate_mbps]
   t = stream.capture_in_table(select, opts) do |ts, from, to, sett, lett, bitrate|
     set_link(from, to, :sett => sett, :lett => lett, :bitrate => bitrate)
-    sleep 0.1
+    #sleep 0.1
     [ts, "l#{from}-#{to}", sett, lett, bitrate]
   end
   gopts = {
