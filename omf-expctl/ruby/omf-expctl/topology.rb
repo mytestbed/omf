@@ -432,7 +432,7 @@ class Topology < MObject
           return 
         end
       end
-      @nodes.add(OMF::EC::Node.at!(name))
+      @nodes.push(OMF::EC::Node.at!(name))
     rescue ResourceException => re
       if @strict
         raise "Topology - Failed to add resource '#{name}' to topology "+
@@ -678,14 +678,14 @@ attr_accessor :strict
     @edges = nil
     @mapping = Hash.new
     @uri = uri
-    @nodes = Set.new
+    @nodes = []
     add(nodeSelector) if nodeSelector != nil
   end
 
   #
   # Add the nodes described in 'selector' in this Topology.
   #
-  # - selector = descprition of nodes to add, see Constructor for more info 
+  # - selector = description of nodes to add, see Constructor for more info 
   #
   def add(selector)
     if (selector.kind_of?(String))
