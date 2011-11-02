@@ -8,7 +8,7 @@ require 'omf-web/widget/code'
 
 # Define data sources
 #
-
+$db_name = ARGV[1] || "/var/lib/oml2/gec12_demo_pgeni.sq3"
 
 #
 # Configure graph displays

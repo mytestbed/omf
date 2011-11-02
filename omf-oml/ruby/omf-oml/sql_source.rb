@@ -4,6 +4,7 @@ require 'sqlite3'
 require 'omf-common/mobject'
 require 'omf-oml/endpoint'
 require 'omf-oml/tuple'
+require 'omf-oml/sql_row'
 
 module OMF::OML
         
@@ -14,6 +15,17 @@ module OMF::OML
   # start producing the streams.
   #
   class OmlSqlSource < MObject
+    
+    # +opts+ - passed on to the +report_new_table+ method.
+    #
+    def initialize(db_file, opts = {})
+      raise "Can't find database '#{db_file}'" unless File.readable?(db_file)
+      @db = SQLite3::Database.new(db_file)
+      @running = false
+      @on_new_stream_procs = {}
+      @tables = {}
+      @table_opts = opts
+    end
     
     # Register a proc to be called when a new stream was
     # discovered on this endpoint.
@@ -26,30 +38,39 @@ module OMF::OML
       end
     end
     
-    def initialize(db_file)
-      raise "Can't find database '#{db_file}'" unless File.readable?(db_file)
-      @db = SQLite3::Database.new(db_file)
-      @running = false
-      @on_new_stream_procs = {}
-      @tables = {}
-    end
     
-    def report_new_stream(stream)
-      @on_new_stream_procs.each_value do |proc|
-        proc.call(stream)
-      end
-    end
+    # def report_new_stream(stream)
+      # @on_new_stream_procs.each_value do |proc|
+        # proc.call(stream)
+      # end
+    # end
     
+    # Start checking the database for tables and create a new stream 
+    # by calling the internal +report_new_table+ method. 
+    #
+    # NOTE: The database is immediately and only once checked for tables.
+    # Any tables created later is not detected right now. Maybe we should 
+    # change that in the future.
+    #
     def run()
       # first find tables
       @db.execute( "SELECT * FROM sqlite_master WHERE type='table';") do |r|
         table = r[1]
-        report_new_table(table) unless table.start_with?('_')
+        report_new_table(table, @table_opts) unless table.start_with?('_')
       end
     end
     
-    def report_new_table(table_name)
-      t = @tables[table_name] = OmlSqlRow.new(table_name, @db, self)
+    protected
+    
+    # THis method is being called for every table detected in the database.
+    # It creates a new +OmlSqlRow+ object with +opts+ as the only argument.
+    # The tables is then streamed as a tuple stream.
+    # After the stream has been created, each block registered with 
+    # +on_new_stream+ is then called with the new stream as its single
+    # argument.
+    #
+    def report_new_table(table_name, opts = {})
+      t = @tables[table_name] = OmlSqlRow.new(table_name, @db, self, opts)
       @on_new_stream_procs.each_value do |proc|
         proc.call(t)
       end
@@ -57,183 +78,6 @@ module OMF::OML
     
   end
   
-  # Read the content of a table and feed it out.
-  #
-  class OmlSqlRow < OmlTuple
-    
-    # Return a specific element of the vector identified either
-    # by it's name, or its col index
-    #
-    def [](name_or_index)
-      @vprocs[name_or_index].call(@raw)
-    end
-    
-    # Return the elements of the vector as an array
-    def to_a(include_oml_internals = false)
-      include_oml_internals ? @row.dup : @row[4 .. -1]
-    end
-    
-    # Return an array including the values for the names elements
-    # given as parameters.
-    #
-    def select(*col_names)
-      r = @row
-      col_names.collect do |n|
-        p = @vprocs[n]
-        p ? p.call(r) : nil
-      end
-    end
-        
-    def ts
-      self[:oml_ts_server]
-    end
-    
-    def seq_no
-      self[:oml_seq]
-    end    
-    
-    # Register a proc to be called when a new tuple arrived
-    # on this stream.
-    #
-    def on_new_tuple(key = :_, &proc)
-      if proc
-        @on_new_vector_proc[key] = proc
-      else
-        @on_new_vector_proc.delete key
-      end
-      run() unless @on_new_vector_proc.empty?
-    end
-
-    # Create and return an +OmlTable+ which captures this tuple stream
-    #
-    # The argument to this method are either a list of columns to 
-    # to capture in the table, or an array of column names and
-    # an option hash  or just 
-    # the option hash to be provided to the +OmlTable+ constructor.
-    #
-    # If a block is provided, any arriving tuple is executed by the block
-    # which is expected to return an array which is added to the table
-    # or nil in which case nothing is added. If a selector array is given the 
-    # block is called with an array of values in the order of the columns
-    # listed in the selector. Otherwise, the block is called directly 
-    # with the tuple.
-    #
-    # opts:
-    #   :schema - use this schema instead for the table
-    #   :name   - name to use for table
-    #   ....    - remaining options to be passed to table constructur
-    #
-    def capture_in_table(*args, &block)
-      if args.length == 1
-        if args[0].kind_of?(Array)
-          select = args[0]
-        elsif args[0].kind_of?(Hash)
-          opts = args[0]
-        end
-      elsif args.length == 2 && args[1].kind_of?(Hash)
-        select = args[0]
-        opts = args[1]
-      else
-        opts = {}
-        select = args
-      end
-      
-      if (tschema = opts.delete(:schema))
-        unless tschema[0].kind_of? Hash
-          tschema = tschema.collect do |cname| {:name => cname} end
-        end 
-      else
-        tschema = select.collect do |cname| {:name => cname} end
-      end
-      tname = opts.delete(:name) || stream_name
-      t = OMF::OML::OmlTable.new(tname, tschema, opts)
-      if block
-        self.on_new_tuple() do |v|
-          #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
-          if select
-            row = block.call(v.select(*select))
-          else
-            row = block.call(v)
-          end             
-          if row
-            raise "Expected kind of Array, but got '#{row.inspect}'" unless row.kind_of?(Array)
-            t.add_row(row)
-          end  
-        end
-      else
-        self.on_new_tuple() do |v|
-          #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
-          t.add_row(v.select(*select))   
-        end
-      end
-      t
-    end
-
-    def initialize(table_name, db, source)
-      @sname = table_name
-      @db = db
-      @source = source
-      @stmt = db.prepare("select * from #{table_name};")
-      @on_new_vector_proc = {}
-
-      schema = find_schema
-      super table_name, schema 
-    end
-
-    protected
-        
-    def find_schema()
-      cnames = @stmt.columns
-      ctypes = @stmt.types
-      schema = []
-      cnames.size.times do |i|
-        name = cnames[i].to_sym
-        schema << {:name => name, :type => ctypes[i]}
-      end
-      schema
-    end
-    
-    # override
-    def process_schema(schema)
-      i = 0
-      @vprocs = {}
-      schema.each_column do |col|
-        name = col[:name]
-        j = i + 0
-        l = @vprocs[name] = lambda do |r| r[j] end
-        @vprocs[i - 4] = l if i > 4
-        i += 1
-      end
-    end
-    
-    def run(in_thread = true)
-      return if @running
-      if in_thread
-        Thread.new do
-          begin
-            _run
-          rescue Exception => ex
-            error "Exception in OmlSqlRow: #{ex}"
-            debug "Exception in OmlSqlRow: #{ex.backtrace.join("\n\t")}"
-          end
-        end
-      else
-        _run
-      end
-    end
-    
-    private
-    
-    def _run
-      @running = true
-      @stmt.execute.each do |r|
-        @row = r
-        @on_new_vector_proc.each_value do |proc|
-          proc.call(self)
-        end
-      end
-    end
-  end # OmlSqlRow
 
 
 end

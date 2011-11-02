@@ -21,16 +21,31 @@ $lwidgets << init_graph( 'Network', $nw, 'network', {
 })
 
 $node_loc = {}
-10.times do |i|
-  $node_loc["n#{i}"] = [(i % 5) * 0.2 + 0.1, (i / 3) * 0.3 + 0.1 + 0.1 * rand]
+$node_loc['n1'] = [0.3, 0.4]
+$node_loc['n2'] = [0.3, 0.6]
+$node_loc['n3'] = [0.4, 0.25]
+$node_loc['n4'] = [0.5, 0.8]
+$node_loc['n5'] = [0.6, 0.25]
+$node_loc['n6'] = [0.7, 0.4]
+$node_loc['n7'] = [0.7, 0.6]
+$node_loc['n101'] = [0.15, 0.5]
+$node_loc['n201'] = [0.85, 0.5]
+
+#10.times do |i|
+#  $node_loc["n#{i}"] = [(i % 5) * 0.2 + 0.1, (i / 3) * 0.3 + 0.1 + 0.1 * rand]
+#end
+
+def node_def_opts(n)
+  loc = $node_loc[n] || [0.9, 0.9]
+  {:x => loc[0], :y => loc[1]}
 end
 
 def set_link(from, to, opts)
   lname = "l#{from}-#{to}"
   fn = "n#{from}"
   tn = "n#{to}"
-  fromNode = $nw.node(fn, :x => $node_loc[fn][0], :y => $node_loc[fn][1])
-  toNode = $nw.node(tn, :x => $node_loc[tn][0], :y => $node_loc[tn][1])
+  fromNode = $nw.node(fn, node_def_opts(fn))
+  toNode = $nw.node(tn, node_def_opts(tn))
   
   link = $nw.link(lname, :from => fromNode, :to => toNode)
   link.update(opts)
@@ -40,7 +55,7 @@ end
 def set_node(nid, opts)
   name = "n#{nid}"
   node = $nw.node(name, {})
-  node.update(opts.merge(:x => $node_loc[name][0], :y => $node_loc[name][1]))
+  node.update(opts.merge(node_def_opts(name)))
   #puts "set_node: #{node.inspect}"
   node
 end
@@ -49,6 +64,7 @@ def click_mon_link_stats(stream)
   opts = {:name => 'Link State', :schema => [:ts, :link, :sett, :lett, :bitrate], :max_size => 200}
   select = [:oml_ts_server, :id, :neighbor_id, :sett_usec, :lett_usec, :bitrate_mbps]
   t = stream.capture_in_table(select, opts) do |ts, from, to, sett, lett, bitrate|
+#puts "form: #{from}, to:#{to}"
     set_link(from, to, :sett => sett, :lett => lett, :bitrate => bitrate)
     #sleep 0.1
     [ts, "l#{from}-#{to}", sett, lett, bitrate]
@@ -120,7 +136,8 @@ def click_mon_routing_stats(stream)
   table  
 end
 
-ep = OmlSqlSource.new("#{File.dirname(__FILE__)}/gec12_demo.sq3")
+#ep = OmlSqlSource.new("#{File.dirname(__FILE__)}/gec12_demo.sq3")
+ep = OmlSqlSource.new($db_name, :offset => -500, :check_interval => 10.0)
 ep.on_new_stream() do |stream|
   case stream.stream_name
   when 'click_mon_link_stats'
