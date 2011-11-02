@@ -102,35 +102,79 @@ L.provide('OML.network', ["d3/d3"], function () {
       
           
       var vis = this.base_layer;
-      var link = vis.selectAll("line.link")
+      // var link = vis.selectAll("line.link")
+        // .data(d3.values(data.links))
+          // .style("stroke", lstroke)
+          // .style("stroke-width", lstroke_width)
+          // .attr("x1", function(d) { 
+            // var x1 = x(data.nodes[d.from]);
+            // return x(data.nodes[d.from]); 
+          // })
+          // .attr("y1", function(d) { return y(data.nodes[d.from]); })
+          // .attr("x2", function(d) { return x(data.nodes[d.to]); })
+          // .attr("y2", function(d) { return y(data.nodes[d.to]); })
+        // .enter().append("svg:line")
+          // .attr("class", "link")
+          // .style("stroke", lstroke)
+          // .style("stroke-width", lstroke_width)
+          // .attr("x1", function(d) { 
+            // var x1 = x(data.nodes[d.from]);
+            // return x(data.nodes[d.from]); 
+          // })
+          // .attr("y1", function(d) { return y(data.nodes[d.from]); })
+          // .attr("x2", function(d) { return x(data.nodes[d.to]); })
+          // .attr("y2", function(d) { return y(data.nodes[d.to]); })
+          // .on("mouseover", function(data) {
+            // var name = data.name;
+            // self.on_highlighted({'elements': [{'name': name, 'type': 'link'}]});
+          // })
+          // .on("mouseout", function() {
+            // self.on_dehighlighted({});
+          // }) 
+          
+      var line_f = function(d) {
+        var a = 0.2;
+        var b = 0.3;
+        var o = 30;
+                      
+        var x1 = x(data.nodes[d.from]); 
+        var y1 = y(data.nodes[d.from]);
+        var x3 = x(data.nodes[d.to]); 
+        var y3 = y(data.nodes[d.to]);
+
+        var dx = x3 - x1;
+        var dy = y3 - y1;
+        var l = Math.sqrt(dx * dx + dy * dy);
+
+        var mx = x1 + a * dx;
+        var my = y1 + a * dy;
+        var x2 = mx - (dy * o / l)
+        var y2 = my + (dx * o / l);              
+
+        var l = d3.svg.line().interpolate('basis');
+        return l([[x1, y1], [x2, y2], [x3, y3]]);
+      };
+
+      var link2 = vis.selectAll("path.link")
         .data(d3.values(data.links))
           .style("stroke", lstroke)
           .style("stroke-width", lstroke_width)
-          .attr("x1", function(d) { 
-            var x1 = x(data.nodes[d.from]);
-            return x(data.nodes[d.from]); 
-          })
-          .attr("y1", function(d) { return y(data.nodes[d.from]); })
-          .attr("x2", function(d) { return x(data.nodes[d.to]); })
-          .attr("y2", function(d) { return y(data.nodes[d.to]); })
-        .enter().append("svg:line")
+          .attr("d", line_f)
+        .enter().append("svg:path")
           .attr("class", "link")
           .style("stroke", lstroke)
           .style("stroke-width", lstroke_width)
-          .attr("x1", function(d) { 
-            var x1 = x(data.nodes[d.from]);
-            return x(data.nodes[d.from]); 
-          })
-          .attr("y1", function(d) { return y(data.nodes[d.from]); })
-          .attr("x2", function(d) { return x(data.nodes[d.to]); })
-          .attr("y2", function(d) { return y(data.nodes[d.to]); })
+          .attr("fill", "none")         
+          .attr("d", line_f)
           .on("mouseover", function(data) {
             var name = data.name;
             self.on_highlighted({'elements': [{'name': name, 'type': 'link'}]});
           })
           .on("mouseout", function() {
             self.on_dehighlighted({});
-          })         
+          }) 
+          ;
+
           
           // .on("mouseover", function() {
             // d3.select(this).transition()
@@ -243,7 +287,7 @@ L.provide('OML.network', ["d3/d3"], function () {
     this._on_links_highlighted = function(links) {
       var names = _.map(links, function(el) { return el.name});
       var vis = this.base_layer;
-      vis.selectAll("line.link")
+      vis.selectAll("path.link")
        .filter(function(d) {
          return ! _.include(names, d.name);
        })
@@ -255,7 +299,7 @@ L.provide('OML.network', ["d3/d3"], function () {
 
     this._on_links_dehighlighted = function() {
       var vis = this.base_layer;
-      vis.selectAll("line.link")
+      vis.selectAll("path.link")
        .transition()
          .style("opacity", 1.0)         
          .delay(0)
