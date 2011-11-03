@@ -96,23 +96,6 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # Trigger boot from PXE Image for the nodes in the NodeSet associated to 
-  # this Root Path
-  #
-  # - image = PXE image to boot from. If 'image' is non-nil, then the nodes 
-  #           in the NodeSet will be configured to boot from that PXE image 
-  #           name over the network. If 'image' is set to 'nil' then the nodes 
-  #           will boot from their local disks. 
-  # - imageName = optional, name of image to check for. This optional name 
-  #           allows a node to verify at the time the nodes check in (i.e. 
-  #           after boot and NA-EC contact), if it really booted into the right 
-  #           image. The image name is stored in '/.orbit_image'
-  #
-  def pxeImage(domain, pxeFlag)
-    @nodeSet.pxeImage(domain, pxeFlag)
-  end
-
-  #
   # Set the disk image to boot the nodes in the NodeSet associated to this Root
   # Path.
   #

@@ -13,7 +13,7 @@ pxe:
   cfgDir: /tftpboot/pxelinux.cfg
 
   # Maximum age of PXE symbolic link [sec]
-  linkLifetime: 900
+  linkLifetime: 300
   # linkLifetime: 5 # for testing only
 
   # inventory_url: URL to the Inventory GS, where we can get mapping [x,y] to IP@

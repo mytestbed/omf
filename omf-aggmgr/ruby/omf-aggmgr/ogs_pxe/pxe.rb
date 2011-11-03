@@ -168,7 +168,7 @@ class PxeService < LegacyGridService
         nodesHex.each {|hex|
           debug(self, "Checking node '#{hex}' (#{@@nodes[hex]})")
           if (@@nodes[hex] == 1)
-            debug("Clearning PXE for '#{hex}'")
+            debug("Clearing PXE for '#{hex}'")
             hexPath = "#{cfgDir}/#{hex}"
             File.unlink(hexPath)
             @@nodes.delete(hex)

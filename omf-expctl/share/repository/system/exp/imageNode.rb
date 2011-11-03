@@ -35,7 +35,7 @@ Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
 defProperty('nodes', 'system:topo:all', "Nodes to image")
 defProperty('image', 'baseline.ndz', "Image to load on nodes")
-defProperty('domain', nil, "Domain of the nodes to image")
+defProperty('domain', "#{OConfig.domain}", "Domain of the nodes to image")
 defProperty('outpath', "/tmp", "Path where to place the topology files resulting from this image")
 defProperty('outprefix', "#{Experiment.ID}", "Prefix to use for the topology files resulting from this image")
 # The following value of 1200sec for timeout is based on trial imaging experiments 
@@ -88,29 +88,38 @@ end
 
 @allNodes = []
 
+url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{prop.nodes.value}"
+NodeHandler.service_call(url, "Error setting PXE symlinks")
+
+def clearPXE
+  url = "#{OConfig[:ec_config][:pxe][:url]}/clearBootImageNS?domain=#{prop.domain.value}&ns=#{prop.nodes.value}"
+  NodeHandler.service_call(url, "Error removing PXE symlinks")
+end
+
 #
 # Define the group of node to image and set them into PXE boot 
 #
-defGroup('image', prop.nodes) {|n|
-   n.pxeImage("#{prop.domain.value}", setPXE=true)
-   n.image = "pxe-5.4"
-   n.eachNode { |m| @allNodes << m }
+defGroup('image', prop.nodes) {|ns|
+   ns.image = "pxe-5.4"
+   ns.eachNode { |n| @allNodes << n }
 }
 
 def outputTopologyFile(type, nset)
   begin
     filename = "#{prop.outpath.value}/#{prop.outprefix.value}-topo-#{type}.rb"
     toponame = "#{prop.outprefix.value}-topo-#{type}"
+    
+    # we need to put the array back into the original order
+    # since nodes were added in the order they signed in
+    sortedNodes = Array.new(@allNodes)
+    sortedNodes.delete_if {|n| !nset.include?(n) }
+    sortedNodes.map!{|n| n.to_s }
     File.open(filename, "w") do |f|
       f.puts("# Topology name: #{toponame}", "# ")
       f.puts(MESSAGES[type])
-      f.puts("defTopology('#{toponame}') do |t|")
-      index = 1
-      nset.each { |n| 
-        f.puts("  t.addNode('n#{index}','#{n.x}')")
-        index += 1
-      }
-      f.puts("end")
+      f.print("defTopology('#{toponame}', '")
+      f.print(sortedNodes.join(","))
+      f.puts "')"
     end
     return filename
   rescue Exception => err
@@ -203,7 +212,6 @@ everyNS('image', 10) { |ns|
         info " #{l} node#{"s" if l>1} successfully imaged - Topology saved in '#{f}'"
       end
       info " ----------------------------- "
-      ns.pxeImage("#{prop.domain.value}", setPXE=false)
       ns.stopImageServer(Experiment.property('image'), "#{prop.domain.value}")
       Experiment.done
       notDone = false
@@ -212,19 +220,24 @@ everyNS('image', 10) { |ns|
   notDone
 }
 
+onEvent(:INTERRUPT) {
+  clearPXE
+}
+
 #
 # When all the nodes in the above group are Up, then start loading the image on them
 #
 onEvent(:ALL_UP) {
+  clearPXE
   # Only execute imaging if node set is not empty!
   # (e.g. in rare occasions no node managed to come up and register to EC, when this
   # happens, we need to exit quietly from this 'onEvent(:ALL_UP)')
-  nodeCount = 0 
-  allGroups.eachNode { |n|
+  nodeCount = 0
+  group('image').eachNode { |n|
     nodeCount += 1
   }
   if (nodeCount != 0)
-    allGroups.loadImage(Experiment.property('image'), "#{prop.domain.value}")
+    group('image').loadImage(Experiment.property('image'), "#{prop.domain.value}")
   end
 }
 
@@ -269,3 +282,4 @@ OMF::Common::Web.mapProc('/progress') {|req, res|
   res.body = body.to_s
   res['Content-Type'] = "text/html"
 }
+

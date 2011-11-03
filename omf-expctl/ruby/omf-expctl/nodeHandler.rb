@@ -283,11 +283,11 @@ class NodeHandler < MObject
       puts "HTTP/GET #{url}"
     else
       begin
-      	uri = URI.parse(url)
-      	http = Net::HTTP.new(uri.host, uri.port)
-      	http.read_timeout = 120
-      	request = Net::HTTP::Get.new(uri.request_uri)
-      	response = http.request(request)
+        uri = URI.parse(url)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.read_timeout = 120
+        request = Net::HTTP::Get.new(uri.request_uri)
+        response = http.request(request)
         if (! response.kind_of? Net::HTTPSuccess)
           raise ServiceException.new(response, error_msg)
         end
@@ -872,7 +872,6 @@ class NodeHandler < MObject
 
     if NodeHandler.SHUTDOWN
       info "Shutdown flag is set - Turning Off the resources"
-      OMF::ExperimentController::CmdContext.instance.allGroups.pxeImage(OConfig.domain, false) # remove PXE links, if any
       OMF::ExperimentController::CmdContext.instance.allGroups.powerOff
     end
     @running = nil

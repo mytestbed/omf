@@ -36,23 +36,31 @@ Experiment.project = "Orbit::Admin"
 
 defProperty('node', 'omf.nicta.node1', "Node to save image of")
 defProperty('pxe', '1.1.6', "PXE version to use")
-defProperty('domain', '', "Domain of the node to save")
+defProperty('domain', "#{OConfig.domain}", "Domain of the node to save")
 defProperty('started', 'false', "internal flag")
+
+url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{prop.node.value}"
+NodeHandler.service_call(url, "Error setting PXE symlinks")
+
+def clearPXE
+  url = "#{OConfig[:ec_config][:pxe][:url]}/clearBootImageNS?domain=#{prop.domain.value}&ns=#{prop.node.value}"
+  NodeHandler.service_call(url, "Error removing PXE symlinks")
+end
 
 #
 # Define nodes used in experiment
 #
 defGroup('save', Experiment.property('node')) {|n|
   n.pxeImage("#{prop.domain.value}", setPXE=true)
-  n.image = "pxe-5.4.1"
+  n.image = "pxe-5.4"
 }
 
 everyNS('save', 10) { |ns|
-  notDone = true
+  Done = false
   ns.eachNode { |n|
     status = n.match('apps/*/status/')[0].to_s
     if status =~ /DONE/
-      notDone = false
+      Done = true
       if status =~ /DONE.ERR/
         info("- Saving disk image of '#{n}' finished with ERRORS!")
         info("  Check the log file (probably disk read error on the node)")
@@ -63,11 +71,8 @@ everyNS('save', 10) { |ns|
       info " "
     end
   }
-  if (notDone == false)
-    ns.pxeImage("#{prop.domain.value}", setPXE=false)
-    Experiment.done
-  end
-  notDone
+  Experiment.done if Done
+  Done
 }
 
 everyNS('save', 10) { |ns|
@@ -84,8 +89,13 @@ everyNS('save', 10) { |ns|
   }
 }
 
+onEvent(:INTERRUPT) {
+  clearPXE
+}
+
 onEvent(:ALL_UP) {
-  allGroups.eachNode { |n|
+  clearPXE
+  group('save').eachNode { |n|
     n.saveImage
   }
 }

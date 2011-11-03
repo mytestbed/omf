@@ -383,75 +383,6 @@ class NodeSet < MObject
   end
 
   #
-  # This method sets the boot image of the nodes in this nodeSet
-  # If the 'setPXE' flag is 'true' (default), then the nodes in this set
-  # will be configured to boot from their assigned PXE image over the network. 
-  # (the name of the assigned PXE image is hold in the Inventory, the PXE 
-  # service is responsible for retrieving this name and setting up the network 
-  # boot). If the 'setPXE' flag is 'false' then the node boots from the images 
-  # on their local disks.
-  #
-  # - domain = name of the domain (testbed) of this nodeSet
-  # - setPXE = true/false (default 'true') 
-  #
-  def pxeImage(domain = '', setPXE = true)
-    if (domain == '')
-      domain = "#{OConfig.domain}"
-    end   
-    if NodeHandler.JUST_PRINT
-      if setPXE
-        puts ">> PXE: Network boot PXE image for node set #{self} in #{domain}"
-      else
-        puts ">> PXE: Boot from local disk for node set #{self} in #{domain}"
-      end
-    else
-      if setPXE # set PXE
-        @pxePrefix = "#{OConfig[:ec_config][:pxe][:url]}"+
-                     "/setBootImageNS?domain=#{domain}&ns="
-      else # clear PXE
-        @pxePrefix = "#{OConfig[:ec_config][:pxe][:url]}"+
-                     "/clearBootImageNS?domain=#{domain}&ns="
-      end
-      setPxeEnvMulti()
-    end
-  end
-
-  #
-  # This method sets environment for booting a node through or throughout PXE.
-  # This should only be called from 'pxeImage', or any following methods
-  # which may reset a node and want to restore the original environment.
-  #
-  # - node = the node to consider
-  #
-  def setPxeEnv(node)
-    if (@pxePrefix != nil)
-      ns = "#{node}"
-      url = @pxePrefix + ns
-      debug "PXE: #{url}"
-      NodeHandler.service_call(url, "Error requesting PXE image")
-    end
-  end
-
-  #
-  # This method sets environment for booting multiple nodes through or
-  # throughout PXE. This should only be called from 'pxeImage', or any 
-  # following methods which may reset a node and want to restore the 
-  # original environment.
-  #
-  def setPxeEnvMulti()
-    if (@pxePrefix != nil)
-      nsArray = []
-      eachNode { |n|
-          nsArray << "#{n}"
-      }
-      nset = "#{nsArray.join(",")}"
-      url = @pxePrefix + nset
-      debug "PXE: #{url}"
-      NodeHandler.service_call(url, "Error requesting PXE image")
-    end
-  end
-
-  #
   # This method sets the name of the image to expect on all nodes in this set
   #
   # - imageName = name of the image
@@ -650,7 +581,7 @@ class NodeSet < MObject
       send_deferred
     # This is a reset update
     elsif (code == :before_resetting_node)
-      setPxeEnv(sender)
+      #setPxeEnv(sender)
     end
   end
 
