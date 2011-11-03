@@ -56,11 +56,11 @@ defGroup('save', Experiment.property('node')) {|n|
 }
 
 everyNS('save', 10) { |ns|
-  Done = false
+  notDone = true
   ns.eachNode { |n|
     status = n.match('apps/*/status/')[0].to_s
     if status =~ /DONE/
-      Done = true
+      notDone = false
       if status =~ /DONE.ERR/
         info("- Saving disk image of '#{n}' finished with ERRORS!")
         info("  Check the log file (probably disk read error on the node)")
@@ -71,8 +71,8 @@ everyNS('save', 10) { |ns|
       info " "
     end
   }
-  Experiment.done if Done
-  Done
+  Experiment.done if notDone == false
+  notDone
 }
 
 everyNS('save', 10) { |ns|
