@@ -339,6 +339,10 @@ class NodeSet < MObject
         valueToSend = value.value
       when "String" 
         valueToSend = value.to_s
+      when "Float" 
+        valueToSend = value.to_s
+      when "Fixnum" 
+        valueToSend = value.to_s
       when "Hash"
         valueToSend = "{"
         value.each {|k,v|
@@ -346,6 +350,7 @@ class NodeSet < MObject
         }
         valueToSend << "}"
       else
+        warn "Unknown value type '#{value.class}' when configuring path: '#{path}'"
         valueToSend = ""
     end
     # Notify each node to update their state trace with this Configure command

@@ -216,7 +216,10 @@ class Ath9kDevice < WirelessDevice
         return buildCmd
 
      when "tx_power"
-        return buildCmd
+        # Note: 'iw' support txpower setting only in latest version
+        # however current version shipped with natty (0.9.19) does not 
+        # suppot that so for now we use 'iwconfig'
+        return "iwconfig #{@deviceName} txpower #{value}"
 
     end
     super
