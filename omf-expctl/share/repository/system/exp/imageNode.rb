@@ -88,14 +88,6 @@ end
 
 @allNodes = []
 
-url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{prop.nodes.value}"
-NodeHandler.service_call(url, "Error setting PXE symlinks")
-
-def clearPXE
-  url = "#{OConfig[:ec_config][:pxe][:url]}/clearBootImageNS?domain=#{prop.domain.value}&ns=#{prop.nodes.value}"
-  NodeHandler.service_call(url, "Error removing PXE symlinks")
-end
-
 #
 # Define the group of node to image and set them into PXE boot 
 #
@@ -103,6 +95,14 @@ defGroup('image', prop.nodes) {|ns|
    ns.image = "pxe-5.4"
    ns.eachNode { |n| @allNodes << n }
 }
+
+url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{@allNodes.map{|n| n.to_s }.join(',')}"
+NodeHandler.service_call(url, "Error setting PXE symlinks")
+
+def clearPXE
+  url = "#{OConfig[:ec_config][:pxe][:url]}/clearBootImageNS?domain=#{prop.domain.value}&ns=#{@allNodes.map{|n| n.to_s }.join(',')}"
+  NodeHandler.service_call(url, "Error removing PXE symlinks")
+end
 
 def outputTopologyFile(type, nset)
   begin
