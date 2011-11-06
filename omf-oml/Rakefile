@@ -30,6 +30,6 @@ Rake::RDocTask.new(:doc) { |rdoc|
   rdoc.rdoc_files.include('ruby/**/*.rb')
 #  rdoc.rdoc_files.include('README', 'GPL', 'COPYING')
   rdoc.rdoc_dir = 'docs'
-  rdoc.title    = "OMF Commons"
+  rdoc.title    = "OMF OML"
   rdoc.options.concat ['--line-numbers', '--inline-source']
 }

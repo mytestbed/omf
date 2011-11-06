@@ -2,14 +2,8 @@ source :rubygems
 #source :rubyforge
 #source :gemcutter
 
-gem "xmpp4r", "0.5"
-gem "log4r", "1.1.8"
 gem "json", "1.4.6"
-gem "markaby", "0.7.1"
-gem "coderay", "0.9.4" 
-gem "arel", "1.0.1"
-gem "wss4r", "0.5"
-gem "PriorityQueue", "0.1.2"
-#gem "ruby-ldap"
-#gem "sqlite3-ruby"
-#gem "mysql"
+gem "sqlite3-ruby"
+
+gem "omf-common", "5.4"
+
