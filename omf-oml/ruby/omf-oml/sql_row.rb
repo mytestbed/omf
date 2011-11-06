@@ -23,7 +23,8 @@ module OMF::OML
       
       if @offset = opts[:offset]
         if @offset <= 0
-          cnt = db.execute("select count(*) from #{table_name};")[0][0]
+          cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
+          #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
           @offset = cnt + @offset # @offset was negative here
           debug("Initial offset #{@offset} in '#{table_name}' with #{cnt} rows")
           @offset = 0 if @offset < 0
@@ -201,9 +202,13 @@ module OMF::OML
     def _run
       @running = true
       while (@running)
-        unless _run_once
-          # All rows read, wait a bit for news to show up
-          sleep @check_interval
+        begin 
+          unless _run_once
+            # All rows read, wait a bit for news to show up
+            sleep @check_interval
+          end
+        rescue Exception => ex
+          warn ex
         end
       end 
     end

@@ -231,6 +231,8 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
         }
         a.push(t);
       });
+      // Sort by 'group_by' index to keep thesame order and with it same color assignment.
+      var data = _.sortBy(data, function(a){return a[0][index]}); 
       return data;
     }
   

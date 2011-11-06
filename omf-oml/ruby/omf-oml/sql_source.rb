@@ -21,6 +21,7 @@ module OMF::OML
     def initialize(db_file, opts = {})
       raise "Can't find database '#{db_file}'" unless File.readable?(db_file)
       @db = SQLite3::Database.new(db_file)
+      @db.type_translation = true
       @running = false
       @on_new_stream_procs = {}
       @tables = {}

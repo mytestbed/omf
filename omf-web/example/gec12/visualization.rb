@@ -13,21 +13,21 @@ $lwidgets << init_graph( 'Network', $nw, 'network', {
       :fill_color => {:property => :capacity, :scale => :green_yellow80_red}
     },
     :link => {
-      :stroke_width => {:property => :sett, :scale => 0.03, :min => 3},
-      :stroke_color => {:property => :sett, :scale => 1.0 / 400, :color => :green_yellow80_red}
+      :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
+      :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red}
     }
   },
   :height => 500
 })
 
 $node_loc = {}
-$node_loc['n1'] = [0.3, 0.4]
-$node_loc['n2'] = [0.3, 0.6]
-$node_loc['n3'] = [0.4, 0.25]
-$node_loc['n4'] = [0.5, 0.8]
-$node_loc['n5'] = [0.6, 0.25]
-$node_loc['n6'] = [0.7, 0.4]
-$node_loc['n7'] = [0.7, 0.6]
+$node_loc['n1'] = [0.3, 0.6]
+$node_loc['n2'] = [0.3, 0.4]
+$node_loc['n3'] = [0.4, 0.75]
+$node_loc['n4'] = [0.5, 0.25]
+$node_loc['n5'] = [0.6, 0.75]
+$node_loc['n6'] = [0.7, 0.6]
+$node_loc['n7'] = [0.7, 0.4]
 $node_loc['n101'] = [0.15, 0.5]
 $node_loc['n201'] = [0.85, 0.5]
 
@@ -61,16 +61,17 @@ def set_node(nid, opts)
 end
 
 def click_mon_link_stats(stream)
-  opts = {:name => 'Link State', :schema => [:ts, :link, :sett, :lett, :bitrate], :max_size => 200}
+  opts = {:name => 'Link State', :schema => [:ts, :link, :store_forward, :sett, :lett, :bitrate], :max_size => 200}
   select = [:oml_ts_server, :id, :neighbor_id, :sett_usec, :lett_usec, :bitrate_mbps]
   t = stream.capture_in_table(select, opts) do |ts, from, to, sett, lett, bitrate|
 #puts "form: #{from}, to:#{to}"
-    set_link(from, to, :sett => sett, :lett => lett, :bitrate => bitrate)
+    store_forward = 1.0 * sett / lett
+    set_link(from, to, :store_forward => store_forward, :bitrate => bitrate)
     #sleep 0.1
-    [ts, "l#{from}-#{to}", sett, lett, bitrate]
+    [ts.to_i, "l#{from}-#{to}", store_forward, sett, lett, bitrate]
   end
   gopts = {
-    :mapping => {:group_by => :link, :x_axis => :ts, :y_axis => :sett},
+    :mapping => {:group_by => :link, :x_axis => :ts, :y_axis => :store_forward},
     :schema => t.schema.describe,
     :margin => {:left => 80, :bottom => 40},
     :yaxis => {:ticks => 6},
@@ -121,7 +122,7 @@ def click_mon_routing_stats(stream)
   end
   
   gopts = {
-    :mapping => {:group_by => :node, :x_axis => :ts, :y_axis => :curr_stored_chunks},
+    :mapping => {:group_by => :node, :x_axis => :ts, :y_axis => :in_chunks},
     :schema => table.schema.describe,
     :margin => {:left => 80, :bottom => 40},
     :yaxis => {:ticks => 6},
@@ -137,7 +138,7 @@ def click_mon_routing_stats(stream)
 end
 
 #ep = OmlSqlSource.new("#{File.dirname(__FILE__)}/gec12_demo.sq3")
-ep = OmlSqlSource.new($db_name, :offset => -500, :check_interval => 10.0)
+ep = OmlSqlSource.new($db_name, :offset => -500, :check_interval => 1.0)
 ep.on_new_stream() do |stream|
   case stream.stream_name
   when 'click_mon_link_stats'
