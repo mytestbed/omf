@@ -5,5 +5,11 @@ source :rubygems
 gem "json", "1.4.6"
 gem "sqlite3-ruby"
 
+# this is used by the seqel-server, which is really only
+# used in the result2 AM service. Should most likely move there
+#
+gem "sequel"  
+
+      
 gem "omf-common", "5.4"
 
