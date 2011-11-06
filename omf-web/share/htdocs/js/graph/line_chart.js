@@ -196,7 +196,6 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
            .delay(0)
            .duration(300);
       }
-      var x = evt.source;
       if (evt.source == null) {
         evt.source = this;
         OHUB.trigger("graph.highlighted", evt);
@@ -210,8 +209,10 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
          .style("opacity", 1.0)         
          .delay(0)
          .duration(300)
-      evt.source = this;
-      OHUB.trigger("graph.dehighlighted", evt);
+      if (evt.source == null) {
+        evt.source = this;
+        OHUB.trigger("graph.dehighlighted", evt);
+      }
     }
     
     
