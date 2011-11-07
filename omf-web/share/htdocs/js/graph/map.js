@@ -7,11 +7,7 @@ L.provide('OML.googleLoader', ["http://www.google.com/jsapi"], function () {
 
 function onMapLoaded() {
   
-  L.provide('OML.map', ["d3"], function () {  
-    
-    if (typeof(OML) == "undefined") {
-      OML = {};
-    }
+  L.provide('OML.map', ["d3/d3"], function () {  
     
     OML['map'] = function(opts){
       this.opts = opts;

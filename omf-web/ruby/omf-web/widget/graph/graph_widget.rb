@@ -7,7 +7,7 @@ module OMF::Web::Widget::Graph
   # create the necessary html and javascript code for that.
   #
   class GraphWidget < OMF::Web::Widget::AbstractWidget
-    depends_on :css, "/resource/css/graph.css"
+    #depends_on :css, "/resource/css/graph.css"
     
     attr_reader :name, :opts
     

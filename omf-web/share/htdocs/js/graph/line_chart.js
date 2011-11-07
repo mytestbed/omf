@@ -162,6 +162,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
           .attr("stroke", function(d, i) { 
               return self.color(i); 
             })
+          .attr("fill", "none")
           .on("mouseover", function(data) {
             var group_by = self.mapping.group_by;
             if (group_by) {
