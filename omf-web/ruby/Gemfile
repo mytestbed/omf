@@ -1,0 +1,12 @@
+
+gem 'json'
+
+gem 'erector'
+
+gem 'thin'
+gem 'rack'
+gem 'rack/websocket'
+gem 'rack/showexceptions'
+
+gem 'coderay'
+gem 'log4r'
