@@ -1,21 +1,14 @@
 
+require 'omf-oml/table'
+require 'omf-oml/sql_source'
 
 require 'omf-web/tabbed_server'
 
-# Define data sources
-#
-
-# This one creates a data stream internally
-require 'omf-common/oml/oml_table'
-
-
-# This defines an OML endpoint. It expects a stream from the 
-# OML example generator on port 3000.
-#
-# % ./oml_example --oml-config config_text_stream.xml
-#
-require 'omf-common/oml/oml_sql_source'
 require 'omf-web/tab/graph/init'
+require 'omf-web/widget/code'
+
+
+include OMF::OML
 #
 # Configure graph displays
 #
@@ -36,40 +29,36 @@ end
 
 Tables = {}
 
-ep = OMF::Common::OML::OmlSqlSource.new("#{File.dirname(__FILE__)}/brooklynDemo.sq3")
+ep = OmlSqlSource.new("#{File.dirname(__FILE__)}/brooklynDemo.sq3")
 ep.on_new_stream() do |stream|
-  #puts ">>>>>>>>>>>> New stream #{stream.stream_name}: #{stream.schema.names.join(', ')}"
-  #puts ">>>>>>>>>>>> New stream #{stream.inspect}"
   case stream.stream_name
   when 'wimaxmonitor_wimaxstatus'
     t = stream.capture_in_table(:oml_ts_server, :sender_hostname, :frequency, :rssi, :cinr)
     init_graph(t, 'line_chart_fc', 
-      :mapping => {:group_by => :sender_hostname, :x_axis => :oml_ts_server, :y_axis => :rssi})
-    #create_table([:oml_ts_server, :rssi], stream, 'line_chart')
+      :mapping => {:group_by => :sender_hostname, :x_axis => :oml_ts_server, :y_axis => :rssi},
+      :schema => t.schema.describe)
   when 'GPSlogger_gps_data'
     t = stream.capture_in_table(:oml_ts_server, :oml_sender_id, :lat, :lon)
     init_graph(t, 'map')
   end
-  init_graph(t, 'table')
+  init_graph(t, 'table', :schema => t.schema.describe)
   #create_table(select, stream, 'table')
 end
 ep.run()
 
+files = ['brooklyn_server.rb']
 
+files.each do |fn|
+  fp = "#{File.dirname(__FILE__)}/#{fn}"
+  OMF::Web::Widget::Code.addCode(fn, :file => fp)
+end
 
 
 # Configure the web server
 #
 opts = {
-  :sslNOT => {
-    :cert_chain_file => "#{File.dirname(__FILE__)}/debug/server_chain.crt", 
-    :private_key_file => "#{File.dirname(__FILE__)}/debug/server.key", 
-    :verify_peer => false
-  },
-  :page_title => 'Brooklyn Demo'
-  # :tabs => {
-    # :foo => {:name => 'Foo', :order => 1, :class => Foo},
-    # :goo => {:name => 'Goo', :order => 3}
-  # }
+  :page_title => 'Brooklyn Demo',  
+  :use_tabs => [:graph, :code, :log],
+  :theme => :bright
 }
 OMF::Web.start(opts)
