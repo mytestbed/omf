@@ -1,0 +1,185 @@
+#
+# GENIPUBLIC-COPYRIGHT
+# Copyright (c) 2011 University of Utah and the Flux Group.
+# All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and/or hardware specification (the "Work") to
+# deal in the Work without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Work, and to permit persons to whom the Work
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Work.
+#
+# THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS
+# IN THE WORK.
+
+#
+# Common definitions for advertisements, requests, etc
+# Version 3
+#
+
+default namespace = "http://www.geni.net/resources/rspec/3"
+
+include "any-extension.rnc"
+
+RSpec = element rspec {
+  RSpecContents
+}
+
+RSpecContents =
+  AnyExtension &
+  # When this RSpec was generated - optional, can be used for determining
+  # staleness
+  attribute generated { xsd:dateTime }? &
+  # Who/what generated the rspec. This is purely informative and
+  # should not be used for any policy consideration. The format is
+  # not fixed.
+  attribute generated_by { text }? &
+  # How long this rspec is valid - in the case of a ticket, this indicates
+  # how long the holder may use the resources. For a resource request, it's
+  # how long we want the resources. For an advertisement, it might be a hint
+  # as to how long it's okay to cache this rspec.
+  attribute expires { xsd:dateTime }? &
+  # One or more nodes/links
+  Node* &
+  Link*
+
+Node = element node { NodeContents }
+
+Link = element link { LinkContents }
+
+NodeContents =
+    AnyExtension &
+    # A relation indicates that this node has a relationship with
+    # another node. It may be hosted on that node, share important
+    # resources, etc.
+    element relation { RelationContents }* &
+
+    # Information about the nodes physical location
+    element location { LocationContents }? &
+
+    # Services set up by the CM provided on this node.
+    element services { ServiceContents }? &
+
+    # List of interfaces on this node. Interfaces are declared here. So
+    # all information about a particular interface including types
+    # belongs in the declaration. Other references to interfaces
+    # should just uniquely identify them and refer back here.
+    element interface {
+      InterfaceContents
+    }*
+
+ServiceContents &=
+  AnyExtension &
+  # Login services include ssh-services, serial consoles, etc.
+  element login { LoginServiceContents }*
+
+LoginServiceContents &=
+  AnyExtension &
+  # Authentication mechanism
+  # 'ssh-keys' is used to denote an ssh connection accessed via the
+  #   ssh keys passed to CreateSliver or RedeemTicket.
+  attribute authentication { text } &
+  # Access mechanism
+  attribute hostname { text }? &
+  attribute port { text }?
+
+RelationContents =
+  AnyExtension &
+  attribute type { text }
+
+LocationContents =
+  AnyExtension &
+  # The two-letter ISO 3166 code for the country the node is in.
+  attribute country { text } &
+  # Longitude and Latitude coordinates of the node using the
+  # WGS 84 standard.
+  attribute longitude { text }? &
+  attribute latitude { text }?
+
+InterfaceContents = 
+  AnyExtension &
+  element ip { IpContents }*
+
+IpContents =
+  AnyExtension &
+  attribute address { text } &
+  attribute netmask { text }? &
+  # type should usually be 'ipv4' or 'ipv6'. If absent, defaults to ipv4.
+  attribute type { text }?
+
+LinkContents =
+    AnyExtension &
+
+    # Network properties of this link. These include capacity,
+    # latency, loss, etc.
+    element property {
+      LinkPropertyContents
+    }* &
+
+    # Link type which describes what transport mechanism this link
+    # will use or provides.
+    LinkType* &
+
+    # The interfaces which this link spans.
+    element interface_ref {
+      InterfaceRefContents
+    }*
+
+InterfaceRefContents = AnyExtension
+
+# The unidirectional network properties of a link.
+LinkPropertyContents =
+    AnyExtension &
+    # URNs for the source and destination interface pair describing
+    # the direction. These are physical identifiers in an
+    # advertisement and virtual identifiers in other kinds of RSpecs.
+    attribute source_id { text } &
+    attribute dest_id { text } &
+
+    # Capacity of the link in kbps
+    attribute capacity { text }? &
+    # One-way latency of the link in ms
+    attribute latency { text }? &
+    # Static packet loss probability as a fraction (0.01 means 1% packet loss)
+    attribute packet_loss { text }?
+
+LinkType = element link_type {
+    AnyExtension &
+    attribute name { text } &
+    attribute class { text }?
+}
+
+LinkClass = element link_class {
+    AnyExtension &
+    attribute name { text }
+}
+
+SliverType = element sliver_type { SliverTypeContents }
+
+SliverTypeContents =
+    AnyExtension &
+    attribute name { text }
+
+HardwareType = element hardware_type { HardwareTypeContents }
+
+HardwareTypeContents =
+    AnyExtension &
+    attribute name { text }
+
+DiskImageContents =
+  AnyExtension &
+  attribute name { text } &
+  attribute os { text }? &
+  attribute version { text }? &
+  attribute description { text }?
+

@@ -1,0 +1,62 @@
+#
+# GENIPUBLIC-COPYRIGHT
+# Copyright (c) 2011 University of Utah and the Flux Group.
+# All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and/or hardware specification (the "Work") to
+# deal in the Work without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Work, and to permit persons to whom the Work
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Work.
+#
+# THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS
+# IN THE WORK.
+
+#
+# Schema for a manifest RSpec, to be used by GENI
+#
+
+include "request.rnc"
+
+NodeContents &=
+  attribute sliver_id { text }? &
+  # List of all hostnames that can be used to access the node on the
+  # control network. These may be accessible only by other nodes local
+  # to the same CM.
+  element host { attribute name { text } }*
+
+LinkContents &=
+  attribute sliver_id { text }? &
+  # vlan tag number used for stitching
+  attribute vlantag { text }
+
+InterfaceContents &=
+  attribute sliver_id { text }? &
+  attribute mac_address { text } ? &
+  # List of all hostnames associated with a particular
+  # interface. These may be names associated with an experimental
+  # interface that can be used to transit experimental traffic.
+  element host { attribute name { text } }*
+
+InterfaceRefContents &=
+  attribute sliver_id { text }? &
+  attribute component_id { text }?
+
+LoginServiceContents &=
+  # Default username. Used when there is only one username or one
+  # username should be used by default.
+  attribute username { text }? &
+  # List of all usernames that can be used to log into the node.
+  element user { attribute name { text } }*
+
+RspecTypeContents |= "manifest"
