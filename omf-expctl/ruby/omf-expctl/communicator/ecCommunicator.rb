@@ -30,6 +30,7 @@
 # This PubSub communicator is based on XMPP.
 # This current implementation uses the library XMPP4R.
 #
+require 'monitor'
 require "omf-common/omfCommunicator"
 require "omf-common/omfProtocol"
 require 'omf-expctl/agentCommands'
@@ -41,7 +42,8 @@ require 'omf-expctl/agentCommands'
 # This Communicator is based on the Singleton design pattern.
 #
 class ECCommunicator < OmfCommunicator
-
+  include MonitorMixin
+  
   SEND_RETRY_INTERVAL = 5 # in sec
 
   def init(opts)
@@ -52,10 +54,10 @@ class ECCommunicator < OmfCommunicator
     @@expID = opts[:expID]
     @@retrySending = false
     # 1 - listen to my address (i.e. the is the 'experiment' address)
-    addr = create_address(:sliceID => @@sliceID,
+    @my_addr = create_address(:sliceID => @@sliceID,
                           :expID => @@expID,
                           :domain => @@domain)
-    listen(addr)
+    listen(@my_addr)
     # 3 - Set my lists of valid and specific commands
     OmfProtocol::RC_COMMANDS.each { |cmd|
       define_valid_command(cmd) { |comm, message|
@@ -64,6 +66,14 @@ class ECCommunicator < OmfCommunicator
     }
     # 4 - Set my list of own/self commands
     OmfProtocol::EC_COMMANDS.each { |cmd| define_self_command(cmd) }
+    # 5 - Announce this experiment
+    @slice_addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
+    send_experiment_announce
+    synchronize do @initialized = true end
+  end
+
+  def initialized?
+    synchronize do res = @initialized == true end
   end
 
   alias parentSend send_message
@@ -141,7 +151,41 @@ class ECCommunicator < OmfCommunicator
                            :domain => @@domain, :name => name)
   end
   
+  # list resources in the current slice 
+  # that have a corresponding pubsub node on the XMPP server
+  def list_resources
+    resources = []
+    addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
+    resource_prefix = "#{addr.generate_address}/"
+    nodes = list_nodes(@@domain)
+    nodes.each{|node|
+      next if !node.include?(resource_prefix)
+      node.slice!(resource_prefix)
+      resources << node if !node.empty?
+    }
+    resources
+  end
+
+  def send_log_message(msg)
+    @log_addr ||= create_address(:sliceID => @@sliceID, :expID => @expID, :name => 'LOGGER', :domain => @@domain)
+    cmd = create_message(msg.merge(:cmdtype => :LOGGING))
+    send_message(@log_addr, cmd)
+  end
+  
   private
+  
+  #
+  # Send a message to the slice to announce the existence of 
+  # this experiment.
+  #
+  def send_experiment_announce()
+    cmd = create_message(:cmdtype => :NEW_EXPERIMENT, :slice_id => @@sliceID,
+                          :experiment_id => @@expID, :address => @my_addr.generate_address(true))
+    send_message(@slice_addr, cmd)
+  end
+  
+
+  
 
   def valid_message?(message)
     # 1 - Perform common validations amoung OMF entities

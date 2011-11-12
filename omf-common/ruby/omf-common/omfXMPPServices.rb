@@ -349,8 +349,9 @@ class OmfXMPPServices < MObject
   # - item = [Jabber::item] the PubSub item to publish
   # - domain = [String|Symbol] the domain for the the server on which
   #               we want to publish to this node
+  # - create_if_not_exist = [bool] Create +node+ if not exist
   #
-  def publish_to_node(node, domain, item)
+  def publish_to_node(node, domain, item, create_if_not_exist = false)
     begin
       add_service(domain) if !service?(domain)
       success = call_with_timeout("Timing out while sending PubSub message to "+
@@ -360,6 +361,10 @@ class OmfXMPPServices < MObject
       return true
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
+        if create_if_not_exist
+          create_node(node, domain)
+          return publish_to_node(node, domain, item, false) # false to avoid infinite loop
+        end
         warn "Failed publishing to unknown node '#{node}' "+
               "on domain '#{domain}'"
         return false
@@ -409,9 +414,9 @@ class OmfXMPPServices < MObject
   def list_all_subscriptions(domain)
     list = []
     begin
-      call_with_timeout("Timing out while getting all subscriptions "+
-                       "on '#{domain}'") { 
-                       list = service(domain).get_subscriptions_from_all_nodes }
+      call_with_timeout("Timing out while getting all subscriptions on '#{domain}'") do
+        list = service(domain).get_subscriptions_from_all_nodes
+      end
     rescue Exception => ex
       raise "OmfXMPPServices - Failed getting list of all subscribed nodes "+
             "for domain '#{domain}' - ERROR - '#{ex}'"
@@ -429,16 +434,17 @@ class OmfXMPPServices < MObject
   #
   def leave_node(node, subid, domain)
     begin
-      call_with_timeout("Timing out while leaving the PubSub node '#{node}'") { 
-                        service(domain).unsubscribe_from_fixed(node, subid) }
+      call_with_timeout("Timing out while leaving the PubSub node '#{node}'") do
+        service(domain).unsubscribe_from_fixed(node, subid) 
+      end
     rescue Exception => ex
-      if ("#{ex}"=="item-not-found: ")
+      if ("#{ex}" == "item-not-found: ")
         debug "Failed unsubscribing to unknown node '#{node}' "+
               "on domain '#{domain}'"
         return false
       end
       if ("#{ex}"=="unexpected-request: ")
-        #debug "leave_pubsub_node - Unsubscribing from node '#{node}' failed as there was no subscription."
+        debug "leave_pubsub_node - Unsubscribing from node '#{node}' failed as there was no subscription."
         return true
       end
       raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+

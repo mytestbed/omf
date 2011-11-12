@@ -62,7 +62,12 @@ class OmfAddress
             "exp:'#{@expID}', domain:'#{@domain}']"
   end
 
-  def generate_address
+  # Return the address as string.
+  #
+  # global - [bool = FALSE] If true, return a globally resolvable address, 
+  #             otherwise one which is resolvable within the given domain
+  
+  def generate_address(global = false)
     raise unimplemented_method_exception("generate_address")
   end
 

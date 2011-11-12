@@ -1,0 +1,25 @@
+# This is the configuration for a Experiment Controller running in 'slave' mode
+# during an experiment which allows disconnection
+# This config should not be used for any other instances of EC!
+# Changing the parameters below may break the support for disconnected 
+# experiment
+#
+---
+:econtroller:
+  :config:
+    :default:
+      :domain: 'local'
+      :repository:
+        :path: ["omf-expctl/share/repository", "/usr/share/omf-expctl-5.3/repository"]
+      :web:
+        :host: 'localhost'
+        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.3/share/htdocs"]
+      :communicator:      
+        :authenticate_messages: false
+        :type: 'xmpp'
+        :xmpp:
+          :pubsub_gateway: 'maxs-laptop.local'
+          :pubsub_user: 'debug'
+
+
+

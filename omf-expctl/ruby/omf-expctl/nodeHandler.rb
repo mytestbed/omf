@@ -55,12 +55,11 @@ require 'omf-expctl/node/rootGroupNodeSet'
 require 'omf-expctl/node/rootNodeSetPath'
 require 'rexml/document'
 require 'rexml/element'
-require 'omf-common/web/webServer'
 require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/event'
-require 'omf-common/web/tab/log/logOutputter'
+require 'omf-expctl/communicator/pub_outputter'
 require 'omf-common/servicecall'
 
 Project = nil
@@ -122,6 +121,11 @@ class NodeHandler < MObject
   #
   @@justPrint = false
   
+  
+  # list of resources in this slice
+  # with corresponding pubsub nodes on the XMPP server
+  @@resources = []
+
   #
   # Constant - Mount point where the Experiment Description should be 
   # served by the EC's webserver
@@ -149,6 +153,12 @@ class NodeHandler < MObject
   #
   def NodeHandler.SHOW_APP_OUTPUT()
     return @@showAppOutput
+  end
+  
+  # return list of resources in this slice
+  # with corresponding pubsub nodes on the XMPP server
+  def NodeHandler.RESOURCES
+    return @@resources
   end
   
   #
@@ -376,12 +386,6 @@ class NodeHandler < MObject
         
     Profiler__::start_profile if @doProfiling
 
-    # For now leave this commented, Max re-vamped the webserver and this is 
-    # now broken and the new webserver is on the web2 branch, which will be
-    # merged to the master soon (before 5.4 release)
-    #startWebServer()
-    #info "Web interface available at: #{OMF::Common::Web::url}"
-
     begin 
       require 'omf-expctl/handlerCommands'
       if (@defaultLibs)
@@ -528,10 +532,10 @@ class NodeHandler < MObject
       Experiment.tags = tags
     }
 
-    opts.on("-w", "--web-ui",
-    "Control experiment through web interface") { 
-      @web_ui = true 
-    }
+    # opts.on("-w", "--web-ui",
+    # "Control experiment through web interface") { 
+    #   @web_ui = true 
+    # }
 
     opts.on("--oml-uri URI", 
     "The URI to the OML server for this experiment") { |uri|
@@ -621,10 +625,13 @@ class NodeHandler < MObject
     comm[:config] = OConfig[:ec_config][:communicator]
     comm[:sliceID] = Experiment.sliceID
     comm[:comms_name] = comm[:expID] = Experiment.ID
+    # The EC should only try to connect to the XMPP server once
+    comm[:config][:xmpp][:pubsub_max_retries] = 1
     ECCommunicator.instance.init(comm)
 
     setupServiceCalls()
 
+    @@resources = ECCommunicator.instance.list_resources
     @@expFile = nil
 
     rest.each { |s|
@@ -868,11 +875,6 @@ class NodeHandler < MObject
       debug("Exception while saving final state (#{ex})")
     end
 
-    begin
-      OMF::EC::Web::stop
-    rescue Exception
-      #ignore
-    end
 
     @running = nil
   end
@@ -926,6 +928,8 @@ class NodeHandler < MObject
   # retrieve configuration info, e.g. OML configs  
   #
   def startWebServer(port = @webPort)
+    return # NO WEB SERVER
+    
     accLog = MObject.logger('web::access')
     accLog.instance_eval {
       # Webrick only calls '<<' to log access information
@@ -965,12 +969,14 @@ class NodeHandler < MObject
       break if confirmedPort != 0   
     end
     
-    if confirmedPort == 0
+    if confirmedPort > 0
+      info "Web interface available at: #{OMF::Common::Web::url}"
+    else  
       error "Binding a free TCP port in the range #{port} to "+
             "#{port+MAXWEBTRY} was unsuccessful. Giving up!"
       exit
     end
-        
+
   end
 
   def display_error_msg(lines)

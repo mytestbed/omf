@@ -23,8 +23,6 @@
 
 require 'rubygems'
 require 'rexml/document'
-# xml canonicalizer:
-require 'wss4r/security/util/xmlcanonicalizer'
 
 module OMF
   module Envelope
@@ -153,6 +151,7 @@ module OMF
         el_sig.add_attribute("over", "omf-payload")
         el_sig.add_attribute("signer", @key_locator.signer_id)
 
+        require 'wss4r/security/util/xmlcanonicalizer'
         c = XML::Util::XmlCanonicalizer.new(false,true)
         text = c.canonicalize(message)
         key = @key_locator.private_key

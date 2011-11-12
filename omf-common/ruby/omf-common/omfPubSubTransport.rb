@@ -49,6 +49,7 @@ class OMFPubSubTransport < MObject
   DEFAULT_PUBSUB_PWD = "123456"
 
   def init(opts)
+    puts opts.inspect
     raise "PubSub Transport already started" if @@started
     @@queues = Array.new
     @@threads = Array.new
@@ -113,19 +114,25 @@ class OMFPubSubTransport < MObject
       index = @@qcounter
       @@queues[index] = Queue.new
       @@threads << Thread.new {
-        while event = @@queues[index].pop
-          process_queue(event, &block)
+        begin
+          while event = @@queues[index].pop
+            process_queue(event, &block)
+          end
+        rescue Exception => ex
+          error "While processing queue; #{ex}"
         end
       }
       @@qcounter += 1
     end
     subscribed = @@xmppServices.subscribe_to_node(node, addr.domain) { |event|
-        @@queues[index] << event
+      puts ">>>> EVENT >>> #{event}"
+      @@queues[index] << event
+      puts ">>>> EVENT >>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     }
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, addr.domain)
-	debug "Creating new node '#{node}'"
-	subscribed = listen(addr, &block)
+	      debug "Creating new node '#{node}'"
+	      subscribed = listen(addr, &block)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
               "on '#{addr.domain}'"
@@ -153,7 +160,7 @@ class OMFPubSubTransport < MObject
     return OmfPubSubAddress.new(opts)
   end
 
-  def get_new_message(opts = nil)
+  def get_new_message(opts = {})
     return OmfPubSubMessage.new(opts)
   end
 
@@ -177,7 +184,9 @@ class OMFPubSubTransport < MObject
     # Send it
     debug "Send to '#{dst}' - msg: '#{message}'"
     begin
-      return @@xmppServices.publish_to_node("#{dst}", domain, item)
+      #return @@xmppServices.publish_to_node("#{dst}", domain, item)
+      res =  @@xmppServices.publish_to_node("#{dst}", domain, item, @@forceCreate)
+      return res
     rescue Exception => ex
       error "Failed sending to '#{dst}' on '#{domain}'"
       error "Failed msg: '#{message}'\nError msg: '#{ex}'"

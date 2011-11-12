@@ -38,18 +38,19 @@ class OmfPubSubAddress < OmfAddress
   RESOURCE = "resources"
   SYSTEM = "system"
 
-  def generate_address
+  def generate_address(global = false)
     node = ""
     if @sliceID && @expID 
-      return experiment_node(@sliceID, @expID, @name)
+      addr = experiment_node(@sliceID, @expID, @name)
     elsif @sliceID 
-      return resource_node(@sliceID, @name)
+      addr = @name ? resource_node(@sliceID, @name) : slice_node(@sliceID)
     elsif @name
-      return system_node(@name)
+      addr = system_node(@name)
     else
       raise "OmfPubSubAddress - Cannot generate pubsub node from address "
             +"'#{self.to_s}'"
     end
+    global ? "#{@domain}#{addr}" : addr
   end
 
   private

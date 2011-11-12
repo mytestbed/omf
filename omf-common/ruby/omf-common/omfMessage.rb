@@ -87,26 +87,23 @@ class OmfMessage
   #
   # Create a new Command Object
   #
-  # - initValue = if a String or Symbol, then create an empty Command Object, 
-  #               with its command type set to the String/Symbol
-  #               if an XML stanza, then create a new Command Object based on 
-  #               the XML description
+  # - initOptions = Hash of attribute values.
   #
   #  [Return] a new Command Object
   #
-  def initialize(initOptions = nil)
+  def initialize(initOptions = {})
     # Create a new Hash to hold the attributes of this Command Object
     @attributes = Hash.new
-    return unless initOptions
-    # Set the Command Type
-    if initOptions.kind_of?(Hash) 
-      initOptions.each { |k,v|
-	kSym = k.to_s.upcase.to_sym
-        @attributes[kSym] = v
-      }
-    else
+    
+    unless initOptions.kind_of?(Hash) 
       raise "Cannot create a OmfMessage! Unknown initial options "+
             "(type: '#{initOptions.class}')"
+    end
+
+    initOptions.each do |k,v|
+      self[k] = v
+      #kSym = k.to_s.upcase.to_sym # normalize keys
+      #@attributes[kSym] = v
     end
   end
 
@@ -119,7 +116,7 @@ class OmfMessage
   def merge(another)
     if another.kind_of?(self.class) || another.kind_of?(Hash)
       another.each { |attr, val|
-	@attributes[attr] = val if @attributes[attr] == nil
+	       @attributes[attr] = val if @attributes[attr] == nil
       }
     else
       raise "Cannot merge with another message! Unknown message type "+
