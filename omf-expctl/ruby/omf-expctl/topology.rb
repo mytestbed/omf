@@ -372,7 +372,7 @@ class Topology < MObject
   #
   # - &block = the block of commands to execute
   #
-  def eachNode(&block) @nodes.each(&block); end
+  def each(&block) @nodes.each(&block); end
 
   #
   # This method calls inject over the nodes contained in this set
@@ -782,7 +782,7 @@ attr_accessor :strict
     # FIXME: put here some code to create a new topology with nodes from 
     # this current topology which have the desired features.
     #subT = Topology.new("someArbitraryTopoName")
-    #self.eachNode {|n| 
+    #self.each {|n| 
     # #Here we check if this node 'n' has the required features
     # ...
     # #if so add this node to subT

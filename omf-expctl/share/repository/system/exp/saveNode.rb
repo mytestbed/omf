@@ -57,7 +57,7 @@ defGroup('save', Experiment.property('node')) {|n|
 
 everyNS('save', 10) { |ns|
   notDone = true
-  ns.eachNode { |n|
+  ns.each { |n|
     status = n.match('apps/*/status/')[0].to_s
     if status =~ /DONE/
       notDone = false
@@ -76,7 +76,7 @@ everyNS('save', 10) { |ns|
 }
 
 everyNS('save', 10) { |ns|
-  ns.eachNode { |n|
+  ns.each { |n|
     status = n.match('apps/*/status/')[0].to_s
     if status =~ /STARTED/
       if prop.started.value == "false"
@@ -95,7 +95,7 @@ onEvent(:INTERRUPT) {
 
 onEvent(:ALL_UP) {
   clearPXE
-  group('save').eachNode { |n|
+  group('save').each { |n|
     n.saveImage
   }
 }

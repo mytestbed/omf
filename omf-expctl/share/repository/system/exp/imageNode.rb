@@ -93,7 +93,7 @@ end
 #
 defGroup('image', prop.nodes) {|ns|
    ns.image = "pxe-5.4"
-   ns.eachNode { |n| @allNodes << n }
+   ns.each { |n| @allNodes << n }
 }
 
 url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{@allNodes.map{|n| n.to_s }.join(',')}"
@@ -149,7 +149,7 @@ everyNS('image', 10) { |ns|
   notDone = true
   lastUpTime = 0
 
-  ns.eachNode { |n|
+  ns.each { |n|
     nodeCnt += 1
     if n.isUp
 #      nodesUp += 1
@@ -233,7 +233,7 @@ onEvent(:ALL_UP) {
   # (e.g. in rare occasions no node managed to come up and register to EC, when this
   # happens, we need to exit quietly from this 'onEvent(:ALL_UP)')
   nodeCount = 0
-  group('image').eachNode { |n|
+  group('image').each { |n|
     nodeCount += 1
   }
   if (nodeCount != 0)

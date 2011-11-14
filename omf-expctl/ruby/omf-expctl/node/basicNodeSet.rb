@@ -57,7 +57,7 @@ class BasicNodeSet < NodeSet
   #
   def addApplication(appContext)
     super(appContext)
-    self.eachNode { |n|
+    self.each { |n|
       n.addApplication(appContext)
     }
   end
@@ -67,8 +67,8 @@ class BasicNodeSet < NodeSet
   #
   # - &block = the block of command to execute
   #
-  def eachNode(&block)
-    @topo.eachNode(&block) if !@topo.nil?
+  def each(&block)
+    @topo.each(&block) if !@topo.nil?
   end
 
   #
@@ -85,7 +85,7 @@ class BasicNodeSet < NodeSet
   # This method powers ON all the nodes in this NodeSet
   #
   def powerOn()
-    eachNode { |n|
+    each { |n|
       n.powerOn()
       if NodeHandler.JUST_PRINT
         n.checkIn(n.nodeID, '1.0', 'UNKNOWN')
@@ -102,7 +102,7 @@ class BasicNodeSet < NodeSet
   # - hard = true/false (optional, default=false)
   #
   def powerOff(hard = false)
-    eachNode { |n| n.powerOff() }
+    each { |n| n.powerOff() }
   end
 
 end

@@ -3,7 +3,7 @@
 #
 defTopology('system:topo:active') { |t|
   active = Topology["system:topo:active:#{OConfig.domain}"]
-  active.eachNode { |n|
+  active.each { |n|
     t.addNode(n)
   }
 }

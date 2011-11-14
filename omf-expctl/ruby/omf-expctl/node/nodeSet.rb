@@ -145,13 +145,13 @@ class NodeSet < MObject
       @nodeSelector = "*"
     else
       @nodeSelector = "#{@groupName}"
-      eachNode { |n|
+      each { |n|
         n.addGroupName(@groupName)
       }
       add_observer(NodeSet.ROOT)
       @@groups[@groupName] = self
     end
-    eachNode { |n|
+    each { |n|
       n.add_observer(self)
     }
   end
@@ -166,7 +166,7 @@ class NodeSet < MObject
   #
   def addApplicationContext(appCtxt)
     @applications[appCtxt.id] = appCtxt
-    eachNode { |n|
+    each { |n|
       n.addApplicationContextToStates(appCtxt)
     }
   end
@@ -263,7 +263,7 @@ class NodeSet < MObject
     end
     # TODO: check for blocks arity.
     
-    eachNode { |n|
+    each { |n|
       n.exec(procName, cmdName, args, env, &block)
     }
 
@@ -295,7 +295,7 @@ class NodeSet < MObject
   #
   def empty?
     flag = true
-    eachNode { |n|
+    each { |n|
       flag = false
     }
     return flag
@@ -310,7 +310,7 @@ class NodeSet < MObject
     if empty?
       return false
     end
-    # This implicitly calls eachNode defined in BasicNodeSet!
+    # This implicitly calls each defined in BasicNodeSet!
     return inject(true) { |flag, n|
       #debug "Checking if #{n} is up"
       if flag
@@ -354,7 +354,7 @@ class NodeSet < MObject
         valueToSend = ""
     end
     # Notify each node to update their state trace with this Configure command
-    eachNode {|n|
+    each {|n|
       n.configure(path, value)
     }
     # When this Experiment is in disconnection mode, do not send the 
@@ -393,7 +393,7 @@ class NodeSet < MObject
   # - imageName = name of the image
   #
   def image=(imageName)
-    eachNode { |n|
+    each { |n|
       n.image = imageName
     }
   end
@@ -411,7 +411,7 @@ class NodeSet < MObject
     # it would be better if the nodes query the inventory themselves
     # for their default disk
     disks = []
-    eachNode { |n|
+    each { |n|
       begin
         disk = OMF::Services.inventory.getDefaultDisk(n.to_s, OConfig.domain).elements[1].text
         raise if disk.nil? || disk.empty?
@@ -424,7 +424,7 @@ class NodeSet < MObject
     disks.uniq!
     if disks.length > 1
       # remove all nodes from this nodeset
-      eachNode { |n|
+      each { |n|
         Topology.removeNode(n)
       }
       error "All nodes in your nodeset have to have the same disk name configured in the inventory.
@@ -444,7 +444,7 @@ class NodeSet < MObject
       mcAddress, mcPort = response.body.split(':')
     end
     opts = {:disk => disks[0], :mcAddress => mcAddress, :mcPort => mcPort}
-    eachNode { |n|
+    each { |n|
       n.loadImage(image, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
@@ -515,7 +515,7 @@ class NodeSet < MObject
                   "'#{message}'"
           end
         end # TODO: check for blocks arity.
-      eachNode { |n|
+      each { |n|
         n.exec(procName, 'loadData', nil, nil, &block)
       }
   end

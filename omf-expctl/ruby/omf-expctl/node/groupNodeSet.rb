@@ -83,9 +83,9 @@ class GroupNodeSet < AbstractGroupNodeSet
   #
   # - &block = the block of command to execute
   #
-  def eachNode(&block)
+  def each(&block)
     @nodeSets.each { |s|
-      s.eachNode &block
+      s.each &block
     }
   end
 

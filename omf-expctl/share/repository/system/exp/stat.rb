@@ -20,7 +20,7 @@ tuples = []
 
 $stderr.print " Talking to the CMC service, please wait"
 
-topo.eachNode {|n|
+topo.each {|n|
   tuples << ["#{n.to_s}", "#{OMF::Services.cmc.status(n.to_s, OConfig.domain).
     first_element("NODE_STATUS/detail/node").attributes['state']}"]
   $stderr.print "."

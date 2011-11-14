@@ -57,7 +57,7 @@ class RootNodeSetPath < NodeSetPath
 
   def state(xpath)
   result = Array.new
-  @nodeSet.eachNode { |node|
+  @nodeSet.each { |node|
     match = node.match(xpath)
     match.each { |e| result << e.to_s }
   }
@@ -146,8 +146,8 @@ class RootNodeSetPath < NodeSetPath
   #
   # - &block = the block of commands to execute
   #
-  def eachNode(&block)
-    @nodeSet.eachNode(&block)
+  def each(&block)
+    @nodeSet.each(&block)
   end
 
   #

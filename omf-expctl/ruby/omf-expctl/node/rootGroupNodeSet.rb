@@ -71,13 +71,13 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   #
   # - &block = the block of command to execute
   #
-  def eachNode(&block)
+  def each(&block)
     #debug("Running 'each' in RootGroupNodeSet")
     @@groups.each_value { |g|
       if g.kind_of?(BasicNodeSet)
         # This debug generates large log file when many groups are defined
         #debug("Running each for #{g}") 
-        g.eachNode &block
+        g.each &block
       end
     }
   end
@@ -90,16 +90,15 @@ class RootGroupNodeSet < AbstractGroupNodeSet
   #
   # - &block = the block of command to execute
   #
-  def eachUniqueNode(&block)
+  def eachNode(&block)
     allUniqueNode = Set.new
     @@groups.each_value { |g|
       if g.kind_of?(BasicNodeSet)
-        g.eachNode { |n| allUniqueNode.add(n) }
+        g.each { |n| allUniqueNode.add(n) }
       end
     }
     debug("Running eachUniqueNode for #{allUniqueNode.to_a.join(', ')}")
     allUniqueNode.each &block
-    #Node.each(&block)
   end
 
   #
