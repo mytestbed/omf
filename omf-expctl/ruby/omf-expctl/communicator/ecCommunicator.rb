@@ -31,8 +31,8 @@
 # This current implementation uses the library XMPP4R.
 #
 require 'monitor'
-require "omf-common/omfCommunicator"
-require "omf-common/omfProtocol"
+require "omf-common/communicator/omfCommunicator"
+require "omf-common/communicator/omfProtocol"
 require 'omf-expctl/agentCommands'
 
 #
@@ -167,7 +167,7 @@ class ECCommunicator < OmfCommunicator
   end
 
   def send_log_message(msg)
-    @log_addr ||= create_address(:sliceID => @@sliceID, :expID => @expID, :name => 'LOGGER', :domain => @@domain)
+    @log_addr ||= create_address(:sliceID => @@sliceID, :expID => @@expID, :name => 'LOGGER', :domain => @@domain)
     cmd = create_message(msg.merge(:cmdtype => :LOGGING))
     send_message(@log_addr, cmd)
   end

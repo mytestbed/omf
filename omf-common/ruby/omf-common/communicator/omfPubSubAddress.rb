@@ -29,7 +29,7 @@
 # This file implements a specific OMF PubSub Address
 #
 #
-require 'omf-common/omfAddress'
+require 'omf-common/communicator/omfAddress'
 
 class OmfPubSubAddress < OmfAddress
 

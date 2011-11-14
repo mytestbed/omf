@@ -54,7 +54,7 @@ class OmfCommunicator < MObject
     # Initiate the required Transport entity
     case type = opts[:config][:type]
     when 'xmpp'
-      require 'omf-common/omfPubSubTransport'
+      require 'omf-common/communicator/xmpp/omfPubSubTransport'
       @@transport = OMFPubSubTransport.instance.init(opts) 
       @@domain = opts[:config][:xmpp][:pubsub_domain] || 
                  opts[:config][:xmpp][:pubsub_gateway] || nil
@@ -64,7 +64,7 @@ class OmfCommunicator < MObject
       @@transport.init(opts) 
       @@domain = 'mock_domain'
     when 'udplocal'
-      require 'omf-common/omfUDPLocalTransport'
+      require 'omf-common/communicator/udp/omfUDPLocalTransport'
       @@transport = OMFUDPLocalTransport.instance.init(opts)
       @@domain = 'localhost'
     else

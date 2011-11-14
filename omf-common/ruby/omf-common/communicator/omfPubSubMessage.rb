@@ -32,7 +32,7 @@
 require 'rexml/parent.rb'
 require 'rexml/document.rb'
 require 'rexml/element.rb'
-require 'omf-common/omfMessage'
+require 'omf-common/communicator/omfMessage'
 
 #
 # A class implementing an OMF Command Object 

@@ -29,7 +29,7 @@
 #
 
 require 'openssl'
-require 'omf-common/sshPubKey'
+require 'omf-common/communicator/sshPubKey'
 require 'omf-common/mobject'
 
 module OMF

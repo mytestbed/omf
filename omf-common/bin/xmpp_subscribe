@@ -56,7 +56,7 @@ class Subscribe
   end
   
   def connect()
-    require "omf-common/omfPubSubTransport"
+    require "omf-common/communicator/xmpp/omfPubSubTransport"
 
     opts = {
       :config => {
@@ -76,7 +76,7 @@ end
 
 Subscribe.new(ARGV) do |m|
   puts '-----------------------'
-  puts m[:CMDTYPE]
+  puts m[:CMDTYPE ]
   m.each do |k, v|
     unless k == :CMDTYPE
       puts "  #{k}:\t#{v}"

@@ -61,7 +61,7 @@ class Publish
   end
   
   def connect()
-    require "omf-common/omfPubSubTransport"
+    require "omf-common/communicator/xmpp/omfPubSubTransport"
 
     opts = {
       :config => {

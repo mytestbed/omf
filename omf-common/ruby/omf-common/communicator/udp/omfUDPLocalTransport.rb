@@ -29,8 +29,8 @@
 # This file implements a generic Publish/Subscribe transport to be used by the
 # various OMF entities.
 #
-require "omf-common/omfPubSubMessage"
-require "omf-common/omfPubSubAddress"
+require "omf-common/communicator/omfPubSubMessage"
+require "omf-common/communicator/omfPubSubAddress"
 require "socket"
 require 'omf-common/mobject'
 

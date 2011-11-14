@@ -29,11 +29,12 @@
 # This file implements a generic Publish/Subscribe transport to be used by the
 # various OMF entities.
 #
-require "omf-common/omfXMPPServices"
-require "omf-common/omfPubSubMessage"
-require "omf-common/omfPubSubAddress"
-require 'omf-common/keyLocator'
-require "omf-common/envelope"
+require "omf-common/communicator/omfPubSubMessage"
+require "omf-common/communicator/omfPubSubAddress"
+require 'omf-common/communicator/keyLocator'
+require "omf-common/communicator/envelope"
+
+require "omf-common/communicator/xmpp/omfXMPPServices"
 require 'omf-common/mobject'
 
 #
@@ -49,7 +50,6 @@ class OMFPubSubTransport < MObject
   DEFAULT_PUBSUB_PWD = "123456"
 
   def init(opts)
-    puts opts.inspect
     raise "PubSub Transport already started" if @@started
     @@queues = Array.new
     @@threads = Array.new
