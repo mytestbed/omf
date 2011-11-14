@@ -48,7 +48,7 @@ class OmfMessage
   # [Return] the value of the attribute
   #
   def [](key)
-    return @attributes[key.upcase]
+    return @attributes[key.to_s.upcase.to_sym]
   end
 
   #

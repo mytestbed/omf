@@ -104,7 +104,14 @@ class OMFPubSubTransport < MObject
   # the events of the 2 listens will be put in the same Q and process by the
   # same block, i.e. the queue and the block of the 1st call to listen!
   def listen(addr, &block)
-    node = addr.generate_address
+    if addr.kind_of?(String)
+      a = addr.split('/')
+      domain = a.delete_at(0)
+      node = '/' + a.join('/')
+    else 
+      node = addr.generate_address
+      domain = addr.domain
+    end
     subscribed = false
     index = 0
     # When a new event comes from that server, we push it on our event queue
@@ -124,13 +131,11 @@ class OMFPubSubTransport < MObject
       }
       @@qcounter += 1
     end
-    subscribed = @@xmppServices.subscribe_to_node(node, addr.domain) { |event|
-      puts ">>>> EVENT >>> #{event}"
+    subscribed = @@xmppServices.subscribe_to_node(node, domain) { |event|
       @@queues[index] << event
-      puts ">>>> EVENT >>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     }
     if !subscribed && @@forceCreate
-      if @@xmppServices.create_node(node, addr.domain)
+      if @@xmppServices.create_node(node, domain)
 	      debug "Creating new node '#{node}'"
 	      subscribed = listen(addr, &block)
       else
@@ -138,7 +143,7 @@ class OMFPubSubTransport < MObject
               "on '#{addr.domain}'"
       end
     end
-    debug "Listening on '#{node}' at '#{addr.domain}'" if subscribed
+    debug "Listening on '#{node}' at '#{domain}'" if subscribed
     return subscribed
   end
 
@@ -165,9 +170,16 @@ class OMFPubSubTransport < MObject
   end
 
   def send(address, msg)
-    dst = address.generate_address
-    domain = address.domain
-    message = msg.serialize
+    if address.kind_of?(String)
+      a = address.split('/')
+      domain = a.delete_at(0)
+      dst = '/' + a.join('/')
+    else 
+      dst = address.generate_address
+      domain = address.domain
+    end
+
+    message = msg.respond_to?(:serialize) ? msg.serialize : msg
     # Sanity checks...
     if !message || (message.length == 0)
       warn "send - Ignore attempt to send an empty message"
