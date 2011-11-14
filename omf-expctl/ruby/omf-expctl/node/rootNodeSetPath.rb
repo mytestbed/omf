@@ -220,25 +220,25 @@ class RootNodeSetPath < NodeSetPath
   #
   def enroll()
     index = 1
-    @nodeSet.eachUniqueNode { |n| n.enroll(index); index = index + 1 }
+    @nodeSet.eachNode { |n| n.enroll(index); index = index + 1 }
   end
 
   def set_disconnection 
-    @nodeSet.eachUniqueNode { |n| n.set_disconnection }
+    @nodeSet.eachNode { |n| n.set_disconnection }
   end
 
   #
   # This method reset all nodes in the NodeSet of this Root Path.
   #
   def powerReset()
-    @nodeSet.eachUniqueNode { |n| n.reset() }
+    @nodeSet.eachNode { |n| n.reset() }
   end
 
   #
   # This method powers ON all nodes in the NodeSet of this Root Path.
   #
   def powerOn()
-    @nodeSet.eachUniqueNode { |n| n.powerOn() }
+    @nodeSet.eachNode { |n| n.powerOn() }
   end
 
   #
@@ -250,7 +250,7 @@ class RootNodeSetPath < NodeSetPath
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    @nodeSet.eachUniqueNode { |n| n.powerOff(hard) }
+    @nodeSet.eachNode { |n| n.powerOff(hard) }
   end
 
   #
