@@ -45,6 +45,8 @@ class ECCommunicator < OmfCommunicator
   include MonitorMixin
   
   SEND_RETRY_INTERVAL = 5 # in sec
+  ANNOUNCE_INTERVAL = 5 # in sec
+  
 
   def init(opts)
     super(opts)
@@ -109,7 +111,19 @@ class ECCommunicator < OmfCommunicator
       @@retryQueue = nil
       @@retrySending = false
     end
+    @@announceThread.kill if @@announceThread
+    
+    
     super
+  end
+  
+  def close
+    # tell the world we seem to done
+    cmd = create_message(:cmdtype => :EXPERIMENT_DONE, :slice_id => @@sliceID,
+                          :experiment_id => @@expID, :address => @my_addr.generate_address(true))
+    send_message(@slice_addr, cmd)
+    
+    reset
   end
 
   def send_message(addr, message)
@@ -179,9 +193,14 @@ class ECCommunicator < OmfCommunicator
   # this experiment.
   #
   def send_experiment_announce()
-    cmd = create_message(:cmdtype => :NEW_EXPERIMENT, :slice_id => @@sliceID,
+    cmd = create_message(:cmdtype => :EXPERIMENT_NEW, :slice_id => @@sliceID,
                           :experiment_id => @@expID, :address => @my_addr.generate_address(true))
-    send_message(@slice_addr, cmd)
+    @@announceThread = Thread.new do
+      while true do
+        send_message(@slice_addr, cmd)
+        sleep(ANNOUNCE_INTERVAL)
+      end
+    end
   end
   
 

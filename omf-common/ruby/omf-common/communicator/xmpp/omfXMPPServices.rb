@@ -394,9 +394,10 @@ class OmfXMPPServices < MObject
   #               we want to publish to this node
   #
   def subscribe_to_node(node, domain, &block)
-    (@subscriptions["#{domain}::#{node}"] ||= []) << block
     begin
-      service(domain).subscribe_to(node)
+      srv = service(domain) # this may clear all subscriptions
+      (@subscriptions["#{domain}::#{node}"] ||= []) << block
+      srv.subscribe_to(node)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
         debug "Could not subscribe to unknown node '#{node}' "+
@@ -456,7 +457,7 @@ class OmfXMPPServices < MObject
       raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
             "on domain '#{domain}' - Error: '#{ex}'"
     end
-    @callbacks.delete("#{domain}::#{node}")
+    @subscriptions.delete("#{domain}::#{node}")
     return true
   end
 
@@ -498,7 +499,7 @@ class OmfXMPPServices < MObject
       error "Failed purging node '#{node}'- Error: '#{ex}'"
       return false
     end
-    @callbacks.delete("#{domain}::#{node}")    
+    @subscriptions.delete("#{domain}::#{node}")    
     return true
   end
 
