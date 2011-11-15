@@ -26,6 +26,8 @@ require 'rexml/document'
 
 module OMF
   module Envelope
+    
+    NAMESPACE = 'http://schema.mytestbed.net/protocol/1'
 
     @@envelope_generator = nil
 
@@ -97,9 +99,10 @@ module OMF
 
       def wrap(message)
         check_message_type(message)
-        message.elements[1].add_attribute("id", "omf-payload")
+        #message.elements[1].add_attribute("id", "omf-payload")
         envelope = REXML::Document::new
-        envelope << REXML::Element.new("omf-message")
+        envelope << (msg = REXML::Element.new("omf-message"))
+        msg.add_namespace(NAMESPACE)
         envelope.root << message
         envelope
       end
