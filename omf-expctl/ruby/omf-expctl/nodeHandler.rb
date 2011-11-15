@@ -180,30 +180,6 @@ class NodeHandler < MObject
     @@justPrint = flag
   end
 
-  #
-  # Document root for web server. Need to wrap in setter/getters to
-  # allow experiment script to change it as the web server is being
-  # started before the experiment script is loaded.
-  #
-  @@webRoot = "#{ENV['HOME']}/public_html"
-
-  #
-  # Return the root URL for the EC's webserver
-  #
-  # [Return] an URL String
-  #
-  def NodeHandler.WEB_ROOT()
-    @@webRoot
-  end
-
-  #
-  # Set the root URL for the EC's webserver
-  #
-  # - root = an URL String
-  #
-  def NodeHandler.WEB_ROOT=(root)
-    @@webRoot = root
-  end
 
   #
   # ShutDown Flag: 
@@ -434,7 +410,7 @@ class NodeHandler < MObject
     @extraLibs = nil
     @logConfigFile = nil
     @finalStateFile = nil
-    @webPort = 4000
+    #@webPort = 4000
     omlURI = nil
 
     opts = OptionParser.new
@@ -493,9 +469,6 @@ class NodeHandler < MObject
       exit
     }
 
-    opts.on("--web-port PORT_NO", "Port to start web server on") {|port|
-      @webPort = port.to_i
-    }
 
     opts.on("-o", "--output-result FILE", 
     "File to write final state information to") {|file|
@@ -532,10 +505,6 @@ class NodeHandler < MObject
       Experiment.tags = tags
     }
 
-    # opts.on("-w", "--web-ui",
-    # "Control experiment through web interface") { 
-    #   @web_ui = true 
-    # }
 
     opts.on("--oml-uri URI", 
     "The URI to the OML server for this experiment") { |uri|
@@ -921,62 +890,6 @@ class NodeHandler < MObject
       el.add_element(k.to_s).text = v
     } if extra != nil
     return id
-  end
-
-  #
-  # This method starts the EC's WebServer which will be used by nodes to 
-  # retrieve configuration info, e.g. OML configs  
-  #
-  def startWebServer(port = @webPort)
-    return # NO WEB SERVER
-    
-    accLog = MObject.logger('web::access')
-    accLog.instance_eval {
-      # Webrick only calls '<<' to log access information
-      def << (msg)
-        info(msg.strip)
-      end
-    }
-    
-    confirmedPort = 0
-    for i in port..port + MAXWEBTRY do
-      begin
-        #info "Checking port #{i}..."
-        serv = TCPServer.new(i)
-        serv.close
-        
-        require 'omf-expctl/web/helpers'
-        cfg = OConfig[:ec_config][:web] || {}
-        OMF::Common::Web::start(i,
-           :Logger => MObject.logger('web::server'),
-           :DocumentRoot => NodeHandler.WEB_ROOT(),
-           :AccessLog => [[accLog, "%h \"%r\" %s %b"]],
-           #:TabDir => ["#{File.dirname(__FILE__)}/web/tab"],
-           :TabDir => cfg[:tab_dir] || ['omf-expctl/web/tab', 
-                                        'omf-common/web/tab'],
-           #:PublicHtml => OConfig[:ec_config][:repository][:path],
-           :ResourceDir => cfg[:resource_dir],
-           :ViewHelperClass => OMF::EC::Web::ViewHelper,
-           :FileLoadFunc => lambda do |uri, def_ext| 
-                              OConfig.load(uri, false, def_ext) 
-                            end
-        )
-        confirmedPort = i
-      rescue Exception => ex
-        debug "Cannot start webserver on port #{i} (#{ex})"
-        # Ignore this exception, 'i' will be incremented in the next loop
-      end
-      break if confirmedPort != 0   
-    end
-    
-    if confirmedPort > 0
-      info "Web interface available at: #{OMF::Common::Web::url}"
-    else  
-      error "Binding a free TCP port in the range #{port} to "+
-            "#{port+MAXWEBTRY} was unsuccessful. Giving up!"
-      exit
-    end
-
   end
 
   def display_error_msg(lines)

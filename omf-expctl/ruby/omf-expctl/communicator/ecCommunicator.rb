@@ -117,13 +117,16 @@ class ECCommunicator < OmfCommunicator
     super
   end
   
-  def close
+  def stop
     # tell the world we seem to done
     cmd = create_message(:cmdtype => :EXPERIMENT_DONE, :slice_id => @@sliceID,
                           :experiment_id => @@expID, :address => @my_addr.generate_address(true))
     send_message(@slice_addr, cmd)
+
+    send_reset
+    send_noop
     
-    reset
+    super
   end
 
   def send_message(addr, message)
@@ -143,7 +146,7 @@ class ECCommunicator < OmfCommunicator
   #
   def send_noop(resID = nil)
     target = resID ? resID : "*"
-    addr = create_address(:sliceID => @@sliceID, :domain => @@domain,
+    addr = create_address(:sliceID => @@sliceID, :expID => @@expID, :domain => @@domain,
                            :name => resID)
     cmd = create_message(:cmdtype => :NOOP, :target => "#{target}")
     send_message(addr, cmd)
