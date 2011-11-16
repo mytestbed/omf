@@ -46,78 +46,31 @@ class RootGroupNodeSet < AbstractGroupNodeSet
     @nodeSelector = "*"
   end
 
+  # Return all groups included in this group. If +recursive+
+  # is true, also include all groups included by groups.
+  # The result will include each group only once, even if it
+  # appears multiple times in the crawl.
   #
-  # This method executes a block of command on ALL the groups of NodeSets
-  #
-  # - &block = the block of command to execute
-  #
-  def eachGroup(&block)
-    raise "No resources or groups of resources defined in your "+
-          "experiment!" if !@@groups || @@groups.empty?
-    debug("Running 'eachGroup' in RootGroupNodeSet")
-    @@groups.each_value { |g|
-      if g.kind_of?(BasicNodeSet)
-        debug("Call #{g}")
-        block.call(g)
+  def groups(recursive = false)
+    groups = Set.new(@@groups.values)
+    if (recursive)
+      groups.each do |ns|
+        groups << ns.groups(true)
       end
-    }
+    end
+    return groups
   end
 
+  # Return all nodes included in this group. 
+  # 
+  # If a +nodeSet+ is provided, nodes will be added to it 
+  # otherwiste a new node set is being created
   #
-  # This method executes a block of command on ALL the node in ALL the groups 
-  # of NodeSets
-  # Note that a node can be a member of two different groups, this method 
-  # executes the block twice for such a node.
-  #
-  # - &block = the block of command to execute
-  #
-  def each(&block)
-    #debug("Running 'each' in RootGroupNodeSet")
-    @@groups.each_value { |g|
-      if g.kind_of?(BasicNodeSet)
-        # This debug generates large log file when many groups are defined
-        #debug("Running each for #{g}") 
-        g.each &block
-      end
-    }
-  end
-
-  #
-  # This method executes a block of command on ALL unique nodes in ALL the 
-  # groups of NodeSets
-  # Note that a node can be a member of two different groups, this method 
-  # executes the block only once for such a node.
-  #
-  # - &block = the block of command to execute
-  #
-  def eachNode(&block)
-    allUniqueNode = Set.new
-    @@groups.each_value { |g|
-      if g.kind_of?(BasicNodeSet)
-        g.each { |n| allUniqueNode.add(n) }
-      end
-    }
-    debug("Running eachUniqueNode for #{allUniqueNode.to_a.join(', ')}")
-    allUniqueNode.each &block
-  end
-
-  #
-  # This method calls inject over ALL the nodes 
-  #
-  # - seed = the initial value for the inject 'result'
-  # - &block = the block of command to inject
-  #
-  def inject(seed = nil, &block)
-    result = seed
-    @@groups.each_value { |g|
-      #debug "#inject: Checking #{g}:#{g.class} (#{result})"
-      if g.kind_of?(BasicNodeSet)
-        #debug "#inject: Calling inject on #{g} (#{result})"
-        result = g.inject(result, &block)
-      end
-      #debug "#inject: result: #{result}"
-    }
-    return result
+  def nodes(nodeSet = Set.new)
+    @@groups.each_value do |g|
+      g.nodes(nodeSet)
+    end
+    return nodeSet
   end
 
 end
@@ -130,7 +83,7 @@ class DefinedGroupNodeSet < RootGroupNodeSet
   def initialize()
     super()
     sel = ""
-    eachGroup {|g| sel = sel + "#{g.to_s} " }
+    groups.each {|g| sel = sel + "#{g.to_s} " }
     #@nodeSelector = "\"#{sel}\""
     @nodeSelector = "#{sel}"
   end

@@ -57,18 +57,9 @@ class BasicNodeSet < NodeSet
   #
   def addApplication(appContext)
     super(appContext)
-    self.each { |n|
+    nodes.each { |n|
       n.addApplication(appContext)
     }
-  end
-
-  #
-  # This method executes a block of commands for every node in this NodeSet
-  #
-  # - &block = the block of command to execute
-  #
-  def each(&block)
-    @topo.each(&block) if !@topo.nil?
   end
 
   #
@@ -78,14 +69,14 @@ class BasicNodeSet < NodeSet
   # - &block = the block of command to inject
   #
   def inject(seed = nil, &block)
-    @topo ? @topo.inject(seed, &block) : seed
+    nodes.inject(seed, &block)
   end
 
   #
   # This method powers ON all the nodes in this NodeSet
   #
   def powerOn()
-    each { |n|
+    nodes.each { |n|
       n.powerOn()
       if NodeHandler.JUST_PRINT
         n.checkIn(n.nodeID, '1.0', 'UNKNOWN')
@@ -102,7 +93,24 @@ class BasicNodeSet < NodeSet
   # - hard = true/false (optional, default=false)
   #
   def powerOff(hard = false)
-    each { |n| n.powerOff() }
+    nodes.each { |n| n.powerOff() }
   end
 
+  # Return a set with only itself in it.
+  #
+  def groups(recursive = false)
+    Set.new() << self
+  end
+  
+  # Return all nodes included in this group. 
+  # 
+  # If a +nodeSet+ is provided, nodes will be added to it 
+  # otherwiste a new node set is being created
+  #
+  def nodes(nodeSet = Set.new)
+    @topo.eachNode do |n|
+      nodeSet << n
+    end
+    return nodeSet
+  end
 end

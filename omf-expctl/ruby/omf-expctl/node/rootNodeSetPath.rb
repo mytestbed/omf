@@ -141,13 +141,27 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # Execute a block of commands for every nodes in the NodeSet associated to 
+  # Execute a block of commands for every group in the NodeSet associated to 
   # this Root Path.
   #
   # - &block = the block of commands to execute
   #
-  def each(&block)
-    @nodeSet.each(&block)
+  def eachGroup(&block)
+    @nodeSet.groups().each() do |g|
+      block.call(RootNodeSetPath.new(g, nil, nil, nil))
+    end
+  end
+  
+  #
+  # Execute a block of commands for every node in the NodeSet associated to 
+  # this Root Path.
+  #
+  # - &block = the block of commands to execute
+  #
+  def eachNode(&block)
+    @nodeSet.nodes().each do |n|
+      block.call(n)
+    end
   end
 
   #
@@ -220,25 +234,25 @@ class RootNodeSetPath < NodeSetPath
   #
   def enroll()
     index = 1
-    @nodeSet.eachNode { |n| n.enroll(index); index = index + 1 }
+    eachNode { |n| n.enroll(index); index = index + 1 }
   end
 
   def set_disconnection 
-    @nodeSet.eachNode { |n| n.set_disconnection }
+    eachNode { |n| n.set_disconnection }
   end
 
   #
   # This method reset all nodes in the NodeSet of this Root Path.
   #
   def powerReset()
-    @nodeSet.eachNode { |n| n.reset() }
+    eachNode { |n| n.reset() }
   end
 
   #
   # This method powers ON all nodes in the NodeSet of this Root Path.
   #
   def powerOn()
-    @nodeSet.eachNode { |n| n.powerOn() }
+    eachNode { |n| n.powerOn() }
   end
 
   #
@@ -250,7 +264,7 @@ class RootNodeSetPath < NodeSetPath
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    @nodeSet.eachNode { |n| n.powerOff(hard) }
+    eachNode { |n| n.powerOff(hard) }
   end
 
   #

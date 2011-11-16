@@ -43,7 +43,7 @@ class AbstractGroupNodeSet < NodeSet
   def startApplications
     debug("Start all applications")
     super
-    eachGroup { |g|
+    groups.each { |g|
       debug("..... Start applications in #{g}")
       g.startApplications
     }
@@ -56,7 +56,7 @@ class AbstractGroupNodeSet < NodeSet
   def stopApplications
     debug("Stop all applications")
     super
-    eachGroup { |g|
+    groups.each { |g|
       debug(".... Stop applications in #{g}")
       g.stopApplications
     }
@@ -66,7 +66,7 @@ class AbstractGroupNodeSet < NodeSet
   # This method powers ON all nodes in all the NodeSets in this group
   #
   def powerOn()
-    eachGroup { |g|
+    groups.each { |g|
       g.powerOn
     }
   end
@@ -80,9 +80,18 @@ class AbstractGroupNodeSet < NodeSet
   # - hard = true/false (optional, default=false)
   #
   def powerOff(hard = false)
-    eachGroup { |g|
+    groups.each { |g|
       g.powerOff(hard)
     }
+  end
+  
+  # Return all groups included in this group. If +recursive+
+  # is true, also include all groups included by groups.
+  # The result will include each group only once, even if it
+  # appears multiple times in the crawl.
+  #
+  def groups()
+    raise "Not implemented here" 
   end
 
 end

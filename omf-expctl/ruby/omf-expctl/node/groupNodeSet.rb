@@ -52,17 +52,35 @@ class GroupNodeSet < AbstractGroupNodeSet
     add(selector)
     super(groupName)
   end
-
+  
+  # Return all groups included in this group. If +recursive+
+  # is true, also include all groups included by groups.
+  # The result will include each group only once, even if it
+  # appears multiple times in the crawl.
   #
-  # This method executes a block of commands for every NodeSet in this group of NodeSets
+  def groups(recursive = false)
+    if (recursive)
+      res = @nodeSets.dup
+      @nodeSets.each do |ns|
+        res << ns.groups(true)
+      end
+      return res
+    else
+      return @nodeSets
+    end
+    raise "Not implemented here" 
+  end
+  
+  # Return all nodes included in this group. 
+  # 
+  # If a +nodeSet+ is provided, nodes will be added to it 
+  # otherwiste a new node set is being created
   #
-  # - &block = the block of command to execute
-  #
-  def eachGroup(&block)
-    debug("Running 'eachGroup' in GroupNodeSet")
-    @nodeSets.each { |g|
-       block.call(g)
-    }
+  def nodes(nodeSet = Set.new)
+    @nodeSets.each do |g|
+      g.nodes(nodeSet)
+    end
+    return nodeSet
   end
 
   #
@@ -72,35 +90,20 @@ class GroupNodeSet < AbstractGroupNodeSet
   #
   def addApplication(app)
     super(app)
-    eachGroup { |g|
+    groups.each { |g|
       # inform all enclosed groups, but do not request another install
       g.addApplication(app)
     }
   end
 
   #
-  # This method executes a block of commands for every node in every NodeSets in this group of NodeSets
-  #
-  # - &block = the block of command to execute
-  #
-  def each(&block)
-    @nodeSets.each { |s|
-      s.each &block
-    }
-  end
-
-  #
-  # This method calls inject over the NodeSets contained in this group.
+  # This method calls inject over ALL the nodes in this node set
   #
   # - seed = the initial value for the inject 'result'
   # - &block = the block of command to inject
   #
   def inject(seed = nil, &block)
-    result = seed
-    @nodeSets.each { |s|
-      result = s.inject(result, &block)
-    }
-    return result
+    nodes.inject(seed, &block)
   end
 
   private

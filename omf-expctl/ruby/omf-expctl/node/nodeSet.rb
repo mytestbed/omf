@@ -145,13 +145,13 @@ class NodeSet < MObject
       @nodeSelector = "*"
     else
       @nodeSelector = "#{@groupName}"
-      each { |n|
+      nodes.each { |n|
         n.addGroupName(@groupName)
       }
       add_observer(NodeSet.ROOT)
       @@groups[@groupName] = self
     end
-    each { |n|
+    nodes.each { |n|     
       n.add_observer(self)
     }
   end

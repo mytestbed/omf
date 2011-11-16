@@ -121,6 +121,13 @@ class Topology < MObject
     return Topology[topoName]
   end
 
+  
+  # Return all nodes in this topology
+  # 
+  def nodes()
+    return @nodes.dup
+  end
+  
   #
   # Return the number of nodes in this Topology
   #
@@ -372,7 +379,17 @@ class Topology < MObject
   #
   # - &block = the block of commands to execute
   #
-  def each(&block) @nodes.each(&block); end
+  def each(&block) 
+    warn "Depreciated, use 'eachNode' instead"
+    @nodes.each(&block)
+  end
+
+  #
+  # This method executes a block of commands for every node in this Topology
+  #
+  # - &block = the block of commands to execute
+  #
+  def eachNode(&block) @nodes.each(&block); end
 
   #
   # This method calls inject over the nodes contained in this set
