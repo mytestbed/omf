@@ -60,7 +60,8 @@ class NodeAgent < MObject
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport, :motetype
+  attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport, 
+    :motetype, :resizefs
 
   attr_accessor :allowDisconnection, :enrolled, :index
 
@@ -380,6 +381,7 @@ class NodeAgent < MObject
     @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.chomp)
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
+    @resizefs = @config[:agent][:resizefs] 
     @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
                    @config[:communicator][:xmpp][:pubsub_gateway]
 

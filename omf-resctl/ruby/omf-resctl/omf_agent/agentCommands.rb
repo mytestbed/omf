@@ -493,7 +493,10 @@ module AgentCommands
     ip = controller.controlIP
     raise "Could not get the IP address from the control interface. 
       Check the control_if parameter of this RC!" if ip == nil
-    cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk} ; #{GROWPART} #{disk}"
+    cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
+    if controller.resizefs == true
+      cmd = "#{cmd}; #{GROWPART} #{disk}"
+    end
     MObject.debug("AgentCommands", "Frisbee command: ", cmd)
     ExecApp.new('builtin:load_image', controller, cmd, true)
   end
@@ -509,8 +512,10 @@ module AgentCommands
     imgHost = command.address
     imgPort = command.port
     disk = command.disk
-    
-    cmd = "#{SHRINKPART} #{disk}; imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}; #{GROWPART} #{disk}"
+    cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
+    if controller.resizefs == true
+      cmd = "#{SHRINKPART} #{disk}; #{cmd}; #{GROWPART} #{disk}"
+    end
     MObject.debug("AgentCommands", "Image save command: #{cmd}")
     ExecApp.new('builtin:save_image', controller, cmd, true)
   end
