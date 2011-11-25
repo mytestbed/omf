@@ -99,6 +99,10 @@ class NodeSet < MObject
     @@execsCount = 0
     @@is_frozen = false
   end
+  
+  def each(&block)
+    nodes.each(&block)
+  end
 
 
   # Counter of anonymous groups
@@ -151,7 +155,7 @@ class NodeSet < MObject
       add_observer(NodeSet.ROOT)
       @@groups[@groupName] = self
     end
-    nodes.each { |n|     
+    each { |n|     
       n.add_observer(self)
     }
   end

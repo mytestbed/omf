@@ -242,44 +242,44 @@ onEvent(:ALL_UP) {
 }
 
 
-#defURL('/progress') {|req, res|
-OMF::Common::Web.mapProc('/progress') {|req, res|
-  body = []
-  body << %q{
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-  <head>
-    <meta http-equiv="refresh" content="10">
-    <title>Imaging Progress :: Orbit</title>
-    <link href="resource/stylesheet/grid.css" type="text/css" rel="stylesheet"/>
-  </head>
-
-  <body>
-      <h1>Imaging Progress</h1>
-      <table class="grid">
-}
-  # TODO: port this to OMF 5.4
-  # (1 .. OConfig[:tb_config][:default][:y_max]).each { |y|
-  #   body << "<tr class='row'>"
-  #   (1 .. OConfig[:tb_config][:default][:x_max]).each { |x|
-  #     n = Node[x,y]
-  #     if (n == nil)
-  #       body << "<td class='cell'></td>"
-  #     elsif (n.isUp)
-  #       body << "<td class='cell cell-up'>"
-  #       progress = n.match('apps/builtin[1]/properties/progress/text()').to_s
-  #       if (progress != nil)
-  #         body << "<div class='cell-progress' style='width: #{progress}%'></div>"
-  #       end
-  #       body << "</td>"
-  #     else
-  #       body << "<td class='cell cell-down'></td>"
-  #     end
-  #   }
-  #   body << "</tr>"
-  # }
-  body << "</table></body></html>"
-  res.body = body.to_s
-  res['Content-Type'] = "text/html"
-}
-
+##defURL('/progress') {|req, res|
+#OMF::Common::Web.mapProc('/progress') {|req, res|
+#  body = []
+#  body << %q{
+#<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+#<html>
+#  <head>
+#    <meta http-equiv="refresh" content="10">
+#    <title>Imaging Progress :: Orbit</title>
+#    <link href="resource/stylesheet/grid.css" type="text/css" rel="stylesheet"/>
+#  </head>
+#
+#  <body>
+#      <h1>Imaging Progress</h1>
+#      <table class="grid">
+#}
+#  # TODO: port this to OMF 5.4
+#  # (1 .. OConfig[:tb_config][:default][:y_max]).each { |y|
+#  #   body << "<tr class='row'>"
+#  #   (1 .. OConfig[:tb_config][:default][:x_max]).each { |x|
+#  #     n = Node[x,y]
+#  #     if (n == nil)
+#  #       body << "<td class='cell'></td>"
+#  #     elsif (n.isUp)
+#  #       body << "<td class='cell cell-up'>"
+#  #       progress = n.match('apps/builtin[1]/properties/progress/text()').to_s
+#  #       if (progress != nil)
+#  #         body << "<div class='cell-progress' style='width: #{progress}%'></div>"
+#  #       end
+#  #       body << "</td>"
+#  #     else
+#  #       body << "<td class='cell cell-down'></td>"
+#  #     end
+#  #   }
+#  #   body << "</tr>"
+#  # }
+#  body << "</table></body></html>"
+#  res.body = body.to_s
+#  res['Content-Type'] = "text/html"
+#}
+#

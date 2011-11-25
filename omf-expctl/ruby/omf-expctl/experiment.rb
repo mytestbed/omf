@@ -274,7 +274,7 @@ class Experiment
     # Reset the nodes before starting the experiment if -r flag was set
     if NodeHandler.NODE_RESET
       MObject.info("Experiment", "Resetting resources which are already ON")
-      OMF::OMF::ECinstance.allGroups.powerReset
+      OMF::EC::CmdContext.instance.allGroups.powerReset
     end
     MObject.info("Experiment", "Switching ON resources which are OFF")
     OMF::EC::CmdContext.instance.allGroups.powerOn

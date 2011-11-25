@@ -167,6 +167,10 @@ class NodeSetPath < MObject
   def pathString()
     @nodeSet.to_s + '/' + @pathSubString
   end
+  
+  def each(&block)
+    @nodeSet.each(&block)
+  end
 
   #
   # This method parses a String describing a sub-Path to this Path, and create 
