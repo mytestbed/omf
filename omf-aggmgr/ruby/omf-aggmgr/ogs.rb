@@ -213,16 +213,14 @@ def run(params)
         end
       }
 
-      # This is not needed because OMF::XMPP::Connection.new already adds the domain
-      #
-      # begin
-      #   OMF::ServiceCall.add_domain(:type => :xmpp,
-      #                               :uri => xmpp_params[:server])
-      # rescue OMF::ServiceCall::ServiceCallException => e
-      #   MObject.error(:gridservices, "Failed to set up service call framework: #{e}")
-      #   bt = e.backtrace.join("\n\t")
-      #   MObject.debug(:gridservices, "Exception:  #{e} (#{e.class})\n\t#{bt}")
-      # end
+      begin
+        OMF::ServiceCall.add_domain(:type => :xmpp,
+                                    :uri => xmpp_params[:server])
+      rescue OMF::ServiceCall::ServiceCallException => e
+        MObject.error(:gridservices, "Failed to set up service call framework: #{e}")
+        bt = e.backtrace.join("\n\t")
+        MObject.debug(:gridservices, "Exception:  #{e} (#{e.class})\n\t#{bt}")
+      end
     end
     ServiceMounter.start_services
   }.join

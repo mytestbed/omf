@@ -103,6 +103,17 @@ class NodeSet < MObject
   def each(&block)
     nodes.each(&block)
   end
+  
+  #
+  # This method calls inject over ALL the nodes in this node set
+  #
+  # - seed = the initial value for the inject 'result'
+  # - &block = the block of command to inject
+  #
+  def inject(seed = nil, &block)
+    nodes.inject(seed, &block)
+  end
+
 
 
   # Counter of anonymous groups
