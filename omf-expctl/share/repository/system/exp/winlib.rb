@@ -1,17 +1,36 @@
 #
+# Copyright (c) 2006-2009 National ICT Australia (NICTA), Australia
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+#
+# = winlib.rb
+#
+# == Description
+#
 # THIS IS FOR WINLAB ONLY
 #
 # To use the old OMF 5.2 syntax for node description (e.g. [x,y])
 # - load this file in your experiment
+# - rename your 'defTopology' in your experiment by 'defTopology52'
 # - rename your 'defGroup' in your experiment by 'defGroup52'
-# For example:
-#    defGroup52('group1', [2,3]) 
-#    defGroup52('group2', [[2,3],[4,5],[6,7]]) 
-#    defGroup52('group3', [1..2,4..5]) 
-#    defGroup52('group4', [[1..2,4..5],[6,7],[8,9]]) 
-#    defProperty('res', [1..2,1..2], "Some nodes")
-#    defGroup52('group5', property.res)
-#    defGroup52('group6', ['group1','group2'])
+# See the examples of use in the test section at the end of this file
 #
 
 
@@ -65,10 +84,10 @@ def turn_52_to_53(nodes)
 end
 
 # THIS IS FOR WINLAB ONLY
-# Provide a new 'defGroup52' method which accept 5.3 node coordinate syntax,
-# turns them into 5.3 HRN syntax and call the 5.3 defGroup with it 
+# Turns a group/topology selector from the 5.2 to the 5.3 format
+# If the format change is not possible, returns the original selector
 #
-def defGroup52(groupName, selector = nil, &block)
+def process_selector(selector)
   resources = nil
   # Make sure we use the selector's value if it's an Experiment Property
   selector = selector.value if selector.kind_of?(ExperimentProperty)
@@ -84,19 +103,52 @@ def defGroup52(groupName, selector = nil, &block)
   end
   # If the 5.2 to 5.3 process did not succeed, then use the original selector
   sel = (!resources.nil? && !resources.empty?) ? resources.join(',') : selector
-  # Now call the 5.3 defGroup
+  return sel
+end
+
+# THIS IS FOR WINLAB ONLY
+# Provide a new 'defGroup52' method which accept 5.3 node coordinate syntax,
+# turns them into 5.3 HRN syntax and call the 5.3 defGroup with it 
+#
+def defGroup52(groupName, selector = nil, &block)
+  sel = process_selector(selector)
   #puts ">>> s: '#{selector}'" ;  puts ">>> r: '#{sel}'"
   OMF::ExperimentController::CmdContext.instance.defGroup(groupName, sel, &block)
 end
 
+# THIS IS FOR WINLAB ONLY
+# Provide a new 'defTopology52' method which accept 5.3 node coordinate syntax,
+# turns them into 5.3 HRN syntax and call the 5.3 defTopology with it 
 #
-# Testing
+def defTopology52(topoName, selector = nil, &block)
+  sel = process_selector(selector)
+  #puts ">>> s: '#{selector.inspect}'" ;  puts ">>> r: '#{sel}'"
+  OMF::ExperimentController::CmdContext.instance.defTopology(topoName, sel, &block)
+end
+
+#
+# Testing Topology: uncomment below and run with "omf-5.3 exec winlib.rb"
+#
+#defTopology52('topo1', [2,3]) 
+#defTopology52('topo2', [[2,3],[4,5],[6,7]]) 
+#defTopology52('topo3', [1..2,4..5]) 
+#defTopology52('topo4', [[1..2,4..5],[6,7],[8,9]]) 
+#defProperty('res2', [1..2,1..2], "Some nodes")
+#defTopology52('topo5', property.res2)
+#(1..5).each { |i|
+#  puts "Content of Topology: topo#{i}"
+#  Topology["topo#{i}"].eachNode { |n| puts "- #{n}" }
+#}
+#Experiment.done
+
+#
+# Testing Groups: uncomment below and run with "omf-5.3 exec winlib.rb"
 #
 #defGroup52('group1', [2,3]) 
 #defGroup52('group2', [[2,3],[4,5],[6,7]]) 
 #defGroup52('group3', [1..2,4..5]) 
 #defGroup52('group4', [[1..2,4..5],[6,7],[8,9]]) 
-#defProperty('res', [1..2,1..2], "Some nodes")
-#defGroup52('group5', property.res)
+#defProperty('res1', [1..2,1..2], "Some nodes")
+#defGroup52('group5', property.res1)
 #defGroup52('group6', ['group1','group2'])
 #Experiment.done
