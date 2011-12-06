@@ -61,6 +61,7 @@ rescue ServiceException => sex
     MObject.fatal('run', "Exception: #{sex.message} : #{sex.response.body}")
   rescue Exception
   end
+rescue SystemExit
 rescue Exception => ex
   if Experiment.running?
     begin

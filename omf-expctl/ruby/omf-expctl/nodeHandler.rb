@@ -539,7 +539,7 @@ class NodeHandler < MObject
     }
 
     opts.on_tail("-h", "--help", "Show this message") { |v| 
-      puts VERSION_STRING; puts opts; exit 
+      puts VERSION_STRING; puts opts; exit
     }
 
     opts.on_tail("-v", "--version", "Show the version\n") { |v| 
@@ -838,6 +838,10 @@ class NodeHandler < MObject
     begin
       ECCommunicator.instance.send_reset
       ECCommunicator.instance.send_noop
+      if NodeHandler.SHUTDOWN
+        info "Shutdown flag is set - Turning Off the resources"
+        OMF::EC::CmdContext.instance.allGroups.powerOff
+      end
       ECCommunicator.instance.stop
     rescue Exception => ex
       raise "Failed to shutdown the Communicator! - Error: '#{ex}'"
@@ -870,10 +874,6 @@ class NodeHandler < MObject
       #ignore
     end
 
-    if NodeHandler.SHUTDOWN
-      info "Shutdown flag is set - Turning Off the resources"
-      OMF::EC::CmdContext.instance.allGroups.powerOff
-    end
     @running = nil
   end
 
