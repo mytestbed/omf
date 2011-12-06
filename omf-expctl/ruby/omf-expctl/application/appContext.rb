@@ -182,7 +182,7 @@ class AppContext < MObject
       key = k[1..-1].chop
       value = nil
       value = eval(key,
-                   OMF::ExperimentController::CmdContext.instance._binding() )
+                   OMF::EC::CmdContext.instance._binding() )
       result.gsub!("#{k}","#{value}") if value
     }
     return result

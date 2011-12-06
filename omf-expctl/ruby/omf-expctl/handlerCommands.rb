@@ -540,15 +540,15 @@ module OMF::EC
     
     def defGraph(uri = nil, &block)
       require 'omf-expctl/graph/graph'
-      OMF::ExperimentController::Graph::Graph.new(uri, &block)
+      OMF::EC::Graph::Graph.new(uri, &block)
     end
     
     def mstream(uri = :mandatory)
       raise OEDLMissingArgumentException.new(:mstream, :uri) if uri == :mandatory
     
       require 'omf-expctl/oml/oml_mstream'
-      unless (ms = OMF::ExperimentController::OML::MStream[uri])
-        puts OMF::ExperimentController::OML::MStream.collect do |name, ms| [name, ms.tableName] end.inspect
+      unless (ms = OMF::EC::OML::MStream[uri])
+        puts OMF::EC::OML::MStream.collect do |name, ms| [name, ms.tableName] end.inspect
         raise OEDLIllegalArgumentException.new(:mstream, uri)
       end
       ms.arelTable

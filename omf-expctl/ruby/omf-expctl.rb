@@ -87,7 +87,7 @@ end
 #if NodeHandler.instance.interactive?
 #  require 'omf-expctl/console'
 #  
-#  OMF::ExperimentController::Console.instance.run
+#  OMF::EC::Console.instance.run
 ##  require 'irb'
 ##  ARGV.clear
 ##  ARGV << "--simple-prompt"

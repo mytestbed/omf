@@ -1,6 +1,6 @@
 require 'omf-expctl/web/tab/dashboard/dashboardServlet'
 
-include OMF::ExperimentController
+include OMF::EC
 
 opts = {
     :name => :dashboard, 

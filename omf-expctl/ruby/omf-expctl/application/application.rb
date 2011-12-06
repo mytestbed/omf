@@ -169,7 +169,7 @@ class Application < MObject
     if (mDef == nil)
       raise "Unknown measurement point '#{name}'"
     end
-    m = OMF::ExperimentController::OML::MStream.new(name, @appRef, opts, self, &block)
+    m = OMF::EC::OML::MStream.new(name, @appRef, opts, self, &block)
     @measurements << m
     return m
   end

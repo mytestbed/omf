@@ -129,7 +129,7 @@ module OMF
               filterType = 'first'
       	    end
             # Build and Add the metric to this Measurement Stream
-            filter = OMF::ExperimentController::OML::Filter.new(filterType, "#{name}_#{parameter}", {:input => parameter})  
+            filter = OMF::EC::OML::Filter.new(filterType, "#{name}_#{parameter}", {:input => parameter})  
       	    @filters << filter
       	  end
         end
@@ -168,7 +168,7 @@ module OMF
           fopts[:fname] = type
           fopts[:ms] = self
           fopts[:fspec] = fspec
-          filter = OMF::ExperimentController::OML::Filter.new(fopts)  
+          filter = OMF::EC::OML::Filter.new(fopts)  
           @filters << filter
         end
 

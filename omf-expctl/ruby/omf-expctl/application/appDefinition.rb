@@ -421,7 +421,7 @@ class AppDefinition < MObject
   # [Return] the newly created measurement point.
   #
   def defMeasurement(id, description = nil, metrics = nil, &block)
-    m = ::OMF::ExperimentController::OML::MPoint.new(id, description, metrics)
+    m = ::OMF::EC::OML::MPoint.new(id, description, metrics)
     block.call(m) if block
     @measurements[id] = m
     return m

@@ -1,6 +1,6 @@
 require 'omf-expctl/web/tab/state/xmlStateServlet'
 
-include OMF::ExperimentController::Web
+include OMF::EC::Web
 opts = {
     :name => :stats, 
     :priority => 900, 

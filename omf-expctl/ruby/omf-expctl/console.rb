@@ -96,7 +96,7 @@ module OMF::EC
       attr_reader :main
       
       def initialize(*args)
-        @binding = OMF::ExperimentController::CmdContext.instance._binding()
+        @binding = OMF::EC::CmdContext.instance._binding()
         @main = eval("self", @binding)          
       end
       

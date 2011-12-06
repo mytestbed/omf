@@ -865,14 +865,14 @@ class NodeHandler < MObject
     end
 
     begin
-      OMF::ExperimentController::Web::stop
+      OMF::EC::Web::stop
     rescue Exception
       #ignore
     end
 
     if NodeHandler.SHUTDOWN
       info "Shutdown flag is set - Turning Off the resources"
-      OMF::ExperimentController::CmdContext.instance.allGroups.powerOff
+      OMF::EC::CmdContext.instance.allGroups.powerOff
     end
     @running = nil
   end
@@ -952,7 +952,7 @@ class NodeHandler < MObject
                                         'omf-common/web/tab'],
            #:PublicHtml => OConfig[:ec_config][:repository][:path],
            :ResourceDir => cfg[:resource_dir],
-           :ViewHelperClass => OMF::ExperimentController::Web::ViewHelper,
+           :ViewHelperClass => OMF::EC::Web::ViewHelper,
            :FileLoadFunc => lambda do |uri, def_ext| 
                               OConfig.load(uri, false, def_ext) 
                             end
