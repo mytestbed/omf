@@ -55,6 +55,7 @@ module CMC
   #
   # - set = a String describing the set of nodes to switch ON
   #
+  # NOT IMPLEMENTED IN CURRENT CMC
   def CMC.nodeSetOn(set)
     if NodeHandler.JUST_PRINT
       puts ">> CMC: Switch on nodes #{set}"
@@ -71,12 +72,13 @@ module CMC
   # Switch a given node OFF Hard
   # (i.e. similar to a push of 'power' button)
   #
+  # NOT IMPLEMENTED IN CURRENT CMC
   def CMC.nodeOffHard(name)
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{name}"
     else
       begin
-        OMF::Services.cmc.offhard(name)
+        OMF::Services.cmc.offHard(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex
         MObject.debug("CMC", "Can't switch OFF node '#{name}'")
       end
@@ -92,7 +94,7 @@ module CMC
       puts "CMC: Switch of node #{name}"
     else
       begin
-        OMF::Services.cmc.offsoft(name)
+        OMF::Services.cmc.offSoft(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex
         MObject.debug("CMC", "Can't switch OFF node '#{name}'")
       end
@@ -103,12 +105,13 @@ module CMC
   # Switch all nodes OFF Hard
   # (i.e. similar to a push of 'power' button)
   #
+  # NOT IMPLEMENTED IN CURRENT CMC
   def CMC.nodeAllOffHard()
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off hard node"
     else
       begin
-        OMF::Services.cmc.alloffhard
+        OMF::Services.cmc.alloffhard(:domain => OConfig.domain)
       rescue Exception => ex
         MObject.debug("CMC", "Can't switch OFF all nodes")
       end
@@ -119,12 +122,13 @@ module CMC
   # Switch all nodes OFF Soft
   # (i.e. similar to a console call to 'halt -p' on the node)
   #
+  # NOT IMPLEMENTED IN CURRENT CMC
   def CMC.nodeAllOffSoft()
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off soft node"
     else
       begin
-        OMF::Services.cmc.alloffsoft
+        OMF::Services.cmc.alloffsoft(:domain => OConfig.domain)
       rescue Exception => ex
         MObject.debug("CMC", "Can't switch OFF all nodes")
       end
@@ -139,7 +143,7 @@ module CMC
       puts "CMC: Reset node #{name}"
     else
       begin
-        OMF::Services.cmc.reset(name)
+        OMF::Services.cmc.reset(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex
         MObject.debug("CMC", "Can't reset node '#{name}'")
       end
