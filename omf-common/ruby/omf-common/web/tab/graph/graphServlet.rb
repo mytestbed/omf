@@ -47,7 +47,7 @@ module OMF
               res.body = g[:config]
             end
   
-#            expID = OMF::ExperimentController::Web::ViewHelper.exp_id()
+#            expID = OMF::EC::Web::ViewHelper.exp_id()
 #            #expID = "outdoor_2009_03_27_18_33_57"
 #            
 #            q = "select seq_no, oml_ts_client from otr2_udp_in;"
@@ -105,7 +105,7 @@ module OMF
           g[:name] = 'pkts_received'
           g[:query] = "select seq_no, oml_ts_client from otr2_udp_in;"
           
-          expID = OMF::ExperimentController::Web::ViewHelper.exp_id()
+          expID = OMF::EC::Web::ViewHelper.exp_id()
           q = "select seq_no, oml_ts_client from otr2_udp_in;"
           url = "http://console.outdoor.orbit-lab.org:5012/result/queryDatabase?expID=#{expID}&query=#{q}&format=json"
           format = "json"

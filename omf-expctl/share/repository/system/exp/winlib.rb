@@ -113,7 +113,7 @@ end
 def defGroup52(groupName, selector = nil, &block)
   sel = process_selector(selector)
   #puts ">>> s: '#{selector}'" ;  puts ">>> r: '#{sel}'"
-  OMF::ExperimentController::CmdContext.instance.defGroup(groupName, sel, &block)
+  OMF::EC::CmdContext.instance.defGroup(groupName, sel, &block)
 end
 
 # THIS IS FOR WINLAB ONLY
@@ -123,7 +123,7 @@ end
 def defTopology52(topoName, selector = nil, &block)
   sel = process_selector(selector)
   #puts ">>> s: '#{selector.inspect}'" ;  puts ">>> r: '#{sel}'"
-  OMF::ExperimentController::CmdContext.instance.defTopology(topoName, sel, &block)
+  OMF::EC::CmdContext.instance.defTopology(topoName, sel, &block)
 end
 
 #
