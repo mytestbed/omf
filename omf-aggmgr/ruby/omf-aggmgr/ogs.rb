@@ -153,6 +153,7 @@ def run(params)
       first = true
       while true
         if xmpp_connection.connected?
+          sleep 1
           xmpp_connection.keep_alive
         else
           begin
@@ -197,20 +198,7 @@ def run(params)
       OMF::Services::XmppEndpoint.sender_id = xmpp_params[:user]
       OMF::Services::XmppEndpoint.connection=xmpp_connection
       OMF::Services::XmppEndpoint.pubsub_selector { |opts|
-        if opts.nil?
-          slice = nil; hrn = nil;
-        else
-          hrn = opts["hrn"] || opts[:hrn] || opts["name"] || opts[:name]
-          slice = opts["sliceID"] || opts[:sliceID]
-        end
-
-        if slice.nil?
-          "/OMF/system"
-        elsif hrn.nil?
-          "/OMF/#{slice}"
-        else
-          "/OMF/#{slice}/#{hrn}"
-        end
+        "/OMF/system"
       }
 
       begin

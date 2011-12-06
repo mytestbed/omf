@@ -415,7 +415,6 @@ class XmppAggmgrServer < AggmgrServer
       domain.request_subscriptions(nil, true)
       # Add the system node and the nodes for each default slice
       nlist = @default_slices
-      nlist << "system"
       nlist.each do |node|
         begin
           make_dispatcher(domain, "#{SLICE_PREFIX}/#{node}/#{SLICE_SUFFIX}")
@@ -427,6 +426,7 @@ class XmppAggmgrServer < AggmgrServer
           end
         end
       end
+      make_dispatcher(domain, "#{SLICE_PREFIX}/system")
     end
   end
 
