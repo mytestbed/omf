@@ -28,7 +28,7 @@
 #
 
 module OMF
-  module ExperimentController
+  module EC
     module Graph
       
       class UnknownGraphResultFormat < Exception
@@ -58,7 +58,7 @@ module OMF
       end # GraphQueryResult
 
     end # Graph
-  end # ExperimentController
+  end # EC
 end # OMF
 
 

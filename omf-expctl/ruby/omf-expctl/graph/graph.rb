@@ -30,7 +30,7 @@
 require 'omf-expctl/graph/graph_query'
 
 module OMF
-  module ExperimentController
+  module EC
     module Graph
 
       class Graph
@@ -79,7 +79,7 @@ module OMF
       end
     
     end # module Graph
-  end # module ExperimentController
+  end # module EC
 end # OMF
 
 

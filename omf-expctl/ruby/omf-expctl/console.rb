@@ -180,7 +180,7 @@ end # OMF::EC
     
     
 #module OMF
-#  module ExperimentController
+#  module EC
 #    class Console2 < MObject
 #      include Singleton
 #      

@@ -28,7 +28,7 @@
 #
 
 module OMF
-  module ExperimentController
+  module EC
     module Graph
       module Filter
         module MutipleTimeLines

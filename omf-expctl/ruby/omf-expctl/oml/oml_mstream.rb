@@ -32,7 +32,7 @@ require "omf-expctl/oml/filter"
 require "omf-expctl/handlerCommands.rb"
 
 module OMF
-  module ExperimentController
+  module EC
     module OML
 
       #
@@ -250,5 +250,5 @@ module OMF
       
     
     end # module OML
-  end # module ExperimentController
+  end # module EC
 end # OMF

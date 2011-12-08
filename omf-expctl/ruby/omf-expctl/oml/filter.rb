@@ -31,7 +31,7 @@
 require 'omf-expctl/property'
 
 module OMF
-  module ExperimentController
+  module EC
     module OML
 
       #
@@ -211,5 +211,5 @@ module OMF
       end
 
     end # module OML
-  end # module ExperimentController
+  end # module EC
 end # OMF 

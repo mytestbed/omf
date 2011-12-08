@@ -30,7 +30,7 @@
 require 'graph_query_result'
 
 module OMF
-  module ExperimentController
+  module EC
     module Graph
 
       class GraphQueryException < Exception; end
@@ -91,5 +91,5 @@ module OMF
       
     
     end # module Graph
-  end # module ExperimentController
+  end # module EC
 end # OMF

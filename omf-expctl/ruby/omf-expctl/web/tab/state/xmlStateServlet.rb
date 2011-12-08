@@ -1,5 +1,5 @@
 module OMF
-  module ExperimentController
+  module EC
     module Web
       module State
         VIEW = :state

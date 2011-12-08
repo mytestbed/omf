@@ -3,7 +3,7 @@
 # with the experiment
 #
 module OMF
-  module ExperimentController
+  module EC
     module Web
       module Dashboard
         VIEW = :dashboard

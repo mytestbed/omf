@@ -2,7 +2,7 @@
 require 'omf-common/web/helpers'
 
 module OMF
-  module ExperimentController
+  module EC
     module Web
       class ViewHelper < OMF::Common::Web::ViewHelper
 

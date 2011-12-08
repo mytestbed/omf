@@ -1,5 +1,5 @@
  module OMF
-  module ExperimentController
+  module EC
     module Web     
       #
       # This class defines a Servlet (subclass of HTTPServlet::AbstractServlet) for experiment properties

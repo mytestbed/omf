@@ -46,7 +46,7 @@ require 'active_record/connection_adapters/abstract/quoting'
 require 'uri'
 
 module OMF
-  module ExperimentController
+  module EC
     module OML
 
       # An AREL engine which uses the OMF result service
@@ -186,7 +186,7 @@ module OMF
       end # Table
     
     end # module OML
-  end # module ExperimentController
+  end # module EC
 end # OMF
 
 # Monkey patch Row to return type cast row as well

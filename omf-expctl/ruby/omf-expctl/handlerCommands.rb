@@ -728,6 +728,6 @@ end
 #  eval "require('#{file}')", self.binding
 #end
 #    end # Commands
-#  end # ExperimentController
+#  end # EC
 #end # OMF
 
