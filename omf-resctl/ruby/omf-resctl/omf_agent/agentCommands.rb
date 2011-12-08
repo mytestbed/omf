@@ -71,8 +71,8 @@ module AgentCommands
     'net/e1' => EthernetDevice.new('net/e1', 'eth1')
   }
   
-  SHRINKPART = "/usr/sbin/shrinkpart.sh"
-  GROWPART = "/usr/sbin/growpart.sh"
+  SHRINKPART = "/usr/sbin/shrinkpart-#{OMF_MM_VERSION}.sh"
+  GROWPART = "/usr/sbin/growpart-#{OMF_MM_VERSION}.sh"
 
   # 
   # Return the Application ID for the OML Proxy Collection Server
