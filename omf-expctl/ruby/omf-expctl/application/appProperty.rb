@@ -46,21 +46,17 @@ class AppProperty
       raise "Property definition needs to start with an 'property' element"
     end
     name = defRoot.attributes['id']
-    description = mnemonic = type = constraints = nil
-    isDynamic = false
+    description = parameter = nil
     defRoot.elements.each { |el|
       case el.name
       when 'name' : name = el.text
+      when 'parameter' : parameter = el.text
       when 'description' : description = el.text
-      when 'mnemonic' : mnemonic = el.text
-      when 'type' : type = el.text
-      when 'constraints' : constraints = el.text
-      when 'dynamic' : isDynamic = el.text == 'true'
       else
-  warn "Ignoring element '#{el.name}'"
+        warn "Ignoring element '#{el.name}'"
       end
     }
-    p = AppProperty.new(name, description, mnemonic, type, isDynamic, constraints)
+    p = AppProperty.new(name, description, parameter)
     return p
   end
 
@@ -70,21 +66,21 @@ class AppProperty
   # Description of this property
   attr_reader :description 
 
-  # Mnemonic (if any) used for this property
-  attr_reader :mnemonic
+  # Parameter used for this property
+  attr_reader :parameter
 
   #
   # Create a new Property (AppProperty)
   #
   # - name = name for this property
-  # - descritpion = some text describing this property
-  # - mmemonic = mnemonic to use for this property
+  # - parameter = the parameter to set this property
+  # - description = some text describing this property
   # - options = optional list of options associated with this property
   #
-  def initialize(name, description, mnemonic, options = {})
+  def initialize(name, description, parameter, options = {})
     @name = name
+    @parameter = parameter
     @description = description
-    @mnemonic = mnemonic
     @options = options
     if !@options.has_key?(:order)
       @options[:order] = DEF_LAST_ORDER
@@ -113,24 +109,6 @@ class AppProperty
   end
 
   #
-  # Return the String used for a command line argument (i.e. the argument name that 
-  # appears before a value). If a mnemonic has been set for this AppProperty, then
-  # return it, if not return the full argument name (e.g. "-v" versus "--version")
-  #
-  # [Return] a String
-  #
-  def commandLineFlag
-    if (m = mnemonic) != nil
-      return "-#{m}"
-    elsif (@options != nil)
-      if @options[:use_name] == false
-         return ""
-      end
-    end
-    return "--#{name}"
-  end
-
-  #
   # Return the value of the ':order' option for this AppProperty
   #
   # [Return] 
@@ -151,16 +129,13 @@ class AppProperty
   #
   def to_xml
     a = REXML::Element.new("property")
-  a.add_attribute("id", name)
+    a.add_attribute("id", name)
     a.add_element("name").text = name
+    if (parameter)
+      a.add_element("parameter").text = parameter
+    end
     if (description)
       a.add_element("description").text = description
-    end
-    if (m = mnemonic)
-      if m.kind_of?(Integer)
-        m = m.chr
-      end
-      a.add_element("mnemonic").text = m
     end
     if (@options)
       p @options

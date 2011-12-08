@@ -260,7 +260,7 @@ class AppDefinition < MObject
         end
         # Second, add the corresponding flag+value to command line, if required
         if (((type == :boolean) && (value == true)) || (type != :boolean))
-          acmd = [prop.commandLineFlag]
+          acmd = [prop.parameter]
           if ((type != :boolean) && (value != nil))
             acmd << value
           end
@@ -356,45 +356,25 @@ class AppDefinition < MObject
   end
 
   #
-  # Define a property for this application. The 'name' is interpreted
-  # as a long parameter (--) if no mnemonic is defined. 
+  # Define a property for this application.
   #
-  # - name = the name of the long parameter for this property
+  # - name = the name of the property
   # - description = some text describing this property
-  # - mnemonic = a mnemonic for this property (e.g. '-v' for '--version')
   # - options = a list of options associated with this property 
   #
   # Currently, the following options are defined:
   #
   #   :type => <type> -- Checks if property value is of 'type'.
-  #                       If type is 'Boolean', only the name,
-  #                       or mnemonic is used if 'true'
-  #   :dynamic => true|false -- Id true property can be changed at run-time
-  #   :order => int   -- Uses the int to order the properties when forming
-  #                        command line
-  #   :use_name => true|false -- If false only use value, not name (important mnemonic must be se to 'nil')
+  #                       If type is 'Boolean', only the name is used if 'true'
+  #   :dynamic => true|false -- If true, property can be changed at run-time
+  #   :order => int   -- Uses the int to order the properties when forming command line
   #
-  def defProperty(name = :mandatory, description = :mandatory, mnemonic = nil, options = {})
+  def defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
     raise OEDLMissingArgumentException.new(:defProperty, :name) if name == :mandatory
-    raise OEDLMissingArgumentException.new(:defProperty, :description) if description == :mandatory
-    
-    mnemonic ||= options[:mnemonic]
-    if mnemonic
-      if mnemonic.kind_of?(String) 
-        if mnemonic.size != 1
-          raise OEDLIllegalArgumentException.new(:defProperty, :mnemonic, "Should be single character string")
-        end
-      elsif mnemonic.kind_of?(Integer)
-        mnemonic = mnemonic.chr
-      else
-        raise OEDLIllegalArgumentException.new(:defProperty, :mnemonic, "Should be single character string")        
-      end
-    end
-
     if @properties[name] != nil
       raise "Property '" + name + "' already defined."
     end
-    prop = AppProperty.new(name, description, mnemonic, options)
+    prop = AppProperty.new(name, description, parameter, options)
     @properties[name] = prop
   end
 
