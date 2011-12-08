@@ -1,9 +1,9 @@
 defApplication('test:app:trace_oml2', 'trace_oml2'){|a|
  
 a.path = "/usr/bin/trace_oml2" 
- a.defProperty('interface', 'interface to listen to', 'i') 
- a.defProperty('radiotap', 'Radiotap metadata enable', 'r', {:dynamic => false, :type => :boolean})
- a.defProperty('filter', 'some filers for this tap following libpcap syntax', 'f') 
+ a.defProperty('interface', 'interface to listen to', '-i') 
+ a.defProperty('radiotap', 'Radiotap metadata enable', '-r', {:dynamic => false, :type => :boolean})
+ a.defProperty('filter', 'some filers for this tap following libpcap syntax', '-f') 
  
  a.defMeasurement("radiotap") do |m| 
  m.defMetric('tsft', :long) 

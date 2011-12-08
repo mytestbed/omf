@@ -16,15 +16,15 @@ defApplication('myAppURI', 'myAppName') { |app|
   app.path = "/usr/bin/myApp"
   app.appPackage = "/home/thierry/testing/test05/myApp.tar"
 
-  app.defProperty('arg1','Argument 1', 's', {:order => 1, :type => :string, :dynamic => true})
-  app.defProperty('arg2','Argument 2', nil, {:type => :string, :dynamic => false})
-  app.defProperty('arg3','Argument 3', 'b', {:type => :boolean, :dynamic => false})
-  app.defProperty('arg4','Argument 4', nil, {:type => :boolean, :dynamic => true})
-  app.defProperty('arg5','Argument 5', nil, {:type => :boolean, :dynamic => false})
-  app.defProperty('arg6','Argument 6', 'i', {:order => 2, :type => :integer, :dynamic => false})
-  app.defProperty('arg7','Argument 7', nil, {:type => :integer, :dynamic => true})
-  app.defProperty('arg8','Argument 8', nil, {:use_name => false, :type => :string, :dynamic => true})
-  app.defProperty('arg9','Argument 9', nil, {:use_name => false, :type => :integer, :dynamic => false})
+  app.defProperty('arg1','Argument 1', '-s', {:order => 1, :type => :string, :dynamic => true})
+  app.defProperty('arg2','Argument 2', '--arg2', {:type => :string, :dynamic => false})
+  app.defProperty('arg3','Argument 3', '-b', {:type => :boolean, :dynamic => false})
+  app.defProperty('arg4','Argument 4', '--arg4', {:type => :boolean, :dynamic => true})
+  app.defProperty('arg5','Argument 5', '--arg5', {:type => :boolean, :dynamic => false})
+  app.defProperty('arg6','Argument 6', '-i', {:order => 2, :type => :integer, :dynamic => false})
+  app.defProperty('arg7','Argument 7', '--arg7', {:type => :integer, :dynamic => true})
+  app.defProperty('arg8','Argument 8', nil, {:type => :string, :dynamic => true})
+  app.defProperty('arg9','Argument 9', nil, {:type => :integer, :dynamic => false})
 }
 
 defGroup('Actor', property.res1) {|n|

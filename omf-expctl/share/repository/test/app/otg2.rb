@@ -42,18 +42,18 @@ TEXT
   # 
   # syntax: defProperty(name, description, mnemonic = nil, options = nil)
   #
-  a.defProperty('generator', 'Type of packet generator to use (cbr or expo)', 'g', {:type => :string, :dynamic => false})
-  a.defProperty('udp:broadcast', 'Broadcast', nil, {:type => :integer, :dynamic => false})
-  a.defProperty('udp:dst_host', 'IP address of the Destination', nil, {:type => :string, :dynamic => false})
-  a.defProperty('udp:dst_port', 'Destination Port to send to', nil, {:type => :integer, :dynamic => false})
-  a.defProperty('udp:local_host', 'IP address of this Source node', nil, {:type => :string, :dynamic => false})
-  a.defProperty('udp:local_port', 'Local Port of this source node', nil, {:type => :integer, :dynamic => false})
-  a.defProperty("cbr:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
-  a.defProperty("cbr:rate", "Data rate of the flow [kbps]", nil, {:dynamic => true, :type => :integer})
-  a.defProperty("exp:size", "Size of packet [bytes]", nil, {:dynamic => true, :type => :integer})
-  a.defProperty("exp:rate", "Data rate of the flow [kbps]", nil, {:dynamic => true, :type => :integer})
-  a.defProperty("exp:ontime", "Average length of burst [msec]", nil, {:dynamic => true, :type => :integer})
-  a.defProperty("exp:offtime", "Average length of idle time [msec]", nil, {:dynamic => true, :type => :integer})
+  a.defProperty('generator', 'Type of packet generator to use (cbr or expo)', '-g', {:type => :string, :dynamic => false})
+  a.defProperty('udp:broadcast', 'Broadcast', '--udp:broadcast', {:type => :integer, :dynamic => false})
+  a.defProperty('udp:dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
+  a.defProperty('udp:dst_port', 'Destination Port to send to', '--udp:dst_port', {:type => :integer, :dynamic => false})
+  a.defProperty('udp:local_host', 'IP address of this Source node', '--udp:local_host', {:type => :string, :dynamic => false})
+  a.defProperty('udp:local_port', 'Local Port of this source node', '--udp:local_port', {:type => :integer, :dynamic => false})
+  a.defProperty("cbr:size", "Size of packet [bytes]", '--cbr:size', {:dynamic => true, :type => :integer})
+  a.defProperty("cbr:rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
+  a.defProperty("exp:size", "Size of packet [bytes]", '--exp:size', {:dynamic => true, :type => :integer})
+  a.defProperty("exp:rate", "Data rate of the flow [kbps]", '--exp:rate', {:dynamic => true, :type => :integer})
+  a.defProperty("exp:ontime", "Average length of burst [msec]", '--exp:ontime', {:dynamic => true, :type => :integer})
+  a.defProperty("exp:offtime", "Average length of idle time [msec]", '--exp:offtime', {:dynamic => true, :type => :integer})
 
   # Define the Measurement Points and associated metrics that are available for this application
   #

@@ -32,9 +32,9 @@ defApplication('test:app:wlanconfig_oml2', 'wlanconfig_oml2') { |a|
 This application get information about the neighbours of the node using the wlanconfig command
 TEXT
 
-  a.defProperty('oml-server', 'Contact details for the oml collection server')
-  a.defProperty('oml-id', 'ID for this oml client')
-  a.defProperty('oml-exp-id', 'ID for this experiment')
+  a.defProperty('oml-server', 'Contact details for the oml collection server','--oml-server')
+  a.defProperty('oml-id', 'ID for this oml client','--oml-id')
+  a.defProperty('oml-exp-id', 'ID for this experiment','--oml-exp-id')
 
   # Where to find the application 'wlanconfig_oml2' which calls wlanconfig 
   # and parses its outputs

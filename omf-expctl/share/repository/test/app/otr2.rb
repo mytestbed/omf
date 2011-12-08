@@ -38,10 +38,10 @@ TEXT
 
   # Define the properties that can be configured for this application
   # 
-  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  # syntax: defProperty(name, description, parameter, options = nil)
   #
-  a.defProperty('udp:local_host', 'IP address of this Destination node', nil, {:type => :string, :dynamic => false})
-  a.defProperty('udp:local_port', 'Receiving Port of this Destination node', nil, {:type => :integer, :dynamic => false})
+  a.defProperty('udp:local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
+  a.defProperty('udp:local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
 
   # Define the Measurement Points and associated metrics that are available for this application
   #

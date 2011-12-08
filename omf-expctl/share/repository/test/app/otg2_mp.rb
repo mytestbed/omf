@@ -43,14 +43,14 @@ TEXT
 
   # Define the properties that can be configured for this application
   # 
-  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  # syntax: defProperty(name, description, parameter, options = nil)
   #
-  a.defProperty('protocol', 'Protocol to use [udpm|udp|tcp]')
-  a.defProperty('generator', 'Generator to use [cbr|expoo]')
-  a.defProperty('udpm:local_host', 'IP address of the local host [string]')
-  a.defProperty('udpm:dst_host', 'IP address of the destination host [string]')
-  a.defProperty('udpm:disjoint', 'Flag to use (or not) disjoint paths [0 or 1]')
-  a.defProperty("debug-level", "debug level [integer]")
+  a.defProperty('protocol', 'Protocol to use [udpm|udp|tcp]','--protocol')
+  a.defProperty('generator', 'Generator to use [cbr|expoo]','--generator')
+  a.defProperty('udpm:local_host', 'IP address of the local host [string]','--udpm:local_host')
+  a.defProperty('udpm:dst_host', 'IP address of the destination host [string]','--udpm:dst_host')
+  a.defProperty('udpm:disjoint', 'Flag to use (or not) disjoint paths [0 or 1]','--udpm:disjoint')
+  a.defProperty("debug-level", "debug level [integer]","--debug-level")
 
   # Note: here we should have some Measurement Point definition...
 end

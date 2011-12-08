@@ -12,8 +12,8 @@ defApplication('nmapURI', 'nmap') { |app|
   app.path = "/usr/bin/nmap"
   app.debPackage = "nmap"
 
-  app.defProperty('target','Host to scan', nil, {:order => 1, :use_name => false, :type => :string, :dynamic => false})
-  app.defProperty('port','Port to scan', 'p', {:order => 2, :type => :string, :dynamic => false})
+  app.defProperty('target','Host to scan', '--target', {:order => 1, :use_name => false, :type => :string, :dynamic => false})
+  app.defProperty('port','Port to scan', '-p', {:order => 2, :type => :string, :dynamic => false})
 }
 
 defGroup('Actor', property.res1) {|n|

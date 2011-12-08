@@ -41,11 +41,11 @@ TEXT
 
   # Define the properties that can be configured for this application
   # 
-  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  # syntax: defProperty(name, description, parameter, options = nil)
   #
-  a.defProperty('sink', 'Processing to do with received packets [udpi|udpmi]', nil, {:type => :string, :dynamic => false})
-  a.defProperty('udpmi:local_host', 'IP address of the local host ', nil, {:type => :string, :dynamic => false})
-  a.defProperty("debug-level", "debug level [integer]")
+  a.defProperty('sink', 'Processing to do with received packets [udpi|udpmi]', '--sink', {:type => :string, :dynamic => false})
+  a.defProperty('udpmi:local_host', 'IP address of the local host ', '--udpmi:local_host', {:type => :string, :dynamic => false})
+  a.defProperty("debug-level", "debug level [integer]","--debug-level")
 
   # Note: here we should have some Measurement Point definition...
 end
