@@ -29,7 +29,7 @@
 # This file defines the SaveimageService class.
 #
 
-require 'omf-aggmgr/ogs/legacyGridService'
+require 'omf-aggmgr/ogs/gridService'
 require 'omf-aggmgr/ogs_saveimage/saveimaged'
 
 #
@@ -39,7 +39,7 @@ require 'omf-aggmgr/ogs_saveimage/saveimaged'
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class SaveimageService < LegacyGridService
+class SaveimageService < GridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'saveimage'
@@ -50,44 +50,55 @@ class SaveimageService < LegacyGridService
   # Implement 'getAddress' service using the 'service' method of AbstractService
   #
   s_description 'Get the port number of a netcat instance receiving a specified image (start a new instance if none exists)'
-  s_param :img, 'imgName', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
+  s_param :img, 'imgName', 'name of image to save.'
   s_param :user, 'user', 'UNIX user name to set image file ownership.'
-  service 'getAddress' do |req, res|
-    d = SaveimageDaemon.start(req)
-    res['Content-Type'] = "text"
-    res.body = d.getAddress()
+  service 'getAddress' do |domain, img, user|
+    d = SaveimageDaemon.start(:img => "#{img}", :domain => "#{domain}", :user => "#{user}")
+    if d.nil?
+      return_error("Error starting netcat listener to save to '#{img}'")
+    else
+      return_ok(d.getAddress())
+    end
   end
 
   #
   # Implement 'stop' service using the 'service' method of AbstractService
   #
   s_description 'Stop receiving a specified image'
+  s_param :domain, 'domain', 'domain for request.'  
   s_param :img, 'imgName', 'name of image to save.'
-  s_param :domain, 'domain', 'domain for request.'
-  service 'stop' do |req, res|
-    d = SaveimageDaemon.stop(req)
-    res['Content-Type'] = "text"
-    res.body = "OK"
+  service 'stop' do |domain, img|
+    d = SaveimageDaemon.stop(:img => "#{img}", :domain => "#{domain}")
+    if d.nil?
+      return_error("Not currently saving to '#{img}'")
+    else
+      return_ok("Stopped saving to '#{img}' at #{d.getAddress()}")
+    end
   end
 
   #
   # Implement 'status' service using the 'service' method of AbstractService
   #
   s_description 'Returns the list of a certain or all netcat instances'
-  s_param :img, 'imgName', 'name of image to save.'
   s_param :domain, 'domain', 'domain for request.'
-  service 'status' do |req, res|
-    img = getParamDef(req, 'img', nil)
-    domain = getParam(req, 'domain')
-    list = img == nil ? SaveimageDaemon.all : [SaveimageDaemon[SaveimageDaemon.daemon_name(req)]]
-    # Build the header of the XML response
-    root = REXML::Element.new("saveimage_status")
-    # Build the rest of the XML response
-    list.each { |d|
-      root = d.serverDescription(root) if d != nil
-    } if list != nil
-    setResponse(res, root)
+  s_param :img, 'imgName', 'name of image to save.'
+  service 'status' do |domain, img|
+    name = SaveimageDaemon.daemon_name(:img => "#{img}", :domain => "#{domain}")
+    list = img == nil ? SaveimageDaemon.all : [SaveimageDaemon[name]]
+    if list.empty?
+      return_ok("No saveimage (netcat) daemons are running") 
+    elsif list == [nil]
+      result = return_ok("Not currently saving to '#{img}'")
+    else
+      # Build the header of the XML response
+      root = REXML::Element.new("saveimage_status")
+      # Build the rest of the XML response
+      list.each { |d|
+        root = d.serverDescription(root) if d != nil
+      }
+      root
+    end
   end
 
   #

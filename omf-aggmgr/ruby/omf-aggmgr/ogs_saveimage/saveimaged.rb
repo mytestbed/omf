@@ -46,8 +46,8 @@ class SaveimageDaemon < AbstractDaemon
   # - req = the HTTP Request used to request the daemon creation
   #
   def self.daemon_name(req)
-    img = getDaemonParam(req, 'img')
-    domain = getDaemonParam(req, 'domain')
+    img = getDaemonParam(req, :img)
+    domain = getDaemonParam(req, :domain)
     name = domain + '-' + img
   end
 
@@ -59,8 +59,8 @@ class SaveimageDaemon < AbstractDaemon
   # - req = the HTTP Request used to request the daemon creation
   #
   def initialize(req)
-    @img = self.class.getDaemonParam(req, 'img')
-    @user = self.class.getDaemonParam(req, 'user')
+    @img = self.class.getDaemonParam(req, :img)
+    @user = self.class.getDaemonParam(req, :user)
     super(req)
   end
 
