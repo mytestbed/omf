@@ -48,8 +48,8 @@ class FrisbeeDaemon < AbstractDaemon
   # - req = the HTTP Request used to request the dameon creation
   #
   def self.daemon_name(req)
-    img = getDaemonParamDef(req, 'img', nil)
-    domain = getDaemonParam(req, 'domain')
+    img = getDaemonParamDef(req, :img, nil)
+    domain = getDaemonParam(req, :domain)
     name = domain + (img || '')
   end
 
@@ -81,7 +81,7 @@ class FrisbeeDaemon < AbstractDaemon
   #
   def initialize(req)
     @clientCount = 0
-    @img = self.class.getDaemonParamDef(req, 'img', nil)
+    @img = self.class.getDaemonParamDef(req, :img, nil)
     super(req)
     @@bw = @config['bandwidth']
     @@mcAddr = @config['mcAddress']

@@ -43,15 +43,17 @@ class BadRequest < ServiceError; end
 #
 class GridService < AbstractService
   
-  # generate an XML fragment "<OK/>" which is returned on success
-  def self.return_ok
-    REXML::Element.new('OK')
+  # generate an XML fragment "<OK>msg</OK>" which is returned on success
+  def self.return_ok(msg = nil)
+    r = REXML::Element.new("OK")
+    r.text = "#{msg}" if !msg.nil?
+    r
   end
   
   # generate an XML fragment "<ERROR>msg</ERROR>" which is returned on error
-  def self.return_error(msg)
+  def self.return_error(msg = nil)
     r = REXML::Element.new("ERROR")
-    r.text = "#{msg}"
+    r.text = "#{msg}" if !msg.nil?
     r
   end
   #

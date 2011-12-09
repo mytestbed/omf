@@ -142,7 +142,7 @@ class AbstractDaemon < MObject
   # [Return] a String with the value of the required parameter
   #
   def self.getDaemonParam(req, name)
-    p = req.query[name]
+    p = req[name]
     if (p == nil)
       raise HTTPStatus::BadRequest, "Missing parameter '#{name}'"
     end
@@ -160,7 +160,7 @@ class AbstractDaemon < MObject
   # [Return] a String with the value of the required parameter
   #
   def self.getDaemonParamDef(req, name, default)
-    req.query[name] || default
+    req[name] || default
   end
 
   #
@@ -171,7 +171,7 @@ class AbstractDaemon < MObject
   def initialize(req)
     @name = self.class.daemon_name(req)
     super("#{self.class}:#{@name}")
-    @domain = self.class.getDaemonParam(req, 'domain')
+    @domain = self.class.getDaemonParam(req, :domain)
     @config  = getTestbedConfig(@domain)
     configDefaults(@config)
 
