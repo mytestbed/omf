@@ -70,13 +70,13 @@ MESSAGES = {:checkinfailed => MSG_CHECKINFAILED, :imagefailed => MSG_IMAGEFAILED
 # First of all, do some checks...
 # - check if the requested image really exists on the Repository
 #
-url = "#{OConfig[:ec_config][:frisbee][:url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
-response = NodeHandler.service_call(url, "Image does not exist")
-if response.body != "OK"
-  MObject.error("The image file '#{prop.image.value}' was not found on the AM running the frisbee service! ")
-  MObject.error("(From FrisbeeService: #{response.body})")
+#url = "#{OConfig[:ec_config][:frisbee][:url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
+#response = NodeHandler.service_call(url, "Image does not exist")
+response = OMF::Services.frisbee.checkImage(:img => "#{prop.image.value}", :domain => "#{prop.domain.value}")
+if response.elements[1].name != "OK"
+  MObject.error("Frisbee Service Call", response.root.text)
   Experiment.done
-  exit -1
+  exit
 end
 # - check if timeout value from command line is really an integer
 if (prop.timeout.value.to_i == 0)

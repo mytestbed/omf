@@ -40,10 +40,11 @@ begin
   cleanExit = true
 
 # Process the various Exceptions...
-rescue Interrupt
+rescue Interrupt, SystemExit
   # ignore, our Event mechanism now handles this
 rescue OEDLException => ex 
   begin
+    return if ex.to_s == "(SystemExit) exit"
     bt = ex.backtrace 
     MObject.fatal('run', "----------")
     MObject.fatal('run', "  A fatal error was encountered while processing "+
@@ -61,7 +62,6 @@ rescue ServiceException => sex
     MObject.fatal('run', "Exception: #{sex.message} : #{sex.response.body}")
   rescue Exception
   end
-rescue SystemExit
 rescue Exception => ex
   if Experiment.running?
     begin

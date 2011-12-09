@@ -42,7 +42,18 @@ class BadRequest < ServiceError; end
 # testbed and node related parameters from the HTTP request sent to the Service.
 #
 class GridService < AbstractService
-
+  
+  # generate an XML fragment "<OK/>" which is returned on success
+  def self.return_ok
+    REXML::Element.new('OK')
+  end
+  
+  # generate an XML fragment "<ERROR>msg</ERROR>" which is returned on error
+  def self.return_error(msg)
+    r = REXML::Element.new("ERROR")
+    r.text = "#{msg}"
+    r
+  end
   #
   # Return the set of configuration parameters for a given domain.
   #

@@ -29,7 +29,7 @@
 # This file defines the FrisbeeService class.
 #
 
-require 'omf-aggmgr/ogs/legacyGridService'
+require 'omf-aggmgr/ogs/gridService'
 require 'omf-aggmgr/ogs_frisbee/frisbeed'
 
 #
@@ -40,11 +40,11 @@ require 'omf-aggmgr/ogs_frisbee/frisbeed'
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class FrisbeeService < LegacyGridService
+class FrisbeeService < GridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'frisbee'
-  description 'Service to control frisbee servers to stream specific images'
+  description 'Service to control frisbee daemons multicasting image files'
   @@config = nil
 
   #
@@ -52,17 +52,12 @@ class FrisbeeService < LegacyGridService
   #
   s_description 'Check if a given disk image really exist on the repository'
   s_param :img, '[imgName]', 'name of image to check.'
-  service 'checkImage' do |req, res|
-    config = getTestbedConfig(req, @@config)
-    image = getParamDef(req, 'img', nil)
-    imagePath = "#{config['imageDir']}/#{image}"
-    res['Content-Type'] = "text"
-    if ! File.readable?(imagePath)
-      MObject.error("FrisbeeService - checkImage - '#{image}' DOES NOT EXIST !")
-      res.body = "IMAGE NOT FOUND"
-    else
-      res.body = "OK"
-    end
+  s_param :domain, '[domain]', 'domain for request.'
+  service 'checkImage' do |image, domain|
+    tb = getTestbedConfig(domain, @@config)
+    imagePath = "#{tb['imageDir']}/#{image}"
+    return_ok if File.readable?(imagePath)
+    return_error("Image file '#{imagePath}' not found for domain '#{domain}'")
   end
 
   #
