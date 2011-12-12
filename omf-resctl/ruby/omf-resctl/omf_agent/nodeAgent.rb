@@ -422,30 +422,35 @@ end
 
 #
 # Discover the available devices
-# 
+#
+
+lspci=lsusb=nil
 
 if (File.exist?("/usr/bin/lspci"))
   # Debian/Ubuntu
-  LSPCI="/usr/bin/lspci"
+  lspci="/usr/bin/lspci"
 elsif (File.exist?("/sbin/lspci"))
   # Fedora
-  LSPCI="/sbin/lspci"
+  lspci="/sbin/lspci"
 else
   MObject.info "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
 end
 
-if (File.exist?("/usr/sbin/lsusb"))
+if (File.exist?("/usr/bin/lsusb"))
   # Debian/Ubuntu
-  LSUSB="/usr/sbin/lsusb"
+  lsusb="/usr/bin/lsusb"
+elsif (File.exist?("/usr/sbin/lsusb"))
+  # older Debian/Ubuntu
+  lsusb="/usr/sbin/lsusb"
 elsif (File.exist?("/sbin/lsusb"))
   # Fedora
-  LSUSB="/sbin/lsusb"
+  lsusb="/sbin/lsusb"
 else
   MObject.info "lsusb not found, unable to detect the wireless hardware. Please install the 'usbutils' package."
 end
 
-if (LSPCI)
-  IO.popen("#{LSPCI} | grep 'Network controller: Intel' | wc -l") {|p|
+if (lspci)
+  IO.popen("#{lspci} | grep 'Network controller: Intel' | wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/intel'
       MObject.info "Have Intel cards"
@@ -453,7 +458,7 @@ if (LSPCI)
       AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
     end
   }
-  IO.popen("#{LSPCI} | grep 'Ethernet controller: Atheros' | wc -l") {|p|
+  IO.popen("#{lspci} | grep 'Ethernet controller: Atheros' | wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/atheros'
       MObject.info "Have Atheros cards - Using MadWifi driver"
@@ -461,7 +466,7 @@ if (LSPCI)
       AgentCommands::DEV_MAPPINGS['net/w1'] = AtherosDevice.new('net/w1', 'ath1')
     end
   }
-  IO.popen("#{LSPCI} | grep 'Network controller: Atheros' | wc -l") {|p|
+  IO.popen("#{lspci} | grep 'Network controller: Atheros' | wc -l") {|p|
     if p.gets.to_i > 0
       require 'omf-resctl/omf_driver/ath9k'
       MObject.info "Have Atheros cards - Using ath9k driver"
@@ -470,11 +475,11 @@ if (LSPCI)
     end
   }
   wimax_count = 0
-  IO.popen("#{LSPCI} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | wc -l") {|p|
+  IO.popen("#{lspci} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | wc -l") {|p|
     wimax_count += p.gets.to_i
   }
-  if (LSUSB)
-    IO.popen("#{LSUSB} | grep 'Intel Corp. WiMAX Connection 2400m' | wc -l") {|u|
+  if (lsusb)
+    IO.popen("#{lsusb} | grep 'Intel Corp. WiMAX Connection 2400m' | wc -l") {|u|
       wimax_count += u.gets.to_i
     }
   end

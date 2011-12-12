@@ -1,4 +1,10 @@
-omf-common-5.4 (1) natty; urgency=low
+omf-common-5.4 (5.4-ubuntu2) oneiric; urgency=low
+
+  * pre-release for testing
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 12 Dec 2011 15:58:26 +1100
+
+omf-common-5.4 (5.4-ubuntu1) natty; urgency=low
 
   * renamed to 5.4
 
