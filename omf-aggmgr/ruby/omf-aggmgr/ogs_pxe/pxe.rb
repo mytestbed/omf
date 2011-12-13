@@ -29,8 +29,7 @@
 # This file defines the PxeService class.
 #
 
-require 'net/http'
-require 'omf-aggmgr/ogs/legacyGridService'
+require 'omf-aggmgr/ogs/gridService'
 require 'omf-aggmgr/ogs/timer'
 
 #
@@ -40,7 +39,7 @@ require 'omf-aggmgr/ogs/timer'
 # For more details on how features of this Service are implemented below, please
 # refer to the description of the AbstractService class
 #
-class PxeService < LegacyGridService
+class PxeService < GridService
 
   # used to register/mount the service, the service's url will be based on it
   name 'pxe'
@@ -58,66 +57,25 @@ class PxeService < LegacyGridService
   # Implement 'setBootImageNS' service using the 'service' method of AbstractService
   #
   s_description "Get PXE to boot all nodes in 'nodeSet' into their respective PXE image."
-  s_param :ns, 'nodeSet', 'set definition of nodes included.'
   s_param :domain, 'domain', 'domain for request.'
+  s_param :ns, 'nodeSet', 'list of nodes to boot from PXE'
   s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
-  service 'setBootImageNS' do |req, res|
-    ns = getNodeSetParam(req, 'ns')
-    tb = getTestbedConfig(req, @@config)
-    domain = getParam(req, 'domain')
-    imageName = getParamDef(req, 'imgName', nil)
-    setImage(ns, tb, domain, res, imageName)
+  service 'setBootImageNS' do |domain, ns, imgName|
+    tb = getTestbedConfig(domain, @@config)
+    res = setImage(ns.split(","), tb, domain, "OK", imgName)
+    res
   end
 
   #
   # Implement 'clearBootImageNS' service using the 'service' method of AbstractService
   #
-  s_description "Get PXE to clear the pxe boot image of all nodes in 'nodeSet'"
-  s_param :ns, 'nodeSet', 'set definition of nodes included.'
+  s_description "Prevent the nodes in 'nodeSet' from booting via PXE"
   s_param :domain, 'domain', 'domain for request.'
-  service 'clearBootImageNS' do |req, res|
-    ns = getNodeSetParam(req, 'ns')
-    tb = getTestbedConfig(req, @@config)
-    domain = getParam(req, 'domain')
-    clearImage(ns, tb, domain, res)
-  end
-
-  #
-  # Return the PXE Image to use for a specific node on a given testbed. This
-  # method makes use of the Inventory GridService
-  #
-  # - url = URL to the Inventory GridService
-  # - hrn = HRN of the node to query
-  # - domain = name of the testbed to query
-  #
-  def self.getPXEImageName(url, hrn, domain)
-    queryURL = "#{url}/getPXEImage?hrn=#{hrn}&domain=#{domain}"
-    debug "PXE - QueryURL: #{queryURL}"
-    response = nil
-    response = Net::HTTP.get_response(URI.parse(queryURL))
-    if (! response.kind_of? Net::HTTPSuccess)
-          error "PXE - No PXE Image info found for #{hrn} - Bad Response from Inventory"
-          error "PXE - QueryURL: #{queryURL}"
-          raise Exception.new()
-    end
-    if (response == nil)
-      error "PXE - No PXE Image info found for #{hrn} - Response from Inventory is NIL"
-      error "PXE - QueryURL: #{queryURL}"
-      raise Exception.new()
-    end
-    doc = REXML::Document.new(response.body)
-    # Parse the Reply to retrieve the PXE Image name
-    imageName = nil
-    doc.root.elements.each("/PXE_Image") { |v|
-      imageName = v.get_text.value
-    }
-    # If no name found in the reply... raise an error
-    if (imageName == nil)
-      doc.root.elements.each('/ERROR') { |e|
-        error "PXE - No PXE Image info found for #{hrn} - val: #{e.get_text.value}"
-      }
-    end
-    return imageName
+  s_param :ns, 'nodeSet', 'list of nodes to clear from PXE booting'
+  service 'clearBootImageNS' do |domain, ns|
+    tb = getTestbedConfig(domain, @@config)
+    res = clearImage(ns.split(","), tb, domain, "OK")
+    res
   end
 
   #
@@ -135,22 +93,21 @@ class PxeService < LegacyGridService
   #
   def self.setImage(nodes, tb, domain, res, image)
     resXml, nodesEl = createResponse('setBootImage')
-    inventoryURL = tb['inventory_url']
     cfgDir = @@config['cfgDir']
     nodesHex = []
-
+    
     @@mutex.synchronize {
       nodes.each {|hrn|
-        ip = getControlIP(inventoryURL, hrn, domain)
+        ip = getControlIP(hrn, domain)
         if (image == nil)
-          img = getPXEImageName(inventoryURL, hrn, domain)
+          img = getPXEImage(hrn, domain)
         else
           img = image
         end
         imgPath = "./#{img}"
         hex = ip.split('.').map {|e| format "%02X", e} . join()
         hexPath = "#{cfgDir}/#{hex}"
-        if File.readable?(hexPath)
+        if File.readable?(hexPath) || File.symlink?(hexPath)
           debug("Remove old #{hexPath}")
           File.delete(hexPath)
         end
@@ -168,9 +125,11 @@ class PxeService < LegacyGridService
         nodesHex.each {|hex|
           debug(self, "Checking node '#{hex}' (#{@@nodes[hex]})")
           if (@@nodes[hex] == 1)
-            debug("Clearing PXE for '#{hex}'")
             hexPath = "#{cfgDir}/#{hex}"
-            File.unlink(hexPath)
+            if File.readable?(hexPath) || File.symlink?(hexPath)
+              debug("Clearing PXE for '#{hexPath}'")
+              File.delete(hexPath)
+            end
             @@nodes.delete(hex)
           else
             @@nodes[hex] = @@nodes[hex] - 1
@@ -178,7 +137,7 @@ class PxeService < LegacyGridService
         }
       }
     }
-    setResponse(res, resXml)
+    resXml
   end
 
   #
@@ -194,17 +153,16 @@ class PxeService < LegacyGridService
   #
   def self.clearImage(nodes, tb, domain, res)
     resXml, nodesEl = createResponse('clearBootImage')
-    inventoryURL = tb['inventory_url']
     cfgDir = @@config['cfgDir']
     nodesHex = []
 
     @@mutex.synchronize {
       if nodes.length != 0
         nodes.each {|hrn|
-          ip = getControlIP(inventoryURL, hrn, domain)
+          ip = getControlIP(hrn, domain)
           hex = ip.split('.').map {|e| format "%02X", e} . join()
           hexPath = "#{cfgDir}/#{hex}"
-          if File.readable?(hexPath)
+          if File.readable?(hexPath) || File.symlink?(hexPath)
             debug("Remove old #{hexPath}")
             File.delete(hexPath)
             debug("Remove old #{hexPath} Done.")
@@ -214,7 +172,7 @@ class PxeService < LegacyGridService
         debug("ClearImage called with an empty nodeSet (#{nodes}), nothing to be done.")
       end
     }
-    setResponse(res, resXml)
+    resXml
   end
 
   #
@@ -246,37 +204,6 @@ class PxeService < LegacyGridService
     error("Missing configuration 'defImage'") if @@config['defImage'] == nil
     error("Missing configuration 'linkLifetime'") if @@config['linkLifetime'] == nil
   end
-
-  # RETIRED SERVICES:
-  #------------------
-
-  # #
-  # # Implement 'setBootImageAll' service using the 'service' method of AbstractService
-  # #
-  # s_description "Get PXE to boot ALL nodes on this testbed into their respective PXE image"
-  # s_param :domain, 'domain', 'domain for request.'
-  # s_param :imgName, '[imageName]', 'Name of the PXE image to use (optional, default image as specified by the Inventory)'
-  # service 'setBootImageAll' do |req, res|
-  #   tb = getTestbedConfig(req, @@config)
-  #   inventoryURL = tb['inventory_url']
-  #   domain = getParam(req, 'domain')
-  #   nodes = listAllNodes(inventoryURL, domain)
-  #   imageName = getParamDef(req, 'imgName', nil)
-  #   setImage(nodes, tb, domain, res, imageName)
-  # end
-  # 
-  # #
-  # # Implement 'clearBootImageAll' service using the 'service' method of AbstractService
-  # #
-  # s_description "Get PXE to clear the pxe boot image of all nodes"
-  # s_param :domain, 'domain', 'domain for request.'
-  # service 'clearBootImageAll' do |req, res|
-  #   tb = getTestbedConfig(req, @@config)
-  #   inventoryURL = tb['inventory_url']
-  #   domain = getParam(req, 'domain')
-  #   nodes = listAllNodes(inventoryURL, domain)
-  #   clearImage(nodes, tb, domain, res)
-  # end
 
 end
 

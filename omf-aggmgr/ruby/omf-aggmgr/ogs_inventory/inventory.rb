@@ -164,7 +164,7 @@ class InventoryService < GridService
     end
     # Build and Set the XML response
     msgEmpty = "Inventory has no PXE Image info for node #{hrn} (domain: #{domain})"
-    replyXML = buildXMLReply("PXE_Image", result, msgEmpty) { |root,image|
+    replyXML = buildXMLReply("PXE_IMAGE", result, msgEmpty) { |root,image|
       root.text = image
     }
     replyXML

@@ -96,12 +96,10 @@ defGroup('image', prop.nodes) {|ns|
    ns.each { |n| @allNodes << n }
 }
 
-url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{@allNodes.map{|n| n.to_s }.join(',')}"
-NodeHandler.service_call(url, "Error setting PXE symlinks")
+OMF::Services.pxe.setBootImageNS(:ns => "#{@allNodes.map{|n| n.to_s }.join(',')}", :domain => "#{prop.domain.value}")
 
 def clearPXE
-  url = "#{OConfig[:ec_config][:pxe][:url]}/clearBootImageNS?domain=#{prop.domain.value}&ns=#{@allNodes.map{|n| n.to_s }.join(',')}"
-  NodeHandler.service_call(url, "Error removing PXE symlinks")
+  OMF::Services.pxe.clearBootImageNS(:ns => "#{@allNodes.map{|n| n.to_s }.join(',')}", :domain => "#{prop.domain.value}")
 end
 
 def outputTopologyFile(type, nset)

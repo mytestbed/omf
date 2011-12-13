@@ -80,53 +80,9 @@ class GridService < AbstractService
   end
 
   #
-  # Given a Node Set declaration string, parse the string into a Node
-  # Set declaration, which is an array of Node Sets.
-  #
-  # - node_set = string containing the Node Set declaration string.
-  #
-  # [Return] a Node Set declaration (array of Node Sets), or nil, or []
-  #
-  def self.getNodeSetParam(node_set)
-    if (node_set == nil)
-      nil
-    elsif (node_set == "[]")
-      res = []
-      return res
-    end
-
-    res = nil
-    begin
-      Thread.new() {
-        $SAFE = 4
-        res = eval(node_set)
-      }.join
-    rescue Exception => ex
-      raise BadRequest, "Error while parsing '#{node_set}'\n\t#{ex}"
-    end
-    if (! res.kind_of?(Array))
-      raise BadRequest, "Illegal node set declaration '#{node_set}'"
-    end
-    if (! res[0].kind_of?(Array))
-      # seems to be a single set declaration
-      res = [res]
-    end
-    # validate
-    res.each { |ns|
-      if (! (ns.kind_of?(Array) \
-             &&  ns.length == 2 \
-             && (ns[0].kind_of?(Integer) || ns[0].kind_of?(Range)) \
-             && (ns[1].kind_of?(Integer) || ns[1].kind_of?(Range))))
-        raise BadRequest, "Illegal node set declaration '#{ns}'"
-      end
-    }
-  end
-
-  #
   # Return the Control IP address of a specific node on a given testbed. This
   # method makes use of the Inventory GridService
   #
-  # - url = URL to the Inventory GridService
   # - name = HRN of the node to query
   # - domain = name of the testbed to query
   #
@@ -157,7 +113,6 @@ class GridService < AbstractService
   # Return the CMC IP address of a specific node on a given testbed. This
   # method makes use of the Inventory GridService
   #
-  # - url = URL to the Inventory GridService
   # - name = HRN of the node to query
   # - domain = name of the testbed to query
   #
@@ -188,7 +143,6 @@ class GridService < AbstractService
   # Return the switch IP address and port of a specific node on a given testbed. This
   # method makes use of the Inventory GridService
   #
-  # - url = URL to the Inventory GridService
   # - name = HRN of the node to query
   # - domain = name of the testbed to query
   #
@@ -215,6 +169,37 @@ class GridService < AbstractService
     return ip
   end
 
+  #
+  # Return the PXE image name of a specific node on a given testbed. This
+  # method makes use of the Inventory GridService
+  #
+  # - name = HRN of the node to query
+  # - domain = name of the testbed to query
+  #
+  def self.getPXEImage(hrn, domain)
+    doc = nil
+    begin
+      doc = OMF::Services.inventory.getPXEImage(hrn, domain)
+    rescue Exception => e
+      MObject.error "Error trying to get PXE image name for resource '#{hrn}' in domain '#{domain}': #{e}"
+      raise ServiceError, e.message
+    end
+
+    # Parse the Reply
+    pxe = nil
+    doc.root.elements.each("/PXE_IMAGE") { |v|
+      pxe = v.get_text.value if !v.get_text.nil?
+    }
+    # If no result found in the reply... raise an error
+    if (pxe.nil?)
+      doc.root.elements.each('/PXE_IMAGE/ERROR') { |e|
+        raise ServiceError, "GridService - No PXE image name found for '#{hrn}' - Error: #{e.get_text.value}"
+      }
+    end
+    return pxe
+  end
+  
+  
   #
   # Return an Array of Human Readable Names (HRN's) of all resources in a testbed.
   #
