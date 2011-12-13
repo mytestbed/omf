@@ -1,3 +1,9 @@
+imagezip (1.0.0-2ubuntu4) oneiric; urgency=low
+
+  * moving to oneiric 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 13 Dec 2011 15:30:40 +1100
+
 imagezip (1.0.0-2ubuntu3) natty; urgency=low
 
   * moving to natty
