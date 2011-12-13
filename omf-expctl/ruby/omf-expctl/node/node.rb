@@ -338,10 +338,11 @@ class OMF::EC::Node < MObject
       imgName = ENV['USER']+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
     end
     
-    url = "#{OConfig[:ec_config][:saveimage][:url]}/getAddress?"+
-          "domain=#{domain}&img=#{imgName}&user=#{ENV['USER']}"
-    response = NodeHandler.service_call(url, "Can't get netcat address/port")
-    imgHost, imgPort = response.body.split(':')
+    response = OMF::Services.saveimage.getAddress(:domain => "#{domain}", 
+      :img => "#{imgName}", :user => "#{ENV['USER']}")
+    raise "Can't get netcat address/port" if response.elements[1].name != "OK"
+    
+    imgHost, imgPort = response.elements[1].text.split(':')
     
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "

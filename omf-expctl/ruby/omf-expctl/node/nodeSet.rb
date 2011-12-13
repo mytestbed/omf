@@ -452,11 +452,9 @@ class NodeSet < MObject
       mcAddress = "Some_MC_address"
       mcPort = "Some_MC_port"
     else
-      # get frisbeed address
-      url = "#{OConfig[:ec_config][:frisbee][:url]}/"+
-            "getAddress?domain=#{domain}&img=#{image}"
-      response = NodeHandler.service_call(url, "Can't get frisbee address")
-      mcAddress, mcPort = response.body.split(':')
+      response = OMF::Services.frisbee.getAddress(:domain => "#{domain}", :img => "#{image}")
+      raise "Can't get frisbee address" if response.elements[1].name != "OK"
+      mcAddress, mcPort = response.elements[1].text.split(':')
     end
     opts = {:disk => disks[0], :mcAddress => mcAddress, :mcPort => mcPort}
     each { |n|
@@ -485,12 +483,9 @@ class NodeSet < MObject
       puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
     else
       # stop the frisbeed server on the Gridservice side
-      debug "Stop server of image #{image} for domain #{domain}"
-      url = "#{OConfig[:ec_config][:frisbee][:url]}/"+
-            "stop?domain=#{domain}&img=#{image}"
-      response = NodeHandler.service_call(url, 
-                             "Can't stop frisbee daemon on the GridService")
-      if (response.body != "OK")
+      debug "Stop server of image #{image} for domain #{domain}"                       
+      response = OMF::Services.frisbee.stop(:domain => "#{domain}", :img => "#{image}")
+      if response.elements[1].name != "OK"
         error "Can't stop frisbee daemon on the GridService - "+
               "image: '#{image}' - domain: '#{domain}'"
         error "GridService's response to stop call: '#{response.body}'"
