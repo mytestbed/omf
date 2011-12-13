@@ -39,12 +39,10 @@ defProperty('pxe', '1.1.6', "PXE version to use")
 defProperty('domain', "#{OConfig.domain}", "Domain of the node to save")
 defProperty('started', 'false', "internal flag")
 
-url = "#{OConfig[:ec_config][:pxe][:url]}/setBootImageNS?domain=#{prop.domain.value}&ns=#{prop.node.value}"
-NodeHandler.service_call(url, "Error setting PXE symlinks")
+OMF::Services.pxe.setBootImageNS(:ns => "#{prop.node.value}", :domain => "#{prop.domain.value}")
 
 def clearPXE
-  url = "#{OConfig[:ec_config][:pxe][:url]}/clearBootImageNS?domain=#{prop.domain.value}&ns=#{prop.node.value}"
-  NodeHandler.service_call(url, "Error removing PXE symlinks")
+  OMF::Services.pxe.clearBootImageNS(:ns => "#{prop.node.value}", :domain => "#{prop.domain.value}")
 end
 
 #
