@@ -484,12 +484,7 @@ class NodeSet < MObject
     else
       # stop the frisbeed server on the Gridservice side
       debug "Stop server of image #{image} for domain #{domain}"                       
-      response = OMF::Services.frisbee.stop(:domain => "#{domain}", :img => "#{image}")
-      if response.elements[1].name != "OK"
-        error "Can't stop frisbee daemon on the GridService - "+
-              "image: '#{image}' - domain: '#{domain}'"
-        error "GridService's response to stop call: '#{response.body}'"
-      end
+      OMF::Services.frisbee.stop(:domain => "#{domain}", :img => "#{image}")
     end
   end
 

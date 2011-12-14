@@ -210,7 +210,7 @@ everyNS('image', 10) { |ns|
         info " #{l} node#{"s" if l>1} successfully imaged - Topology saved in '#{f}'"
       end
       info " ----------------------------- "
-      ns.stopImageServer(Experiment.property('image'), "#{prop.domain.value}")
+      ns.stopImageServer("#{prop.image.value}", "#{prop.domain.value}")
       Experiment.done
       notDone = false
     end

@@ -87,7 +87,8 @@ class FrisbeeService < GridService
   service 'stop' do |domain, img|
     d = FrisbeeDaemon.stop(:img => "#{img}", :domain => "#{domain}")
     if d.nil?
-      return_error("No frisbeed is currently serving '#{img}'")
+      return_error("Did not stop the frisbeed serving '#{img}'."+
+        "Either it is not running or some clients are still receiving data from it." )
     else
       return_ok("Stopped serving '#{img}' at #{d.getAddress()}")
     end
