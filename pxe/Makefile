@@ -109,12 +109,13 @@ bbox: 	get_bbox
 
 omf:
 	sudo apt-get clean; sudo apt-get update
-	apt-get -d --reinstall --force-yes -y --print-uris install omf-common-$(OMF_RELEASE) omf-resctl-$(OMF_RELEASE) libxmpp4r-ruby libxmpp4r-ruby1.8 liblog4r-ruby liblog4r-ruby1.8 ruby1.8 libruby1.8 libopenssl-ruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools netcat-traditional libdbus-1-3 e2fsprogs libcomerr2 libblkid1 libuuid1 e2fslibs util-linux | grep http | awk '{print $$1}' | tr -d "'" > $(TEMP)/omf-packages
+	apt-get -d --reinstall --force-yes -y --print-uris install omf-common-$(OMF_RELEASE) omf-resctl-$(OMF_RELEASE) ruby ruby1.8 libruby1.8 libopenssl-ruby1.8 bash libncurses5 frisbee imagezip zlib1g libssl0.9.8 libgcc1 syslinux kexec-tools netcat-traditional libdbus-1-3 e2fsprogs libcomerr2 libblkid1 libuuid1 e2fslibs util-linux libusb-0.1-4 usbutils rubygems1.8 | grep http | awk '{print $$1}' | tr -d "'" > $(TEMP)/omf-packages
 	mkdir -p $(SOURCE)/omf; cd $(SOURCE)/omf; rm *.deb; wget -N -i ../../$(TEMP)/omf-packages
 	for file in `ls $(SOURCE)/omf/*.deb`; do dpkg -x $$file $(ROOTFS); done
 	mv $(ROOTFS)/bin/nc.traditional $(ROOTFS)/bin/nc
 	cp $(ROOTFS)/usr/share/doc/omf-resctl-$(OMF_RELEASE)/examples/omf-resctl.nicta.yaml $(ROOTFS)/etc/omf-resctl-$(OMF_RELEASE)/omf-resctl.yaml
 	sed -i 's/OMF_RELEASE/$(OMF_RELEASE)/g' $(ROOTFS)/etc/init.d/rcS.actual
+	(cd $(ROOTFS)/usr/share/omf-common-$(OMF_RELEASE)/gems/1.8; GEM_PATH=$PWD gem install --no-ri --no-rdoc -l -f -i . cache/*.gem)
 
 syslinux: omf
 	for file in `ls $(SOURCE)/omf/syslinux*`; do dpkg -x $$file $(TEMP); done
@@ -138,7 +139,7 @@ filesystem: dirs
 	install -d $(ROOTFS)/var/lib
 	install -d $(ROOTFS)/lib
 	install -d $(ROOTFS)/sbin
-	sudo apt-get install pciutils
+	sudo apt-get install pciutils 
 	install $(LIB) $(ROOTFS)/lib
 	install -d $(ROOTFS)/etc
 	install -d $(ROOTFS)/etc/init.d
