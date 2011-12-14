@@ -36,7 +36,7 @@ end
 
 $stderr.print " Talking to the CMC service, please wait"
 
-topo.each {|n|
+topo.eachNode {|n|
   tuples << ["#{n.to_s}", eval("OMF::Services.cmc.#{call}"+
     "(n.to_s, OConfig.domain).elements[1].name")]
   $stderr.print "."

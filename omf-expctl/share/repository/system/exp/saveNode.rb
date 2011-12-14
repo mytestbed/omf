@@ -49,7 +49,7 @@ end
 # Define nodes used in experiment
 #
 defGroup('save', Experiment.property('node')) {|n|
-  n.pxeImage("#{prop.domain.value}", setPXE=true)
+  #n.pxeImage("#{prop.domain.value}", setPXE=true)
   n.image = "pxe-5.4"
 }
 

@@ -501,9 +501,13 @@ class NodeSet < MObject
         url=srcPath
       elsif File.exists?(srcPath)
          # We first have to mount the local file to a URL on our webserver
-        url_dir="/data/#{srcPath.gsub('/', '_')}"
-        url="#{OMF::Common::Web.url()}#{url_dir}"
-        OMF::Common::Web.mapFile(url_dir, srcPath)
+        #url_dir="/data/#{srcPath.gsub('/', '_')}"
+        #url="#{OMF::Common::Web.url()}#{url_dir}"
+        #OMF::Common::Web.mapFile(url_dir, srcPath)
+        raise "As of the current OMF release, serving a local file from EC to "+
+          "RC is not supported. Please upload your tarball to a webserver or "+
+          "FTP server that is accessible from your nodes and specify the URL "+
+          "using 'loadData' in your experiment."
       else
         raise OEDLIllegalArgumentException.new(:group,:loadData,nil,"#{srcPath} is not a valid filename or URL") 
       end

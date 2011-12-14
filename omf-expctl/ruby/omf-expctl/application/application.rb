@@ -134,9 +134,13 @@ class Application < MObject
         url=rep
       elsif File.exists?(rep)
         # We first have to mount the local TAR file to a URL on our webserver
-        url_dir="/install/#{rep.gsub('/', '_')}"
-        url="#{OMF::Common::Web.url()}#{url_dir}"
-        OMF::Common::Web.mapFile(url_dir, rep)
+        #url_dir="/install/#{rep.gsub('/', '_')}"
+        #url="#{OMF::Common::Web.url()}#{url_dir}"
+        #OMF::Common::Web.mapFile(url_dir, rep)
+        raise "As of the current OMF release, serving a local file from EC to "+
+          "RC is not supported. Please upload your tarball to a webserver or "+
+          "FTP server that is accessible from your nodes and specify the URL "+
+          "using 'app.appPackage' in your experiment."
       else
         raise OEDLIllegalArgumentException.new(:defApplication,:appPackage,nil,"#{rep} is not a valid filename or URL") 
       end

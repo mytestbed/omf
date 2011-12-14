@@ -14,7 +14,7 @@ defProperty('pinteger', 123, "1st integer argument")
 
 defApplication('myAppURI', 'myAppName') { |app|
   app.path = "/usr/bin/myApp"
-  app.appPackage = "/usr/share/omf-expctl-5.4/repository/test/exp/myApp.tar"
+  app.appPackage = "http://omf.mytestbed.net/myApp.tar"
 
   app.defProperty('arg1','Argument 1', '-s', {:order => 1, :type => :string, :dynamic => true})
   app.defProperty('arg2','Argument 2', '--arg2', {:type => :string, :dynamic => false})
