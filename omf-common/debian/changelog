@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4-ubuntu3) oneiric; urgency=low
+
+  * 5.4 release 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 15 Dec 2011 14:29:32 +1100
+
 omf-common-5.4 (5.4-ubuntu2) oneiric; urgency=low
 
   * pre-release for testing
