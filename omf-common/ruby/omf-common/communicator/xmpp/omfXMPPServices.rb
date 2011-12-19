@@ -119,9 +119,9 @@ end # END of OmfServiceHelper
 # XMPP Server2Server capability.
 #
 class OmfXMPPServices < MObject
-  include OMF::Envelope
 
-
+  @clientHelper = nil
+  @nodeBrowser = nil
 
   attr_reader :clientHelper
 
@@ -152,10 +152,7 @@ class OmfXMPPServices < MObject
     @connecting = false
     @keepAliveThread = nil
     @cSemaphore = Mutex.new
-    @subscriptions = {}
-    @clientHelper = nil
-    @nodeBrowser = nil
-  
+
     # Open a connection to the home XMPP Server
     # Any exception raised here shall be caught by the caller
     @clientHelper = Jabber::Client.new(@userJID)
@@ -184,15 +181,14 @@ class OmfXMPPServices < MObject
     begin
       success = call_with_timeout("Timing out while connecting to "+
                                   "PubSub Gateway '#{@homeServer}'") { 
-        if @useDnsSrv
-          # passing no hostname here will try to resolve a DNS
-          # SRV record through the host part of the JID
-          @clientHelper.connect(nil, @port)
-        else
-          # passing a hostname disables DNS SRV queries
-          @clientHelper.connect(@homeServer, @port)
-        end 
-      }
+                                    if @useDnsSrv
+                                      # passing no hostname here will try to resolve a DNS
+                                      # SRV record through the host part of the JID
+                                      @clientHelper.connect(nil, @port)
+                                    else
+                                      # passing a hostname disables DNS SRV queries
+                                      @clientHelper.connect(@homeServer, @port)
+                                    end }
       raise Exception.new if !success
     rescue Exception => ex
       raise Exception.new("Maximum number of connection attempts reached") if @connection_attempts >= @max_retries
@@ -275,7 +271,7 @@ class OmfXMPPServices < MObject
   # - &block = the block of commands that will process any event coming from that
   #           XMPP server
   #
-  def add_service(domain)
+  def add_service(domain, &block)
     begin
       @serviceHelpers[domain] = OmfServiceHelper.new(@clientHelper, 
                                                      "pubsub.#{domain}")
@@ -285,9 +281,7 @@ class OmfXMPPServices < MObject
     end
     leave_all_nodes(domain)
     begin
-      @serviceHelpers[domain].add_event_callback do |ev|
-        _process_event(ev, domain)
-      end
+      @serviceHelpers[domain].add_event_callback(&block) if block
     rescue Exception => ex
       raise "OmfXMPPServices - Failed to register event callback for domain "+
             "'#{domain}' - Error: '#{ex}'"
@@ -306,8 +300,7 @@ class OmfXMPPServices < MObject
   def service(domain)
     serv = @serviceHelpers[domain] 
     if !serv
-      add_service(domain)
-      return service(domain)
+      raise "OmfXMPPServices - Unknown domain '#{domain}'"
     end
     return serv
   end
@@ -332,13 +325,14 @@ class OmfXMPPServices < MObject
   #
   def create_node(node, domain)
     begin
-      service(domain).create_node(node,Jabber::PubSub::NodeConfig.new(nil,
+      add_service(domain) if !service?(domain)
+      service(domain).create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
         "pubsub#title" => "#{node}",
         "pubsub#node_type" => "leaf",
         "pubsub#persist_items" => "1",
         "pubsub#max_items" => "1",
         "pubsub#notify_retract" => "0",
-        "pubsub#publish_model" => "open"))
+        "pubsub#publish_model" => "open"}))
     rescue Exception => ex
       # if the node exists we ignore the "conflict" exception
       return true if ("#{ex}" == "conflict: ")
@@ -359,10 +353,10 @@ class OmfXMPPServices < MObject
   #
   def publish_to_node(node, domain, item, create_if_not_exist = false)
     begin
+      add_service(domain) if !service?(domain)
       success = call_with_timeout("Timing out while sending PubSub message to "+
                         "'#{domain}'") { 
-        service(domain).publish_item_to(node, item)
-      }
+                        service(domain).publish_item_to(node, item) }
       return false if !success
       return true
     rescue Exception => ex
@@ -395,9 +389,8 @@ class OmfXMPPServices < MObject
   #
   def subscribe_to_node(node, domain, &block)
     begin
-      srv = service(domain) # this may clear all subscriptions
-      (@subscriptions["#{domain}::#{node}"] ||= []) << block
-      srv.subscribe_to(node)
+      add_service(domain, &block) if !service?(domain)
+      service(domain).subscribe_to(node)
     rescue Exception => ex
       if ("#{ex}"=="item-not-found: ")
         debug "Could not subscribe to unknown node '#{node}' "+
@@ -457,7 +450,6 @@ class OmfXMPPServices < MObject
       raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
             "on domain '#{domain}' - Error: '#{ex}'"
     end
-    @subscriptions.delete("#{domain}::#{node}")
     return true
   end
 
@@ -490,8 +482,7 @@ class OmfXMPPServices < MObject
   def purge_node(node, domain)
     begin
       call_with_timeout("Timing out while purging the PubSub node '#{node}'") {
-        service(domain).purge_items_from(node) 
-      }
+                        service(domain).purge_items_from(node) }
     rescue Exception => ex
       # if the PubSub node does not exist, we ignore the "not found" exception
       return true if ("#{ex}" == "item-not-found: ")
@@ -499,7 +490,6 @@ class OmfXMPPServices < MObject
       error "Failed purging node '#{node}'- Error: '#{ex}'"
       return false
     end
-    @subscriptions.delete("#{domain}::#{node}")    
     return true
   end
 
@@ -552,9 +542,8 @@ class OmfXMPPServices < MObject
   #
   def ping(domain)
     begin
-      s = call_with_timeout("Timing out while pinging the PubSub Gateway '#{domain}'") { 
-        service(domain).ping 
-      }
+      s = call_with_timeout("Timing out while pinging the PubSub Gateway "+
+                        "'#{domain}'") { service(domain).ping }
       return s
     rescue Exception => ex
       warn "Cannot ping the Pubsub Gateway '#{ping}'!"
@@ -572,9 +561,10 @@ class OmfXMPPServices < MObject
     debug "Exiting!"
     begin
       @keepAliveThread.kill! if @keepAliveThread
-      call_with_timeout("Timing out closing connection to the PubSub Gateway '#{@homeServer}'") { 
-        @clientHelper.remove_registration
-        @clientHelper.close
+      call_with_timeout("Timing out closing connection to the PubSub Gateway "+
+                        "'#{@homeServer}}'") { 
+                        @clientHelper.remove_registration
+                        @clientHelper.close
       }
     # Do not care if an error occured during stopping
     rescue Exception => ex
@@ -592,71 +582,5 @@ class OmfXMPPServices < MObject
     end
     nodes
   end
-  
-  private 
-
-  def _process_event(event, domain)
-    source = event_source(event)
-    return unless source
-    addr = "#{domain}::#{source}"
-    if source && callbacks = @subscriptions[addr]
-      # Retrieve the command from the event
-      message = event_to_message(event)
-      return unless message
-
-      callbacks.each do |block|
-        block.call(message)
-      end 
-    else
-      debug "Ignoring message from node '#{source}' - #{@subscriptions.keys.inspect}"
-    end
-  end
-  
-  def process_queue(event, &block)
-    # Retrieve the command from the event
-    message = event_to_message(event)
-    return if !message
-
-    # Pass the command to our communicator
-    yield message
-  end
-
-  def event_source(event)
-    return event.first_element("items").attributes['node']
-  end
-
-  def event_to_message(event)
-    begin
-      # Ignore this 'event' if it doesnt have any 'items' element
-      # These are notification messages from the PubSub server
-      items = event.first_element("items")
-      return nil if items.nil?
-
-      item = items.first_element("item")
-      return nil if item.nil?
-
-      # Retrieve the payload envelope from the received message
-      envelope = item.elements[1]
-      # Ignore events without valid envelopes payloads
-      return nil if envelope == nil
-      # All good, return the extracted XML payload
-
-      if verify(envelope)
-        xmlMessage = remove_envelope(envelope)
-        debug "Received on '#{event_source(event)}' - msg: '#{xmlMessage.to_s}'"
-        message = OmfPubSubMessage.new
-        message.create_from(xmlMessage)
-        return message
-      else
-        debug "Failed to verify signature - msg: '#{envelope.to_s}'"
-        return nil
-      end
-    rescue Exception => ex
-      debug "Cannot extract message from PubSub event '#{envelope}'"
-      debug "Error: '#{ex}'\nEvent received on '#{event_source(event)}')"
-      return
-    end
-  end
-
     
 end

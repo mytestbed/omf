@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'xmpp4r'
 require 'omf-common/mobject'
-require 'omf-common/communicator/envelope'
 require 'omf-common/communicator/xmpp/omfXMPPServices'
 
 #Jabber::debug = true

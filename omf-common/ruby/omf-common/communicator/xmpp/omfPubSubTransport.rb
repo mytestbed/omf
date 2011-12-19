@@ -104,9 +104,6 @@ class OMFPubSubTransport < MObject
   # the events of the 2 listens will be put in the same Q and process by the
   # same block, i.e. the queue and the block of the 1st call to listen!
   def listen(addr, &block)
-    unless block
-      error "Can't subscribe without a block"
-    end
     if addr.kind_of?(String)
       a = addr.split('/')
       domain = a.delete_at(0)
@@ -115,14 +112,32 @@ class OMFPubSubTransport < MObject
       node = addr.generate_address
       domain = addr.domain
     end
-    
-    
     subscribed = false
-    subscribed = @@xmppServices.subscribe_to_node(node, domain, &block)
+    index = 0
+    # When a new event comes from that server, we push it on our event queue
+    # if block has been given, create another queue and another thread
+    # to process this listening
+    if block
+      index = @@qcounter
+      @@queues[index] = Queue.new
+      @@threads << Thread.new {
+        begin
+          while event = @@queues[index].pop
+            process_queue(event, &block)
+          end
+        rescue Exception => ex
+          error "While processing queue; #{ex}"
+        end
+      }
+      @@qcounter += 1
+    end
+    subscribed = @@xmppServices.subscribe_to_node(node, domain) { |event|
+      @@queues[index] << event
+    }
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, domain)
 	      debug "Creating new node '#{node}'"
-	      return listen(addr, &block)
+	      subscribed = listen(addr, &block)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
               "on '#{addr.domain}'"
@@ -193,10 +208,6 @@ class OMFPubSubTransport < MObject
 
   def xmpp_services
     @@xmppServices
-  end
-  
-  def list_nodes(domain)
-    @@xmppServices.list_nodes(domain)
   end
 
   #############################
