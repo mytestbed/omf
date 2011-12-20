@@ -30,7 +30,7 @@
 #
 #
 require "omf-common/communicator/omfCommunicator"
-require "omf-common/omfProtocol"
+require "omf-common/communicator/omfProtocol"
 require "omf-resmgr/managerCommands"
 
 #
