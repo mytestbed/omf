@@ -600,7 +600,7 @@ class NodeHandler < MObject
 
     setupServiceCalls()
 
-    @@resources = ECCommunicator.instance.list_resources
+    # @@resources = ECCommunicator.instance.list_resources
     @@expFile = nil
 
     rest.each { |s|
