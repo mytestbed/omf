@@ -28,8 +28,8 @@
 #
 # This file implements a transport for testing.
 #
-require "omf-common/omfPubSubMessage"
-require "omf-common/omfPubSubAddress"
+require "omf-common/communicator/omfPubSubMessage"
+require "omf-common/communicator/omfPubSubAddress"
 require 'omf-common/mobject'
 
 #

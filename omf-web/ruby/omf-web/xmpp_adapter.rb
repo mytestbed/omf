@@ -1,6 +1,6 @@
 
 require 'singleton'
-require "omf-common/omfPubSubTransport"
+require "omf-common/communicator/xmpp/omfPubSubTransport"
 
 
 class Tester

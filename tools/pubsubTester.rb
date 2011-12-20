@@ -3,7 +3,7 @@ require "xmpp4r/pubsub"
 require "xmpp4r/pubsub/helper/servicehelper.rb"
 require "xmpp4r/pubsub/helper/nodebrowser.rb"
 require "xmpp4r/pubsub/helper/nodehelper.rb"
-require "omf-common/omfPubSubMessage"
+require "omf-common/communicator/omfPubSubMessage"
 include Jabber
 
 #Jabber::debug=true

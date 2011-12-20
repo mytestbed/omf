@@ -75,7 +75,7 @@ class Publish
   end
   
   def publish()
-    require 'omf-common/omfPubSubMessage'
+    require 'omf-common/communicator/omfPubSubMessage'
 
     msg = OmfPubSubMessage.new(:CMDTYPE => @msg)
     @transport.send(@node, msg)

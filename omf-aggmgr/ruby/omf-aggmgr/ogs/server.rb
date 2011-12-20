@@ -27,7 +27,7 @@ require 'base64'
 require 'webrick'
 require 'omf-common/mobject'
 require 'omf-common/omfProtocol'
-require 'omf-common/xmpp'
+require 'omf-common/communicator/xmpp/xmpp'
 require 'omf-common/servicecall'
 
 class AggmgrServer < MObject

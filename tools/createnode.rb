@@ -1,6 +1,6 @@
 #!/usr/bin/ruby -I/usr/share/omf-common-5.4
 
-require 'omf-common/omfPubSubMessage.rb'
+require 'omf-common/communicator/omfPubSubMessage.rb'
 require "pubsubTester"
 
 tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
