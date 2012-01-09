@@ -11,6 +11,11 @@ namespace :omf_dev do
     symlink = "/usr/share/omf-common-#{OMF_VERSION}"
     File.symlink("#{ROOT}/omf-common/ruby/", symlink) unless File.symlink?(symlink)
 
+    # OML
+    #
+    symlink = "/usr/share/omf-oml-#{OMF_VERSION}"
+    File.symlink("#{ROOT}/omf-oml/ruby/", symlink) unless File.symlink?(symlink)
+
     # Experiment Controlle
     #
     symlink = "/etc/omf-expctl-#{OMF_VERSION}"
@@ -48,6 +53,7 @@ namespace :omf_dev do
   task :remove do
     [
       "/usr/share/omf-common-#{OMF_VERSION}",
+      "/usr/share/omf-oml-#{OMF_VERSION}",
       "/etc/omf-expctl-#{OMF_VERSION}",
       "/usr/share/omf-expctl-#{OMF_VERSION}/repository",
       "/usr/share/omf_expctl-#{OMF_VERSION}",
