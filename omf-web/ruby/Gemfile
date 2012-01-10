@@ -1,12 +1,6 @@
-
-gem 'json'
-
-gem 'erector'
-
-gem 'thin'
-gem 'rack'
-gem 'rack/websocket'
-gem 'rack/showexceptions'
-
-gem 'coderay'
-gem 'log4r'
+json -v 1.4.6
+erector -v 0.8.3
+thin -v 1.3.1
+rack -v 1.3.5
+coderay -v 0.9.4
+log4r -v 1.1.8
