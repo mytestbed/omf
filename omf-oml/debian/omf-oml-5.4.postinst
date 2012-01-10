@@ -26,11 +26,9 @@ case "$1" in
     #
     . /usr/share/debconf/confmodule
     
-    cd /usr/share/omf-oml-$VER
-    echo "Installing bundler gem"
-    gem install --no-ri --no-rdoc -l -i vendor/ruby/1.8 vendor/bundler*.gem
-    echo "Installing gems for OMF-OML"
-    rake=/usr/bin/rake GEM_PATH=$PWD/vendor/ruby/1.8 PATH=$PATH:$PWD/vendor/ruby/1.8/bin bundle install --path vendor --local
+    cd /usr/share/omf-oml-$VER/gems/1.8
+    echo "Installing gems for OMF to $PWD"
+    rake=/usr/bin/rake GEM_PATH=$PWD gem install --no-ri --no-rdoc -l -f -i . cache/*.gem
     ;;
     
     abort-upgrade|abort-remove|abort-deconfigure)

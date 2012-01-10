@@ -8,6 +8,6 @@ Section: science
 Package: omf-oml-5.4
 Section: science
 Architecture: all
-Depends: ruby, rubygems, ruby-dev, rake
+Depends: omf-common-5.4
 Description: OML related functionality to support the querying and processing
  of measurements collected through the OML framework.

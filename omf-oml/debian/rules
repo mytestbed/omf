@@ -46,13 +46,12 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp	
 	mkdir -p debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	tar -C ruby -cf - --exclude='.svn' `find ruby/* -print | sed 's/^ruby\///'` | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
-	tar -cf - --exclude='.svn' share | tar -xf - -C debian/$(PKG_NAME)/usr/share/$(PKG_NAME)
 	(cd debian/$(PKG_NAME)/usr/share/$(PKG_NAME); $(PWD)/../gem-package.sh)
 
 # Build architecture-independent files here.
