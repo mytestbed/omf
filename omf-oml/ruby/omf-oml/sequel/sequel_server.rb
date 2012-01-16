@@ -5,7 +5,7 @@ require 'logger'
 require 'sequel'
 
 require 'omf-common/mobject'
-require 'oml'
+require 'omf-oml'
 
 module OMF::OML
   module Sequel; end
@@ -13,9 +13,9 @@ end
 
 module OMF::OML::Sequel
   module Server
-    
+
     class Query
-      
+
       def self.parse(xmls, repoFactory = RepositoryFactory.new, logger = Logger.new(STDOUT))
         if xmls.kind_of? String
           doc = REXML::Document.new(xmls)
@@ -29,7 +29,7 @@ module OMF::OML::Sequel
         q = self.new(root, repoFactory, logger)
         q.relation
       end
-      
+
       def initialize(queryEl, repoFactory, logger)
         @queryEl = queryEl
         @repoFactory = repoFactory || RepositoryFactory.new
@@ -45,7 +45,7 @@ module OMF::OML::Sequel
           @lastRel = @lastRel.limit(@limit, @offset)
         end
       end
-      
+
       def each(&block)
         # sel_mgr = relation
         # unless sel_mgr.kind_of? SelectionManager
@@ -54,17 +54,17 @@ module OMF::OML::Sequel
         # puts sel_mgr.engine
         relation.each(&block)
       end
-  
+
       def relation
         raise "No query defined, yet" unless @lastRel
         @lastRel
       end
-      
+
       # Requested format for result. Default is 'xml'
       def rformat
         @queryEl.attributes['rformat'] || 'xml'
       end
-  
+
       def parse_el(el, lastRel)
         if (el.kind_of? REXML::Text)
           # skip
@@ -72,7 +72,7 @@ module OMF::OML::Sequel
         end
         args = parse_args(el)
         @logger.debug "CHILD #{el.name}"
-        # keep the last table for this level to be used 
+        # keep the last table for this level to be used
         # to create proper columns.
         # NOTE: This is not fool-proof but we need columns
         # to later resolve the column type.
@@ -92,7 +92,7 @@ module OMF::OML::Sequel
         elsif name == 'project'
           # turn all arguments into proper columns
   #              cols = convert_to_cols(args)
-          lastRel = lastRel.select(*args)              
+          lastRel = lastRel.select(*args)
   #            elsif lastRel.kind_of?(::Arel::Table) && name  == 'as'
   #              # keep track of all created tables
   #              lastRel = lastRel.alias(*args)
@@ -108,12 +108,12 @@ module OMF::OML::Sequel
         @logger.debug "lastRel for <#{el}> is  #{lastRel.class}"
         lastRel
       end
-      
+
       def parse_repository(el)
         @repository = @repoFactory.create_from_xml(el, @logger)
       end
-      
-      
+
+
       # Return the arguments defined in @parentEl as array
       def parse_args(parentEl)
         args = []
@@ -126,7 +126,7 @@ module OMF::OML::Sequel
         end
         args
       end
-      
+
       # Return the arguments defined in @parentEl as array
       def parse_arg(pel)
         res = nil
@@ -157,7 +157,7 @@ module OMF::OML::Sequel
         end
         res
       end
-      
+
       def parse_arg_primitive(pel, value)
         type = pel.attributes['type'] || 'string'
         case type
@@ -175,7 +175,7 @@ module OMF::OML::Sequel
           raise "Unknown arg type '#{type}"
         end
       end
-      
+
       def convert_to_cols(args)
         args.collect do |arg|
           if arg.kind_of? String
@@ -187,7 +187,7 @@ module OMF::OML::Sequel
           end
         end
       end
-      
+
       # <col name='oml_sender_id' table='iperf_TCP_Info'/>
       def parse_column(el)
         unless colName = el.attributes['name']
@@ -201,13 +201,13 @@ module OMF::OML::Sequel
           raise "Unknown table name '#{tblName}' (#{el})"
         end
         col = "#{tblName}__#{colName}"
-  
+
         if colAlias = el.attributes['alias']
           col = "#{col}___#{colAlias}"
         end
         col.to_sym
       end
-      
+
       def parse_table(el)
         unless name = el.attributes['tname']
           raise "Missing 'tname' attribute for 'table' element"
@@ -216,38 +216,38 @@ module OMF::OML::Sequel
           name = "#{name}___#{talias}"
           @tables << talias.to_sym
         end
-        
-        @repository[name.to_sym]           
+
+        @repository[name.to_sym]
       end
-      
+
     end # Query
-    
+
     class RepositoryFactory
-      
+
       def initialize(opts = {})
         @opts = opts
       end
-  
+
       def create_from_xml(el, logger)
         name = el ? el.attributes['name'] : nil
         raise "<repository> is missing attribute 'name'" unless name
         create(name, logger)
       end
-  
+
       def create(database, logger = Logger.new(STDOUT))
         opts = @opts.dup
-        if pre = opts[:database_prefix] 
+        if pre = opts[:database_prefix]
           database = pre + database
           opts.delete(:database_prefix)
         end
-        if post = opts[:database_postfix] 
+        if post = opts[:database_postfix]
           database = database + post
           opts.delete(:database_postfix)
         end
         opts[:database] = database
         ::Sequel.connect(opts)
       end
-      
+
     end # RepositoryFactory
   end # Server
 end
@@ -258,12 +258,12 @@ module Sequel
       TrueClass => 'boolean',
       FalseClass => 'boolean',
       String => 'string',
-      Symbol => 'string',            
+      Symbol => 'string',
       Fixnum => 'decimal',
       Float => 'double',
       Time => 'dateTime'
     }
-      
+
     def row_description(row)
       n = naked
       cols = n.columns
@@ -274,7 +274,7 @@ module Sequel
       end
       descr
     end
-    
+
     def schema_for_row(row)
       n = naked
       cols = n.columns
@@ -326,12 +326,12 @@ def test_sequel_server()
       </where>
     </query>
   }
-  
+
 #  mc = repo[:mediacontent]
 #  mc2 = mc.alias
 #  accessed = mc2.where(mc2[:status].eq('Accessed')).project(:oml_ts_server, :name)
 #  q = mc.project(:name).join(accessed).on(mc[:name].eq(mc2[:name]))
-  
+
 #  tests << %{
 #    <query>
 #      <repository name='prefetching_4'/>
@@ -368,7 +368,7 @@ def test_sequel_server()
 #      </on>
 #    </query>
 #  }
-  
+
   factory = OMF::OML::Sequel::Server::RepositoryFactory.new(
               :adapter => 'sqlite',
               :database_prefix => '/Users/max/src/omf_mytestbed_net/omf-common/test/',
@@ -377,14 +377,14 @@ def test_sequel_server()
 
   repo = factory.create('test')
   puts repo.tables
-  
+
   tests.each do |t|
     ds = OMF::OML::Sequel::Server::Query.parse(t, factory)
     puts ds.inspect
     puts ds.columns.inspect
     puts ds.first.inspect
   end
-  
+
   first = true
   types = []
   ds = OMF::OML::Sequel::Server::Query.parse(tests[1], factory).limit(10)
