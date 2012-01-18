@@ -1,0 +1,27 @@
+--- 
+# OMF version
+version: "5.4"
+# name of the network interface that is facing the node network
+interface: "eth0:0"
+# IP address of the testbed controller
+controller_ip: "10.0.0.199"
+# address pool for static DHCP leases to the testbed nodes
+# ensure that the above controller_ip is not within this range
+address_pool_prefix: "10.0.0."
+address_pool_start: 201
+address_pool_end: 254
+# name of the PXE kernel image
+kernel_name: "linux-omf-pxe-3.0.4"
+# name of the PXE initramfs
+initramfs_name: "initramfs-omf-pxe-5.4.bz2"
+# XMPP domain name, usually the FQDN of your AM
+xmpp_domain: "norbit.npc.nicta.com.au"
+# HRN naming scheme for the nodes. %hostname% is replaced by the node hostname
+hrn: "omf.nicta.%hostname%"
+# list of MAC addresses of the testbed nodes in format FF:FF:FF:FF:FF:FF
+macs: 
+- 00:03:2d:08:1a:33
+- 00:03:2d:08:1a:23
+- 00:03:2D:0C:FC:B1
+- 00:03:2d:08:1a:17
+
