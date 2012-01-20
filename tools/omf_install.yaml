@@ -15,7 +15,7 @@ kernel_name: "linux-omf-pxe-3.0.4"
 # name of the PXE initramfs
 initramfs_name: "initramfs-omf-pxe-5.4.bz2"
 # XMPP domain name, usually the FQDN of your AM
-xmpp_domain: "norbit.npc.nicta.com.au"
+xmpp_domain: "vm2.norbit.npc.nicta.com.au"
 # HRN naming scheme for the nodes. %hostname% is replaced by the node hostname
 hrn: "omf.nicta.%hostname%"
 # list of MAC addresses of the testbed nodes in format FF:FF:FF:FF:FF:FF
