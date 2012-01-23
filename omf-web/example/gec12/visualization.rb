@@ -6,19 +6,19 @@ require 'omf-oml/sql_source'
 include OMF::OML
 
 $nw = OmlNetwork.new 
-$lwidgets << init_graph( 'Network', $nw, 'network', {
-  :mapping => {
-    :node => {
-      :radius => {:property => :capacity, :scale => 20, :min => 4},
-      :fill_color => {:property => :capacity, :scale => :green_yellow80_red}
-    },
-    :link => {
-      :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
-      :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red}
-    }
-  },
-  :height => 500
-})
+# $lwidgets << init_graph( 'Network', $nw, 'network', {
+  # :mapping => {
+    # :node => {
+      # :radius => {:property => :capacity, :scale => 20, :min => 4},
+      # :fill_color => {:property => :capacity, :scale => :green_yellow80_red}
+    # },
+    # :link => {
+      # :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
+      # :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red}
+    # }
+  # },
+  # :height => 500
+# })
 
 $node_loc = {}
 $node_loc['n1'] = [0.3, 0.6]
@@ -30,6 +30,20 @@ $node_loc['n6'] = [0.7, 0.6]
 $node_loc['n7'] = [0.7, 0.4]
 $node_loc['n101'] = [0.15, 0.5]
 $node_loc['n201'] = [0.85, 0.5]
+
+$node_loc_table = OmlTable.new('node_loc', [[:id, :text], [:x, int], [:y, :int]], :index => :id)
+[['1', 0.3, 0.6], 
+ ['2', 0.3, 0.4], 
+ ['3', 0.4, 0.75],
+ ['4', 0.5, 0.25],
+ ['5', 0.6, 0.75],
+ ['6', 0.7, 0.6],
+ ['7', 0.7, 0.4],
+ ['101', 0.15, 0.5],
+ ['201', 0.85, 0.5]
+].each do |t|
+  $node_loc_table.add_row(t)
+end
 
 #10.times do |i|
 #  $node_loc["n#{i}"] = [(i % 5) * 0.2 + 0.1, (i / 3) * 0.3 + 0.1 + 0.1 * rand]
@@ -60,19 +74,20 @@ def set_node(nid, opts)
   node
 end
 
+$node_table = $link_table = nil
+  
 def click_mon_link_stats(stream)
-  opts = {:name => 'Link State', :schema => [:ts, :link, :store_forward, :sett, :lett, :bitrate], :max_size => 200}
+  opts = {:name => 'Link State', :schema => [:ts, :link_id, :from_id, :to_id, :store_forward, :sett, :lett, :bitrate], :max_size => 200}
   select = [:oml_ts_server, :id, :neighbor_id, :sett_usec, :lett_usec, :bitrate_mbps]
-  t = stream.capture_in_table(select, opts) do |ts, from, to, sett, lett, bitrate|
+  t = $link_table = stream.capture_in_table(select, opts) do |ts, from, to, sett, lett, bitrate|
 #puts "form: #{from}, to:#{to}"
     store_forward = 1.0 * sett / lett
-    set_link(from, to, :store_forward => store_forward, :bitrate => bitrate)
-    #sleep 0.1
-    [ts.to_i, "l#{from}-#{to}", store_forward, sett, lett, bitrate]
+#    set_link(from, to, :store_forward => store_forward, :bitrate => bitrate)
+    [ts.to_i, "l#{from}-#{to}", from, to, store_forward, sett, lett, bitrate]
   end
   gopts = {
-    :mapping => {:group_by => :link, :x_axis => :ts, :y_axis => :store_forward},
     :schema => t.schema.describe,
+    :mapping => {:group_by => :link_id, :x_axis => :ts, :y_axis => :store_forward},
     :margin => {:left => 80, :bottom => 40},
     :yaxis => {:ticks => 6},
     :stroke_width => 4
@@ -101,28 +116,35 @@ def click_mon_routing_stats(stream)
     when :oml_ts_server
       cd[:name] = :ts
     when :id
-      cd[:name] = :node
+      cd[:type] = :KEY
     end
     cd
   end
-  #puts "TSCHEMA>>>> #{tschema.inspect}"
+  schema = tschema
+  schema << {:name => :name, :type => 'TEXT'}
+  schema << {:name => :loc_x, :type => 'INTEGER'}
+  schema << {:name => :loc_y, :type => 'INTEGER'}
+  puts "TSCHEMA>>>> #{tschema.inspect}"
   node_id = select.find_index(:id)
-  opts = {:name => 'Node State', :schema => tschema, :max_size => 200}
-  table = stream.capture_in_table(select, opts) do |row|
-    nopts = {}
-    tschema.each_with_index do |cd, i|
-      name = cd[:name]
-      nopts[name] = row[i] unless name == :node
-    end
+  opts = {:name => 'Node State', :schema => schema, :max_size => 200}
+  table = $node_table = stream.capture_in_table(select, opts) do |row|
+    # nopts = {}
+    # tschema.each_with_index do |cd, i|
+      # name = cd[:name]
+      # nopts[name] = row[i] unless name == :node
+    # end
     #puts "TUPLE>>>> #{nopts.inspect}"    
     nid = row[node_id]
-    set_node(nid, nopts)
-    row[node_id] = "n#{nid}"
-    row
+    #set_node(nid, nopts)
+    #row[node_id] = "n#{nid}"
+    row << nid
+    loc = $node_loc["n#{nid}"] || [0,0]
+    row + loc
   end
   
   gopts = {
-    :mapping => {:group_by => :node, :x_axis => :ts, :y_axis => :in_chunks},
+    :schema => table.schema,
+    :mapping => {:group_by => :node_id, :x_axis => :ts, :y_axis => :in_chunks},
     :schema => table.schema.describe,
     :margin => {:left => 80, :bottom => 40},
     :yaxis => {:ticks => 6},
@@ -136,6 +158,9 @@ def click_mon_routing_stats(stream)
   ))  
   table  
 end
+
+
+
 
 #ep = OmlSqlSource.new("#{File.dirname(__FILE__)}/gec12_demo.sq3")
 ep = OmlSqlSource.new($db_name, :offset => -500, :check_interval => 1.0)
@@ -154,6 +179,28 @@ ep.on_new_stream() do |stream|
   end
 end
 ep.run()
+
+$lwidgets << init_graph( 'Network', 
+  {:nodes => $node_table, :links => $link_table},
+  'network', {
+    :mapping => {
+      :nodes => {
+        :radius => {:property => :curr_stored_chunks, :scale => 20, :min => 4},
+        :fill_color => {:property => :error_chunks, :color => :green_yellow80_red},
+        :x => {:property => :loc_x},
+        :y => {:property => :loc_y}
+      },
+      :links => {
+        :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
+        :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red},
+      }
+    },
+    :schema => {
+      :nodes => $node_table.schema,
+      :links => $link_table.schema
+    },
+    :height => 500
+})
 
 
 

@@ -50,7 +50,7 @@ L.provide('OML.line_chart_fc', ["d3/d3", "graph/line_chart", '#OML.line_chart'],
       	if ((max - min) < 3) return;
       	
       	var d = ctxt.filter_x(min, max)
-      	self.focus.update(d);
+      	self.focus.update([{name: 'default', events: d}]);
       });
   
       var data = opts.data;

@@ -14,7 +14,7 @@ module OMF::OML
     # *opts:  
     #   - offset: Ignore first +offset+ rows. If negative or zero serve +offset+ rows initially
     #   - limit: Number of rows to fetch each time [1000]
-    #   - check_interval: Interval in seconds when to check for new data
+    #   - check_interval: Interval in seconds when to check for new data. If 0, only run once.
     #
     def initialize(table_name, db, source, opts = {})
       @sname = table_name
@@ -36,7 +36,7 @@ module OMF::OML
       @limit = 1000 unless @limit
       
       @check_interval = opts[:check_interval]
-      @check_interval = 5 unless @check_interval
+      @check_interval = 0 unless @check_interval
       
       @stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
       @on_new_vector_proc = {}
@@ -200,17 +200,21 @@ module OMF::OML
     private
     
     def _run
-      @running = true
-      while (@running)
-        begin 
-          unless _run_once
-            # All rows read, wait a bit for news to show up
-            sleep @check_interval
+      if @check_interval <= 0
+        _run_once
+      else
+        @running = true
+        while (@running)
+          begin 
+            unless _run_once
+              # All rows read, wait a bit for news to show up
+              sleep @check_interval
+            end
+          rescue Exception => ex
+            warn ex
           end
-        rescue Exception => ex
-          warn ex
-        end
-      end 
+        end 
+      end
     end
       
     # Run a query on database an serve all rows found one at a time.

@@ -22,7 +22,7 @@ module OMF::Web::Tab::Graph
       unless (widget = @widgets[tid])
         if gd = OMF::Web::Widget::Graph[tid]
           #addr = [req.params['sid'], @tab_id, gid].join(':')
-          widget = @widgets[tid] = gd.create_widget
+          widget = @widgets[tid] = gd[:widget_class].new(gd) #gd.create_widget
         else
           if OMF::Web::Widget::Graph.count > 0
             opts[:flash] = {:alert => "Unknown graph id '#{tid}'"}
@@ -35,8 +35,10 @@ module OMF::Web::Tab::Graph
         opts[:card_title] = widget.name
       end
 
-      require 'omf-web/tab/graph/graph_page'
-      page = GraphPage.new(widget, opts)
+      #require 'omf-web/tab/graph/graph_page'
+      #page = GraphPage.new(widget, opts)
+      OMF::Web::Theme.require 'multi_card_page'
+      page = OMF::Web::Theme::MultiCardPage.new(widget, :graph, OMF::Web::Widget::Graph, opts)
       [page.to_html, 'text/html']
     end
     

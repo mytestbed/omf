@@ -2,7 +2,7 @@
 module OMF::Web; module Widget; module Graph
 end; end; end
 
-require 'omf-web/widget/graph/graph_description'
+require 'omf-web/widget/graph/graph_widget'
 
 module OMF::Web::Widget::Graph
   
@@ -15,8 +15,6 @@ module OMF::Web::Widget::Graph
   
     currDir = File.dirname(__FILE__)
     opts[:resourcePath].insert(0, currDir)
-    #puts ">>>>>>>>>>> #{ opts[:ResourcePath]}"
-  #          server.mount('/graph3/resource', ::OMF::Common::Web::ResourceHandler, opts)
   end
   
   # Register a graph which can be visualized through a +GraphWidget+
@@ -29,17 +27,18 @@ module OMF::Web::Widget::Graph
   def self.addGraph(name, opts = {})
     vizType = opts[:viz_type]
     raise "Missing :viz_type in 'addGraph'" unless vizType
-    @@graphs << (gd = GraphDescription.new(name, vizType, opts))
-    gd
+
+    unless opts[:data_sources]
+      raise "Missing option ':data_sources' for widget '#{name}'"
+    end
+
+    opts[:name] = name
+    opts[:js_url] = "graph/#{vizType}.js"
+    opts[:js_class] = "OML.#{vizType}"
+    opts[:widget_class] = OMF::Web::Widget::AbstractDataWidget 
+    @@graphs << opts
+    opts
   end
-  
-  # def self.addNetworkGraph(name, opts = {}, &netProc)
-    # g = {}
-    # g[:name] = name
-    # g[:gopts] = opts.dup
-    # g[:netProc] = netProc
-    # @@graphs << g
-  # end
   
   def self.[](id)
     @@graphs[id]

@@ -19,7 +19,7 @@ module OMF::Web::Theme
           @items_class.each_with_index do |g, i| 
             klass = (i == @card_id) ? 'selected' : nil
             li :class => klass do
-              a g.name, :href => "/#{@module_name}/show?tid=#{i}&sid=#{Thread.current["sessionID"]}"
+              a g[:name] || 'unknown', :href => "/#{@module_name}/show?tid=#{i}&sid=#{Thread.current["sessionID"]}"
             end
           end
         end

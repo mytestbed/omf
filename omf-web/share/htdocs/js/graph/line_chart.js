@@ -70,8 +70,8 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
         self.on_dehighlighted(evt);
       });
       
-      var data = this.data = o.data;
-      if (data) this.redraw();
+      var data = o.data;
+      if (data) this.update(data);
       
     };
     
@@ -81,8 +81,16 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
       this.redraw();   
     };
 
-    this.update = function(data) {
-      this.data = data;
+    this.update = function(sources) {
+      if (! (sources instanceof Array)) {
+        throw "Expected an array"
+      }
+      if (sources.length != 1) {
+        throw "Can only process a SINGLE source"
+      }
+      if ((this.data = sources[0].events) == null) {
+        throw "Missing events array in data source"
+      }
       this.redraw();
     };
 
@@ -102,7 +110,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
       var x_index = this.mapping.x_axis;
       var y_index = this.mapping.y_axis;
       var group_by = this.mapping.group_by;
-      if (group_by) {
+      if (group_by != null) {
         data = this.group_by(data, group_by);
       } else {
         data = [data];

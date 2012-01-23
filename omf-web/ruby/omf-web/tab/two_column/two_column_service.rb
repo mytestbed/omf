@@ -14,8 +14,8 @@ module OMF::Web::Tab::TwoColumn
     
     def show(req, opts)
       unless @lwidgets
-        @lwidgets = @left.collect do |wd| wd.create_widget end
-        @rwidgets = @right.collect do |wd| wd.create_widget end
+        @lwidgets = @left.collect do |wd| wd[:widget_class].new(wd) end
+        @rwidgets = @right.collect do |wd| wd[:widget_class].new(wd) end
       end
       
       OMF::Web::Theme.require 'two_column_page'

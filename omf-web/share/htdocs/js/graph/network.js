@@ -4,8 +4,34 @@ L.provide('OML.network', ["d3/d3"], function () {
     this.opts = opts || {};
     this.data = null;
     
+    this.decl_properties = {
+      nodes:  [['radius', 'int', 30], 
+               ['stroke_width', 'int', 1], 
+               ['stroke_color', 'color', 'black'], 
+               ['fill_color', 'color', 'blue'],
+               ['x', 'int', 10],
+               ['y', 'int', 10]
+              ],
+      links:  [['stroke_width', 'int', 2], 
+               ['stroke_color', 'color', 'black'],
+               ['from', 'index', {stream: 'nodes', key: 'id'}],               
+               ['to', , {stream: 'nodes', key: 'id'}]              
+              ]
+    };
+    
+    this.decl_color_func = {
+      "green_yellow80_red": d3.scale.linear()
+                              .domain([0, 0.8, 1])
+                              .range(["green", "yellow", "red"]),
+      "green_red":          d3.scale.linear()
+                              .domain([0, 1])
+                              .range(["green", "red"])
+    };
+    
+    
     this.init = function() {
       var o = this.opts;
+      var self = this;
   
       var w = this.w = o['width'] || 700;
       var h = this.h = o['height'] || 400;
@@ -28,14 +54,6 @@ L.provide('OML.network', ["d3/d3"], function () {
                  .attr("transform", "translate(0, " + h + ")")
                  ;
   
-      this.color_func = {
-        "green_yellow80_red": d3.scale.linear()
-                                .domain([0, 0.8, 1])
-                                .range(["green", "yellow", "red"]),
-        "green_red":          d3.scale.linear()
-                                .domain([0, 1])
-                                .range(["green", "red"])
-      };
       this.graph_layer = g.append("svg:g");
       
       var self = this;
@@ -44,23 +62,59 @@ L.provide('OML.network', ["d3/d3"], function () {
         self.on_highlighted(evt);
       });
       
-      var data = this.data = o.data;
-      if (data) this.redraw({});
+      var mapping = this.mapping = {};
+      _.map(['nodes', 'links'], function(n) {
+        var schema = {};
+        _.map(o.schema[n], function(se, i) {
+          se['index'] = i;
+          schema[se.name] = se;
+        });
+        var m = mapping[n] = {};
+        var om = o.mapping[n] || {};      
+        _.map(self.decl_properties[n], function(a) {
+          var pname = a[0]; var type = a[1]; var def = a[2];
+          m[pname] = self.create_mapping(pname, om[pname], schema, type, def)
+        });
+      });
+      
+      var data = o.data;
+      if (data) this.update(data);
+
     };
   
     this.append = function(a_data) {
+      throw "DOESN'T WORK";
+      
       var data = this.data;
       data.nodes = $.extend(data.nodes, a_data.nodes);
       data.links = $.extend(data.links, a_data.links);      
-      this.redraw({});   
+      this.redraw();   
     };
 
-    this.update = function(data) {
-      this.data = data;
-      this.redraw({});
+    this.update = function(sources) {
+      if (! (sources instanceof Array)) {
+        throw "Expected an array"
+      }
+      if (sources.length != 2) {
+        throw "Require two sources"
+      }
+      
+      var data = this.data = {};
+      data['c'] = 1
+      _.each(sources, function(s) {
+        if (s.stream == 'nodes') {
+          // that needs a bit more work
+          data['nodes'] = s.events;
+        } else if (s.stream == 'links') {
+          data['links'] = s.events;
+        } else {
+          throw "Unknown stream '" + s.name + "'.";
+        }
+      });
+      this.redraw();
     };
     
-    this.redraw = function(ropts) {
+    this.redraw = function() {
       var self = this;
       var data = this.data;
       var o = this.opts;
@@ -132,11 +186,14 @@ L.provide('OML.network', ["d3/d3"], function () {
             // self.on_dehighlighted({});
           // }) 
           
+      // curved line
       var line_f = function(d) {
         var a = 0.2;
         var b = 0.3;
         var o = 30;
                       
+        var dx = data;
+        
         var x1 = x(data.nodes[d.from]); 
         var y1 = y(data.nodes[d.from]);
         var x3 = x(data.nodes[d.to]); 
@@ -348,6 +405,99 @@ L.provide('OML.network', ["d3/d3"], function () {
       }
       return mapper_f;
     }
+    
+            // :radius => {:property => :capacity, :scale => 20, :min => 4},
+        // :fill_color => {:property => :capacity, :color => :green_yellow80_red}
+      // },
+      // :link => {
+        // :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
+        // :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red}
+
+   this.create_mapping = function(mname, descr, schema, type, def) {
+     var self = this;
+     if (descr == undefined) {
+       if (type == 'index') {
+         return this.create_mapping(mname, def, schema, type, null)
+         var key = def.key;
+         return function(d) {
+           var t = self.indexed_data(def.stream); // FIXME
+           return t[key];
+         }
+       } else {
+        return function(d) { 
+          return def; 
+        }
+       }
+     }
+     var pname = descr.property;
+     var schema = schema[pname];
+     if (schema == undefined) {
+       throw "Unknown property '" + pname + "'.";
+     }
+     var index = schema.index;
+     switch (type) {
+     case 'int': 
+       return function(d) {
+         var v = d[index];
+         
+         var scale = desc.scale;
+         if (scale != undefined) v = v * scale; 
+
+         var min_value = desc.min;
+         if (min_value != undefined && v < min_value) v = min_value; 
+
+         var max_value = desc.max;
+         if (max_value != undefined && v > max_value) v = max_value; 
+         
+         return v;
+       };
+     case 'color': 
+       return function(d) {
+         var v = d[index];
+         
+         var scale = desc.scale;
+         if (scale != undefined) v = v * scale; 
+
+         var min_value = desc.min;
+         if (min_value != undefined && v < min_value) v = min_value; 
+         
+         var color = desc.color;
+         if (color == undefined) {
+           throw "Missing color function for '" + mname + "'.";
+         } 
+         var color_f = self.decl_color_func[color];
+         if (color_f == undefined) {
+           throw "Unknown color function '" + color + "'.";
+         } 
+                  
+         return color_f(v);
+       };
+     default:    
+       throw "Unknown mapping type '" + type + "'";
+     }
+      var i = 0;
+   };
+    
+   this.process_schema = function() {
+      var o = this.opts;
+      var i = 0;
+      var mapping = o.mapping || {};
+      var m = this.mapping = {};
+      var schema = o.schema;
+      if (schema) {
+        schema.map(function(c) {
+          ['x_axis', 'y_axis', 'group_by'].map(function(k) {
+            if (c.name == o.mapping[k]) {
+              m[k] = i
+            }
+          });
+          i += 1;
+        })
+      } else {
+        m.x_axis = 0;
+        m.y_axis = 1;
+      }
+    };    
     
     this.init(opts);
   };

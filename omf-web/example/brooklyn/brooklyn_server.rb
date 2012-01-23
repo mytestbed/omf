@@ -5,7 +5,7 @@ require 'omf-oml/sql_source'
 require 'omf-web/tabbed_server'
 
 require 'omf-web/tab/graph/init'
-require 'omf-web/widget/code'
+require 'omf-web/widget/code/code'
 
 
 include OMF::OML
@@ -19,10 +19,10 @@ def init_graph(table, viz_type = 'table', viz_opts = {})
   }
   
   gopts = {
-    :data_source => table,
+    :data_sources => table,
     :viz_type => viz_type,
     # :viz_type => 'map',    
-    :viz_opts => def_viz_opts.merge(viz_opts)
+    :wopts => def_viz_opts.merge(viz_opts)
   }
   OMF::Web::Widget::Graph.addGraph(table.name, gopts) 
 end

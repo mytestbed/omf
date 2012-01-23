@@ -4,29 +4,33 @@ require 'omf-oml/network'
 
 require 'omf-web/tabbed_server'
 require 'omf-web/tab/graph/init'
-require 'omf-web/widget/code'
+require 'omf-web/widget/code/code'
 
 # Define data sources
 #
-$db_name = ARGV[1] || "/var/lib/oml2/gec12_demo_pgeni.sq3"
+puts "ATGV:  #{ARGV.inspect}"
+$db_name = ARGV[0] || "/var/lib/oml2/gec12_demo_pgeni.sq3"
 
 #
 # Configure graph displays
 #
-def init_graph(name, data, viz_type = 'network', opts = {})
+def init_graph(name, data_sources, viz_type = 'network', opts = {})
   #  i = 0
+  unless data_sources.kind_of? Hash
+    data_sources = {:default => data_sources}
+  end 
   def_viz_opts = {
-    #:schema => table.schema    
+    #:schema => data.schema    
   }
-  
+  # end
   gopts = {
-    :data_source => data,
+    :data_sources => data_sources,
     :dynamic => {
       :updateInterval => 1
     },
     :viz_type => viz_type,
     # :viz_type => 'map',    
-    :viz_opts => def_viz_opts.merge(opts)
+    :wopts => def_viz_opts.merge(opts)
   }
   OMF::Web::Widget::Graph.addGraph(name, gopts) 
 end

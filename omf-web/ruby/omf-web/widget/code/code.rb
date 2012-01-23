@@ -2,7 +2,7 @@
 module OMF::Web; module Widget; module Code
 end; end; end
 
-require 'omf-web/widget/code/code_description'
+require 'omf-web/widget/code/code_widget'
 
 module OMF::Web::Widget::Code
   
@@ -24,7 +24,11 @@ module OMF::Web::Widget::Code
   #   :???
   # 
   def self.addCode(name, opts = {})
-    @@scripts << CodeDescription.new(name, opts)
+    
+    opts[:name] = name
+    opts[:widget_class] = OMF::Web::Widget::Code::CodeWidget 
+    @@scripts << opts #CodeDescription.new(name, opts)
+    opts
   end
   
   def self.[](id)

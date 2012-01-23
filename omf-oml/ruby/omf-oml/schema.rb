@@ -57,6 +57,10 @@ module OMF::OML
       @schema
     end
     
+    def to_json(*opt)
+      describe.to_json(*opt)
+    end
+    
     # schema_description - Array containing [name, type*] for every column in table
     #   TODO: define format of TYPE
     #

@@ -121,7 +121,7 @@ module OMF::OML
     #
     # opts
     #   :from - fromNode if +fromNode+ is nil
-    #   :to - fromNode if +toNode+ is nil
+    #   :to - toNode if +toNode+ is nil
     #   ...  - rest of options passed on to +NetworkLink+ constructor
     #    
     def create_link(name = nil, fromNode = nil, toNode = nil, attributes = {})
@@ -177,6 +177,8 @@ module OMF::OML
     def to_json
       describe.to_json
     end
+    
+    
     
     def updated(element)
       synchronize do

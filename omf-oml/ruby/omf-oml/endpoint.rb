@@ -2,7 +2,7 @@
 require 'omf-common/mobject'
 require 'omf-oml'
 
-require 'omf-oml/tuple'
+require 'omf-oml/oml_tuple'
 
 module OMF::OML
         
@@ -71,7 +71,13 @@ module OMF::OML
     end
   end
   
-  class OmlConnection < MObject
+  # PRIVATE 
+  # An instance of this class is created by +OmlEndpoint+ to deal with
+  # and individual client connection (socket). An EndPoint is creating
+  # and instance and then immediately calls the +run+ methods.
+  #
+  #
+  class OmlSession < MObject  # :nodoc
     
     # Return the value for the respective @key@ in the protocol header.
     #

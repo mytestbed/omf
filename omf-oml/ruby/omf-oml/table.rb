@@ -42,7 +42,7 @@ module OMF::OML
     end
     
     # Register +callback+ to be called to process any newly
-    # offered row before it being added to intenral storage.
+    # offered row before it being added to internal storage.
     # The callback's argument is the new row (TODO: in what form)
     # and should return what is being added instead of the original
     # row. If the +callback+ returns nil, nothing is being added.
@@ -64,27 +64,47 @@ module OMF::OML
     #
     def add_row(row)
       synchronize do
-        #puts row.inspect
-        if @on_before_row_added
-          row = @on_before_row_added.call(row)
-        end
-        return unless row 
-  
-        @rows << row
-        if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
-          @rows.shift # not necessarily fool proof, but fast
-        end
-  
-        #puts "add_row"
-        @on_row_added.each_value do |proc|
-          #puts "call: #{proc.inspect}"
-          proc.call(row)
-        end
+        _add_row(row)
+      end
+    end
+    
+    # Add an array of rows to this table
+    #
+    def add_rows(rows)
+      synchronize do
+        rows.each { |row| _add_row(row) }
       end
     end
     
     def describe()
       rows
+    end
+    
+    def data_sources
+      self
+    end
+    
+    private
+    
+    # NOT synchronized
+    #
+    def _add_row(row)
+      #puts row.inspect
+      if @on_before_row_added
+        row = @on_before_row_added.call(row)
+      end
+      return unless row 
+
+      @rows << row
+      if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
+        @rows.shift # not necessarily fool proof, but fast
+      end
+
+      #puts "add_row"
+      @on_row_added.each_value do |proc|
+        #puts "call: #{proc.inspect}"
+        proc.call(row)
+      end
     end
     
   end # OMLTable

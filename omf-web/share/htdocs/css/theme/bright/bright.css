@@ -123,13 +123,20 @@
 }
 
 /**** WIDGET ****/
+.widget_container {
+  border: 1px solid #BCD;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  padding: 10px;
+}
 
 .widget_container .widget_header {
-  border: 1px solid #BCD;
-  border-bottom-width: 0px;
-  background-color: #E9EFFF;
-  color: #1E6FAF;
-  padding: 5px;
+  //border: 1px solid #BCD;
+  //border-bottom-width: 0px;
+  //background-color: #E9EFFF;
+  //color: #1E6FAF;
+  margin-top: 5px;
+  margin-bottom: 20px;
   zoom: 1;
   line-height: 20px;
 }
@@ -137,7 +144,7 @@
 .widget_container span.widget_title {
   padding: 2px;
   padding-left: 5px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   line-height: 20px;
 }
@@ -145,7 +152,7 @@
 
 
 .widget_container .widget_body {
-  border: 1px solid #BCD;
+  //border: 1px solid #BCD;
   overflow: hidden;
   text-align: left;
   margin: 0px auto;

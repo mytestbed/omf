@@ -1,6 +1,6 @@
 
 require 'omf-web/tab/common/abstract_service'
-require 'omf-web/widget/code'
+require 'omf-web/widget/code/code'
 
 module OMF::Web::Tab::Code
   
@@ -15,7 +15,7 @@ module OMF::Web::Tab::Code
       tid = opts[:card_id] = (req.params['tid'] || 0).to_i
       unless (widget = @widgets[tid])
         if descr = OMF::Web::Widget::Code[tid]
-          widget = @widgets[tid] = descr.create_widget
+          widget = @widgets[tid] = descr[:widget_class].new(descr) #.create_widget
         else
           if OMF::Web::Widget::Code.count > 0
             opts[:flash] = {:alert => "Unknown script id '#{tid}'"}

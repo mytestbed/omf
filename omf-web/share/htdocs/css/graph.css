@@ -1,4 +1,16 @@
 
+
+/****
+ * Graph type selector
+ */
+
+div.graph-type-selector .icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+
 div.oml-line-chart {
   margin: 20px;
 }
@@ -26,8 +38,9 @@ div.oml-line-chart {
 }
 
 .oml-line-chart .select-rect {
-  cursor: hand;
-  fill: #FF8080;
+  cursor: pointer;
+  *cursor: hand;
+  fill-color: #FF8080;
   fill-opacity: 0.4;
 }
 

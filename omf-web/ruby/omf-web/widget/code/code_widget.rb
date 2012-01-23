@@ -13,11 +13,8 @@ module OMF::Web::Widget::Code
     
     attr_reader :name, :opts
     
-    def initialize(description)
-      super description.opts
-
-      @description = description 
-      @name = description.name
+    def initialize(opts)
+      super opts
     end
         
     def content()
@@ -33,8 +30,8 @@ module OMF::Web::Widget::Code
     }
     
     def render_code()
-      content = @description.content
-      type = @description.code_type
+      content = file_content
+      type = code_type
       mimeType = @@codeType2mime[type]
       
       #puts ">>>>RENDER_CODE>> #{content.length}"
@@ -47,7 +44,30 @@ module OMF::Web::Widget::Code
       #puts "<<<<< END OF RENDER CODE #{tokens.inspect}"
     end
     
-        
+    def file_content()
+      ## HACK!!!!
+      path = @opts[:file]
+      if File.readable?(path)
+        File.new(path).read
+      else
+        "Can't find #{path}"
+      end
+    end
+    
+    # Return the language the code is written in 
+    #
+    def code_type()
+      path = @opts[:file]
+      if path.end_with? '.rb'
+        :ruby
+      elsif path.end_with? '.xml'
+        :xml
+      else
+        :text
+      end
+    end
+    
+    
   end # CodeWidget
   
 end

@@ -16,7 +16,7 @@ module OMF::OML
   #
   class OmlSqlSource < MObject
     
-    # +opts+ - passed on to the +report_new_table+ method.
+    # +opts+ - passed on as +opts+ to the OmlSqlRow constructor
     #
     def initialize(db_file, opts = {})
       raise "Can't find database '#{db_file}'" unless File.readable?(db_file)
