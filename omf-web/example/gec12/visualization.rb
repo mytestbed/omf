@@ -31,19 +31,17 @@ $node_loc['n7'] = [0.7, 0.4]
 $node_loc['n101'] = [0.15, 0.5]
 $node_loc['n201'] = [0.85, 0.5]
 
-$node_loc_table = OmlTable.new('node_loc', [[:id, :text], [:x, int], [:y, :int]], :index => :id)
-[['1', 0.3, 0.6], 
- ['2', 0.3, 0.4], 
- ['3', 0.4, 0.75],
- ['4', 0.5, 0.25],
- ['5', 0.6, 0.75],
- ['6', 0.7, 0.6],
- ['7', 0.7, 0.4],
- ['101', 0.15, 0.5],
- ['201', 0.85, 0.5]
-].each do |t|
-  $node_loc_table.add_row(t)
-end
+$node_loc_table = OmlTable.new('node_loc', [[:id, :text], [:loc_x, :int], [:loc_y, :int]], :index => :id)
+$node_loc_table.add_rows [ ['1', 0.3, 0.6], 
+                           ['2', 0.3, 0.4], 
+                           ['3', 0.4, 0.75],
+                           ['4', 0.5, 0.25],
+                           ['5', 0.6, 0.75],
+                           ['6', 0.7, 0.6],
+                           ['7', 0.7, 0.4],
+                           ['101', 0.15, 0.5],
+                           ['201', 0.85, 0.5]
+                         ]
 
 #10.times do |i|
 #  $node_loc["n#{i}"] = [(i % 5) * 0.2 + 0.1, (i / 3) * 0.3 + 0.1 + 0.1 * rand]
@@ -181,26 +179,33 @@ end
 ep.run()
 
 $lwidgets << init_graph( 'Network', 
-  {:nodes => $node_table, :links => $link_table},
+  {:nodes => $node_table.indexed_by(:id), :links => $link_table.indexed_by(:link_id)}, #, :node_locs => $node_loc_table },
   'network', {
     :mapping => {
       :nodes => {
-        :radius => {:property => :curr_stored_chunks, :scale => 20, :min => 4},
+        :radius => {:property => :curr_stored_chunks, :scale => 20, :min => 10},
         :fill_color => {:property => :error_chunks, :color => :green_yellow80_red},
-        :x => {:property => :loc_x},
-        :y => {:property => :loc_y}
+        :x => {:property => :loc_x}, # :stream => :node_locs},
+        :y => {:property => :loc_y} # , :stream => :node_locs}
       },
       :links => {
+        :key => {:property => :link_id},
         :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
         :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red},
+        # :from => {:key => :from_id, :join_stream => :node_locs},               
+        # :to => {:key => :to_id, :join_stream => :node_locs}
+        :from => {:key => :from_id, :join_stream => :nodes},               
+        :to => {:key => :to_id, :join_stream => :nodes}
       }
     },
     :schema => {
       :nodes => $node_table.schema,
-      :links => $link_table.schema
+      :links => $link_table.schema,
+      :node_locs => $node_loc_table.schema
     },
     :height => 500
-})
+  }
+)
 
 
 

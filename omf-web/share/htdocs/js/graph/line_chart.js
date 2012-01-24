@@ -175,7 +175,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
             var group_by = self.mapping.group_by;
             if (group_by) {
               var name = data[0][group_by];
-              self.on_highlighted({'elements': [{'name': name}]});
+              self.on_highlighted({'elements': [{'id': name}]});
             }
           })
           .on("mouseout", function() {
@@ -191,7 +191,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
     
     this.on_highlighted = function(evt) {
       var els = evt.elements;
-      var names = _.map(els, function(el) { return el.name});
+      var names = _.map(els, function(el) { return el.id});
       var vis = this.graph_layer;
       var group_by = this.mapping.group_by;
       if (group_by) {

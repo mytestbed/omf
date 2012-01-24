@@ -5,17 +5,20 @@ L.provide('OML.network', ["d3/d3"], function () {
     this.data = null;
     
     this.decl_properties = {
-      nodes:  [['radius', 'int', 30], 
+      nodes:  [['key', 'key', {property: 'id'}], 
+               ['radius', 'int', 30], 
+               ['fill_color', 'color', 'blue'], 
                ['stroke_width', 'int', 1], 
                ['stroke_color', 'color', 'black'], 
-               ['fill_color', 'color', 'blue'],
                ['x', 'int', 10],
                ['y', 'int', 10]
               ],
-      links:  [['stroke_width', 'int', 2], 
+      links:  [['key', 'key', {property: 'id'}], 
+               ['stroke_width', 'int', 2], 
                ['stroke_color', 'color', 'black'],
-               ['from', 'index', {stream: 'nodes', key: 'id'}],               
-               ['to', , {stream: 'nodes', key: 'id'}]              
+               ['stroke_fill', 'color', 'blue'],
+               ['from', 'index', {key: 'from_id', join_stream: 'nodes', join_key: 'id'}],               
+               ['to', 'index', {key: 'to_id', join_stream: 'nodes'}]  // join_key: 'id' ... default
               ]
     };
     
@@ -62,18 +65,32 @@ L.provide('OML.network', ["d3/d3"], function () {
         self.on_highlighted(evt);
       });
       
+      var schemas = this.schemas = {};
+      _.map(o.schema, function(sa, name) {
+        var schema = schemas[name] = {};
+        _.map(sa, function(s, i) {
+          s['index'] = i;
+          schema[s.name] = s;
+        })
+      });
+      
       var mapping = this.mapping = {};
       _.map(['nodes', 'links'], function(n) {
-        var schema = {};
-        _.map(o.schema[n], function(se, i) {
-          se['index'] = i;
-          schema[se.name] = se;
-        });
+        var schema = schemas[n];
+        // var schema = {};
+        // _.map(o.schema[n], function(se, i) {
+          // se['index'] = i;
+          // schema[se.name] = se;
+        // });
         var m = mapping[n] = {};
         var om = o.mapping[n] || {};      
         _.map(self.decl_properties[n], function(a) {
           var pname = a[0]; var type = a[1]; var def = a[2];
-          m[pname] = self.create_mapping(pname, om[pname], schema, type, def)
+          var descr = om[pname];
+          // if (descr != undefined) {
+            // if (descr['stream'] == undefined) descr['stream'] = n;
+          // }
+          m[pname] = self.create_mapping(pname, descr, n, type, def)
         });
       });
       
@@ -95,22 +112,18 @@ L.provide('OML.network', ["d3/d3"], function () {
       if (! (sources instanceof Array)) {
         throw "Expected an array"
       }
-      if (sources.length != 2) {
-        throw "Require two sources"
+      if (sources.length < 2) {
+        throw "Require at least two sources"
       }
       
       var data = this.data = {};
-      data['c'] = 1
       _.each(sources, function(s) {
-        if (s.stream == 'nodes') {
-          // that needs a bit more work
-          data['nodes'] = s.events;
-        } else if (s.stream == 'links') {
-          data['links'] = s.events;
-        } else {
-          throw "Unknown stream '" + s.name + "'.";
-        }
+        data[s.stream] = s.events;
       });
+      
+      // clear indexed tables
+      this.indexed_tables = {};
+
       this.redraw();
     };
     
@@ -118,41 +131,41 @@ L.provide('OML.network', ["d3/d3"], function () {
       var self = this;
       var data = this.data;
       var o = this.opts;
-      var mapping = o.mapping || {};
+      var mapping = this.mapping; //o.mapping || {};
       var ca = this.chart_area;
       
-      var x = function(d) {
-        var x = d.x * ca.w + ca.x;
+      var x = function(v) {
+        var x = v * ca.w + ca.x;
         return x;
       };
-      var y = function(d) {
-        var y = -1 * (d.y * ca.h + ca.y);
+      var y = function(v) {
+        var y = -1 * (v * ca.h + ca.y);
         return y;
       };
-      var c = d3.scale.linear()
-          .domain([0, 0.8, 1])
-          .range(["green", "yellow", "red"]);
-      
-      this._func = {};
-      var lmapping = mapping.link; 
-      var lstroke = c(0);
-      var lstroke_width = 4;
-      if (typeof(lmapping) != "undefined") {
-        lstroke_width = this.property_mapper('stroke_width', lmapping.stroke_width, lstroke_width);
-        lstroke = this.property_mapper('stroke', lmapping.stroke_color, lstroke);
-      } 
-      this._func.lstroke = lstroke;
-      this._func.lstroke_width = lstroke_width;
-        
-      var nmapping = mapping.node; 
-      var nfill = "white";
-      var nradius = 10;
-      if (typeof(nmapping) != "undefined") {
-        nfill = this.property_mapper('fill', nmapping.fill_color, nfill);
-        nradius = this.property_mapper('radius', nmapping.radius, nradius);
-      } 
-      this._func.nfill = nfill;
-      this._func.nradius = nradius;
+      // var c = d3.scale.linear()
+          // .domain([0, 0.8, 1])
+          // .range(["green", "yellow", "red"]);
+//       
+      // this._func = {};
+      // var lmapping = mapping.link; 
+      // var lstroke = c(0);
+      // var lstroke_width = 4;
+      // if (typeof(lmapping) != "undefined") {
+        // lstroke_width = this.property_mapper('stroke_width', lmapping.stroke_width, lstroke_width);
+        // lstroke = this.property_mapper('stroke', lmapping.stroke_color, lstroke);
+      // } 
+      // this._func.lstroke = lstroke;
+      // this._func.lstroke_width = lstroke_width;
+//         
+      // var nmapping = mapping.node; 
+      // var nfill = "white";
+      // var nradius = 10;
+      // if (typeof(nmapping) != "undefined") {
+        // nfill = this.property_mapper('fill', nmapping.fill_color, nfill);
+        // nradius = this.property_mapper('radius', nmapping.radius, nradius);
+      // } 
+      // this._func.nfill = nfill;
+      // this._func.nradius = nradius;
       
           
       var vis = this.base_layer;
@@ -186,18 +199,22 @@ L.provide('OML.network', ["d3/d3"], function () {
             // self.on_dehighlighted({});
           // }) 
           
+      var lmapping = mapping.links;
+      var nmapping = mapping.nodes;
+
       // curved line
       var line_f = function(d) {
         var a = 0.2;
         var b = 0.3;
         var o = 30;
-                      
-        var dx = data;
         
-        var x1 = x(data.nodes[d.from]); 
-        var y1 = y(data.nodes[d.from]);
-        var x3 = x(data.nodes[d.to]); 
-        var y3 = y(data.nodes[d.to]);
+        var from = lmapping.from(d);
+        var to = lmapping.to(d);
+
+        var x1 = x(nmapping.x(from)); 
+        var y1 = y(nmapping.y(from));
+        var x3 = x(nmapping.x(to)); 
+        var y3 = y(nmapping.y(to));
 
         var dx = x3 - x1;
         var dy = y3 - y1;
@@ -214,21 +231,22 @@ L.provide('OML.network', ["d3/d3"], function () {
 
       var link2 = vis.selectAll("path.link")
         .data(d3.values(data.links))
-          .style("stroke", lstroke)
-          .style("stroke-width", lstroke_width)
+          .style("stroke", lmapping.stroke_color)
+          .style("stroke-width", lmapping.stroke_width)
           .attr("d", line_f)
         .enter().append("svg:path")
           .attr("class", "link")
-          .style("stroke", lstroke)
-          .style("stroke-width", lstroke_width)
+          .style("stroke", lmapping.stroke_color)
+          .style("stroke-width", lmapping.stroke_width)
           .attr("fill", "none")         
           .attr("d", line_f)
-          .on("mouseover", function(data) {
-            var name = data.name;
-            self.on_highlighted({'elements': [{'name': name, 'type': 'link'}]});
+          .on("mouseover", function(d) {
+            var id = lmapping.key(d);
+            self.on_highlighted({'elements': [{'id': id, 'type': 'link'}]});
           })
-          .on("mouseout", function() {
-            self.on_dehighlighted({});
+          .on("mouseout", function(d) {
+            var id = lmapping.key(d);
+            self.on_dehighlighted({'elements': [{'id': id, 'type': 'link'}]});
           }) 
           ;
 
@@ -251,29 +269,30 @@ L.provide('OML.network', ["d3/d3"], function () {
 
      var node = vis.selectAll("circle.node")
        .data(d3.values(data.nodes))
-         .attr("cx", function(d) { return x(d); })
-         .attr("cy", function(d) { return y(d); })
-         .attr("r", nradius)
-         .style("fill", nfill)
+         .attr("cx", function(d) { return x(nmapping.x(d)) }) 
+         .attr("cy", function(d) { return y(nmapping.y(d)) })
+         .attr("r", nmapping.radius)
+         .style("fill", nmapping.fill_color)
        .enter().append("svg:circle")
          .attr("class", "node")
-         .attr("cx", function(d) { return x(d); })
-         .attr("cy", function(d) { return y(d); })
-         .attr("r", nradius)
-         .style("fill", nfill)
-         .style("stroke", "gray")
-         .style("stroke-width", 1)
+         .attr("cx", function(d) { return x(nmapping.x(d)) }) 
+         .attr("cy", function(d) { return y(nmapping.y(d)) })
+         .attr("r", nmapping.radius)
+         .style("fill", nmapping.fill_color)
+         .style("stroke", nmapping.stroke_color)
+         .style("stroke-width", nmapping.stroke_width)
          .attr("fixed", true)
          //.call(force.drag)
-          .on("mouseover", function(data) {
-            var name = data.name;
-            self.on_highlighted({'elements': [{'name': name, 'type': 'node'}]});
+          .on("mouseover", function(d) {
+            var id = nmapping.key(d);
+            self.on_highlighted({'elements': [{'id': id, 'type': 'node'}]});
           })
-          .on("mouseout", function() {
-            self.on_dehighlighted({});
+          .on("mouseout", function(d) {
+            var id = nmapping.key(d);
+            self.on_dehighlighted({'elements': [{'id': id, 'type': 'node'}]});
           })         
         .transition()
-          .attr("r", nradius)
+          .attr("r", nmapping.radius)
           .delay(0)
        ;      
     };
@@ -316,11 +335,13 @@ L.provide('OML.network', ["d3/d3"], function () {
     }
   
     this._on_nodes_highlighted = function(nodes) {
-      var names = _.map(nodes, function(el) { return el.name});
+      var names = _.map(nodes, function(el) { return el.id});
       var vis = this.base_layer;
+      var key_f = this.mapping.nodes.key;
       vis.selectAll("circle.node")
        .filter(function(d) {
-         return ! _.include(names, d.name);
+         var key = key_f(d);
+         return ! _.include(names, key);
        })
        .transition()
          .style("stroke", "lightgray")
@@ -332,21 +353,23 @@ L.provide('OML.network', ["d3/d3"], function () {
     
     this._on_nodes_dehighlighted = function() {
       var vis = this.base_layer;
-      var nfill = this._func.nfill;
+      var nmapping = this.mapping.nodes;
       vis.selectAll("circle.node")
        .transition()
-         .style("stroke", "gray")
-         .style("fill", nfill)
+         .style("fill", nmapping.fill_color)
+         .style("stroke", nmapping.stroke_color)
          .delay(0)
          .duration(300);   
     }
 
     this._on_links_highlighted = function(links) {
-      var names = _.map(links, function(el) { return el.name});
+      var names = _.map(links, function(el) { return el.id});
       var vis = this.base_layer;
+      var key_f = this.mapping.links.key;
       vis.selectAll("path.link")
        .filter(function(d) {
-         return ! _.include(names, d.name);
+         var key = key_f(d);
+         return ! _.include(names, key);
        })
        .transition()
          .style("opacity", 0.1)
@@ -363,48 +386,48 @@ L.provide('OML.network', ["d3/d3"], function () {
          .duration(300)
     }
 
-    this.property_mapper = function(name, sm, def_value) {
-      var mapper_f;
-      if (typeof(sm) != "undefined") {
-        var prop = sm.property;
-        var scale = sm.scale ? sm.scale : 1;
-        var color_f = sm.color ? this.color_func[sm.color] : null;
-        var max = sm.max ? sm.max : 10;
-        var min = sm.min ? sm.min : 1;
-        if (color_f == null) {
-          mapper_f = function(d) {
-            var v = d[prop] * scale;
-            var t = typeof(v);
-            if (v > max) { 
-              v = max; 
-            } else if (v < min) { 
-              v = min; 
-            } else if (isNaN(v)) {
-              v = max;
-            }
-            d[name] = v;
-            return v;
-          }
-        } else {
-          mapper_f = function(d) {
-            var v = d[prop] * scale;
-            if (v > 1.0) { 
-              v = 1.0; 
-            } else if (v < 0) { 
-              v = 0; 
-            } else if (isNaN(v)) {
-              v = 0;
-            }
-            v = color_f(v);
-            d[name] = v;
-            return v;
-          }
-        }
-      } else {
-        mapper_f = def_value;
-      }
-      return mapper_f;
-    }
+    // this.property_mapper = function(name, sm, def_value) {
+      // var mapper_f;
+      // if (typeof(sm) != "undefined") {
+        // var prop = sm.property;
+        // var scale = sm.scale ? sm.scale : 1;
+        // var color_f = sm.color ? this.color_func[sm.color] : null;
+        // var max = sm.max ? sm.max : 10;
+        // var min = sm.min ? sm.min : 1;
+        // if (color_f == null) {
+          // mapper_f = function(d) {
+            // var v = d[prop] * scale;
+            // var t = typeof(v);
+            // if (v > max) { 
+              // v = max; 
+            // } else if (v < min) { 
+              // v = min; 
+            // } else if (isNaN(v)) {
+              // v = max;
+            // }
+            // d[name] = v;
+            // return v;
+          // }
+        // } else {
+          // mapper_f = function(d) {
+            // var v = d[prop] * scale;
+            // if (v > 1.0) { 
+              // v = 1.0; 
+            // } else if (v < 0) { 
+              // v = 0; 
+            // } else if (isNaN(v)) {
+              // v = 0;
+            // }
+            // v = color_f(v);
+            // d[name] = v;
+            // return v;
+          // }
+        // }
+      // } else {
+        // mapper_f = def_value;
+      // }
+      // return mapper_f;
+    // }
     
             // :radius => {:property => :capacity, :scale => 20, :min => 4},
         // :fill_color => {:property => :capacity, :color => :green_yellow80_red}
@@ -413,91 +436,141 @@ L.provide('OML.network', ["d3/d3"], function () {
         // :stroke_width => {:property => :store_forward, :scale => 5, :min => 3},
         // :stroke_color => {:property => :store_forward, :scale => 1.0 / 1.3, :color => :green_yellow80_red}
 
-   this.create_mapping = function(mname, descr, schema, type, def) {
+   this.create_mapping = function(mname, descr, stream, type, def) {
      var self = this;
+     if (descr == undefined && typeof(def) == 'object') {
+       descr = def
+     }
      if (descr == undefined) {
        if (type == 'index') {
-         return this.create_mapping(mname, def, schema, type, null)
-         var key = def.key;
-         return function(d) {
-           var t = self.indexed_data(def.stream); // FIXME
-           return t[key];
-         }
+         return this.create_mapping(mname, def, stream, type, null);
        } else {
         return function(d) { 
           return def; 
         }
        }
      }
-     var pname = descr.property;
-     var schema = schema[pname];
-     if (schema == undefined) {
-       throw "Unknown property '" + pname + "'.";
+     if (descr.stream != undefined) {
+       stream = descr.stream;  // override stream
      }
-     var index = schema.index;
-     switch (type) {
-     case 'int': 
+     var schema = this.schema_for_stream(stream);
+     if (schema == undefined) {
+       throw "Can't find schema for stream '" + stream + "'.";
+     }
+     
+     if (type == 'index') {
+       var key = descr.key;
+       if (key == undefined || stream == undefined) {
+         throw "Missing 'key' or 'stream' in mapping declaration for '" + mname + "'.";
+       }
+       var col_schema = schema[key];
+       if (col_schema == undefined) {
+         throw "Unknown stream element '" + key + "'.";
+       }
+       var vindex = col_schema.index;
+       
+       var jstream = descr.join_stream;
+       if (jstream == undefined) {
+         throw "Missing join stream declaration in '" + mname + "'.";
+       }
+       var jschema = this.schema_for_stream(jstream);
+       if (jschema == undefined) {
+         throw "Can't find schema for stream '" + jstream + "'.";
+       }
+
+       var jkey = descr.join_key;
+       if (jkey == undefined) jkey = 'id';
+       var jcol_schema = jschema[jkey];       
+       if (jcol_schema == undefined) {
+         throw "Unknown stream element '" + jkey + "' in '" + jstream + "'.";
+       }
+       var jindex = jcol_schema.index;
+       
        return function(d) {
-         var v = d[index];
-         
-         var scale = desc.scale;
-         if (scale != undefined) v = v * scale; 
-
-         var min_value = desc.min;
-         if (min_value != undefined && v < min_value) v = min_value; 
-
-         var max_value = desc.max;
-         if (max_value != undefined && v > max_value) v = max_value; 
-         
-         return v;
-       };
-     case 'color': 
-       return function(d) {
-         var v = d[index];
-         
-         var scale = desc.scale;
-         if (scale != undefined) v = v * scale; 
-
-         var min_value = desc.min;
-         if (min_value != undefined && v < min_value) v = min_value; 
-         
-         var color = desc.color;
-         if (color == undefined) {
+         var join = d[vindex];
+         var t = self.get_indexed_table(jstream, jindex);
+         var r = t[join];
+         return r;
+       }
+     } else {
+       var pname = descr.property;
+       var col_schema = schema[pname];
+       if (col_schema == undefined) {
+         throw "Unknown property '" + pname + "'.";
+       }
+       var index = col_schema.index;
+       switch (type) {
+       case 'int': 
+         var scale = descr.scale;
+         var min_value = descr.min;
+         var max_value = descr.max;
+         return function(d) {
+           var v = d[index];
+           if (scale != undefined) v = v * scale; 
+           if (min_value != undefined && v < min_value) v = min_value; 
+           if (max_value != undefined && v > max_value) v = max_value; 
+           return v;
+         };
+       case 'color': 
+         var color_fname = descr.color;
+         if (color_fname == undefined) {
            throw "Missing color function for '" + mname + "'.";
          } 
-         var color_f = self.decl_color_func[color];
+         var color_f = self.decl_color_func[color_fname];
          if (color_f == undefined) {
-           throw "Unknown color function '" + color + "'.";
+           throw "Unknown color function '" + color_fname + "'.";
          } 
-                  
-         return color_f(v);
-       };
-     default:    
-       throw "Unknown mapping type '" + type + "'";
+         var scale = descr.scale;
+         var min_value = descr.min;
+         return function(d) {
+           var v = d[index];
+           if (scale != undefined) v = v * scale; 
+           if (min_value != undefined && v < min_value) v = min_value; 
+           var color = color_f(v);
+           return color;
+         };
+       case 'key' :
+         return function(d) {
+           return d[index];
+         }
+       default:    
+         throw "Unknown mapping type '" + type + "'";
+       }
      }
-      var i = 0;
+     var i = 0;
    };
     
-   this.process_schema = function() {
-      var o = this.opts;
-      var i = 0;
-      var mapping = o.mapping || {};
-      var m = this.mapping = {};
-      var schema = o.schema;
-      if (schema) {
-        schema.map(function(c) {
-          ['x_axis', 'y_axis', 'group_by'].map(function(k) {
-            if (c.name == o.mapping[k]) {
-              m[k] = i
-            }
-          });
-          i += 1;
-        })
-      } else {
-        m.x_axis = 0;
-        m.y_axis = 1;
-      }
-    };    
+   /*
+    * This returns a table held in +data+ as a hash with the key taken 
+    * from the respective row at +index+.
+    * 
+    * NOTE: This is a bit hack right now. We should really rap the sources/tables
+    * into their own object.
+    */
+   this.get_indexed_table = function(stream, index) {
+     var itbl_name = stream + index;
+     var t = this.indexed_tables[itbl_name];
+     if (t == undefined) {
+       // build it
+       var t = this.indexed_tables[itbl_name] = {};
+       var st = this.data[stream];
+       if (st == undefined) {
+         throw "Unknown stream '" + stream + "'.";
+       }
+       _.each(st, function(r) {
+         var idx = r[index]
+         t[idx] = r;
+       })  
+     }
+     return t;
+   }
+   
+   /*
+    * Return schema for +stream+.
+    */
+   this.schema_for_stream = function(stream) {
+     return this.schemas[stream];
+   }
     
     this.init(opts);
   };

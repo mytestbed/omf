@@ -3,7 +3,7 @@ require 'monitor'
 
 require 'omf-oml'
 require 'omf-oml/schema'
-
+autoload :OmlIndexedTable, 'omf-oml/indexed_table'
 
 module OMF::OML
           
@@ -30,10 +30,7 @@ module OMF::OML
       
       #@endpoint = endpoint
       @name = tname
-      unless schema.kind_of? OmlSchema
-        schema = OmlSchema.new(schema)
-      end
-      @schema = schema
+      @schema = OmlSchema.create(schema)
       @opts = opts
       @on_before_row_added = on_before_row_added
       @rows = []
@@ -68,6 +65,10 @@ module OMF::OML
       end
     end
     
+    def indexed_by(col_name)
+      OmlIndexedTable.new(col_name, self)
+    end
+    
     # Add an array of rows to this table
     #
     def add_rows(rows)
@@ -99,8 +100,10 @@ module OMF::OML
       if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
         @rows.shift # not necessarily fool proof, but fast
       end
-
-      #puts "add_row"
+      _notify_row_added(row)
+    end
+    
+    def _notify_row_added(row)
       @on_row_added.each_value do |proc|
         #puts "call: #{proc.inspect}"
         proc.call(row)

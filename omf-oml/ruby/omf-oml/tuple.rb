@@ -48,17 +48,17 @@ module OMF::OML
     attr_reader :stream_name
     
     def initialize(name, schema)
-      if schema.kind_of? Array
-        schema = OmlSchema.new(schema)
-      end
+      # if schema.kind_of? Array
+        # schema = OmlSchema.new(schema)
+      # end
       @stream_name = name
-      @schema = schema
+      @schema = OmlSchema.create(schema)
       
       @raw = []
 #      puts "SCHEMA: #{schema.inspect}"
 
       super name
-      process_schema(schema)
+      process_schema(@schema)
     end
     
     
