@@ -1,8 +1,8 @@
 #!/bin/bash 
-GEMS=$PWD/gems/1.8
 export rake=/usr/bin/rake
-gem="gem install --no-rdoc --no-ri -i $GEMS"
-mkdir -p $GEMS
+export GEM_PATH=$PWD/gems/1.8
+mkdir -p $GEM_PATH
+gem="gem install --no-rdoc --no-ri -i $GEM_PATH"
 echo "Downloading ruby gems required for OMF. This may take a while..."
 
 # read Gemfile
@@ -30,5 +30,5 @@ for g in "${gem_array[@]}"; do
   done
 done
 
-cd $GEMS
+cd $GEM_PATH
 rm -rf doc gems specifications bin
