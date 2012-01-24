@@ -5,10 +5,9 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
     OML = {};
   }
   
-  OML['table'] = function(opts){
-    this.opts = opts;
+  OML['table'] = Backbone.Model.extend({
 
-    this.init = function(opts) {
+    initialize: function(opts) {
       /* create table template */
       var base_el = opts.base_el || '#table'
       
@@ -32,17 +31,15 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
       this.table_el = $('#' + tid);
       this.tbody_el = $('#' + tbid);      
        
-      // var b = $(base_el)
-      // b.dataTable();
       this.dataTable = this.table_el.dataTable({
         "sPaginationType": "full_numbers"
       });
        
       var data = opts.data;
       if (data) this.update(data);
-    };
+    },
 
-    this.update = function(sources) {
+    update: function(sources) {
       if (! (sources instanceof Array)) {
         throw "Expected an array"
       }
@@ -54,68 +51,14 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
         throw "Missing events array in data source"
       }
       this.render_rows(data, false);
-    };
+    },
 
     /* Add rows */
-    this.render_rows = function(rows, update) {
-      if (this.dataTable) {
-        this.dataTable.fnAddData(rows);
-        // var rcnt = rows.length;
-        // for (var i = 0; i < rcnt; i++) {
-          // var row = rows[i];
-          // this.dataTable.fnAddData(row)
-        // }
-        return;
-      }
-
-      var rcnt = rows.length;
-      if (rcnt <= 0) {
-        return;
-      }
-      var ccnt = rows[0].length;
-
-      var tbody = this.table_el;
-      var oid = Math.floor(Math.random() * 10000001);
-      for (var i = 0; i < rcnt; i++) {
-        var row = rows[i];
-        var row_class = (i % 2) == 1 ? "odd" : "even";
-
-        /*** 
-         * We may want to use one of the incoming columns as a record id which would allow
-         * us to update a row, nstead of just adding it.
-         * 
-         * TODO: Implement
-        var rid = "tr";
-        var record_id = tdata['record_id'];
-        if (typeof(record_id) == "number") {
-          rid = rid + row[record_id];
-        }
-        else {
-          rid = rid + (oid + i);
-        }
-        **/
-        rid = 'tr' + (oid + i);
-        var labels = opts.labels;
-        var tr = "<tr class='" + row_class + "' id='" + rid + "'>";
-        var schema = this.schema;
-        for (var j = 0; j < ccnt; j++) {
-          tr += "<td class='oml_c" + j;
-          var col = schema[i];
-          if (col) {
-            tr += " oml_" + col.name;
-          }
-          tr += "'>" + row[j] + "</th>";
-        }
-        tr += "</tr>"
-        tbody.prepend(tr);
-        if (update) {
-          $('#' + rid).effect('highlight', {}, 1000);
-        }
-      }
-    };
-    
-    this.init(opts);
-  }
+    render_rows: function(rows, update) {
+      this.dataTable.fnAddData(rows);
+    }
+     
+  })
 });
 
 /*
