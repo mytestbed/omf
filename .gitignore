@@ -3,3 +3,7 @@ omf-expctl/ruby/repository
 omf-aggmgr/etc/omf-aggmgr/enabled
 tags
 .project
+.settings
+*/*/:memory
+*/:memory
+*~

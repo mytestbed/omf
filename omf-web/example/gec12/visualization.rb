@@ -84,11 +84,15 @@ def click_mon_link_stats(stream)
     [ts.to_i, "l#{from}-#{to}", from, to, store_forward, sett, lett, bitrate]
   end
   gopts = {
-    :schema => t.schema.describe,
-    :mapping => {:group_by => :link_id, :x_axis => :ts, :y_axis => :store_forward},
+    :schema => t.schema,
+    :mapping => {
+      :x_axis => {:property => :ts},
+      :y_axis => {:property => :store_forward},
+      :group_by => {:property => :link_id},
+      :stroke_width => 4    
+    },
     :margin => {:left => 80, :bottom => 40},
-    :yaxis => {:ticks => 6},
-    :stroke_width => 4
+    :yaxis => {:ticks => 6}
   }
   init_graph(t.name, t, 'line_chart', gopts)
   $rwidgets << init_graph(t.name, t, 'line_chart', gopts.merge(
@@ -142,11 +146,14 @@ def click_mon_routing_stats(stream)
   
   gopts = {
     :schema => table.schema,
-    :mapping => {:group_by => :node_id, :x_axis => :ts, :y_axis => :in_chunks},
-    :schema => table.schema.describe,
+    :mapping => {
+      :x_axis => {:property => :ts},
+      :y_axis => {:property => :in_chunks},
+      :group_by => {:property => :inode_id},
+      :stroke_width => 4    
+    },
     :margin => {:left => 80, :bottom => 40},
     :yaxis => {:ticks => 6},
-    :stroke_width => 4    
   }
   init_graph(table.name, table, 'line_chart_fc', gopts)
   $rwidgets << init_graph(table.name, table, 'line_chart', gopts.merge(

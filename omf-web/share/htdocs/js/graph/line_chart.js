@@ -1,125 +1,85 @@
-L.provide('OML.line_chart', ["d3/d3"], function () {
+L.provide('OML.line_chart', ["graph/abstract_chart", "#OML.abstract_chart", "graph.css"], function () {
 
-  if (typeof(OML) == "undefined") OML = {};
+var o = OML;
+
   
-  if (typeof(d3.each) == 'undefined') {
-    d3.each = function(array, f) {
-      var i = 0,
-          n = array.length,
-          a = array[0],
-          b;
-      if (arguments.length == 1) {
-          while (++i < n) if (a < (b = array[i])) a = b;
-      } else {
-        a = f(a);
-        while (++i < n) if (a < (b = f(array[i]))) a = b;
-      }
-      return a;
-    };
-  };
-  
-  OML['line_chart'] = function(opts) { 
-    this.opts = opts || {};
-    this.data = null;
+  OML['line_chart'] = OML.abstract_chart.extend({
+    decl_properties: [
+      ['x_axis', 'key', {property: 'x'}], 
+      ['y_axis', 'key', {property: 'y'}], 
+      ['group_by', 'key', {property: 'id', optional: true}],             
+      ['stroke_width', 'int', 2], 
+      ['stroke_color', 'color', 'black'],
+      ['stroke_fill', 'color', 'blue']
+    ],
     
-    this.init = function() {
-      var o = this.opts;
+    base_css_class: 'oml-line-chart',
+    
+    configure_base_layer: function(vis) {
+      //OML.abstract_chart.prototype.initialize.call(this, opts);
+      var base_layer = this.base_layer = vis.append("svg:g")
+                 .attr("transform", "translate(0, " + this.h + ")");
+
+
+      var ca = this.chart_area; 
+      //var g =  this.base_layer;
   
-      var w = this.w = o['width'] || 700;
-      var h = this.h = o['height'] || 400;
-  
-      var m = o['margin'] || {};
-      var ml = m['left'] || 30;
-      var mt = m['top'] || 20;
-      var mr = m['right'] || 20;
-      var mb = m['bottom'] || 20;
-      var ca = this.chart_area = {x: ml, y: mb, w: w - ml - mr, h: h - mt - mb};
-  
-      var offset = o['offset'] || [0, 0];
-  
-      this.color = o['color'] || d3.scale.category10();
-  
-  
-      var vis = this.init_svg(w, h);
-      
-      var g =  this.base_layer = vis.append("svg:g")
-                 .attr("transform", "translate(0, " + h + ")");
-  
-      this.graph_layer = g.append("svg:g");
+      this.legend_layer = base_layer.append("svg:g");
+      var g = this.chart_layer = base_layer.append("svg:g");
       g.append("svg:line")
+        .attr("class", "xAxis axis")      
         .attr("x1", ca.x)
         .attr("y1", -1 * ca.y)
         .attr("x2", ca.x + ca.w)
         .attr("y2", -1 * ca.y);
   
       g.append("svg:line")
+        .attr("class", "yAxis axis")      
         .attr("x1", ca.x)
         .attr("y1", -1 * ca.y)
         .attr("x2", ca.x)
         .attr("y2", -1 * (ca.y + ca.h));
-  
-      this.process_schema();
-      
-      var self = this;
-      OHUB.bind("graph.highlighted", function(evt) {
-        if (evt.source == self) return;
-        self.on_highlighted(evt);
-      });
-      OHUB.bind("graph.dehighlighted", function(evt) {
-        if (evt.source == self) return;
-        self.on_dehighlighted(evt);
-      });
-      
-      var data = o.data;
-      if (data) this.update(data);
-      
-    };
+    },
     
-    this.append = function(a_data) {
-      // TODO: THIS DOESN'T WORK
-      //var data = this.data;
-      this.redraw();   
-    };
-
-    this.update = function(sources) {
-      if (! (sources instanceof Array)) {
-        throw "Expected an array"
-      }
-      if (sources.length != 1) {
-        throw "Can only process a SINGLE source"
-      }
-      if ((this.data = sources[0].events) == null) {
-        throw "Missing events array in data source"
-      }
-      this.redraw();
-    };
-
   
-    this.redraw = function() {
+    redraw: function() {
       var self = this;
       var data = this.data;
       if (data.length == 0) return;
       
       var o = this.opts;
       var ca = this.chart_area;
+      var m = this.mapping;
+
+      /* GENERALIZE THIS */
+      var stroke_color_f = d3.scale.category10();
+      m.stroke_color = function(d, i) { 
+        return stroke_color_f(i); 
+      };
+      
+      //this.color = o['color'] || d3.scale.category10();
   
       /* 'data' should be an an array (each line) of arryas (each tuple)
        * The following code assumes that the tuples are sorted in ascending 
        * value associated with the x-axis. 
        */
-      var x_index = this.mapping.x_axis;
-      var y_index = this.mapping.y_axis;
-      var group_by = this.mapping.group_by;
+      var x_index = m.x_axis;
+      var y_index = m.y_axis;
+      var group_by = m.group_by;
       if (group_by != null) {
         data = this.group_by(data, group_by);
       } else {
         data = [data];
       };
       
-      var x_max = this.x_max = d3.max(data, function(d) {
-        return d[d.length - 1][x_index];});
+      // The following assumes that the data is sorted in ascending value for x_axis
+      var x_max = this.x_max = o.xmax != undefined ? o.xmax : d3.max(data, function(d) {
+        var last = d[d.length - 1];
+        var x = x_index(last);
+        return x;
+      });
       var x_max_cnt = d3.max(data, function(d) {return d.length});
-      var x_min = this.x_min = d3.min(data, function(d) {return d[0][x_index];});
+      var x_min = this.x_min = o.xmin != undefined ? o.xmin : d3.min(data, function(d) {return x_index(d[0]);});
       var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([ca.x, ca.x + ca.w]);
   
       if (x_max_cnt > ca.w) {
@@ -129,7 +89,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
             var xcurr = -999999;
             var l2 = [];
             l.map(function(t) {
-                var x = Math.round(self.x(t[x_index]));
+                var x = Math.round(self.x(x_index(t)));
                 if (x > xcurr) {
                   l2.push(t);
                   //xcurr = x + 1; // add a 'spare' pixel between consecutive points
@@ -143,38 +103,36 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
   
   
       //    var x_min = this.x_min = d3.min(data, function(d) {return d3.min(d, function(d) {return d.x})});
-      var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return t[y_index]})});
-      var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return t[y_index]})});
+      var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return y_index(t)})});
+      var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return y_index(t)})});
       var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([ca.y, ca.y + ca.h]);
   
   
-      var stroke_width = o.stroke_width ? o.stroke_width : 2;
+      //var stroke_width = o.stroke_width ? o.stroke_width : 2;
       var line = d3.svg.line()
-        .x(function(t) { return x(t[x_index]) })
-        .y(function(t) { return -1 * y(t[y_index]); })
+        .x(function(t) { return x(x_index(t)) })
+        .y(function(t) { return -1 * y(y_index(t)); })
         ;
   
       var self = this;
-      var lines = this.graph_layer.selectAll(".chart")
+      var lines = this.chart_layer.selectAll(".chart")
                     .data(data, function(d, i) { return i; })
                     .attr("d", function(d) { return line(d); });
       lines.enter()
         .append("svg:path")
-          .attr("stroke-width", stroke_width)
+          .attr("stroke-width", m.stroke_width)
           .attr("d", function(d) {
               var l = line(d);
               return l;
             })
   
           .attr("class", "chart")
-          .attr("stroke", function(d, i) { 
-              return self.color(i); 
-            })
+          .attr("stroke", m.stroke_color)
           .attr("fill", "none")
           .on("mouseover", function(data) {
             var group_by = self.mapping.group_by;
             if (group_by) {
-              var name = data[0][group_by];
+              var name = group_by(data[0]);
               self.on_highlighted({'elements': [{'id': name}]});
             }
           })
@@ -187,17 +145,17 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
   
       this.update_ticks();
       this.update_selection({});
-    };
+    },
     
-    this.on_highlighted = function(evt) {
+    on_highlighted: function(evt) {
       var els = evt.elements;
       var names = _.map(els, function(el) { return el.id});
-      var vis = this.graph_layer;
+      var vis = this.chart_layer;
       var group_by = this.mapping.group_by;
       if (group_by) {
         vis.selectAll(".chart")
          .filter(function(d) {
-           var dname = d[0][group_by];
+           var dname = group_by(d[0]);
            return ! _.include(names, dname);
          })
          .transition()
@@ -209,10 +167,10 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
         evt.source = this;
         OHUB.trigger("graph.highlighted", evt);
       }
-    }
+    },
 
-    this.on_dehighlighted = function(evt) {
-      var vis = this.graph_layer;
+    on_dehighlighted: function(evt) {
+      var vis = this.chart_layer;
       vis.selectAll(".chart")
        .transition()
          .style("opacity", 1.0)         
@@ -222,48 +180,28 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
         evt.source = this;
         OHUB.trigger("graph.dehighlighted", evt);
       }
-    }
+    },
     
-    
-    // Split tuple array into array of tuple arrays grouped by 
-    // the tuple element at +index+.
-    //
-    this.group_by = function(in_data, index) {
-      var data = [];
-      var groups = {};
-      in_data.map(function(t) {
-        key = t[index];
-        a = groups[key];
-        if (!a) {
-          a = groups[key] = [];
-          data.push(a);
-        }
-        a.push(t);
-      });
-      // Sort by 'group_by' index to keep thesame order and with it same color assignment.
-      var data = _.sortBy(data, function(a){return a[0][index]}); 
-      return data;
-    }
   
-    this.clear = function(data) {
+    clear: function(data) {
       this.data = null;
-      var lines = this.graph_layer.selectAll(".chart")
+      var lines = this.chart_layer.selectAll(".chart")
                     .data([])
                     .exit().remove();
-    };
+    },
     
     // Return a subset of the associated data set where the value mapped
     // to the x-axis is within the <+min+, +max> range.
     //
-    this.filter_x = function(min, max) {
+    filter_x: function(min, max) {
       var xi = this.mapping.x_axis;
       return this.data.filter(function(t) {
         var x = t[xi];
         return (x > min && x <= max);
       })
-    }
+    },
   
-    this.update_ticks = function() {
+    update_ticks: function() {
       var y = this.y;
       var x = this.x;
       var g = this.base_layer;
@@ -296,7 +234,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
           .attr("x1", function(d) { return x(d); })
           .attr("x2", function(d) { return x(d); })
         xTicks.enter().append("svg:line")
-          .attr("class", "xTicks")
+          .attr("class", "xTicks ticks")
           .attr("x1", function(d) { return x(d); })
           .attr("y1", -1 * ca.y)
           .attr("x2", function(d) { return x(d); })
@@ -341,7 +279,7 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
           .attr("y1", function(d) { return -1 * y(d); })
           .attr("y2", function(d) { return -1 * y(d); })
         yTicks.enter().append("svg:line")
-          .attr("class", "yTicks")
+          .attr("class", "yTicks ticks")
           .attr("y1", function(d) { return -1 * y(d); })
           .attr("x1", ca.x - tick_length)
           .attr("y2", function(d) { return -1 * y(d); })
@@ -363,203 +301,36 @@ L.provide('OML.line_chart', ["d3/d3"], function () {
           .attr("x2", ca.x);
         yGrids.exit().remove();
       }
-    };
+    },
   
-  
-    this.init_selection = function(handler) {
-      var self = this;
-      this.ic = {
-           handler: handler,
-      };
-  
-      var ig = this.base_layer.append("svg:g")
-        .attr("pointer-events", "all")
-        .on("mousedown", mousedown);
-  
-      var ca = this.chart_area;
-      var frame = ig.append("svg:rect")
-        .attr("class", "graph-area")
-        .attr("x", ca.x)
-        .attr("y", -1 * (ca.y + ca.h))
-        .attr("width", ca.w)
-        .attr("height", ca.h)
-        .attr("fill", "none")
-        .attr("stroke", "none")
-        ;
-  
-      function mousedown() {
-        var ic = self.ic;
-        if (!ic.rect) {
-          ic.rect = ig.append("svg:rect")
-            .attr("class", "select-rect")
-            .attr("fill", "#999")
-            .attr("fill-opacity", .5)
-            .attr("pointer-events", "all")
-            .on("mousedown", mousedown_box)
-            ;
-        }
-        ic.x0 = d3.svg.mouse(ic.rect.node());
-        ic.is_dragging = true;
-        ic.has_moved = false;
-        ic.move_event_consumed = false;
-        d3.event.preventDefault();
-      }
-  
-      function mousedown_box() {
-        var ic = self.ic;
-        mousedown();
-        if (ic.minx) {
-          ic.offsetx = ic.x0[0] - ic.minx;
-        }
-      }
-  
-      function mousemove(x, d, i) {
-        var ic = self.ic;
-        var ca = self.chart_area;
-  
-        if (!ic.rect) return;
-        if (!ic.is_dragging) return;
-        ic.has_moved = true;
-  
-        var x1 = d3.svg.mouse(ic.rect.node());
-        var minx;
-        if (ic.offsetx) {
-          minx = Math.max(ca.x, x1[0] - ic.offsetx);
-          minx = ic.minx = Math.min(minx, ca.x + ca.w - ic.width); 
-        } else {
-          minx = ic.minx = Math.max(ca.x, Math.min(ic.x0[0], x1[0]));
-          var maxx = Math.min(ca.x + ca.w, Math.max(ic.x0[0], x1[0]));
-          ic.width = maxx - minx;
-        }
-        self.update_selection({screen_minx: minx});
-      }
-  
-      function mouseup() {
-        var ic = self.ic;
-        if (!ic.rect) return;
-        ic.offsetx = null;
-        ic.is_dragging = false;
-        if (!ic.has_moved) {
-          // click only. Remove selction
-          ic.width = 0;
-          ic.rect.attr("width", 0);
-          if (ic.handler) ic.handler(this, 0, 0);
-        }
-      }
-  
-      d3.select(window)
-          .on("mousemove", mousemove)
-          .on("mouseup", mouseup);
-    };
-  
-    this.update_selection = function(selection) {
-      if (!this.ic) return;
-  
-      var ic = this.ic;
-      var ca = this.chart_area;
-  
-      var sminx = selection.screen_minx;
-      if (sminx) {
-        ic.rect
-          .attr("x", sminx)
-          .attr("y", -1 * (ca.y + ca.h)) //self.y(self.y_max))
-          .attr("width", ic.width)
-          .attr("height",  ca.h); //self.y(self.y_max) - self.y(0));
-        ic.sminx = sminx;
-      }
-      sminx = ic.sminx;
-      var h = ic.handler;
-      if (sminx && ic.handler) {
-        var imin = this.x.invert(sminx);
-        var imax = this.x.invert(sminx + ic.width);
-        ic.handler(this, imin, imax);
-      }
-    };
-    
-    this.process_schema = function() {
-      var o = this.opts;
-      var i = 0;
-      var mapping = o.mapping || {};
-      var m = this.mapping = {};
-      var schema = o.schema;
-      if (schema) {
-        schema.map(function(c) {
-          ['x_axis', 'y_axis', 'group_by'].map(function(k) {
-            if (c.name == o.mapping[k]) {
-              m[k] = i
-            }
-          });
-          i += 1;
-        })
-      } else {
-        m.x_axis = 0;
-        m.y_axis = 1;
-      }
-    };
-    
-    this.init_svg = function(w, h) {
-      var opts = this.opts;
 
-      //if (opts.svg) return opts.svg;
-      
-      var base_el = opts.base_el || "body";
-      if (typeof(base_el) == "string") base_el = d3.select(base_el);
-      var vis = opts.svg = base_el.append("svg:svg")
-        .attr("width", w)
-        .attr("height", h)
-        .attr('class', 'oml-line-chart');
-      if (opts.x) {
-        // the next two lines do the same, but only one works 
-        // in the specific context
-        vis.attr("x", opts.x);
-        vis.style("margin-left", opts.x + "px"); 
-      }
-      if (opts.y) {
-        vis.attr("y", opts.y);
-        vis.style("margin-top", opts.y + "px"); 
-      }
-      return vis;
-    }
+    // process_schema: function() {
+      // this.process_schema2();
+//       
+      // var o = this.opts;
+      // var i = 0;
+      // var mapping = o.mapping || {};
+      // var m = this.mapping = {};
+      // var schema = o.schema;
+      // if (schema) {
+        // schema.map(function(c) {
+          // ['x_axis', 'y_axis', 'group_by'].map(function(k) {
+            // if (c.name == o.mapping[k]) {
+              // m[k] = i
+            // }
+          // });
+          // i += 1;
+        // })
+      // } else {
+        // m.x_axis = 0;
+        // m.y_axis = 1;
+      // }
+    // }
+    
   
-    this.init(opts);
-  };
+  })
 })
 
-// var AAA = function(x) {
-  // this.x = x;
-// }
-// 
-// AAA.prototype = {
-  // aaa: function() {
-    // var x = arguments;
-    // return this.x;
-  // },
-// 
-  // bbb: function() {
-    // return this.x;
-  // }
-// }
-// 
-// var AAA_1 = new AAA(5);
-// var AAA_2 = AAA_1.aaa(7, 'a');
-// 
-// var BBB = function(x) {
-  // this.x = x;
-// }
-// 
-// BBB.prototype = {
-//   
-  // bbb: function() {
-    // return 2 * this.x;
-  // }
-// }
-// 
-// BBB.prototype.prototype = AAA;
-// 
-// 
-// var BBB_1 = new BBB(5);
-// var BBB_2 = BBB_1.aaa(7, 'a');
-// var BBB_3 = BBB_1.bbb();
 /*
   Local Variables:
   mode: Javascript

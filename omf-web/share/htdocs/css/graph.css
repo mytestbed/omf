@@ -23,8 +23,14 @@ div.oml-line-chart {
   stroke: black;
 }*/
 
+.oml-line-chart .ticks, 
+.oml-line-chart .axis {
+  stroke: #aaa;
+  stroke-width: 2;
+}
+
 .oml-line-chart .grids {
-  stroke: #ccc;
+  stroke: #ddd;
   stroke-width: 1;
 }
 
