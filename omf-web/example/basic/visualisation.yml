@@ -1,0 +1,22 @@
+title: Hello World Wired
+data:
+  result2_server: http://norbit.npc.nicta.com.au:5054
+  tables:
+    - otg2_udp_out
+    - otr2_udp_in
+  mappings:
+    index: seq_no
+    columns:
+      - name: seq_no
+        type: int
+      - name: oml_ts_server
+        type: float
+      - name: oml_sender_id
+        type: float
+tabs:
+  graph:
+    title: UDP
+    widgets:
+      - table
+      - line_chart
+  code:
