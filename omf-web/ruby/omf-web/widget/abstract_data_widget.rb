@@ -1,16 +1,16 @@
 require 'omf-web/widget/abstract_widget'
 
 module OMF::Web::Widget
-  
+
   # Supports widgets which visualize the content of a +Table+
   # which may also dynamically change.
   #
   class AbstractDataWidget < AbstractWidget
     #depends_on :css, "/resource/css/graph.css"
-    
+
     attr_reader :name, :opts
-    
-    
+
+
     # opts
     #   :data_sources .. Either a single table, or a hash of 'name' => table.
     #   :js_class .. Javascript class used for visualizing data
@@ -29,25 +29,25 @@ module OMF::Web::Widget
       end
       @js_class = opts[:js_class]
       @js_url = opts[:js_url]
-      
+
       @base_id = "w#{object_id.abs}"
       @base_el = "\##{@base_id}"
-      
+
       @js_var_name = "oml_#{object_id.abs}"
       #@js_func_name = 'OML.' + @js_url.gsub("::", "_")
-      
+
       @dynamic = opts.delete(:dynamic)
 
       @wopts = opts[:wopts] || {}
       @wopts['base_el'] = @base_el
 
     end
-    
+
     # A dynamic widget may open a web socket back to this service. Connect
     # to the respective table and feed back any changes.
     #
     # BUG ALERT: We send the entire content of the data table initially and only
-    # start monitoring the table for new stuff when the web socket connects. Any 
+    # start monitoring the table for new stuff when the web socket connects. Any
     # data added in between is not covered.
     #
     def on_ws_open(ws)
@@ -65,14 +65,14 @@ module OMF::Web::Widget
         end
       end
     end
-    
+
     def on_ws_close(ws)
       @ws = nil
       @data_sources.each do |name, table|
         table.on_row_added(self.object_id)
       end
     end
-    
+
     # Called when graph is dynamic and browser doesn't support web sockets
     #
     # Currently we simply send back the entire graph data as we don't want to maintain
@@ -85,35 +85,36 @@ module OMF::Web::Widget
       end
       [res.to_json, "text/json"]
     end
-    
+
     def content()
       div :id => @base_id, :class => "#{@js_class.gsub('.', '_').downcase}" do
-        javascript(%{  
+        javascript(%{
           L.require('\##@js_class', '#@js_url', function() {
             #{get_static_js}
-            #{get_dynamic_js}        
+            #{get_dynamic_js}
           });
         })
       end
     end
-    
+
     def get_static_js()
       @wopts[:data] = @data_sources.collect do |name, table|
         {:stream => name, :events => table.rows}
       end
       "var #{@js_var_name} = new #{@js_class}(#{@wopts.to_json});"
     end
-    
+
     def get_dynamic_js()
       return "" unless @dynamic
-      
-      dopts = {} if dopts == true # :dynamic => true is valid option
-      unless (updateInterval = @dynamic[:updateInterval]) 
-        updateInterval = 3
-      end 
+
+      # :dynamic => true is valid option
+      updateInterval = @dynamic.is_a?(Hash) && @dynamic[:updateInterval]
+
+      updateInterval ||= 3
+
       res = <<END_OF_JS
         var ws#{@base_id};
-        //if (window.WebSocket) { 
+        //if (window.WebSocket) {
         if (false) {  // web sockets don't work right now
           var url = 'ws://' + window.location.host + '/_ws';
           var ws = ws#{@base_id} = new WebSocket(url);
@@ -153,7 +154,7 @@ END_OF_JS
     end
 
 
-    
+
   end # AbstractDataWidget
-  
+
 end
