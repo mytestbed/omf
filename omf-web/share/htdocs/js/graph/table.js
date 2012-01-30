@@ -4,14 +4,14 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
   if (typeof(OML) == "undefined") {
     OML = {};
   }
-  
+
   OML['table'] = Backbone.Model.extend({
 
     initialize: function(opts) {
       /* create table template */
       var base_el = opts.base_el || '#table'
-      
-      
+
+
       var tid = base_el.substr(1) + "_t";
       var tbid = base_el.substr(1) + "_tb";
       var h = "<table id='" + tid;
@@ -29,12 +29,12 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
       h += "</table>";
       $(base_el).prepend(h);
       this.table_el = $('#' + tid);
-      this.tbody_el = $('#' + tbid);      
-       
+      this.tbody_el = $('#' + tbid);
+
       this.dataTable = this.table_el.dataTable({
         "sPaginationType": "full_numbers"
       });
-       
+
       var data = opts.data;
       if (data) this.update(data);
     },
@@ -55,9 +55,10 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
 
     /* Add rows */
     render_rows: function(rows, update) {
+      this.dataTable.fnClearTable();
       this.dataTable.fnAddData(rows);
     }
-     
+
   })
 });
 
