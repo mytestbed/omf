@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'nokogiri'
-require 'ruby-debug'
 
 require 'net/http'
 require 'yaml'
@@ -19,8 +18,16 @@ require 'omf-web/widget/abstract_data_widget'
 
 RESULT2_PATH = "/result2/query"
 RESULT2_NAMESPACE = "http://schema.mytestbed.net/am/result/2/"
-CURRENT_DIR = File.dirname(__FILE__)
 DEFAULT_TABS = %w(code log graph)
+OMF_VERSION = 5.4
+
+# $LOAD_PATH
+$: << "/usr/share/omf-common-#{OMF_VERSION}/gems/1.8"
+$: << "/usr/share/omf-oml-#{OMF_VERSION}/gems/1.8"
+$: << "/usr/share/omf-web-#{OMF_VERSION}/gems/1.8"
+$: << "/usr/share/omf-common-#{OMF_VERSION}"
+$: << "/usr/share/omf-oml-#{OMF_VERSION}"
+$: << "/usr/share/omf-web-#{OMF_VERSION}"
 
 # Create a custom tab type, this should not be neccessary if AbsctractService is generic enough
 #
@@ -99,10 +106,11 @@ end
 # Add all ruby files in the current directory
 #
 def code_tab(pattern)
-  Dir.glob(pattern).each do |filename|
+  current_dir = File.dirname(File.expand_path(@options.config))
+  Dir.glob("#{current_dir}/#{pattern}").each do |filename|
     OMF::Web::Widget::Code.addCode(
-      filename,
-      :file => "#{CURRENT_DIR}/#{filename}"
+      File.basename(filename),
+      :file => filename
     )
   end
 end
