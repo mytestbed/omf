@@ -227,6 +227,7 @@ code_tab(@tabs['code']['pattern'])
 
 OMF::Web.start({
   :port => @config['port'] || 4040,
+  :static_dirs => ["/usr/share/omf-web-#{OMF_VERSION}/htdocs"],
   :page_title => @config['title'] || @experiment_id,
   :use_tabs => @config['tabs'].keys.map{|v| v.to_sym},
   :theme => 'bright'

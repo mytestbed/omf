@@ -1,3 +1,9 @@
+omf-web-5.4 (5.4-ubuntu2) oneiric; urgency=low
+
+  * 5.4.1 testing package 
+
+ --  <jack@vm3.npc.nicta.com.au>  Mon, 06 Feb 2012 01:07:26 +0000
+
 omf-web-5.4 (5.4-ubuntu1) oneiric; urgency=low
 
   * Initial release.
