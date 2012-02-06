@@ -8,6 +8,6 @@ Section: science
 Package: omf-web-5.4
 Section: science
 Architecture: all
-Depends: omf-common-5.4, omf-oml-5.4
+Depends: omf-common-5.4, omf-oml-5.4, libxslt-dev, libxml2-dev
 Description: OML related functionality to support the querying and processing
  of measurements collected through the OML framework.

@@ -1,5 +1,14 @@
 #!/usr/bin/env ruby
 
+OMF_VERSION = 5.4
+
+# $LOAD_PATH
+$: << "/usr/share/omf-common-#{OMF_VERSION}"
+$: << "/usr/share/omf-oml-#{OMF_VERSION}"
+$: << "/usr/share/omf-web-#{OMF_VERSION}"
+
+ENV['GEM_PATH'] = "/usr/share/omf-common-#{OMF_VERSION}/gems/1.8:/usr/share/omf-oml-#{OMF_VERSION}/gems/1.8:/usr/share/omf-web-#{OMF_VERSION}/gems/1.8"
+
 require 'rubygems'
 require 'nokogiri'
 
@@ -19,15 +28,6 @@ require 'omf-web/widget/abstract_data_widget'
 RESULT2_PATH = "/result2/query"
 RESULT2_NAMESPACE = "http://schema.mytestbed.net/am/result/2/"
 DEFAULT_TABS = %w(code log graph)
-OMF_VERSION = 5.4
-
-# $LOAD_PATH
-$: << "/usr/share/omf-common-#{OMF_VERSION}/gems/1.8"
-$: << "/usr/share/omf-oml-#{OMF_VERSION}/gems/1.8"
-$: << "/usr/share/omf-web-#{OMF_VERSION}/gems/1.8"
-$: << "/usr/share/omf-common-#{OMF_VERSION}"
-$: << "/usr/share/omf-oml-#{OMF_VERSION}"
-$: << "/usr/share/omf-web-#{OMF_VERSION}"
 
 # Create a custom tab type, this should not be neccessary if AbsctractService is generic enough
 #
