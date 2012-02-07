@@ -7,3 +7,16 @@ tags
 */*/:memory
 */:memory
 *~
+*.build
+*.changes
+*.deb
+build-stamp
+configure-stamp
+*.debhelper
+*.debhelper.log
+*.substvars
+*/ruby/gems
+*/gems
+*.swp
+*.orig
+*/debian/files
