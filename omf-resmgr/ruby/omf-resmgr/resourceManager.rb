@@ -35,11 +35,11 @@
 
 require 'omf-common/hash-ext'
 require 'omf-common/omfVersion'
-require 'omf-common/omfCommunicator'
-require 'omf-common/omfProtocol'
+require 'omf-common/communicator/omfCommunicator'
+require 'omf-common/communicator/omfProtocol'
 require 'omf-resmgr/rmCommunicator'
 require 'omf-resmgr/managerCommands'
-require 'omf-common/keyLocator'
+require 'omf-common/communicator/keyLocator'
 
 #
 # This class defines the Resource Manager (RM) entity, which is a daemon

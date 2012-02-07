@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.0"
+   width="128"
+   height="128"
+   id="svg2108">
+  <defs
+     id="defs3">
+    <linearGradient
+       id="linearGradient8904">
+      <stop
+         id="stop8906"
+         style="stop-color:#fcaf3e;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop8908"
+         style="stop-color:#fcaf3e;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient8874">
+      <stop
+         id="stop8876"
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop8878"
+         style="stop-color:#ffffff;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       x1="-191.28896"
+       y1="-328.07861"
+       x2="-192.41396"
+       y2="-315.32861"
+       id="linearGradient11193"
+       xlink:href="#linearGradient8904"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(13.80516,2.840199)" />
+    <linearGradient
+       x1="-190.47688"
+       y1="-332.51181"
+       x2="-196.19046"
+       y2="-328.53433"
+       id="linearGradient11195"
+       xlink:href="#linearGradient8874"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(14.15871,7.082841)" />
+  </defs>
+  <g
+     id="layer1"
+     style="display:inline" />
+  <g
+     id="layer2"
+     style="display:inline">
+    <g
+       transform="matrix(1.4038361,2.6139667,-5.4767566,5.8674802,-1437.9368,2405.3963)"
+       id="g11183"
+       style="display:inline">
+      <path
+         d="m -173.24571,-327.59122 -3.1245,4.2792 3.77943,0 c 0,0 -2.70318,4.5258 -7.57554,12.9264 2.09618,-7.94732 2.95279,-10.97019 2.95279,-10.97019 l -5.16329,0 4.04281,-6.23541 5.0883,0 z"
+         id="path11185"
+         style="fill:#edd400;fill-opacity:1;fill-rule:evenodd;stroke:url(#linearGradient11193);stroke-width:1.0000006px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         d="m -173.75946,-327.84461 -3.74322,5.16309 3.9562,-0.17678 c 0,0 -0.13991,0.45993 -5.01227,8.86053 2.09618,-7.94732 2.0689,-7.96498 2.0689,-7.96498 l -4.89812,0.0884 3.68926,-5.70508 3.93925,-0.26517 z"
+         id="path11187"
+         style="fill:url(#linearGradient11195);fill-opacity:1;fill-rule:evenodd;stroke:none" />
+    </g>
+  </g>
+</svg>

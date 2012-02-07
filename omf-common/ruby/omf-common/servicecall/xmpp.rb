@@ -27,9 +27,10 @@ require 'rubygems'
 require 'time'
 require 'xmpp4r'
 require 'rexml/element'
-require 'omf-common/xmpp'
 require 'omf-common/servicecall/endpoint'
-require 'omf-common/omfPubSubTransport'
+
+require 'omf-common/communicator/xmpp/xmpp'
+require 'omf-common/communicator/xmpp/omfPubSubTransport'
 
 module OMF
   module Services

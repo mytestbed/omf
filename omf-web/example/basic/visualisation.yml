@@ -1,0 +1,48 @@
+# Title of visualisation
+title: Hello World Wired
+
+# Port number
+port: 4041
+
+# Root url of AM result2 service
+result2_server: http://norbit.npc.nicta.com.au:5054
+
+# Define tabs, widgets for visualisation
+#
+tabs:
+  # Code tab, list code files in current directory based on provided pattern
+  code:
+    pattern: *.yml
+
+  # Customised tab, contains some widgets
+  # Valid widget types: table, line_chart
+
+  # Tab id/name
+  out:
+    # Table widget, a jQuery table to display all data fetched from result2 service
+    - name: Data
+      type: table
+      # This refers to database table name
+      data: otg2_udp_out
+
+    # Line chart widget, define three columns in mappings section.
+    # They will get automatically mapped to x-axis, y-axis and group_by column
+    - name: Timestamp Server
+      type: line_chart
+      data: otg2_udp_out
+      mapping:
+        x: seq_no
+        y: oml_ts_server
+        group_by: oml_sender_id
+  in:
+    - name: Data
+      type: table
+      data: otr2_udp_in
+    - name: TS
+      type: line_chart
+      data: otr2_udp_in
+      mapping:
+        x: seq_no
+        y: oml_ts_server
+        group_by: oml_sender_id
+

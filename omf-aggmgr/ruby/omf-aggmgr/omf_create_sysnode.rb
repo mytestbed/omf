@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require "omf-common/omfXMPPServices"
+require "omf-common/communicator/xmpp/omfXMPPServices"
 
 #Jabber::debug = true
 

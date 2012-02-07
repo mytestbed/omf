@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+
+class Subscribe
+  
+  def initialize(args, &block)
+    
+    parse(args)
+    connect()
+    subscribe(@node, &block)
+  end
+  
+  def parse(args)
+    require 'optparse'
+
+    @xmpp_opts = {
+        :pubsub_gateway => "maxs-laptop.local", 
+        :pubsub_max_retries => 1, 
+        :pubsub_user => "debug"
+      }
+      
+    op = OptionParser.new
+    op.banner = "\nMonitor all messages published to an XMPP node\n\n" +
+      "Usage: #{ARGV[0]}" 
+
+    op.on("-n", "--node STRING", 
+      "XMPP node to subscribe") do |n|
+      @node = n
+    end
+
+    op.on("-s", "--xmpp_server URI", 
+      "URI of XMPP server [#{@xmpp_opts[:pubsub_gateway]}]") do |u|
+      @xmpp_opts[:pubsub_gateway] = u
+    end
+    
+    op.on("-u", "--user NAME", 
+      "URI of XMPP server [#{@xmpp_opts[:pubsub_user]}]") do |u|
+      @xmpp_opts[:pubsub_user] = u
+    end
+    
+    op.on_tail("-h", "--help", "Show this message") do |v| 
+      puts op; exit 
+    end
+   
+    # Parse the command line
+    op.parse(args)
+    
+    if @node
+      if @node.start_with? '/'
+        @node = @xmpp_opts[:pubsub_gateway] + @node
+      end
+    else
+      puts "\nERROR: Missing subscribe node"
+      puts op; exit 
+    end
+
+  end
+  
+  def connect()
+    require "omf-common/communicator/xmpp/omfPubSubTransport"
+
+    opts = {
+      :config => {
+        :type => "xmpp", 
+        :authenticate_messages => false, 
+        :xmpp => @xmpp_opts
+      }
+    }
+    @transport = OMFPubSubTransport.instance
+    @transport.init(opts)
+  end
+
+  def subscribe(node, &block)
+    @transport.listen(node, &block)
+  end
+end
+
+Subscribe.new(ARGV) do |m|
+  puts '-----------------------'
+  puts m[:CMDTYPE ]
+  m.each do |k, v|
+    unless k == :CMDTYPE
+      puts "  #{k}:\t#{v}"
+    end
+  end
+  puts '-----------------------'  
+end
+
+sleep 10000

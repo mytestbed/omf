@@ -1,0 +1,118 @@
+#
+# GENIPUBLIC-COPYRIGHT
+# Copyright (c) 2011 University of Utah and the Flux Group.
+# All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and/or hardware specification (the "Work") to
+# deal in the Work without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Work, and to permit persons to whom the Work
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Work.
+#
+# THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS
+# IN THE WORK.
+
+#
+# Prototype of a request RSpec, to be used by GENI
+# Version 3
+#
+
+default namespace = "http://www.geni.net/resources/rspec/3"
+
+include "common.rnc"
+
+# The ComponentName will only be available after an assignment
+NodeContents &=
+  # Client-specified identifier
+  attribute client_id { text } &
+  # Component used to create the sliver
+  attribute component_id { text }? &
+  attribute component_manager_id { text }? &
+  attribute component_name { text }? &
+
+  # Indicates whether the user is requesting this node exclusively
+  attribute exclusive { xsd:boolean }? &
+
+  # Indicates an equivalence class to determine which other slivers
+  # should be created on the same physical node.
+  attribute colocate { text }? &
+
+  # The type of node this sliver should be bound to. At most one kind
+  # of hardware type may be specified and the sliver type must be
+  # specified.
+  HardwareType? &
+  element sliver_type {
+    SliverTypeContents &
+    element disk_image { DiskImageContents }
+  }
+
+ServiceContents &=
+  element install { InstallServiceContents }* &
+  element execute { ExecuteServiceContents }?
+
+RelationContents &=
+  attribute client_id { text }
+
+InstallServiceContents &=
+  AnyExtension &
+  attribute url { text } &
+  attribute install_path { text }
+
+ExecuteServiceContents &=
+  AnyExtension &
+  attribute shell { text } &
+  attribute command { text }
+
+# The LinkMapping will only be available after an assignment
+LinkContents &=
+  attribute client_id { text } &
+  element component_manager { attribute name { text } }* &
+  element component_hop { ComponentHopContents }*
+
+# The ComponentInterfaceDeclName will only be available after an assignment
+InterfaceContents &=
+  attribute component_id { text }? &
+  attribute client_id { text }
+
+# The ComponentInterfaceRefName will only be available after an assignment
+InterfaceRefContents &=
+  attribute client_id { text }
+
+RSpecContents &=
+  attribute type { RspecTypeContents }
+
+RspecTypeContents = "request"
+
+# A request link is mapped to an arbitrary topology which represents
+# the virtual LAN/link which embodies it. Note that nodes do not
+# provide any additional information and can be derived from the
+# interface mapping.
+ComponentHopContents &=
+  AnyExtension &
+  # Component ID of the link
+  attribute component_id { text }? &
+  element component_manager { attribute name { text } }* &
+  InterfaceMapping*
+
+# Each interface represents a particular physical interface. If that
+# interface is one of the link end points, it is also mapped to that
+# virtual interface name.
+InterfaceMapping = element interface_ref {
+  AnyExtension &
+  # Component ID of the interface
+  attribute component_id { text } &
+  attribute component_manager_id { text } &
+  attribute client_id { text }?
+}
+
+start = RSpec

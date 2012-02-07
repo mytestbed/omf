@@ -1,0 +1,431 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY domain "http://geni-orca.renci.org/owl/domain.owl#" >
+    <!ENTITY storage "http://geni-orca.renci.org/owl/storage.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY compute "http://geni-orca.renci.org/owl/compute.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/eucalyptus.owl#"
+     xml:base="http://geni-orca.renci.org/owl/eucalyptus.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:domain="http://geni-orca.renci.org/owl/domain.owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:compute="http://geni-orca.renci.org/owl/compute.owl#"
+     xmlns:storage="http://geni-orca.renci.org/owl/storage.owl#">
+    <owl:Ontology rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl">
+        <rdfs:isDefinedBy>RENCI
+UNC Chapel Hill
+ibaldin@renci.org, yxin@renci.org</rdfs:isDefinedBy>
+        <rdfs:comment>Eucalyptus compute element definitions</rdfs:comment>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/compute.owl"/>
+        <owl:versionIRI rdf:resource="http://geni-orca.renci.org/owl/eucalyptus-v1.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/storage.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore">
+        <rdfs:subClassOf rdf:resource="&compute;GenericX86-64"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore">
+        <rdfs:subClassOf rdf:resource="&compute;GenericX86"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1Medium -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1Medium">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;Xen"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>256MB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>5GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1XLarge -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1XLarge">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;Xen"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>2GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">4</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>20GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Large -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Large">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;Xen"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>512MB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">2</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>10GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Small -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Small">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;Xen"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>128MB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>2GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1XLarge -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1XLarge">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;cpu"/>
+                                <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;Xen"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>1GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">2</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>20GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusCluster -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusCluster">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&compute;virtualize"/>
+                <owl:someValuesFrom rdf:resource="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;ServerCloud"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucalyptusComputeElement">
+        <rdfs:subClassOf rdf:resource="&compute;ClassifiedComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86-64CPUCore">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EUCAx86CPUCore">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1Medium -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1Medium">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1XLarge -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaC1XLarge">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Large -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Large">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Small -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1Small">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1XLarge -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/eucalyptus.owl#EucaM1XLarge">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.3.22702) http://owlapi.sourceforge.net -->
+

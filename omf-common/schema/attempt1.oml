@@ -1,0 +1,919 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY attempt1 "http://schema.mytestbed.net/attempt1.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://schema.mytestbed.net/attempt1.owl#"
+     xml:base="http://schema.mytestbed.net/attempt1.owl"
+     xmlns:attempt1="http://schema.mytestbed.net/attempt1.owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about=""/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#connectedTo -->
+
+    <owl:ObjectProperty rdf:about="#connectedTo">
+        <rdf:type rdf:resource="&owl;SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#ConnectionPoint"/>
+        <rdfs:range rdf:resource="#NetworkDomain"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#containsSoftware -->
+
+    <owl:ObjectProperty rdf:about="#containsSoftware">
+        <rdfs:domain rdf:resource="#Image"/>
+        <rdfs:range rdf:resource="#Software"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#forProject -->
+
+    <owl:ObjectProperty rdf:about="#forProject">
+        <rdfs:range rdf:resource="#Project"/>
+        <rdfs:domain rdf:resource="#Reservation"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasCPUArchitecture -->
+
+    <owl:ObjectProperty rdf:about="#hasCPUArchitecture">
+        <rdfs:range rdf:resource="#CPUArchitecture"/>
+        <rdfs:domain rdf:resource="#Processor"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasCertificate -->
+
+    <owl:ObjectProperty rdf:about="#hasCertificate">
+        <rdfs:range rdf:resource="#Certificate"/>
+        <rdfs:domain rdf:resource="#Person"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasLocation -->
+
+    <owl:ObjectProperty rdf:about="#hasLocation">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Equipment"/>
+        <rdfs:range rdf:resource="#GeoLocation"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasNetworkDevice -->
+
+    <owl:ObjectProperty rdf:about="#hasNetworkDevice">
+        <rdfs:domain rdf:resource="#Computer"/>
+        <rdfs:range rdf:resource="#NetworkDevice"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasProcessor -->
+
+    <owl:ObjectProperty rdf:about="#hasProcessor">
+        <rdfs:domain rdf:resource="#Computer"/>
+        <rdfs:range rdf:resource="#Processor"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasStorage -->
+
+    <owl:ObjectProperty rdf:about="#hasStorage">
+        <rdfs:domain rdf:resource="#Computer"/>
+        <rdfs:range rdf:resource="#Storage"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hasSwitchMatrix -->
+
+    <owl:ObjectProperty rdf:about="#hasSwitchMatrix">
+        <rdfs:domain rdf:resource="#Switch"/>
+        <rdfs:range rdf:resource="#SwitchMatrix"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#isMember -->
+
+    <owl:ObjectProperty rdf:about="#isMember">
+        <rdfs:range rdf:resource="#Experimenter"/>
+        <rdfs:domain rdf:resource="#Project"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#isPerson -->
+
+    <owl:ObjectProperty rdf:about="#isPerson">
+        <rdfs:domain rdf:resource="#Experimenter"/>
+        <rdfs:range rdf:resource="#Person"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#partOfImage -->
+
+    <owl:ObjectProperty rdf:about="#partOfImage">
+        <rdfs:domain rdf:resource="#FileSystem"/>
+        <rdfs:range rdf:resource="#Image"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#reserves -->
+
+    <owl:ObjectProperty rdf:about="#reserves">
+        <rdfs:domain rdf:resource="#Reservation"/>
+        <rdfs:range rdf:resource="#Resource"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#storesFileSystem -->
+
+    <owl:ObjectProperty rdf:about="#storesFileSystem">
+        <rdfs:range rdf:resource="#FileSystem"/>
+        <rdfs:domain rdf:resource="#Image"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#storesImage -->
+
+    <owl:ObjectProperty rdf:about="#storesImage">
+        <rdfs:range rdf:resource="#Image"/>
+        <rdfs:domain rdf:resource="#StorageHardware"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#usesBootImage -->
+
+    <owl:ObjectProperty rdf:about="#usesBootImage">
+        <rdfs:domain rdf:resource="#Computer"/>
+        <rdfs:range rdf:resource="#Image"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#usesNetworkDevice -->
+
+    <owl:ObjectProperty rdf:about="#usesNetworkDevice">
+        <rdfs:range rdf:resource="#NetworkDevice"/>
+        <rdfs:domain rdf:resource="#Port"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#usesSpectrum -->
+
+    <owl:ObjectProperty rdf:about="#usesSpectrum">
+        <rdfs:range rdf:resource="#Spectrum"/>
+        <rdfs:domain rdf:resource="#WirelessNetworkDevice"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#worksForDevice -->
+
+    <owl:ObjectProperty rdf:about="#worksForDevice">
+        <rdfs:domain rdf:resource="#Driver"/>
+        <rdfs:range rdf:resource="#NetworkDevice"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#cpuCoreCount -->
+
+    <owl:DatatypeProperty rdf:about="#cpuCoreCount">
+        <rdfs:domain rdf:resource="#Processor"/>
+        <rdfs:range rdf:resource="&xsd;positiveInteger"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#cpuModelNumber -->
+
+    <owl:DatatypeProperty rdf:about="#cpuModelNumber">
+        <rdfs:domain rdf:resource="#Processor"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#ends -->
+
+    <owl:DatatypeProperty rdf:about="#ends">
+        <rdfs:domain rdf:resource="#Reservation"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#geoCenterLat -->
+
+    <owl:DatatypeProperty rdf:about="#geoCenterLat">
+        <rdfs:domain rdf:resource="#GeoLocation"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#geoCenterLon -->
+
+    <owl:DatatypeProperty rdf:about="#geoCenterLon">
+        <rdfs:domain rdf:resource="#GeoLocation"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#geoLengthMeter -->
+
+    <owl:DatatypeProperty rdf:about="#geoLengthMeter">
+        <rdfs:domain rdf:resource="#SimpleGeoRegion"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#geoNWCornerLat -->
+
+    <owl:DatatypeProperty rdf:about="#geoNWCornerLat">
+        <rdfs:domain rdf:resource="#SimpleGeoRegion"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#geoNWCornerLon -->
+
+    <owl:DatatypeProperty rdf:about="#geoNWCornerLon">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#SimpleGeoRegion"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#geoWidthMeter -->
+
+    <owl:DatatypeProperty rdf:about="#geoWidthMeter">
+        <rdfs:domain rdf:resource="#SimpleGeoRegion"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#hrn -->
+
+    <owl:DatatypeProperty rdf:about="#hrn">
+        <rdfs:comment
+            >human readable name</rdfs:comment>
+        <rdfs:domain rdf:resource="#Resource"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#ipAddress -->
+
+    <owl:DatatypeProperty rdf:about="#ipAddress">
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#IPSubnet"/>
+                    <rdf:Description rdf:about="#L3Port"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#ipNetmask -->
+
+    <owl:DatatypeProperty rdf:about="#ipNetmask">
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#IPSubnet"/>
+                    <rdf:Description rdf:about="#L3Port"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#modelNumber -->
+
+    <owl:DatatypeProperty rdf:about="#modelNumber">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#NetworkDevice"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#retrievableFrom -->
+
+    <owl:DatatypeProperty rdf:about="#retrievableFrom">
+        <rdfs:domain rdf:resource="#Image"/>
+        <rdfs:range rdf:resource="&xsd;anyURI"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#serialNumber -->
+
+    <owl:DatatypeProperty rdf:about="#serialNumber">
+        <rdfs:domain rdf:resource="#Equipment"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#starts -->
+
+    <owl:DatatypeProperty rdf:about="#starts">
+        <rdfs:domain rdf:resource="#Reservation"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#AggregatedResource -->
+
+    <owl:Class rdf:about="#AggregatedResource">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#CPUArchitecture -->
+
+    <owl:Class rdf:about="#CPUArchitecture">
+        <rdfs:subClassOf rdf:resource="#Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Certificate -->
+
+    <owl:Class rdf:about="#Certificate">
+        <rdfs:subClassOf rdf:resource="#OperationalResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Computation -->
+
+    <owl:Class rdf:about="#Computation">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Computer -->
+
+    <owl:Class rdf:about="#Computer">
+        <rdfs:subClassOf rdf:resource="#Equipment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#ConnectionPoint -->
+
+    <owl:Class rdf:about="#ConnectionPoint">
+        <rdfs:subClassOf rdf:resource="#Network"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Disk -->
+
+    <owl:Class rdf:about="#Disk">
+        <rdfs:subClassOf rdf:resource="#StorageHardware"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Driver -->
+
+    <owl:Class rdf:about="#Driver">
+        <rdfs:subClassOf rdf:resource="#Software"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Equipment -->
+
+    <owl:Class rdf:about="#Equipment">
+        <rdfs:subClassOf rdf:resource="#AggregatedResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#EthernetDevice -->
+
+    <owl:Class rdf:about="#EthernetDevice">
+        <rdfs:subClassOf rdf:resource="#NetworkDevice"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Experimenter -->
+
+    <owl:Class rdf:about="#Experimenter">
+        <rdfs:subClassOf rdf:resource="#OperationalResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Feature -->
+
+    <owl:Class rdf:about="#Feature"/>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#File -->
+
+    <owl:Class rdf:about="#File">
+        <rdfs:subClassOf rdf:resource="#Storage"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#FileSystem -->
+
+    <owl:Class rdf:about="#FileSystem">
+        <rdfs:subClassOf rdf:resource="#Storage"/>
+        <rdfs:comment
+            >A FileSystem contains many Files and is usally part of an Image.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Flash -->
+
+    <owl:Class rdf:about="#Flash">
+        <rdfs:subClassOf rdf:resource="#StorageHardware"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#FrequencyBand -->
+
+    <owl:Class rdf:about="#FrequencyBand">
+        <rdfs:subClassOf rdf:resource="#Spectrum"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#GeoLocation -->
+
+    <owl:Class rdf:about="#GeoLocation">
+        <rdfs:subClassOf rdf:resource="#Location"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#IPSubnet -->
+
+    <owl:Class rdf:about="#IPSubnet">
+        <rdfs:subClassOf rdf:resource="#NetworkDomain"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Image -->
+
+    <owl:Class rdf:about="#Image">
+        <rdfs:subClassOf rdf:resource="#Storage"/>
+        <rdfs:comment
+            >An image may contain multiple FileSystems and is usually installed on asome StorageHardware.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Kernel -->
+
+    <owl:Class rdf:about="#Kernel">
+        <rdfs:subClassOf rdf:resource="#Software"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#L2Port -->
+
+    <owl:Class rdf:about="#L2Port">
+        <rdfs:subClassOf rdf:resource="#Port"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#L3Port -->
+
+    <owl:Class rdf:about="#L3Port">
+        <rdfs:subClassOf rdf:resource="#Port"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Link -->
+
+    <owl:Class rdf:about="#Link">
+        <rdfs:subClassOf rdf:resource="#NetworkDomain"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Location -->
+
+    <owl:Class rdf:about="#Location">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Network -->
+
+    <owl:Class rdf:about="#Network">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#NetworkDevice -->
+
+    <owl:Class rdf:about="#NetworkDevice">
+        <rdfs:subClassOf rdf:resource="#ConnectionPoint"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#NetworkDomain -->
+
+    <owl:Class rdf:about="#NetworkDomain">
+        <rdfs:subClassOf rdf:resource="#Network"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#NetworkEquipment -->
+
+    <owl:Class rdf:about="#NetworkEquipment">
+        <rdfs:subClassOf rdf:resource="#Equipment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#OperationalResource -->
+
+    <owl:Class rdf:about="#OperationalResource">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Person -->
+
+    <owl:Class rdf:about="#Person">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Port -->
+
+    <owl:Class rdf:about="#Port">
+        <rdfs:subClassOf rdf:resource="#ConnectionPoint"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Processor -->
+
+    <owl:Class rdf:about="#Processor">
+        <rdfs:subClassOf rdf:resource="#Computation"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Program -->
+
+    <owl:Class rdf:about="#Program">
+        <rdfs:subClassOf rdf:resource="#Software"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Project -->
+
+    <owl:Class rdf:about="#Project">
+        <rdfs:subClassOf rdf:resource="#OperationalResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Ram -->
+
+    <owl:Class rdf:about="#Ram">
+        <rdfs:subClassOf rdf:resource="#StorageHardware"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Reservation -->
+
+    <owl:Class rdf:about="#Reservation">
+        <rdfs:subClassOf rdf:resource="#OperationalResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Resource -->
+
+    <owl:Class rdf:about="#Resource"/>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Router -->
+
+    <owl:Class rdf:about="#Router">
+        <rdfs:subClassOf rdf:resource="#NetworkEquipment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SimpleGeoRegion -->
+
+    <owl:Class rdf:about="#SimpleGeoRegion">
+        <rdfs:subClassOf rdf:resource="#Location"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Software -->
+
+    <owl:Class rdf:about="#Software">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SpecificWifiDevice -->
+
+    <owl:Class rdf:about="#SpecificWifiDevice">
+        <rdfs:subClassOf rdf:resource="#WifiDevice"/>
+        <rdfs:comment
+            >A specific device type can be used as domain for a specific driver.
+
+Don&#39;t know how to fix properties, such as &#39;modelNumber&#39; for this particular class.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Spectrum -->
+
+    <owl:Class rdf:about="#Spectrum">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Storage -->
+
+    <owl:Class rdf:about="#Storage">
+        <rdfs:subClassOf rdf:resource="#Resource"/>
+        <rdfs:comment
+            >Abstract class for all storage related resources</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#StorageHardware -->
+
+    <owl:Class rdf:about="#StorageHardware">
+        <rdfs:subClassOf rdf:resource="#Storage"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Switch -->
+
+    <owl:Class rdf:about="#Switch">
+        <rdfs:subClassOf rdf:resource="#NetworkEquipment"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SwitchMatrix -->
+
+    <owl:Class rdf:about="#SwitchMatrix">
+        <rdfs:subClassOf rdf:resource="#Network"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#Vendor -->
+
+    <owl:Class rdf:about="#Vendor">
+        <rdfs:subClassOf rdf:resource="#Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#WiMax -->
+
+    <owl:Class rdf:about="#WiMax">
+        <rdfs:subClassOf rdf:resource="#WirelessNetworkDevice"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#WifiDevice -->
+
+    <owl:Class rdf:about="#WifiDevice">
+        <rdfs:subClassOf rdf:resource="#WirelessNetworkDevice"/>
+    </owl:Class>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#WirelessNetworkDevice -->
+
+    <owl:Class rdf:about="#WirelessNetworkDevice">
+        <rdfs:subClassOf rdf:resource="#NetworkDevice"/>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeBootImage -->
+
+    <Image rdf:about="#SomeBootImage">
+        <rdf:type rdf:resource="&owl;Thing"/>
+        <retrievableFrom
+            >http://portal.mytestbed.net/resource/ubuntuImage</retrievableFrom>
+        <containsSoftware rdf:resource="#SomeNetworkDriver"/>
+    </Image>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeExperimenter -->
+
+    <Experimenter rdf:about="#SomeExperimenter">
+        <rdf:type rdf:resource="&owl;Thing"/>
+    </Experimenter>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeIPSubnet -->
+
+    <owl:Thing rdf:about="#SomeIPSubnet">
+        <rdf:type rdf:resource="#IPSubnet"/>
+        <ipAddress>10.1.1.0</ipAddress>
+        <ipNetmask>1255.255.255.0</ipNetmask>
+    </owl:Thing>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeNetworkDriver -->
+
+    <Driver rdf:about="#SomeNetworkDriver">
+        <rdf:type rdf:resource="&owl;Thing"/>
+        <worksForDevice rdf:resource="#SomeWifiDevice"/>
+        <worksForDevice rdf:resource="#SomeWifiDevice2"/>
+    </Driver>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeOrbitNode -->
+
+    <Computer rdf:about="#SomeOrbitNode">
+        <rdf:type rdf:resource="&owl;Thing"/>
+        <usesBootImage rdf:resource="#SomeBootImage"/>
+        <hasProcessor rdf:resource="#SomeProcessor"/>
+        <hasNetworkDevice rdf:resource="#SomeWifiDevice"/>
+        <hasNetworkDevice rdf:resource="#SomeWifiDevice2"/>
+    </Computer>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeProcessor -->
+
+    <Processor rdf:about="#SomeProcessor">
+        <rdf:type rdf:resource="&owl;Thing"/>
+    </Processor>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeProject -->
+
+    <Project rdf:about="#SomeProject">
+        <rdf:type rdf:resource="&owl;Thing"/>
+        <isMember rdf:resource="#SomeExperimenter"/>
+    </Project>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeReservation -->
+
+    <owl:Thing rdf:about="#SomeReservation">
+        <rdf:type rdf:resource="#Reservation"/>
+        <ends>tomorrow</ends>
+        <starts>today</starts>
+        <reserves rdf:resource="#SomeOrbitNode"/>
+        <forProject rdf:resource="#SomeProject"/>
+    </owl:Thing>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeWifiDevice -->
+
+    <owl:Thing rdf:about="#SomeWifiDevice">
+        <rdf:type rdf:resource="#WifiDevice"/>
+        <connectedTo rdf:resource="#SomeIPSubnet"/>
+    </owl:Thing>
+    
+
+
+    <!-- http://schema.mytestbed.net/attempt1.owl#SomeWifiDevice2 -->
+
+    <owl:Thing rdf:about="#SomeWifiDevice2">
+        <rdf:type rdf:resource="#WifiDevice"/>
+    </owl:Thing>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1138) http://owlapi.sourceforge.net -->
+

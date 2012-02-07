@@ -1,0 +1,12 @@
+
+omf_sfa_am:
+  name: urn:xxx
+  
+  endpoints:
+    -
+      type: xmlrpc
+      port: 8001
+      ssl:
+        cert_chain_file: ~/.gcf/am-cert.pem 
+        private_key_file: ~/.gcf/am-key.pem 
+        verify_peer: true

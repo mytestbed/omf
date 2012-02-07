@@ -45,7 +45,7 @@ class MObject
   # following keys are used:
   #
   #  * :env - Name of environment variable holding dominant config file
-  #  * :fileName - Name of config file [#{appName}_log.xml]
+  #  * :configFile - Name of config file [#{appName}_log.xml]
   #  * :searchPath - Array of directories to look for 'fileName'
   #
   def MObject.initLog(appName, appInstance = nil, params = {})
@@ -59,6 +59,7 @@ class MObject
     end
     if (configFile != nil)
       # Make sure log exists ...
+      #puts "checking config file '#{configFile}'"
       configFile = File.exists?(configFile) ? configFile : nil
     else
       name = params[:fileName] || "#{appName}_log.xml"

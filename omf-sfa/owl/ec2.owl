@@ -1,0 +1,385 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY domain "http://geni-orca.renci.org/owl/domain.owl#" >
+    <!ENTITY storage "http://geni-orca.renci.org/owl/storage.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY compute "http://geni-orca.renci.org/owl/compute.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/ec2.owl#"
+     xml:base="http://geni-orca.renci.org/owl/ec2.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:domain="http://geni-orca.renci.org/owl/domain.owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:compute="http://geni-orca.renci.org/owl/compute.owl#"
+     xmlns:storage="http://geni-orca.renci.org/owl/storage.owl#">
+    <owl:Ontology rdf:about="http://geni-orca.renci.org/owl/ec2.owl">
+        <rdfs:isDefinedBy>RENCI
+UNC Chapel Hill
+ibaldin@renci.org, yxin@renci.org</rdfs:isDefinedBy>
+        <rdfs:comment>Amazon EC2 compute resource definitions</rdfs:comment>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/compute.owl"/>
+        <owl:versionIRI rdf:resource="http://geni-orca.renci.org/owl/ec2-v1.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/storage.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2C1Medium -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2C1Medium">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2x86CPUCore"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;Xen"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>1.7GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">2</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>160GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2C1XLarge -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2C1XLarge">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;Xen"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>7GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">8</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>1690GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement">
+        <rdfs:subClassOf rdf:resource="&compute;ClassifiedComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2M1Large -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2M1Large">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;Xen"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>7.5GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">2</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>850GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2M1Small -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2M1Small">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2x86CPUCore"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;Xen"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>1.7GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>160GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2M1XLarge -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2M1XLarge">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vmm"/>
+                        <owl:hasValue rdf:resource="&compute;Xen"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>15GB</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUs"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">4</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageCapacity"/>
+                        <owl:hasValue>1690GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://geni-orca.renci.org/owl/ec2.owl#EC2ComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&compute;x86-64"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vendor"/>
+                        <owl:hasValue rdf:resource="&compute;AMD"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;clockFrequency"/>
+                        <owl:hasValue>1.2GHz</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuFamily"/>
+                        <owl:hasValue>Opteron</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUCores"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2x86CPUCore -->
+
+    <owl:Class rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2x86CPUCore">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuArchitecture"/>
+                        <owl:hasValue rdf:resource="&compute;x86"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;vendor"/>
+                        <owl:hasValue rdf:resource="&compute;AMD"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;clockFrequency"/>
+                        <owl:hasValue>1.2GHz</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpuFamily"/>
+                        <owl:hasValue>Opteron</owl:hasValue>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;numCPUCores"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;CPU"/>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2C1Medium -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2C1Medium">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2C1XLarge -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2C1XLarge">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2M1Large -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2M1Large">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2M1Small -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2M1Small">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2M1XLarge -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2M1XLarge">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <rdf:type rdf:resource="&domain;ResourceType"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2x86-64CPUCore">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ec2.owl#EC2x86CPUCore -->
+
+    <owl:NamedIndividual rdf:about="http://geni-orca.renci.org/owl/ec2.owl#EC2x86CPUCore">
+        <rdf:type rdf:resource="&compute;CPUInstance"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.3.22702) http://owlapi.sourceforge.net -->
+

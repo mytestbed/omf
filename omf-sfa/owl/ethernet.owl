@@ -1,0 +1,466 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY dtn "http://geni-orca.renci.org/owl/dtn.owl#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY dtn2 "http://geni-orca.renci.org/owl/dtn.owl#1000" >
+    <!ENTITY ethernet "http://geni-orca.renci.org/owl/ethernet.owl#" >
+    <!ENTITY ndl "http://geni-orca.renci.org/owl/topology.owl#" >
+    <!ENTITY ethernet3 "http://geni-orca.renci.org/owl/ethernet.owl#1" >
+    <!ENTITY ethernet2 "http://geni-orca.renci.org/owl/ethernet.owl#10" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xml:base="http://geni-orca.renci.org/owl/ethernet.owl"
+     xmlns:dtn2="&dtn;1000"
+     xmlns:ethernet3="&ethernet;1"
+     xmlns:ethernet2="&ethernet;10"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:ndl="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:dtn="http://geni-orca.renci.org/owl/dtn.owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:ethernet="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/dtn.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#1000base-X -->
+
+    <owl:ObjectProperty rdf:about="&dtn;1000base-X">
+        <rdfs:range rdf:resource="#EthernetNetworkElement"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#TenGbase-R -->
+
+    <owl:ObjectProperty rdf:about="&dtn;TenGbase-R">
+        <rdfs:range rdf:resource="#EthernetNetworkElement"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#IP-in-Mac -->
+
+    <owl:ObjectProperty rdf:about="#IP-in-Mac">
+        <rdfs:domain rdf:resource="#MACNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#Mac-in-Ethernet -->
+
+    <owl:ObjectProperty rdf:about="#Mac-in-Ethernet">
+        <rdfs:domain rdf:resource="#EthernetNetworkElement"/>
+        <rdfs:range rdf:resource="#MACNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#Tagged-Ethernet -->
+
+    <owl:ObjectProperty rdf:about="#Tagged-Ethernet">
+        <rdfs:range rdf:resource="#EthernetNetworkElement"/>
+        <rdfs:domain rdf:resource="#EthernetNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;AdaptationProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#availableVLANSet -->
+
+    <owl:ObjectProperty rdf:about="#availableVLANSet">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#EthernetNetworkElement"/>
+        <rdfs:range rdf:resource="&layer;LabelSet"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;availableLabelSet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#localMACaddress -->
+
+    <owl:ObjectProperty rdf:about="#localMACaddress">
+        <rdfs:range rdf:resource="#MACAddress"/>
+        <rdfs:domain rdf:resource="#MACNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;ingressLabel"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#localVlan -->
+
+    <owl:ObjectProperty rdf:about="#localVlan">
+        <rdfs:subPropertyOf rdf:resource="&layer;ingressLabel"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#remoteMACaddress -->
+
+    <owl:ObjectProperty rdf:about="#remoteMACaddress">
+        <rdfs:range rdf:resource="#MACAddress"/>
+        <rdfs:domain rdf:resource="#MACNetworkElement"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;engressLabel"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#remoteVlan -->
+
+    <owl:ObjectProperty rdf:about="#remoteVlan">
+        <rdfs:subPropertyOf rdf:resource="&layer;engressLabel"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#usedVLANSet -->
+
+    <owl:ObjectProperty rdf:about="#usedVLANSet">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#EthernetNetworkElement"/>
+        <rdfs:range rdf:resource="&layer;LabelSet"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;usedLabelSet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#vlan -->
+
+    <owl:ObjectProperty rdf:about="#vlan">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#EthernetNetworkElement"/>
+        <rdfs:range rdf:resource="#VLAN"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;label"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#vlanTag -->
+
+    <owl:ObjectProperty rdf:about="#vlanTag">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#VLAN"/>
+        <rdfs:subPropertyOf rdf:resource="&layer;feature"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#AdaptationProperty -->
+
+    <owl:ObjectProperty rdf:about="&layer;AdaptationProperty"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#availableLabelSet -->
+
+    <owl:ObjectProperty rdf:about="&layer;availableLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#engressLabel -->
+
+    <owl:ObjectProperty rdf:about="&layer;engressLabel"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#feature -->
+
+    <owl:ObjectProperty rdf:about="&layer;feature"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#ingressLabel -->
+
+    <owl:ObjectProperty rdf:about="&layer;ingressLabel"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#label -->
+
+    <owl:ObjectProperty rdf:about="&layer;label"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#switchingCapability -->
+
+    <owl:ObjectProperty rdf:about="&layer;switchingCapability"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#usedLabelSet -->
+
+    <owl:ObjectProperty rdf:about="&layer;usedLabelSet"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#maxVLAN -->
+
+    <owl:DatatypeProperty rdf:about="#maxVLAN">
+        <rdfs:subPropertyOf rdf:resource="&layer;maxLabelSet"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#numGigabitEthernetPort -->
+
+    <owl:DatatypeProperty rdf:about="#numGigabitEthernetPort">
+        <rdfs:subPropertyOf rdf:resource="&layer;numPort"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#numTenGigabitEthernetPort -->
+
+    <owl:DatatypeProperty rdf:about="#numTenGigabitEthernetPort">
+        <rdfs:subPropertyOf rdf:resource="&layer;numPort"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#maxLabelSet -->
+
+    <owl:DatatypeProperty rdf:about="&layer;maxLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#numPort -->
+
+    <owl:DatatypeProperty rdf:about="&layer;numPort"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <owl:Class rdf:about="#EthernetNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetSwitchingMatrix -->
+
+    <owl:Class rdf:about="#EthernetSwitchingMatrix">
+        <rdfs:subClassOf rdf:resource="&ndl;SwitchMatrix"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;switchingCapability"/>
+                <owl:allValuesFrom rdf:resource="#EthernetNetworkElement"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#GEPort -->
+
+    <owl:Class rdf:about="#GEPort">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#MACAddress -->
+
+    <owl:Class rdf:about="#MACAddress">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#MACNetworkElement -->
+
+    <owl:Class rdf:about="#MACNetworkElement">
+        <rdfs:subClassOf rdf:resource="&ndl;LayerNetworkElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#MTU -->
+
+    <owl:Class rdf:about="#MTU">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+        <rdfs:subClassOf rdf:resource="&xsd;float"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#MacAddress -->
+
+    <owl:Class rdf:about="#MacAddress">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#TenGEPort -->
+
+    <owl:Class rdf:about="#TenGEPort">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#VLAN -->
+
+    <owl:Class rdf:about="#VLAN">
+        <rdfs:subClassOf rdf:resource="&layer;Label"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#VLANTag -->
+
+    <owl:Class rdf:about="#VLANTag">
+        <rdfs:subClassOf rdf:resource="&layer;Feature"/>
+        <rdfs:subClassOf rdf:resource="&xsd;float"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#AdaptationProperty -->
+
+    <owl:Class rdf:about="&layer;AdaptationProperty"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Feature -->
+
+    <owl:Class rdf:about="&layer;Feature"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Label -->
+
+    <owl:Class rdf:about="&layer;Label"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelSet -->
+
+    <owl:Class rdf:about="&layer;LabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Layer -->
+
+    <owl:Class rdf:about="&layer;Layer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#LayerNetworkElement -->
+
+    <owl:Class rdf:about="&ndl;LayerNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#SwitchMatrix -->
+
+    <owl:Class rdf:about="&ndl;SwitchMatrix"/>
+    
+
+
+    <!-- http://www.w3.org/2001/XMLSchema#float -->
+
+    <owl:Class rdf:about="&xsd;float"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#1500 -->
+
+    <MTU rdf:about="#1500"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#9000 -->
+
+    <MTU rdf:about="#9000"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <layer:Layer rdf:about="#EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#MACNetworkElement -->
+
+    <layer:Layer rdf:about="#MACNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#Mac-in-Ethernet -->
+
+    <layer:AdaptationProperty rdf:about="#Mac-in-Ethernet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#Tagged-Ethernet -->
+
+    <layer:AdaptationProperty rdf:about="#Tagged-Ethernet"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

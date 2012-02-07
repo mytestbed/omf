@@ -1,0 +1,1335 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY ben "http://geni-orca.renci.org/owl/ben.rdf#" >
+    <!ENTITY wdm "http://geni-orca.renci.org/owl/dtn.owl#" >
+    <!ENTITY geo "http://www.w3.org/2003/01/geo/wgs84_pos#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY domain "http://geni-orca.renci.org/owl/domain.owl#" >
+    <!ENTITY ben2 "http://geni-orca.renci.org/owl/ben.rdf#ben/" >
+    <!ENTITY Ben "http://geni-orca.renci.org/owl/ben.rdf#Ben/" >
+    <!ENTITY UNC "http://geni-orca.renci.org/owl/ben.rdf#UNC/" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY NCSU "http://geni-orca.renci.org/owl/ben.rdf#NCSU/" >
+    <!ENTITY ethernet "http://geni-orca.renci.org/owl/ethernet.owl#" >
+    <!ENTITY location "http://geni-orca.renci.org/owl/location.owl#" >
+    <!ENTITY ndl "http://geni-orca.renci.org/owl/topology.owl#" >
+    <!ENTITY Duke "http://geni-orca.renci.org/owl/ben.rdf#Duke/" >
+    <!ENTITY Renci "http://geni-orca.renci.org/owl/ben.rdf#Renci/" >
+    <!ENTITY collections "http://geni-orca.renci.org/owl/collections.owl#" >
+    <!ENTITY ben-6509 "http://geni-orca.renci.org/owl/ben.rdf#ben-6509/" >
+    <!ENTITY Dell2 "http://geni-orca.renci.org/owl/ben.rdf#UNC/Dell/" >
+    <!ENTITY Dell "http://geni-orca.renci.org/owl/ben.rdf#NCSU/Dell/" >
+    <!ENTITY Dell4 "http://geni-orca.renci.org/owl/ben.rdf#Duke/Dell/" >
+    <!ENTITY Dell3 "http://geni-orca.renci.org/owl/ben.rdf#Renci/Dell/" >
+    <!ENTITY Polatis4 "http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/" >
+    <!ENTITY Polatis2 "http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/" >
+    <!ENTITY Polatis "http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/" >
+    <!ENTITY Infinera4 "http://geni-orca.renci.org/owl/ben.rdf#UNC/Infinera/" >
+    <!ENTITY Infinera "http://geni-orca.renci.org/owl/ben.rdf#Duke/Infinera/" >
+    <!ENTITY Infinera2 "http://geni-orca.renci.org/owl/ben.rdf#NCSU/Infinera/" >
+    <!ENTITY Polatis3 "http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/" >
+    <!ENTITY Infinera3 "http://geni-orca.renci.org/owl/ben.rdf#Renci/Infinera/" >
+    <!ENTITY f1 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f1/" >
+    <!ENTITY f23 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f2/" >
+    <!ENTITY f22 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f2/" >
+    <!ENTITY f14 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f1/" >
+    <!ENTITY f12 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f1/" >
+    <!ENTITY f2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f2/" >
+    <!ENTITY f24 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f2/" >
+    <!ENTITY fB8 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/" >
+    <!ENTITY f13 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f1/" >
+    <!ENTITY fB6 "http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/2/" >
+    <!ENTITY fB "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/" >
+    <!ENTITY fB3 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/" >
+    <!ENTITY fB5 "http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/2/" >
+    <!ENTITY fB7 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/2/" >
+    <!ENTITY fB2 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/" >
+    <!ENTITY fB4 "http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/" >
+    <!ENTITY NetworkService "http://geni-orca.renci.org/owl/ben.rdf#Ben/Domain/NetworkService/1/" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/ben.rdf#"
+     xml:base="http://geni-orca.renci.org/owl/ben.rdf"
+     xmlns:NetworkService="&ben;Ben/Domain/NetworkService/1/"
+     xmlns:location="http://geni-orca.renci.org/owl/location.owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:Polatis4="&ben;UNC/Polatis/"
+     xmlns:Polatis2="&ben;NCSU/Polatis/"
+     xmlns:Polatis3="&ben;Renci/Polatis/"
+     xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#"
+     xmlns:Infinera4="&ben;UNC/Infinera/"
+     xmlns:ndl="http://geni-orca.renci.org/owl/topology.owl#"
+     xmlns:Infinera2="&ben;NCSU/Infinera/"
+     xmlns:Infinera3="&ben;Renci/Infinera/"
+     xmlns:ben="http://geni-orca.renci.org/owl/ben.rdf#"
+     xmlns:Dell3="&ben;Renci/Dell/"
+     xmlns:Dell4="&ben;Duke/Dell/"
+     xmlns:Infinera="&ben;Duke/Infinera/"
+     xmlns:Dell2="&ben;UNC/Dell/"
+     xmlns:Ben="&ben;Ben/"
+     xmlns:ben2="&ben;ben/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:Dell="&ben;NCSU/Dell/"
+     xmlns:UNC="&ben;UNC/"
+     xmlns:Polatis="&ben;Duke/Polatis/"
+     xmlns:f12="http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f1/"
+     xmlns:f14="http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f1/"
+     xmlns:f13="http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f1/"
+     xmlns:fB="http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:ethernet="http://geni-orca.renci.org/owl/ethernet.owl#"
+     xmlns:domain="http://geni-orca.renci.org/owl/domain.owl#"
+     xmlns:f1="http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f1/"
+     xmlns:f2="http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/f2/"
+     xmlns:collections="http://geni-orca.renci.org/owl/collections.owl#"
+     xmlns:Duke="&ben;Duke/"
+     xmlns:f23="http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/f2/"
+     xmlns:f22="http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/f2/"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:f24="http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/f2/"
+     xmlns:NCSU="&ben;NCSU/"
+     xmlns:Renci="&ben;Renci/"
+     xmlns:fB2="http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/"
+     xmlns:fB3="http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/"
+     xmlns:ben-6509="&ben;ben-6509/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:fB8="http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/"
+     xmlns:fB6="http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/2/"
+     xmlns:fB7="http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/2/"
+     xmlns:fB4="http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/"
+     xmlns:wdm="http://geni-orca.renci.org/owl/dtn.owl#"
+     xmlns:fB5="http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/2/">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/domain.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#element -->
+
+    <owl:ObjectProperty rdf:about="&collections;element"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasAccessMethod -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasAccessMethod"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasResourceType -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasResourceType"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasService -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasService"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasTopology -->
+
+    <owl:ObjectProperty rdf:about="&domain;hasTopology"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#availableVLANSet -->
+
+    <owl:ObjectProperty rdf:about="&ethernet;availableVLANSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#atLayer -->
+
+    <owl:ObjectProperty rdf:about="&layer;atLayer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#switchingCapability -->
+
+    <owl:ObjectProperty rdf:about="&layer;switchingCapability"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/location.owl#locatedAt -->
+
+    <owl:ObjectProperty rdf:about="&location;locatedAt"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#connectionDirection -->
+
+    <owl:ObjectProperty rdf:about="&ndl;connectionDirection"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInputInterface -->
+
+    <owl:ObjectProperty rdf:about="&ndl;hasInputInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasInterface -->
+
+    <owl:ObjectProperty rdf:about="&ndl;hasInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasOutputInterface -->
+
+    <owl:ObjectProperty rdf:about="&ndl;hasOutputInterface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hasSwitchMatrix -->
+
+    <owl:ObjectProperty rdf:about="&ndl;hasSwitchMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#inputInterfaceOf -->
+
+    <owl:ObjectProperty rdf:about="&ndl;inputInterfaceOf"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#interfaceOf -->
+
+    <owl:ObjectProperty rdf:about="&ndl;interfaceOf"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#linkTo -->
+
+    <owl:ObjectProperty rdf:about="&ndl;linkTo"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#outputInterfaceOf -->
+
+    <owl:ObjectProperty rdf:about="&ndl;outputInterfaceOf"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#switchedTo -->
+
+    <owl:ObjectProperty rdf:about="&ndl;switchedTo"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#size -->
+
+    <owl:DatatypeProperty rdf:about="&collections;size"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#isLabelProducer -->
+
+    <owl:DatatypeProperty rdf:about="&layer;isLabelProducer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hostName -->
+
+    <owl:DatatypeProperty rdf:about="&ndl;hostName"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#managementIP -->
+
+    <owl:DatatypeProperty rdf:about="&ndl;managementIP"/>
+    
+
+
+    <!-- http://www.w3.org/2003/01/geo/wgs84_pos#lat -->
+
+    <owl:DatatypeProperty rdf:about="&geo;lat"/>
+    
+
+
+    <!-- http://www.w3.org/2003/01/geo/wgs84_pos#long -->
+
+    <owl:DatatypeProperty rdf:about="&geo;long"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/collections.owl#Set -->
+
+    <owl:Class rdf:about="&collections;Set"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#NetworkService -->
+
+    <owl:Class rdf:about="&domain;NetworkService"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberNetworkElement -->
+
+    <owl:Class rdf:about="&wdm;FiberNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberSwitchingMatrix -->
+
+    <owl:Class rdf:about="&wdm;FiberSwitchingMatrix"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#LabelSet -->
+
+    <owl:Class rdf:about="&layer;LabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/location.owl#Location -->
+
+    <owl:Class rdf:about="&location;Location"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Device -->
+
+    <owl:Class rdf:about="&ndl;Device"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#Interface -->
+
+    <owl:Class rdf:about="&ndl;Interface"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkDomain -->
+
+    <owl:Class rdf:about="&ndl;NetworkDomain"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Duke/Infinera/DTN/fB/1/fiber -->
+
+    <rdf:Description rdf:about="&fB;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/1/fiber -->
+
+    <rdf:Description rdf:about="&fB3;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#NCSU/Infinera/DTN/fB/2/fiber -->
+
+    <rdf:Description rdf:about="&fB5;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/1/fiber -->
+
+    <rdf:Description rdf:about="&fB2;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#Renci/Infinera/DTN/fB/2/fiber -->
+
+    <rdf:Description rdf:about="&fB4;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/1/fiber -->
+
+    <rdf:Description rdf:about="&fB8;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben-dtn.rdf#UNC/Infinera/DTN/fB/2/fiber -->
+
+    <rdf:Description rdf:about="&fB6;fiber"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Ben/Domain/NetworkService/1 -->
+
+    <domain:NetworkService rdf:about="#Ben/Domain/NetworkService/1">
+        <ethernet:availableVLANSet rdf:resource="#Ben/Domain/NetworkService/1/availableVLANSet"/>
+        <domain:hasTopology rdf:resource="&domain;Node"/>
+        <domain:hasAccessMethod rdf:resource="&domain;ORCAActor"/>
+        <layer:atLayer rdf:resource="&ethernet;EthernetNetworkElement"/>
+    </domain:NetworkService>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Ben/Domain/NetworkService/1/availableVLANSet -->
+
+    <layer:LabelSet rdf:about="#Ben/Domain/NetworkService/1/availableVLANSet">
+        <collections:size rdf:datatype="&xsd;int">100</collections:size>
+        <domain:hasResourceType rdf:resource="&domain;VLAN"/>
+    </layer:LabelSet>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke -->
+
+    <location:Location rdf:about="#Duke">
+        <rdfs:label>Duke</rdfs:label>
+        <geo:long>-78.944149</geo:long>
+        <geo:lat>36.00016</geo:lat>
+    </location:Location>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Cisco/6509 -->
+
+    <ndl:Device rdf:about="#Duke/Cisco/6509"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Dell/go-1 -->
+
+    <ndl:Device rdf:about="#Duke/Dell/go-1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Dell/go-2 -->
+
+    <ndl:Device rdf:about="#Duke/Dell/go-2"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Infinera/DTN -->
+
+    <ndl:Device rdf:about="#Duke/Infinera/DTN"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/PoP -->
+
+    <collections:Set rdf:about="#Duke/PoP">
+        <location:locatedAt rdf:resource="#Duke"/>
+        <collections:element rdf:resource="#Duke/Cisco/6509"/>
+        <collections:element rdf:resource="#Duke/Dell/go-1"/>
+        <collections:element rdf:resource="#Duke/Infinera/DTN"/>
+        <collections:element rdf:resource="#Duke/Polatis"/>
+        <collections:element rdf:resource="#Duke/VMSite"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis -->
+
+    <ndl:Device rdf:about="#Duke/Polatis">
+        <rdfs:label>Polatis</rdfs:label>
+        <ndl:hostName>os.duke.ben</ndl:hostName>
+        <ndl:managementIP>192.168.202.4</ndl:managementIP>
+        <ndl:hasSwitchMatrix rdf:resource="#Duke/Polatis/FiberSwitchingMatrix"/>
+        <ndl:hasInterface rdf:resource="#Duke/Polatis/f3-19"/>
+        <ndl:hasInterface rdf:resource="#Duke/Polatis/f4-20"/>
+        <ndl:hasInterface rdf:resource="#Duke/Polatis/f6-22"/>
+        <ndl:hasInterface rdf:resource="#Duke/Polatis/f7-23"/>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/FiberSwitchingMatrix -->
+
+    <wdm:FiberSwitchingMatrix rdf:about="#Duke/Polatis/FiberSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:connectionDirection rdf:resource="&layer;UNIDirectional"/>
+    </wdm:FiberSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f19 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f19">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">19</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Duke/Polatis/f3-19"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">20</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Duke/Polatis/f4-20"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f22 -->
+
+    <ndl:Interface rdf:about="#Duke/Polatis/f22">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">22</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Duke/Polatis/f6-22"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f23 -->
+
+    <ndl:Interface rdf:about="#Duke/Polatis/f23">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">23</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Duke/Polatis/f7-23"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f3 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f3">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">3</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Duke/Polatis/f3-19"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f3-19 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f3-19">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:interfaceOf rdf:resource="#Duke/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Duke/Polatis/f19"/>
+        <ndl:hasInputInterface rdf:resource="#Duke/Polatis/f3"/>
+        <ndl:linkTo rdf:resource="#NCSU/Polatis/f4-20"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f4 -->
+
+    <ndl:Interface rdf:about="#Duke/Polatis/f4">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">4</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Duke/Polatis/f4-20"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f4-20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f4-20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:interfaceOf rdf:resource="#Duke/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Duke/Polatis/f20"/>
+        <ndl:hasInputInterface rdf:resource="#Duke/Polatis/f4"/>
+        <ndl:switchedTo rdf:resource="#Duke/Polatis/f7-23"/>
+        <ndl:linkTo rdf:resource="#Renci/Polatis/f3-19"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f6 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f6">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">6</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Duke/Polatis/f6-22"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f6-22 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f6-22">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:interfaceOf rdf:resource="#Duke/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Duke/Polatis/f22"/>
+        <ndl:hasInputInterface rdf:resource="#Duke/Polatis/f6"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f7 -->
+
+    <ndl:Interface rdf:about="#Duke/Polatis/f7">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">7</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Duke/Polatis/f7-23"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/Polatis/f7-23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Duke/Polatis/f7-23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="&fB;fiber"/>
+        <ndl:interfaceOf rdf:resource="#Duke/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Duke/Polatis/f23"/>
+        <ndl:switchedTo rdf:resource="#Duke/Polatis/f4-20"/>
+        <ndl:hasInputInterface rdf:resource="#Duke/Polatis/f7"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Duke/VMSite -->
+
+    <ndl:Device rdf:about="#Duke/VMSite">
+        <rdfs:label>Server</rdfs:label>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU -->
+
+    <location:Location rdf:about="#NCSU">
+        <rdfs:label>NCSU</rdfs:label>
+        <geo:long>-78.677371</geo:long>
+        <geo:lat>35.769314</geo:lat>
+    </location:Location>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Cisco/6509 -->
+
+    <ndl:Device rdf:about="#NCSU/Cisco/6509"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Dell/go-1 -->
+
+    <ndl:Device rdf:about="#NCSU/Dell/go-1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Dell/go-2 -->
+
+    <ndl:Device rdf:about="#NCSU/Dell/go-2"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Infinera/DTN -->
+
+    <ndl:Device rdf:about="#NCSU/Infinera/DTN"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/PoP -->
+
+    <collections:Set rdf:about="#NCSU/PoP">
+        <location:locatedAt rdf:resource="#NCSU"/>
+        <collections:element rdf:resource="#NCSU/Cisco/6509"/>
+        <collections:element rdf:resource="#NCSU/Dell/go-1"/>
+        <collections:element rdf:resource="#NCSU/Infinera/DTN"/>
+        <collections:element rdf:resource="#NCSU/Polatis"/>
+        <collections:element rdf:resource="#NCSU/VMSite"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis -->
+
+    <ndl:Device rdf:about="#NCSU/Polatis">
+        <rdfs:label>Polatis</rdfs:label>
+        <ndl:managementIP>192.168.204.4</ndl:managementIP>
+        <ndl:hostName>os.ncsu.ben</ndl:hostName>
+        <ndl:hasSwitchMatrix rdf:resource="#NCSU/Polatis/FiberSwitchingMatrix"/>
+        <ndl:hasInterface rdf:resource="#NCSU/Polatis/f3-19"/>
+        <ndl:hasInterface rdf:resource="#NCSU/Polatis/f4-20"/>
+        <ndl:hasInterface rdf:resource="#NCSU/Polatis/f6-22"/>
+        <ndl:hasInterface rdf:resource="#NCSU/Polatis/f7-23"/>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/FiberSwitchingMatrix -->
+
+    <wdm:FiberSwitchingMatrix rdf:about="#NCSU/Polatis/FiberSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:connectionDirection rdf:resource="&layer;UNIDirectional"/>
+    </wdm:FiberSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f19 -->
+
+    <ndl:Interface rdf:about="#NCSU/Polatis/f19">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">19</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#NCSU/Polatis/f19"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label>20</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#NCSU/Polatis/f4-20"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f22 -->
+
+    <ndl:Interface rdf:about="#NCSU/Polatis/f22">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">22</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#NCSU/Polatis/f6-22"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">23</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#NCSU/Polatis/f23"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f3 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f3">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">3</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#NCSU/Polatis/f3-19"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f3-19 -->
+
+    <ndl:Interface rdf:about="#NCSU/Polatis/f3-19">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:interfaceOf rdf:resource="#NCSU/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#NCSU/Polatis/f19"/>
+        <ndl:hasInputInterface rdf:resource="#NCSU/Polatis/f3"/>
+        <ndl:linkTo rdf:resource="#UNC/Polatis/f4-20"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f4 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f4">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">4</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#NCSU/Polatis/f4-20"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f4-20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f4-20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="#Duke/Polatis/f3-19"/>
+        <ndl:interfaceOf rdf:resource="#NCSU/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#NCSU/Polatis/f20"/>
+        <ndl:hasInputInterface rdf:resource="#NCSU/Polatis/f4"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f6 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f6">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">6</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#NCSU/Polatis/f6-22"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f6-22 -->
+
+    <ndl:Interface rdf:about="#NCSU/Polatis/f6-22">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:linkTo rdf:resource="&fB5;fiber"/>
+        <ndl:hasOutputInterface rdf:resource="#NCSU/Polatis/f22"/>
+        <ndl:hasInputInterface rdf:resource="#NCSU/Polatis/f6"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f7 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f7">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">7</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#NCSU/Polatis/f7-23"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/Polatis/f7-23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#NCSU/Polatis/f7-23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="&fB3;fiber"/>
+        <ndl:interfaceOf rdf:resource="#NCSU/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#NCSU/Polatis/f23"/>
+        <ndl:hasInputInterface rdf:resource="#NCSU/Polatis/f7"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#NCSU/VMSite -->
+
+    <ndl:Device rdf:about="#NCSU/VMSite">
+        <rdfs:label>Server</rdfs:label>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci -->
+
+    <location:Location rdf:about="#Renci">
+        <rdfs:label>Renci</rdfs:label>
+        <geo:long>-79.017427</geo:long>
+        <geo:lat>35.939517</geo:lat>
+    </location:Location>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Cisco/6509 -->
+
+    <ndl:Device rdf:about="#Renci/Cisco/6509"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Dell/go-1 -->
+
+    <ndl:Device rdf:about="#Renci/Dell/go-1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Dell/go-2 -->
+
+    <ndl:Device rdf:about="#Renci/Dell/go-2"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Infinera/DTN -->
+
+    <ndl:Device rdf:about="#Renci/Infinera/DTN"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/PoP -->
+
+    <collections:Set rdf:about="#Renci/PoP">
+        <location:locatedAt rdf:resource="#Renci"/>
+        <collections:element rdf:resource="#Renci/Cisco/6509"/>
+        <collections:element rdf:resource="#Renci/Dell/go-1"/>
+        <collections:element rdf:resource="#Renci/Infinera/DTN"/>
+        <collections:element rdf:resource="#Renci/Polatis"/>
+        <collections:element rdf:resource="#Renci/VMSite"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis -->
+
+    <ndl:Device rdf:about="#Renci/Polatis">
+        <rdfs:label>Polatis</rdfs:label>
+        <ndl:managementIP>192.168.201.4</ndl:managementIP>
+        <ndl:hostName>os.renci.ben</ndl:hostName>
+        <ndl:hasSwitchMatrix rdf:resource="#Renci/Polatis/FiberSwitchingMatrix"/>
+        <ndl:hasInterface rdf:resource="#Renci/Polatis/f3-19"/>
+        <ndl:hasInterface rdf:resource="#Renci/Polatis/f4-20"/>
+        <ndl:hasInterface rdf:resource="#Renci/Polatis/f6-22"/>
+        <ndl:hasInterface rdf:resource="#Renci/Polatis/f7-23"/>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/FiberSwitchingMatrix -->
+
+    <wdm:FiberSwitchingMatrix rdf:about="#Renci/Polatis/FiberSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:connectionDirection rdf:resource="&layer;UNIDirectional"/>
+    </wdm:FiberSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f19 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f19">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">19</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Renci/Polatis/f3-19"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">20</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Renci/Polatis/f4-20"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f22 -->
+
+    <ndl:Interface rdf:about="#Renci/Polatis/f22">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">22</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Renci/Polatis/f6-22"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">23</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#Renci/Polatis/f7-23"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f3 -->
+
+    <ndl:Interface rdf:about="#Renci/Polatis/f3">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">3</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Renci/Polatis/f3-19"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f3-19 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f3-19">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="#Duke/Polatis/f4-20"/>
+        <ndl:interfaceOf rdf:resource="#Renci/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Renci/Polatis/f19"/>
+        <ndl:hasInputInterface rdf:resource="#Renci/Polatis/f3"/>
+        <ndl:switchedTo rdf:resource="#Renci/Polatis/f6-22"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f4 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f4">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">4</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Renci/Polatis/f4-20"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f4-20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f4-20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:interfaceOf rdf:resource="#Renci/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Renci/Polatis/f20"/>
+        <ndl:hasInputInterface rdf:resource="#Renci/Polatis/f4"/>
+        <ndl:switchedTo rdf:resource="#Renci/Polatis/f7-23"/>
+        <ndl:linkTo rdf:resource="#UNC/Polatis/f3-19"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f6 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f6">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">6</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Renci/Polatis/f6-22"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f6-22 -->
+
+    <ndl:Interface rdf:about="#Renci/Polatis/f6-22">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:linkTo rdf:resource="&fB2;fiber"/>
+        <ndl:interfaceOf rdf:resource="#Renci/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Renci/Polatis/f22"/>
+        <ndl:switchedTo rdf:resource="#Renci/Polatis/f3-19"/>
+        <ndl:hasInputInterface rdf:resource="#Renci/Polatis/f6"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f7 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f7">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">7</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#Renci/Polatis/f7-23"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/Polatis/f7-23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#Renci/Polatis/f7-23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="&fB4;fiber"/>
+        <ndl:interfaceOf rdf:resource="#Renci/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#Renci/Polatis/f23"/>
+        <ndl:switchedTo rdf:resource="#Renci/Polatis/f4-20"/>
+        <ndl:hasInputInterface rdf:resource="#Renci/Polatis/f7"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#Renci/VMSite -->
+
+    <ndl:Device rdf:about="#Renci/VMSite">
+        <rdfs:label>Server</rdfs:label>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC -->
+
+    <location:Location rdf:about="#UNC">
+        <rdfs:label>UNC</rdfs:label>
+        <geo:lat>35.903477</geo:lat>
+        <geo:long>-79.048605</geo:long>
+    </location:Location>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Cisco/6509 -->
+
+    <ndl:Device rdf:about="#UNC/Cisco/6509"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Dell/go-1 -->
+
+    <ndl:Device rdf:about="#UNC/Dell/go-1"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Dell/go-2 -->
+
+    <ndl:Device rdf:about="#UNC/Dell/go-2"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Infinera/DTN -->
+
+    <ndl:Device rdf:about="#UNC/Infinera/DTN"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/PoP -->
+
+    <collections:Set rdf:about="#UNC/PoP">
+        <location:locatedAt rdf:resource="#UNC"/>
+        <collections:element rdf:resource="#UNC/Cisco/6509"/>
+        <collections:element rdf:resource="#UNC/Dell/go-1"/>
+        <collections:element rdf:resource="#UNC/Infinera/DTN"/>
+        <collections:element rdf:resource="#UNC/Polatis"/>
+        <collections:element rdf:resource="#UNC/VMSite"/>
+    </collections:Set>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis -->
+
+    <ndl:Device rdf:about="#UNC/Polatis">
+        <rdfs:label>Polatis</rdfs:label>
+        <ndl:hostName>os.unc.ben</ndl:hostName>
+        <ndl:managementIP>192.168.203.4</ndl:managementIP>
+        <ndl:hasSwitchMatrix rdf:resource="#UNC/Polatis/FiberSwitchingMatrix"/>
+        <ndl:hasInterface rdf:resource="#UNC/Polatis/f3-19"/>
+        <ndl:hasInterface rdf:resource="#UNC/Polatis/f4-20"/>
+        <ndl:hasInterface rdf:resource="#UNC/Polatis/f6-22"/>
+        <ndl:hasInterface rdf:resource="#UNC/Polatis/f7-23"/>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/FiberSwitchingMatrix -->
+
+    <wdm:FiberSwitchingMatrix rdf:about="#UNC/Polatis/FiberSwitchingMatrix">
+        <layer:switchingCapability rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:connectionDirection rdf:resource="&layer;UNIDirectional"/>
+    </wdm:FiberSwitchingMatrix>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f19 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f19">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">19</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#UNC/Polatis/f3-19"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f20 -->
+
+    <ndl:Interface rdf:about="#UNC/Polatis/f20">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">20</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#UNC/Polatis/f4-20"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f22 -->
+
+    <ndl:Interface rdf:about="#UNC/Polatis/f22">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">22</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#UNC/Polatis/f6-22"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">23</rdfs:label>
+        <ndl:outputInterfaceOf rdf:resource="#UNC/Polatis/f7-23"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f3 -->
+
+    <ndl:Interface rdf:about="#UNC/Polatis/f3">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">3</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#UNC/Polatis/f3-19"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f3-19 -->
+
+    <ndl:Interface rdf:about="#UNC/Polatis/f3-19">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <ndl:linkTo rdf:resource="#Renci/Polatis/f4-20"/>
+        <ndl:interfaceOf rdf:resource="#UNC/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#UNC/Polatis/f19"/>
+        <ndl:hasInputInterface rdf:resource="#UNC/Polatis/f3"/>
+        <ndl:switchedTo rdf:resource="#UNC/Polatis/f6-22"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f4 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f4">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">4</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#UNC/Polatis/f4-20"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f4-20 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f4-20">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="#NCSU/Polatis/f3-19"/>
+        <ndl:interfaceOf rdf:resource="#UNC/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#UNC/Polatis/f20"/>
+        <ndl:hasInputInterface rdf:resource="#UNC/Polatis/f4"/>
+        <ndl:switchedTo rdf:resource="#UNC/Polatis/f7-23"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f6 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f6">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <rdfs:label rdf:datatype="&xsd;string">6</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#UNC/Polatis/f6-22"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f6-22 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f6-22">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="&fB8;fiber"/>
+        <ndl:interfaceOf rdf:resource="#UNC/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#UNC/Polatis/f22"/>
+        <ndl:switchedTo rdf:resource="#UNC/Polatis/f3-19"/>
+        <ndl:hasInputInterface rdf:resource="#UNC/Polatis/f6"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f7 -->
+
+    <ndl:Interface rdf:about="#UNC/Polatis/f7">
+        <rdf:type rdf:resource="&wdm;FiberNetworkElement"/>
+        <rdfs:label rdf:datatype="&xsd;string">7</rdfs:label>
+        <ndl:inputInterfaceOf rdf:resource="#UNC/Polatis/f7-23"/>
+    </ndl:Interface>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/Polatis/f7-23 -->
+
+    <wdm:FiberNetworkElement rdf:about="#UNC/Polatis/f7-23">
+        <rdf:type rdf:resource="&ndl;Interface"/>
+        <ndl:linkTo rdf:resource="&fB6;fiber"/>
+        <ndl:interfaceOf rdf:resource="#UNC/Polatis"/>
+        <ndl:hasOutputInterface rdf:resource="#UNC/Polatis/f23"/>
+        <ndl:switchedTo rdf:resource="#UNC/Polatis/f4-20"/>
+        <ndl:hasInputInterface rdf:resource="#UNC/Polatis/f7"/>
+        <ndl:connectionDirection rdf:resource="&layer;BIDirectional"/>
+    </wdm:FiberNetworkElement>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#UNC/VMSite -->
+
+    <ndl:Device rdf:about="#UNC/VMSite">
+        <rdfs:label>Server</rdfs:label>
+    </ndl:Device>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ben.rdf#ben/Domain -->
+
+    <ndl:NetworkDomain rdf:about="#ben/Domain">
+        <layer:isLabelProducer rdf:datatype="&xsd;boolean">true</layer:isLabelProducer>
+        <domain:hasService rdf:resource="#Ben/Domain/NetworkService/1"/>
+        <collections:element rdf:resource="#Duke/PoP"/>
+        <collections:element rdf:resource="#NCSU/PoP"/>
+        <collections:element rdf:resource="#Renci/PoP"/>
+        <collections:element rdf:resource="#UNC/PoP"/>
+    </ndl:NetworkDomain>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Node -->
+
+    <rdf:Description rdf:about="&domain;Node"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#ORCAActor -->
+
+    <rdf:Description rdf:about="&domain;ORCAActor"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#VLAN -->
+
+    <rdf:Description rdf:about="&domain;VLAN"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/dtn.owl#FiberNetworkElement -->
+
+    <rdf:Description rdf:about="&wdm;FiberNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/ethernet.owl#EthernetNetworkElement -->
+
+    <rdf:Description rdf:about="&ethernet;EthernetNetworkElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#BIDirectional -->
+
+    <rdf:Description rdf:about="&layer;BIDirectional"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#UNIDirectional -->
+
+    <rdf:Description rdf:about="&layer;UNIDirectional"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

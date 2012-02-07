@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4-ubuntu4) oneiric; urgency=low
+
+  * 5.4.1 testing release  
+
+ -- Jack C Hong <jack.hong@nicta.com.au>  Tue, 07 Feb 2012 00:04:14 +0000
+
 omf-common-5.4 (5.4-ubuntu3) oneiric; urgency=low
 
   * 5.4 release 

@@ -1,0 +1,444 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY layer "http://geni-orca.renci.org/owl/layer.owl#" >
+    <!ENTITY domain "http://geni-orca.renci.org/owl/domain.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY topology "http://geni-orca.renci.org/owl/topology.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/domain.owl#"
+     xml:base="http://geni-orca.renci.org/owl/domain.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:layer="http://geni-orca.renci.org/owl/layer.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:domain="http://geni-orca.renci.org/owl/domain.owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:topology="http://geni-orca.renci.org/owl/topology.owl#">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/ip4.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasAccessMethod -->
+
+    <owl:ObjectProperty rdf:about="#hasAccessMethod">
+        <rdfs:subPropertyOf rdf:resource="#hasServiceElement"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasAggregateManager -->
+
+    <owl:ObjectProperty rdf:about="#hasAggregateManager">
+        <rdfs:subPropertyOf rdf:resource="#hasServiceElement"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasResourceType -->
+
+    <owl:ObjectProperty rdf:about="#hasResourceType">
+        <rdfs:subPropertyOf rdf:resource="#hasServiceElement"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasService -->
+
+    <owl:ObjectProperty rdf:about="#hasService">
+        <rdfs:range rdf:resource="#NetworkService"/>
+        <rdfs:domain rdf:resource="&topology;NetworkDomain"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasServiceElement -->
+
+    <owl:ObjectProperty rdf:about="#hasServiceElement"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasTopology -->
+
+    <owl:ObjectProperty rdf:about="#hasTopology">
+        <rdfs:range rdf:resource="#Topology"/>
+        <rdfs:subPropertyOf rdf:resource="#hasServiceElement"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#atLayer -->
+
+    <owl:ObjectProperty rdf:about="&layer;atLayer"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#hasConnectivity -->
+
+    <owl:DatatypeProperty rdf:about="#hasConnectivity">
+        <rdfs:domain rdf:resource="#Topology"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#numLink -->
+
+    <owl:DatatypeProperty rdf:about="#numLink">
+        <rdfs:comment
+            >Used to represent path computation results</rdfs:comment>
+        <rdfs:domain rdf:resource="#Topology"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#numNode -->
+
+    <owl:DatatypeProperty rdf:about="#numNode">
+        <rdfs:domain rdf:resource="#Topology"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#resourceTypeRank -->
+
+    <owl:DatatypeProperty rdf:about="#resourceTypeRank">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:comment
+            >Accommodates stitching of multi-layered network resources (e.g. wavelengths, vlans). Helps prioritize layers.</rdfs:comment>
+        <rdfs:domain rdf:resource="#ResourceType"/>
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#maxLabelSet -->
+
+    <owl:DatatypeProperty rdf:about="&layer;maxLabelSet"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#hostName -->
+
+    <owl:DatatypeProperty rdf:about="&topology;hostName"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#AccessMethod -->
+
+    <owl:Class rdf:about="#AccessMethod">
+        <rdfs:subClassOf rdf:resource="#ServiceElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#AggregateManager -->
+
+    <owl:Class rdf:about="#AggregateManager">
+        <rdfs:subClassOf rdf:resource="#ServiceElement"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&topology;hostName"/>
+                <owl:someValuesFrom rdf:resource="&xsd;string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#NetworkService -->
+
+    <owl:Class rdf:about="#NetworkService">
+        <rdfs:subClassOf rdf:resource="#Service"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;atLayer"/>
+                <owl:someValuesFrom rdf:resource="&layer;Layer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#hasAccessMethod"/>
+                <owl:someValuesFrom rdf:resource="#AccessMethod"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&layer;maxLabelSet"/>
+                <owl:someValuesFrom rdf:resource="&xsd;integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#hasAccessMethod"/>
+                <owl:onClass rdf:resource="#AggregateManager"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#ResourceType -->
+
+    <owl:Class rdf:about="#ResourceType">
+        <rdfs:subClassOf rdf:resource="#ServiceElement"/>
+        <rdfs:comment
+            >These are delegatable resource types. Not the same as substrate descriptions.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Service -->
+
+    <owl:Class rdf:about="#Service"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#ServiceElement -->
+
+    <owl:Class rdf:about="#ServiceElement">
+        <rdfs:subClassOf rdf:resource="#Service"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Topology -->
+
+    <owl:Class rdf:about="#Topology">
+        <rdfs:subClassOf rdf:resource="#ServiceElement"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#numLink"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="&xsd;integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#numNode"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="&xsd;integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#hasConnectivity"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="&xsd;integer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/layer.owl#Layer -->
+
+    <owl:Class rdf:about="&layer;Layer"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/topology.owl#NetworkDomain -->
+
+    <owl:Class rdf:about="&topology;NetworkDomain">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#hasService"/>
+                <owl:someValuesFrom rdf:resource="#NetworkService"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#NamedIndividual -->
+
+    <owl:Class rdf:about="&owl;NamedIndividual"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Full -->
+
+    <Topology rdf:about="#Full">
+        <rdf:type rdf:resource="&owl;NamedIndividual"/>
+    </Topology>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#GEPort -->
+
+    <owl:NamedIndividual rdf:about="#GEPort">
+        <rdf:type rdf:resource="#ResourceType"/>
+        <resourceTypeRank rdf:datatype="&xsd;int">1</resourceTypeRank>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#IPAddress -->
+
+    <owl:NamedIndividual rdf:about="#IPAddress">
+        <rdf:type rdf:resource="#ResourceType"/>
+        <resourceTypeRank rdf:datatype="&xsd;int">6</resourceTypeRank>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Mesh -->
+
+    <owl:NamedIndividual rdf:about="#Mesh">
+        <rdf:type rdf:resource="#Topology"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Node -->
+
+    <owl:NamedIndividual rdf:about="#Node">
+        <rdf:type rdf:resource="#Topology"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#ORCAActor -->
+
+    <AccessMethod rdf:about="#ORCAActor">
+        <rdf:type rdf:resource="&owl;NamedIndividual"/>
+    </AccessMethod>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Port -->
+
+    <owl:NamedIndividual rdf:about="#Port">
+        <rdf:type rdf:resource="#ResourceType"/>
+        <resourceTypeRank rdf:datatype="&xsd;int">1</resourceTypeRank>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Ring -->
+
+    <owl:NamedIndividual rdf:about="#Ring">
+        <rdf:type rdf:resource="#Topology"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#SOAP -->
+
+    <owl:NamedIndividual rdf:about="#SOAP">
+        <rdf:type rdf:resource="#AccessMethod"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Star -->
+
+    <Topology rdf:about="#Star">
+        <rdf:type rdf:resource="&owl;NamedIndividual"/>
+    </Topology>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#TenGEPort -->
+
+    <ResourceType rdf:about="#TenGEPort">
+        <rdf:type rdf:resource="&owl;NamedIndividual"/>
+        <resourceTypeRank rdf:datatype="&xsd;int">1</resourceTypeRank>
+    </ResourceType>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#Testbed -->
+
+    <ResourceType rdf:about="#Testbed">
+        <rdf:type rdf:resource="&owl;NamedIndividual"/>
+        <resourceTypeRank rdf:datatype="&xsd;int">10</resourceTypeRank>
+    </ResourceType>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#VLAN -->
+
+    <owl:NamedIndividual rdf:about="#VLAN">
+        <rdf:type rdf:resource="#ResourceType"/>
+        <resourceTypeRank rdf:datatype="&xsd;int">5</resourceTypeRank>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#WavelengthLabel -->
+
+    <ResourceType rdf:about="#WavelengthLabel">
+        <rdf:type rdf:resource="&owl;NamedIndividual"/>
+    </ResourceType>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/domain.owl#XMLRPC -->
+
+    <owl:NamedIndividual rdf:about="#XMLRPC">
+        <rdf:type rdf:resource="#AccessMethod"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1101) http://owlapi.sourceforge.net -->
+

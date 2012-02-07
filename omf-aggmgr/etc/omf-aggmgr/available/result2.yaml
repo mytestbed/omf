@@ -3,9 +3,10 @@
 #
 # This is the Config file for the Result GridService on the NICTA platform
 #
---- 
+---
 result2:
   adapter: 'sqlite3'
 
   sqlite3:
-    db_dir: 'omf-aggmgr/test'
+    db_dir: '/var/lib/oml2'
+    db_ext: '.sq3'

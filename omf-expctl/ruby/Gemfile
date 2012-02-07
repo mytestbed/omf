@@ -4,6 +4,4 @@
 
 rdp-rb-readline -v 0.2.0.1
 activesupport -v 3.0.0
-activerecord -v 3.0.0
-arel -v 1.0.1
 gratr -v 0.4.3

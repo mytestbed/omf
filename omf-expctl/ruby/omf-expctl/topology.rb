@@ -424,7 +424,7 @@ class Topology < MObject
     elsif (params.size == 1) 
       resource = params[0] if params[0].kind_of?(String)  
       resource = params[0].value if params[0].kind_of?(ExperimentProperty)  
-      resource = params[0].name if params[0].kind_of?(Node)  
+      resource = params[0].name if params[0].kind_of?(OMF::EC::Node)
       vertex = resource
     else
       raise("Cannot add resource to topology '#{@uri}', wrong number of "+

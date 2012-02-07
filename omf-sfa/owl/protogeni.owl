@@ -1,0 +1,467 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY storage "http://geni-orca.renci.org/owl/storage.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY compute "http://geni-orca.renci.org/owl/compute.owl#" >
+    <!ENTITY protogeni "http://geni-orca.renci.org/owl/protogeni.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://geni-orca.renci.org/owl/protogeni.owl#"
+     xml:base="http://geni-orca.renci.org/owl/protogeni.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:compute="http://geni-orca.renci.org/owl/compute.owl#"
+     xmlns:protogeni="http://geni-orca.renci.org/owl/protogeni.owl#"
+     xmlns:storage="http://geni-orca.renci.org/owl/storage.owl#">
+    <owl:Ontology rdf:about="http://geni-orca.renci.org/owl/protogeni.owl">
+        <rdfs:comment>Protogeni Compute Element ontology</rdfs:comment>
+        <rdfs:isDefinedBy>RENCI
+UNC-Chapel Hill
+2009-2011
+yxin@renci.org, ibaldin@renci.org</rdfs:isDefinedBy>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/compute.owl"/>
+        <owl:versionIRI rdf:resource="http://geni-orca.renci.org/owl/protogeni-v1.owl"/>
+        <owl:imports rdf:resource="http://geni-orca.renci.org/owl/storage.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE -->
+
+    <owl:Class rdf:about="&protogeni;ProtoGeniCE">
+        <rdfs:subClassOf rdf:resource="&compute;ClassifiedComputeElement"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE-d710 -->
+
+    <owl:Class rdf:about="&protogeni;ProtoGeniCE-d710">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;None"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;OpenVZ"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&compute;RackedServer"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="&compute;QuadNehalem"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;ram"/>
+                        <owl:hasValue rdf:resource="&protogeni;d710RAM"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;storage"/>
+                        <owl:hasValue rdf:resource="&protogeni;d710Storage"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&protogeni;ProtoGeniCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE-pc3000 -->
+
+    <owl:Class rdf:about="&protogeni;ProtoGeniCE-pc3000">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;None"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;OpenVZ"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&compute;RackedServer"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="&compute;Xeon3"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;ram"/>
+                        <owl:hasValue rdf:resource="&protogeni;pc3000RAM"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;storage"/>
+                        <owl:hasValue rdf:resource="&protogeni;pc3000Storage"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&protogeni;ProtoGeniCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE-pc850 -->
+
+    <owl:Class rdf:about="&protogeni;ProtoGeniCE-pc850">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;KVM"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;None"/>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="&compute;vmm"/>
+                                <owl:hasValue rdf:resource="&compute;OpenVZ"/>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;computeElementType"/>
+                        <owl:hasValue rdf:resource="&compute;RackedServer"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;cpu"/>
+                        <owl:hasValue rdf:resource="&compute;Pentium3"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;ram"/>
+                        <owl:hasValue rdf:resource="&protogeni;pc850RAM"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;storage"/>
+                        <owl:hasValue rdf:resource="&protogeni;pc850Storage"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&protogeni;ProtoGeniCE"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCluster -->
+
+    <owl:Class rdf:about="&protogeni;ProtoGeniCluster">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;virtualize"/>
+                        <owl:hasValue rdf:resource="&compute;BareMetalCE"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;virtualize"/>
+                        <owl:hasValue rdf:resource="&compute;KVMCE"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;virtualize"/>
+                        <owl:hasValue rdf:resource="&compute;OpenVZCE"/>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;ServerCloud"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#d710RAM -->
+
+    <owl:Class rdf:about="&protogeni;d710RAM">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;ramType"/>
+                        <owl:hasValue rdf:resource="&compute;DDR2-1066"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>12GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;RAM"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#d710Storage -->
+
+    <owl:Class rdf:about="&protogeni;d710Storage">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageVolume"/>
+                        <owl:hasValue rdf:resource="&storage;SATA250G"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;numVolumes"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">2</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;Storage"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc3000RAM -->
+
+    <owl:Class rdf:about="&protogeni;pc3000RAM">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;ramType"/>
+                        <owl:hasValue rdf:resource="&compute;DDR2-400"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>2GB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;RAM"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc3000Storage -->
+
+    <owl:Class rdf:about="&protogeni;pc3000Storage">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageVolume"/>
+                        <owl:hasValue rdf:resource="&storage;SCSI146G"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;numVolumes"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">2</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;Storage"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc850RAM -->
+
+    <owl:Class rdf:about="&protogeni;pc850RAM">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;ramType"/>
+                        <owl:hasValue rdf:resource="&compute;PC133-SDRAM"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&compute;memoryCapacity"/>
+                        <owl:hasValue>512MB</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;RAM"/>
+    </owl:Class>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc850Storage -->
+
+    <owl:Class rdf:about="&protogeni;pc850Storage">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;storageVolume"/>
+                        <owl:hasValue rdf:resource="&storage;IDE40G"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="&storage;numVolumes"/>
+                        <owl:hasValue rdf:datatype="&xsd;integer">1</owl:hasValue>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="&compute;Storage"/>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/compute.owl#QuadNehalem -->
+
+    <owl:NamedIndividual rdf:about="&compute;QuadNehalem"/>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE-d710 -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;ProtoGeniCE-d710">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+        <compute:vmm rdf:resource="&compute;KVM"/>
+        <compute:vmm rdf:resource="&compute;OpenVZ"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE-pc3000 -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;ProtoGeniCE-pc3000">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#ProtoGeniCE-pc850 -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;ProtoGeniCE-pc850">
+        <rdf:type rdf:resource="&compute;ClassifiedComputeElementInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#d710RAM -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;d710RAM">
+        <rdf:type rdf:resource="&compute;RAMInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#d710Storage -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;d710Storage">
+        <rdf:type rdf:resource="&storage;StorageInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc3000RAM -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;pc3000RAM">
+        <rdf:type rdf:resource="&compute;RAMInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc3000Storage -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;pc3000Storage">
+        <rdf:type rdf:resource="&storage;StorageInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc850RAM -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;pc850RAM">
+        <rdf:type rdf:resource="&compute;RAMInstance"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://geni-orca.renci.org/owl/protogeni.owl#pc850Storage -->
+
+    <owl:NamedIndividual rdf:about="&protogeni;pc850Storage">
+        <rdf:type rdf:resource="&storage;StorageInstance"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.3.22702) http://owlapi.sourceforge.net -->
+

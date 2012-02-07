@@ -4,11 +4,4 @@
 
 xmpp4r -v 0.5
 log4r -v 1.1.8
-json -v 1.4.6
-markaby -v 0.7.1
-coderay -v 0.9.4 
-arel -v 1.0.1
 wss4r -v 0.5
-#ruby-ldap
-#sqlite3-ruby
-#mysql

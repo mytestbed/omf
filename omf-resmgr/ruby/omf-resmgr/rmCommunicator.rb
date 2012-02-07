@@ -29,8 +29,8 @@
 # This current implementation uses the library XMPP4R.
 #
 #
-require "omf-common/omfCommunicator"
-require "omf-common/omfProtocol"
+require "omf-common/communicator/omfCommunicator"
+require "omf-common/communicator/omfProtocol"
 require "omf-resmgr/managerCommands"
 
 #

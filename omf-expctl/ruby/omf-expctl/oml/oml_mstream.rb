@@ -41,7 +41,7 @@ module OMF
       #
       class MStream < MObject
         @@instances = {}
-        
+
         def self.[](uri)
           @@instances[uri] #|| self.find(uri)
         end
@@ -49,7 +49,7 @@ module OMF
         def self.find(uri)
           @@instances[uri] #|| self.new(uri)
         end
-        
+
         def self.select(&block)
           @@instances.select(&block)
         end
@@ -57,19 +57,19 @@ module OMF
         def self.each(&block)
           @@instances.each(&block)
         end
-        
+
         def self.collect(&block)
           @@instances.collect(&block)
         end
-        
+
         Xsd2SqlType = {
           'xsd:string' => 'TEXT',
           'xsd:long' => 'INTEGER',
           'xsd:float' => 'REAL'
         }
-        
+
         attr_reader :name, :tableName, :filters
-        
+
         def initialize(name, appRef, opts, application, &block)
           @mdef = @name = name
 
@@ -93,17 +93,17 @@ module OMF
 
           block.call(self) if block
         end
-        
-        #	
+
+        #
       	# Define a Measurement Stream
-      	# An experimenter defines what sub-set of available measurements 
+      	# An experimenter defines what sub-set of available measurements
       	# s/he is interested in. The default filter (pre-processing) associated
       	# with these measurements are 'avg' (average) for any integer or float
       	# metrics, and 'first' for any string metrics.
       	# Use filter() to define Measurement Stream with more specific pre-processing
       	# functions.
       	#
-      	# example of use: 
+      	# example of use:
       	#  otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
         #    mp.metric('myMetrics', 'seq_no', 'pkt_length', 'dst_host' )
         #  end
@@ -129,18 +129,18 @@ module OMF
               filterType = 'first'
       	    end
             # Build and Add the metric to this Measurement Stream
-            filter = OMF::EC::OML::Filter.new(filterType, "#{name}_#{parameter}", {:input => parameter})  
+            filter = OMF::EC::OML::Filter.new(filterType, "#{name}_#{parameter}", {:input => parameter})
       	    @filters << filter
       	  end
         end
-      
+
       	#
       	# Define a Measurement Stream
-      	# An experimenter defines what sub-set of available measurements 
+      	# An experimenter defines what sub-set of available measurements
       	# s/he is interested in, and what additional pre-processing (filter) should
         # be applied to the tuple stream originiating from a measurement point.
       	#
-      	# example of use: 
+      	# example of use:
       	#    otg.measure(:mpoint => 'udp_out', :interval => 5) do |mp|
         #      mp.filter('pkt_length', 'avg')
         #      mp.filter('dst_host', 'first')
@@ -157,7 +157,7 @@ module OMF
         def filter(pname = :mandatory, type = :mandatory, fopts = {})
           raise OEDLMissingArgumentException.new(:filter, :pname) if pname == :mandatory
           raise OEDLMissingArgumentException.new(:filter, :type) if type == :mandatory
-          
+
           unless (fspec = FilterSpec[type])
             raise OEDLIllegalArgumentException(:filter, :fname)
           end
@@ -168,7 +168,7 @@ module OMF
           fopts[:fname] = type
           fopts[:ms] = self
           fopts[:fspec] = fspec
-          filter = OMF::EC::OML::Filter.new(fopts)  
+          filter = OMF::EC::OML::Filter.new(fopts)
           @filters << filter
         end
 
@@ -200,14 +200,8 @@ module OMF
       	  end
       	  return el
       	end
-      	
-      	def arelTable()
-          require "omf-expctl/oml/oml_arel"
 
-          Table.new(self) 
-      	end
-      	
-      	# Return an array containing the names of the columns of the 
+      	# Return an array containing the names of the columns of the
       	# respective table in the OML database
       	#
       	def columns()
@@ -218,7 +212,7 @@ module OMF
           cols['oml_ts_server'] = {:type => 'REAL'}
       	  if @filters.size > 0
       	    @filters.each do |f|
-              cols.merge!(f.columns)      	      
+              cols.merge!(f.columns)
       	    end
       	  else
             #appDef = AppDefinition[@application.to_s]
@@ -226,7 +220,7 @@ module OMF
             appDef.measurements[@mdef].metrics.each do |name, opts|
               #[name] = {:type => type, :description => description, :seqNo => @metrics.length}
               case (type = opts[:type])
-              when 'xsd:string' then 
+              when 'xsd:string' then
                 cols[name] = {:type => 'TEXT'}
               when 'xsd:long', 'xsd:float' then
                 if @single_sample_mode
@@ -239,16 +233,16 @@ module OMF
               end
       	    end
       	  end
-          cols      	  
+          cols
       	end
-        
+
         def SERVER_TIMESTAMP()
           'oml_ts_server'  # should be more descriptive
         end
 
       end # MStream
-      
-    
+
+
     end # module OML
   end # module EC
 end # OMF
