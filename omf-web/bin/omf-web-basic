@@ -161,8 +161,6 @@ def result2_data_rows(experiment_id, uri, table, columns)
     data_rows << row
   end
 
-  debugger
-
   data_rows
 end
 
