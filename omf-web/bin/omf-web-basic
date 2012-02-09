@@ -10,10 +10,11 @@ $: << "/usr/share/omf-web-#{OMF_VERSION}"
 ENV['GEM_PATH'] = "/usr/share/omf-common-#{OMF_VERSION}/gems/1.8:/usr/share/omf-oml-#{OMF_VERSION}/gems/1.8:/usr/share/omf-web-#{OMF_VERSION}/gems/1.8"
 
 require 'rubygems'
-require 'nokogiri'
 gem 'rack', '1.3.5'
 
 require 'net/http'
+require 'rexml/document'
+require 'rexml/xpath'
 require 'yaml'
 require 'ostruct'
 require 'optparse'
@@ -134,31 +135,33 @@ def result2_data_rows(experiment_id, uri, table, columns)
 
   req = Net::HTTP::Post.new(uri.path)
 
-  query = Nokogiri::XML::Builder.new do |xml|
-    xml.request(:id => 'foo') {
-      xml.result { xml.format 'xml' }
-      xml.query {
-        xml.repository(:name => experiment_id)
-        xml.table(:tname => table)
-        xml.project {
-          columns.each do |m|
-            xml.arg { xml.col(:name => m.to_s, :table => table) }
-          end
-        }
-      }
-    }
-  end.to_xml
+  xml = REXML::Document.new
+  request = xml.add_element('request', 'id' => 'foo')
+  request.add_element('result').add_element('format').add_text('xml')
+  query = request.add_element('query')
+  query.add_element('repository', 'name' => experiment_id)
+  query.add_element('table', 'tname' => table)
+  project = query.add_element('project')
 
-  req.body = query
+  columns.each do |m|
+    project.add_element('arg').add_element('col', 'name' => m.to_s, 'table' => table)
+  end
+
+  req.body = xml.to_s
+
   result = Net::HTTP.start(uri.host, uri.port) do |http|
     res = http.request(req)
     res.body
   end
 
-  Nokogiri::XML(result).xpath('//omf:r', 'omf'=> RESULT2_NAMESPACE).each do |r|
-    row = r.xpath('omf:c', 'omf'=> RESULT2_NAMESPACE).map {|v| v.content.auto_parse }
+
+  result_doc = REXML::Document.new(result)
+  REXML::XPath.each(result_doc, '//omf:r', 'omf'=> RESULT2_NAMESPACE).each do |r|
+    row = REXML::XPath.each(r, 'omf:c', 'omf'=> RESULT2_NAMESPACE).map {|v| v.text.auto_parse }
     data_rows << row
   end
+
+  debugger
 
   data_rows
 end
