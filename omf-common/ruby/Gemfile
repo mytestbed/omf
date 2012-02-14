@@ -1,7 +1,0 @@
-# list all required gems here
-# dependencies are added automatically
-# optionally specify gem version using "-v"
-
-xmpp4r -v 0.5
-log4r -v 1.1.8
-wss4r -v 0.5
