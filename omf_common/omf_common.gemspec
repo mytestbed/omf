@@ -5,9 +5,9 @@ require "omf_common/version"
 Gem::Specification.new do |s|
   s.name        = "omf_common"
   s.version     = OmfCommon::VERSION
-  s.authors     = ["Jack C Hong"]
-  s.email       = ["jhong@nicta.com.au"]
-  s.homepage    = ""
+  s.authors     = ["NICTA"]
+  s.email       = ["omf-user@lists.nicta.com.au"]
+  s.homepage    = "https://omf.mytestbed.net"
   s.summary     = %q{Common library of OMF}
   s.description = %q{Common library of OMF, a generic framework for controlling and managing networking testbeds.}
 

@@ -5,9 +5,9 @@ require "omf_rc/version"
 Gem::Specification.new do |s|
   s.name        = "omf_rc"
   s.version     = OmfRc::VERSION
-  s.authors     = ["Jack C Hong"]
-  s.email       = ["jhong@nicta.com.au"]
-  s.homepage    = ""
+  s.authors     = ["NICTA"]
+  s.email       = ["omf-user@lists.nicta.com.au"]
+  s.homepage    = "https://omf.mytestbed.net"
   s.summary     = %q{OMF resource controller}
   s.description = %q{Resource controller of OMF, a generic framework for controlling and managing networking testbeds.}
 
