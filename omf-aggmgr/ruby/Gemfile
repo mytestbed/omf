@@ -1,7 +1,0 @@
-# list all required gems here
-# dependencies are added automatically
-# optionally specify gem version using "-v"
-
-dm-core -v 1.0.2
-dm-mysql-adapter -v 1.0.2
-datamapper -v 1.0.2

@@ -1,6 +1,0 @@
-#!/bin/sh
-
-COMMON=../../../../omf-common/ruby
-AGGMGR=../..
-
-ruby -I ${COMMON} -I ${AGGMGR} $*
