@@ -1,0 +1,52 @@
+
+
+@startuml 
+
+class Message {
+  publish()
+  ..
+  on_error(onError : Block)
+}
+
+class Topic {
+    create_message(message) : Message
+    subscribe(onMessage : Block)
+    unsubscribe()
+    ..
+    release()
+    on_error(onError : Block)
+    ..
+    // Create 'sub' topics
+    create(topic_name : String, onMessage : Block) : Topic
+    get(topic_name : String, onMessage : Block) : Topic
+}
+
+
+Topic ..> Message
+
+class TopicFactory {
+    create(absolute_topic_name : String, onMessage : Block) : Topic
+    get(absolute_topic_name : String, onMessage : Block) : Topic
+}
+
+TopicFactory ..> Topic
+
+class ResourceAdapter {
+    configure(configuration: Hash, on_inform : Block)
+    request(property_names : Array || nil, conditions : Hash || nil, on_inform : Block)
+    on_inform(context : Object, on_inform : Block)
+    release()
+    ...
+    get(resource_name : String) : ResourceAdapter  // child resource
+}
+ResourceAdapter "1" *-- "1" Topic : topic
+
+
+class ResourceAdapterFactory {
+    get(absolute_resource_name : String) : ResourceAdapter
+}
+
+ResourceAdapterFactory ..> ResourceAdapter
+
+@enduml
+  
