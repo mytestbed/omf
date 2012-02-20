@@ -3,8 +3,8 @@ Current Status
 NOTE: this description is getting old and should be updated
 --------------
 
-The OMF framework is a replacement for some of the existing components of 
-orbit-lab software. 
+The OMF framework is a replacement for some of the existing components of
+orbit-lab software.
 
 Some of the reasons for cloning include:
  * to simplify the directory structure and dependencies, as discussed below
@@ -21,7 +21,7 @@ Status of specific components:
 Structure of the Orbit Management Framework OMF
 -----------------------------------------------
 
-trunk /  
+trunk /
       external	   # Contains external software dependencies for OMF
       omf-admin    # OMF Web Administration Interface
       omf-aggmgr   # OMF Aggregate Manager
