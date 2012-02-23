@@ -2,14 +2,26 @@
 
 @startuml 
 
+enum MessageType {
+  CREATE
+  CONFIGURE
+  REQUEST
+  INFORM
+  RELEASE
+}
+
 class Message {
+  MessageType type
   publish()
   ..
   on_error(onError : Block)
 }
 
+Message ..> MessageType
+
+
 class Topic {
-    create_message(message) : Message
+    create_message(msg_type : MessageType) : Message
     subscribe(onMessage : Block)
     unsubscribe()
     ..
@@ -31,7 +43,7 @@ class TopicFactory {
 
 TopicFactory ..> Topic
 
-class ResourceAdapter {
+class ResourceStub {
     configure(configuration: Hash, on_inform : Block)
     request(property_names : Array || nil, conditions : Hash || nil, on_inform : Block)
     on_inform(context : Object, on_inform : Block)
@@ -39,14 +51,24 @@ class ResourceAdapter {
     ...
     get(resource_name : String) : ResourceAdapter  // child resource
 }
-ResourceAdapter "1" *-- "1" Topic : topic
+ResourceStub "1" *-- "1" Topic : topic
 
 
-class ResourceAdapterFactory {
-    get(absolute_resource_name : String) : ResourceAdapter
+class ResourceStubFactory {
+    get(absolute_resource_name : String) : ResourceStub
 }
 
-ResourceAdapterFactory ..> ResourceAdapter
+ResourceStubFactory ..> ResourceStub
+
+class ResourceProxy {
+  on_create(msg : Message)
+  on_configure(msg : Message)
+  on_request(msg : Message)
+  on_release(msg : Message)
+}
+ResourceProxy "1" *-- "1" Topic : topic
+
+
 
 @enduml
   
