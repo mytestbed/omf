@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
   s.add_runtime_dependency "omf_common", "~> 6.0.0.pre"
+  s.add_runtime_dependency "sequel", "~> 3.32.0"
+  s.add_runtime_dependency "sqlite3", "~> 1.3.5"
+  s.add_runtime_dependency "json", "~> 1.6.5"
 end
