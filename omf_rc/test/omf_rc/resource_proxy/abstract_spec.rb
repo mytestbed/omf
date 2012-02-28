@@ -1,13 +1,13 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy'
+require 'omf_rc/resource_proxy/abstract'
 
-describe OmfRc::ResourceProxy do
+describe OmfRc::ResourceProxy::Abstract do
   before do
-    @resource = OmfRc::ResourceProxy.create(:type => 'machine', :name => 'suzuka', :properties => {:pubsub => "mytestbed.net"})
+    @resource = OmfRc::ResourceProxy::Abstract.create(:type => 'machine', :name => 'suzuka', :properties => {:pubsub => "mytestbed.net"})
   end
 
   after do
-    Sequel::Model.db.from(:resource_proxies).truncate
+    Sequel::Model.db.from(:abstracts).truncate
   end
 
   describe "when intialised/created" do
@@ -29,7 +29,7 @@ describe OmfRc::ResourceProxy do
 
   describe "when asked to create another resource" do
     it "must add the resource to its created resource list" do
-      @interface = OmfRc::ResourceProxy.create(:type => 'interface', :name => 'i1')
+      @interface = OmfRc::ResourceProxy::Abstract.create(:type => 'interface', :name => 'i1')
       @resource.add_child(@interface)
       @resource.children.must_include @interface
       @interface.parent.must_equal @resource
@@ -38,13 +38,13 @@ describe OmfRc::ResourceProxy do
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = OmfRc::ResourceProxy.create(:type => 'test', :name => 'i1')
-      @resource_2 = OmfRc::ResourceProxy.create(:type => 'test', :name => 'i2')
+      @resource_1 = OmfRc::ResourceProxy::Abstract.create(:type => 'test', :name => 'i1')
+      @resource_2 = OmfRc::ResourceProxy::Abstract.create(:type => 'test', :name => 'i2')
       @resource.add_child(@resource_1).add_child(@resource_2)
       @resource.destroy
-      OmfRc::ResourceProxy.find(:name => 'suzuka').must_be_nil
-      OmfRc::ResourceProxy.find(:name => 'i1').must_be_nil
-      OmfRc::ResourceProxy.find(:name => 'i2').must_be_nil
+      OmfRc::ResourceProxy::Abstract.find(:name => 'suzuka').must_be_nil
+      OmfRc::ResourceProxy::Abstract.find(:name => 'i1').must_be_nil
+      OmfRc::ResourceProxy::Abstract.find(:name => 'i2').must_be_nil
     end
   end
 end

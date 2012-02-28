@@ -6,7 +6,7 @@ require 'sequel'
 
 DB = Sequel.sqlite
 
-DB.create_table :resource_proxies do
+DB.create_table :abstracts do
   primary_key :id
   String :type
   String :name
