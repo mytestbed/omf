@@ -1,13 +1,15 @@
 require 'test_helper'
 require 'omf_rc/resource_proxy/abstract'
 
-describe OmfRc::ResourceProxy::Abstract do
+include OmfRc::ResourceProxy
+
+describe Abstract do
   before do
-    @resource = OmfRc::ResourceProxy::Abstract.create(:type => 'machine', :name => 'suzuka', :properties => {:pubsub => "mytestbed.net"})
+    @resource = Abstract.create(:type => 'machine', :name => 'suzuka', :properties => {:pubsub => "mytestbed.net"})
   end
 
   after do
-    Sequel::Model.db.from(:abstracts).truncate
+    Sequel::Model.db.from(Abstract.table_name).truncate
   end
 
   describe "when intialised/created" do
@@ -29,7 +31,7 @@ describe OmfRc::ResourceProxy::Abstract do
 
   describe "when asked to create another resource" do
     it "must add the resource to its created resource list" do
-      @interface = OmfRc::ResourceProxy::Abstract.create(:type => 'interface', :name => 'i1')
+      @interface = Abstract.create(:type => 'interface', :name => 'i1')
       @resource.add_child(@interface)
       @resource.children.must_include @interface
       @interface.parent.must_equal @resource
@@ -38,13 +40,13 @@ describe OmfRc::ResourceProxy::Abstract do
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = OmfRc::ResourceProxy::Abstract.create(:type => 'test', :name => 'i1')
-      @resource_2 = OmfRc::ResourceProxy::Abstract.create(:type => 'test', :name => 'i2')
+      @resource_1 = Abstract.create(:type => 'test', :name => 'i1')
+      @resource_2 = Abstract.create(:type => 'test', :name => 'i2')
       @resource.add_child(@resource_1).add_child(@resource_2)
       @resource.destroy
-      OmfRc::ResourceProxy::Abstract.find(:name => 'suzuka').must_be_nil
-      OmfRc::ResourceProxy::Abstract.find(:name => 'i1').must_be_nil
-      OmfRc::ResourceProxy::Abstract.find(:name => 'i2').must_be_nil
+      Abstract.find(:name => 'suzuka').must_be_nil
+      Abstract.find(:name => 'i1').must_be_nil
+      Abstract.find(:name => 'i2').must_be_nil
     end
   end
 end

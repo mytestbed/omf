@@ -2,7 +2,7 @@ require 'sequel'
 
 module OmfRc
   module ResourceProxy
-    class Abstract < Sequel::Model
+    class Abstract < Sequel::Model(:resource_proxies)
       plugin :validation_helpers
       plugin :serialization, :json, :properties
 
