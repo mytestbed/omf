@@ -1,3 +1,4 @@
 --title OMF
-omf_*/**/*.rb
-COPYRIGHT
+omf_*/lib/**/*.rb
+-
+COPYRIGHT.md
