@@ -16,7 +16,7 @@ describe Abstract do
     it "must convert configuration hash into instance methods, and assign the values" do
       @resource.type.must_equal 'machine'
       @resource.properties.must_be_kind_of Hash
-      @resource.properties["pubsub"].must_equal "mytestbed.net"
+      @resource.properties.pubsub.must_equal "mytestbed.net"
     end
 
     it "must have an unique id generated" do

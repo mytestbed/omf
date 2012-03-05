@@ -1,11 +1,18 @@
 require 'sequel'
+require 'sequel/plugins/serialization'
 require 'securerandom'
+require 'hashie'
+
+Sequel::Plugins::Serialization.register_format(:json_mash,
+                                               lambda { |v| v.to_json },
+                                               lambda { |v| Hashie::Mash.new(JSON v)})
 
 module OmfRc
   module ResourceProxy
     class Abstract < Sequel::Model(:resource_proxies)
       plugin :validation_helpers
-      plugin :serialization, :json, :properties
+      plugin :serialization
+      serialize_attributes :json_mash, :properties
 
       many_to_one :parent, :class => self
       one_to_many :children, :key => :parent_id, :class => self
@@ -51,12 +58,20 @@ module OmfRc
 
       # Configure this resource.
       #
-      # @param [Hash] configuration configuration key value pair
-      def configure(configuration, &on_inform) # Hash, Block
-        configuration.each_pair do |key, value|
-          properties[key] = value
+      # @param [Hash] properties property configuration key value pair
+      def configure(properties)
+        Hashie::Mash.new(properties).each_pair do |key, value|
+          configure_property(key, value)
         end
         save
+      end
+
+      def configure_property(property, value)
+        self.properties.send("#{property}=", value)
+      end
+
+      def request_property(property)
+        self.properties.send(property)
       end
     end
   end

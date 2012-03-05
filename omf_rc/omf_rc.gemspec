@@ -24,4 +24,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "sequel", "~> 3.32.0"
   s.add_runtime_dependency "sqlite3", "~> 1.3.5"
   s.add_runtime_dependency "json", "~> 1.6.5"
+  s.add_runtime_dependency "hashie", "~> 1.2.0"
 end
