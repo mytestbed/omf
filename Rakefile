@@ -1,4 +1,4 @@
-PROJECTS = %w(omf_common omf_rc omf_ec)
+PROJECTS = %w(omf_common omf_rc omf_ec omf_tools)
 
 desc "Run test task for all projects by default"
 task :default => :test
