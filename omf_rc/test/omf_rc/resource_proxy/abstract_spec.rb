@@ -6,6 +6,7 @@ include OmfRc::ResourceProxy
 describe Abstract do
   before do
     @resource = Abstract.create(:type => 'machine', :properties => {:pubsub => "mytestbed.net"})
+    @resource = Abstract.find(:type => 'machine')
   end
 
   after do
@@ -26,8 +27,8 @@ describe Abstract do
 
   describe "when updated" do
     it "must update its values with configuration hash" do
-      @resource.update(:name => 'interlagos')
-      @resource.name.must_equal 'interlagos'
+      @resource.update(:uid => 'interlagos')
+      @resource.uid.must_equal 'interlagos'
       @resource.type.must_equal 'machine'
     end
   end
