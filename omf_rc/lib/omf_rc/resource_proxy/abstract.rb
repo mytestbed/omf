@@ -67,6 +67,17 @@ module OmfRc
         resource
       end
 
+      # Returns a set of child resources based on properties and conditions
+      def request(properties, conditions)
+        children_dataset.filter(conditions).map do |resource|
+          Hashie::Mash.new.tap do |mash|
+            properties.each do |key|
+              mash[key] ||= resource.request_property(key)
+            end
+          end
+        end
+      end
+
       # Configure this resource.
       #
       # @param [Hash] properties property configuration key value pair
@@ -82,7 +93,7 @@ module OmfRc
       end
 
       def request_property(property)
-        self.properties.send(property)
+        properties.send(property)
       end
     end
   end

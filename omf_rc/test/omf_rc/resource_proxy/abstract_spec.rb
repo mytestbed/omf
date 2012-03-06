@@ -58,7 +58,14 @@ describe Abstract do
 
   describe "when asked for the state of the created resources" do
     it "must return a collection of data containing requested properties" do
-      skip
+      @resource.uid = 'readable'
+      @resource.save
+      @resource_1 = @resource.create(:type => 'test', :properties => {:test_key => 'test'})
+      @resource_2 = @resource.create(:type => 'test', :properties => {:test_key => 'test'})
+      properties = @resource.request([:test_key], {:type => 'test'})
+      properties.size.must_equal 2
+      properties[0].test_key.must_equal 'test'
+      properties[1].test_key.must_equal 'test'
     end
   end
 
