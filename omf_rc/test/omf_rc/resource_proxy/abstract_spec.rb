@@ -79,5 +79,12 @@ describe Abstract do
       Abstract.filter(:type => 'test').must_be_empty
     end
   end
+
+  describe "when asked to activated" do
+    it "must change its state to active" do
+      @resource.activate
+      @resource.state.must_equal "active"
+    end
+  end
 end
 

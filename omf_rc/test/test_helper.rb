@@ -14,4 +14,5 @@ DB.create_table :resource_proxies do
   String :uid
   String :properties, :text => true
   Integer :parent_id
+  String :state
 end

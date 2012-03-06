@@ -2,6 +2,7 @@ require 'sequel'
 require 'sequel/plugins/serialization'
 require 'securerandom'
 require 'hashie'
+require 'state_machine'
 
 Sequel::Plugins::Serialization.register_format(:json_mash,
                                                lambda { |v| v.to_json },
@@ -16,6 +17,16 @@ module OmfRc
 
       many_to_one :parent, :class => self
       one_to_many :children, :key => :parent_id, :class => self
+
+      state_machine :state, :initial => :inactive do
+        event :activate do
+          transition :inactive => :active
+        end
+
+        event :dectivate do
+          transition :active => :inactive
+        end
+      end
 
       def before_validation
         self.uid ||= SecureRandom.uuid
