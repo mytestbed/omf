@@ -180,9 +180,9 @@ end
 
 def install_xmpp
   task "Installing XMPP server"
-  system("add-apt-repository ppa:ferramroberto/java; apt-get update; apt-get -y install sun-java6-jre")
+  system("add-apt-repository -y ppa:ferramroberto/java; apt-get update; apt-get -y install sun-java6-jre")
   system("wget -N -P /tmp wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.7.1_all.deb")
-  system("dpkg -i /tmp/downloadServlet?filename=openfire%2Fopenfire_3.7.1_all.deb")
+  system("dpkg -i /tmp/downloa -ydServlet?filename=openfire%2Fopenfire_3.7.1_all.deb")
   ok
 end
 
@@ -312,7 +312,7 @@ install_xmpp
 config_xmpp
 install_am
 config_am
-install_packages("mysql-server libdb4.6 phpmyadmin")
+install_packages("mysql-server libdb4.6")
 config_inventory
 config_psnodes
 restart_am
