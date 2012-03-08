@@ -13,10 +13,11 @@ module OmfRc
     class Abstract < Sequel::Model(:resource_proxies)
       plugin :validation_helpers
       plugin :serialization
+
       serialize_attributes :json_mash, :properties
 
-      many_to_one :parent, :class => self
-      one_to_many :children, :key => :parent_id, :class => self
+      many_to_one :parent, :class => Abstract
+      one_to_many :children, :key => :parent_id, :class => Abstract
 
       state_machine :state, :initial => :inactive do
         event :activate do
@@ -28,8 +29,14 @@ module OmfRc
         end
       end
 
+      def after_initialize
+        super
+        self.extend(OmfRc::ResourceProxy.const_get(type.capitalize))
+      end
+
       def before_validation
         self.uid ||= SecureRandom.uuid
+        self.properties ||= Hashie::Mash.new
       end
 
       # Custom validation rules, extend this to validation specific properties

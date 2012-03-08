@@ -3,23 +3,26 @@ require 'omf_rc/resource_proxy/abstract'
 
 include OmfRc::ResourceProxy
 
-module OmfRc
-  module ResourceProxy
-    class Mock < OmfRc::ResourceProxy::Abstract
-      many_to_one :parent, :class => self
-      one_to_many :children, :key => :parent_id, :class => self
+module OmfRc::ResourceProxy
+  module Mock
+    def test
+    end
+
+    def configure_property(property, value)
+      super
+      raise StandardError, 'Get your attention'
     end
   end
 end
 
 describe Mock do
   before do
-    @resource = Mock.create(:type => 'mock', :uid => 'suzuka', :properties => {:mock_property => "test"})
-    @resource = Mock.find(:type => 'mock')
+    @resource = Abstract.create(:type => 'mock', :uid => 'suzuka', :properties => {:mock_property => "test"})
+    @resource = Abstract.find(:type => 'mock')
   end
 
   after do
-    Sequel::Model.db.from(Mock.table_name).truncate
+    Sequel::Model.db.from(Abstract.table_name).truncate
   end
 
   describe "when intialised/created" do
@@ -41,22 +44,33 @@ describe Mock do
 
   describe "when asked to create another resource" do
     it "must add the resource to its created resource list" do
-      @interface = Mock.create(:type => 'interface', :uid => 'i1')
+      @interface = Abstract.create(:type => 'mock', :uid => 'i1')
+      @i2 = Abstract.create(:type => 'mock', :uid => 'i2')
       @resource.add_child(@interface)
+      @resource.add_child(@i2)
       @resource.children.must_include @interface
+      @resource.children.must_include @i2
       @interface.parent.must_equal @resource
+    end
+  end
+
+  describe "when child resource with a known type" do
+    it "must load methods from related module correctly" do
+      @mock = @resource.create(type: 'mock', uid: 'mock')
+      @mock.must_respond_to :test
+      proc { @mock.must_send [@mock, :configure_property, 'test', 'test'] }.must_raise StandardError
     end
   end
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = Mock.create(:type => 'test', :uid => 'i1')
-      @resource_2 = Mock.create(:type => 'test', :uid => 'i2')
+      @resource_1 = Abstract.create(:type => 'mock', :uid => 'i1')
+      @resource_2 = Abstract.create(:type => 'mock', :uid => 'i2')
       @resource.add_child(@resource_1).add_child(@resource_2)
       @resource.destroy
-      Mock.find(:uid => 'suzuka').must_be_nil
-      Mock.find(:uid => 'i1').must_be_nil
-      Mock.find(:uid => 'i2').must_be_nil
+      Abstract.find(:uid => 'suzuka').must_be_nil
+      Abstract.find(:uid => 'i1').must_be_nil
+      Abstract.find(:uid => 'i2').must_be_nil
     end
   end
 

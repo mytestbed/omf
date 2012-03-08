@@ -3,10 +3,23 @@ require 'omf_rc/resource_proxy/abstract'
 
 include OmfRc::ResourceProxy
 
+module OmfRc
+  module ResourceProxy
+    module Machine
+    end
+
+    module Test
+    end
+
+    module Interface
+    end
+  end
+end
+
 describe Abstract do
   before do
-    @resource = Abstract.create(:type => 'machine', :properties => {:pubsub => "mytestbed.net"})
-    @resource = Abstract.find(:type => 'machine')
+    @resource = Abstract.create(type: 'machine', properties: { pubsub: "mytestbed.net" })
+    @resource = Abstract.find(type: 'machine')
   end
 
   after do
@@ -40,7 +53,7 @@ describe Abstract do
 
     it "must add the resource to its created resource list" do
       @resource.create(:type => 'interface')
-      @interface = Abstract.find(:type => 'interface')
+      @interface = Abstract.find(type: 'interface')
       @resource.children.must_include @interface
       @interface.parent.must_equal @resource
     end
@@ -61,9 +74,9 @@ describe Abstract do
     it "must return a collection of data containing requested properties" do
       @resource.uid = 'readable'
       @resource.save
-      @resource_1 = @resource.create(:type => 'test', :properties => {:test_key => 'test'})
-      @resource_2 = @resource.create(:type => 'test', :properties => {:test_key => 'test'})
-      properties = @resource.request([:test_key], {:type => 'test'})
+      @resource_1 = @resource.create(type: 'test', properties: { test_key: 'test' })
+      @resource_2 = @resource.create(type: 'test', properties: { test_key: 'test' })
+      properties = @resource.request([:test_key], { type: 'test' })
       properties.size.must_equal 2
       properties[0].test_key.must_equal 'test'
       properties[1].test_key.must_equal 'test'
@@ -79,12 +92,12 @@ describe Abstract do
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = Abstract.create(:type => 'test')
-      @resource_2 = Abstract.create(:type => 'test')
+      @resource_1 = Abstract.create(type: 'test')
+      @resource_2 = Abstract.create(type: 'test')
       @resource.add_child(@resource_1).add_child(@resource_2)
       @resource.destroy
-      Abstract.find(:type => 'machine').must_be_nil
-      Abstract.filter(:type => 'test').must_be_empty
+      Abstract.find(type: 'machine').must_be_nil
+      Abstract.filter(type: 'test').must_be_empty
     end
   end
 
