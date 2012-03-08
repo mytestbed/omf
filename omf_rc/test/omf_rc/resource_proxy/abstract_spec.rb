@@ -18,12 +18,7 @@ end
 
 describe Abstract do
   before do
-    @resource = Abstract.create(type: 'machine', properties: { pubsub: "mytestbed.net" })
-    @resource = Abstract.find(type: 'machine')
-  end
-
-  after do
-    Sequel::Model.db.from(Abstract.table_name).truncate
+    @resource = Abstract.new(type: 'machine', properties: { pubsub: "mytestbed.net" })
   end
 
   describe "when intialised" do
@@ -38,31 +33,21 @@ describe Abstract do
     end
   end
 
-  describe "when updated" do
-    it "must update its values with configuration hash" do
-      @resource.update(:uid => 'interlagos')
-      @resource.uid.must_equal 'interlagos'
-      @resource.type.must_equal 'machine'
-    end
-  end
-
   describe "when asked to create another resource" do
     it "must return the newly created resource" do
       @resource.create(:type => 'interface').must_be_kind_of Abstract
     end
 
     it "must add the resource to its created resource list" do
-      @resource.create(:type => 'interface')
-      @interface = Abstract.find(type: 'interface')
+      @interface = @resource.create(:type => 'interface')
       @resource.children.must_include @interface
-      @interface.parent.must_equal @resource
     end
   end
 
   describe "when asked to get a instance of created resource" do
     it "must return a instance of that resource" do
-      @resource.create(:type => 'interface', :uid => 'test')
-      @resource.get('test').must_equal Abstract.find(:uid => 'test')
+      @test = @resource.create(:type => 'interface', :uid => 'test')
+      @resource.get('test').must_equal @test
     end
 
     it "must raise error when nothing found" do
@@ -73,7 +58,6 @@ describe Abstract do
   describe "when asked for the state of the created resources" do
     it "must return a collection of data containing requested properties" do
       @resource.uid = 'readable'
-      @resource.save
       @resource_1 = @resource.create(type: 'test', properties: { test_key: 'test' })
       @resource_2 = @resource.create(type: 'test', properties: { test_key: 'test' })
       properties = @resource.request([:test_key], { type: 'test' })
@@ -86,18 +70,18 @@ describe Abstract do
   describe "when asked to to configure a created resource" do
     it "must convert provided opt hash and update properties" do
       @resource.configure(:ip => '127.0.0.1')
-      Abstract.find(:type => 'machine').properties["ip"].must_equal "127.0.0.1"
+      @resource.properties.ip.must_equal "127.0.0.1"
     end
   end
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = Abstract.create(type: 'test')
-      @resource_2 = Abstract.create(type: 'test')
-      @resource.add_child(@resource_1).add_child(@resource_2)
-      @resource.destroy
-      Abstract.find(type: 'machine').must_be_nil
-      Abstract.filter(type: 'test').must_be_empty
+      @resource_1 = Abstract.new(type: 'test')
+      @resource_2 = Abstract.new(type: 'test')
+      @resource.add(@resource_1).add(@resource_2)
+      @resource.release(@resource_1)
+      @resource_1.children.must_be_empty
+      @resource.children.must_be_empty
     end
   end
 
