@@ -14,7 +14,7 @@ function build {
 	done	
 }
 
-for i in external/frisbee/imagezip external/frisbee/frisbee external/coderay-0.8.3 external/log4r-1.0.5 external/xmpp4r-0.4 omf-resmgr ; do
+for i in external/frisbee/imagezip external/frisbee/frisbee external/coderay-0.8.3 external/log4r-1.0.5 external/xmpp4r-0.4; do
 	cd $i
 	build
 	cd $TOPDIR
