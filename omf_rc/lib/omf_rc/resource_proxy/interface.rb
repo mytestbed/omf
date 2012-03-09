@@ -3,24 +3,24 @@ require 'hashie'
 module OmfRc::ResourceProxy
   module Interface
 
-    IFCONFIG = `which ifconfig`
-    ROUTE = `which route`
-    DEVICE = uid
+    IFCONFIG = 'ifconfig'
+    IPTABLES = 'iptables'
+    ROUTE = 'route'
 
     def configure_property(property, value)
       case property
       when /^ip$/
-        `#{IFCONFIG} #{DEVICE} #{value} netmask 255.255.0.0`
+        `#{IFCONFIG} #{uid} #{value} netmask 255.255.0.0`
       when /^(up|down)$/
-        `#{IFCONFIG} #{DEVICE} #{property}`
+        `#{IFCONFIG} #{uid} #{property}`
       when /^(netmask|mtu)$/
-        `#{IFCONFIG} #{DEVICE} #{property} #{value}`
+        `#{IFCONFIG} #{uid} #{property} #{value}`
       when /^mac$/
-        `#{IFCONFIG} #{DEVICE} hw ether #{value}`
+        `#{IFCONFIG} #{uid} hw ether #{value}`
       when /^arp$/
-        `#{IFCONFIG} #{DEVICE} #{'-' if value}arp`
+        `#{IFCONFIG} #{uid} #{'-' if value}arp`
       when /^forwarding$/
-        `echo #{value ? '1' : '0'} > /proc/sys/net/ipv4/conf/#{DEVICE}/forwarding`
+        `echo #{value ? '1' : '0'} > /proc/sys/net/ipv4/conf/#{uid}/forwarding`
       when /^gateway$/
         # FIXME Not sure about this one, hard coded everything?
         `route del default dev eth1; route add default gw #{value}; route add 224.10.10.6 dev eth1`
@@ -29,6 +29,27 @@ module OmfRc::ResourceProxy
         arguments = %w(net gw mask).map {|v| "-#{v} #{value.send(v)}" if value.send(v)}.join(' ')
         `#{ROUTE} #{value.op} #{arguments} dev #{uid}`
       when /^filter$/
+        operation = case value.op
+                    when /^add$/
+                      '-A'
+                    when /^del$/
+                      '-D'
+                    when /^clear$/
+                      '-F'
+                    end
+        chain = "#{value.chain.upcase} -i #{uid}" if value.chain
+        protocol = case value.proto
+                   when /^(tcp|udp)$/
+                     [ ("-p #{value.proto}"),
+                       ("-s #{value.src}" if value.src),
+                       ("-d #{value.dst}" if value.dst),
+                       ("--sport #{value.sport}" if value.sport),
+                       ("--dport #{value.dport}" if value.dport) ].join(' ')
+                   when /^mac$/
+                     "-m mac --mac-source #{value.src}"
+                   end
+        target = "#{value.target.upcase}" if value.target
+        `#{IPTABLES} #{operation} #{chain} #{protocol} #{chain}`
       else
         super
       end
@@ -36,10 +57,10 @@ module OmfRc::ResourceProxy
 
     def request_property(property)
       case property
-      when /mac/
-        `#{IFCONFIG} #{DEVICE}`.match(/([\da-fA-F]+:){5}[\da-fA-F]+/).to_s
-      when /ip/
-        `#{IFCONFIG} #{DEVICE}`.match(/([.\d]+\.){3}[.\d]+/).to_s
+      when /^mac$/
+        `#{IFCONFIG} #{uid}`.match(/([\da-fA-F]+:){5}[\da-fA-F]+/).to_s
+      when /^ip$/
+        `#{IFCONFIG} #{uid}`.match(/([.\d]+\.){3}[.\d]+/).to_s
       else
         super
       end
