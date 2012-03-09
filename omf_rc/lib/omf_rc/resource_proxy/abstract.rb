@@ -1,3 +1,4 @@
+require 'omf_common'
 require 'securerandom'
 require 'hashie'
 require 'state_machine'
@@ -25,7 +26,7 @@ module OmfRc
         @uid ||= SecureRandom.uuid
         @children ||= []
         validate
-        self.extend(OmfRc::ResourceProxy.const_get(type.capitalize)) unless type.to_s == 'abstract'
+        self.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant) unless type.to_s == 'abstract'
         super()
       end
 
