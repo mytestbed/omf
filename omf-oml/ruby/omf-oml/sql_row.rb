@@ -38,7 +38,9 @@ module OMF::OML
       @check_interval = opts[:check_interval]
       @check_interval = 0 unless @check_interval
       
-      @stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
+      t = table_name
+      #@stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
+      @stmt = db.prepare("SELECT _senders.name, #{t}.* FROM #{t} JOIN _senders WHERE #{t}.oml_sender_id = _senders.id LIMIT ? OFFSET ?;")
       @on_new_vector_proc = {}
 
       schema = find_schema
@@ -65,6 +67,7 @@ module OMF::OML
       r = @row
       col_names.collect do |n|
         p = @vprocs[n]
+        #puts "#{n}::#{p}"
         p ? p.call(r) : nil
       end
     end
@@ -124,9 +127,9 @@ module OMF::OML
       end
       
       if (tschema = opts.delete(:schema))
-        unless tschema[0].kind_of? Hash
-          tschema = tschema.collect do |cname| {:name => cname} end
-        end 
+        # unless tschema[0].kind_of? Hash
+          # tschema = tschema.collect do |cname| {:name => cname} end
+        # end 
       else
         tschema = select.collect do |cname| {:name => cname} end
       end
@@ -161,11 +164,12 @@ module OMF::OML
       cnames = @stmt.columns
       ctypes = @stmt.types
       schema = []
+      schema << {:name => 'sender', :type => 'STRING'}
       cnames.size.times do |i|
         name = cnames[i].to_sym
         schema << {:name => name, :type => ctypes[i]}
       end
-      schema
+      OmlSchema.new(schema)
     end
     
     # override
@@ -212,6 +216,7 @@ module OMF::OML
             end
           rescue Exception => ex
             warn ex
+            debug "\t", ex.backtrace.join("\n\t")
           end
         end 
       end
@@ -222,6 +227,9 @@ module OMF::OML
     def _run_once
       row_cnt = 0
       @stmt.execute(@limit, @offset).each do |r|
+        puts "ROW1>>> #{r[0].class}"        
+        #r.delete_at(1) # remove oml_client_id as we now have the client name in [0]
+        puts "ROW2>>> #{r.inspect}"
         @row = r
         @on_new_vector_proc.each_value do |proc|
           proc.call(self)

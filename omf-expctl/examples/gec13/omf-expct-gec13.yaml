@@ -1,0 +1,65 @@
+# This is the config file for the OMF Experiment Controller
+#
+# NOTE: use only 'spaces' to indent !
+# ('tab' indents are not supported by the ruby yaml parser, which is used to 
+# read this file)
+#
+---
+:econtroller:
+  
+  :config:
+  
+    # Config Parameter for the "default" profile
+    # IMPORTANT: There has to be a default entry. It should contain a complete 
+    # set of parameters, so other profiles can fall back to it
+    :default:
+    
+      # This is the domain name of the testbed 
+      # You need a corresponding entry in the testbed table of your inventory 
+      # that has this name set in the 'node_domain' column
+      #:domain: 'npc'
+      #:domain: 'planetlab'
+      :domain: 'norbit'
+      :slice: 'gec13demo'
+
+      # This is the Path where EC should look for its repository of built-in 
+      # experiments (e.g. example experiments, maintenance experiments, etc...)
+      :repository:
+        :path: ["./", "../../share/repository", "/usr/share/omf-expctl-5.4/repository"]
+
+      # URI to the OML server to use for this EC 
+      # (can be overwritten on the EC command line)
+      :omluri: 'tcp:srv.mytestbed.net:3003'
+
+      # This should be the IP address of the local interface that is accessible 
+      # from the nodes. This address will be given to the nodes so they can 
+      # retrieve applications from the EC via HTTP.
+      :web:
+        :host: '10.0.0.200'
+        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.4/share/htdocs"]
+
+      :communicator:
+      
+        # set this to false if you want to disable signature checks and message signing
+        :authenticate_messages: false
+        # your RSA/DSA SSH private key file
+        :private_key: '~/.ssh/id_rsa'
+        # directory holding the public keys of your OMF peers
+        :public_key_dir: '~/.omf-expctl/peer_keys'
+        
+        :type: 'xmpp'
+        :xmpp:
+          # Address of the server to use as gateway for PubSub communication
+          :pubsub_gateway: 'srv.mytestbed.net'
+          # The 'pubsub_domain' is the hostname of the pubsub server on which
+          # you would like to host your slice's communications. Leave this 
+          # commented if you wish to host them on the 'pubsub_gateway' server
+          # which you selected above.
+          #:pubsub_domain: 'norbit.npc.nicta.com.au'
+          # The following 'pubsub_user' and 'pubsub_pwd' are optional
+          # EC will create a unique user/pwd for itself if this is not provided
+          # In a typical OMF install, you should not uncomment these lines
+          # (do so only if you need to manually set user/password for 
+          # your client to connect to your pubsub server)
+          #:pubsub_user: 'my_EC_name' 
+          #:pubsub_pwd: 'my_EC_password' 

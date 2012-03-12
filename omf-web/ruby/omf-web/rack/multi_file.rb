@@ -23,6 +23,7 @@ module OMF::Web::Rack
 
       @roots.each do |root|
         @path = F.join(root, *parts)
+        #puts ">>>> CHECKING #{@path}"
         available = begin
           F.file?(@path) && F.readable?(@path)
         rescue SystemCallError

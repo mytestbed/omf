@@ -303,31 +303,6 @@ var o = OML;
       }
     },
   
-
-    // process_schema: function() {
-      // this.process_schema2();
-//       
-      // var o = this.opts;
-      // var i = 0;
-      // var mapping = o.mapping || {};
-      // var m = this.mapping = {};
-      // var schema = o.schema;
-      // if (schema) {
-        // schema.map(function(c) {
-          // ['x_axis', 'y_axis', 'group_by'].map(function(k) {
-            // if (c.name == o.mapping[k]) {
-              // m[k] = i
-            // }
-          // });
-          // i += 1;
-        // })
-      // } else {
-        // m.x_axis = 0;
-        // m.y_axis = 1;
-      // }
-    // }
-    
-  
   })
 })
 

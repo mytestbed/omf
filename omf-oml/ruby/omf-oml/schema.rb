@@ -97,16 +97,18 @@ module OMF::OML
     #   TODO: define format of TYPE
     #
     def initialize(schema_description)
-      #debug "schema: '#{schema_description.inspect}'"
+      debug "schema: '#{schema_description.inspect}'"
       
       # check if columns are described by hashes or 2-arrays
       @schema = schema_description.collect do |col|
-        if col.kind_of? Array
+        if col.kind_of?(Symbol) || col.kind_of?(String)
+          col = {:name => col.to_sym, :type => :string}
+        elsif col.kind_of? Array
           # should be [name, type]
           if col.length == 1
             col = {:name => col[0].to_sym, :type => :string}
           elsif col.length == 2
-            col = {:name => col[0].to_sym, :type => col[1]}
+            col = {:name => col[0].to_sym, :type => col[1].to_sym}
           else
             throw "Simple column schema should consist of [name, type] array, but found '#{col.inspect}'"
           end

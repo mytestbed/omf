@@ -99,7 +99,7 @@ module OMF::Web::Widget
 
     def get_static_js()
       @wopts[:data] = @data_sources.collect do |name, table|
-        {:stream => name, :events => table.rows}
+        {:stream => name, :events => table.kind_of?(OmlTable) ? table.rows : table}
       end
       "var #{@js_var_name} = new #{@js_class}(#{@wopts.to_json});"
     end
