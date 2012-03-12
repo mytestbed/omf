@@ -1,8 +1,4 @@
 --title OMF
-omf-common/ruby/omf-common/**/*.rb
-omf-expctl/ruby/omf-expctl/**/*.rb
-omf-resctlruby/omf-resctl/**/*.rb
-omf-aggmgr/ruby/omf-aggmgr/**/*.rb
-omf-oml/ruby/omf-oml/**/*.rb
-omf-web/ruby/omf-web/**/*.rb
-- INSTALL omf-web/DESIGN_NOTES.txt copyright
+omf_*/lib/**/*.rb
+-
+COPYRIGHT.md

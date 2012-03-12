@@ -1,17 +1,17 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "omf_common/version"
+require "omf_tools/version"
 
 Gem::Specification.new do |s|
-  s.name        = "omf_common"
-  s.version     = OmfCommon::VERSION
+  s.name        = "omf_tools"
+  s.version     = OmfTools::VERSION
   s.authors     = ["NICTA"]
   s.email       = ["omf-user@lists.nicta.com.au"]
   s.homepage    = "https://www.mytestbed.net"
-  s.summary     = %q{Common library of OMF}
-  s.description = %q{Common library of OMF, a generic framework for controlling and managing networking testbeds.}
+  s.summary     = %q{OMF utility tools}
+  s.description = %q{A set of useful utility tools of OMF, a generic framework for controlling and managing networking testbeds.}
 
-  s.rubyforge_project = "omf_common"
+  s.rubyforge_project = "omf_tools"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
@@ -21,5 +21,4 @@ Gem::Specification.new do |s|
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest", "~> 2.11.3"
   s.add_runtime_dependency "xmpp4r", "~> 0.5"
-  s.add_runtime_dependency "log4r", "~> 1.1"
 end

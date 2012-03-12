@@ -1,5 +1,4 @@
-require 'minitest/autorun'
-require 'minitest/pride'
+require 'test_helper'
 require 'omf_common/logger'
 
 describe OmfCommon::Logger do

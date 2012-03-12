@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = OmfRc::VERSION
   s.authors     = ["NICTA"]
   s.email       = ["omf-user@lists.nicta.com.au"]
-  s.homepage    = "https://omf.mytestbed.net"
+  s.homepage    = "https://www.mytestbed.net"
   s.summary     = %q{OMF resource controller}
   s.description = %q{Resource controller of OMF, a generic framework for controlling and managing networking testbeds.}
 
@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
+  s.add_development_dependency "minitest", "~> 2.11.3"
   s.add_runtime_dependency "omf_common", "~> 6.0.0.pre"
+  s.add_runtime_dependency "hashie", "~> 1.2.0"
+  s.add_runtime_dependency "state_machine", "~> 1.1.2"
 end

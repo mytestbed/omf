@@ -3,6 +3,8 @@ Current Status
 NOTE: this description is getting old and should be updated
 --------------
 
+[![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
+
 The OMF framework is a replacement for some of the existing components of
 orbit-lab software.
 
