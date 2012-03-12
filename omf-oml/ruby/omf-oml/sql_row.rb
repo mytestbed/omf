@@ -137,7 +137,7 @@ module OMF::OML
       t = OMF::OML::OmlTable.new(tname, tschema, opts)
       if block
         self.on_new_tuple() do |v|
-          #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
+          #puts "New vector(#{tname}): #{v.schema.inspect} ---- #{v.select(*select).size} <#{v.select(*select).join('|')}>"
           if select
             row = block.call(v.select(*select))
           else
@@ -164,11 +164,16 @@ module OMF::OML
       cnames = @stmt.columns
       ctypes = @stmt.types
       schema = []
-      schema << {:name => 'sender', :type => 'STRING'}
+      #schema << {:name => :oml_sender, :type => 'STRING'}
       cnames.size.times do |i|
         name = cnames[i].to_sym
         schema << {:name => name, :type => ctypes[i]}
       end
+      # Rename first col
+      first = schema[0]
+      raise "BUG: Should be 'name'" if first[:name] != :name
+      first[:name] = :oml_sender
+      
       OmlSchema.new(schema)
     end
     
@@ -227,9 +232,6 @@ module OMF::OML
     def _run_once
       row_cnt = 0
       @stmt.execute(@limit, @offset).each do |r|
-        puts "ROW1>>> #{r[0].class}"        
-        #r.delete_at(1) # remove oml_client_id as we now have the client name in [0]
-        puts "ROW2>>> #{r.inspect}"
         @row = r
         @on_new_vector_proc.each_value do |proc|
           proc.call(self)
