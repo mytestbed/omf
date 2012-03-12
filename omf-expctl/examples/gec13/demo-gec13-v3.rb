@@ -1,7 +1,7 @@
 defProperty('source1', "planetlab6.cs.duke.edu", "ID of a resource")
 defProperty('source2', "planetlab4.rutgers.edu", "ID of a resource")
 defProperty('sink', "planetlab1.cs.ucla.edu", "ID of a resource")
-defProperty('sendrate', '10M', "Bitrate (bit/s) for the Senders")
+defProperty('sendrate', '80M', "Bitrate (bit/s) for the Senders")
 defProperty('udpPort', 6000, "Port to use")
 
 defPrototype("iperf_udp_sender") do |p| 
@@ -11,11 +11,13 @@ defPrototype("iperf_udp_sender") do |p|
   p.defProperty('target', 'Host to send the traffic to', property.sink)
   p.defProperty('port', 'Port to send the traffic to', property.udpPort)
   p.defProperty('bandwidth', 'Bandwidth to send at in bit/sec [KM]', property.sendrate)
+  p.defProperty('time', 'Set time to send traffic', 999)
   p.addApplication("iperf_app") do |a|
     a.bindProperty('client', 'target')
     a.bindProperty('port', 'port')
     a.bindProperty('udp', 'udp')
     a.bindProperty('bandwidth', 'bandwidth')
+    a.bindProperty('time', 'time')
   end
 end
 

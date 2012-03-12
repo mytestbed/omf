@@ -4,8 +4,8 @@ L.provide('OML.demo_topo', [["raphael/raphael.js", "raphael/raphael.arrow-set.js
 
     draw: function(p) {
       this.server(100, 50, 'EC2', 'Sender1\nec2-23-20-77-153');
-      this.server(300, 125, 'PL', 'planetlab4.rutgers.edu');      
-      this.server(100, 200, 'ORCA', 'duke.edu');      
+      this.server(300, 125, 'PL', 'Receiver\nplanetlab4.rutgers.edu');      
+      this.server(100, 200, 'ORCA', 'Sender2\nduke.edu');      
 
 
       this.arrow(100, 50, 300, 125);
@@ -17,7 +17,7 @@ L.provide('OML.demo_topo', [["raphael/raphael.js", "raphael/raphael.arrow-set.js
       var r = this.r;
       p.circle(x, y, r).attr({fill: 'white'});
       p.text(x, y, cf).attr({"font-size": '16'});      
-      p.text(x, y + r + 10, name);
+      p.text(x, y + r + 16, name);
     },
     
     arrow: function(x1, y1, x2, y2) {
@@ -29,7 +29,7 @@ L.provide('OML.demo_topo', [["raphael/raphael.js", "raphael/raphael.arrow-set.js
       var a = this.paper.arrowSet((x1 - dx * f), (y1 - dy * f), (x2 - 20 + dx * f), (y2 + dy * f), 10);
       a[0].attr({"stroke-width" : "1", stroke: "#aaa", fill: "#aaa" });
       a[1].attr({"stroke-width" : "6", stroke: "#aaa" });
-      a[1].attr({"stroke-width" : "6", stroke: "green" });
+      //a[1].attr({"stroke-width" : "6", stroke: "green" });
     },
     
 
