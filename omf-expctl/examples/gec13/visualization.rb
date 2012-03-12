@@ -7,14 +7,14 @@
 
 def iperf_transfer(stream)
   # "pid" INTEGER, "connection_id" INTEGER, "begin_interval" REAL, "end_interval" REAL, "size" INTEGER);
-  opts = {:name => 'Transfer', :schema => [:ts, :cid, :size], :max_size => 200}
-  select = [:connection_id, :begin_interval, :end_interval, :size]
+  opts = {:name => 'Transfer', :schema => [:ts, :server, :cid, :size], :max_size => 200}
+  select = [:oml_sender, :connection_id, :begin_interval, :end_interval, :size]
   tss = {}
-  t = stream.capture_in_table(select, opts) do |cid, stime, etime, size|
+  t = stream.capture_in_table(select, opts) do |server, cid, stime, etime, size|
     ts = tss[cid] || -1
     if stime >= ts
       tss[cid] = etime
-      [etime, cid, size * 1e-6]
+      [etime, server, cid, size * 1e-6]
     else
       nil
     end
@@ -37,14 +37,14 @@ end
 
 def iperf_losses(stream)
   # "pid" INTEGER, "connection_id" INTEGER, "begin_interval" REAL, "end_interval" REAL, "total_datagrams" INTEGER, "lost_datagrams" INTEGER);
-  opts = {:name => 'Losses', :schema => [:cid, :ts, :loss_ratio], :max_size => 200}
-  select = [:connection_id, :begin_interval, :end_interval, :total_datagrams, :lost_datagrams]
+  opts = {:name => 'Losses', :schema => [:ts, :server, :cid, :loss_ratio], :max_size => 200}
+  select = [:oml_sender, :connection_id, :begin_interval, :end_interval, :total_datagrams, :lost_datagrams]
   tss = {}
-  t = stream.capture_in_table(select, opts) do |cid, stime, etime, total, lost|
+  t = stream.capture_in_table(select, opts) do |server, cid, stime, etime, total, lost|
     ts = tss[cid] || -1
     if stime >= ts
       tss[cid] = etime
-      [cid, etime, 1.0 * lost / total]
+      [etime, server, cid, 1.0 * lost / total]
     else
       nil
     end

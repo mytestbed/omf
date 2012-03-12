@@ -8,8 +8,8 @@
 
 # CREATE TABLE "oml2_nmetrics_cpu" (oml_sender_id INTEGER, oml_seq INTEGER, oml_ts_client REAL, oml_ts_server REAL, "user" BLOB, "sys" BLOB, "nice" BLOB, "idle" BLOB, "wait" BLOB, "irq" BLOB, "soft_irq" BLOB, "stolen" BLOB, "total" BLOB);
 def oml2_nmetrics_cpu(stream)
-  opts = {:name => 'CPU', :schema => [:ts, :client_id, :user, :sys, :nice, :idle, :wait], :max_size => 200}
-  select = [:oml_ts_server, :oml_sender_id, :user, :sys, :nice, :idle, :wait, :total]
+  opts = {:name => 'CPU', :schema => [:ts, :server, :user, :sys, :nice, :idle, :wait], :max_size => 200}
+  select = [:oml_ts_server, :oml_sender, :user, :sys, :nice, :idle, :wait, :total]
   tss = {}
   t = stream.capture_in_table(select, opts) do |ts, cid, user, sys, nice, idle, wait, total|
     user = user.u64; sys = sys.u64; nice = nice.u64; idle = idle.u64; wait = wait.u64; total = total.u64
@@ -28,7 +28,7 @@ def oml2_nmetrics_cpu(stream)
     :mapping => {
       :x_axis => {:property => :ts},
       :y_axis => {:property => :user},
-      :group_by => {:property => :client_id},
+      :group_by => {:property => :server},
       :stroke_width => 4    
     },
     :margin => {:left => 80, :bottom => 40},
@@ -41,8 +41,8 @@ end
 
 # CREATE TABLE "oml2_nmetrics_memory" (oml_sender_id INTEGER, oml_seq INTEGER, oml_ts_client REAL, oml_ts_server REAL, "ram" BLOB, "total" BLOB, "used" BLOB, "free" BLOB, "actual_used" BLOB, "actual_free" BLOB);
 def oml2_nmetrics_memory(stream)
-  opts = {:name => 'Memory', :schema => [:ts, :client_id, :ram, :total, :used, :free, :actual_used, :actual_free], :max_size => 200}
-  select = [:oml_ts_server, :oml_sender_id, :ram, :total, :used, :free, :actual_used, :actual_free]
+  opts = {:name => 'Memory', :schema => [:ts, :server, :ram, :total, :used, :free, :actual_used, :actual_free], :max_size => 200}
+  select = [:oml_ts_server, :oml_sender, :ram, :total, :used, :free, :actual_used, :actual_free]
   t = stream.capture_in_table(select, opts) do |ts, cid, ram, total, used, free, actual_used, actual_free|
     [ts, cid, ram.u64, total.u64 / 1e6, used.u64 / 1e6, free.u64 / 1e6, actual_used.u64 / 1e6, actual_free.u64 / 1e6]
   end
@@ -51,7 +51,7 @@ def oml2_nmetrics_memory(stream)
     :mapping => {
       :x_axis => {:property => :ts},
       :y_axis => {:property => :actual_free},
-      :group_by => {:property => :client_id},
+      :group_by => {:property => :server},
       :stroke_width => 4    
     },
     :margin => {:left => 80, :bottom => 40},
