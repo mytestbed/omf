@@ -71,7 +71,7 @@ module OMF::OML
     
     def run_once()
       unless @db
-        @db = SQLite3::Database.new(db_file)
+        @db = SQLite3::Database.new(@db_file)
         @db.type_translation = true
       end
 
