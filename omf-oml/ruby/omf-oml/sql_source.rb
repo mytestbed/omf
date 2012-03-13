@@ -20,8 +20,7 @@ module OMF::OML
     #
     def initialize(db_file, opts = {})
       raise "Can't find database '#{db_file}'" unless File.readable?(db_file)
-      @db = SQLite3::Database.new(db_file)
-      @db.type_translation = true
+      @db_file = db_file
       @running = false
       @on_new_stream_procs = {}
       @tables = {}
@@ -71,6 +70,11 @@ module OMF::OML
     end
     
     def run_once()
+      unless @db
+        @db = SQLite3::Database.new(db_file)
+        @db.type_translation = true
+      end
+
       # first find tables
       @db.execute( "SELECT * FROM sqlite_master WHERE type='table';") do |r|
         table_name = r[1]
