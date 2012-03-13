@@ -30,7 +30,7 @@ module OMF::OML
       @check_interval = opts[:check_interval]
       @check_interval = 0 unless @check_interval
       
-      t = table_name
+
       @on_new_vector_proc = {}
 
       schema = find_schema
@@ -243,7 +243,8 @@ module OMF::OML
     def _statement
       unless @stmt
         db = @db = SQLite3::Database.new(@db_file)
-        @db.type_translation = true        
+        @db.type_translation = true   
+        table_name = t = @sname  
         if @offset <= 0
           cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
           #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
