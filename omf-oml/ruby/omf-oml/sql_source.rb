@@ -64,6 +64,7 @@ module OMF::OML
               error "Exception in OmlSqlSource#run: #{ex}"
               debug "Exception in OmlSqlSource#run: #{ex.backtrace.join("\n\t")}"
             end
+            sleep check_every
           end 
         end
       end
@@ -95,7 +96,7 @@ module OMF::OML
     def report_new_table(table_name, opts = {})
       return if @tables.key?(table_name) # check if already reported before
       puts ">>>> FOUND TABLE: #{table_name}"
-      t = @tables[table_name] = OmlSqlRow.new(table_name, @db, self, opts)
+      t = @tables[table_name] = OmlSqlRow.new(table_name, @db_file, self, opts)
       @on_new_stream_procs.each_value do |proc|
         proc.call(t)
       end

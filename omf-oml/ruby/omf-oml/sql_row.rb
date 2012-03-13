@@ -16,20 +16,12 @@ module OMF::OML
     #   - limit: Number of rows to fetch each time [1000]
     #   - check_interval: Interval in seconds when to check for new data. If 0, only run once.
     #
-    def initialize(table_name, db, source, opts = {})
+    def initialize(table_name, db_file, source, opts = {})
       @sname = table_name
-      @db = db
+      @db_file = db_file
       @source = source
       
-      if @offset = opts[:offset]
-        if @offset <= 0
-          cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
-          #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
-          @offset = cnt + @offset # @offset was negative here
-          debug("Initial offset #{@offset} in '#{table_name}' with #{cnt} rows")
-          @offset = 0 if @offset < 0
-        end
-      else
+      unless @offset = opts[:offset]
         @offset = 0
       end
       @limit = opts[:limit]
@@ -39,8 +31,6 @@ module OMF::OML
       @check_interval = 0 unless @check_interval
       
       t = table_name
-      #@stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
-      @stmt = db.prepare("SELECT _senders.name, #{t}.* FROM #{t} JOIN _senders WHERE #{t}.oml_sender_id = _senders.id LIMIT ? OFFSET ?;")
       @on_new_vector_proc = {}
 
       schema = find_schema
@@ -161,8 +151,9 @@ module OMF::OML
     protected
         
     def find_schema()
-      cnames = @stmt.columns
-      ctypes = @stmt.types
+      stmt = _statement
+      cnames = stmt.columns
+      ctypes = stmt.types
       schema = []
       #schema << {:name => :oml_sender, :type => 'STRING'}
       cnames.size.times do |i|
@@ -193,6 +184,12 @@ module OMF::OML
     def run(in_thread = true)
       return if @running
       if in_thread
+        if @db
+          # force opening of database in new thread
+          @db.close
+          @db = null
+          @stmt = null
+        end
         Thread.new do
           begin
             _run
@@ -231,7 +228,7 @@ module OMF::OML
     # Return true if there might be more rows in the database
     def _run_once
       row_cnt = 0
-      @stmt.execute(@limit, @offset).each do |r|
+      _statement.execute(@limit, @offset).each do |r|
         @row = r
         @on_new_vector_proc.each_value do |proc|
           proc.call(self)
@@ -241,6 +238,23 @@ module OMF::OML
       @offset += row_cnt
       debug "Read #{row_cnt}/#{@offset} rows from '#{@sname}'"
       row_cnt >= @limit # there could be more to read     
+    end
+    
+    def _statement
+      unless @stmt
+        @db = SQLite3::Database.new(@db_file)
+        @db.type_translation = true        
+        if @offset <= 0
+          cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
+          #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
+          @offset = cnt + @offset # @offset was negative here
+          debug("Initial offset #{@offset} in '#{table_name}' with #{cnt} rows")
+          @offset = 0 if @offset < 0
+        end
+        #@stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
+        @stmt = db.prepare("SELECT _senders.name, #{t}.* FROM #{t} JOIN _senders WHERE #{t}.oml_sender_id = _senders.id LIMIT ? OFFSET ?;")
+      end
+      @stmt
     end
   end # OmlSqlRow
 
