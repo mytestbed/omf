@@ -71,8 +71,8 @@ end
 load "#{File.dirname(__FILE__)}/visualization.rb"
 load "#{File.dirname(__FILE__)}/sys_mon_viz.rb"
 
-#ep = OmlSqlSource.new($db_name, :check_interval => 1.0)
-ep = OmlSqlSource.new($db_name)
+ep = OmlSqlSource.new($db_name, :check_interval => 1.0)
+#ep = OmlSqlSource.new($db_name)
 ep.on_new_stream() do |stream|
   begin
     f = stream.stream_name.to_sym
