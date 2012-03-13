@@ -186,7 +186,11 @@ module OMF::OML
       if in_thread
         if @db
           # force opening of database in new thread
-          @db.close
+          begin
+            @db.close
+          rescue Exception
+            # ALERT: issues with finalising statments, don't know how to deal with it
+          end
           @db = null
           @stmt = null
         end
@@ -245,7 +249,7 @@ module OMF::OML
         db = @db = SQLite3::Database.new(@db_file)
         @db.type_translation = true   
         table_name = t = @sname  
-        if @offset <= 0
+        if @offset < 0
           cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
           #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
           @offset = cnt + @offset # @offset was negative here
