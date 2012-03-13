@@ -4,8 +4,8 @@ L.provide('OML.demo_topo', [["raphael/raphael.js", "raphael/raphael.arrow-set.js
 
     draw: function(p) {
       this.server(100, 50, 'EC2', 'Sender1\nec2-23-20-77-153');
-      this.server(300, 125, 'PL', 'Receiver\nplanetlab4.rutgers.edu');      
-      this.server(100, 200, 'ORCA', 'Sender2\nduke.edu');      
+      this.server(300, 125, 'PL', 'Receiver\nduke.edu');      
+      this.server(100, 200, 'ORCA', 'Sender2\nbbn.com');      
 
 
       this.arrow(100, 50, 300, 125);
