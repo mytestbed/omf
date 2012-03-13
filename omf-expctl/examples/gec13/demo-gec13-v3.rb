@@ -2,7 +2,7 @@ defProperty('source1', "planetlab6.cs.duke.edu", "ID of a resource")
 defProperty('source2', "planetlab4.rutgers.edu", "ID of a resource")
 defProperty('sink', "planetlab1.cs.ucla.edu", "ID of a resource")
 defProperty('sendrate', '80M', "Bitrate (bit/s) for the Senders")
-defProperty('udpPort', 6000, "Port to use")
+defProperty('udpPort', 5823, "Port to use")
 
 defPrototype("iperf_udp_sender") do |p| 
   p.name = "Iperf UDP Sender" 

@@ -92,7 +92,7 @@ class String
   end
 end
 
-ep.run()
+ep.run(5)
 
 # Configure the web server
 #
@@ -102,7 +102,7 @@ opts = {
     :private_key_file => "#{File.dirname(__FILE__)}/debug/server.key", 
     :verify_peer => false
   },
-  :page_title => 'Simple GIMI Experiment',
+  :page_title => "Simple GIMI Experiment - #{$db_name.match('.*gec13demo-(.*)\.sq3')[1]}",
   :use_tabs => [:overview, :graph, :code, :log],
   :use_tabs => [:graph, :code],
   :theme => :bright

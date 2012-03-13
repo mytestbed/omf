@@ -48,18 +48,36 @@ module OMF::OML
     
     # Start checking the database for tables and create a new stream 
     # by calling the internal +report_new_table+ method. 
+    # If +check_every+ > 0 continue checking every +check_every+ seconds
+    # for new tables in the database, otherwise it's only checked once
     #
-    # NOTE: The database is immediately and only once checked for tables.
-    # Any tables created later is not detected right now. Maybe we should 
-    # change that in the future.
     #
-    def run()
-      # first find tables
-      @db.execute( "SELECT * FROM sqlite_master WHERE type='table';") do |r|
-        table = r[1]
-        report_new_table(table, @table_opts) unless table.start_with?('_')
+    def run(check_every = -1)
+      if check_every <= 0
+        run_once()
+      else
+        Thread.new do
+          @running = true
+          while (@running)
+            begin 
+              run_once()
+            rescue Exception => ex
+              error "Exception in OmlSqlSource#run: #{ex}"
+              debug "Exception in OmlSqlSource#run: #{ex.backtrace.join("\n\t")}"
+            end
+          end 
+        end
       end
     end
+    
+    def run_once()
+      # first find tables
+      @db.execute( "SELECT * FROM sqlite_master WHERE type='table';") do |r|
+        table_name = r[1]
+        report_new_table(table_name, @table_opts) unless table_name.start_with?('_')
+      end
+    end
+    
     
     protected
     
@@ -71,6 +89,8 @@ module OMF::OML
     # argument.
     #
     def report_new_table(table_name, opts = {})
+      return if @tables.key?(table_name) # check if already reported before
+      puts ">>>> FOUND TABLE: #{table_name}"
       t = @tables[table_name] = OmlSqlRow.new(table_name, @db, self, opts)
       @on_new_stream_procs.each_value do |proc|
         proc.call(t)
