@@ -7,8 +7,8 @@
 
 def iperf_transfer(stream)
   # "pid" INTEGER, "connection_id" INTEGER, "begin_interval" REAL, "end_interval" REAL, "size" INTEGER);
-  opts = {:name => 'Transfer', :schema => [:ts, :server, :cid, :size, :sender], :max_size => 200}
-  select = [:oml_ts_client, :oml_sender, :connection_id, :size, :foreign_address]
+  opts = {:name => 'Transfer', :schema => [:ts, :server, :cid, :size], :max_size => 200}
+  select = [:oml_ts_client, :oml_sender, :connection_id, :size]
   tss = {}
   t = stream.capture_in_table(select, opts)
   gopts = {
@@ -33,7 +33,7 @@ def iperf_losses(stream)
   select = [:oml_ts_client, :oml_sender, :connection_id, :total_datagrams, :lost_datagrams]
   tss = {}
   t = stream.capture_in_table(select, opts) do |ts, server, cid, total, lost|
-    [ts, server, cid, 1.0 * lost / total]
+    [ts, server, cid, total == 0 ? 0 : (1.0 * lost / total)]
   end
   gopts = {
     :schema => t.schema,
@@ -51,5 +51,12 @@ def iperf_losses(stream)
   t
 end
 
+def iperf_connection(stream)
+# CREATE TABLE "iperf_connection" (oml_sender_id INTEGER, oml_seq INTEGER, oml_ts_client REAL, oml_ts_server REAL, "pid" INTEGER, "connection_id" INTEGER, "local_address" TEXT, "local_port" INTEGER, "foreign_address" TEXT, "foreign_port" INTEGER);
+  opts = {:name => 'Connections', :schema => [:ts, :server, :pid, :cid, :foreign_address, :foreign_port], :max_size => 200}
+  select = [:oml_ts_client, :oml_sender, :pid, :connection_id, :foreign_address, :foreign_port]
+  tss = {}
+  stream.capture_in_table(select, opts)
+end
 
 OMF::Web::Widget::Graph.addGraph 'Overview', :viz_type => 'demo_topo', :data_sources => [] 
