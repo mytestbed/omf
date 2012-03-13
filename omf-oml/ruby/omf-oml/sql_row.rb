@@ -242,7 +242,7 @@ module OMF::OML
     
     def _statement
       unless @stmt
-        @db = SQLite3::Database.new(@db_file)
+        db = @db = SQLite3::Database.new(@db_file)
         @db.type_translation = true        
         if @offset <= 0
           cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
