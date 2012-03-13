@@ -7,8 +7,8 @@
 
 def iperf_transfer(stream)
   # "pid" INTEGER, "connection_id" INTEGER, "begin_interval" REAL, "end_interval" REAL, "size" INTEGER);
-  opts = {:name => 'Transfer', :schema => [:ts, :server, :cid, :size], :max_size => 200}
-  select = [:oml_ts_client, :oml_sender, :connection_id, :size]
+  opts = {:name => 'Transfer', :schema => [:ts, :server, :cid, :size, :sender], :max_size => 200}
+  select = [:oml_ts_client, :oml_sender, :connection_id, :size, :foreign_address]
   tss = {}
   t = stream.capture_in_table(select, opts)
   gopts = {
