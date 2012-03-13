@@ -54,7 +54,7 @@ end
 def iperf_connection(stream)
 # CREATE TABLE "iperf_connection" (oml_sender_id INTEGER, oml_seq INTEGER, oml_ts_client REAL, oml_ts_server REAL, "pid" INTEGER, "connection_id" INTEGER, "local_address" TEXT, "local_port" INTEGER, "foreign_address" TEXT, "foreign_port" INTEGER);
   opts = {:name => 'Connections', :schema => [:ts, :server, :pid, :cid, :foreign_address, :foreign_port], :max_size => 200}
-  select = [:oml_ts_client, :oml_sender, :pid, :connection_id, :foreign_address, :foreign_port]
+  select = [:oml_ts_server, :oml_sender, :pid, :connection_id, :foreign_address, :foreign_port]
   tss = {}
   stream.capture_in_table(select, opts)
 end
