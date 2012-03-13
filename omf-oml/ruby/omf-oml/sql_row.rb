@@ -191,8 +191,8 @@ module OMF::OML
           rescue Exception
             # ALERT: issues with finalising statments, don't know how to deal with it
           end
-          @db = null
-          @stmt = null
+          @db = nil
+          @stmt = nil
         end
         Thread.new do
           begin
