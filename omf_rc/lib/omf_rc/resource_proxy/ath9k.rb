@@ -96,6 +96,7 @@ module OmfRc::ResourceProxy
       when /^tx_power$/
         `#{IWCONFIG} #{uid} txpower #{value}`
       end
+
       super
     end
 
