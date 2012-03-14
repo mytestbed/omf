@@ -58,9 +58,9 @@ module OmfRc::ResourceProxy
     def request_property(property)
       case property
       when /^mac$/
-        `#{IFCONFIG} #{uid}`.match(/([\da-fA-F]+:){5}[\da-fA-F]+/).to_s
+        `#{IFCONFIG} #{uid}`.match(/([\da-fA-F]+:){5}[\da-fA-F]+/) && $&
       when /^ip$/
-        `#{IFCONFIG} #{uid}`.match(/([.\d]+\.){3}[.\d]+/).to_s
+        `#{IFCONFIG} #{uid}`.match(/([.\d]+\.){3}[.\d]+/) && $&
       else
         super
       end

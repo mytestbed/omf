@@ -1,0 +1,17 @@
+driver=nl80211
+interface=<%= uid %>
+ssid=<%= essid %>
+channel=<%= channel %>
+
+<% if %w(a b g).include? type %>
+  hw_mode=<%= type %>
+<% elsif type == 'n' %>
+  wmm_enabled=1
+  ieee80211n=1
+  ht_capab=[HT20-]
+  <% if channel < 15 %>
+    hw_mode=g
+  <% else %>
+    hw_mode=a
+  <% end %>
+<% end %>
