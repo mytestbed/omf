@@ -8,3 +8,9 @@ Rake::TestTask.new do |t|
   t.pattern = "test/**/*_spec.rb"
   t.verbose = true
 end
+
+Rake::TestTask.new(:integration) do |t|
+  t.libs << 'integration_test'
+  t.pattern = "integration_test/**/*_spec.rb"
+  t.verbose = true
+end

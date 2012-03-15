@@ -16,7 +16,7 @@ module OmfRc::ResourceProxy
       when /^essid$/
         `#{IWCONFIG} #{uid}`.match(/ESSID:(\S+)/) && $+
       when /^rts$/
-        `#{IWCONFIG} #{uid}`.match(/RTS:(\S+)/) && $+
+        `#{IWCONFIG} #{uid}`.match(/RTS (\S+)/) && $+
       when /^rate$/
         `#{IWCONFIG} #{uid}`.match(/Rate=(\S+)/) && $+
       when /^frequency$/
