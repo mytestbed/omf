@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4-ubuntu5) oneiric; urgency=low
+
+  * Fixed bug #478
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 15 Mar 2012 16:58:25 +1100
+
 omf-resctl-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
   * 5.4.1 release 
