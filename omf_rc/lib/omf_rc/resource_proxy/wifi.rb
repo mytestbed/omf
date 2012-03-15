@@ -8,7 +8,7 @@ module OmfRc::ResourceProxy
       # FIXME how to get type and channel info
       case property
       when /^driver_(.+)$/
-        `#{LSMOD}`.match(/^#{$+}( )+/ ? true : false
+        `#{LSMOD}`.match(/^#{$+}( )+/) ? true : false
       when /^cell_id$/
         `#{IWCONFIG} #{uid}`.match(/(Access Point|Cell): ([^ ]+)/) && $+
       when /^mode$/
@@ -22,15 +22,18 @@ module OmfRc::ResourceProxy
       when /^frequency$/
         `#{IWCONFIG} #{uid}`.match(/Frequency:(\S+)/) && $+
       when /^tx_power$/
-        `#{IWCONFIG} #{uid}`.match(/Tx-Power:(\S+)/) && $+
+        `#{IWCONFIG} #{uid}`.match(/Tx-Power=(\S+)/) && $+
+      else
+        super
       end
-      super
     end
 
     def configure_property(property, value)
       case property
       when /^driver_(.+)$/
         `#{MODPROBE} #{$+}`
+      else
+        super
       end
     end
   end

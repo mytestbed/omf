@@ -23,9 +23,9 @@ module OmfRc::ResourceProxy
         end
       when /^(essid|frequency|txpower|rate|rts|channel)$/
         `#{IWCONFIG} #{uid} #{$+} #{value}`
+      else
+        super
       end
-
-      super
     end
   end
 end

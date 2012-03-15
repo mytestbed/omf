@@ -60,10 +60,12 @@ module OmfRc::ResourceProxy
     }
 
     def configure_property(property, value)
+      super
+
       wifi_configure = Hashie::Mashie.new
       base_device = uid.gsub(/wlan/, 'phy')
       %(mode essid rts rate frequency tx_power).each do |p|
-        wifi_configure.send("#{p}=", request_proerpty(p)
+        wifi_configure.send("#{p}=", request_proerpty(p))
       end
 
       case property
@@ -96,8 +98,6 @@ module OmfRc::ResourceProxy
       when /^tx_power$/
         `#{IWCONFIG} #{uid} txpower #{value}`
       end
-
-      super
     end
 
     private

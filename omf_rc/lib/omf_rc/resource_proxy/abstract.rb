@@ -80,7 +80,7 @@ module OmfRc
       end
 
       # Returns a set of child resources based on properties and conditions
-      def request(properties, conditions)
+      def request(properties, conditions = {})
         get_all(conditions).map do |resource|
           Hashie::Mash.new.tap do |mash|
             properties.each do |key|
