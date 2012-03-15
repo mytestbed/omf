@@ -432,7 +432,13 @@ class OmfXMPPServices < MObject
   # - domain = [String|Symbol] the domain for the the server on which
   #               we want to unsubscribe from this node
   #
-  def leave_node(node, subid, domain)
+  def leave_node(node, subid = nil, domain = nil)
+    @serviceHelpers.each { |dom, helper| leave_node(node, subid, dom) } if domain.nil?
+    if subid.nil?
+      list_all_subscriptions(domain).each do |sub| 
+        leave_node(sub.node, sub.subid, domain) if sub.node == node 
+      end
+    end
     begin
       call_with_timeout("Timing out while leaving the PubSub node '#{node}'") do
         service(domain).unsubscribe_from_fixed(node, subid) 
@@ -441,16 +447,13 @@ class OmfXMPPServices < MObject
       if ("#{ex}" == "item-not-found: ")
         debug "Failed unsubscribing to unknown node '#{node}' "+
               "on domain '#{domain}'"
-        return false
-      end
-      if ("#{ex}"=="unexpected-request: ")
+      elsif ("#{ex}"=="unexpected-request: ")
         debug "leave_pubsub_node - Unsubscribing from node '#{node}' failed as there was no subscription."
-        return true
+      else
+        raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
+              "on domain '#{domain}' - Error: '#{ex}'"
       end
-      raise "OmfXMPPServices - Failed unsubscribing to node '#{node}' "+
-            "on domain '#{domain}' - Error: '#{ex}'"
     end
-    return true
   end
 
   #

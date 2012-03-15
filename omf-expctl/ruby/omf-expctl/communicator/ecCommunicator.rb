@@ -112,8 +112,6 @@ class ECCommunicator < OmfCommunicator
       @@retrySending = false
     end
     @@announceThread.kill if @@announceThread
-    
-    
     super
   end
   
@@ -122,10 +120,6 @@ class ECCommunicator < OmfCommunicator
     cmd = create_message(:cmdtype => :EXPERIMENT_DONE, :slice_id => @@sliceID,
                           :experiment_id => @@expID, :address => @my_addr.generate_address(true))
     send_message(@slice_addr, cmd)
-
-    send_reset
-    send_noop
-    
     super
   end
 

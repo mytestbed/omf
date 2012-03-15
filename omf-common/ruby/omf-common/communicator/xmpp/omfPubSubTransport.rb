@@ -100,6 +100,19 @@ class OMFPubSubTransport < MObject
     return self
   end
 
+  def leave(addr)
+    if addr.kind_of?(String)
+      a = addr.split('/')
+      domain = a.delete_at(0)
+      node = '/' + a.join('/')
+    else
+      node = addr.generate_address
+      domain = addr.domain
+    end
+    @@xmppServices.leave_node(node, nil, domain) 
+    debug "Unsubscribed from '#{node}' at '#{domain}'"
+  end
+
   # NOTE: XMPP4R limitation - listening on 2 addr in the same domain -
   # the events of the 2 listens will be put in the same Q and process by the
   # same block, i.e. the queue and the block of the 1st call to listen!

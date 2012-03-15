@@ -85,7 +85,6 @@ class NodeAgent < MObject
     if (! @running.nil?)
       raise "Already running"
     end
-    info(VERSION_STRING)
     resetState
     comm =  Hash.new
     comm[:hrn] = @agentName
@@ -96,7 +95,7 @@ class NodeAgent < MObject
     comm[:sliceID] = @agentSlice
     comm[:domain] = @agentDomain 
     RCCommunicator.instance.init(comm)
-    RCCommunicator.instance.reset
+    RCCommunicator.instance.join_slice
 
     @running = ConditionVariable.new
     if @interactive
@@ -205,6 +204,7 @@ class NodeAgent < MObject
     @index = 0
     @allowDisconnection = false
     @expirementDone = false
+    info VERSION_STRING
     info "Agent: '#{@agentName}' - Slice: '#{@agentSlice}'"
     info "Disconnection Support Disabled."
   end
