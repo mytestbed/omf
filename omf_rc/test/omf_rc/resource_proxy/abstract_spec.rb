@@ -11,7 +11,7 @@ module OmfRc
     module Test
     end
 
-    module Interface
+    module Test2
     end
   end
 end
@@ -35,18 +35,18 @@ describe Abstract do
 
   describe "when asked to create another resource" do
     it "must return the newly created resource" do
-      @resource.create(:type => 'interface').must_be_kind_of Abstract
+      @resource.create(:type => 'test2').must_be_kind_of Abstract
     end
 
     it "must add the resource to its created resource list" do
-      @interface = @resource.create(:type => 'interface')
-      @resource.children.must_include @interface
+      @test2 = @resource.create(:type => 'test2')
+      @resource.children.must_include @test2
     end
   end
 
   describe "when asked to get a instance of created resource" do
     it "must return a instance of that resource" do
-      @test = @resource.create(:type => 'interface', :uid => 'test')
+      @test = @resource.create(:type => 'test2', :uid => 'test')
       @resource.get('test').must_equal @test
     end
 
@@ -58,12 +58,13 @@ describe Abstract do
   describe "when asked for the state of the created resources" do
     it "must return a collection of data containing requested properties" do
       @resource.uid = 'readable'
-      @resource_1 = @resource.create(type: 'test', properties: { test_key: 'test' })
-      @resource_2 = @resource.create(type: 'test', properties: { test_key: 'test' })
+      @resource_1 = @resource.create(type: 'test', uid: 1, properties: { test_key: 'test1' })
+      @resource_2 = @resource.create(type: 'test', uid: 2, properties: { test_key: 'test2' })
+      @resource_3 = @resource.create(type: 'test2', uid: 3, properties: { test_key: 'test3' })
       properties = @resource.request([:test_key], { type: 'test' })
       properties.size.must_equal 2
-      properties[0].test_key.must_equal 'test'
-      properties[1].test_key.must_equal 'test'
+      properties[0].test_key.must_equal 'test1'
+      properties[1].test_key.must_equal 'test2'
     end
   end
 

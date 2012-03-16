@@ -56,6 +56,7 @@ module OmfRc
           conditions.each_pair do |key, value|
             flag &&= v.send(key) == value
           end
+          flag
         end
       end
 
