@@ -1,3 +1,9 @@
+omf-web-5.4 (5.4-ubuntu4) oneiric; urgency=low
+
+  * Fixed invalid erector gemspec under rubygems 1.7
+
+ -- Jack C Hong <jack.hong@nicta.com.au>  Mon, 19 Mar 2012 13:44:17 +1100
+
 omf-web-5.4 (5.4-ubuntu3) oneiric; urgency=low
 
   * fixed libsqlite3-dev dependency issue
