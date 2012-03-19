@@ -3,16 +3,14 @@ require 'omf_rc/resource_proxy/abstract'
 
 include OmfRc::ResourceProxy
 
-module OmfRc
-  module ResourceProxy
-    module Machine
-    end
+module OmfRc::ResourceProxy
+  module Machine
+  end
 
-    module Test
-    end
+  module Test
+  end
 
-    module Test2
-    end
+  module Test2
   end
 end
 

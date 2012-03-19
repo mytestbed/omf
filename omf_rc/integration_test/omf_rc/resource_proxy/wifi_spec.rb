@@ -19,9 +19,7 @@ describe Wifi do
       @resource.request([:essid, :mode, :frequency, :tx_power, :rts], {:type => 'wifi'}).each do |wifi|
         wifi.essid.wont_be_nil
         wifi.mode.wont_be_nil
-        wifi.tx_power.must_match /(\d)+/
-        wifi.rts.wont_be_nil
-        wifi.frequency.must_be_nil
+        wifi.frequency.wont_be_nil
       end
     end
   end
