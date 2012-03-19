@@ -3,6 +3,7 @@ require 'hashie'
 module OmfRc
   module ResourceProxy
     module Interface
+      in
 
       IFCONFIG = 'ifconfig'
       IPTABLES = 'iptables'
