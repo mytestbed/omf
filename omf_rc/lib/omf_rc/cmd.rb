@@ -1,5 +1,5 @@
 require 'open3'
-require 'omf_common/logger'
+require 'omf_common'
 
 class OmfRc::Cmd
   def self.exec(*cmd)
@@ -8,10 +8,10 @@ class OmfRc::Cmd
       when 0
         stdout.read.chomp
       when 1
-        omf_logger.warn stderr.read.chomp
+        logger.warn stderr.read.chomp
         nil
       when 2
-        omf_logger.error stderr.read.chomp
+        logger.error stderr.read.chomp
         nil
       end
     end
