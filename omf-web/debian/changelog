@@ -1,3 +1,10 @@
+omf-web-5.4 (5.4-ubuntu5) oneiric; urgency=low
+
+  * Prevent erector's gemspec throwing unpleasant warning message under
+    rubygems 1.7
+
+ --  <jack.hong@nicta.com.au>  Wed, 21 Mar 2012 23:56:23 +0000
+
 omf-web-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
   * Fixed invalid erector gemspec under rubygems 1.7
