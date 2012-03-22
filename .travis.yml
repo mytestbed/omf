@@ -3,7 +3,7 @@ rvm:
   - 1.9.3
   - 1.9.2
 
-# Branch blacklist
+# Branch white list
 branches:
-  except:
-    - omf-5.4
+  only:
+    - master
