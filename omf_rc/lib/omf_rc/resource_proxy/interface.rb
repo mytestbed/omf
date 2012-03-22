@@ -1,5 +1,5 @@
 require 'hashie'
-require 'omf_rc/resource_proxy/util/ifconfig'
+require 'omf_rc/resource_proxy/util'
 
 module OmfRc::ResourceProxy::Interface
   include OmfRc::ResourceProxy::Util::Ifconfig
@@ -27,19 +27,19 @@ module OmfRc::ResourceProxy::Interface
                   when /^clear$/
                     '-F'
                   end
-    chain = "#{value.chain.upcase} -i #{uid}" if value.chain
-    protocol = case value.proto
-               when /^(tcp|udp)$/
-                 [ ("-p #{value.proto}"),
-                   ("-s #{value.src}" if value.src),
-                   ("-d #{value.dst}" if value.dst),
-                   ("--sport #{value.sport}" if value.sport),
-                   ("--dport #{value.dport}" if value.dport) ].join(' ')
-               when /^mac$/
-                 "-m mac --mac-source #{value.src}"
-               end
-    target = "#{value.target.upcase}" if value.target
-    OmfRc::Cmd.exec("#{IPTABLES} #{operation} #{chain} #{protocol} #{chain}")
+      chain = "#{value.chain.upcase} -i #{uid}" if value.chain
+      protocol = case value.proto
+                 when /^(tcp|udp)$/
+                   [ ("-p #{value.proto}"),
+                     ("-s #{value.src}" if value.src),
+                     ("-d #{value.dst}" if value.dst),
+                     ("--sport #{value.sport}" if value.sport),
+                     ("--dport #{value.dport}" if value.dport) ].join(' ')
+                 when /^mac$/
+                   "-m mac --mac-source #{value.src}"
+                 end
+      target = "#{value.target.upcase}" if value.target
+      OmfRc::Cmd.exec("#{IPTABLES} #{operation} #{chain} #{protocol} #{chain}")
     else
       super
     end

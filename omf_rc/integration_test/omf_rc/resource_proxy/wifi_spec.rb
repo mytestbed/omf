@@ -16,10 +16,13 @@ describe Wifi do
 
   describe "when properties requested" do
     it "must return an array with actual properties" do
-      @resource.request([:essid, :mode, :frequency, :tx_power, :rts], {:type => 'wifi'}).each do |wifi|
-        wifi.essid.wont_be_nil
-        wifi.mode.wont_be_nil
-        wifi.frequency.wont_be_nil
+      @resource.request([:ssid, :freq, :ssid, :freq, :rx, :tx, :signal, :tx_bitrate], {:type => 'wifi'}).each do |wifi|
+        wifi.ssid.wont_be_nil
+        wifi.freq.wont_be_nil
+        wifi.rx.wont_be_nil
+        wifi.tx.wont_be_nil
+        wifi.signal.wont_be_nil
+        wifi.tx_bitrate.wont_be_nil
       end
     end
   end

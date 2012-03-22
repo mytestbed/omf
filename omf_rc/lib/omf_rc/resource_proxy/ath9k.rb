@@ -1,7 +1,5 @@
-require 'omf_rc/resource_proxy/util/mod'
-require 'omf_rc/resource_proxy/util/ifconfig'
-require 'omf_rc/resource_proxy/util/iw'
 require 'erb'
+require 'omf_rc/resource_proxy/util'
 
 module OmfRc::ResourceProxy::Ath9k
   include OmfRc::ResourceProxy::Util::Mod
@@ -79,17 +77,17 @@ module OmfRc::ResourceProxy::Ath9k
         ap_pid = Tempfile.new(APPID)
         OmfRc::Cmd.exec("#{IW} phy #{base_device} interface add #{uid} type managed")
         OmfRc::Cmd.exec("#{HOSTAPD} -B -P #{ap_pid.path} #{ap_conf.path}")
-          when /^managed$/
-            OmfRc::Cmd.exec("#{IW} dev #{uid} del")
-                        wpa_conf = render_template(WPACONf, binding)
-                        wpa_pid = Tempfile.new(WPAPID)
-                        OmfRc::Cmd.exec("#{IW} phy #{base_device} interface add #{uid} type managed")
-                        OmfRc::Cmd.exec("#{WPASUP} -B -P #{wpa_pid.path} -i#{uid} -c#{wpa_conf.path}")
-          when /^adhoc$/
-            OmfRc::Cmd.exec("#{IW} dev #{uid} del")
-                                        OmfRc::Cmd.exec("#{IW} phy #{base_device} interface add #{uid} type adhoc")
-                                        OmfRc::Cmd.exec("#{IFCONFIG} #{uid} up")
-                                        OmfRc::Cmd.exec("#{IW} dev #{uid} ibss join #{wifi_configure.essid} #{FREQUENCY[wifi_configure.channel]}")
+      when /^managed$/
+        OmfRc::Cmd.exec("#{IW} dev #{uid} del")
+        wpa_conf = render_template(WPACONf, binding)
+        wpa_pid = Tempfile.new(WPAPID)
+        OmfRc::Cmd.exec("#{IW} phy #{base_device} interface add #{uid} type managed")
+        OmfRc::Cmd.exec("#{WPASUP} -B -P #{wpa_pid.path} -i#{uid} -c#{wpa_conf.path}")
+      when /^adhoc$/
+        OmfRc::Cmd.exec("#{IW} dev #{uid} del")
+        OmfRc::Cmd.exec("#{IW} phy #{base_device} interface add #{uid} type adhoc")
+        OmfRc::Cmd.exec("#{IFCONFIG} #{uid} up")
+        OmfRc::Cmd.exec("#{IW} dev #{uid} ibss join #{wifi_configure.essid} #{FREQUENCY[wifi_configure.channel]}")
       when /^monitor$/
         OmfRc::Cmd.exec("#{IW} dev #{uid} del")
         OmfRc::Cmd.exec("#{IW} phy #{base_device} interface add #{uid} type monitor")

@@ -1,6 +1,4 @@
-require 'omf_rc/resource_proxy/util/mod'
-require 'omf_rc/resource_proxy/util/ifconfig'
-require 'omf_rc/resource_proxy/util/iw'
+require 'omf_rc/resource_proxy/util'
 
 module OmfRc::ResourceProxy::Wifi
   include OmfRc::ResourceProxy::Util::Mod
