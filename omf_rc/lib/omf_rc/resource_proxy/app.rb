@@ -1,6 +1,6 @@
 module OmfRc::ResourceProxy::App
   PKGINFO = 'dpkg -l'
-  PKGTOOL = 'apt'
+  PKGTOOL = 'apt-get'
   def request_property(property)
     case property
     when /^version$/
@@ -13,10 +13,9 @@ module OmfRc::ResourceProxy::App
   def configure_property(property, value)
     case property
     when /^install$/
-      OmfRc::Cmd.exec("DEBIAN_FRONTEND='noninteractive' #{PKGTOOL} install --reinstall --allow-unauthenticated -qq #{uid}")
-    when /^remove$/
-      operation = value == 'purge' ? 'purge' : 'remove'
-      OmfRc::Cmd.exec("DEBIAN_FRONTEND='noninteractive' #{PKGTOOL} #{operation} --allow-unauthenticated -qq #{uid}")
+      OmfRc::Cmd.exec("#{PKGTOOL} #{$1} -y --reinstall --allow-unauthenticated -qq #{uid}")
+    when /^(remove|purge)$/
+      OmfRc::Cmd.exec("#{PKGTOOL} #{$1} -y -qq #{uid}")
     when /^exectue$/
       OmfRc::Cmd.exec(value)
     when /^terminate$/
