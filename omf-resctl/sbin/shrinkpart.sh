@@ -65,15 +65,15 @@ echo "-> Removing partition table entries 2, 3 and 4"
 SFDISK="sfdisk -q -L -uB -f"
 
 $SFDISK -N2 $DISK >/dev/null <<P2
-0,0
+0,0,0
 P2
 
 $SFDISK -N3 $DISK >/dev/null <<P3
-0,0
+0,0,0
 P3
 
 $SFDISK -N4 $DISK >/dev/null <<P4
-0,0
+0,0,0
 P4
 
 echo "-> Growing partition $PART to minimum size + 5% ($SHRINKTO blocks)"
