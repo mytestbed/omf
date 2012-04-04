@@ -2,9 +2,11 @@ require 'erb'
 require 'omf_rc/resource_proxy/util'
 
 module OmfRc::ResourceProxy::Ath9k
-  include OmfRc::ResourceProxy::Util::Mod
-  include OmfRc::ResourceProxy::Util::Ifconfig
-  include OmfRc::ResourceProxy::Util::Iw
+  include OmfRc::ResourceProxy::Util
+
+  utility :mod
+  utility :ifconfig
+  utility :iw
 
   IWCONFIG = 'iwconfig'
   IW = 'iw'

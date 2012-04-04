@@ -7,9 +7,5 @@ describe OmfRc::Cmd do
       OmfRc::Cmd.exec("ls").wont_be_empty
       proc { OmfRc::Cmd.exec("ls") }.must_be_silent
     end
-
-    it "must return nil if failed" do
-      OmfRc::Cmd.exec("dpkg -l bob").must_be_nil
-    end
   end
 end

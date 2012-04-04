@@ -17,7 +17,7 @@ end
 
 describe Mock do
   before do
-    @resource = Abstract.new(:type => 'mock', :uid => 'suzuka', :properties => {:mock_property => "test"})
+    @resource = AbstractResource.new(:type => 'mock', :uid => 'suzuka', :properties => {:mock_property => "test"})
   end
 
   describe "when child resource with a known type" do

@@ -1,4 +1,7 @@
-module OmfRc::ResourceProxy::Util; end
+module OmfRc::ResourceProxy
+  module Util
+  end
+end
 
 Dir["#{File.dirname(__FILE__)}/resource_proxy/*.rb"].each do |file|
   require "omf_rc/resource_proxy/#{File.basename(file).gsub(/\.rb/, '')}"

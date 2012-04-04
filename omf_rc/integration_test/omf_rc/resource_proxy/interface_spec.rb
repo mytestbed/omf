@@ -5,7 +5,7 @@ include OmfRc::ResourceProxy
 
 describe Interface do
   before do
-    @resource = Abstract.new(type: 'abstract', properties: { pubsub: "mytestbed.net" })
+    @resource = AbstractResource.new(properties: { pubsub: "mytestbed.net" })
     @interface = @resource.create(:type => 'interface', :uid => 'eth0')
   end
 

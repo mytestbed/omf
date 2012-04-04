@@ -5,7 +5,7 @@ include OmfRc::ResourceProxy
 
 describe Wifi do
   before do
-    @resource = Abstract.new(type: 'abstract', properties: { pubsub: "mytestbed.net" })
+    @resource = AbstractResource.new(properties: { pubsub: "mytestbed.net" })
     @wifi = @resource.create(:type => 'wifi', :uid => 'wlan0')
   end
 
@@ -16,7 +16,7 @@ describe Wifi do
 
   describe "when properties requested" do
     it "must return an array with actual properties" do
-      @resource.request([:ssid, :freq, :ssid, :freq, :rx, :tx, :signal, :tx_bitrate], {:type => 'wifi'}).each do |wifi|
+      @resource.request([:ssid, :freq, :rx, :tx, :signal, :tx_bitrate], {:type => 'wifi'}).each do |wifi|
         wifi.ssid.wont_be_nil
         wifi.freq.wont_be_nil
         wifi.rx.wont_be_nil

@@ -5,7 +5,7 @@ include OmfRc::ResourceProxy
 
 describe Node do
   before do
-    @resource = Abstract.new(type: 'abstract', properties: { pubsub: "mytestbed.net" })
+    @resource = AbstractResource.new(properties: { pubsub: "mytestbed.net" })
     @node = @resource.create(:type => 'node', :uid => 'monaco')
   end
 

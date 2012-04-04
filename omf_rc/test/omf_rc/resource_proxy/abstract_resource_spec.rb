@@ -1,5 +1,5 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy/abstract'
+require 'omf_rc/resource_proxy/abstract_resource'
 
 include OmfRc::ResourceProxy
 
@@ -14,9 +14,9 @@ module OmfRc::ResourceProxy
   end
 end
 
-describe Abstract do
+describe AbstractResource do
   before do
-    @resource = Abstract.new(type: 'machine', properties: { pubsub: "mytestbed.net" })
+    @resource = AbstractResource.new(type: 'machine', properties: { pubsub: "mytestbed.net" })
   end
 
   describe "when intialised" do
@@ -33,7 +33,7 @@ describe Abstract do
 
   describe "when asked to create another resource" do
     it "must return the newly created resource" do
-      @resource.create(:type => 'test2').must_be_kind_of Abstract
+      @resource.create(:type => 'test2').must_be_kind_of AbstractResource
     end
 
     it "must add the resource to its created resource list" do
@@ -75,19 +75,12 @@ describe Abstract do
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = Abstract.new(type: 'test')
-      @resource_2 = Abstract.new(type: 'test')
+      @resource_1 = AbstractResource.new(type: 'test')
+      @resource_2 = AbstractResource.new(type: 'test')
       @resource.add(@resource_1).add(@resource_2)
       @resource.release(@resource_1)
       @resource_1.children.must_be_empty
       @resource.children.must_be_empty
-    end
-  end
-
-  describe "when asked to activated" do
-    it "must change its state to active" do
-      @resource.activate
-      @resource.state.must_equal "active"
     end
   end
 end

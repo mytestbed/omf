@@ -5,7 +5,7 @@ include OmfRc::ResourceProxy
 
 describe App do
   before do
-    @resource = Abstract.new(type: 'abstract', properties: { pubsub: "mytestbed.net" })
+    @resource = AbstractResource.new(properties: { pubsub: "mytestbed.net" })
     @app1 = @resource.create(:type => 'app', :uid => 'zathura')
     @app2 = @resource.create(:type => 'app', :uid => 'bob')
   end

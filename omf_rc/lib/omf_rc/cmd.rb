@@ -1,7 +1,7 @@
 require 'open3'
 require 'omf_common'
 
-class OmfRc::Cmd
+module OmfRc::Cmd
   def self.exec(*cmd)
     Open3.popen3(*cmd) do |stdin, stdout, stderr, wait_thread|
       case wait_thread.value.exitstatus

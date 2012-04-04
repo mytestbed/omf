@@ -1,33 +1,23 @@
 require 'omf_common'
 require 'securerandom'
 require 'hashie'
-require 'state_machine'
 
-class OmfRc::ResourceProxy::Abstract
+class OmfRc::ResourceProxy::AbstractResource
   attr_accessor :uid, :type, :properties
-  attr_reader :state, :children
-
-  state_machine :state, :initial => :inactive do
-    event :activate do
-      transition :inactive => :active
-    end
-
-    event :dectivate do
-      transition :active => :inactive
-    end
-  end
+  attr_reader :children
 
   def initialize(opts)
     opts = Hashie::Mash.new(opts)
     %w(uid type properties).each { |v| self.send("#{v}=", opts.send(v)) }
+    @type ||= 'abstract'
     @properties ||= Hashie::Mash.new
     @uid ||= SecureRandom.uuid
     @children ||= []
+
     validate
     self.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant) unless type.to_s == 'abstract'
     super()
   end
-
 
   # Custom validation rules, extend this to validation specific properties
   def validate
@@ -99,7 +89,7 @@ class OmfRc::ResourceProxy::Abstract
   end
 
   def configure_property(property, value)
-    self.properties.send("#{property}=", value)
+    properties.send("#{property}=", value)
   end
 
   def request_property(property)
