@@ -1,5 +1,5 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy/abstract'
+require 'omf_rc/resource_proxy/abstract_resource'
 
 include OmfRc::ResourceProxy
 
