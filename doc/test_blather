@@ -78,11 +78,21 @@ module XMPPTest
           pubsub.subscribe('/blather', nil, @@pubsub) do |m|
             @@subid = m.subid
             puts "Subscribe > Subscribed with id #{@@subid}" if @@subid
-            pubsub.publish('/blather', Blather::Stanza::Message.new("Hello World"), @@pubsub) do |m|
-              puts "Publish > Published Hello World"
+
+            EM::add_periodic_timer(2) do
+              pubsub.publish('/blather', Blather::Stanza::Message.new(nil, "Hello World #{rand(100)}"), @@pubsub)
             end
           end
         end
+      end
+    end
+
+    pubsub_event :items do |m|
+      puts "Event > Pubsub Item received"
+      puts m.subscription
+      m.items.each do |i|
+        puts i.payload_node.class
+        puts "Message > #{i.payload_node.child.content}"
       end
     end
   end
