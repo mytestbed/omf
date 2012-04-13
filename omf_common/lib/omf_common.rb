@@ -1,6 +1,10 @@
-require "omf_common/version"
-require "omf_common/monkeypatch"
 require 'logging'
+
+require "omf_common/version"
+require "omf_common/core_ext/string"
+require "omf_common/core_ext/blather/dsl"
+require "omf_common/core_ext/blather/stanza/registration"
+
 
 include Logging.globally
 
