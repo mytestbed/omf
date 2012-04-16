@@ -1,11 +1,11 @@
 require 'niceogiri'
-require 'uuid'
+require 'securerandom'
 
 module OmfCommon
   # Refer to resource life cycle, instance methods are basically construct & parse XML fragment
   class Message < Niceogiri::XML::Node
     def initialize
-      @id ||= UUID.new
+      @id ||= SecureRandom.uuid
     end
 
     def create(name)
