@@ -1,6 +1,7 @@
 require 'logging'
 
 require "omf_common/version"
+require "omf_common/message"
 require "omf_common/core_ext/string"
 
 include Logging.globally

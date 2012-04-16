@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'omf_common'
 
 describe String do
   describe "when given a string" do
