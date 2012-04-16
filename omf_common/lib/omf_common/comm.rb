@@ -1,4 +1,4 @@
-require 'comm/xmpp'
+require 'omf_common/dsl/xmpp'
 
 module OmfCommon
   class Comm

@@ -3,7 +3,7 @@ require "omf_common/core_ext/blather/dsl/pubsub"
 require "omf_common/core_ext/blather/stanza/registration"
 
 module OmfCommon
-  module Comm
+  module DSL
     module XMPP
       extend Blather::DSL
 
