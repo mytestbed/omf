@@ -20,18 +20,7 @@ module OmfCommon
 
       def connect(username, password, server)
         jid = "#{username}@#{server}"
-
         client.setup(jid, password)
-
-        when_ready do
-          register(username, password) do |m|
-            logger.warn m.inspect
-            #client.close
-            client.setup(jid, password)
-            #client.run
-          end
-        end
-
         client.run
       end
 
@@ -55,7 +44,7 @@ module OmfCommon
       end
 
       def unsubscribe(node, host)
-        pubusub.subscriptions(host) do |m|
+        pubsub.subscriptions(host) do |m|
           m.subscribed.each do |s|
             pusbub.unsubscribe(node, nil, s.id, host)
           end
@@ -64,6 +53,10 @@ module OmfCommon
 
       def publish(node, message, host, &block)
         pubsub.publish(node, message, host, &block)
+      end
+
+      def node_event(&block)
+        pubsub_event(&block)
       end
     end
   end
