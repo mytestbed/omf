@@ -12,7 +12,7 @@ module OmfCommon
       OPERATION.each do |operation|
         define_method(operation) do |*args, &block|
           xml = new(operation, nil, OMF_NAMESPACE)
-          xml.write_attr('id', SecureRandom.uuid)
+          xml.write_attr('id', args[0] || SecureRandom.uuid)
           block.call(xml) if block
           xml
         end
