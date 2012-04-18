@@ -1,4 +1,4 @@
-require 'blather'
+require 'blather/stanza/iq'
 
 module Blather
   class Stanza
