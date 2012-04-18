@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+require 'omf_common'
+$stdout.sync = true
+
+# Define Banner and Options
+#
+@username = @password = @server = @debug = nil
+@opts = OptionParser.new
+@opts.banner = "\nTest XMPP Peering\n\n"+
+  "Usage: #{$0} [OPTIONS]\n\n"
+@opts.on("-u", "--username NAME",
+         "Username to login to home server") {|n| @username = n }
+@opts.on("-p", "--password PASS",
+         "Password to login to home server") {|n| @password = n }
+@opts.on("-s", "--server HOST",
+         "Hostname for home server") {|n| @server = n }
+@opts.on("-d", "--debug",
+         "Debug mode") {|n| @debug = true }
+@opts.on("-t", "--topic TOPIC",
+         "Topic name to use for test (optional)") {|n| @topic = n }
+
+def show_help() puts @opts ; puts "\n" ; exit;  end
+
+@opts.parse(ARGV)
+
+show_help if !@username || !@password || !@server
+
+Blather.logger.level = Logger::DEBUG if @debug
+
+@comm = OmfCommon::Comm.new(:xmpp_blather)
+
+@comm.when_ready do
+  @host = "pubsub.#{@comm.jid.domain}"
+
+  logger.info "Ready > Connected as #{@comm.jid.inspect}"
+
+  @comm.discover :items, @host, '' do |response|
+    if response.items.size > 0
+      logger.info "Discover > There are #{response.items.size} topics"
+      logger.info "Discover > First topic on list: #{response.items.first.node}"
+    end
+  end
+
+  @comm.create_node('/blather', @host) do |c|
+    logger.warn c.find_first('error').inspect if c.error?
+    @comm.subscribe('/blather', @host) do |m|
+      logger.info "Subscribe > Subscribed with id #{m.subid}" if m.subid
+      5.times do
+        logger.info 'Publishing'
+        @comm.publish('/blather', OmfCommon::Message.configure {|v| v.property('os', 'debian')}, @host)
+      end
+    end
+  end
+end
+
+@comm.node_event do |m|
+  logger.info 'Node event >'
+  logger.info m.items
+end
+
+trap(:INT) { @comm.disconnect }
+trap(:TERM) { @comm.disconnect }
+
+EM.run { @comm.connect(@username, @password, @server) }
