@@ -1,0 +1,33 @@
+default namespace = "http://schema.mytestbed.net/6.0/protocol"
+
+element (create | configure) {
+  attribute msg_id { text },
+  element context_id { text },
+  element property {
+    (attribute key { text } | element key { text }),
+    (attribute type { text } | element type { text })?,
+    (element value { text } | text),
+    element unit { text }?,
+    element precision { text }?
+  }*
+} |
+element request {
+  attribute msg_id { text },
+  element context_id { text },
+  element publish_to { text }?,
+  element property {
+    (attribute key { text } | element key { text }),
+    element min_value { text }?,
+    element max_value { text }?
+  }*
+} |
+element inform {
+  attribute msg_id { text },
+  element context_id { text },
+  element message_type { "CREATION_OK" | "CREATION_FAILED" | "STATUS" | "RELEASED" },
+  element message_type { text }
+} |
+element release {
+  attribute msg_id { text },
+  element context_id { text }
+}

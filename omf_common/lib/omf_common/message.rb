@@ -16,6 +16,7 @@ module OmfCommon
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
+    SCHEMA_FILE = "#{File.dirname(__FILE__)}/omf.rng"
 
     OPERATION = %w(create configure request release inform)
 
@@ -36,7 +37,8 @@ module OmfCommon
     end
 
     def property(key, value = nil, &block)
-      key_node = MessageElement.new(key)
+      key_node = MessageElement.new('property')
+      key_node.write_attr('key', key)
       self.add_child(key_node)
       if block
         if value
@@ -54,12 +56,21 @@ module OmfCommon
     # Generate SHA1 of canonical xml and write into the ID attribute of the message
     #
     def sign
-      write_attr('id', OpenSSL::Digest::SHA1.new(canonicalize)) if read_attr('id').nil? || read_attr('id').empty?
+      write_attr('msg_id', OpenSSL::Digest::SHA1.new(canonicalize)) if read_attr('id').nil? || read_attr('id').empty?
       self
     end
 
     def valid?
-      true
+      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(self.document)
+      if validation.empty?
+        true
+      else
+        logger.error self.document
+        validation.each do |error|
+          logger.error error.message
+        end
+        false
+      end
     end
   end
 

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<choice ns="http://schema.mytestbed.net/6.0/protocol" xmlns="http://relaxng.org/ns/structure/1.0">
+  <element>
+    <choice>
+      <name>create</name>
+      <name>configure</name>
+    </choice>
+    <attribute name="msg_id"/>
+    <element name="context_id">
+      <text/>
+    </element>
+    <zeroOrMore>
+      <element name="property">
+        <choice>
+          <attribute name="key"/>
+          <element name="key">
+            <text/>
+          </element>
+        </choice>
+        <optional>
+          <choice>
+            <attribute name="type"/>
+            <element name="type">
+              <text/>
+            </element>
+          </choice>
+        </optional>
+        <choice>
+          <element name="value">
+            <text/>
+          </element>
+          <text/>
+        </choice>
+        <optional>
+          <element name="unit">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="precision">
+            <text/>
+          </element>
+        </optional>
+      </element>
+    </zeroOrMore>
+  </element>
+  <element name="request">
+    <attribute name="msg_id"/>
+    <element name="context_id">
+      <text/>
+    </element>
+    <optional>
+      <element name="publish_to">
+        <text/>
+      </element>
+    </optional>
+    <zeroOrMore>
+      <element name="property">
+        <choice>
+          <attribute name="key"/>
+          <element name="key">
+            <text/>
+          </element>
+        </choice>
+        <optional>
+          <element name="min_value">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="max_value">
+            <text/>
+          </element>
+        </optional>
+      </element>
+    </zeroOrMore>
+  </element>
+  <element name="inform">
+    <attribute name="msg_id"/>
+    <element name="context_id">
+      <text/>
+    </element>
+    <element name="message_type">
+      <choice>
+        <value>CREATION_OK</value>
+        <value>CREATION_FAILED</value>
+        <value>STATUS</value>
+        <value>RELEASED</value>
+      </choice>
+    </element>
+    <element name="message_type">
+      <text/>
+    </element>
+  </element>
+  <element name="release">
+    <attribute name="msg_id"/>
+    <element name="context_id">
+      <text/>
+    </element>
+  </element>
+</choice>
