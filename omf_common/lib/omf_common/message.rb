@@ -16,7 +16,7 @@ module OmfCommon
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    SCHEMA_FILE = "#{File.dirname(__FILE__)}/omf.rng"
+    SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol.rng"
 
     OPERATION = %w(create configure request release inform)
 
@@ -41,16 +41,16 @@ module OmfCommon
       key_node.write_attr('key', key)
       self.add_child(key_node)
       if block
-        if value
-          value_node = MessageElement.new('value')
-          value_node.content = value
-          key_node.add_child(value_node)
-        end
+        key_node.add_child(MessageElement.new.element('value', value)) if value
         block.call(key_node)
       else
         key_node.content = value if value
       end
       key_node
+    end
+
+    def inform_type(value)
+      self.add_child(MessageElement.new.element('inform_type', value))
     end
 
     # Generate SHA1 of canonical xml and write into the ID attribute of the message

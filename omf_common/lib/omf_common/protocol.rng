@@ -80,17 +80,50 @@
     <element name="context_id">
       <text/>
     </element>
-    <element name="message_type">
+    <element name="inform_type">
       <choice>
-        <value>CREATION_OK</value>
-        <value>CREATION_FAILED</value>
+        <value>CREATED</value>
+        <value>FAILED</value>
         <value>STATUS</value>
         <value>RELEASED</value>
       </choice>
     </element>
-    <element name="message_type">
-      <text/>
-    </element>
+    <optional>
+      <element name="resource_id">
+        <text/>
+      </element>
+    </optional>
+    <optional>
+      <element name="resource_address">
+        <text/>
+      </element>
+    </optional>
+    <zeroOrMore>
+      <element name="property">
+        <choice>
+          <attribute name="key"/>
+          <element name="key">
+            <text/>
+          </element>
+        </choice>
+        <element name="current">
+          <text/>
+        </element>
+        <element name="target">
+          <text/>
+        </element>
+        <optional>
+          <element name="msg">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="progress">
+            <text/>
+          </element>
+        </optional>
+      </element>
+    </zeroOrMore>
   </element>
   <element name="release">
     <attribute name="msg_id"/>
