@@ -24,33 +24,31 @@ module OmfCommon
       OPERATION.each do |operation|
         define_method(operation) do |*args, &block|
           xml = new(operation, nil, OMF_NAMESPACE)
-          xml.add_child(
-            MessageElement.new.element(
-              'context_id',
-              operation == 'inform' ? args.first : SecureRandom.uuid)
-          )
-          xml.add_child(MessageElement.new.element('publish_to', args.first)) if operation == 'request'
+          xml.element('context_id', operation == 'inform' ? args[0] : SecureRandom.uuid)
+          xml.element('publish_to', args[0]) if operation == 'request'
+          xml.element('inform_type', args[1]) if operation == 'inform'
           block.call(xml) if block
           xml
         end
       end
+
+      def parse(xml)
+        xml_root = Nokogiri::XML(xml).root
+        new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
+      end
     end
 
     def property(key, value = nil, &block)
-      key_node = MessageElement.new('property')
+      key_node = Message.new('property')
       key_node.write_attr('key', key)
-      self.add_child(key_node)
+      add_child(key_node)
       if block
-        key_node.add_child(MessageElement.new.element('value', value)) if value
+        key_node.element('value', value) if value
         block.call(key_node)
       else
         key_node.content = value if value
       end
       key_node
-    end
-
-    def inform_type(value)
-      self.add_child(MessageElement.new.element('inform_type', value))
     end
 
     # Generate SHA1 of canonical xml and write into the ID attribute of the message
@@ -61,24 +59,19 @@ module OmfCommon
     end
 
     def valid?
-      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(self.document)
+      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(document)
       if validation.empty?
         true
       else
-        logger.error self.document
-        validation.each do |error|
-          logger.error error.message
-        end
+        logger.error validation.map(&:message).join("\n")
         false
       end
     end
-  end
 
-  class MessageElement < Niceogiri::XML::Node
     def element(key, value)
-      key_node = MessageElement.new(key)
+      key_node = Niceogiri::XML::Node.new(key)
       key_node.content = value
-      self.add_child(key_node)
+      add_child(key_node)
     end
   end
 end
