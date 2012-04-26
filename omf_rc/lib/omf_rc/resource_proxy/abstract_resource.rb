@@ -16,7 +16,6 @@ class OmfRc::ResourceProxy::AbstractResource
 
     validate
     self.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant) unless type.to_s == 'abstract'
-    super()
   end
 
   # Custom validation rules, extend this to validation specific properties
