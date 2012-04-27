@@ -51,10 +51,10 @@ module OmfCommon
       key_node
     end
 
-    # Generate SHA1 of canonical xml and write into the ID attribute of the message
-    #
+    # Generate SHA1 of xml and write into the ID attribute of the message
+    # TODO canonicalise xml
     def sign
-      write_attr('msg_id', OpenSSL::Digest::SHA1.new(canonicalize)) if read_attr('id').nil? || read_attr('id').empty?
+      write_attr('msg_id', OpenSSL::Digest::SHA1.new(self)) if read_attr('id').nil? || read_attr('id').empty?
       self
     end
 
