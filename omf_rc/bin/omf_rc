@@ -1,1 +1,102 @@
 #!/usr/bin/env ruby
+
+require "optparse"
+require 'omf_common'
+require 'omf_rc'
+$stdout.sync = true
+
+options = {
+  dsl: 'xmpp_blather',
+  pubsub_host: 'pubsub',
+  node: 'interlagos'
+}
+
+executable_name = File.basename($PROGRAM_NAME)
+
+option_parser = OptionParser.new do |opts|
+  opts.banner = "usage: #{executable_name} [options]"
+
+  opts.on("-u USER", "Username") do |user|
+    options[:user] = user
+  end
+
+  opts.on("-p PASSWORD", "Password") do |password|
+    options[:password] = password
+  end
+
+  opts.on("-s SERVER", "XMPP server") do |server|
+    options[:server] = server
+  end
+
+  opts.on("-d", "--debug", "Debug mode") do
+    options[:debug] = true
+  end
+end
+
+begin
+  option_parser.parse!
+rescue => e
+  puts e.message
+  puts ""
+  puts option_parser.help
+  exit(1)
+end
+
+unless options[:server] && options[:user] && options[:server]
+  puts option_parser.help
+  exit(1)
+end
+
+Blather.logger = logger
+Blather.logger.level = Logger::DEBUG if options[:debug]
+
+comm = OmfCommon::Comm.new(options[:dsl])
+host = nil
+
+comm.when_ready do
+  logger.info "CONNECTED: #{comm.jid.inspect}"
+  host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
+
+  comm.create_node(options[:node], host) do |s|
+    logger.error "CREATE NODE FAILED: #{s.xpath('//error')}" if s.error?
+
+    5.times do
+      comm.publish(options[:node], OmfCommon::Message.configure {|v| v.property('os', 'debian')}.sign, host)
+    end
+  end
+
+  comm.create_node(options[:node] + 'r2', host)
+
+  comm.create_node(options[:node] + 'r2', host)
+end
+
+comm.my_iq do |e|
+  logger.error e
+end
+
+comm.node_event :items, :node do |e|
+  e.items.each do |item|
+    logger.info "PUBSUB ITEM: #{OmfCommon::Message.parse(item.payload)}"
+    #comm.publish(options[:node], OmfCommon::Message.inform('9012c3bc-68de-459a-ac9f-530cc7168e22', 'STATUS').sign, host)
+  end
+end
+
+comm.node_event :items do |e|
+  e.items.each do |item|
+    logger.info "PUBSUB NODE CREATED: #{item.id}"
+  end
+end
+
+comm.node_event :error? do |e|
+  logger.error "PUBSUB NODE EVENT: #{e.xpath('//error').children.first.element_name}"
+end
+
+comm.node_event do |e|
+  logger.warn "PUBSUB OTHER EVENT: #{e}"
+end
+
+
+trap(:INT) { comm.disconnect(host) }
+trap(:TERM) { comm.disconnect(host) }
+
+EM.run { comm.connect(options[:user], options[:password], options[:server]) }

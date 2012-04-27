@@ -1,6 +1,5 @@
 require 'test_helper'
 
-MSG_NAMES = %w(create configure request inform release)
 PROP_ELEMENTS = %w(p1 p2 p3)
 
 describe OmfCommon::Message do

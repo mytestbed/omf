@@ -24,11 +24,20 @@ module OmfCommon
         client.run
       end
 
-      def disconnect
-        # Delete all created pubsub nodes
-        # unregister(username, password) do |m|
-        client.close
-        # end
+      def disconnect(host)
+        pubsub.affiliations(host) do |affiliation|
+          shutdown if affiliation[:owner].nil?
+
+          affiliation[:owner].each do |item|
+            pubsub.delete(item, host) do |m|
+              logger.error m if m.error?
+              logger.info "PUBSUB NODE DELETED: #{item}"if m.result?
+              pubsub.affiliations(host) do |a|
+                shutdown if a[:owner].nil?
+              end
+            end
+          end
+        end
       end
 
       def create_node(node, host, &block)
@@ -55,8 +64,12 @@ module OmfCommon
         pubsub.publish(node, message, host, &block)
       end
 
-      def node_event(&block)
-        pubsub_event(&block)
+      def node_event(*args, &block)
+        pubsub_event(*args, &block)
+      end
+
+      def my_iq(*args, &block)
+        iq(*args, &block)
       end
     end
   end
