@@ -14,6 +14,8 @@ module OmfRc::Cmd
         logger.error stderr.read.chomp
         nil
       end
+
+      logger.fatal stderr.read.chomp if wait_thread.value.exitstatus > 2
     end
   end
 end

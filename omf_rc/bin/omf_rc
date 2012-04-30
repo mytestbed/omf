@@ -11,6 +11,7 @@ include OmfRc::ResourceProxy
 module OmfRc::ResourceProxy
   module Mock
     def test
+      OmfRc::Cmd.exec("sleep 10")
     end
   end
 end
@@ -85,9 +86,11 @@ comm.node_event :items, :node do |e|
       if resource_mock && resource_mock.respond_to?(:test)
         logger.info "We created a resource #{resource_mock}, and it is created properly"
         logger.info "We now have #{resource_node.children.size} resources"
+        resource_mock.test
       end
     rescue => e
       logger.error e.message
+      logger.error e.backtrace
     end
   end
 end
