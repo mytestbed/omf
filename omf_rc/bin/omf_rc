@@ -3,7 +3,17 @@
 require "optparse"
 require 'omf_common'
 require 'omf_rc'
+require 'omf_rc/resource_proxy'
 $stdout.sync = true
+
+include OmfRc::ResourceProxy
+
+module OmfRc::ResourceProxy
+  module Mock
+    def test
+    end
+  end
+end
 
 options = {
   dsl: 'xmpp_blather',
@@ -50,6 +60,8 @@ end
 Blather.logger = logger
 Blather.logger.level = Logger::DEBUG if options[:debug]
 
+resource_node = AbstractResource.new(type: 'node', uid: options[:node])
+
 comm = OmfCommon::Comm.new(options[:dsl])
 host = nil
 
@@ -66,7 +78,17 @@ end
 # Fired when message published
 comm.node_event :items, :node do |e|
   e.items.each do |item|
-    logger.info "ITEM: #{OmfCommon::Message.parse(item.payload)}"
+    m = OmfCommon::Message.parse(item.payload)
+    resource_type = m.xpath("//xmlns:property[@key='type']", :xmlns => "http://schema.mytestbed.net/6.0/protocol").map(&:content).join(" ")
+    begin
+      resource_mock = resource_node.create(type: resource_type)
+      if resource_mock && resource_mock.respond_to?(:test)
+        logger.info "We created a resource #{resource_mock}, and it is created properly"
+        logger.info "We now have #{resource_node.children.size} resources"
+      end
+    rescue => e
+      logger.error e.message
+    end
   end
 end
 

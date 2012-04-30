@@ -53,14 +53,17 @@ Blather.logger.level = Logger::DEBUG if options[:debug]
 comm = OmfCommon::Comm.new(options[:dsl])
 host = nil
 
+create_a_mock = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
+create_nothing = OmfCommon::Message.create { |v| v.property('type', 'nothing') }.sign
+
 comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
   host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
 
-  #comm.create_node(options[:node], host) do |s|
   comm.subscribe(options[:node], host) do
     EM.add_periodic_timer(5) do
-      comm.publish(options[:node], OmfCommon::Message.configure {|v| v.property('test', rand(100))}.sign, host)
+      comm.publish(options[:node], create_a_mock, host)
+      comm.publish(options[:node], create_nothing, host)
     end
   end
 end
