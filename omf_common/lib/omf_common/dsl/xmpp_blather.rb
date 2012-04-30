@@ -58,7 +58,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def delete_node(node, host, &block)
-        pubsub.delete(node, host, &new_block(__method__, &block))
+        pubsub.delete(node, host, &new_block(__method__, node, &block))
       end
 
       # Subscribe to a pubsub node
