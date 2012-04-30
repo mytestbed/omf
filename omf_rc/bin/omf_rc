@@ -58,20 +58,24 @@ comm.when_ready do
   host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
 
   comm.create_node(options[:node], host) do |s|
-    logger.error "CREATE NODE FAILED: #{s.xpath('//error')}" if s.error?
-
-    5.times do
-      comm.publish(options[:node], OmfCommon::Message.configure {|v| v.property('os', 'debian')}.sign, host)
+    2.times do
+      comm.publish(options[:node], OmfCommon::Message.configure {|v| v.property('test', rand(100))}.sign, host)
     end
   end
 
-  comm.create_node(options[:node] + 'r2', host)
+  comm.subscribe(options[:node], host) do |m|
+    logger.warn m
+  end
 
-  comm.create_node(options[:node] + 'r2', host)
-end
+  comm.subscribe(options[:node], host) do |m|
+    logger.warn m
+  end
 
-comm.my_iq do |e|
-  logger.error e
+  comm.pubsub.subscriptions(host) do |m|
+    logger.warn m[:subscribed]
+  end
+
+  #comm.create_node(options[:node] + 'r2', host)
 end
 
 comm.node_event :items, :node do |e|
@@ -82,19 +86,13 @@ comm.node_event :items, :node do |e|
 end
 
 comm.node_event :items do |e|
-  e.items.each do |item|
-    logger.info "PUBSUB NODE CREATED: #{item.id}"
-  end
+  logger.info e
+  logger.info "PUBSUB NODES: #{e.items.map(&:id)}"
 end
 
-comm.node_event :error? do |e|
-  logger.error "PUBSUB NODE EVENT: #{e.xpath('//error').children.first.element_name}"
+comm.pubsub_event do |e|
+  logger.info "PUBSUB OTHER EVENT: #{e}"
 end
-
-comm.node_event do |e|
-  logger.warn "PUBSUB OTHER EVENT: #{e}"
-end
-
 
 trap(:INT) { comm.disconnect(host) }
 trap(:TERM) { comm.disconnect(host) }
