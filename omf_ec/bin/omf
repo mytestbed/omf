@@ -1,1 +1,76 @@
 #!/usr/bin/env ruby
+
+require "optparse"
+require 'omf_common'
+require 'omf_rc'
+$stdout.sync = true
+
+options = {
+  dsl: 'xmpp_blather',
+  pubsub_host: 'pubsub',
+  node: 'interlagos'
+}
+
+executable_name = File.basename($PROGRAM_NAME)
+
+option_parser = OptionParser.new do |opts|
+  opts.banner = "usage: #{executable_name} [options]"
+
+  opts.on("-u USER", "Username") do |user|
+    options[:user] = user
+  end
+
+  opts.on("-p PASSWORD", "Password") do |password|
+    options[:password] = password
+  end
+
+  opts.on("-s SERVER", "XMPP server") do |server|
+    options[:server] = server
+  end
+
+  opts.on("-d", "--debug", "Debug mode") do
+    options[:debug] = true
+  end
+end
+
+begin
+  option_parser.parse!
+rescue => e
+  puts e.message
+  puts ""
+  puts option_parser.help
+  exit(1)
+end
+
+unless options[:server] && options[:user] && options[:server]
+  puts option_parser.help
+  exit(1)
+end
+
+Blather.logger = logger
+Blather.logger.level = Logger::DEBUG if options[:debug]
+
+comm = OmfCommon::Comm.new(options[:dsl])
+host = nil
+
+comm.when_ready do
+  logger.info "CONNECTED: #{comm.jid.inspect}"
+  host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
+
+  #comm.create_node(options[:node], host) do |s|
+  comm.subscribe(options[:node], host) do
+    EM.add_periodic_timer(5) do
+      comm.publish(options[:node], OmfCommon::Message.configure {|v| v.property('test', rand(100))}.sign, host)
+    end
+  end
+end
+
+# Generic pubsub event
+comm.pubsub_event do |e|
+  logger.debug "PUBSUB GENERIC EVENT: #{e}"
+end
+
+trap(:INT) { comm.disconnect(host) }
+trap(:TERM) { comm.disconnect(host) }
+
+EM.run { comm.connect(options[:user], options[:password], options[:server]) }
