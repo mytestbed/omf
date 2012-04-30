@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest", "~> 2.11.3"
+  s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
   s.add_runtime_dependency "omf_common", "~> 6.0.0.pre"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
 end
