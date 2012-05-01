@@ -1,4 +1,4 @@
-module OmfRc::ResourceProxy::Util::Ifconfig
+module OmfRc::Util::Ifconfig
 
   IFCONFIG_CMD = "ifconfig"
 

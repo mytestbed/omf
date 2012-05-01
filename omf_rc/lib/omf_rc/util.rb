@@ -1,5 +1,5 @@
-module OmfRc::ResourceProxy::Util
-  UTIL_DIR = "omf_rc/resource_proxy/util"
+module OmfRc::Util
+  UTIL_DIR = "omf_rc/util"
 
   def self.included(base)
     base.extend(ClassMethods)
@@ -9,7 +9,7 @@ module OmfRc::ResourceProxy::Util
     def utility(name)
       name = name.to_s
       require "#{UTIL_DIR}/#{name}"
-      include "OmfRc::ResourceProxy::Util::#{name.camelcase}".constant
+      include "OmfRc::Util::#{name.camelcase}".constant
     end
   end
 end

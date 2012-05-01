@@ -1,5 +1,5 @@
 require 'hashie'
-module OmfRc::ResourceProxy::Util::Iw
+module OmfRc::Util::Iw
 
   IW_CMD = "iw"
 

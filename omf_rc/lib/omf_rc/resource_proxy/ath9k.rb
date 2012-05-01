@@ -1,8 +1,8 @@
 require 'erb'
-require 'omf_rc/resource_proxy/util'
+require 'omf_rc/util'
 
 module OmfRc::ResourceProxy::Ath9k
-  include OmfRc::ResourceProxy::Util
+  include OmfRc::Util
 
   utility :mod
   utility :ifconfig

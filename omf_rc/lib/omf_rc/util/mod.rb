@@ -1,4 +1,4 @@
-module OmfRc::ResourceProxy::Util::Mod
+module OmfRc::Util::Mod
 
   LSMOD_CMD = 'lsmod'
   MODPROBE_CMD = 'modprobe'
