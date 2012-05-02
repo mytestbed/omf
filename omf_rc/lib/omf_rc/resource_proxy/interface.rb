@@ -2,8 +2,10 @@ require 'hashie'
 require 'omf_rc/util'
 
 module OmfRc::ResourceProxy::Interface
+  include OmfRc::ResourceProxy
   include OmfRc::Util
 
+  register_proxy :interface
   utility :ifconfig
 
   IPTABLES = 'iptables'

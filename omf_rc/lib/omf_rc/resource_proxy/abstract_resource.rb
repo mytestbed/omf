@@ -6,16 +6,12 @@ class OmfRc::ResourceProxy::AbstractResource
   attr_accessor :uid, :type, :properties
   attr_reader :children
 
-  def initialize(opts)
+  def initialize(type, opts = nil)
     opts = Hashie::Mash.new(opts)
-    %w(uid type properties).each { |v| self.send("#{v}=", opts.send(v)) }
-    @type ||= 'abstract'
-    @properties ||= Hashie::Mash.new
-    @uid ||= SecureRandom.uuid
+    @type = type
+    @uid = opts.uid || SecureRandom.uuid
+    @properties = Hashie::Mash.new(opts.properties)
     @children ||= []
-
-    validate
-    self.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant) unless type.to_s == 'abstract'
   end
 
   # Custom validation rules, extend this to validation specific properties
@@ -53,8 +49,8 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option opts [String] :type Type of resource
   # @option opts [Hash] :properties See +configure+ for explanation
   # @return [Object] the newly created resource
-  def create(opts)
-    add(self.class.new(opts))
+  def create(type, opts = nil)
+    add(OmfRc::ResourceFactory.new(type, opts))
   end
 
   # Returns a resource instance if already exists, in the context of this resource, throw exception otherwise.

@@ -17,6 +17,7 @@ module OmfRc
 
       def configure_property(property, value)
         # TODO what could configure a node,
+        super
       end
     end
   end

@@ -1,10 +1,13 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy/abstract_resource'
+require 'omf_rc/resource_factory'
 
 include OmfRc::ResourceProxy
 
 module OmfRc::ResourceProxy
   module Mock
+    include OmfRc::ResourceProxy
+    register_proxy :mock
+
     def test
     end
 
@@ -17,12 +20,12 @@ end
 
 describe Mock do
   before do
-    @resource = AbstractResource.new(:type => 'mock', :uid => 'suzuka', :properties => {:mock_property => "test"})
+    @resource = OmfRc::ResourceFactory.new(:mock, :uid => 'suzuka', :properties => {:mock_property => "test"})
   end
 
   describe "when child resource with a known type" do
     it "must load methods from related module correctly" do
-      @mock = @resource.create(type: 'mock', uid: 'mock')
+      @mock = @resource.create(:mock, uid: 'mock')
       @mock.must_respond_to :test
       proc { @mock.must_send [@mock, :configure_property, 'test', 'test'] }.must_raise StandardError
     end

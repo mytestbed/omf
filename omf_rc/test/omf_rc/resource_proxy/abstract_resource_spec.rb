@@ -1,25 +1,33 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy/abstract_resource'
+require 'omf_rc/resource_factory'
 
 include OmfRc::ResourceProxy
 
 module OmfRc::ResourceProxy
   module Node
+    include OmfRc::ResourceProxy
+    register_proxy :node
   end
 
   module Interface
+    include OmfRc::ResourceProxy
+    register_proxy :interface
   end
 
   module Wifi
+    include OmfRc::ResourceProxy
+    register_proxy :wifi
   end
 
   module Mock
+    include OmfRc::ResourceProxy
+    register_proxy :mock
   end
 end
 
 describe AbstractResource do
   before do
-    @node = AbstractResource.new(type: 'node', properties: { pubsub: "mytestbed.net" })
+    @node = OmfRc::ResourceFactory.new(:node, properties: { pubsub: 'mytestbed.net' })
   end
 
   describe "when intialised" do
@@ -36,18 +44,18 @@ describe AbstractResource do
 
   describe "when asked to create another resource" do
     it "must return the newly created resource" do
-      @node.create(:type => 'interface').must_be_kind_of Interface
+      @node.create(:interface).must_be_kind_of Interface
     end
 
     it "must add the resource to its created resource list" do
-      @test2 = @node.create(:type => 'wifi')
+      @test2 = @node.create(:wifi)
       @node.children.must_include @test2
     end
   end
 
   describe "when asked to get a instance of created resource" do
     it "must return a instance of that resource" do
-      @test = @node.create(:type => 'wifi')
+      @test = @node.create(:wifi)
       @node.get(@test.uid).must_equal @test
     end
 
@@ -59,9 +67,9 @@ describe AbstractResource do
   describe "when asked for the state of the created resources" do
     it "must return a collection of data containing requested properties" do
       @node.uid = 'readable'
-      @resource_1 = @node.create(type: 'interface', uid: 1, properties: { test_key: 'test1' })
-      @resource_2 = @node.create(type: 'interface', uid: 2, properties: { test_key: 'test2' })
-      @resource_3 = @node.create(type: 'wifi', uid: 3, properties: { test_key: 'test3' })
+      @resource_1 = @node.create(:interface, uid: 1, properties: { test_key: 'test1' })
+      @resource_2 = @node.create(:interface, uid: 2, properties: { test_key: 'test2' })
+      @resource_3 = @node.create(:wifi, uid: 3, properties: { test_key: 'test3' })
       properties = @node.request([:test_key], { type: 'interface' })
       properties.size.must_equal 2
       properties[0].test_key.must_equal 'test1'
@@ -71,15 +79,15 @@ describe AbstractResource do
 
   describe "when asked to to configure a created resource" do
     it "must convert provided opt hash and update properties" do
-      @node.configure(:ip => '127.0.0.1')
+      @node.configure(ip: '127.0.0.1')
       @node.properties.ip.must_equal "127.0.0.1"
     end
   end
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = AbstractResource.new(type: 'wifi')
-      @resource_2 = AbstractResource.new(type: 'mock')
+      @resource_1 = OmfRc::ResourceFactory.new(:wifi)
+      @resource_2 = OmfRc::ResourceFactory.new(:mock)
       @node.add(@resource_1).add(@resource_2)
       @node.release(@resource_1)
       @resource_1.children.must_be_empty
