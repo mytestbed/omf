@@ -8,10 +8,16 @@ class OmfRc::ResourceFactory
   @@proxy_list = []
   @@utility_list = []
 
+  DEFAULT_OPTS = {
+    dsl: 'xmpp_blather',
+    pubsub_host: 'pubsub'
+  }
+
   class << self
     def new(type, opts = nil)
       raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       type = type.to_s
+      opts = opts ? DEFAULT_OPTS.merge(opts) : DEFAULT_OPTS
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts)
       resource.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant)
       resource

@@ -3,15 +3,19 @@ require 'securerandom'
 require 'hashie'
 
 class OmfRc::ResourceProxy::AbstractResource
-  attr_accessor :uid, :type, :properties
-  attr_reader :children
+  attr_accessor :uid, :type, :properties, :comm
+  attr_reader :opts, :children, :host
 
   def initialize(type, opts = nil)
-    opts = Hashie::Mash.new(opts)
+    @opts = Hashie::Mash.new(opts)
     @type = type
-    @uid = opts.uid || SecureRandom.uuid
-    @properties = Hashie::Mash.new(opts.properties)
+    @uid = @opts.uid || SecureRandom.uuid
+    @properties = Hashie::Mash.new(@opts.properties)
     @children ||= []
+
+    @comm = OmfCommon::Comm.new(@opts.dsl)
+    @host = nil
+    register_default_xmpp_callbacks
   end
 
   # Custom validation rules, extend this to validation specific properties
@@ -89,5 +93,60 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def request_property(property)
     properties.send(property)
+  end
+
+  def register_default_xmpp_callbacks
+    @comm.when_ready do
+      logger.info "CONNECTED: #{@comm.jid.inspect}"
+      @host = "#{opts.pubsub_host}.#{@comm.jid.domain}"
+
+      @comm.create_node(uid, host) do |s|
+        @comm.subscribe(uid, host)
+      end
+    end
+
+    # Fired when message published
+    @comm.node_event :items, :node do |e|
+      e.items.each do |item|
+        m = OmfCommon::Message.parse(item.payload)
+        logger.error "Invalid Message\n#{m.to_xml}" unless m.valid?
+        context_id = m.read_element("//context_id").first.content
+        logger.info "RECEIVED: #{m.operation.to_s} <Context ID> #{context_id}"
+
+        begin
+          case m.operation
+          when :create
+            @comm.publish(uid, OmfCommon::Message.inform(context_id, 'STATUS').sign, host)
+          when :request
+            @comm.publish(uid, OmfCommon::Message.inform(context_id, 'STATUS').sign, host)
+          when :configure
+            @comm.publish(uid, OmfCommon::Message.inform(context_id, 'STATUS').sign, host)
+          when :relase
+            @comm.publish(uid, OmfCommon::Message.inform(context_id, 'STATUS').sign, host)
+          when :inform
+          end
+        rescue => e
+          logger.error "#{e.message}\n#{e.backtrace.join("\n")}"
+        end
+      end
+    end
+
+    # Fired when node created
+    @comm.node_event :items do |e|
+      logger.info "NODES: #{e.items.map(&:id)}"
+    end
+
+    # Generic pubsub event
+    @comm.pubsub_event do |e|
+      logger.debug "PUBSUB GENERIC EVENT: #{e}"
+    end
+  end
+
+  def connect
+    @comm.connect(opts.user, opts.password, opts.server)
+  end
+
+  def disconnect
+    @comm.disconnect(host)
   end
 end

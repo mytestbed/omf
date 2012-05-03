@@ -14,7 +14,7 @@ module OmfRc::Util::Mod
 
   def configure_property(property, value)
     case property
-    when /^(mode|driver)_(.+)$/
+    when /^(mod|driver)_(.+)$/
       OmfRc::Cmd.exec("#{MODPROBE} #{$+}")
     else
       super

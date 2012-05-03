@@ -3,23 +3,15 @@
 require "optparse"
 require 'omf_common'
 require 'omf_rc'
-require 'omf_rc/resource_proxy'
+require 'omf_rc/resource_factory'
 $stdout.sync = true
 
-include OmfRc::ResourceProxy
+OmfRc::ResourceFactory.bootstrap
 
-module OmfRc::ResourceProxy
-  module Mock
-    def test
-      OmfRc::Cmd.exec("sleep 10")
-    end
-  end
-end
+logger.info OmfRc::ResourceFactory.proxy_list
 
 options = {
-  dsl: 'xmpp_blather',
-  pubsub_host: 'pubsub',
-  node: 'interlagos'
+  uid: 'interlagos'
 }
 
 executable_name = File.basename($PROGRAM_NAME)
@@ -37,6 +29,10 @@ option_parser = OptionParser.new do |opts|
 
   opts.on("-s SERVER", "XMPP server") do |server|
     options[:server] = server
+  end
+
+  opts.on("-n NODE", "PubSub node to create, also becomes the uid of the resource") do |node|
+    options[:uid] = node
   end
 
   opts.on("-d", "--debug", "Debug mode") do
@@ -61,51 +57,12 @@ end
 Blather.logger = logger
 Blather.logger.level = Logger::DEBUG if options[:debug]
 
-resource_node = AbstractResource.new(type: 'node', uid: options[:node])
+node = OmfRc::ResourceFactory.new(:node, options)
 
-comm = OmfCommon::Comm.new(options[:dsl])
-host = nil
+trap(:INT) { node.disconnect }
+trap(:TERM) { node.disconnect }
 
-comm.when_ready do
-  logger.info "CONNECTED: #{comm.jid.inspect}"
-  host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
-
-  comm.create_node(options[:node], host) do |s|
-    comm.subscribe(options[:node], host)
-    #comm.publish(options[:node], OmfCommon::Message.configure {|v| v.property('test', rand(100))}.sign, host)
-  end
+#EM.run { comm.connect(options[:user], options[:password], options[:server]) }
+EM.run do
+  node.connect
 end
-
-# Fired when message published
-comm.node_event :items, :node do |e|
-  e.items.each do |item|
-    m = OmfCommon::Message.parse(item.payload)
-    resource_type = m.xpath("//xmlns:property[@key='type']", :xmlns => "http://schema.mytestbed.net/6.0/protocol").map(&:content).join(" ")
-    begin
-      resource_mock = resource_node.create(type: resource_type)
-      if resource_mock && resource_mock.respond_to?(:test)
-        logger.info "We created a resource #{resource_mock}, and it is created properly"
-        logger.info "We now have #{resource_node.children.size} resources"
-        resource_mock.test
-      end
-    rescue => e
-      logger.error e.message
-      logger.error e.backtrace
-    end
-  end
-end
-
-# Fired when node created
-comm.node_event :items do |e|
-  logger.info "NODES: #{e.items.map(&:id)}"
-end
-
-# Generic pubsub event
-comm.pubsub_event do |e|
-  logger.debug "PUBSUB GENERIC EVENT: #{e}"
-end
-
-trap(:INT) { comm.disconnect(host) }
-trap(:TERM) { comm.disconnect(host) }
-
-EM.run { comm.connect(options[:user], options[:password], options[:server]) }
