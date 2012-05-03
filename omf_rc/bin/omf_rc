@@ -8,8 +8,6 @@ $stdout.sync = true
 
 OmfRc::ResourceFactory.bootstrap
 
-logger.info OmfRc::ResourceFactory.proxy_list
-
 options = {
   uid: 'interlagos'
 }
@@ -56,6 +54,8 @@ end
 
 Blather.logger = logger
 Blather.logger.level = Logger::DEBUG if options[:debug]
+
+logger.debug "Resource Proxy List #{OmfRc::ResourceFactory.proxy_list}"
 
 node = OmfRc::ResourceFactory.new(:node, options)
 

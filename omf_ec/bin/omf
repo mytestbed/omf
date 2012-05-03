@@ -53,15 +53,38 @@ comm = OmfCommon::Comm.new(options[:dsl])
 host = nil
 
 create_a_mock = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
-create_nothing = OmfCommon::Message.create { |v| v.property('type', 'nothing') }.sign
 
 comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
   host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
 
-  comm.subscribe(options[:node], host) do
-    EM.add_periodic_timer(5) do
+  EM.add_periodic_timer(1) do
+    comm.subscribe(options[:node], host) do
       comm.publish(options[:node], create_a_mock, host)
+    end
+  end
+end
+
+comm.node_event :items, :node do |e|
+  e.items.each do |item|
+    m = OmfCommon::Message.parse(item.payload)
+    logger.error "Invalid Message\n#{m.to_xml}" unless m.valid?
+    context_id = m.read_element("//context_id").first.content
+    #logger.info "RECEIVED: #{m.operation.to_s} <Context ID> #{context_id}"
+
+    begin
+      case m.operation
+      when :inform
+        inform_type = m.read_element("//inform_type").first.content
+        case inform_type
+        when 'CREATED'
+          resource_id = m.read_element("//resource_id").first.content
+          logger.info "Resource #{resource_id} CREATED"
+          comm.subscribe(resource_id, host)
+        end
+      end
+    rescue => e
+      logger.error "#{e.message}\n#{e.backtrace.join("\n")}"
     end
   end
 end

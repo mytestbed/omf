@@ -44,19 +44,23 @@ describe AbstractResource do
 
   describe "when asked to create another resource" do
     it "must return the newly created resource" do
-      @node.create(:interface).must_be_kind_of Interface
+      @node.create(:interface) do |interface|
+        interface.must_be_kind_of Interface
+      end
     end
 
     it "must add the resource to its created resource list" do
-      @test2 = @node.create(:wifi)
-      @node.children.must_include @test2
+      @node.create(:wifi) do |wifi|
+        @node.children.must_include wifi
+      end
     end
   end
 
   describe "when asked to get a instance of created resource" do
     it "must return a instance of that resource" do
-      @test = @node.create(:wifi)
-      @node.get(@test.uid).must_equal @test
+      @node.create(:wifi) do |wifi|
+        @node.get(wifi.uid).must_equal wifi
+      end
     end
 
     it "must raise error when nothing found" do
@@ -70,17 +74,19 @@ describe AbstractResource do
       @resource_1 = @node.create(:interface, uid: 1, properties: { test_key: 'test1' })
       @resource_2 = @node.create(:interface, uid: 2, properties: { test_key: 'test2' })
       @resource_3 = @node.create(:wifi, uid: 3, properties: { test_key: 'test3' })
-      properties = @node.request([:test_key], { type: 'interface' })
-      properties.size.must_equal 2
-      properties[0].test_key.must_equal 'test1'
-      properties[1].test_key.must_equal 'test2'
+      @node.request([:test_key], { type: 'interface' }) do |properties|
+        properties.size.must_equal 2
+        properties[0].test_key.must_equal 'test1'
+        properties[1].test_key.must_equal 'test2'
+      end
     end
   end
 
   describe "when asked to to configure a created resource" do
     it "must convert provided opt hash and update properties" do
-      @node.configure(ip: '127.0.0.1')
-      @node.properties.ip.must_equal "127.0.0.1"
+      @node.configure(ip: '127.0.0.1') do
+        @node.properties.ip.must_equal "127.0.0.1"
+      end
     end
   end
 

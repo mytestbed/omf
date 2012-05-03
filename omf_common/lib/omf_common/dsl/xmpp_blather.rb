@@ -87,7 +87,7 @@ module OmfCommon
       # @param [String] message Any XML fragment to be sent as payload
       # @param [String] host Pubsub host address
       def publish(node, message, host, &block)
-        pubsub.publish(node, message, host, &new_block(__method__, node, &block))
+        pubsub.publish(node, message, host, &new_block(__method__, node, message.operation, &block))
       end
 
       def node_event(*args, &block)
