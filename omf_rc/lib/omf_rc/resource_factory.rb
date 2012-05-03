@@ -10,7 +10,7 @@ class OmfRc::ResourceFactory
 
   class << self
     def new(type, opts = nil)
-      raise ArgumentError, 'Type not found' unless @@proxy_list.include?(type)
+      raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       type = type.to_s
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts)
       resource.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant)

@@ -2,7 +2,6 @@
 
 require "optparse"
 require 'omf_common'
-require 'omf_rc'
 $stdout.sync = true
 
 options = {

@@ -1,4 +1,5 @@
 require 'niceogiri'
+require 'hashie'
 require 'securerandom'
 require 'openssl'
 
@@ -72,6 +73,41 @@ module OmfCommon
       key_node = Niceogiri::XML::Node.new(key)
       key_node.content = value
       add_child(key_node)
+    end
+
+    # The root element_name represents operation
+    #
+    def operation
+      element_name.to_sym
+    end
+
+    def element_by_xpath_with_default_namespace(xpath_without_ns)
+      xpath(xpath_without_ns.gsub(/(\/+)(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
+    end
+
+    # In case you think method :element_by_xpath_with_default_namespace is too long
+    #
+    alias_method :read_element, :element_by_xpath_with_default_namespace
+
+    # Get a property by key
+    #
+    # @param [String] key name of the property element
+    # @return [Object] the content of the property, as string, integer, float, or mash(hash with indifferent access)
+    #
+    def read_property(key)
+      key = key.to_s
+      e = read_element("//property[@key='#{key}']").first
+      if e
+        if e.children.size == 1
+          e.content.ducktype
+        else
+          Hashie::Mash.new.tap do |mash|
+            e.element_children.each do |child|
+              mash[child.element_name] ||= child.content.ducktype
+            end
+          end
+        end
+      end
     end
   end
 end

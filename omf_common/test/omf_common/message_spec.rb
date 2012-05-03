@@ -1,12 +1,14 @@
 require 'test_helper'
 
+include OmfCommon
+
 PROP_ELEMENTS = %w(p1 p2 p3)
 
 describe OmfCommon::Message do
   describe "when constructing valid messages" do
     it "must return a create or configure XML element without failing" do
       %w(create configure).each do |msg_name|
-        message = OmfCommon::Message.send(msg_name) do |m|
+        message = Message.send(msg_name) do |m|
           PROP_ELEMENTS.each_with_index do |prop_element, index|
             if index == 0
               m.property(prop_element, rand(100))
@@ -23,7 +25,7 @@ describe OmfCommon::Message do
     end
 
     it "must return a request XML element without failing" do
-      request = OmfCommon::Message.request('foo@bar') do |m|
+      request = Message.request('foo@bar') do |m|
         PROP_ELEMENTS.each do |prop_element|
           m.property(prop_element) do |p|
             p.element('min_value', 'test')
@@ -35,12 +37,12 @@ describe OmfCommon::Message do
     end
 
     it "must return a release XML element without failing" do
-      release = OmfCommon::Message.release.sign
+      release = Message.release.sign
       release.valid?.must_equal true
     end
 
     it "must return a inform XML element without failing" do
-      inform = OmfCommon::Message.inform('9012c3bc-68de-459a-ac9f-530cc7168e22', 'CREATED') do |m|
+      inform = Message.inform('9012c3bc-68de-459a-ac9f-530cc7168e22', 'CREATED') do |m|
         m.element('resource_id', 'test')
         m.element('resource_address', 'test')
         PROP_ELEMENTS.each do |prop_element|
@@ -56,7 +58,7 @@ describe OmfCommon::Message do
 
   describe "must be able to parse a XML element into Message object" do
     it "must behave" do
-      xml = OmfCommon::Message.create do |m|
+      xml = Message.create do |m|
         m.property('type', 'vm')
         m.property('os', 'debian')
         m.property('memory', 1024) do |p|
@@ -65,10 +67,18 @@ describe OmfCommon::Message do
         end
       end.sign.to_xml
 
-      message = OmfCommon::Message.parse(xml)
+      message = Message.parse(xml)
 
-      message.must_be_kind_of OmfCommon::Message
-      message.xpath("//xmlns:property", :xmlns => "http://schema.mytestbed.net/6.0/protocol").size.must_equal 3
+      message.must_be_kind_of Message
+      message.operation.must_equal :create
+      message.read_element("//property").size.must_equal 3
+      message.read_element("/create/property").size.must_equal 3
+      message.read_property("type").must_equal 'vm'
+      message.read_property(:type).must_equal 'vm'
+      memory = message.read_property(:memory)
+      memory.value.must_equal 1024
+      memory.unit.must_equal 'mb'
+      memory.precision.must_equal 0
     end
   end
 end
