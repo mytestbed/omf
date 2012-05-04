@@ -20,6 +20,7 @@ class OmfRc::ResourceFactory
       opts = opts ? DEFAULT_OPTS.merge(opts) : DEFAULT_OPTS
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm = nil)
       resource.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant)
+      resource.bootstrap if resource.respond_to? :bootstrap
       resource
     end
 
@@ -29,6 +30,14 @@ class OmfRc::ResourceFactory
 
     def register_proxy(proxy)
       @@proxy_list << proxy
+    end
+
+    def utility_list
+      @@utility_list
+    end
+
+    def register_utility(utility)
+      @@utility_list << utility
     end
 
     def bootstrap

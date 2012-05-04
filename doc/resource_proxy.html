@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>resource_proxy.rb</title>
+  <link rel="stylesheet" href="http://jashkenas.github.com/docco/resources/docco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <table cellspacing=0 cellpadding=0>
+  <thead>
+    <tr>
+      <th class=docs><h1>resource_proxy.rb</h1></th>
+      <th class=code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id='section-1'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-1">&#182;</a>
+        </div>
+        <p>This is a utility  definition module, which can be included in proxy definition module</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><span class="k">module</span> <span class="nn">OmfRc::Util::UMock</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-2'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-2">&#182;</a>
+        </div>
+        <p>Include this module which provides dsl</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="kp">include</span> <span class="no">OmfRc</span><span class="o">::</span><span class="no">Util</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-3'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-3">&#182;</a>
+        </div>
+        <p>Let the world know it is available</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">register_utility</span> <span class="ss">:u_mock</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-4'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-4">&#182;</a>
+        </div>
+        <p>Register a function for configure property, a method called configure<em>very</em>important_property(value) will be added to the resource instance.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">register_configure</span> <span class="ss">:very_important_property</span> <span class="k">do</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-5'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-5">&#182;</a>
+        </div>
+        <p>These define what to be done for configuring this property</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>    <span class="k">raise</span> <span class="no">StandardError</span><span class="p">,</span> <span class="s1">&#39;We just did something very important, I need your attention&#39;</span>
+  <span class="k">end</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-6'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-6">&#182;</a>
+        </div>
+        <p>Register a function for request property, a method called request<em>very</em>important_property() will be added to the resource instance.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">register_request</span> <span class="ss">:very_important_property</span> <span class="k">do</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-7'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-7">&#182;</a>
+        </div>
+        <p>These define what to be done for requesting this property, should return a value of the property at the end</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>    <span class="s2">&quot;Very important property&#39;s value&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-8'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-8">&#182;</a>
+        </div>
+        <p>This is a resource proxy definition module, which can be included dynamically by resource factory at the time of creating new resource.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><span class="k">module</span> <span class="nn">OmfRc::ResourceProxy::Mock</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-9'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-9">&#182;</a>
+        </div>
+        <p>Include this module which provides dsl</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="kp">include</span> <span class="no">OmfRc</span><span class="o">::</span><span class="no">ResourceProxy</span>
+  <span class="kp">include</span> <span class="no">OmfRc</span><span class="o">::</span><span class="no">Util</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-10'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-10">&#182;</a>
+        </div>
+        <p>Let the world know it is available</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">register_proxy</span> <span class="ss">:mock</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-11'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-11">&#182;</a>
+        </div>
+        <p>Include the utility we just defined</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">utility</span> <span class="ss">:u_mock</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-12'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-12">&#182;</a>
+        </div>
+        <p>The code inside the block will be called at the end of resource initialisation.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">register_bootstrap</span> <span class="k">do</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warn</span> <span class="s1">&#39;I am starting up, but have nothing to do there&#39;</span>
+  <span class="k">end</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-13'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-13">&#182;</a>
+        </div>
+        <p>The code inside the block will be called at the end of releasing a resource.</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="n">register_cleanup</span> <span class="k">do</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warn</span> <span class="s1">&#39;I am shutting down, but have nothing to do there&#39;</span>
+  <span class="k">end</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-14'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-14">&#182;</a>
+        </div>
+        <p>Of course you can hack this module by defining additional methods. The methods defined here will be available to the resource instance as well</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre>  <span class="k">def</span> <span class="nf">test</span>
+  <span class="k">end</span>
+<span class="k">end</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-15'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-15">&#182;</a>
+        </div>
+        <p>We can then use resource factory method to create a resource instance</p>
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><span class="n">mock</span> <span class="o">=</span> <span class="no">OmfRc</span><span class="o">::</span><span class="no">ResourceFactory</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:mock</span><span class="p">)</span></pre></div>
+      </td>
+    </tr>
+    <tr id='section-16'>
+      <td class=docs>
+        <div class="pilwrap">
+          <a class="pilcrow" href="#section-16">&#182;</a>
+        </div>
+        <p>And then we can do these method calls</p>
+
+      </td>
+      <td class=code>
+        <div class='highlight'><pre><span class="n">mock</span><span class="o">.</span><span class="n">configure_very_important_property</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span> <span class="k">do</span>
+  <span class="nb">puts</span> <span class="s1">&#39;configure finished&#39;</span>
+<span class="k">end</span>
+
+<span class="n">mock</span><span class="o">.</span><span class="n">request_very_important_property</span> <span class="k">do</span> <span class="o">|</span><span class="n">value</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="n">value</span>
+<span class="k">end</span>
+
+<span class="n">mock</span><span class="o">.</span><span class="n">test</span></pre></div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>

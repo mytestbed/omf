@@ -29,6 +29,7 @@ class OmfRc::ResourceProxy::AbstractResource
       resource.release(child)
     end
     children.delete(resource)
+    cleanup if self.class.method_defined? :cleanup
     block.call if block
   end
 

@@ -10,5 +10,17 @@ module OmfRc::ResourceProxy
       name = name.to_sym
       OmfRc::ResourceFactory.register_proxy(name)
     end
+
+    def register_bootstrap(&register_block)
+      define_method(:bootstrap) do |*args, &block|
+        register_block.call if register_block
+      end
+    end
+
+    def register_cleanup(&register_block)
+      define_method(:cleanup) do |*args, &block|
+        register_block.call if register_block
+      end
+    end
   end
 end
