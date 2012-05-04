@@ -91,7 +91,11 @@ module OmfCommon
       end
 
       def node_event(*args, &block)
-        pubsub_event(*args, &new_block(__method__, &block))
+        pubsub_event(:items, *args, &new_block(__method__, &block))
+      end
+
+      def node_item_event(*args, &block)
+        pubsub_event(:items, :node, *args, &new_block(__method__, &block))
       end
 
       private

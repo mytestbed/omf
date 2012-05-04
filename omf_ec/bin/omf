@@ -65,7 +65,7 @@ comm.when_ready do
   end
 end
 
-comm.node_event :items, :node do |e|
+comm.node_item_event do |e|
   e.items.each do |item|
     m = OmfCommon::Message.parse(item.payload)
     logger.error "Invalid Message\n#{m.to_xml}" unless m.valid?

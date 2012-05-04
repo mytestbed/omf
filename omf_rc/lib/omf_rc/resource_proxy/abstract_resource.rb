@@ -109,7 +109,7 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     # Fired when message published
-    @comm.node_event :items, :node do |e|
+    @comm.node_item_event do |e|
       e.items.each do |item|
         m = OmfCommon::Message.parse(item.payload)
         logger.error "Invalid Message\n#{m.to_xml}" unless m.valid?
@@ -149,7 +149,7 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     # Fired when node created
-    @comm.node_event :items do |e|
+    @comm.node_event do |e|
       logger.info "NODES: #{e.items.map(&:id)}" unless e.items.empty?
     end
 
