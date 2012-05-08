@@ -1,7 +1,10 @@
 module OmfRc::ResourceProxy::Node
   include OmfRc::ResourceProxy
+  include OmfRc::Util
 
   register_proxy :node
+
+  utility :mock
 
   def request_property(property)
     case property

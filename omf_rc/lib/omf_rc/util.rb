@@ -30,7 +30,9 @@ module OmfRc::Util
 
     def register_request(name, &register_block)
       define_method("request_#{name.to_s}") do |*args, &block|
-        block.call(register_block.call) if block if register_block
+        logger.warn block
+        logger.warn register_block
+        register_block.call(block) if block if register_block
       end
     end
   end

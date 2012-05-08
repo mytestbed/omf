@@ -33,11 +33,6 @@ class OmfRc::ResourceProxy::AbstractResource
     block.call if block
   end
 
-  def add(resource)
-    self.children << resource
-    resource
-  end
-
   def get_all(conditions)
     children.find_all do |v|
       flag = true
@@ -55,7 +50,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option opts [Hash] :properties See +configure+ for explanation
   def create(type, opts = nil, &block)
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
-    add(new_resource)
+    children << new_resource
     block.call(new_resource) if block
   end
 
@@ -129,14 +124,21 @@ class OmfRc::ResourceProxy::AbstractResource
                   inform_msg = OmfCommon::Message.inform(context_id, 'CREATED') do |i|
                     i.element('resource_id', new_resource.uid)
                     i.element('resource_address', new_resource.uid)
-                  end
-                  @comm.publish(uid, inform_msg.sign, host)
+                  end.sign
+                  @comm.publish(uid, inform_msg, host)
                 end
               end
-
             end
           when :request
-            @comm.publish(uid, OmfCommon::Message.inform(context_id, 'STATUS').sign, host)
+            request_cpu_model do |result|
+              result[:success]
+              inform_msg = OmfCommon::Message.inform(context_id, 'STATUS') do |i|
+                i.property('cpu_model') do |p|
+                  p.element('current', result[:success])
+                end
+              end.sign
+              @comm.publish(uid, inform_msg, host)
+            end
           when :configure
             @comm.publish(uid, OmfCommon::Message.inform(context_id, 'STATUS').sign, host)
           when :relase

@@ -19,7 +19,7 @@ module OmfRc::ResourceProxy
 
     def register_cleanup(&register_block)
       define_method(:cleanup) do |*args, &block|
-        register_block.call if register_block
+        register_block.call(block) if register_block
       end
     end
   end

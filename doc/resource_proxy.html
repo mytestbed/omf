@@ -185,7 +185,15 @@
         <div class="pilwrap">
           <a class="pilcrow" href="#section-15">&#182;</a>
         </div>
-        <p>We can then use resource factory method to create a resource instance</p>
+        <p>We can then use resource factory method to create a resource instance.</p>
+
+<p>This does following behind the scene</p>
+
+<ul>
+<li>Extend the instance with mock resource module we just defined.</li>
+<li>If additional options provided for pubsub communicator, a communicator instance will be created and attached to this mock resource instance.</li>
+<li>If bootstrap/init hook provided in the module, they will be executed</li>
+</ul>
       </td>
       <td class=code>
         <div class='highlight'><pre><span class="n">mock</span> <span class="o">=</span> <span class="no">OmfRc</span><span class="o">::</span><span class="no">ResourceFactory</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:mock</span><span class="p">)</span></pre></div>

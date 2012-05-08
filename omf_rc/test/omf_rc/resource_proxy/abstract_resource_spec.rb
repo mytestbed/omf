@@ -92,12 +92,14 @@ describe AbstractResource do
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      @resource_1 = OmfRc::ResourceFactory.new(:wifi)
-      @resource_2 = OmfRc::ResourceFactory.new(:mock)
-      @node.add(@resource_1).add(@resource_2)
-      @node.release(@resource_1)
-      @resource_1.children.must_be_empty
-      @node.children.must_be_empty
+      @node.create(:wifi) do |wifi|
+        wifi.create(:mock) do |mock|
+          @node.release(wifi) do
+            wifi.children.must_be_empty
+            @node.children.must_be_empty
+          end
+        end
+      end
     end
   end
 end

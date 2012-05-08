@@ -47,7 +47,13 @@ module OmfRc::ResourceProxy::Mock
 end
 
 
-# We can then use resource factory method to create a resource instance
+# We can then use resource factory method to create a resource instance.
+#
+# This does following behind the scene
+#
+# * Extend the instance with mock resource module we just defined.
+# * If additional options provided for pubsub communicator, a communicator instance will be created and attached to this mock resource instance.
+# * If bootstrap/init hook provided in the module, they will be executed
 mock = OmfRc::ResourceFactory.new(:mock)
 
 # And then we can do these method calls

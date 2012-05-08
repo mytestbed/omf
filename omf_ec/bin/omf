@@ -53,16 +53,17 @@ comm = OmfCommon::Comm.new(options[:dsl])
 host = nil
 
 create_a_mock = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
+request_mock_property = OmfCommon::Message.request { |v| v.property('cpu_model') }.sign
 
 comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
   host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
 
-  EM.add_periodic_timer(1) do
-    comm.subscribe(options[:node], host) do
-      comm.publish(options[:node], create_a_mock, host)
-    end
+  #EM.add_periodic_timer(1) do
+  comm.subscribe(options[:node], host) do
+    comm.publish(options[:node], create_a_mock, host)
   end
+  #end
 end
 
 comm.node_item_event do |e|
@@ -80,7 +81,13 @@ comm.node_item_event do |e|
         when 'CREATED'
           resource_id = m.read_element("//resource_id").first.content
           logger.info "Resource #{resource_id} CREATED"
-          comm.subscribe(resource_id, host)
+          comm.subscribe(resource_id, host) do
+            EM.add_periodic_timer(2) do
+              comm.publish(resource_id, request_mock_property, host)
+            end
+          end
+        when 'STATUS'
+          logger.info m.read_element("//property")
         end
       end
     rescue => e
