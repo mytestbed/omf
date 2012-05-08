@@ -109,9 +109,11 @@
         <element name="current">
           <text/>
         </element>
-        <element name="target">
-          <text/>
-        </element>
+        <optional>
+          <element name="target">
+            <text/>
+          </element>
+        </optional>
         <optional>
           <element name="msg">
             <text/>

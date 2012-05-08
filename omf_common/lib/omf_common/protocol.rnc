@@ -30,7 +30,7 @@ element inform {
   element property {
     (attribute key { text } | element key { text }),
     element current { text },
-    element target { text },
+    element target { text }?,
     element msg { text }?,
     element progress { text }?
   }*
