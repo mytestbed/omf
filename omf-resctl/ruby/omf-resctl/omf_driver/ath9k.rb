@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 #
-# = atheros.rb
+# = ath9k.rb
 #
 # == Description
 #
@@ -32,7 +32,7 @@
 require 'omf-resctl/omf_driver/wireless'
 
 #
-# This class represents an Atheros device
+# This class represents an Ath9kDevice
 #
 class Ath9kDevice < WirelessDevice
 

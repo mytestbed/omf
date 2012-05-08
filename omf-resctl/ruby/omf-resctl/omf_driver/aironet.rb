@@ -39,7 +39,7 @@ class AironetDevice < WirelessDevice
   attr_reader :essid
 
   #
-  # Create and set up a new AtherosDevice instance
+  # Create and set up a new AironetDevice instance
   #
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)

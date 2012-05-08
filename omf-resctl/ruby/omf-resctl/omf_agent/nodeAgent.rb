@@ -61,7 +61,7 @@ class NodeAgent < MObject
   @@instance = nil
 
   attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport, 
-    :motetype, :resizefs
+    :motetype, :resizefs, :ar5xxx_driver
 
   attr_accessor :allowDisconnection, :enrolled, :index
 
@@ -382,6 +382,7 @@ class NodeAgent < MObject
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
     @resizefs = @config[:agent][:resizefs] 
+    @ar5xxx_driver = @config[:agent][:ar5xxx_driver]
     @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
                    @config[:communicator][:xmpp][:pubsub_gateway]
 
@@ -397,6 +398,87 @@ class NodeAgent < MObject
     end
   end
 
+  #
+  # Discover the available devices
+  #
+  def hwDiscovery
+
+    lspci=lsusb=nil
+
+    if (File.exist?("/usr/bin/lspci"))
+      # Debian/Ubuntu
+      lspci="/usr/bin/lspci"
+    elsif (File.exist?("/sbin/lspci"))
+      # Fedora
+      lspci="/sbin/lspci"
+    else
+      MObject.info "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
+    end
+
+    if (File.exist?("/usr/bin/lsusb"))
+      # Debian/Ubuntu
+      lsusb="/usr/bin/lsusb"
+    elsif (File.exist?("/usr/sbin/lsusb"))
+      # older Debian/Ubuntu
+      lsusb="/usr/sbin/lsusb"
+    elsif (File.exist?("/sbin/lsusb"))
+      # Fedora
+      lsusb="/sbin/lsusb"
+    else
+      MObject.info "lsusb not found, unable to detect the wireless hardware. Please install the 'usbutils' package."
+    end
+
+    if (lspci)
+      IO.popen("#{lspci} | grep 'Network controller: Intel' | wc -l") {|p|
+        if p.gets.to_i > 0
+          require 'omf-resctl/omf_driver/intel'
+          MObject.info "Have Intel cards"
+          AgentCommands::DEV_MAPPINGS['net/w0'] = IntelDevice.new('net/w0', 'eth2')
+          AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
+        end
+      }
+      IO.popen("#{lspci} | grep 'Ethernet controller: Atheros' | wc -l") {|p|
+        if p.gets.to_i > 0
+          if @ar5xxx_driver == "madwifi"
+            require 'omf-resctl/omf_driver/madwifi'
+            MObject.info "Have Atheros cards - Using Madwifi driver"
+            AgentCommands::DEV_MAPPINGS['net/w0'] = MadwifiDevice.new('net/w0', 'ath0')
+            AgentCommands::DEV_MAPPINGS['net/w1'] = MadwifiDevice.new('net/w1', 'ath1')
+          # load ath5k by default
+          else
+            require 'omf-resctl/omf_driver/ath5k'
+            MObject.info "Have Atheros cards - Using ath5k driver"
+            AgentCommands::DEV_MAPPINGS['net/w0'] = Ath5kDevice.new('net/w0', 'eth0')
+            AgentCommands::DEV_MAPPINGS['net/w1'] = Ath5kDevice.new('net/w1', 'eth1')
+          end
+        end
+      }
+      IO.popen("#{lspci} | grep 'Network controller: Atheros' | wc -l") {|p|
+        if p.gets.to_i > 0
+          require 'omf-resctl/omf_driver/ath9k'
+          MObject.info "Have Atheros cards - Using ath9k driver"
+          AgentCommands::DEV_MAPPINGS['net/w0'] = Ath9kDevice.new('net/w0', 'wlan0')
+          AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
+        end
+      }
+      wimax_count = 0
+      IO.popen("#{lspci} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | wc -l") {|p|
+        wimax_count += p.gets.to_i
+      }
+      if (lsusb)
+        IO.popen("#{lsusb} | grep 'Intel Corp. WiMAX Connection 2400m' | wc -l") {|u|
+          wimax_count += u.gets.to_i
+        }
+      end
+      if wimax_count > 0
+        require 'omf-resctl/omf_driver/wimaxcu'
+        MObject.info "Found Intel WiMAX - using wimaxcu interface"
+        AgentCommands::DEV_MAPPINGS['net/x0'] = WimaxcuDevice.new('net/x0', 'wmx0')
+        AgentCommands::DEV_MAPPINGS['net/x1'] = WimaxcuDevice.new('net/x1', 'wmx1')
+      end
+    end
+  end
+  
   ################################################
   private
 
@@ -420,82 +502,14 @@ def controller
   NodeAgent.instance
 end
 
-#
-# Discover the available devices
-#
 
-lspci=lsusb=nil
-
-if (File.exist?("/usr/bin/lspci"))
-  # Debian/Ubuntu
-  lspci="/usr/bin/lspci"
-elsif (File.exist?("/sbin/lspci"))
-  # Fedora
-  lspci="/sbin/lspci"
-else
-  MObject.info "lspci not found, unable to detect the wireless hardware. Please install the 'pciutils' package."
-end
-
-if (File.exist?("/usr/bin/lsusb"))
-  # Debian/Ubuntu
-  lsusb="/usr/bin/lsusb"
-elsif (File.exist?("/usr/sbin/lsusb"))
-  # older Debian/Ubuntu
-  lsusb="/usr/sbin/lsusb"
-elsif (File.exist?("/sbin/lsusb"))
-  # Fedora
-  lsusb="/sbin/lsusb"
-else
-  MObject.info "lsusb not found, unable to detect the wireless hardware. Please install the 'usbutils' package."
-end
-
-if (lspci)
-  IO.popen("#{lspci} | grep 'Network controller: Intel' | wc -l") {|p|
-    if p.gets.to_i > 0
-      require 'omf-resctl/omf_driver/intel'
-      MObject.info "Have Intel cards"
-      AgentCommands::DEV_MAPPINGS['net/w0'] = IntelDevice.new('net/w0', 'eth2')
-      AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
-    end
-  }
-  IO.popen("#{lspci} | grep 'Ethernet controller: Atheros' | wc -l") {|p|
-    if p.gets.to_i > 0
-      require 'omf-resctl/omf_driver/atheros'
-      MObject.info "Have Atheros cards - Using MadWifi driver"
-      AgentCommands::DEV_MAPPINGS['net/w0'] = AtherosDevice.new('net/w0', 'ath0')
-      AgentCommands::DEV_MAPPINGS['net/w1'] = AtherosDevice.new('net/w1', 'ath1')
-    end
-  }
-  IO.popen("#{lspci} | grep 'Network controller: Atheros' | wc -l") {|p|
-    if p.gets.to_i > 0
-      require 'omf-resctl/omf_driver/ath9k'
-      MObject.info "Have Atheros cards - Using ath9k driver"
-      AgentCommands::DEV_MAPPINGS['net/w0'] = Ath9kDevice.new('net/w0', 'wlan0')
-      AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
-    end
-  }
-  wimax_count = 0
-  IO.popen("#{lspci} | grep 'Network controller: Intel Corporation Centrino Advanced-N + WiMAX' | wc -l") {|p|
-    wimax_count += p.gets.to_i
-  }
-  if (lsusb)
-    IO.popen("#{lsusb} | grep 'Intel Corp. WiMAX Connection 2400m' | wc -l") {|u|
-      wimax_count += u.gets.to_i
-    }
-  end
-  if wimax_count > 0
-    require 'omf-resctl/omf_driver/wimaxcu'
-    MObject.info "Found Intel WiMAX - using wimaxcu interface"
-    AgentCommands::DEV_MAPPINGS['net/x0'] = WimaxcuDevice.new('net/x0', 'wmx0')
-    AgentCommands::DEV_MAPPINGS['net/x1'] = WimaxcuDevice.new('net/x1', 'wmx1')
-  end
-end
 
 #
 # Execution Entry point 
 #
 begin
   NodeAgent.instance.parseOptions(ARGV)
+  NodeAgent.instance.hwDiscovery
   NodeAgent.instance.run
 # Exit when SIGTERM or INTERRUPT signal are received
 # Or when an runtime exception occured

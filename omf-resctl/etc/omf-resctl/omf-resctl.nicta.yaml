@@ -61,6 +61,10 @@
     # grow the filesystem to match the disk size after loading an image
     # enabling this may slow down load/save significantly
     :resizefs: false
+    
+    # driver to use for Atheros AR5*** cards
+    # valid options are madwifi, ath5k
+    :ar5xxx_driver: ath5k
 
   # Mote settings
   # Uncomment and set the following parameters if this resource has

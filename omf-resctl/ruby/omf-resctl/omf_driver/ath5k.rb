@@ -22,51 +22,32 @@
 # THE SOFTWARE.
 #
 #
-# = atheros.rb
+# = ath5k.rb
 #
 # == Description
 #
-# This file defines the class AtherosDevice which is a sub-class of 
+# This file defines the class Ath5kDevice which is a sub-class of 
 # WirelessDevice.
 #
 require 'omf-resctl/omf_driver/wireless'
 
 #
-# This class represents an Atheros device
+# This class represents an Ath5kDevice
 #
-class AtherosDevice < WirelessDevice
+class Ath5kDevice < WirelessDevice
 
   # Default version of the supported wireless tools
   DEFAULT_WIFI_TOOL_VERSION = 29
 
   #
-  # Create and set up a new AtherosDevice instance
+  # Create and set up a new Ath5kDevice instance
   #
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
-    @driver = 'ath_pci'
+    @driver = 'ath5k'
     @wlanconfig = '/sbin/wlanconfig'
     @iwconfig = '/sbin/iwconfig'
     @iwpriv = '/sbin/iwpriv'
-    @toolVersion = getToolVersion
-  end
-
-  #
-  # Return the version of the madwifi tools
-  # 
-  # [Return] the versions of the madwifi tools
-  #
-  def getToolVersion()
-    cmd = "#{@wlanconfig} --version | head -n 1 | awk '{print $4}'"
-    version = `#{cmd}`
-    if !($?.success?) || (version.to_i == 0)
-      debug "Could not determine Wireless Tool version! Default to version: "+
-            "#{DEFAULT_WIFI_TOOL_VERSION}"
-      return DEFAULT_WIFI_TOOL_VERSION
-    else
-      debug "Wireless Tool version: #{version.to_i}"
-      return version.to_i
-    end
   end
 
   #
@@ -81,31 +62,22 @@ class AtherosDevice < WirelessDevice
 
     @propertyList[prop.to_sym] = value
     case prop
-      when 'type'
-        # 'value' defines type of operation
-        type = case
-          when value == 'a' : 1
-          when value == 'b' : 2
-          when value == 'g' : 3
-          else
-            raise "Unknown type. Should be 'a', 'b', or 'g'."
-        end
-        return "#{@iwpriv} #{@deviceName} mode #{type}"
+      #when 'type'
+      #  # 'value' defines type of operation
+      #  type = case
+      #    when value == 'a' : 1
+      #    when value == 'b' : 2
+      #    when value == 'g' : 3
+      #    else
+      #      raise "Unknown type. Should be 'a', 'b', or 'g'."
+      #  end
+      #  return "#{@iwpriv} #{@deviceName} mode #{type}"
 
       when "mode"
-        mode = case
-          when value == 'master' : 'ap'
-          when value == 'Master' : 'ap'
-          when value == 'managed' : 'sta'
-          when value == 'Managed' : 'sta'
-          when value == 'ad-hoc' : 'adhoc'
-          when value == 'Ad-Hoc' : 'adhoc'
-          when value == 'adhoc' : 'adhoc'
-          when value == 'AdHoc' : 'adhoc'
-          when value == 'monitor' : 'monitor'
-          when value == 'Monitor' : 'monitor'
-          else
-            raise "Unknown mode '#{value}'. Should be 'master', 'managed', or 'adhoc'."
+        if value.casecmp("master") == 0 || value.casecmp("managed") == 0 || value.casecmp("ad-hoc") == 0
+          mode = value
+        else
+          raise "Unknown mode '#{value}'. Should be 'master', 'managed', or 'ad-hoc'."
         end
         # - Recent version of MADWIFI driver requires us to use 'wlanconfig' to
         # destroy and recreate the wireless device when changing its mode of
@@ -118,20 +90,13 @@ class AtherosDevice < WirelessDevice
 	# this config file on your on ORBIT deployment, the following lines 
 	# must be changed accordingly)
         baseDevice = case
-          when @deviceName == 'ath0' : 'wifi0'
-          when @deviceName == 'ath1' : 'wifi1'
+          when @deviceName == 'wlan0' : 'phy0'
+          when @deviceName == 'wlan1' : 'phy1'
           else
             raise "Unknown device name '#{@deviceName}'."
         end
-
-        if (@toolVersion < DEFAULT_WIFI_TOOL_VERSION)
-          # Backward compatibility: NodeAgent will run with previous MADWIFI 
-	  # drivers
-          return "#{@iwconfig} #{@deviceName} mode #{mode}"
-        else
-          return "#{@wlanconfig} #{@deviceName} destroy ; #{@wlanconfig} "+
-                 "#{@deviceName} create wlandev #{baseDevice} wlanmode #{mode}"
-        end
+        
+        return "#{@iwconfig} #{@deviceName} mode #{mode}"
 
       when "essid"
         @essid = value
