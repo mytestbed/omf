@@ -1,8 +1,7 @@
 require 'omf_common'
 require 'securerandom'
 require 'hashie'
-require 'omf_rc/util'
-require 'omf_rc/resource_proxy'
+require 'omf_rc/resource_proxy_dsl'
 require 'omf_rc/resource_proxy/abstract_resource'
 
 class OmfRc::ResourceFactory
@@ -44,6 +43,12 @@ class OmfRc::ResourceFactory
     def bootstrap
       Dir["#{File.dirname(__FILE__)}/resource_proxy/*.rb"].each do |file|
         require "omf_rc/resource_proxy/#{File.basename(file).gsub(/\.rb/, '')}"
+      end
+    end
+
+    def load_addtional_resource_proxies(folder)
+      Dir["#{folder}/*.rb"].each do |file|
+        require "#{folder}/#{File.basename(file).gsub(/\.rb/, '')}"
       end
     end
   end

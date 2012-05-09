@@ -1,8 +1,6 @@
 module OmfRc::ResourceProxy::Mock
-  include OmfRc::ResourceProxy
-  include OmfRc::Util
+  include OmfRc::ResourceProxyDSL
 
   register_proxy :mock
-
 end
 

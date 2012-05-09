@@ -1,9 +1,6 @@
-require 'omf_rc/util'
-
 module OmfRc::ResourceProxy::Wifi
-  include OmfRc::Util
+  include OmfRc::ResourceProxyDSL
 
   utility :mod
-  utility :ifconfig
   utility :iw
 end

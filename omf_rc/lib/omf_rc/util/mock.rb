@@ -1,5 +1,5 @@
 module OmfRc::Util::Mock
-  include OmfRc::Util
+  include OmfRc::ResourceProxyDSL
 
   register_utility :mock
 

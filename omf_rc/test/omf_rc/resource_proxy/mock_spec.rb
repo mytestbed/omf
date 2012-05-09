@@ -4,7 +4,7 @@ require 'omf_rc/resource_factory'
 include OmfRc::ResourceProxy
 
 module OmfRc::Util::UMock
-  include OmfRc::Util
+  include OmfRc::ResourceProxyDSL
 
   register_utility :u_mock
 
@@ -18,19 +18,18 @@ module OmfRc::Util::UMock
 end
 
 module OmfRc::ResourceProxy::Mock
-  include OmfRc::ResourceProxy
-  include OmfRc::Util
+  include OmfRc::ResourceProxyDSL
 
   register_proxy :mock
 
   utility :u_mock
 
   register_bootstrap do
-    logger.warn 'I am starting up, but have nothing to do there'
+    logger.info 'I am starting up, but have nothing to do there'
   end
 
   register_cleanup do
-    logger.warn 'I am shutting down, but have nothing to do there'
+    logger.info 'I am shutting down, but have nothing to do there'
   end
 
   def test

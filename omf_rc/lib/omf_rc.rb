@@ -3,4 +3,5 @@ require "omf_rc/cmd"
 
 module OmfRc
   module ResourceProxy; end
+  module Util; end
 end
