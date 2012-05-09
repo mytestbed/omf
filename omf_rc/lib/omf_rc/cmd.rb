@@ -10,10 +10,6 @@ module OmfRc::ProcessHandler
     @result[:success] << data
   end
 
-  #def receive_stderr data
-  #  @result[:error] << data
-  #end
-
   def unbind
     @callback.call(@result)
   end
