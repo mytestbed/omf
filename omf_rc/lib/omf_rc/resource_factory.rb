@@ -1,6 +1,7 @@
 require 'omf_common'
 require 'securerandom'
 require 'hashie'
+require 'omf_rc/util'
 require 'omf_rc/resource_proxy'
 require 'omf_rc/resource_proxy/abstract_resource'
 

@@ -3,7 +3,7 @@ require 'em/minitest/spec'
 require 'omf_rc/cmd'
 
 describe OmfRc::Cmd do
-  describe "when use util file to execute a system command" do
+  describe "when use cmd utility to execute a system command" do
     include EM::MiniTest::Spec
 
     it "must return result eventually" do
