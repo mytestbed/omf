@@ -448,8 +448,8 @@ class NodeAgent < MObject
           else
             require 'omf-resctl/omf_driver/ath5k'
             MObject.info "Have Atheros cards - Using ath5k driver"
-            AgentCommands::DEV_MAPPINGS['net/w0'] = Ath5kDevice.new('net/w0', 'eth0')
-            AgentCommands::DEV_MAPPINGS['net/w1'] = Ath5kDevice.new('net/w1', 'eth1')
+            AgentCommands::DEV_MAPPINGS['net/w0'] = Ath5kDevice.new('net/w0', 'wlan0')
+            AgentCommands::DEV_MAPPINGS['net/w1'] = Ath5kDevice.new('net/w1', 'wlan1')
           end
         end
       }
