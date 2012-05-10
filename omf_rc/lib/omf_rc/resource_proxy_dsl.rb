@@ -27,11 +27,19 @@ module OmfRc::ResourceProxyDSL
     def utility(name)
       name = name.to_s
       begin
-        require "#{UTIL_DIR}/#{name}"
-      rescue LoadError => e
-        logger.warn e.message
+        # In case of module defined inline
+        include "OmfRc::Util::#{name.camelcase}".constant
+      rescue NameError
+        begin
+          # Then we try to require the file and include the module
+          require "#{UTIL_DIR}/#{name}"
+          include "OmfRc::Util::#{name.camelcase}".constant
+        rescue LoadError => le
+          logger.error le.message
+        rescue NameError => ne
+          logger.error ne.message
+        end
       end
-      include "OmfRc::Util::#{name.camelcase}".constant
     end
 
     def register_utility(name)

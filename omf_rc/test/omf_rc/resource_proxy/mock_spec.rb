@@ -25,11 +25,11 @@ module OmfRc::ResourceProxy::Mock
   utility :u_mock
 
   register_bootstrap do
-    logger.info 'I am starting up, but have nothing to do there'
+    logger.debug 'I am starting up, but have nothing to do there'
   end
 
   register_cleanup do
-    logger.info 'I am shutting down, but have nothing to do there'
+    logger.debug 'I am shutting down, but have nothing to do there'
   end
 
   def test

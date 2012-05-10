@@ -5,22 +5,22 @@ include OmfRc::ResourceProxy
 
 module OmfRc::ResourceProxy
   module Node
-    include OmfRc::ResourceProxy
+    include OmfRc::ResourceProxyDSL
     register_proxy :node
   end
 
   module Interface
-    include OmfRc::ResourceProxy
+    include OmfRc::ResourceProxyDSL
     register_proxy :interface
   end
 
   module Wifi
-    include OmfRc::ResourceProxy
+    include OmfRc::ResourceProxyDSL
     register_proxy :wifi
   end
 
   module Mock
-    include OmfRc::ResourceProxy
+    include OmfRc::ResourceProxyDSL
     register_proxy :mock
   end
 end
