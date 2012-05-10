@@ -31,14 +31,14 @@ module OmfCommon
       # @param [String] host Host represents the pubsub address, e.g. pubsub.norbit.npc.nicta.com.au
       def disconnect(host)
         pubsub.affiliations(host) do |affs|
-          if affs[:owner].nil?
-            shutdown
-          else
-            affs[:owner].each do |item|
-              delete_node(item, host) do |m|
-                pubsub.affiliations(host) do |affs_left|
-                  shutdown if affs_left[:owner].nil?
-                end
+          # We don't care if server has user tune support
+          affs[:owner].delete_if { |item| item == "http://jabber.org/protocol/tune" } if affs[:owner]
+          shutdown if affs[:owner].nil? || affs[:owner].empty?
+          affs[:owner] && affs[:owner].each do |item|
+            delete_node(item, host) do |m|
+              pubsub.affiliations(host) do |affs|
+                affs[:owner].delete_if { |item| item == "http://jabber.org/protocol/tune" } if affs[:owner]
+                shutdown if affs[:owner].nil? || affs[:owner].empty?
               end
             end
           end
