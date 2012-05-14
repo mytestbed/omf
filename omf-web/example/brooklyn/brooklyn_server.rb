@@ -1,11 +1,14 @@
 
+require 'omf-common/mobject2'
+OMF::Common::Loggable.init_log 'demo'
+
 require 'omf-oml/table'
 require 'omf-oml/sql_source'
 
-require 'omf-web/tabbed_server'
 
-require 'omf-web/tab/graph/init'
+#require 'omf-web/tab/graph/init'
 require 'omf-web/widget/code/code'
+require 'omf-web/widget/graph/graph'
 
 
 include OMF::OML
@@ -70,4 +73,6 @@ opts = {
   :use_tabs => [:graph, :code],
   :theme => :bright
 }
+require 'omf_web'
 OMF::Web.start(opts)
+
