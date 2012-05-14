@@ -34,6 +34,12 @@ module OMF::Web::Theme
       end        
     end
     
+    def collect_data_sources(dsa)
+      @widget.collect_data_sources(dsa) if @widget
+      dsa
+    end
+    
+    
   end # SubMenuCard
   
 end

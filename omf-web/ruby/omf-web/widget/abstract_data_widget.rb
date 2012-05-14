@@ -21,7 +21,8 @@ module OMF::Web::Widget
     #
     def initialize(opts = {})
       super opts
-      unless @data_sources = opts[:data_sources]
+      @wopts = (opts[:wopts] || {}).dup
+      unless @data_sources = @wopts.delete(:data_sources)
         raise "Missing option ':data_sources' for widget '#@name'"
       end
       unless @data_sources.kind_of? Hash
@@ -32,14 +33,13 @@ module OMF::Web::Widget
 
       @base_id = "w#{object_id.abs}"
       @base_el = "\##{@base_id}"
+      @wopts['base_el'] = @base_el
 
       @js_var_name = "oml_#{object_id.abs}"
       #@js_func_name = 'OML.' + @js_url.gsub("::", "_")
 
       @dynamic = opts.delete(:dynamic)
 
-      @wopts = opts[:wopts] || {}
-      @wopts['base_el'] = @base_el
 
     end
 
@@ -79,78 +79,100 @@ module OMF::Web::Widget
     # unnecessary state and also assume that most experimenters use modern browsers which
     # include support for web sockets.
     #
-    def on_update(req)
-      res = @data_sources.collect do |name, table|
-        {:stream => name, :events => table.rows}
-      end
-      [res.to_json, "text/json"]
-    end
+    # def on_update(req)
+      # res = @data_sources.collect do |name, table|
+        # {:stream => name, :events => table.rows}
+      # end
+      # [res.to_json, "text/json"]
+    # end
 
     def content()
+      @wopts[:data_sources] = @data_sources.collect do |name, table|
+        {:stream => "ds#{table.object_id}", :name => name}
+      end
       div :id => @base_id, :class => "#{@js_class.gsub('.', '_').downcase}" do
         javascript(%{
           L.require('\##@js_class', '#@js_url', function() {
-            #{get_static_js}
-            #{get_dynamic_js}
+            var #{@js_var_name} = new #{@js_class}(#{@wopts.to_json});
           });
         })
       end
     end
 
-    def get_static_js()
-      @wopts[:data] = @data_sources.collect do |name, table|
-        {:stream => name, :events => table.kind_of?(OmlTable) ? table.rows : table}
+    # def get_static_js()
+      # @wopts[:data_sources] = @data_sources.collect do |name, table|
+        # {:stream => "ds#{table.object_id}", :name => name}
+      # end
+      # "var #{@js_var_name} = new #{@js_class}(#{@wopts.to_json});"
+    # end
+# 
+    # def get_dynamic_js()
+      # return # DON'T NEED ANYMORE 
+#       
+#       
+      # return "" unless @dynamic
+# 
+      # # :dynamic => true is valid option
+      # updateInterval = @dynamic.is_a?(Hash) && @dynamic[:updateInterval]
+# 
+      # updateInterval ||= 3
+# 
+      # res = <<END_OF_JS
+        # var ws#{@base_id};
+        # //if (window.WebSocket) {
+        # if (false) {  // web sockets don't work right now
+          # var url = 'ws://' + window.location.host + '/_ws';
+          # var ws = ws#{@base_id} = new WebSocket(url);
+          # ws.onopen = function() {
+            # ws.send('id:#{@widget_id}');
+          # };
+          # ws.onmessage = function(evt) {
+            # // evt.data contains received string.
+            # var msg = jQuery.parseJSON(evt.data);
+            # var data = msg;
+            # #{@js_var_name}.append(data);
+          # };
+          # ws.onclose = function() {
+            # var status = "onclose";
+          # };
+          # ws.onerror = function(evt) {
+            # var status = "onerror";
+          # };
+        # } else {
+          # L.require(['jquery.js', '/resource/js/jquery.periodicalupdater.js'], function() {
+              # $.PeriodicalUpdater('/_update?sid=#{Thread.current["sessionID"]}&wid=#{@widget_id}', {
+                  # method: 'get',          // method; get or post
+                  # data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
+                  # minTimeout: #{updateInterval * 1000},       // starting value for the timeout in milliseconds
+                  # maxTimeout: #{4 * updateInterval * 1000},       // maximum length of time between requests
+                  # multiplier: 2,          // if set to 2, timerInterval will double each time the response hasn't changed (up to maxTimeout)
+                  # type: 'json',           // response type - text, xml, json, etc.  See $.ajax config options
+                  # maxCalls: 0,            // maximum number of calls. 0 = no limit.
+                  # autoStop: 0             // automatically stop requests after this many returns of the same data. 0 = disabled.
+              # }, function(reply) {
+                  # //#{@js_var_name}.append(data);
+                  # #{@js_var_name}.update(reply);  // right now we are sending the entire graph
+              # });
+          # });
+        # }
+# END_OF_JS
+    # end
+
+    def collect_data_sources(dsh)
+      #puts "DDS>>> #{@data_sources}"
+      @data_sources.values.each do |ds|
+        #puts "IIIIII> #{ds}"
+        if @dynamic
+          updateInterval = @dynamic.is_a?(Hash) && @dynamic[:updateInterval]
+          updateInterval ||= 3
+        else
+          updateInterval = -1
+        end
+        if (v = (dsh[ds] ||= updateInterval)) < 0 || v > updateInterval
+          dsh[ds] = updateInterval
+        end
       end
-      "var #{@js_var_name} = new #{@js_class}(#{@wopts.to_json});"
-    end
-
-    def get_dynamic_js()
-      return "" unless @dynamic
-
-      # :dynamic => true is valid option
-      updateInterval = @dynamic.is_a?(Hash) && @dynamic[:updateInterval]
-
-      updateInterval ||= 3
-
-      res = <<END_OF_JS
-        var ws#{@base_id};
-        //if (window.WebSocket) {
-        if (false) {  // web sockets don't work right now
-          var url = 'ws://' + window.location.host + '/_ws';
-          var ws = ws#{@base_id} = new WebSocket(url);
-          ws.onopen = function() {
-            ws.send('id:#{@widget_id}');
-          };
-          ws.onmessage = function(evt) {
-            // evt.data contains received string.
-            var msg = jQuery.parseJSON(evt.data);
-            var data = msg;
-            #{@js_var_name}.append(data);
-          };
-          ws.onclose = function() {
-            var status = "onclose";
-          };
-          ws.onerror = function(evt) {
-            var status = "onerror";
-          };
-        } else {
-          L.require(['jquery.js', '/resource/js/jquery.periodicalupdater.js'], function() {
-              $.PeriodicalUpdater('/_update?sid=#{Thread.current["sessionID"]}&wid=#{@widget_id}', {
-                  method: 'get',          // method; get or post
-                  data: '',                   // array of values to be passed to the page - e.g. {name: "John", greeting: "hello"}
-                  minTimeout: #{updateInterval * 1000},       // starting value for the timeout in milliseconds
-                  maxTimeout: #{4 * updateInterval * 1000},       // maximum length of time between requests
-                  multiplier: 2,          // if set to 2, timerInterval will double each time the response hasn't changed (up to maxTimeout)
-                  type: 'json',           // response type - text, xml, json, etc.  See $.ajax config options
-                  maxCalls: 0,            // maximum number of calls. 0 = no limit.
-                  autoStop: 0             // automatically stop requests after this many returns of the same data. 0 = disabled.
-              }, function(reply) {
-                  //#{@js_var_name}.append(data);
-                  #{@js_var_name}.update(reply);  // right now we are sending the entire graph
-              });
-          });
-        }
-END_OF_JS
+      dsh
     end
 
 

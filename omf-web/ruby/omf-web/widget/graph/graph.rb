@@ -25,11 +25,14 @@ module OMF::Web::Widget::Graph
   #   :???
   # 
   def self.addGraph(name, opts = {})
-    vizType = opts[:viz_type]
-    raise "Missing :viz_type in 'addGraph'" unless vizType
-
-    unless opts[:data_sources]
-      raise "Missing option ':data_sources' for widget '#{name}'"
+    
+    wopts = opts[:wopts] || {}
+    unless wopts[:data_sources]
+      raise "Missing widget option ':data_sources' for widget '#{name}'"
+    end
+    
+    unless vizType = wopts[:viz_type]
+      raise "Missing widget option ':viz_type' for widget '#{name}'"
     end
 
     opts[:name] = name

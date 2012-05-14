@@ -1,7 +1,7 @@
 
 
 module OMF::Web::Theme
-  @@theme = 'traditional'
+  @@theme = 'bright'
   
   def self.theme=(theme)
     @@theme = theme if theme

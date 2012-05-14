@@ -15,7 +15,6 @@ module OMF::OML
     
     attr_reader :name
     attr_accessor :max_size
-    attr_reader :rows
     attr_reader :schema
     
     # 
@@ -24,6 +23,7 @@ module OMF::OML
     #   TODO: define format of TYPE
     # opts -
     #   :max_size - keep table to that size by dropping older rows
+    #   :index - only keep the latest inserted row for a unique col value - messes with row order
     #
     def initialize(tname, schema, opts = {}, &on_before_row_added)
       super tname
@@ -32,10 +32,18 @@ module OMF::OML
       @name = tname
       @schema = OmlSchema.create(schema)
       @opts = opts
+      if (index = opts[:index])
+        @indexed_rows = {}
+        @index_col = @schema.index_for_col(index)
+      end
       @on_before_row_added = on_before_row_added
       @rows = []
       @max_size = opts[:max_size]
       @on_row_added = {}
+    end
+    
+    def rows
+      @indexed_rows ? @indexed_rows.values : @rows
     end
     
     # Register +callback+ to be called to process any newly
@@ -96,9 +104,13 @@ module OMF::OML
       end
       return unless row 
 
-      @rows << row
-      if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
-        @rows.shift # not necessarily fool proof, but fast
+      if @indexed_rows
+        @indexed_rows[row[@index_col]] = row
+      else
+        @rows << row
+        if @max_size && @max_size > 0 && (s = @rows.size) > @max_size
+          @rows.shift # not necessarily fool proof, but fast
+        end
       end
       _notify_row_added(row)
     end

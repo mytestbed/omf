@@ -16,8 +16,8 @@ module OMF::Web::Theme
     def initialize(lwidgets, rwidgets, opts)
       super opts
       @layout = opts[:layout] || DEFAULT_LAYOUT
-      @lwidgets = lwidgets
-      @rwidgets = rwidgets      
+      @lwidgets = lwidgets || []
+      @rwidgets = rwidgets || []
     end
     
     def render_card_body
@@ -48,6 +48,17 @@ module OMF::Web::Theme
         render_widget w
       end
     end
+    
+    def collect_data_sources(dsa)
+      @lwidgets.each do |w|
+        w.collect_data_sources(dsa)
+      end
+      @rwidgets.each do |w|
+        w.collect_data_sources(dsa)
+      end
+      dsa
+    end
+    
 
   end # TwoColumnPage
 

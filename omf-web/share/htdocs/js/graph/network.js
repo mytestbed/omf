@@ -1,4 +1,4 @@
-L.provide('OML.network', ["d3/d3"], function () {
+L.provide('OML.network', ["/resource/vendor/d3/d3.js"], function () {
 
   OML['network'] = function(opts) { 
     this.opts = opts || {};
@@ -112,9 +112,14 @@ L.provide('OML.network', ["d3/d3"], function () {
       if (! (sources instanceof Array)) {
         throw "Expected an array"
       }
-      if (sources.length < 2) {
-        throw "Require at least two sources"
+      if (sources.length != 1) {
+        throw "Can only process a SINGLE source"
       }
+      var data_source = OML.data_sources[sources[0].stream];
+      if ((this.data = data_source.events) == null) {
+        throw "Missing events array in data source"
+      }
+      
       
       var data = this.data = {};
       _.each(sources, function(s) {

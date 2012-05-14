@@ -1,6 +1,6 @@
 
 
-L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], function () {
+L.provide('OML.table', ["table2.css", ["/resource/vendor/jquery/jquery.js", "/resource/vendor/jquery/jquery.dataTables.js"]], function () {
   if (typeof(OML) == "undefined") {
     OML = {};
   }
@@ -46,12 +46,13 @@ L.provide('OML.table', ["table2.css", ["jquery.js", "jquery.dataTables.js"]], fu
       if (sources.length != 1) {
         throw "Can only process a SINGLE source"
       }
-      var data;
-      if ((data = sources[0].events) == null) {
+      var data_source = OML.data_sources[sources[0].stream];
+      if ((this.data = data_source.events) == null) {
         throw "Missing events array in data source"
       }
-      this.render_rows(data, false);
+      this.render_rows(this.data, false);
     },
+
 
     /* Add rows */
     render_rows: function(rows, update) {

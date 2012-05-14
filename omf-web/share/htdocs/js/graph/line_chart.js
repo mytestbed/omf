@@ -44,7 +44,11 @@ var o = OML;
   
     redraw: function() {
       var self = this;
-      var data = this.data;
+      
+      var data;
+      if ((data = this.data_source.events) == null) {
+        throw "Missing events array in data source"
+      }
       if (data.length == 0) return;
       
       var o = this.opts;

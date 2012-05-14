@@ -1,15 +1,17 @@
 
+require 'omf-common/mobject2'
+OMF::Common::Loggable.init_log 'gec12'
 
 require 'omf-oml/network'
 
-require 'omf-web/tabbed_server'
-require 'omf-web/tab/graph/init'
 require 'omf-web/widget/code/code'
+require 'omf-web/widget/graph/graph'
 
 # Define data sources
 #
 puts "ATGV:  #{ARGV.inspect}"
-$db_name = ARGV[0] || "/var/lib/oml2/gec12_demo_pgeni.sq3"
+#$db_name = ARGV[0] || "/var/lib/oml2/gec12_demo_pgeni.sq3"
+$db_name = "omf-web/example/gec12/gec12_demo.sq3"
 
 #
 # Configure graph displays
@@ -37,6 +39,7 @@ end
 
 
 require 'omf-web/tab/two_column/two_column_service'
+require 'omf-web/tab'
 $lwidgets = []
 $rwidgets = []
 OMF::Web::Tab.register_tab(
@@ -64,13 +67,9 @@ load "#{File.dirname(__FILE__)}/visualization.rb"
 # Configure the web server
 #
 opts = {
-  :sslNOT => {
-    :cert_chain_file => "#{File.dirname(__FILE__)}/debug/server_chain.crt", 
-    :private_key_file => "#{File.dirname(__FILE__)}/debug/server.key", 
-    :verify_peer => false
-  },
   :page_title => 'Mobility First',
   :use_tabs => [:overview, :graph, :code, :log],
   :theme => :bright
 }
+require 'omf_web'
 OMF::Web.start(opts)

@@ -1,5 +1,5 @@
 
-L.provide('OML.abstract_chart', ["d3/d3"], function () {
+L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
 
   if (typeof(OML) == "undefined") OML = {};
   
@@ -21,12 +21,37 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
   
   OML['abstract_chart'] = Backbone.Model.extend({
     
-    base_css_class: 'oml-chart',
+    decl_color_func: {
+      // scale
+      "green_yellow80_red()": d3.scale.linear()
+                              .domain([0, 0.8, 1])
+                              .range(["green", "yellow", "red"]),
+      "green_red()":          d3.scale.linear()
+                              .domain([0, 1])
+                              .range(["green", "red"]),
+      "red_yellow20_green()": d3.scale.linear()
+                              .domain([0, 0.2, 1])
+                              .range(["red", "yellow", "green"]),
+      "red_green()":          d3.scale.linear()
+                              .domain([0, 1])
+                              .range(["red", "green"]),
+      // category
+      "category10()":         d3.scale.category10(),      
+      "category20()":         d3.scale.category20(),
+      "category20b()":         d3.scale.category20b(),
+      "category20c()":         d3.scale.category20c(),
+    },
+    
+    
+    //base_css_class: 'oml-chart',
     
     initialize: function(opts) {
       this.opts = opts;
       var o = this.opts;
   
+      this.init_data_source();
+      this.process_schema();
+
       var w = this.w = o['width'] || 700;
       var h = this.h = o['height'] || 400;
   
@@ -42,7 +67,6 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
       var vis = this.init_svg(w, h);
       this.configure_base_layer(vis);
                  
-      this.process_schema();
       
       var self = this;
       OHUB.bind("graph.highlighted", function(evt) {
@@ -54,28 +78,41 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
         self.on_dehighlighted(evt);
       });
       
-      var data = o.data;
-      if (data) this.update(data);
-                 
+      //this.update(null);
+      this.redraw();         
     },
     
-    append: function(a_data) {
-      // TODO: THIS DOESN'T WORK
-      //var data = this.data;
-      this.redraw();   
+    update: function(data) {
+      if (data == null) {
+        if ((data = this.data_source.events) == null) {
+          throw "Missing events array in data source"
+        }
+      }
+      this.data = data;
+      this.redraw();
     },
+    
 
-    update: function(sources) {
+    // Find the appropriate data source and bind to it
+    //
+    init_data_source: function() {
+      var o = this.opts;
+      var sources = o.data_sources;
+      var self = this;
+      
       if (! (sources instanceof Array)) {
         throw "Expected an array"
       }
       if (sources.length != 1) {
         throw "Can only process a SINGLE source"
       }
-      if ((this.data = sources[0].events) == null) {
-        throw "Missing events array in data source"
+      var ds = this.data_source = OML.data_sources[sources[0].stream];
+      if (o.dynamic == true) {
+        ds.on_changed(function(evt) {
+          self.redraw();
+        });
       }
-      this.redraw();
+
     },
     
     init_svg: function(w, h) {
@@ -83,6 +120,7 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
       
       var base_el = opts.base_el || "body";
       if (typeof(base_el) == "string") base_el = d3.select(base_el);
+      this.base_el = base_el;
       var vis = opts.svg = this.svg_base = base_el.append("svg:svg")
         .attr("width", w)
         .attr("height", h)
@@ -238,24 +276,51 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
      */
     
     process_schema: function() {
+      // var self = this;
+      // var o = this.opts;
+      // var schema = this.schema = {};
+      // _.map(this.data_source.schema, function(s, i) {
+          // s['index'] = i;
+          // schema[s.name] = s;
+      // });
+//       
+      // var m = this.mapping = {};
+      // var om = o.mapping || {};      
+      // _.map(this.decl_properties, function(a) {
+        // var pname = a[0]; var type = a[1]; var def = a[2];
+        // var descr = om[pname];
+        // m[pname] = self.create_mapping(pname, descr, null, type, def)
+      // });
+      // var i = 0;
+      
+      this.schema = this.process_single_schema(this.data_source);
+      this.mapping = this.process_single_mapping(null, this.opts.mapping, this.decl_properties);
+      
+    },
+    
+    process_single_schema: function(data_source) {
       var self = this;
       var o = this.opts;
-      var schema = this.schema = {};
-      _.map(o.schema, function(s, i) {
+      var schema = {};
+      _.map(data_source.schema, function(s, i) {
           s['index'] = i;
           schema[s.name] = s;
       });
-      
-      var m = this.mapping = {};
-      var om = o.mapping || {};      
-      _.map(this.decl_properties, function(a) {
+      return schema;
+    },
+   
+    process_single_mapping: function(source_name, mapping_decl, properties_decl) {
+      var self = this;
+      var m = {};
+      var om = mapping_decl || {};      
+      _.map(properties_decl, function(a) {
         var pname = a[0]; var type = a[1]; var def = a[2];
         var descr = om[pname];
-        m[pname] = self.create_mapping(pname, descr, null, type, def)
+        m[pname] = self.create_mapping(pname, descr, source_name, type, def)
       });
-      var i = 0;
+      return m;
     },
-    
+
    /*
     * Return schema for +stream+.
     */
@@ -265,6 +330,17 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
      }
      return this.schema;
    },  
+   
+   /*
+    * Return data_source named 'name'.
+    */
+   data_source_for_stream: function(name) {
+     if (name != undefined) {
+       throw "Can't provide named stream '" + name + "'.";
+     }
+     return this.data_source;
+   },  
+
     
     
    create_mapping: function(mname, descr, stream, type, def) {
@@ -275,12 +351,15 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
      if (descr == undefined || typeof(descr) != 'object' ) {
        if (type == 'index') {
          return this.create_mapping(mname, def, stream, type, null);
+       } else if (type == 'key') {
+         return this.create_mapping(mname, {property: descr}, stream, type, def);
        } else {
          var value = (descr == undefined) ? def : descr;
-         return value;
-         return function(d) { 
-           return value; 
+         if (type == 'color' && /\(\)$/.test(value)) {
+           //var t = /\(\)$/.test(value); // check if value ends with () indicating color function
+           value = this.decl_color_func[value];
          }
+         return value;
        }
      }
      if (descr.stream != undefined) {
@@ -302,14 +381,15 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
        }
        var vindex = col_schema.index;
        
-       var jstream = descr.join_stream;
-       if (jstream == undefined) {
+       var jstream_name = descr.join_stream;
+       if (jstream_name == undefined) {
          throw "Missing join stream declaration in '" + mname + "'.";
        }
-       var jschema = this.schema_for_stream(jstream);
+       var jschema = this.schema_for_stream(jstream_name);
        if (jschema == undefined) {
-         throw "Can't find schema for stream '" + jstream + "'.";
+         throw "Can't find schema for stream '" + jstream_name + "'.";
        }
+       var jstream = this.data_source_for_stream(jstream_name);
 
        var jkey = descr.join_key;
        if (jkey == undefined) jkey = 'id';
@@ -318,15 +398,19 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
          throw "Unknown stream element '" + jkey + "' in '" + jstream + "'.";
        }
        var jindex = jcol_schema.index;
+       jstream.create_index(jindex);
        
        return function(d) {
          var join = d[vindex];
-         var t = self.get_indexed_table(jstream, jindex);
-         var r = t[join];
-         return r;
+         var t = jstream.get_indexed_row(jindex, join); //self.get_indexed_table(jstream, jindex);
+         //var r = t[join];
+         return t;
        }
      } else {
        var pname = descr.property;
+       if (pname == undefined) {
+         throw "Missing 'property' declaration for mapping '" + mname + "'.";
+       }
        var col_schema = schema[pname];
        if (col_schema == undefined) {
          if (descr.optional == true) {
@@ -337,6 +421,7 @@ L.provide('OML.abstract_chart', ["d3/d3"], function () {
        var index = col_schema.index;
        switch (type) {
        case 'int': 
+       case 'float':        
          var scale = descr.scale;
          var min_value = descr.min;
          var max_value = descr.max;
