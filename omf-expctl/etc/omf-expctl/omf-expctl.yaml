@@ -47,7 +47,7 @@
       # This is the Path where EC should look for its repository of built-in 
       # experiments (e.g. example experiments, maintenance experiments, etc...)
       :repository:
-        :path: ["../share/repository", "/usr/share/omf-expctl-5.4/repository"]
+        :path: ["./", "../share/repository", "/usr/share/omf-expctl-5.4/repository"]
 
       # URI to the OML server to use for this EC 
       # (can be overwritten on the EC command line)
@@ -94,10 +94,10 @@
       # connection as specified in the ':communicator:' section above. In this
       # ':services:' section, you can specify additional AM contact details.
       # Supported protocols are XMPP and HTTP for legacy services. 
-      :services:
-        -
-          :type: :http
-          :uri: 'http://norbit.npc.nicta.com.au:5054'
+      # :services:
+      #   -
+      #     :type: :http
+      #     :uri: 'http://norbit.npc.nicta.com.au:5054'
         # -
         #   :type: :xmpp
         #   :uri: 'norbit.npc.nicta.com.au'

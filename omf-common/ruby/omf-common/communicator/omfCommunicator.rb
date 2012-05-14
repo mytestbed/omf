@@ -115,6 +115,10 @@ class OmfCommunicator < MObject
     return @@transport.send(addr, message)
   end  
 
+  def leave(addr)
+    @@transport.leave(addr) if @@transport
+  end
+
   def listen(addr)
     # NOTE: if we want to allow multiple queues and threads to 
     # perform parallel processing at the Comm level, we should change the 

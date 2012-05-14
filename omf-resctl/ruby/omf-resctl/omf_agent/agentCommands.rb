@@ -96,11 +96,11 @@ module AgentCommands
   def AgentCommands.ENROLL(communicator, command)
     # Check if we are already 'enrolled' or not
     if controller.enrolled
-      msg = "Resource Controller already enrolled! - "+
-            "ignoring this ENROLL command!"
+      msg = "Cannot ENROLL in experiment #{command.expID}, because still "+
+            "enrolled in #{communicator.expID}!"
       MObject.debug("AgentCommands", msg)
-      return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg}
-      #return
+      return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg, 
+              :slice_message => true}
     end
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
@@ -111,7 +111,8 @@ module AgentCommands
       msg = "Requested Image: '#{desiredImage}' - "+
             "Current Image: '#{controller.imageName()}'"
       MObject.debug("AgentCommands", msg)
-      return {:success => :ERROR, :reason => :WRONG_IMAGE, :info => msg}
+      return {:success => :ERROR, :reason => :WRONG_IMAGE, :info => msg, 
+              :slice_message => true}
     end
     # Now instruct the communicator to listen for messages addressed to 
     # our new groups
@@ -120,7 +121,8 @@ module AgentCommands
       msg = "Failed to Process ENROLL command! "+
             "Maybe it came from an old experiment - ignoring it!"
       MObject.error("AgentCommands", msg)
-      return {:success => :ERROR, :reason => :OLD_ENROLL, :info => msg}
+      return {:success => :ERROR, :reason => :OLD_ENROLL, :info => msg, 
+              :slice_message => true}
     end
     # All is good, enroll this Resource Controller
     controller.enrolled = true

@@ -24,7 +24,7 @@ echo "-> Checking for disk usage on $PART"
 mkdir -p /mnt
 mount $PART /mnt
 # divide used space by total space
-USAGE=`df | grep $DISK |  awk '{ print $3/$2 }'`
+USAGE=`df | grep $DISK |  awk '{ printf "%f", $3/$2 }'`
 umount /mnt
 
 if [[ "$USAGE" > "0.9" ]]; then
@@ -36,29 +36,50 @@ echo "-> Shrinking filesystem on $PART to minimum size"
 touch /etc/mtab
 e2fsck -fy $PART
 tune2fs -O ^has_journal $PART
-# take the minimum fs size, multiply by 4 (to convert to 1k blocks) and add 5% free space
-NEWSIZE=`resize2fs -M $PART | grep "The filesystem on" | awk '{ print $7*4*1.05 }'`
+
+SHRINKTO=0
+RESIZEFS=`resize2fs -M $PART 2>&1 | grep "The filesystem"`
+
+# check if FS was shrunk
+echo "$RESIZEFS" | grep -q "The filesystem on"
+if [ $? -eq 0 ];then
+	# take the minimum fs size, multiply by 4 (to convert to 1k blocks) and add 5% free space
+	SHRINKTO=`echo $RESIZEFS | awk '{ printf "%d", $7*4*1.05 }'`
+fi
+
+# check if FS has been shrunk already
+echo "$RESIZEFS" | grep -q "The filesystem is already"
+if [ $? -eq 0 ];then
+	# take the minimum fs size, multiply by 4 (to convert to 1k blocks) and add 5% free space
+	SHRINKTO=`echo $RESIZEFS | awk '{ printf "%d", $5*4*1.05 }'`
+fi
+
+# any other output means something went wrong
+if [ $SHRINKTO -eq 0 ];then
+	echo "-> Failed to shrink the filesystem.";
+	exit 1;
+fi
 
 echo "-> Removing partition table entries 2, 3 and 4"
 
 SFDISK="sfdisk -q -L -uB -f"
 
 $SFDISK -N2 $DISK >/dev/null <<P2
-0,0
+0,0,0
 P2
 
 $SFDISK -N3 $DISK >/dev/null <<P3
-0,0
+0,0,0
 P3
 
 $SFDISK -N4 $DISK >/dev/null <<P4
-0,0
+0,0,0
 P4
 
-echo "-> Shrinking partition $PART to minimum size + 5%"
+echo "-> Growing partition $PART to minimum size + 5% ($SHRINKTO blocks)"
 
 $SFDISK -N1 $DISK >/dev/null <<P1
-,$NEWSIZE
+,$SHRINKTO
 y
 P1
 

@@ -43,7 +43,7 @@ require 'omf-resctl/omf_agent/agentCommands'
 class RCCommunicator < OmfCommunicator
 
   SEND_RETRY_INTERVAL = 5 # in sec
-
+ 
   def init(opts)
     super(opts)
     # RC-specific communicator initialisation
@@ -54,6 +54,7 @@ class RCCommunicator < OmfCommunicator
     @@myECAddress = nil
     @@myAliases = [@@myName, "*"]
     @@retrySending = false
+    @@exp_listening_list = []
     # 1 - Build my address for this slice
     @@myAddr = create_address(:sliceID => @@sliceID,
                               :name => @@myName,
@@ -72,15 +73,24 @@ class RCCommunicator < OmfCommunicator
     addr = create_address(:sliceID => @@sliceID, :expID => @@expID,
                           :domain => @@domain, :name => group)
     add_alias(group)
-    return listen(addr)
+    success = listen(addr)
+    @@exp_listening_list << addr if success
+    return success
   end
 
   def listen_to_experiment(expID)
     addr = create_address(:sliceID => @@sliceID, :expID => expID,
                           :domain => @@domain)
     success = listen(addr)
-    @@expID = expID if success
+    if success
+      @@expID = expID if success
+      @@exp_listening_list << addr
+    end
     return success
+  end
+
+  def expID 
+    return @@expID
   end
 
   def set_EC_address(ec_address = nil)
@@ -95,7 +105,11 @@ class RCCommunicator < OmfCommunicator
                            :message => result[:info])
     reply.merge(original_request)
     reply.merge(result[:extra]) if result[:extra]
-    send_message(@@myECAddress, reply)
+    if result[:slice_message]
+      send_message(@@myAddr, reply)
+    else
+      send_message(@@myECAddress, reply)
+    end
   end
 
   #
@@ -116,17 +130,7 @@ class RCCommunicator < OmfCommunicator
     send_message(@@myECAddress, message)
   end
 
-  def reset
-    # Reset all our internal states
-    if @@retrySending
-      @@retryThread.kill
-      @@retryQueue.clear 
-      @@retrySending = false
-    end
-    @@myECAddress = nil
-    super()
-    @@expID = nil
-    @@myAliases = [@@myName, "*"]
+  def join_slice
     # Listen to my address - wait and try again until successfull
     listening = false
     while !listening
@@ -148,6 +152,20 @@ class RCCommunicator < OmfCommunicator
         sleep RETRY_INTERVAL
       end
     end
+  end
+
+  def reset
+    # Reset all our internal states
+    if @@retrySending
+      @@retryThread.kill
+      @@retryQueue.clear 
+      @@retrySending = false
+    end
+    @@exp_listening_list.each { |addr| leave(addr) }
+    @@myECAddress = nil
+    @@expID = nil
+    @@myAliases = [@@myName, "*"]
+    @@exp_listening_list = []
   end
 
   alias parentSend send_message

@@ -30,7 +30,7 @@
 require 'omf-resctl/omf_driver/wimax'
 
 #
-# This class represents an Atheros device
+# This class represents a WimaxcuDevice
 #
 class WimaxcuDevice < WimaxDevice
 

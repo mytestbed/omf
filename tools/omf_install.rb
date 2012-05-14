@@ -57,7 +57,7 @@ end
 
 def check_ubuntu_version
   task "Checking Ubuntu Version"
-  if `cat /etc/issue`.include? "Ubuntu 11.04"
+  if `cat /etc/issue`.include? "Ubuntu 11.10"
     ok
   else
     failed
@@ -74,6 +74,16 @@ def check_interface
     failed
     abort "Please configure the node-facing network interface (#{@c['interface']}) "+ 
     "to use the IP address #{@c['controller_ip']} and ensure that it's active"
+  end
+end
+
+def check_ping
+  task "Checking Network Connectivity"
+  if system("wget mytestbed.net -O /dev/null -q") 
+    ok
+  else
+    failed
+    abort "Cannot reach http://mytestbed.net. Ensure that DNS is working and you have a route to the Internet."
   end
 end
 
@@ -180,8 +190,8 @@ end
 
 def install_xmpp
   task "Installing XMPP server"
-  system("add-apt-repository ppa:ferramroberto/java; apt-get update; apt-get -y install sun-java6-jre")
-  system("wget -N -P /tmp wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.7.1_all.deb")
+  system("add-apt-repository -y ppa:ferramroberto/java; apt-get update; apt-get -y install sun-java6-jre")
+  system("wget -N -P /tmp http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.7.1_all.deb")
   system("dpkg -i /tmp/downloadServlet?filename=openfire%2Fopenfire_3.7.1_all.deb")
   ok
 end
@@ -304,6 +314,7 @@ check_config
 check_root
 check_ubuntu_version
 check_interface
+check_ping
 warning
 install_packages("syslinux dnsmasq ntp wget python-software-properties")
 config_dnsmasq
@@ -312,7 +323,7 @@ install_xmpp
 config_xmpp
 install_am
 config_am
-install_packages("mysql-server libdb4.6 phpmyadmin")
+install_packages("mysql-server libdb4.6")
 config_inventory
 config_psnodes
 restart_am

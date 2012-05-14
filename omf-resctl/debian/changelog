@@ -1,6 +1,24 @@
+omf-resctl-5.4 (5.4-ubuntu7) oneiric; urgency=low
+
+  * fixed typo 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 10 May 2012 13:05:22 +1000
+
+omf-resctl-5.4 (5.4-ubuntu6) oneiric; urgency=low
+
+  * now supporting madwifi and ath5k
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 08 May 2012 19:32:50 +1000
+
+omf-resctl-5.4 (5.4-ubuntu5) oneiric; urgency=low
+
+  * Fixed bug #478
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 15 Mar 2012 16:58:25 +1100
+
 omf-resctl-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
-  * 5.4.1 testing release 
+  * 5.4.1 release 
 
  -- Jack C Hong <jack.hong@nicta.com.au>  Tue, 07 Feb 2012 00:05:36 +0000
 

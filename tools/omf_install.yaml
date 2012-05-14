@@ -3,7 +3,7 @@
 version: "5.4"
 # name of the network interface that is facing the node network
 interface: "eth0:0"
-# IP address of the testbed controller
+# IP address of the testbed controller (runs AM, XMPP, EC, ...)
 controller_ip: "10.0.0.199"
 # address pool for static DHCP leases to the testbed nodes
 # ensure that the above controller_ip is not within this range

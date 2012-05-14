@@ -157,9 +157,9 @@ module AgentCommands
         lines << "the application '#{reply.appID}'"
         lines << "The error message is '#{message}'" if message
       when 'ALREADY_ENROLLED'
-        MObject.warn("AgentCommands", "The resource '#{sender}' reports that "+
-                     "it is already enrolled in '#{reply.expID}'")
-        return 
+        lines << "The resource '#{sender}' cannot enroll in this experiment"
+        lines << "It is most probably already enrolled in another experiment"
+        lines << "#{sender}: '#{message}'"
       else
         NodeHandler.instance.logError(sender,
                             "Unknown error caused by '#{errorReason}'", 

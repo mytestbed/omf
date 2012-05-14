@@ -1,6 +1,18 @@
+omf-expctl-5.4 (5.4-ubuntu6) oneiric; urgency=low
+
+  * follow up on #478
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Wed, 21 Mar 2012 19:02:24 +1100
+
+omf-expctl-5.4 (5.4-ubuntu5) oneiric; urgency=low
+
+  * Fixed bug #478
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 15 Mar 2012 16:57:04 +1100
+
 omf-expctl-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
-  * 5.4.1 testing release 
+  * 5.4.1 release 
 
  -- Jack C Hong <jack.hong@nicta.com.au>  Tue, 07 Feb 2012 00:04:55 +0000
 

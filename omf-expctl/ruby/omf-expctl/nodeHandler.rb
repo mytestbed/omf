@@ -883,7 +883,7 @@ class NodeHandler < MObject
     id = "log_#{@@logCounter += 1}"
     el = LOG_EL.add_element(severity, {'timeStamp' => Time.now, 'id' => id})
     el.text = reason
-    if source.kind_of?(Node)
+    if source.kind_of?(OMF::EC::Node)
       el.add_attribute('source', source.nodeID)
     end
     extra.each {|k, v|
