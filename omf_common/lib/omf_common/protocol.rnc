@@ -27,6 +27,7 @@ element inform {
   element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" },
   element resource_id { text }?,
   element resource_address { text }?,
+  element error_message { text }?,
   element property {
     (attribute key { text } | element key { text }),
     element current { text },

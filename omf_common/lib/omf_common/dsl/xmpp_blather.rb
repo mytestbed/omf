@@ -50,7 +50,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def create_node(node, host, &block)
-        pubsub.create_with_configuration(node, PUBSUB_CONFIGURE, host, &new_block(__method__, node, &block))
+        pubsub.create_with_configuration(node, PUBSUB_CONFIGURE, host, &callback_logging(__method__, node, &block))
       end
 
       # Delete a pubsub node
@@ -58,7 +58,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def delete_node(node, host, &block)
-        pubsub.delete(node, host, &new_block(__method__, node, &block))
+        pubsub.delete(node, host, &callback_logging(__method__, node, &block))
       end
 
       # Subscribe to a pubsub node
@@ -66,7 +66,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def subscribe(node, host, &block)
-        pubsub.subscribe(node, nil, host, &new_block(__method__, node, &block))
+        pubsub.subscribe(node, nil, host, &callback_logging(__method__, node, &block))
       end
 
       # Un-subscribe all existing subscriptions from all pubsub nodes.
@@ -76,7 +76,7 @@ module OmfCommon
       def unsubscribe(host)
         pubsub.subscriptions(host) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
-            pubsub.unsubscribe(s[:node], nil, s[:subid], host, &new_block(__method__, s[:node], s[:subid]))
+            pubsub.unsubscribe(s[:node], nil, s[:subid], host, &callback_logging(__method__, s[:node], s[:subid]))
           end
         end
       end
@@ -87,25 +87,29 @@ module OmfCommon
       # @param [String] message Any XML fragment to be sent as payload
       # @param [String] host Pubsub host address
       def publish(node, message, host, &block)
-        pubsub.publish(node, message, host, &new_block(__method__, node, message.operation, &block))
+        pubsub.publish(node, message, host, &callback_logging(__method__, node, message.operation, &block))
       end
 
+      # Event callback for pubsub node event(created, deleted)
+      #
       def node_event(*args, &block)
-        pubsub_event(:items, *args, &new_block(__method__, &block))
+        pubsub_event(:items, *args, &callback_logging(__method__, &block))
       end
 
+      # Event callback for pubsub items event(item published)
+      #
       def node_item_event(*args, &block)
-        pubsub_event(:items, :node, *args, &new_block(__method__, &block))
+        pubsub_event(:items, :node, *args, &callback_logging(__method__, &block))
       end
 
       private
 
       # Provide a new block wrap to automatically log errors
-      def new_block(*args, &block)
+      def callback_logging(*args, &block)
         m = args.empty? ? "OPERATION" : args.map {|v| v.to_s.upcase }.join(" ")
         proc do |callback|
           logger.error callback if callback.respond_to?(:error?) && callback.error?
-          logger.info "#{m} SUCCEED" if callback.respond_to?(:result?) && callback.result?
+          logger.debug "#{m} SUCCEED" if callback.respond_to?(:result?) && callback.result?
           block.call(callback) if block
         end
       end

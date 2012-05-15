@@ -18,7 +18,6 @@ module OmfCommon
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
     SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol.rng"
-
     OPERATION = %w(create configure request release inform)
 
     class << self
@@ -88,6 +87,12 @@ module OmfCommon
     # In case you think method :element_by_xpath_with_default_namespace is too long
     #
     alias_method :read_element, :element_by_xpath_with_default_namespace
+
+    # We just want to know the content of an non-repeatable element
+    #
+    def read_content(element_name)
+      read_element("//#{element_name}").first.content rescue nil
+    end
 
     # Get a property by key
     #

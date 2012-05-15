@@ -98,6 +98,11 @@
         <text/>
       </element>
     </optional>
+    <optional>
+      <element name="error_message">
+        <text/>
+      </element>
+    </optional>
     <zeroOrMore>
       <element name="property">
         <choice>

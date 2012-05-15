@@ -72,6 +72,7 @@ describe OmfCommon::Message do
       message.must_be_kind_of Message
       message.operation.must_equal :create
       message.read_element("//property").size.must_equal 3
+      message.read_content("unit").must_equal 'mb'
       message.read_element("/create/property").size.must_equal 3
       message.read_property("type").must_equal 'vm'
       message.read_property(:type).must_equal 'vm'
