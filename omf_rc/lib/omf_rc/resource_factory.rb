@@ -14,13 +14,15 @@ class OmfRc::ResourceFactory
   }
 
   class << self
-    def new(type, opts = nil, comm = nil)
+    def new(type, opts = nil, comm = nil, &block)
       raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       type = type.to_s
       opts = opts ? DEFAULT_OPTS.merge(opts) : DEFAULT_OPTS
-      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm = nil)
+      # Create a new instance of abstract resource
+      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm)
+      # Then extend this instance with relevant module identified by type
       resource.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant)
-      resource.bootstrap if resource.respond_to? :bootstrap
+      # Execute resource bootstrap (before_ready hook) if any
       resource
     end
 
@@ -40,7 +42,7 @@ class OmfRc::ResourceFactory
       @@utility_list << utility
     end
 
-    def bootstrap
+    def load_default_resource_proxies
       Dir["#{File.dirname(__FILE__)}/resource_proxy/*.rb"].each do |file|
         require "omf_rc/resource_proxy/#{File.basename(file).gsub(/\.rb/, '')}"
       end
