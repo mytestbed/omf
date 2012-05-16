@@ -46,7 +46,19 @@ opts = {
   }
   
 }
-OMF::Web::Widget::Graph.addGraph('Amplitude', opts) 
+OMF::Web::Widget::Graph.addGraph('Amplitude', opts)
+
+opts = {
+  :wtype => 'graph',
+  :dynamic => {:updateInterval => 1},
+  :wopts => {
+    :viz_type => 'table',
+    :data_sources => table,
+    :dynamic => true
+  }
+  
+}
+OMF::Web::Widget::Graph.addGraph('Amplitude (T)', opts)  
 #OMF::Web::Widget.register('Amplitude', opts) 
 
 
