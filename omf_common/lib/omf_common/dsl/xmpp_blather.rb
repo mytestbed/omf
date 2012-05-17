@@ -26,23 +26,11 @@ module OmfCommon
         client.run
       end
 
-      # Shut down XMPP connection, clean up pubsub nodes if necessary
+      # Shut down XMPP connection
       #
       # @param [String] host Host represents the pubsub address, e.g. pubsub.norbit.npc.nicta.com.au
       def disconnect(host)
-        pubsub.affiliations(host) do |affs|
-          # We don't care if server has user tune support
-          affs[:owner].delete_if { |item| item == "http://jabber.org/protocol/tune" } if affs[:owner]
-          shutdown if affs[:owner].nil? || affs[:owner].empty?
-          affs[:owner] && affs[:owner].each do |item|
-            delete_node(item, host) do |m|
-              pubsub.affiliations(host) do |affs|
-                affs[:owner].delete_if { |item| item == "http://jabber.org/protocol/tune" } if affs[:owner]
-                shutdown if affs[:owner].nil? || affs[:owner].empty?
-              end
-            end
-          end
-        end
+        shutdown
       end
 
       # Create a new pubsub node with additional configuration
