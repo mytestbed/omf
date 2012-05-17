@@ -50,7 +50,7 @@ module OmfRc::ResourceProxyDSL
     def register_configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
         raise ArgumentError "Missing value to conifgure property" if args.empty?
-        register_block.call(args[0]) if register_block
+        register_block.call(args[0], block) if register_block
       end
     end
 

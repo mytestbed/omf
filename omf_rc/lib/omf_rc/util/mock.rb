@@ -3,8 +3,12 @@ module OmfRc::Util::Mock
 
   register_utility :mock
 
-  register_request :bob do
-    "Very important property's value"
+  register_request :resource_proxy_list do |callback|
+    callback.call(success: OmfRc::ResourceFactory.proxy_list)
+  end
+
+  register_request :resource_utility_list do |callback|
+    callback.call(success: OmfRc::ResourceFactory.utility_list)
   end
 
   register_request :kernel_version do |callback|
