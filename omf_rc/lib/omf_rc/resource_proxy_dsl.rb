@@ -12,15 +12,9 @@ module OmfRc::ResourceProxyDSL
       OmfRc::ResourceFactory.register_proxy(name)
     end
 
-    def register_bootstrap(&register_block)
-      define_method(:bootstrap) do |*args, &block|
+    def register_hook(name, &register_block)
+      define_method(name) do
         register_block.call if register_block
-      end
-    end
-
-    def register_cleanup(&register_block)
-      define_method(:cleanup) do |*args, &block|
-        register_block.call(block) if register_block
       end
     end
 

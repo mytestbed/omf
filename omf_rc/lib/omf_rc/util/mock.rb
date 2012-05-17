@@ -3,6 +3,9 @@ module OmfRc::Util::Mock
 
   register_utility :mock
 
+  register_request :nothing
+  register_configure :nothing
+
   register_request :resource_proxy_list do |callback|
     callback.call(success: OmfRc::ResourceFactory.proxy_list)
   end

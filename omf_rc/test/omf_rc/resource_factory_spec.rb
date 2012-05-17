@@ -11,7 +11,8 @@ describe OmfRc::ResourceFactory do
     it "must be able to create new resource proxy" do
       mock = OmfRc::ResourceFactory.new(:mock)
       mock.must_be_kind_of OmfRc::ResourceProxy::AbstractResource
-      mock.must_respond_to :test
+      mock.must_respond_to :request_nothing
+      mock.must_respond_to :configure_nothing
     end
   end
 end
