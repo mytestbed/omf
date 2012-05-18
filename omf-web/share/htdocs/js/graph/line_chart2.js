@@ -1,9 +1,9 @@
-L.provide('OML.line_chart', ["graph/abstract_chart", "#OML.abstract_chart", "graph.css", ["/resource/vendor/d3/d3.js", "/resource/vendor/d3/d3.time.js"]], function () {
+L.provide('OML.line_chart2', ["graph/abstract_chart", "#OML.abstract_chart", "graph/axis", "#OML.axis", "graph.css", "/resource/vendor/d3/d3.js"], function () {
 
 var o = OML;
 
   
-  OML['line_chart'] = OML.abstract_chart.extend({
+  OML['line_chart2'] = OML.abstract_chart.extend({
     decl_properties: [
       ['x_axis', 'key', {property: 'x'}], 
       ['y_axis', 'key', {property: 'y'}], 
@@ -18,27 +18,29 @@ var o = OML;
     configure_base_layer: function(vis) {
       //OML.abstract_chart.prototype.initialize.call(this, opts);
       var base_layer = this.base_layer = vis.append("svg:g")
-                 .attr("transform", "translate(0, " + this.h + ")");
+                 ;
 
 
       var ca = this.chart_area; 
       //var g =  this.base_layer;
   
       this.legend_layer = base_layer.append("svg:g");
-      var g = this.chart_layer = base_layer.append("svg:g");
-      g.append("svg:line")
-        .attr("class", "xAxis axis")      
-        .attr("x1", ca.x)
-        .attr("y1", -1 * ca.y)
-        .attr("x2", ca.x + ca.w)
-        .attr("y2", -1 * ca.y);
-  
-      g.append("svg:line")
-        .attr("class", "yAxis axis")      
-        .attr("x1", ca.x)
-        .attr("y1", -1 * ca.y)
-        .attr("x2", ca.x)
-        .attr("y2", -1 * (ca.y + ca.h));
+      this.chart_layer = base_layer.append("svg:g")
+                                    .attr("transform", "translate(" + ca.x + ", " + (this.h - ca.y) + ")");
+      this.axis_layer = base_layer.append('g');
+      // g.append("svg:line")
+        // .attr("class", "xAxis axis")      
+        // .attr("x1", ca.x)
+        // .attr("y1", -1 * ca.y)
+        // .attr("x2", ca.x + ca.w)
+        // .attr("y2", -1 * ca.y);
+//   
+      // g.append("svg:line")
+        // .attr("class", "yAxis axis")      
+        // .attr("x1", ca.x)
+        // .attr("y1", -1 * ca.y)
+        // .attr("x2", ca.x)
+        // .attr("y2", -1 * (ca.y + ca.h));
     },
     
   
@@ -84,7 +86,8 @@ var o = OML;
       });
       var x_max_cnt = d3.max(data, function(d) {return d.length});
       var x_min = this.x_min = o.xmin != undefined ? o.xmin : d3.min(data, function(d) {return x_index(d[0]);});
-      var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([ca.x, ca.x + ca.w]);
+      //var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([ca.x, ca.x + ca.w]);
+      var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([0, ca.w]);
   
       if (x_max_cnt > ca.w) {
         // To much data, downsample
@@ -109,9 +112,9 @@ var o = OML;
       //    var x_min = this.x_min = d3.min(data, function(d) {return d3.min(d, function(d) {return d.x})});
       var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return y_index(t)})});
       var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return y_index(t)})});
-      var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([ca.y, ca.y + ca.h]);
-  
-  
+      //var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([ca.y, ca.y + ca.h]);
+      var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([0, ca.h]);
+        
       //var stroke_width = o.stroke_width ? o.stroke_width : 2;
       var line = d3.svg.line()
         .x(function(t) { return x(x_index(t)) })
@@ -145,9 +148,46 @@ var o = OML;
           })         
           ;
       lines.exit().remove();
+        
+      //this.update_ticks();
+      // var xaxis = OML.line_chart2_axis(o);
+      // var yaxis = OML.line_chart2_axis(o);   
+//       
+      // var xAxis = d3.svg.axis().scale(x).orient("bottom");
+      //var xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);
+      
+      //var xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(true);
+      //var yAxis = d3.svg.axis().scale(y).ticks(4).orient("left");
+      // var yAxis = d3.svg.axis().scale(y).orient("left");
+         
+      var oAxis = o.axis || {};
 
-  
-      this.update_ticks();
+      if (this.xAxis) {
+        var xAxis = this.xAxis.scale(x);
+        this.axis_layer.select('g.x.axis').call(xAxis);
+      } else {
+        var xAxis = this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
+        this.axis_layer
+          .append('g')
+            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
+            .attr('class', 'x axis')
+            .call(xAxis)
+            ;
+      }
+          
+      if (this.yAxis) {
+        var yAxis = this.yAxis.scale(y);
+        this.axis_layer.select('g.y.axis').call(yAxis);
+      } else {
+        var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(y).orient("left").range([0, ca.h]);
+        this.axis_layer
+          .append('g')
+            .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
+            .attr('class', 'y axis')
+            .call(yAxis)
+            ;
+      }
+      
       this.update_selection({});
     },
     
@@ -205,137 +245,10 @@ var o = OML;
       })
     },
   
-    update_ticks: function() {
-      var y = this.y;
-      var x = this.x;
-      var g = this.base_layer;
-      var ca = this.chart_area;
-  
-      var tick_length = 7;
-      var label_spacing = tick_length + 2;
-  
-      var xa_opts = this.opts['xaxis'] || {};
-      var ya_opts = this.opts['yaxis'] || {};
-  
-      var xTicksA = x.ticks(xa_opts['ticks'] || 5);
-      if (xa_opts['show_labels'] != false) {
-        // TODO: FIX ME!!!!
-        var xLabelOpts = xa_opts['label'];
-        var xFormat;
-        if (xLabelOpts) {
-          if (xLabelOpts.type == 'date') {
-            var xFormatter = d3.time.format(xLabelOpts.format || "%X");
-            xFormat = function(d) {
-              var date = new Date(1000 * d);  // TODO: Implicitly assuming that value is in seconds is most likely NOT a good idea
-              var fs = xFormatter(date); 
-              return fs;
-            }
-          } else {
-            var xFormatter = d3.format(xLabelOpts.format || "g");
-            xFormat = function(d) {
-              var fs = xFormatter(d); 
-              return fs;
-            }
-          }
-        } else {
-          xFormat = function(d) {return d};
-        }
-        
-        // xFormat = function(d) {
-          // var ds = "" + d;
-          // var date = new Date(1000 * d);
-          // var fs = tformat(date); 
-          // return fs;
-        // }
-        
-        var xLabel = g.selectAll(".xLabel")
-            .data(xTicksA)
-            .text(xFormat)
-            .attr("x", function(d) { return x(d) });
-        xLabel.enter().append("svg:text")
-            .attr("class", "xLabel")
-            .text(xFormat)
-            .attr("x", function(d) { return x(d) })
-            .attr("y", -1 * (ca.y - label_spacing))
-            .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "text-before-edge");
-        xLabel.exit().remove();
-  
-        var xTicks = g.selectAll(".xTicks")
-          .data(xTicksA)
-          .attr("x1", function(d) { return x(d); })
-          .attr("x2", function(d) { return x(d); })
-        xTicks.enter().append("svg:line")
-          .attr("class", "xTicks ticks")
-          .attr("x1", function(d) { return x(d); })
-          .attr("y1", -1 * ca.y)
-          .attr("x2", function(d) { return x(d); })
-          .attr("y2", -1 * (ca.y - tick_length));
-        xTicks.exit().remove();
-      };
-  
-      if (xa_opts['show_grids'] != false) {
-        var xGrids = g.selectAll(".xGrids")
-          .data(xTicksA)
-          .attr("x1", function(d) { return x(d); })
-          .attr("x2", function(d) { return x(d); })
-        xGrids.enter().append("svg:line")
-          .attr("class", "xGrids grids")
-          .attr("x1", function(d) { return x(d); })
-          .attr("y1", -1 * ca.y)
-          .attr("x2", function(d) { return x(d); })
-          .attr("y2", -1 * (ca.h + ca.y));
-        xGrids.exit().remove();
-      };
-  
-      var yTicksCnt = ya_opts['ticks'] ? ya_opts['ticks'] : (this.h / 30);
-      var yTicksA = y.ticks(yTicksCnt);
-      if (ya_opts['show_labels'] != false) {
-        var yFormat = ya_opts['label'] || function(d) {return d};
-  
-        var yLabel = g.selectAll(".yLabel")
-            .data(yTicksA)
-            .text(yFormat)
-            .attr("y", function(d) { return -1 * y(d) })
-        yLabel.enter().append("svg:text")
-            .attr("class", "yLabel")
-            .text(yFormat)
-            .attr("x", ca.x - label_spacing)
-            .attr("y", function(d) { return -1 * y(d) })
-            .attr("text-anchor", "end")
-            .attr("dy", 4);
-        yLabel.exit().remove();
-  
-        var yTicks = g.selectAll(".yTicks")
-          .data(yTicksA)
-          .attr("y1", function(d) { return -1 * y(d); })
-          .attr("y2", function(d) { return -1 * y(d); })
-        yTicks.enter().append("svg:line")
-          .attr("class", "yTicks ticks")
-          .attr("y1", function(d) { return -1 * y(d); })
-          .attr("x1", ca.x - tick_length)
-          .attr("y2", function(d) { return -1 * y(d); })
-          .attr("x2", ca.x);
-        yTicks.exit().remove();
-      }
-  
-      if (ya_opts['show_grids'] != false) {
-        var yGrids = g.selectAll(".yGrids")
-          .data(yTicksA)
-          .attr("y1", function(d) { return -1 * y(d); })
-          .attr("y2", function(d) { return -1 * y(d); })
-        yGrids.enter().append("svg:line")
-          .attr("class", "yGrids grids")
-          .attr("stroke", "grey")
-          .attr("y1", function(d) { return -1 * y(d); })
-          .attr("x1", ca.x + ca.w)
-          .attr("y2", function(d) { return -1 * y(d); })
-          .attr("x2", ca.x);
-        yGrids.exit().remove();
-      }
-    },
   
   })
+
+
 })
 
 /*

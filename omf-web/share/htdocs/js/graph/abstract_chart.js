@@ -42,32 +42,65 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
       "category20c()":         d3.scale.category20c(),
     },
     
+    defaults: {
+      base_el: "body",
+      width: 0.8,  // <= 1.0 means set width to enclosing element
+      height: 0.6,  // <= 1.0 means fraction of width
+      margin: {
+        left: 50,
+        top:  20,
+        right: 30,
+        bottom: 50
+      },
+      offset: {
+        x: 0,
+        y: 0
+      }      
+    },
+    
+    
     
     //base_css_class: 'oml-chart',
     
     initialize: function(opts) {
-      this.opts = opts;
-      var o = this.opts;
-  
+      var o = this.opts = _.defaults(opts, this.defaults);
+    
+      var base_el = o.base_el;
+      if (typeof(base_el) == "string") base_el = d3.select(base_el);
+      this.base_el = base_el;
+    
       this.init_data_source();
       this.process_schema();
 
-      var w = this.w = o['width'] || 700;
-      var h = this.h = o['height'] || 400;
+      var w = o.width;
+      if (w <= 1.0) {
+        // check width of enclosing div (base_el)
+        w = w * this.base_el[0][0].clientWidth;
+        if (isNaN(w)) w = 800; 
+      }
+      this.w = w;
+      
+      var h = o.height;
+      if (h <= 1.0) {
+        h = h * w;
+      }
+      this.h = h;
+      
+      var m = _.defaults(opts.margin || {}, this.defaults.margin);
+      var ca = this.chart_area = {
+        x: m.left, 
+        rx: w - m.left, 
+        y: m.bottom, 
+        ty: m.top, 
+        w: w - m.left - m.right, 
+        h: h - m.top - m.bottom
+      };
   
-      var m = o['margin'] || {};
-      var ml = m['left'] || 30;
-      var mt = m['top'] || 20;
-      var mr = m['right'] || 20;
-      var mb = m['bottom'] || 20;
-      var ca = this.chart_area = {x: ml, y: mb, w: w - ml - mr, h: h - mt - mb};
-  
-      var offset = o['offset'] || [0, 0];
+      o.offset = _.defaults(opts.offset || {}, this.defaults.offset);
   
       var vis = this.init_svg(w, h);
       this.configure_base_layer(vis);
                  
-      
       var self = this;
       OHUB.bind("graph.highlighted", function(evt) {
         if (evt.source == self) return;
@@ -118,22 +151,20 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
     init_svg: function(w, h) {
       var opts = this.opts;
       
-      var base_el = opts.base_el || "body";
-      if (typeof(base_el) == "string") base_el = d3.select(base_el);
-      this.base_el = base_el;
-      var vis = opts.svg = this.svg_base = base_el.append("svg:svg")
+      var vis = opts.svg = this.svg_base = this.base_el.append("svg:svg")
         .attr("width", w)
         .attr("height", h)
         .attr('class', this.base_css_class);
-      if (opts.x) {
+      var offset = opts.offset;
+      if (offset.x) {
         // the next two lines do the same, but only one works 
         // in the specific context
-        vis.attr("x", opts.x);
-        vis.style("margin-left", opts.x + "px"); 
+        vis.attr("x", offset.x);
+        vis.style("margin-left", offset.x + "px"); 
       }
-      if (opts.y) {
-        vis.attr("y", opts.y);
-        vis.style("margin-top", opts.y + "px"); 
+      if (offset.y) {
+        vis.attr("y", offset.y);
+        vis.style("margin-top", offset.y + "px"); 
       }
       return vis;
     },
