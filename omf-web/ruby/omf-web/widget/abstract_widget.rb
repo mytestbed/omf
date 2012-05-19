@@ -7,6 +7,20 @@ module OMF::Web::Widget
   #
   class AbstractWidget < Erector::Widget
     
+    @@widgets = {}
+    
+    def self.register_widget(wdescr)
+      id = (wdescr[:id] ||= "w#{wdescr.object_id}").to_sym
+      if (@@widgets.key? id)
+        raise "Repeated try to register widget '#{id}'"
+      end  
+      @@widgets[id] = wdescr
+    end
+    
+    def self.registered_widgets()
+      @@widgets
+    end
+    
     attr_reader :widget_id, :name, :opts
     
     def initialize(opts = {})

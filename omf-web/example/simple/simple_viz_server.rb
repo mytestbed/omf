@@ -7,8 +7,17 @@ require 'omf-oml/table'
 require 'omf-web/widget/code/code'
 require 'omf-web/widget/graph/graph'
 
-['sine_chart.rb', 'pie_chart.rb', 'dynamic_network.rb', 'network.rb', 'map.rb', 'histogram.rb'].each do |f|
-  load "#{File.dirname(__FILE__)}/#{f}"
+Dir.glob("#{File.dirname(__FILE__)}/data_sources/*.rb").each do |fn|
+  load fn
+end
+
+require 'yaml'
+Dir.glob("#{File.dirname(__FILE__)}/*.yaml").each do |fn|
+  h = YAML.load_file(fn)
+  if w = h['widget']
+    puts "registering widget '#{w}'"
+    OMF::Web.register_widget w
+  end
 end
 
 require 'omf-web/tab/two_column/two_column_service'

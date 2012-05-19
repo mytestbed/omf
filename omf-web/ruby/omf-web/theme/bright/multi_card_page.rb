@@ -6,20 +6,20 @@ module OMF::Web::Theme
   class MultiCardPage < Page
 
     
-    def initialize(widget, module_name, items_class, opts)
+    def initialize(widget, module_name, widget_names, opts)
       super opts
       @widget = widget
-      @items_class = items_class
+      @widget_names = widget_names
       @module_name = module_name
     end
     
     def render_card_nav
       div :id => 'card_nav' do
         ol do
-          @items_class.each_with_index do |g, i| 
+          @widget_names.each_with_index do |name, i| 
             klass = (i == @card_id) ? 'selected' : nil
             li :class => klass do
-              a g[:name] || 'unknown', :href => "/#{@module_name}/show?tid=#{i}&sid=#{Thread.current["sessionID"]}"
+              a name || 'unknown', :href => "/#{@module_name}/show?tid=#{i}&sid=#{Thread.current["sessionID"]}"
             end
           end
         end

@@ -175,11 +175,12 @@ var o = OML;
             ;
       }
           
+      var inv_y = y.range([ca.h, 0]);
       if (this.yAxis) {
-        var yAxis = this.yAxis.scale(y);
+        var yAxis = this.yAxis.scale(inv_y);
         this.axis_layer.select('g.y.axis').call(yAxis);
       } else {
-        var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(y).orient("left").range([0, ca.h]);
+        var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(inv_y).orient("left").range([0, ca.h]);
         this.axis_layer
           .append('g')
             .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")

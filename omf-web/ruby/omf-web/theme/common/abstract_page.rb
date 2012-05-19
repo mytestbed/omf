@@ -69,28 +69,16 @@ module OMF::Web::Theme
     end
     
     def render_data_source(ds, update_interval)
-      dsp = OMF::Web::DataSourceProxy.for_source(ds)
-      dsp.reset()
-      dsp.to_javascript(update_interval)
-      
-      # unless ds.kind_of?(OMF::OML::OmlTable)
-        # raise "Expected OmlTable, but got '#{ds.class}::#{ds}'"
-      # end
-      # name = "ds#{ds.object_id}"
-      # %{
-        # OML.data_sources['#{name}'] = new OML.data_source('#{name}', 
-                                                          # '/_update?sid=#{Thread.current["sessionID"]}&did=#{name}',
-                                                          # #{update_interval},
-                                                          # #{ds.schema.to_json},
-                                                          # #{ds.rows.to_json});
-      # }
+      dspa = OMF::Web::DataSourceProxy.for_source(ds)
+      dspa.collect do |dsp|
+        dsp.reset()
+        dsp.to_javascript(update_interval)
+      end.join("\n")
     end
 
     def collect_data_sources(dsa)
       dsa
     end
-      
-    
   
     def to_html(opts = {})
       b = super

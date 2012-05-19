@@ -1,0 +1,19 @@
+
+# Defines a widget which shows the content  
+# of a data source 'voltage' in a table.
+# The data source is dynamic and should be checked
+# at least once a second (wopts/dynamic).
+#
+widget:
+  id: generator_table
+  type: data
+  name: Table
+  dynamic:
+    update_interval: 1
+  wopts:
+    viz_type: table
+    data_sources: generator
+    dynamic: 1
+
+
+      

@@ -87,8 +87,8 @@ module OMF::Web::Widget
     # end
 
     def content()
-      @wopts[:data_sources] = @data_sources.collect do |name, table|
-        {:stream => "ds#{table.object_id}", :name => name}
+      @wopts[:data_sources] = @data_sources.collect do |name, ds_name|
+        {:stream => ds_name, :name => name}
       end
       div :id => @base_id, :class => "#{@js_class.gsub('.', '_').downcase}" do
         javascript(%{

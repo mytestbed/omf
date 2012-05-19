@@ -21,13 +21,10 @@ module OMF::Web::Rack
         end
         Thread.current["sessionID"] = sid
         
-        ds_id = req.params['did']
-        unless ds_id
-          raise MissingArgumentException.new "Called update without a 'did' (#{req.inspect})"
-        end
-        ds_proxy = OMF::Web::SessionStore["ds:#{ds_id}"]
+        ds_id = req.path_info[1 .. -1].to_sym
+        ds_proxy = OMF::Web::SessionStore[ds_id]
         unless ds_proxy
-          raise MissingArgumentException.new "Can't find data source proxy <#{ds_id}>"
+          raise MissingArgumentException.new "Can't find data source proxy '#{ds_id}'"
         end
         body, headers = ds_proxy.on_update(req)
         

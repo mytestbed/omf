@@ -21,14 +21,6 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
               ]
     },
     
-    decl_color_func: {
-      "green_yellow80_red": d3.scale.linear()
-                              .domain([0, 0.8, 1])
-                              .range(["green", "yellow", "red"]),
-      "green_red":          d3.scale.linear()
-                              .domain([0, 1])
-                              .range(["green", "red"])
-    },
     
     configure_base_layer: function(vis) {
       var ca = this.chart_area;
@@ -50,6 +42,19 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
       
       if (! (sources instanceof Array)) {
         throw "Expected an array"
+      }
+      if (sources.length == 1) {
+        // Check if the source name is 'default' and we can find 
+        // a _links and _nodes source
+        var s = sources[0];
+        if (s.name == 'default') {
+          // ok, lets expand it
+          var sn = s.stream;
+          sources = [
+            {name: 'nodes', stream: sn + '_nodes'},
+            {name: 'links', stream: sn + '_links'},
+          ]
+        }
       }
       if (sources.length != 2) {
         throw "Expected TWO data source, one for nodes and one for links"
