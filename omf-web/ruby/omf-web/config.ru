@@ -35,7 +35,9 @@ map "/" do
     req = ::Rack::Request.new(env)
     case req.path_info
     when '/'
-      [301, {'Location' => '/tab', "Content-Type" => ""}, ['See Ya!']]
+      [301, {'Location' => '/tab', "Content-Type" => ""}, ['Next window!']]
+    when '/favicon.ico'
+      [301, {'Location' => '/resource/image/favicon.ico', "Content-Type" => ""}, ['Next window!']]
     else
       MObject.info "Can't handle request '#{req.path_info}'"
       [401, {"Content-Type" => ""}, "Sorry!"]
