@@ -23,7 +23,7 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
     
     
     configure_base_layer: function(vis) {
-      var ca = this.chart_area;
+      var ca = this.widget_area;
       
       this.graph_layer = vis.append("svg:g")
                  .attr("transform", "translate(0, " + ca.h + ")")
@@ -65,7 +65,7 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
         dsh[s.name] = ds = OML.data_sources[sources[i].stream];
         if (o.dynamic == true) {
           ds.on_changed(function(evt) {
-            self.redraw();
+            self.update();
           });
         }
       });
@@ -106,20 +106,28 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
       return ds;
     },  
     
+    update: function() {
+
+      var ldata = this.data_source.links.events;
+      var ndata = this.data_source.nodes.events;
+
+      this.redraw({links: ldata, nodes: ndata});
+    },
       
-    redraw:  function() {
+    redraw:  function(data) {
       var self = this;
-      var data = this.data;
       var o = this.opts;
       var mapping = this.mapping; //o.mapping || {};
-      var ca = this.chart_area;
+      var ca = this.widget_area;
       
       var x = function(v) {
         var x = v * ca.w + ca.x;
+        var x = v * ca.w;
         return x;
       };
       var y = function(v) {
         var y = -1 * (v * ca.h + ca.y);
+        var y = -1 * (v * ca.h);        
         return y;
       };
                 
@@ -154,7 +162,7 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
         return iline_f([[x1, y1], [x2, y2], [x3, y3]]);
       };
 
-      var ldata = this.data_source.links.events;
+      var ldata = data.links
       var link2 = this.graph_layer.selectAll("path.link")
         .data(d3.values(ldata))
           //.each(position) // update existing markers
@@ -177,7 +185,7 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
           }) 
           ;
 
-     var ndata = this.data_source.nodes.events;
+     var ndata = data.nodes;
      var node = this.graph_layer.selectAll("circle.node")
        .data(d3.values(ndata))
          .attr("cx", function(d) { return x(nmapping.x(d)) }) 

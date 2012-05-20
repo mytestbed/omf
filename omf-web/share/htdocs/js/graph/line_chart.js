@@ -42,17 +42,12 @@ var o = OML;
     },
     
   
-    redraw: function() {
+    redraw: function(data) {
       var self = this;
       
-      var data;
-      if ((data = this.data_source.events) == null) {
-        throw "Missing events array in data source"
-      }
-      if (data.length == 0) return;
       
       var o = this.opts;
-      var ca = this.chart_area;
+      var ca = this.widget_area;
       var m = this.mapping;
 
       /* GENERALIZE THIS */

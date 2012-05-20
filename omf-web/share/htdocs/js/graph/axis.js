@@ -1,6 +1,9 @@
-L.provide('OML.axis', ["graph.css", ["/resource/vendor/d3/d3.js", "/resource/vendor/d3/d3.time.js"]], function () {
+//L.provide('OML.axis', ["graph.css", ["/resource/vendor/d3/d3.js", "/resource/vendor/d3/d3.time.js"]], function () {
+L.provide('OML.axis', ["graph.css", "/resource/vendor/d3/d3.js"], function () {  
 
   OML.line_chart2_axis = function(options) {
+    if (!options) options = {};
+    
     var d3_axis = d3.svg.axis();
 
     var defaults = {
@@ -104,7 +107,14 @@ L.provide('OML.axis', ["graph.css", ["/resource/vendor/d3/d3.js", "/resource/ven
       d3_axis.scale(scale);
       return axis;
     };
-  
+    
+    axis.tick_values = function(_) {
+      if (!arguments.length) return scale;
+      values = _;
+      d3_axis.tickValues(values);
+      return axis;
+    };
+    
     return axis;
   }
 })

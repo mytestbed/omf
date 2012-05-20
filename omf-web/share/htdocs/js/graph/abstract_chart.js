@@ -1,8 +1,6 @@
 
-L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
+L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget", "/resource/vendor/d3/d3.js"], function () {
 
-  if (typeof(OML) == "undefined") OML = {};
-  
   if (typeof(d3.each) == 'undefined') {
     d3.each = function(array, f) {
       var i = 0,
@@ -19,7 +17,7 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
     };
   };
   
-  OML['abstract_chart'] = Backbone.Model.extend({
+  OML.abstract_chart = OML.abstract_widget.extend({
     
     decl_color_func: {
       // scale
@@ -41,64 +39,16 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
       "category20b()":         d3.scale.category20b(),
       "category20c()":         d3.scale.category20c(),
     },
-    
-    defaults: {
-      base_el: "body",
-      width: 0.8,  // <= 1.0 means set width to enclosing element
-      height: 0.6,  // <= 1.0 means fraction of width
-      margin: {
-        left: 50,
-        top:  20,
-        right: 30,
-        bottom: 50
-      },
-      offset: {
-        x: 0,
-        y: 0
-      }      
-    },
-    
-    
-    
+        
     //base_css_class: 'oml-chart',
     
     initialize: function(opts) {
-      var o = this.opts = _.defaults(opts, this.defaults);
-    
-      var base_el = o.base_el;
-      if (typeof(base_el) == "string") base_el = d3.select(base_el);
-      this.base_el = base_el;
-    
+      OML.abstract_chart.__super__.initialize.call(this, opts);
+      
       this.init_data_source();
       this.process_schema();
-
-      var w = o.width;
-      if (w <= 1.0) {
-        // check width of enclosing div (base_el)
-        w = w * this.base_el[0][0].clientWidth;
-        if (isNaN(w)) w = 800; 
-      }
-      this.w = w;
-      
-      var h = o.height;
-      if (h <= 1.0) {
-        h = h * w;
-      }
-      this.h = h;
-      
-      var m = _.defaults(opts.margin || {}, this.defaults.margin);
-      var ca = this.chart_area = {
-        x: m.left, 
-        rx: w - m.left, 
-        y: m.bottom, 
-        ty: m.top, 
-        w: w - m.left - m.right, 
-        h: h - m.top - m.bottom
-      };
   
-      o.offset = _.defaults(opts.offset || {}, this.defaults.offset);
-  
-      var vis = this.init_svg(w, h);
+      var vis = this.init_svg(this.w, this.h);
       this.configure_base_layer(vis);
                  
       var self = this;
@@ -112,17 +62,17 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
       });
       
       //this.update(null);
-      this.redraw();         
+      this.update();         
     },
     
-    update: function(data) {
-      if (data == null) {
-        if ((data = this.data_source.events) == null) {
-          throw "Missing events array in data source"
-        }
+    update: function() {
+      var data;
+      if ((data = this.data_source.events) == null) {
+        throw "Missing events array in data source"
       }
-      this.data = data;
-      this.redraw();
+      if (data.length == 0) return;
+      
+      this.redraw(data);
     },
     
 
@@ -142,7 +92,7 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
       var ds = this.data_source = OML.data_sources[sources[0].stream];
       if (o.dynamic == true) {
         ds.on_changed(function(evt) {
-          self.redraw();
+          self.update();
         });
       }
 
@@ -307,23 +257,6 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
      */
     
     process_schema: function() {
-      // var self = this;
-      // var o = this.opts;
-      // var schema = this.schema = {};
-      // _.map(this.data_source.schema, function(s, i) {
-          // s['index'] = i;
-          // schema[s.name] = s;
-      // });
-//       
-      // var m = this.mapping = {};
-      // var om = o.mapping || {};      
-      // _.map(this.decl_properties, function(a) {
-        // var pname = a[0]; var type = a[1]; var def = a[2];
-        // var descr = om[pname];
-        // m[pname] = self.create_mapping(pname, descr, null, type, def)
-      // });
-      // var i = 0;
-      
       this.schema = this.process_single_schema(this.data_source);
       this.mapping = this.process_single_mapping(null, this.opts.mapping, this.decl_properties);
       
@@ -352,148 +285,146 @@ L.provide('OML.abstract_chart', ["/resource/vendor/d3/d3.js"], function () {
       return m;
     },
 
-   /*
-    * Return schema for +stream+.
-    */
-   schema_for_stream: function(stream) {
-     if (stream != undefined) {
-       throw "Can't provide named stream '" + stream + "'.";
-     }
-     return this.schema;
-   },  
-   
-   /*
-    * Return data_source named 'name'.
-    */
-   data_source_for_stream: function(name) {
-     if (name != undefined) {
-       throw "Can't provide named stream '" + name + "'.";
-     }
-     return this.data_source;
-   },  
+    /*
+     * Return schema for +stream+.
+     */
+    schema_for_stream: function(stream) {
+      if (stream != undefined) {
+        throw "Can't provide named stream '" + stream + "'.";
+      }
+      return this.schema;
+    },  
+    
+    /*
+     * Return data_source named 'name'.
+     */
+    data_source_for_stream: function(name) {
+      if (name != undefined) {
+        throw "Can't provide named stream '" + name + "'.";
+      }
+      return this.data_source;
+    },  
 
-    
-    
-   create_mapping: function(mname, descr, stream, type, def) {
-     var self = this;
-     if (descr == undefined && typeof(def) == 'object') {
-       descr = def
-     }
-     if (descr == undefined || typeof(descr) != 'object' ) {
+    create_mapping: function(mname, descr, stream, type, def) {
+       var self = this;
+       if (descr == undefined && typeof(def) == 'object') {
+         descr = def
+       }
+       if (descr == undefined || typeof(descr) != 'object' ) {
+         if (type == 'index') {
+           return this.create_mapping(mname, def, stream, type, null);
+         } else if (type == 'key') {
+           return this.create_mapping(mname, {property: descr}, stream, type, def);
+         } else {
+           var value = (descr == undefined) ? def : descr;
+           if (type == 'color' && /\(\)$/.test(value)) {
+             //var t = /\(\)$/.test(value); // check if value ends with () indicating color function
+             value = this.decl_color_func[value];
+           }
+           return value;
+         }
+       }
+       if (descr.stream != undefined) {
+         stream = descr.stream;  // override stream
+       }
+       var schema = this.schema_for_stream(stream);
+       if (schema == undefined) {
+         throw "Can't find schema for stream '" + stream + "'.";
+       }
+       
        if (type == 'index') {
-         return this.create_mapping(mname, def, stream, type, null);
-       } else if (type == 'key') {
-         return this.create_mapping(mname, {property: descr}, stream, type, def);
+         var key = descr.key;
+         if (key == undefined || stream == undefined) {
+           throw "Missing 'key' or 'stream' in mapping declaration for '" + mname + "'.";
+         }
+         var col_schema = schema[key];
+         if (col_schema == undefined) {
+           throw "Unknown stream element '" + key + "'.";
+         }
+         var vindex = col_schema.index;
+         
+         var jstream_name = descr.join_stream;
+         if (jstream_name == undefined) {
+           throw "Missing join stream declaration in '" + mname + "'.";
+         }
+         var jschema = this.schema_for_stream(jstream_name);
+         if (jschema == undefined) {
+           throw "Can't find schema for stream '" + jstream_name + "'.";
+         }
+         var jstream = this.data_source_for_stream(jstream_name);
+  
+         var jkey = descr.join_key;
+         if (jkey == undefined) jkey = 'id';
+         var jcol_schema = jschema[jkey];       
+         if (jcol_schema == undefined) {
+           throw "Unknown stream element '" + jkey + "' in '" + jstream + "'.";
+         }
+         var jindex = jcol_schema.index;
+         jstream.create_index(jindex);
+         
+         return function(d) {
+           var join = d[vindex];
+           var t = jstream.get_indexed_row(jindex, join); //self.get_indexed_table(jstream, jindex);
+           //var r = t[join];
+           return t;
+         }
        } else {
-         var value = (descr == undefined) ? def : descr;
-         if (type == 'color' && /\(\)$/.test(value)) {
-           //var t = /\(\)$/.test(value); // check if value ends with () indicating color function
-           value = this.decl_color_func[value];
+         var pname = descr.property;
+         if (pname == undefined) {
+           throw "Missing 'property' declaration for mapping '" + mname + "'.";
          }
-         return value;
-       }
-     }
-     if (descr.stream != undefined) {
-       stream = descr.stream;  // override stream
-     }
-     var schema = this.schema_for_stream(stream);
-     if (schema == undefined) {
-       throw "Can't find schema for stream '" + stream + "'.";
-     }
-     
-     if (type == 'index') {
-       var key = descr.key;
-       if (key == undefined || stream == undefined) {
-         throw "Missing 'key' or 'stream' in mapping declaration for '" + mname + "'.";
-       }
-       var col_schema = schema[key];
-       if (col_schema == undefined) {
-         throw "Unknown stream element '" + key + "'.";
-       }
-       var vindex = col_schema.index;
-       
-       var jstream_name = descr.join_stream;
-       if (jstream_name == undefined) {
-         throw "Missing join stream declaration in '" + mname + "'.";
-       }
-       var jschema = this.schema_for_stream(jstream_name);
-       if (jschema == undefined) {
-         throw "Can't find schema for stream '" + jstream_name + "'.";
-       }
-       var jstream = this.data_source_for_stream(jstream_name);
-
-       var jkey = descr.join_key;
-       if (jkey == undefined) jkey = 'id';
-       var jcol_schema = jschema[jkey];       
-       if (jcol_schema == undefined) {
-         throw "Unknown stream element '" + jkey + "' in '" + jstream + "'.";
-       }
-       var jindex = jcol_schema.index;
-       jstream.create_index(jindex);
-       
-       return function(d) {
-         var join = d[vindex];
-         var t = jstream.get_indexed_row(jindex, join); //self.get_indexed_table(jstream, jindex);
-         //var r = t[join];
-         return t;
-       }
-     } else {
-       var pname = descr.property;
-       if (pname == undefined) {
-         throw "Missing 'property' declaration for mapping '" + mname + "'.";
-       }
-       var col_schema = schema[pname];
-       if (col_schema == undefined) {
-         if (descr.optional == true) {
-           return undefined;  // don't need to be mapped
+         var col_schema = schema[pname];
+         if (col_schema == undefined) {
+           if (descr.optional == true) {
+             return undefined;  // don't need to be mapped
+           }
+           throw "Unknown property '" + pname + "'.";
          }
-         throw "Unknown property '" + pname + "'.";
-       }
-       var index = col_schema.index;
-       switch (type) {
-       case 'int': 
-       case 'float':        
-         var scale = descr.scale;
-         var min_value = descr.min;
-         var max_value = descr.max;
-         return function(d) {
-           var v = d[index];
-           if (scale != undefined) v = v * scale; 
-           if (min_value != undefined && v < min_value) v = min_value; 
-           if (max_value != undefined && v > max_value) v = max_value; 
-           return v;
-         };
-       case 'color': 
-         var color_fname = descr.color;
-         if (color_fname == undefined) {
-           throw "Missing color function for '" + mname + "'.";
-         } 
-         var color_f = self.decl_color_func[color_fname];
-         if (color_f == undefined) {
-           throw "Unknown color function '" + color_fname + "'.";
-         } 
-         var scale = descr.scale;
-         var min_value = descr.min;
-         return function(d) {
-           var v = d[index];
-           if (scale != undefined) v = v * scale; 
-           if (min_value != undefined && v < min_value) v = min_value; 
-           var color = color_f(v);
-           return color;
-         };
-       case 'key' :
-         return function(d) {
-           return d[index];
+         var index = col_schema.index;
+         switch (type) {
+         case 'int': 
+         case 'float':        
+           var scale = descr.scale;
+           var min_value = descr.min;
+           var max_value = descr.max;
+           return function(d) {
+             var v = d[index];
+             if (scale != undefined) v = v * scale; 
+             if (min_value != undefined && v < min_value) v = min_value; 
+             if (max_value != undefined && v > max_value) v = max_value; 
+             return v;
+           };
+         case 'color': 
+           var color_fname = descr.color;
+           if (color_fname == undefined) {
+             throw "Missing color function for '" + mname + "'.";
+           } 
+           var color_f = self.decl_color_func[color_fname];
+           if (color_f == undefined) {
+             throw "Unknown color function '" + color_fname + "'.";
+           } 
+           var scale = descr.scale;
+           var min_value = descr.min;
+           return function(d) {
+             var v = d[index];
+             if (scale != undefined) v = v * scale; 
+             if (min_value != undefined && v < min_value) v = min_value; 
+             var color = color_f(v);
+             return color;
+           };
+         case 'key' :
+           return function(d) {
+             return d[index];
+           }
+         default:    
+           throw "Unknown mapping type '" + type + "'";
          }
-       default:    
-         throw "Unknown mapping type '" + type + "'";
        }
-     }
-     var i = 0;
-   }
+       var i = 0;
+    },
     
-
-    
+    on_highlighted: function(evt) {},
+    on_dehighlighted: function(evt) {}
     
   });
 })

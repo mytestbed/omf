@@ -12,6 +12,7 @@ widget:
   wopts:
     viz_type: map2
     data_sources: walk
+    width: 1.0
     map_center: [151.197189, -33.895508]
     zoom: 18
     mapping:

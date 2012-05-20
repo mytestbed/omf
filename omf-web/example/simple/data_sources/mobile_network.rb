@@ -16,7 +16,7 @@ nw.create_node :n3, :x => 0.2, :y => 0.8, :capacity =>  0.8
 nw.create_node :m1, :x => 0.5, :y => 0.7, :capacity =>  0.8
 
 nw.link_schema [[:load, :float]]
-nw.create_link :l01, :n0, :m1, :load => 0.8
+l = nw.create_link :l01, :n0, :m1, :load => 0.8
 
 require 'omf_web'
 OMF::Web.register_datasource nw, :index => :id
@@ -36,6 +36,7 @@ Thread.new do
         m = nw.node(:m1)
         m[:x] = r * Math.sin(angle) + 0.5
         m[:y] = r * Math.cos(angle) + 0.5
+        l[:load] = rand()
       #puts m.describe
         
       end

@@ -5,7 +5,7 @@
 # at least once a second (wopts/dynamic).
 #
 widget:
-  id: animal_pie
+  id: pie
   type: data
   name: Pie Chart
   wopts:

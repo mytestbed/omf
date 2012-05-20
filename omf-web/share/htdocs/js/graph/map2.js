@@ -30,6 +30,8 @@ function onMapLoaded() {
           .style('position', 'relative')
           .style("height", "100%") 
           .style("width", "100%")
+          .style("height", h) 
+          .style("width", w)
           ;
 
         var map_el = this.map_el = base_el.substring(1) + '_map';
@@ -46,13 +48,14 @@ function onMapLoaded() {
           mapTypeId: google.maps.MapTypeId.ROADMAP
         });
         // force width and height AFTER creating the map, otherwise height is zero.
+        var ca = this.widget_area;
         d3.select('#' + map_el)
-                          .style("height", "100%") 
-                          .style("width", "100%")
+                          .style("height", ca.h + "px") 
+                          .style("width", ca.w + "px")
                           .style("position", "relative")
                           // .style("position", "absolute")
-                          // .style("top", "0")          
-                          // .style("left", "0")
+                          .style("top", ca.ty + "px")          
+                          .style("left", ca.x + "px")
                           //.style('z-index', '10')        
                           ;
 

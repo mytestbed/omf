@@ -24,6 +24,7 @@ module OMF::Web::Theme
     
     def initialize(opts)
       super opts
+      @opts = opts
     end
     
     def render_flash

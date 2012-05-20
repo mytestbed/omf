@@ -131,10 +131,12 @@ html, body { height: 100%; }
 }
 
 .widget_container .widget_header {
-  //border: 1px solid #BCD;
-  //border-bottom-width: 0px;
-  //background-color: #E9EFFF;
-  //color: #1E6FAF;
+  /*
+  order: 1px solid #BCD;
+  border-bottom-width: 0px;
+  background-color: #E9EFFF;
+  color: #1E6FAF;
+  */
   margin-top: 5px;
   margin-bottom: 20px;
   zoom: 1;
@@ -152,12 +154,19 @@ html, body { height: 100%; }
 
 
 .widget_container .widget_body {
-  //border: 1px solid #BCD;
+/*
+  border: 1px solid #BCD;
+*/
   overflow: hidden;
   text-align: left;
   margin: 0px auto;
   margin-bottom: 20px;
   zoom: 1;
+}
+
+/* Create a bit of space between widgets when in column mode */
+div.column .widget_container {
+  margin-bottom: 20px;
 }
 
 /****** FLASH ******/

@@ -21,6 +21,19 @@ module OMF::Web::Widget
       @@widgets
     end
     
+    def self.create_widget(name)
+      unless wdescr = @@widgets[name.to_sym]
+        raise "Can't create unknown widget '#{name}':(#{@@widgets.keys.inspect})"
+      end
+      case type = wdescr[:type].to_sym
+      when :data
+        require 'omf-web/widget/graph/graph_widget'
+        OMF::Web::Widget::Graph::GraphWidget.new(wdescr)
+      else
+        raise "Unknown widget type '#{type}'"
+      end
+    end
+    
     attr_reader :widget_id, :name, :opts
     
     def initialize(opts = {})

@@ -1,21 +1,27 @@
 
 
+
+
 widget:
-  id: mobile_network
-  name: Mobile Network
+  id: network
+  name: Network
   type: data
-  dynamic:
-    updateInterval: 1
   wopts:
     viz_type: network2
-    data_sources: mobile_network
-    dynamic: 1
+    data_sources: network
     mapping:
       nodes:
         x:
           property: x
         y: 
           property: y
+        radius:
+          property: capacity
+          scale: 20
+          min: 4
+        fill_color:
+          property: capacity
+          color: red_yellow20_green()
       links:
         stroke_width:
           property: load

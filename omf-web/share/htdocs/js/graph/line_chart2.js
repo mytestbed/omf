@@ -9,7 +9,7 @@ var o = OML;
       ['y_axis', 'key', {property: 'y'}], 
       ['group_by', 'key', {property: 'id', optional: true}],             
       ['stroke_width', 'int', 2], 
-      ['stroke_color', 'color', 'black'],
+      ['stroke_color', 'color', 'category10()'],
       ['stroke_fill', 'color', 'blue']
     ],
     
@@ -20,52 +20,21 @@ var o = OML;
       var base_layer = this.base_layer = vis.append("svg:g")
                  ;
 
-
-      var ca = this.chart_area; 
-      //var g =  this.base_layer;
-  
+      var ca = this.widget_area; 
       this.legend_layer = base_layer.append("svg:g");
       this.chart_layer = base_layer.append("svg:g")
                                     .attr("transform", "translate(" + ca.x + ", " + (this.h - ca.y) + ")");
       this.axis_layer = base_layer.append('g');
-      // g.append("svg:line")
-        // .attr("class", "xAxis axis")      
-        // .attr("x1", ca.x)
-        // .attr("y1", -1 * ca.y)
-        // .attr("x2", ca.x + ca.w)
-        // .attr("y2", -1 * ca.y);
-//   
-      // g.append("svg:line")
-        // .attr("class", "yAxis axis")      
-        // .attr("x1", ca.x)
-        // .attr("y1", -1 * ca.y)
-        // .attr("x2", ca.x)
-        // .attr("y2", -1 * (ca.y + ca.h));
     },
     
   
-    redraw: function() {
+    redraw: function(data) {
       var self = this;
-      
-      var data;
-      if ((data = this.data_source.events) == null) {
-        throw "Missing events array in data source"
-      }
-      if (data.length == 0) return;
-      
       var o = this.opts;
-      var ca = this.chart_area;
+      var ca = this.widget_area;
       var m = this.mapping;
-
-      /* GENERALIZE THIS */
-      var stroke_color_f = d3.scale.category10();
-      m.stroke_color = function(d, i) { 
-        return stroke_color_f(i); 
-      };
-      
-      //this.color = o['color'] || d3.scale.category10();
   
-      /* 'data' should be an an array (each line) of arryas (each tuple)
+      /* 'data' should be an an array (each line) of arrays (each tuple)
        * The following code assumes that the tuples are sorted in ascending 
        * value associated with the x-axis. 
        */
@@ -86,7 +55,6 @@ var o = OML;
       });
       var x_max_cnt = d3.max(data, function(d) {return d.length});
       var x_min = this.x_min = o.xmin != undefined ? o.xmin : d3.min(data, function(d) {return x_index(d[0]);});
-      //var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([ca.x, ca.x + ca.w]);
       var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([0, ca.w]);
   
       if (x_max_cnt > ca.w) {
@@ -109,13 +77,10 @@ var o = OML;
       }
   
   
-      //    var x_min = this.x_min = d3.min(data, function(d) {return d3.min(d, function(d) {return d.x})});
       var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return y_index(t)})});
       var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return y_index(t)})});
-      //var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([ca.y, ca.y + ca.h]);
       var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([0, ca.h]);
         
-      //var stroke_width = o.stroke_width ? o.stroke_width : 2;
       var line = d3.svg.line()
         .x(function(t) { return x(x_index(t)) })
         .y(function(t) { return -1 * y(y_index(t)); })
@@ -132,7 +97,6 @@ var o = OML;
               var l = line(d);
               return l;
             })
-  
           .attr("class", "chart")
           .attr("stroke", m.stroke_color)
           .attr("fill", "none")
@@ -148,17 +112,6 @@ var o = OML;
           })         
           ;
       lines.exit().remove();
-        
-      //this.update_ticks();
-      // var xaxis = OML.line_chart2_axis(o);
-      // var yaxis = OML.line_chart2_axis(o);   
-//       
-      // var xAxis = d3.svg.axis().scale(x).orient("bottom");
-      //var xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);
-      
-      //var xAxis = d3.svg.axis().scale(x).tickSize(-h).tickSubdivide(true);
-      //var yAxis = d3.svg.axis().scale(y).ticks(4).orient("left");
-      // var yAxis = d3.svg.axis().scale(y).orient("left");
          
       var oAxis = o.axis || {};
 
@@ -188,7 +141,6 @@ var o = OML;
             .call(yAxis)
             ;
       }
-      
       this.update_selection({});
     },
     
@@ -245,11 +197,7 @@ var o = OML;
         return (x > min && x <= max);
       })
     },
-  
-  
   })
-
-
 })
 
 /*

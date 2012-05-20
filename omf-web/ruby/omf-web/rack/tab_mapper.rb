@@ -11,22 +11,7 @@ require 'omf-web/tab'
 module OMF::Web::Rack      
   class TabMapper < MObject
     
-      # opts = {
-        # :page_title => 'Page Title',
-        # :page_title => "#{component} - #{action}",
-        # :tabs => @tab_order, 
-        # # :flash => {
-            # # :notice => 'Notice notics', 
-            # # :alert => 'Alert alert'
-        # # },
-        # :card_title => 'Card Title',
-        # #:announcement => 'Some announcement'
-        # # :card_nav => [
-          # # {:name => 'AAA', :href => 'aaa'},
-          # # {:selected => true}
-        # # ],
-        # :xxx => 1
-      # )
+
     def initialize(opts = {})
       @opts = opts
       @tab_opts = opts[:tabs] || {}
@@ -52,17 +37,7 @@ module OMF::Web::Rack
           end
         end 
       end
-      if @opts[:use_tabs]
-        tabs =  @opts[:use_tabs].map do |name|
-          t = OMF::Web::Tab.description_for(name)
-          unless t
-            raise "Unknown tab '#{name}' (#{OMF::Web::Tab.available_tabs().join(', ')})"
-          end 
-          t
-        end
-      else
-        tabs = OMF::Web::Tab.default_tabs()
-      end
+      tabs = OMF::Web::Tab.selected_tabs(@opts[:use_tabs])
       @enabled_tabs = {} 
       tabs.each do |t| 
         name = t[:id]
@@ -95,6 +70,7 @@ module OMF::Web::Rack
     end
     
     def render_card(req)
+      #puts ">>>> REQ: #{req.script_name}::#{req.inspect}"
       path = req.path_info.split('/')
       unless comp_name = _component_name(path)
         return render_no_card(req)
@@ -103,12 +79,14 @@ module OMF::Web::Rack
       
       tab = @enabled_tabs[comp_name]
       unless tab
+        warn "Request for unknown component '#{comp_name.inspect}':(#{@enabled_tabs.keys.inspect})"
         return render_unknown_card(comp_name, req)
       end
       
       opts = @opts.dup
-      opts[:active_id] = comp_name.to_sym
-      opts[:tab_id] = tab_id = tab[:id]
+      opts[:prefix] = req.script_name
+      opts[:component_name] = comp_name.to_sym
+      opts[:tab] = tab_id = tab[:id]
       #opts[:session_id] = session_id = req.params['sid']
       #opts[:update_path] = "/_update?id=#{session_id}:#{tab_id}"
       component = find_card_instance(tab, req)
@@ -119,13 +97,15 @@ module OMF::Web::Rack
     def find_card_instance(tab, req)
       sid = req.params['sid']
       tab_id = tab[:id]
+      # topts = (OMF::Web::Tab.description_for(tab_id) || {})[:opts]
+      # inst = OMF::Web::SessionStore[tab_id] ||= tab[:class].new(tab_id, topts || {})
       topts = (OMF::Web::Tab.description_for(tab_id) || {})[:opts]
-      inst = OMF::Web::SessionStore[tab_id] ||= tab[:class].new(tab_id, topts || {})
+      inst = OMF::Web::SessionStore[tab_id] ||= OMF::Web::Tab.create_tab(tab_id) #tab[:class].new(tab_id, topts || {})
     end
     
     def render_unknown_card(comp_name, req)
-      warn "Request for unknown component '#{comp_name}'"
       popts = @opts.dup
+      popts[:path] = req.path_info
       popts[:active_id] = 'unknown'
       popts[:flash] = {:alert => %{Unknonw component '#{comp_name}'. To select any of the available 
         components, please click on one of the tabs above.}}

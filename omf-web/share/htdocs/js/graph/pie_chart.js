@@ -1,4 +1,4 @@
-L.provide('OML.pie_chart', ["graph/abstract_chart", ["/resource/vendor/d3/d3.js", "/resource/vendor/d3/d3.layout.js"], "#OML.abstract_chart"], function () {
+L.provide('OML.pie_chart', ["graph/abstract_chart", "#OML.abstract_chart"], function () {
 
 var o = OML;
 
@@ -20,17 +20,10 @@ var o = OML;
     
     base_css_class: 'oml-pie-chart',
     
-  
-    redraw: function() {
-      var self = this;
-      var data;
-      if ((data = this.data_source.events) == null) {
-        throw "Missing events array in data source"
-      }
-      if (data.length == 0) return;
-      
+    redraw: function(data) {
+      var self = this;      
       var o = this.opts;
-      var ca = this.chart_area;
+      var ca = this.widget_area;
       var m = this.mapping;
       var w = ca.w,
           h = ca.h,
@@ -57,6 +50,12 @@ var o = OML;
           .attr("d", arc)
           .attr("stroke", m.stroke_color)
           .attr('stroke-width', m.stroke_width)
+          .on("mouseover", function(data) {
+            self.on_highlighted({'elements': [{'id': data.value}]});
+          })
+          .on("mouseout", function() {
+            self.on_dehighlighted({});
+          })                   
           ;
       
       var text_f = m.label;
@@ -75,20 +74,17 @@ var o = OML;
     
     on_highlighted: function(evt) {
       var els = evt.elements;
-      var names = _.map(els, function(el) { return el.id});
+      var piece_id = els[0].id
       var vis = this.chart_layer;
-      var group_by = this.mapping.group_by;
-      if (group_by) {
-        vis.selectAll(".chart")
-         .filter(function(d) {
-           var dname = group_by(d[0]);
-           return ! _.include(names, dname);
-         })
-         .transition()
-           .style("opacity", 0.1)
-           .delay(0)
-           .duration(300);
-      }
+      vis.selectAll("path")
+       .filter(function(d) {
+         return d.value != piece_id;
+       })
+       .transition()
+         .style("opacity", 0.3)
+         .delay(0)
+         .duration(300)
+         ;
       if (evt.source == null) {
         evt.source = this;
         OHUB.trigger("graph.highlighted", evt);
@@ -97,7 +93,7 @@ var o = OML;
 
     on_dehighlighted: function(evt) {
       var vis = this.chart_layer;
-      vis.selectAll(".chart")
+      vis.selectAll("path")
        .transition()
          .style("opacity", 1.0)         
          .delay(0)
@@ -107,8 +103,6 @@ var o = OML;
         OHUB.trigger("graph.dehighlighted", evt);
       }
     },
-    
-  
   
   })
 })

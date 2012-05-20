@@ -23,10 +23,20 @@ module OMF
       
     end
     
-    def self.register_widget(wdescr)
+    def self.register_widget(widget_descr)
       require 'omf-web/widget/abstract_widget'
-      wdescr = transform_keys_to_symbols wdescr
+      wdescr = transform_keys_to_symbols widget_descr
       OMF::Web::Widget::AbstractWidget.register_widget(wdescr)
+    end
+    
+    def self.register_tab(tab_descr)
+      require 'omf-web/tab' 
+      tdescr = transform_keys_to_symbols tab_descr
+      OMF::Web::Tab.register_tab tdescr    
+    end
+    
+    def self.use_tab(tab_id)
+      OMF::Web::Tab.use_tab tab_id          
     end
     
     private

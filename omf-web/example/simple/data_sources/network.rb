@@ -5,7 +5,7 @@ require 'omf-oml/table'
 
 include OMF::OML
   
-nw = OmlNetwork.new
+nw = OmlNetwork.new 'network'
 nw.node_schema [[:x, :float], [:y, :float], [:capacity, :float]]
 nw.create_node :n0, :x => 0.2, :y => 0.2, :capacity =>  0.3
 nw.create_node :n1, :x => 0.6, :y => 0.6, :capacity =>  0.5
@@ -15,6 +15,9 @@ nw.link_schema [[:load, :float]]
 nw.create_link :l01, :n0, :n1, :load => 0.8
 nw.create_link :l12, :n1, :n2, :load => 0.4
 nw.create_link :l21, :n2, :n1, :load => 0.9
+
+require 'omf_web'
+OMF::Web.register_datasource nw
 
 opts = {
   #:data_sources => table,
