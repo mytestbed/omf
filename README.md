@@ -22,13 +22,17 @@ OMF components are released as Ruby Gems.
 
 To install OMF RC, simple type:
 
-    gem install omf_rc
+    gem install omf_rc --no-ri --no-rdoc
+
+For pre-release gems, simply use --pre option:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
 
 Common library omf\_common will be included automatically by RC.
 
 To only install OMF Common library:
 
-    gem install omf_common
+    gem install omf_common --no-ri --no-rdoc
 
 ## Extend OMF
 
