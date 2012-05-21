@@ -59,7 +59,6 @@ module OmfCommon
 
       # Un-subscribe all existing subscriptions from all pubsub nodes.
       #
-      # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def unsubscribe(host)
         pubsub.subscriptions(host) do |m|

@@ -6,14 +6,14 @@ require 'openssl'
 module OmfCommon
   # Refer to resource life cycle, instance methods are basically construct & parse XML fragment
   #
-  # To create a valid omf message, e.g. a 'configure' message, simply do:
+  # @example To create a valid omf message, e.g. a 'configure' message:
   #
-  # Message.request do |message|
-  #   message.property('os', 'debian')
-  #   message.property('memory', 2) do |p|
-  #     p.element('unit', 'gb')
-  #   end
-  # end.sign
+  #   Message.request do |message|
+  #     message.property('os', 'debian')
+  #     message.property('memory', 2) do |p|
+  #       p.element('unit', 'gb')
+  #     end
+  #   end.sign
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"

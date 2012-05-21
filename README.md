@@ -16,6 +16,10 @@ OMF is a framework for controlling, instrumenting, and managing experimental pla
 
 [http://www.mytestbed.net/](http://www.mytestbed.net/)
 
+## Documentation
+
+[http://rubydoc.info/github/mytestbed/omf/frames](http://rubydoc.info/github/mytestbed/omf/frames)
+
 ## Installation
 
 OMF components are released as Ruby Gems.
