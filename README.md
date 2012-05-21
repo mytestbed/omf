@@ -1,5 +1,7 @@
 # OMF
 
+[![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
+
 ## Introduction
 
 OMF is a framework for controlling, instrumenting, and managing experimental platforms (testbeds).
@@ -14,37 +16,46 @@ OMF is a framework for controlling, instrumenting, and managing experimental pla
 
 [http://www.mytestbed.net/](http://www.mytestbed.net/)
 
-## CI build status
-
-[![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
-
-OMF is using travis-ci for CI build and testing. Currently we are building against Ruby version 1.9.2 and 1.9.3.
-
 ## Installation
 
 OMF components are released as Ruby Gems.
 
-To install OMF RC, simple issue the following command in your console.
+To install OMF RC, simple type:
 
     gem install omf_rc
 
-Common library omf\_common will be installed automatically.
+Common library omf\_common will be included automatically by RC.
 
-## Contribute
+To only install OMF Common library:
+
+    gem install omf_common
+
+## Extend OMF
 
 We sincerely welcome all contributions to OMF. Simply fork our project via github, and send us pull requests whenever you are ready.
 
-## Currently available components
+## Supported Ruby versions
+
+We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are dropping support for Ruby 1.8.
+
+## Components
 
 ### Common
 
 Common library shared among OMF applications
 
+* PubSub communication, with default XMPP implementation, using Blather gem.
+* OMF message class for authoring and parsing messages based on new OMF messaging protocol.
+* RelaxNG schema for messaging protocol definition and validation.
+
 ### Resource Controller
 
-## Architectural Foundation for Federated Experimental Facilities (OMF6 Design)
+* Resource proxy API for designing resource functionalities.
+* Abstract resource provides common features required for all resources.
 
-For information regarding design of OMF version 6, please visit our [official documentation](http://omf.mytestbed.net/projects/omf/wiki/Architectural_Foundation)
+## OMF 6 design documentation
+
+For full documentation regarding design of OMF version 6, please visit our [official documentation](http://omf.mytestbed.net/projects/omf/wiki/Architectural_Foundation)
 
 ## License & Copyright
 
