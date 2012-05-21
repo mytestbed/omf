@@ -22,7 +22,11 @@ module OMF::Web::Widget
     def initialize(opts = {})
       super opts
       @wopts = (opts[:wopts] || {}).dup
-      unless @data_sources = @wopts.delete(:data_sources)
+      if (ds = @wopts.delete(:data_source))
+        # single source
+        @data_sources = {:default => ds}
+      end
+      unless @data_sources ||= @wopts.delete(:data_sources)
         raise "Missing option ':data_sources' for widget '#@name'"
       end
       unless @data_sources.kind_of? Hash
@@ -38,7 +42,7 @@ module OMF::Web::Widget
       @js_var_name = "oml_#{object_id.abs}"
       #@js_func_name = 'OML.' + @js_url.gsub("::", "_")
 
-      @dynamic = opts.delete(:dynamic)
+      #@dynamic = opts.delete(:dynamic)
 
 
     end
@@ -158,21 +162,11 @@ module OMF::Web::Widget
 # END_OF_JS
     # end
 
-    def collect_data_sources(dsh)
-      #puts "DDS>>> #{@data_sources}"
+    def collect_data_sources(ds_set)
       @data_sources.values.each do |ds|
-        #puts "IIIIII> #{ds}"
-        if @dynamic
-          updateInterval = @dynamic.is_a?(Hash) && @dynamic[:updateInterval]
-          updateInterval ||= 3
-        else
-          updateInterval = -1
-        end
-        if (v = (dsh[ds] ||= updateInterval)) < 0 || v > updateInterval
-          dsh[ds] = updateInterval
-        end
+        ds_set.add(ds.is_a?(Hash) ? ds : {:name => ds})
       end
-      dsh
+      ds_set
     end
 
 

@@ -5,7 +5,7 @@ require 'omf-web/data_source_proxy'
 module OMF::Web::Theme
   class AbstractPage < Erector::Widget
     
-    
+    depends_on :js,  '/resource/vendor/stacktrace/stacktrace.js'
     depends_on :js, '/resource/vendor/jquery/jquery.js'
     #depends_on :js, '/resource/js/stacktrace.js'
     depends_on :js, '/resource/vendor/underscore/underscore.js'
@@ -50,12 +50,13 @@ module OMF::Web::Theme
     
     def render_data_sources
       require 'omf-oml/table'
+      require 'set'
       
-      dsh = collect_data_sources({})
+      dsh = collect_data_sources(Set.new)
       return if dsh.empty?
       
-      js = dsh.collect do |ds, update_interval|
-        render_data_source(ds, update_interval)
+      js = dsh.to_a.collect do |ds|
+        render_data_source(ds)
       end
       #puts "JS>>>> #{js.join("/n")}"
       # Calling 'javascript' doesn't seem to work here. No idea why, so let's do it by hand
@@ -69,7 +70,7 @@ module OMF::Web::Theme
       }
     end
     
-    def render_data_source(ds, update_interval)
+    def render_data_source(ds, update_interval = -1)
       dspa = OMF::Web::DataSourceProxy.for_source(ds)
       dspa.collect do |dsp|
         dsp.reset()

@@ -12,12 +12,11 @@ widget:
   id: line_chart
   name: Line Chart
   type: data
-  dynamic:
-    updateInterval: 1
   wopts:
     viz_type: line_chart2
-    data_sources: generator
-    dynamic: true
+    data_source: 
+      name: generator
+      dynamic: 1  # check once a second
     mapping:
       x_axis: t
       y_axis: amplitude

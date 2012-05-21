@@ -32,11 +32,12 @@ module OMF::Web
     #
     # @return: Array of proxies
     #
-    def self.for_source(ds_name)
-      if ! (ds_name.kind_of?(String) || ds_name.kind_of?(Symbol))
-        raise "Expected String, but got '#{ds_name.class}::#{ds_name}'"
+    def self.for_source(ds_descr)
+      #raise "FOO #{ds_descr.inspect}"
+      unless ds_descr.is_a? Hash
+        raise "Expected Hash, but got '#{ds_descr.class}::#{ds_descr.inspect}'"
       end
-      ds_name = ds_name.to_sym
+      ds_name = ds_descr[:name].to_sym
       ds = @@datasources[ds_name]
       unless ds
         throw "Unknown data source '#{ds_name}' (#{@@datasources.keys.inspect})"
@@ -70,13 +71,20 @@ module OMF::Web
     
     def to_javascript(update_interval)
       #name = "ds#{@data_source.object_id}"
+      # %{
+        # OML.data_sources['#{@name}'] = new OML.data_source('#{@name}', 
+                                                          # '/_update/#{@name}?sid=#{Thread.current["sessionID"]}',
+                                                          # #{update_interval},
+                                                          # #{@data_source.schema.to_json},
+                                                          # #{@data_source.rows.to_json});
+      # }
       %{
-        OML.data_sources['#{@name}'] = new OML.data_source('#{@name}', 
-                                                          '/_update/#{@name}?sid=#{Thread.current["sessionID"]}',
-                                                          #{update_interval},
-                                                          #{@data_source.schema.to_json},
-                                                          #{@data_source.rows.to_json});
+        OML.data_sources.register('#{@name}', 
+                                  '/_update/#{@name}?sid=#{Thread.current["sessionID"]}',
+                                  #{@data_source.schema.to_json},
+                                  #{@data_source.rows.to_json});
       }
+     
     end
     
     

@@ -8,8 +8,9 @@ widget:
     updateInterval: 1
   wopts:
     viz_type: network2
-    data_sources: mobile_network
-    dynamic: 1
+    data_source: 
+      name: mobile_network
+      dynamic: 1
     mapping:
       nodes:
         x:

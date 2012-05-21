@@ -49,10 +49,16 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
         var s = sources[0];
         if (s.name == 'default') {
           // ok, lets expand it
-          var sn = s.stream;
+          var ss = s.stream;
+          if (typeof(ss) != 'object') {
+            ss = { name: ss };
+          }
+          var prefix = ss.name;
+          var sn = {}; for (var p in ss) { sn[p] = ss[p]; }; sn.name = prefix + '_nodes';
+          var sl = {}; for (var p in ss) { sl[p] = ss[p]; }; sl.name = prefix + '_links';
           sources = [
-            {name: 'nodes', stream: sn + '_nodes'},
-            {name: 'links', stream: sn + '_links'},
+            {name: 'nodes', stream: sn},
+            {name: 'links', stream: sl},
           ]
         }
       }
@@ -60,14 +66,8 @@ L.provide('OML.network2', ["graph/abstract_chart", "#OML.abstract_chart", "/reso
         throw "Expected TWO data source, one for nodes and one for links"
       }
       var dsh = this.data_source = {};
-      _.map(sources, function(s, i) {
-        var ds;
-        dsh[s.name] = ds = OML.data_sources[sources[i].stream];
-        if (o.dynamic == true) {
-          ds.on_changed(function(evt) {
-            self.update();
-          });
-        }
+      _.map(sources, function(s) {
+        dsh[s.name] = self.init_single_data_source(s);
       });
       if (dsh.links == undefined || dsh.nodes == undefined) {
         throw "Data sources need to be named 'links' and 'nodes'. Missing one or both.";
