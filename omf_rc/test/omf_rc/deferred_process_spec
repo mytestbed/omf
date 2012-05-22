@@ -1,0 +1,17 @@
+require 'test_helper'
+require 'em/minitest/spec'
+require 'omf_rc/deferred_process'
+
+describe OmfRc::DeferredProcess do
+  describe "when use to deferred process to execute code asynchronously" do
+    include EM::MiniTest::Spec
+
+    it "must execute and return result eventually, inside the EM loop" do
+      OmfRc::Cmd.exec("uname -a") do |result|
+        result[:success].wont_be_empty
+        done!
+      end
+      wait!
+    end
+  end
+end
