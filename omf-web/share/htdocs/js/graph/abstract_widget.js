@@ -81,6 +81,18 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
   
     },
     
+    update: function() {
+      var data;
+      if ((data = this.data_source.events) == null) {
+        throw "Missing events array in data source"
+      }
+      if (data.length == 0) return;
+      
+      this.redraw(data);
+    },
+    
+    
+    
     // Find the appropriate data source and bind to it
     //
     init_data_source: function() {

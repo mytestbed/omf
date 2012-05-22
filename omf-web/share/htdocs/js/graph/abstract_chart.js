@@ -48,16 +48,6 @@ L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget"
       this.update();         
     },
     
-    update: function() {
-      var data;
-      if ((data = this.data_source.events) == null) {
-        throw "Missing events array in data source"
-      }
-      if (data.length == 0) return;
-      
-      this.redraw(data);
-    },
-    
 
     // Find the appropriate data source and bind to it
     //
