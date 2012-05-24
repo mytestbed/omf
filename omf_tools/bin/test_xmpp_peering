@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 #
 # Copyright (c) 2012 National ICT Australia (NICTA), Australia
 #
@@ -25,8 +25,8 @@
 #
 # == Description
 #
-# This is a small test application which verifies that 2 XMPP PubSub servers 
-# are correctly talking to each other via the server-2-server protocol for 
+# This is a small test application which verifies that 2 XMPP PubSub servers
+# are correctly talking to each other via the server-2-server protocol for
 # the purpose of OMF federation.
 #
 #
@@ -57,18 +57,18 @@ class MyServiceHelper < Jabber::PubSub::ServiceHelper
     @stream.send_with_id(iq) do |reply|
       ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
     end # @stream.send_with_id(iq)
-    ret  
+    ret
   end
 end
 
 ###############################################################################
 #
-# The class that handles our interactions with the server 
+# The class that handles our interactions with the server
 #
 ###############################################################################
 
 class PubSubTester
-  
+
   attr_reader :userJID, :userPWD, :serverJID, :serviceJID, :queue
 
   def initialize(userJID, userPWD, serverJID, serviceJID, listen = true)
@@ -80,8 +80,8 @@ class PubSubTester
     # Processing Q for incoming events
     @queue = Queue.new
     Thread.new do
-      while event = @queue.pop 
-        process_event(event) 
+      while event = @queue.pop
+        process_event(event)
       end
     end
 
@@ -148,14 +148,14 @@ class PubSubTester
         "pubsub#max_items" => "1",
         "pubsub#notify_retract" => "0",
         "pubsub#publish_model" => "open"}))
-  end 
+  end
 
   def close ; @clientHelper.close ; end
-  def delete(node) ; @service.delete_node(node) ; end 
-  def getconfig(node) ; @service.get_config_from(node) ; end 
-  def setconfig(node, config) ; @service.set_config_for(node, config) ; end 
-  def join(node) ; @service.subscribe_to(node) ; end 
-  def leave(node, id) ; @service.unsubscribe_from_fixed(node, id) ; end 
+  def delete(node) ; @service.delete_node(node) ; end
+  def getconfig(node) ; @service.get_config_from(node) ; end
+  def setconfig(node, config) ; @service.set_config_for(node, config) ; end
+  def join(node) ; @service.subscribe_to(node) ; end
+  def leave(node, id) ; @service.unsubscribe_from_fixed(node, id) ; end
   def listsub() ; return @service.get_subscriptions_from_all_nodes ; end
   def listall(server = @serviceJID) ; return @browser.nodes(@serviceJID) ; end
 
@@ -245,12 +245,12 @@ def test5(tester)
     puts "  Looking for subscription... "
     list.each do |sub|
       if sub.node == t[:topic]
-        begin 
+        begin
           puts "    - unsubscribing: '#{sub.node}' (subid '#{sub.subid}')"
           t[:client].leave(sub.node, sub.subid)
         rescue Exception => ex
           # it is ok to have that specific exception with OpenFire here.
-          raise ex unless "#{ex}" == "unexpected-request: "  
+          raise ex unless "#{ex}" == "unexpected-request: "
         end
       end
     end
@@ -271,7 +271,7 @@ end
 
 ###############################################################################
 #
-# Finally the main loop... 
+# Finally the main loop...
 #
 ###############################################################################
 
@@ -280,20 +280,20 @@ end
 @opts = OptionParser.new
 @opts.banner = "\nTest XMPP Peering\n\n"+
                "Usage: #{$0} [OPTIONS]\n\n"
-@opts.on("-u", "--username NAME", 
+@opts.on("-u", "--username NAME",
          "Username to login to home server") {|n| @username = n }
-@opts.on("-p", "--password PASS", 
+@opts.on("-p", "--password PASS",
          "Password to login to home server") {|n| @password = n }
-@opts.on("-s", "--server HOST", 
+@opts.on("-s", "--server HOST",
          "Hostname for home server") {|n| @server = n }
-@opts.on("-r", "--remote HOST", 
+@opts.on("-r", "--remote HOST",
          "Hostname for remote server (default= home server") { |n| @remote = n }
-@opts.on("-t", "--topic TOPIC", 
+@opts.on("-t", "--topic TOPIC",
          "Topic name to use for test (optional)") {|n| @topic = n }
 
 def show_help() puts @opts ; puts "\n" ; exit;  end
 @opts.parse(ARGV)
-show_help if !@username || !@password || !@server 
+show_help if !@username || !@password || !@server
 
 begin
   @remote = @server if @remote.nil?
