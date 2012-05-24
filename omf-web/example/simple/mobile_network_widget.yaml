@@ -1,0 +1,26 @@
+
+
+widget:
+  id: mobile_network
+  name: Mobile Network
+  type: data
+  dynamic:
+    updateInterval: 1
+  wopts:
+    viz_type: network2
+    data_sources: mobile_network
+    dynamic: 1
+    mapping:
+      nodes:
+        x:
+          property: x
+        y: 
+          property: y
+      links:
+        stroke_width:
+          property: load
+          scale: 20
+          min: 3
+        stroke_color:
+          property: load
+          color: red_yellow20_green() #green_yellow80_red()

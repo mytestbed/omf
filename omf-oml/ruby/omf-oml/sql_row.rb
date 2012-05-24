@@ -16,20 +16,12 @@ module OMF::OML
     #   - limit: Number of rows to fetch each time [1000]
     #   - check_interval: Interval in seconds when to check for new data. If 0, only run once.
     #
-    def initialize(table_name, db, source, opts = {})
+    def initialize(table_name, db_file, source, opts = {})
       @sname = table_name
-      @db = db
+      @db_file = db_file
       @source = source
       
-      if @offset = opts[:offset]
-        if @offset <= 0
-          cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
-          #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
-          @offset = cnt + @offset # @offset was negative here
-          debug("Initial offset #{@offset} in '#{table_name}' with #{cnt} rows")
-          @offset = 0 if @offset < 0
-        end
-      else
+      unless @offset = opts[:offset]
         @offset = 0
       end
       @limit = opts[:limit]
@@ -38,7 +30,7 @@ module OMF::OML
       @check_interval = opts[:check_interval]
       @check_interval = 0 unless @check_interval
       
-      @stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
+
       @on_new_vector_proc = {}
 
       schema = find_schema
@@ -65,6 +57,7 @@ module OMF::OML
       r = @row
       col_names.collect do |n|
         p = @vprocs[n]
+        #puts "#{n}::#{p}"
         p ? p.call(r) : nil
       end
     end
@@ -124,9 +117,9 @@ module OMF::OML
       end
       
       if (tschema = opts.delete(:schema))
-        unless tschema[0].kind_of? Hash
-          tschema = tschema.collect do |cname| {:name => cname} end
-        end 
+        # unless tschema[0].kind_of? Hash
+          # tschema = tschema.collect do |cname| {:name => cname} end
+        # end 
       else
         tschema = select.collect do |cname| {:name => cname} end
       end
@@ -134,7 +127,7 @@ module OMF::OML
       t = OMF::OML::OmlTable.new(tname, tschema, opts)
       if block
         self.on_new_tuple() do |v|
-          #puts "New vector(#{tname}): #{v.select(*select).join('|')}"
+          #puts "New vector(#{tname}): #{v.schema.inspect} ---- #{v.select(*select).size} <#{v.select(*select).join('|')}>"
           if select
             row = block.call(v.select(*select))
           else
@@ -158,14 +151,21 @@ module OMF::OML
     protected
         
     def find_schema()
-      cnames = @stmt.columns
-      ctypes = @stmt.types
+      stmt = _statement
+      cnames = stmt.columns
+      ctypes = stmt.types
       schema = []
+      #schema << {:name => :oml_sender, :type => 'STRING'}
       cnames.size.times do |i|
         name = cnames[i].to_sym
         schema << {:name => name, :type => ctypes[i]}
       end
-      schema
+      # Rename first col
+      first = schema[0]
+      raise "BUG: Should be 'name'" if first[:name] != :name
+      first[:name] = :oml_sender
+      
+      OmlSchema.new(schema)
     end
     
     # override
@@ -184,6 +184,16 @@ module OMF::OML
     def run(in_thread = true)
       return if @running
       if in_thread
+        if @db
+          # force opening of database in new thread
+          begin
+            @db.close
+          rescue Exception
+            # ALERT: issues with finalising statments, don't know how to deal with it
+          end
+          @db = nil
+          @stmt = nil
+        end
         Thread.new do
           begin
             _run
@@ -212,6 +222,7 @@ module OMF::OML
             end
           rescue Exception => ex
             warn ex
+            debug "\t", ex.backtrace.join("\n\t")
           end
         end 
       end
@@ -221,7 +232,7 @@ module OMF::OML
     # Return true if there might be more rows in the database
     def _run_once
       row_cnt = 0
-      @stmt.execute(@limit, @offset).each do |r|
+      _statement.execute(@limit, @offset).each do |r|
         @row = r
         @on_new_vector_proc.each_value do |proc|
           proc.call(self)
@@ -231,6 +242,24 @@ module OMF::OML
       @offset += row_cnt
       debug "Read #{row_cnt}/#{@offset} rows from '#{@sname}'"
       row_cnt >= @limit # there could be more to read     
+    end
+    
+    def _statement
+      unless @stmt
+        db = @db = SQLite3::Database.new(@db_file)
+        @db.type_translation = true   
+        table_name = t = @sname  
+        if @offset < 0
+          cnt = db.execute("select count(*) from #{table_name};")[0][0].to_i
+          #debug "CNT: #{cnt}.#{cnt.class} offset: #{@offset}"
+          @offset = cnt + @offset # @offset was negative here
+          debug("Initial offset #{@offset} in '#{table_name}' with #{cnt} rows")
+          @offset = 0 if @offset < 0
+        end
+        #@stmt = db.prepare("SELECT * FROM #{table_name} LIMIT ? OFFSET ?;")
+        @stmt = db.prepare("SELECT _senders.name, #{t}.* FROM #{t} JOIN _senders WHERE #{t}.oml_sender_id = _senders.id LIMIT ? OFFSET ?;")
+      end
+      @stmt
     end
   end # OmlSqlRow
 

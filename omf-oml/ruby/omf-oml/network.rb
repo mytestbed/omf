@@ -166,12 +166,59 @@ module OMF::OML
       end
     end
     
+    def node_schema(schema = null)
+      if schema
+        @node_schema = OmlSchema.create(schema)
+        @node_schema.insert_column_at(0, :id)
+        @node_schema.insert_column_at(1, :name)
+      end
+      @node_schema
+    end
+      
+    def link_schema(schema = null)
+      if schema
+        @link_schema = OmlSchema.create(schema)
+        @link_schema.insert_column_at(0, :id)
+        @link_schema.insert_column_at(1, :name)
+        @link_schema.insert_column_at(2, :from_id)
+        @link_schema.insert_column_at(3, :to_id)
+      end
+      @link_schema
+    end
+
+    
     def describe
       nh = {}
       @nodes.each do |id, node| nh[id] = node.describe end
       lh = {}
       @links.each do |id, link| lh[id] = link.describe end
       {:nodes => nh, :links => lh}        
+    end
+    
+    # Creates two tables, one capturing the link state and one for the node state.
+    # Returns the two tables in a hash with keys 'nodes' and 'links'.
+    #
+    def to_tables(table_opts = {})
+      node_table = OmlTable.new 'nodes', @node_schema, table_opts
+      @nodes.each do |id, n|
+        node_table.add_row @node_schema.hash_to_row(n.attributes)
+      end
+
+      link_table = OmlTable.new 'links', @link_schema, table_opts
+      @links.each do |id, l|
+        link_table.add_row @link_schema.hash_to_row(l.attributes)
+      end
+      
+      on_update "__to_tables_#{node_table.object_id}" do |a|
+        a.each do |e|
+          if e.kind_of? NetworkNode
+            node_table.add_row @node_schema.hash_to_row(e.attributes)
+          else
+            link_table.add_row @link_schema.hash_to_row(e.attributes)
+          end
+        end
+      end
+      {:nodes => node_table, :links => link_table}
     end
     
     def to_json
@@ -196,6 +243,9 @@ module OMF::OML
 
   end # OMLNetwork
   
+  class NetworkElementAttributeException < Exception; end  
+
+  
   # This class represents an abstract network element and shouldn't be used directly.
   #
   class NetworkElement < MObject
@@ -206,13 +256,16 @@ module OMF::OML
     
     def initialize(name, attributes, network)
       super name
-      id = "e#{self.object_id}"
       @attributes = attributes.dup
       if @name = name
         @attributes[:name] = name
       end
-      #@el_id = @attributes[:id] = id
-      @el_id = id
+      if attributes.key?(:id) || attributes.key?(:name)
+        raise NetworkElementAttributeException.new("Attributes 'id' and 'name' are reserved attributes")
+      end
+      @el_id = @attributes[:id] = "e#{self.object_id}"
+      @attributes[:name] = name || @el_id
+
       @network = network
     end
     
@@ -286,21 +339,21 @@ module OMF::OML
       if fromNode
         @fromNode = fromNode
         #puts ">>>> NODE: #{fromNode.inspect}"
-        @attributes[:from] = fromNode.el_id
+        @attributes[:from_id] = fromNode.el_id
       end
       if toNode 
         @toNode = toNode
-        @attributes[:to] = toNode.el_id
+        @attributes[:to_id] = toNode.el_id
       end
     end
     
     def from=(node)
-      @attributes[:from] = node.el_id if node  
+      @attributes[:from_id] = node.el_id if node  
       @fromNode = _set(node, @fromNode)
     end
 
     def to=(node)
-      @attributes[:to] = node.el_id if node        
+      @attributes[:to_id] = node.el_id if node        
       @toNode = _set(node, @toNode)
     end
     

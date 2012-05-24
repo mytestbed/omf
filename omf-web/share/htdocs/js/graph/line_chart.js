@@ -1,4 +1,4 @@
-L.provide('OML.line_chart', ["graph/abstract_chart", "#OML.abstract_chart", "graph.css"], function () {
+L.provide('OML.line_chart', ["graph/abstract_chart", "#OML.abstract_chart", "graph.css", ["/resource/vendor/d3/d3.js", "/resource/vendor/d3/d3.time.js"]], function () {
 
 var o = OML;
 
@@ -42,13 +42,12 @@ var o = OML;
     },
     
   
-    redraw: function() {
+    redraw: function(data) {
       var self = this;
-      var data = this.data;
-      if (data.length == 0) return;
+      
       
       var o = this.opts;
-      var ca = this.chart_area;
+      var ca = this.widget_area;
       var m = this.mapping;
 
       /* GENERALIZE THIS */
@@ -215,7 +214,35 @@ var o = OML;
   
       var xTicksA = x.ticks(xa_opts['ticks'] || 5);
       if (xa_opts['show_labels'] != false) {
-        var xFormat = xa_opts['label'] || function(d) {return d};
+        // TODO: FIX ME!!!!
+        var xLabelOpts = xa_opts['label'];
+        var xFormat;
+        if (xLabelOpts) {
+          if (xLabelOpts.type == 'date') {
+            var xFormatter = d3.time.format(xLabelOpts.format || "%X");
+            xFormat = function(d) {
+              var date = new Date(1000 * d);  // TODO: Implicitly assuming that value is in seconds is most likely NOT a good idea
+              var fs = xFormatter(date); 
+              return fs;
+            }
+          } else {
+            var xFormatter = d3.format(xLabelOpts.format || "g");
+            xFormat = function(d) {
+              var fs = xFormatter(d); 
+              return fs;
+            }
+          }
+        } else {
+          xFormat = function(d) {return d};
+        }
+        
+        // xFormat = function(d) {
+          // var ds = "" + d;
+          // var date = new Date(1000 * d);
+          // var fs = tformat(date); 
+          // return fs;
+        // }
+        
         var xLabel = g.selectAll(".xLabel")
             .data(xTicksA)
             .text(xFormat)
@@ -302,31 +329,6 @@ var o = OML;
         yGrids.exit().remove();
       }
     },
-  
-
-    // process_schema: function() {
-      // this.process_schema2();
-//       
-      // var o = this.opts;
-      // var i = 0;
-      // var mapping = o.mapping || {};
-      // var m = this.mapping = {};
-      // var schema = o.schema;
-      // if (schema) {
-        // schema.map(function(c) {
-          // ['x_axis', 'y_axis', 'group_by'].map(function(k) {
-            // if (c.name == o.mapping[k]) {
-              // m[k] = i
-            // }
-          // });
-          // i += 1;
-        // })
-      // } else {
-        // m.x_axis = 0;
-        // m.y_axis = 1;
-      // }
-    // }
-    
   
   })
 })

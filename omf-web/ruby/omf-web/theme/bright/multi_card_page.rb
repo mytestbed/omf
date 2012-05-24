@@ -6,20 +6,21 @@ module OMF::Web::Theme
   class MultiCardPage < Page
 
     
-    def initialize(widget, module_name, items_class, opts)
+    def initialize(selected_widget, widgets, opts)
       super opts
-      @widget = widget
-      @items_class = items_class
-      @module_name = module_name
+      @selected_widget = selected_widget
+      @widgets = widgets
     end
     
     def render_card_nav
+      cname = @opts[:component_name]
+      path = @opts[:path]
       div :id => 'card_nav' do
         ol do
-          @items_class.each_with_index do |g, i| 
-            klass = (i == @card_id) ? 'selected' : nil
+          @widgets.each_with_index do |w, i| 
+            klass = (w == @selected_widget) ? 'selected' : nil
             li :class => klass do
-              a g[:name] || 'unknown', :href => "/#{@module_name}/show?tid=#{i}&sid=#{Thread.current["sessionID"]}"
+              a w.name || 'unknown', :href => "#{path}?tid=#{i}&sid=#{Thread.current["sessionID"]}"
             end
           end
         end
@@ -34,6 +35,12 @@ module OMF::Web::Theme
       end        
     end
     
-  end # SubMenuCard
+    def collect_data_sources(dsa)
+      @widget.collect_data_sources(dsa) if @widget
+      dsa
+    end
+    
+    
+  end # MultiCardPage
   
 end

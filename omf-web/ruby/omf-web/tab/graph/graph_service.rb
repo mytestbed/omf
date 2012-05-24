@@ -2,53 +2,22 @@
 
 
 require 'json'
-require 'omf-web/tab/common/abstract_service'
-
-require 'omf-web/widget/graph/graph'
-require 'omf-web/widget/graph/graph_widget'
+require 'omf-web/tab/tabbed_widgets/tabbed_widgets_service'
+require 'omf-web/widget/abstract_widget'
 
 module OMF::Web::Tab::Graph
   
-  class GraphService < OMF::Web::Tab::AbstractService
+  class GraphService < OMF::Web::Tab::TabbedWidgets::TabbedWidgetsService
     
     def initialize(tab_id, opts)
-      debug "New GraphService: #{opts.inspect}"
-      @widgets = []
+      opts[:widgets] ||= OMF::Web::Widget::AbstractWidget.registered_widgets().select do |key, descr|
+        (descr[:type] || '_').to_sym == :data
+      end.sort do |a, b|
+        a[0].to_s <=> b[0].to_s # sorting by ids
+      end.collect do |name, descr| 
+        name
+      end
       super
-    end
-    
-    def show(req, opts)
-      tid = opts[:card_id] = (req.params['tid'] || 0).to_i
-      unless (widget = @widgets[tid])
-        if gd = OMF::Web::Widget::Graph[tid]
-          #addr = [req.params['sid'], @tab_id, gid].join(':')
-          widget = @widgets[tid] = gd[:widget_class].new(gd) #gd.create_widget
-        else
-          if OMF::Web::Widget::Graph.count > 0
-            opts[:flash] = {:alert => "Unknown graph id '#{tid}'"}
-          else
-            opts[:flash] = {:alert => "No graphs defined"}
-          end                    
-        end
-      end
-      if opts[:widget] = widget
-        opts[:card_title] = widget.name
-      end
-
-      #require 'omf-web/tab/graph/graph_page'
-      #page = GraphPage.new(widget, opts)
-      OMF::Web::Theme.require 'multi_card_page'
-      page = OMF::Web::Theme::MultiCardPage.new(widget, :graph, OMF::Web::Widget::Graph, opts)
-      [page.to_html, 'text/html']
-    end
-    
-    private
-  
-    def find_widget(widget_id)
-      unless (widget_id && (widget = @widgets[widget_id.to_i]))
-        raise "Unknown graph widget '#{widget_id}'"
-      end
-      widget
     end
     
   end # GraphService

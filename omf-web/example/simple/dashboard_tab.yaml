@@ -1,0 +1,13 @@
+
+
+# Define a 'dashboard' consisting of two columns of widgets
+#
+
+tab:
+  id: dashboard
+  type: two_column
+  name: Dashboard
+  topts:
+    layout: layout_50_50
+    left:  [line_chart, mobile_network]
+    right: [walk, pie]

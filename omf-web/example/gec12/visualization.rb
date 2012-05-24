@@ -150,6 +150,7 @@ def click_mon_routing_stats(stream)
       :x_axis => {:property => :ts},
       :y_axis => {:property => :in_chunks},
       :group_by => {:property => :inode_id},
+      :group_by => {:property => :id},      
       :stroke_width => 4    
     },
     :margin => {:left => 80, :bottom => 40},

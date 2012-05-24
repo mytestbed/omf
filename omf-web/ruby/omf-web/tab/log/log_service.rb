@@ -1,5 +1,5 @@
     
-require 'omf-web/tab/common/abstract_service'
+require 'omf-web/tab/abstract_service'
 
 require 'omf-web/session_store'
 require 'omf-web/widget/log/log_widget'

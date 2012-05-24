@@ -20,3 +20,4 @@ configure-stamp
 *.swp
 *.orig
 */debian/files
+.yardoc/

@@ -27,6 +27,12 @@ module OMF::Web::Theme
       return unless @widget
       widget @widget        
     end
+    
+    def collect_data_sources(dsa)
+      @widget.collect_data_sources(dsa) if @widget
+      dsa
+    end
+    
   end # Widget
   
 end # OMF::Web::Theme

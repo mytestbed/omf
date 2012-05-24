@@ -12,6 +12,24 @@ module OMF::Web::Widget::Graph
     #attr_reader :name, :opts
     
     def initialize(opts)
+      unless opts
+        raise "Missing widget options."
+      end
+      @name = opts[:name] || 'Unknown'
+      # unless opts[:data_sources]
+        # raise "Missing widget option ':data_sources' for widget '#{name}::#{opts.inspect}'"
+      # end
+      
+      wopts = opts[:wopts] || {}
+      unless vizType = wopts[:viz_type]
+        raise "Missing widget option ':viz_type' for widget '#{name}'"
+      end
+  
+      opts[:name] = name
+      opts[:js_url] = "graph/#{vizType}.js"
+      opts[:js_class] = "OML.#{vizType}"
+      #opts[:widget_class] = OMF::Web::Widget::AbstractDataWidget 
+      
       super opts
 
       # @gd = gd

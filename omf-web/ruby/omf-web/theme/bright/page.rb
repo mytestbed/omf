@@ -49,9 +49,9 @@ module OMF::Web::Theme
     def render_tab_menu
       ol :id => :tab_menu do
         @tabs.each do |h|
-          lopts = h[:id] == @active_id ? {:class => :current} : {}
+          lopts = h[:id] == @tab ? {:class => :current} : {}
           li lopts do 
-            a :href => "/#{h[:id]}/show?sid=#{Thread.current["sessionID"]}" do
+            a :href => "#{@prefix}/#{h[:id]}?sid=#{Thread.current["sessionID"]}" do
               span h[:name], :class => :tab_text
             end
           end

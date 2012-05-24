@@ -1,9 +1,15 @@
 
+require 'omf-common/mobject2'
+OMF::Common::Loggable.init_log 'demo'
+
 
 require 'omf-oml/network'
 
-require 'omf-web/tabbed_server'
-require 'omf-web/tab/graph/init'
+# require 'omf-web/tabbed_server'
+# require 'omf-web/tab/graph/init'
+
+require 'omf-web/widget/code/code'
+require 'omf-web/widget/graph/graph'
 
 # Define data sources
 #
@@ -19,13 +25,13 @@ def init_graph(name, data, viz_type = 'network', opts = {})
   }
   
   gopts = {
-    :data_source => data,
+    :data_sources => data,
     :dynamic => {
       :updateInterval => 1
     },
     :viz_type => viz_type,
-    # :viz_type => 'map',    
-    :viz_opts => def_viz_opts.merge(opts)
+    :wopts => def_viz_opts.merge(opts)
+    
   }
   OMF::Web::Widget::Graph.addGraph(name, gopts) 
 end
@@ -43,7 +49,7 @@ nw.create_link :l12, :n1, :n2, :load => 0.4
 
 require 'omf-oml/table'
 
-s = OmlSchema.new [[:ts, Float], [:name, String], [:capacity, Integer]]
+s = OmlSchema.new [[:ts, :float], [:name, :string], [:capacity, :int]]
 node_table = OMF::OML::OmlTable.new('nodes', s)
 start = Time.now
 node_table.on_row_added(node_table) do |row|
@@ -133,4 +139,5 @@ opts = {
     # :goo => {:name => 'Goo', :order => 3}
   # }
 }
+require 'omf_web'
 OMF::Web.start(opts)

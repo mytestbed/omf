@@ -71,9 +71,49 @@ module OMF::OML
       @schema
     end
     
+    def insert_column_at(index, col)
+      if col.kind_of?(Symbol) || col.kind_of?(String)
+        col = {:name => col.to_sym, :type => :string}
+      elsif col.kind_of? Array
+        # should be [name, type]
+        if col.length == 1
+          col = {:name => col[0].to_sym, :type => :string}
+        elsif col.length == 2
+          col = {:name => col[0].to_sym, :type => col[1].to_sym}
+        else
+          throw "Simple column schema should consist of [name, type] array, but found '#{col.inspect}'"
+        end
+      end
+      # should normalize type
+      if type = col[:type]
+        unless type = ANY2TYPE[type.to_s.downcase]
+          warn "Unknown type definition '#{col[:type]}', default to 'string'"
+          type = :string
+        end
+      else
+        warn "Missing type definition in '#{col[:name]}', default to 'string'"          
+        type = :string
+      end
+      col[:type] = type
+      @schema.insert(index, col)
+    end
+    
     def each_column(&block)
       @schema.each do |c| 
        block.call(c) 
+      end
+    end
+    
+    # Translate a record described in a hash of 'col_name => value'
+    # to a row array
+    #
+    def hash_to_row(hrow)
+      @schema.collect do |cdescr|
+        cname = cdescr[:name]
+        unless hrow.key? cname
+          raise 'Missing record element '#{cname}' in record '#{hrow}'"
+        end
+        hrow[cname]
       end
     end
     
@@ -97,34 +137,40 @@ module OMF::OML
     #   TODO: define format of TYPE
     #
     def initialize(schema_description)
-      #debug "schema: '#{schema_description.inspect}'"
+      debug "schema: '#{schema_description.inspect}'"
       
       # check if columns are described by hashes or 2-arrays
-      @schema = schema_description.collect do |col|
-        if col.kind_of? Array
-          # should be [name, type]
-          if col.length == 1
-            col = {:name => col[0].to_sym, :type => :string}
-          elsif col.length == 2
-            col = {:name => col[0].to_sym, :type => col[1]}
-          else
-            throw "Simple column schema should consist of [name, type] array, but found '#{col.inspect}'"
-          end
-        end
-        # should normalize type
-        if type = col[:type]
-          unless type = ANY2TYPE[type.to_s.downcase]
-            warn "Unknown type definition '#{col[:type]}', default to 'string'"
-            type = :string
-          end
-        else
-          warn "Missing type definition in '#{col[:name]}', default to 'string'"          
-          type = :string
-        end
-        col[:type] = type
-        
-        col
+      @schema = []
+      schema_description.each_with_index do |cdesc, i|
+        insert_column_at(i, cdesc)
       end
+      # @schema = schema_description.collect do |col|
+        # if col.kind_of?(Symbol) || col.kind_of?(String)
+          # col = {:name => col.to_sym, :type => :string}
+        # elsif col.kind_of? Array
+          # # should be [name, type]
+          # if col.length == 1
+            # col = {:name => col[0].to_sym, :type => :string}
+          # elsif col.length == 2
+            # col = {:name => col[0].to_sym, :type => col[1].to_sym}
+          # else
+            # throw "Simple column schema should consist of [name, type] array, but found '#{col.inspect}'"
+          # end
+        # end
+        # # should normalize type
+        # if type = col[:type]
+          # unless type = ANY2TYPE[type.to_s.downcase]
+            # warn "Unknown type definition '#{col[:type]}', default to 'string'"
+            # type = :string
+          # end
+        # else
+          # warn "Missing type definition in '#{col[:name]}', default to 'string'"          
+          # type = :string
+        # end
+        # col[:type] = type
+#         
+        # col
+      # end
       #@on_new_vector_proc = {}
     end
   end # OmlSchema
