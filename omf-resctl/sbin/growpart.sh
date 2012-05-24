@@ -15,7 +15,7 @@ PART="$11"
 
 !(mount | grep $DISK) || die "-> One or more partitions of $DISK are mounted. Umount them and try again.";
 
-echo "-> Checking disk and partition sizes"
+echo "01-> Checking disk and partition sizes"
 
 # re-read partition table in case it has been changed by frisbee
 sfdisk -R $DISK
@@ -26,11 +26,12 @@ FIRSTBLOCK=`sfdisk $DISK -uB -l | grep $PART | awk '{ sub(/\+/,"");sub(/\-/,"");
 NEWSIZE=$((TOTALSIZE-FIRSTBLOCK-1))
 
 if [ "$NEWSIZE" -le "$CURSIZE" ]; then
-	echo "-> Partition $PART already has the maximum size. Not growing it.";
+	echo "91-> Partition $PART already has the maximum size. Not growing it.";
+	echo "92-> Done";
 	exit 0;
 fi
 
-echo "-> Removing partition table entries 2, 3 and 4"
+echo "02-> Removing partition table entries 2, 3 and 4"
 
 SFDISK="sfdisk -q -L -uB -f"
 
@@ -46,19 +47,24 @@ $SFDISK -N4 $DISK >/dev/null <<P4
 0,0
 P4
 
-echo "-> Growing partition $PART to the outer end of the disk"
+echo "03-> Growing partition $PART to the outer end of the disk"
 
 $SFDISK -N1 $DISK >/dev/null <<P1
 ,$NEWSIZE
 y
 P1
 
-echo "-> Growing filesystem on $PART to partition size"
+echo "04-> Growing filesystem on $PART to partition size"
 touch /etc/mtab
+echo "05-> Checking file system for errors"
 e2fsck -fy $PART
+echo "06-> Removing journal"
 tune2fs -O ^has_journal $PART
+echo "07-> Resize file system"
 resize2fs $PART
+echo "08-> Creating journal"
 tune2fs -O has_journal $PART
+echo "09-> Resetting file system check counter"
 tune2fs -i 0 -c 0 $PART
 
-echo "-> Done"
+echo "10-> Done"
