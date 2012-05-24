@@ -128,8 +128,12 @@ class ResultService < LegacyGridService
     dump = nil
     begin
       path = "#{@@config['database_path']}/#{id}.sq3"
-      cmd = "#{@@config['sqlite3_path']} #{path} .dump"
-      dump =  `#{cmd}`
+      if File.exist?(path)
+        cmd = "#{@@config['sqlite3_path']} #{path} .dump"
+        dump =  `#{cmd}`
+      else
+        dump = "ERROR: Database #{path} does not exist on this OML server"
+      end
     rescue Exception => ex
       error "Result - Error dumping the experiment measurement database --- ID: #{id} --- '#{ex}'"
     end
@@ -168,7 +172,7 @@ class ResultService < LegacyGridService
   end
 
   #
-  # Implement 'listTables' service using the 'service' method of AbstractService
+  # Implement 'getSchema' service using the 'service' method of AbstractService
   #
   s_description "Get the Schema of a given experiment measurement database"
   s_param :expID, 'ExperimentID', 'ID of the Experiment'

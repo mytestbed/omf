@@ -223,6 +223,7 @@ class AbstractService < MObject
   #
   def self.getParam(req, name)
     p = req.query[name]
+    p.gsub!(" ","+")
     if (p == nil)
       raise HTTPStatus::BadRequest, "Missing parameter '#{name}'"
     end
@@ -240,7 +241,13 @@ class AbstractService < MObject
   # [Return] a String with the value of the required parameter
   #
   def self.getParamDef(req, name, default)
-    req.query[name] || default
+    p = req.query[name]
+    p.gsub!(" ","+")
+    if (p.nil?)
+      return default
+    else
+      return p
+    end
   end
 
   #
