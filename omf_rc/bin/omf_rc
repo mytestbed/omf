@@ -6,8 +6,6 @@ require 'omf_rc'
 require 'omf_rc/resource_factory'
 $stdout.sync = true
 
-OmfRc::ResourceFactory.bootstrap
-
 options = {
   uid: 'interlagos'
 }
@@ -52,17 +50,15 @@ unless options[:server] && options[:user] && options[:server]
   exit(1)
 end
 
+Logging.logger.root.level = :debug if options[:debug]
 Blather.logger = logger
-Blather.logger.level = Logger::DEBUG if options[:debug]
 
-logger.debug "Resource Proxy List #{OmfRc::ResourceFactory.proxy_list}"
+OmfRc::ResourceFactory.load_default_resource_proxies
 
-node = OmfRc::ResourceFactory.new(:node, options)
-
-trap(:INT) { node.disconnect }
-trap(:TERM) { node.disconnect }
-
-#EM.run { comm.connect(options[:user], options[:password], options[:server]) }
 EM.run do
+  node = OmfRc::ResourceFactory.new(:node, options)
   node.connect
+
+  trap(:INT) { node.disconnect }
+  trap(:TERM) { node.disconnect }
 end

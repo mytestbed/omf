@@ -77,16 +77,10 @@ module OmfCommon
         pubsub.publish(node, message, host, &callback_logging(__method__, node, message.operation, &block))
       end
 
-      # Event callback for pubsub node event(created, deleted)
+      # Event callback for pubsub node event(item published)
       #
       def node_event(*args, &block)
-        pubsub_event(:items, *args, &callback_logging(__method__, &block))
-      end
-
-      # Event callback for pubsub items event(item published)
-      #
-      def node_item_event(*args, &block)
-        pubsub_event(:items, :node, *args, &callback_logging(__method__, &block))
+        pubsub_event(:items?, *args, &callback_logging(__method__, &block))
       end
 
       private
