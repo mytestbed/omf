@@ -57,6 +57,7 @@ create_msg = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
 
 # A request message to be sent to mock
 request_mock_property = OmfCommon::Message.request do |v|
+  v.property('available_properties')
   v.property('kernel_version')
   v.property('resource_proxy_list')
   v.property('resource_utility_list')

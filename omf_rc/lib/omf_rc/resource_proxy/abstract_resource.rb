@@ -60,8 +60,8 @@ class OmfRc::ResourceProxy::AbstractResource
         @comm.disconnect(host)
       end
     end
+    logger.info "Disconnecting in #{DISCONNECT_WAIT} seconds"
     EM.add_timer(DISCONNECT_WAIT) do
-      logger.info "Disconnecting in #{DISCONNECT_WAIT} seconds"
       @comm.disconnect(host)
     end
   end
@@ -77,6 +77,16 @@ class OmfRc::ResourceProxy::AbstractResource
   # Release a resource
   #
   def release
+  end
+
+  # Return a list of all properties can be requested and configured
+  #
+  def request_available_properties
+    Hashie::Mash.new(request: [], configure: []).tap do |mash|
+      methods.each do |m|
+        mash[$1] << $2.to_sym if m =~ /(request|configure)_(.+)/ && $2 != "available_properties"
+      end
+    end
   end
 
   private

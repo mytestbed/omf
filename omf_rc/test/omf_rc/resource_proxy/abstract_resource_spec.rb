@@ -7,6 +7,9 @@ module OmfRc::ResourceProxy
   module Node
     include OmfRc::ResourceProxyDSL
     register_proxy :node
+
+    register_request :name
+    register_configure :name
   end
 
   module Interface
@@ -71,6 +74,14 @@ describe AbstractResource do
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
       skip
+    end
+  end
+
+  describe "when asked for the funcitonalities it supports" do
+    it "must returned all the properties can be requested & configured" do
+      @node.request_available_properties.must_be_kind_of Hashie::Mash
+      @node.request_available_properties.configure.must_equal [:name]
+      @node.request_available_properties.request.must_equal [:name]
     end
   end
 end
