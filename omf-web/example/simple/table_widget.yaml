@@ -12,8 +12,9 @@ widget:
     update_interval: 1
   wopts:
     viz_type: table2
-    data_sources: generator
-    dynamic: 1
+    data_source: 
+      name: generator
+      dynamic: 1  # check once a second
 
 
       

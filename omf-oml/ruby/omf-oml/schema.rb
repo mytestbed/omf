@@ -29,6 +29,8 @@ module OMF::OML
       'double' => :float,
       'text' => :string,
       'string' => :string,
+      'date' => :date,
+      'dateTime'.downcase => :dateTime, # should be 'datetime' but we downcase the string for comparison
       'key' => :key,      
     }
 
@@ -73,15 +75,22 @@ module OMF::OML
     
     def insert_column_at(index, col)
       if col.kind_of?(Symbol) || col.kind_of?(String)
-        col = {:name => col.to_sym, :type => :string}
-      elsif col.kind_of? Array
+        col = [col]
+      end
+      if col.kind_of? Array
         # should be [name, type]
         if col.length == 1
-          col = {:name => col[0].to_sym, :type => :string}
+          col = {:name => col[0].to_sym, 
+                  :type => :string, 
+                  :title => col[0].to_s.split('_').collect {|s| s.capitalize}.join(' ')}
         elsif col.length == 2
-          col = {:name => col[0].to_sym, :type => col[1].to_sym}
+          col = {:name => col[0].to_sym,
+                  :type => col[1].to_sym, 
+                  :title => col[0].to_s.split('_').collect {|s| s.capitalize}.join(' ')}
+        elsif col.length == 3
+          col = {:name => col[0].to_sym, :type => col[1].to_sym, :title => col[2]}
         else
-          throw "Simple column schema should consist of [name, type] array, but found '#{col.inspect}'"
+          throw "Simple column schema should consist of [name, type, title] array, but found '#{col.inspect}'"
         end
       end
       # should normalize type
@@ -137,41 +146,13 @@ module OMF::OML
     #   TODO: define format of TYPE
     #
     def initialize(schema_description)
-      debug "schema: '#{schema_description.inspect}'"
-      
       # check if columns are described by hashes or 2-arrays
       @schema = []
       schema_description.each_with_index do |cdesc, i|
         insert_column_at(i, cdesc)
       end
-      # @schema = schema_description.collect do |col|
-        # if col.kind_of?(Symbol) || col.kind_of?(String)
-          # col = {:name => col.to_sym, :type => :string}
-        # elsif col.kind_of? Array
-          # # should be [name, type]
-          # if col.length == 1
-            # col = {:name => col[0].to_sym, :type => :string}
-          # elsif col.length == 2
-            # col = {:name => col[0].to_sym, :type => col[1].to_sym}
-          # else
-            # throw "Simple column schema should consist of [name, type] array, but found '#{col.inspect}'"
-          # end
-        # end
-        # # should normalize type
-        # if type = col[:type]
-          # unless type = ANY2TYPE[type.to_s.downcase]
-            # warn "Unknown type definition '#{col[:type]}', default to 'string'"
-            # type = :string
-          # end
-        # else
-          # warn "Missing type definition in '#{col[:name]}', default to 'string'"          
-          # type = :string
-        # end
-        # col[:type] = type
-#         
-        # col
-      # end
-      #@on_new_vector_proc = {}
+      debug "schema: '#{describe.inspect}'"
+      
     end
   end # OmlSchema
   

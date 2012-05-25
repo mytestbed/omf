@@ -7,6 +7,10 @@ classes should alter those!
 
 @import url('/resource/vendor/slickgrid/slick.grid.css');
 
+.oml_table2 {
+  border: 1px solid silver
+}
+
 .slick-header-column {
   background: url('/resource/vendor/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
   border-right: 1px solid silver;

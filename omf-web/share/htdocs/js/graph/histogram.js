@@ -18,6 +18,8 @@ L.provide('OML.histogram', ["graph/abstract_chart", "#OML.abstract_chart", "grap
     defaults: function() {
       //var d = OML.histogram.__super__.defaults.call(this);
       return this.deep_defaults({
+        //bins: 5, // specify the number of bins to be used in the histogram
+        unique: false, // If true, buckets are defined by unique 'values'
         axis: {
           x: {
             ticks: {
@@ -52,11 +54,19 @@ L.provide('OML.histogram', ["graph/abstract_chart", "#OML.abstract_chart", "grap
       var o = this.opts;
       var ca = this.widget_area;
       var m = this.mapping;
+
+      var hdata;      
+      // if (o.unique) {
+        // hdata = this.unique_histogram(data);
+      // } else {
+        var histogram = d3.layout.histogram();
+        histogram.value(m.value);
+        var bins = o.bins ? histogram.bins(o.bins) : histogram.bins();
+        if (o.density != 'undefined"') histogram.frequency(! o.density);
+        hdata = histogram(data);
+      // }
       
-      var histogram = d3.layout.histogram();
-      histogram.value(m.value);
-      var hdata = histogram(data);
-      var bins = histogram.bins();
+      var u = _.map(_.uniq(data, false, m.value), m.value).sort();      
 
       var x = d3.scale.ordinal()
           .domain(hdata.map(function(d) { 
@@ -125,74 +135,95 @@ L.provide('OML.histogram', ["graph/abstract_chart", "#OML.abstract_chart", "grap
                  
       
     },
-    
-    redraw2: function(data) {
+
+    // Calculate the 'histogram' over 'data' assuming that applying the 'value' operator
+    // over 'data' provides a limited number of unique values which are treated as the bins.
+    //
+    unique_histogram: function(data) {
       var self = this;
       var o = this.opts;
       var ca = this.widget_area;
-      var m = this.mapping;
+      var value_f = this.mapping.value;
       
-      /* 'data' should be an an array (each line) of arrays (each tuple)
-       * The following code assumes that the tuples are sorted in ascending 
-       * value associated with the x-axis. 
-       */
-      // var x_index = m.x_axis;
-      // var y_index = m.y_axis;
-      // var group_by = m.group_by;
-      // if (group_by != null) {
-        // data = this.group_by(data, group_by);
-      // } else {
-        // data = [data];
-      // }
-
-      var histogram = d3.layout.histogram();
-      var x = d3.scale.ordinal();
-      var y = d3.scale.linear();
-      //xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(6, 0);
-          
-      histogram.value(m.value);
-      data = histogram(data);
-
-      // Update the x-scale.
-      x.domain(data.map(function(d) { return d.x; }))
-          .rangeRoundBands([0, ca.w], .1);
-
-      // Update the y-scale.
-      y.domain([0, d3.max(data, function(d) { return d.y; })])
-          .range([ca.h, 0]);
-
-      // Select the svg element, if it exists.
-      var svg = this.chart_layer.selectAll(".chart").data([data]);
-
-      // Otherwise, create the skeletal chart.
-      var gEnter = svg.enter().append("svg").append("g");
-      gEnter.append("g").attr("class", "bars");
-      gEnter.append("g").attr("class", "x axis");
-
-      // // Update the outer dimensions.
-      // svg .attr("width", width)
-          // .attr("height", height);
+      var h = {};
+      var count = 0;
+      _.map(data, function(s) {
+        var key = value_f(s);
+        count = count + 1;
+        h[key] = 1 + (h[key] || 0);
+      })
+      var buckets = _.keys(h).sort();
+      var result = _.map(buckets, function(k) { return h[k]; });
+      var i = 0;
+    },
+    
+    // redraw2: function(data) {
+      // var self = this;
+      // var o = this.opts;
+      // var ca = this.widget_area;
+      // var m = this.mapping;
+//       
+      // /* 'data' should be an an array (each line) of arrays (each tuple)
+       // * The following code assumes that the tuples are sorted in ascending 
+       // * value associated with the x-axis. 
+       // */
+      // // var x_index = m.x_axis;
+      // // var y_index = m.y_axis;
+      // // var group_by = m.group_by;
+      // // if (group_by != null) {
+        // // data = this.group_by(data, group_by);
+      // // } else {
+        // // data = [data];
+      // // }
 // 
-      // // Update the inner dimensions.
-      var g = svg.select("g")
-          .attr("transform", "translate(" + ca.x + "," + ca.y + ca.h + ")");
-
-      // Update the bars.
-      var bar = svg.select(".bars").selectAll(".bar").data(data);
-      bar.enter().append("rect");
-      bar.exit().remove();
-      bar .attr("width", x.rangeBand())
-          .attr("x", function(d) { return x(d.x); })
-          .attr("y", function(d) { return y(d.y); })
-          .attr("height", function(d) { return y.range()[0] - y(d.y); })
-          .order();
-          
-
-      // Update the x-axis.
-      // g.select(".x.axis")
-          // .attr("transform", "translate(0," + y.range()[0] + ")")
-          // .call(xAxis);
-    }
+      // var histogram = d3.layout.histogram();
+      // var x = d3.scale.ordinal();
+      // var y = d3.scale.linear();
+      // //xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(6, 0);
+//           
+      // histogram.value(m.value);
+      // data = histogram(data);
+// 
+      // // Update the x-scale.
+      // x.domain(data.map(function(d) { return d.x; }))
+          // .rangeRoundBands([0, ca.w], .1);
+// 
+      // // Update the y-scale.
+      // y.domain([0, d3.max(data, function(d) { return d.y; })])
+          // .range([ca.h, 0]);
+// 
+      // // Select the svg element, if it exists.
+      // var svg = this.chart_layer.selectAll(".chart").data([data]);
+// 
+      // // Otherwise, create the skeletal chart.
+      // var gEnter = svg.enter().append("svg").append("g");
+      // gEnter.append("g").attr("class", "bars");
+      // gEnter.append("g").attr("class", "x axis");
+// 
+      // // // Update the outer dimensions.
+      // // svg .attr("width", width)
+          // // .attr("height", height);
+// // 
+      // // // Update the inner dimensions.
+      // var g = svg.select("g")
+          // .attr("transform", "translate(" + ca.x + "," + ca.y + ca.h + ")");
+// 
+      // // Update the bars.
+      // var bar = svg.select(".bars").selectAll(".bar").data(data);
+      // bar.enter().append("rect");
+      // bar.exit().remove();
+      // bar .attr("width", x.rangeBand())
+          // .attr("x", function(d) { return x(d.x); })
+          // .attr("y", function(d) { return y(d.y); })
+          // .attr("height", function(d) { return y.range()[0] - y(d.y); })
+          // .order();
+//           
+// 
+      // // Update the x-axis.
+      // // g.select(".x.axis")
+          // // .attr("transform", "translate(0," + y.range()[0] + ")")
+          // // .call(xAxis);
+    // }
 
   }) // end of histogram
 }) // end of provide

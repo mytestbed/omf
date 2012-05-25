@@ -31,84 +31,128 @@ L.provide('OML.table2', ["graph/abstract_widget", "#OML.abstract_widget", [
           enableColumnReorder: false,
           forceFitColumns: true,
           //autoHeight: true
-        }
+        },
+        margin: {
+          left: 20,
+          top:  2,
+          right: 20,
+          bottom: 2
+        },
       }, OML.table2.__super__.defaults.call(this));      
     },    
 
     initialize: function(opts) {
       OML.table2.__super__.initialize.call(this, opts);
+      var ca = this.widget_area;
       this.base_el
-        .style('height', '600px')
+        .style('height', ca.h + 'px')
+        .style('width', ca.w + 'px')        
+        .style('margin-left', ca.x + 'px')        
+        .style('margin-top', ca.ty + 'px')        
         ;
+      this.init_grid();
       this.update();
     },
     
     redraw: function(data) {
+      this.data = data;  
+      var self = this;
+      // Should sort first
+      if (this.sort_on_column) {
+        var sid = this.sort_on_column.id;
+        var asc = this.is_ascending;
+        data = data.sort(function(a, b) {
+          var x = a[sid], y = b[sid];
+          var cmp = (x == y ? 0 : (x > y ? 1 : -1));
+          return  asc ? cmp : -1 * cmp;          
+        });
+      }
+      this.sorted_data = data;
       
-      var grid,
-          data = [],
-          columns = [
-            { id: "title", name: "Title", field: "title", width: 0, sortable: true },
-            { id: "c1", name: "Sort 1", field: "c1", width: 0, sortable: true },
-            { id: "c2", name: "Sort 2", field: "c2", width: 0, sortable: true },
-            { id: "c3", name: "Sort 3", field: "c3", width: 0, sortable: true },
-            { id: "c4", name: "Sort 4", field: "c4", width: 0, sortable: true },
-            { id: "c5", name: "Sort 5", field: "c5", width: 0, sortable: true },
-            { id: "c6", name: "Sort 6", field: "c6", width: 0, sortable: true },
-            { id: "c7", name: "Sort 7", field: "c7", width: 0, sortable: true }
-          ],
-          numberOfItems = 250, items = [], indices, isAsc = true, currentSortCol = { id: "title" }, i;
-    
-      // Copies and shuffles the specified array and returns a new shuffled array.
-      function randomize(items) {
-        var randomItems = $.extend(true, null, items), randomIndex, temp, index;
-        for (index = items.length; index-- > 0;) {
-          randomIndex = Math.round(Math.random() * items.length - 1);
-          if (randomIndex > -1) {
-            temp = randomItems[randomIndex];
-            randomItems[randomIndex] = randomItems[index];
-            randomItems[index] = temp;
+      this.grid.updateRowCount(); // fixes scroll bar
+      this.grid.invalidateAllRows();
+      this.grid.render();
+    },
+      
+    init_grid: function(data) {
+      var schema = this.data_source.schema;
+      var opts = this.opts;
+      var self = this;
+      
+      var columns;
+      if (columns = opts.columns) {
+        var sh = {}; _.each(schema, function(e) { sh[e.name] = e; })
+        _.each(columns, function(c) {
+          var s = sh[c.field];
+          c.id = s.index;
+          _.defaults(c, {
+            name: s.title || s.name,
+            width: 0,
+            sortable: true,
+          })
+          if (c.format) {
+            c.formatter = self.find_formatter(c.type || s.type, c)
           }
-        }
-        return randomItems;
+        });
+        var i = 0;
+      } else {
+        columns = _.map(schema, function(col) {
+                        var i = 0;
+                        return { id: col.index, name: col.title, field: col.name, width: 0, sortable: true };
+                      })
       }
     
-      /// Build the items and indices.
-      for (i = numberOfItems; i-- > 0;) {
-        items[i] = i;
-        data[i] = {
-          title: "Task ".concat(i + 1)
-        };
-      }
-      indices = { title: items, c1: randomize(items), c2: randomize(items), c3: randomize(items), c4: randomize(items), c5: randomize(items), c6: randomize(items), c7: randomize(items) };
-    
-      // Assign values to the data.
-      for (i = numberOfItems; i-- > 0;) {
-        data[indices.c1[i]].c1 = "Value ".concat(i + 1);
-        data[indices.c2[i]].c2 = "Value ".concat(i + 1);
-        data[indices.c3[i]].c3 = "Value ".concat(i + 1);
-        data[indices.c4[i]].c4 = "Value ".concat(i + 1);
-        data[indices.c5[i]].c5 = "Value ".concat(i + 1);
-        data[indices.c6[i]].c6 = "Value ".concat(i + 1);
-        data[indices.c7[i]].c7 = "Value ".concat(i + 1);
-      }
-    
-      // Define function used to get the data and sort it.
+      // Define function used to get the data.
+      //var currentSortCol = { id: "title" };
+      var self = this;
+      this.sorted_data = []; // initially empty
       function getItem(index) {
-        return isAsc ? data[indices[currentSortCol.id][index]] : data[indices[currentSortCol.id][(data.length - 1) - index]];
+        //return isAsc ? data[indices[currentSortCol.id][index]] : data[indices[currentSortCol.id][(data.length - 1) - index]];
+        return self.sorted_data[index];
       }
       function getLength() {
-        return data.length;
+        return self.sorted_data.length;
       }
     
-      grid = new Slick.Grid(this.opts.base_el, {getLength: getLength, getItem: getItem}, columns, this.opts.topts);
+      var topts = this.opts.topts
+      topts.dataItemColumnValueExtractor = function(item, columnDef) {
+        var i = 0;
+        return item[columnDef.id];
+      };
+
+      this.is_ascending = true;
+      this.sort_on_column = null;
+      var grid = this.grid = new Slick.Grid(this.opts.base_el, {getLength: getLength, getItem: getItem}, columns, topts);
       grid.onSort.subscribe(function (e, args) {
-        currentSortCol = args.sortCol;
-        isAsc = args.sortAsc;
-        grid.invalidateAllRows();
-        grid.render();
+        self.sort_on_column = args.sortCol;
+        self.is_ascending = args.sortAsc;
+        self.redraw(self.data);
+        // grid.invalidateAllRows();
+        // grid.render();
       });
       
     },
+    
+    find_formatter: function(type, opts) {
+      if (type == 'date' || type == 'dateTime') {
+        var d_f = d3.time.format(opts.format || "%X");
+        return function(r, c, v) {
+          var date = new Date(1000 * v);  // TODO: Implicitly assuming that value is in seconds is most likely NOT a good idea
+          var fs = d_f(date); 
+          return fs;
+        }
+      } else if (type == 'key') {
+        var lm = opts.format;
+        return function(r, c, v) {
+          var l = lm[v] || ('??-' + v);
+          return l;
+        }
+      } else {
+        var formatter = d3.format(opts.format);
+        return function(r, c, v) {
+          return formatter(v);
+        }
+      }
+    }
   })
 })

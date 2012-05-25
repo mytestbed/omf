@@ -21,7 +21,7 @@ module OMF::Web::Tab::TabbedWidgets
       tid = (req.params['tid'] || OMF::Web::SessionStore[sname] || 0).to_i
       opts[:card_id] = OMF::Web::SessionStore[sname] = tid
       unless (widget = @widgets[tid])
-        if @widget_descrs.count > 0
+        if @widgets.count > 0
           opts[:flash] = {:alert => "Unknown widget id '#{tid}'"}
         else
           opts[:flash] = {:alert => "No widgets defined"}

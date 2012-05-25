@@ -32,13 +32,20 @@ L.provide('OML.axis', ["graph.css", "/resource/vendor/d3/d3.js"], function () {
     // TICKS
     var ot = options.ticks = _.defaults(options.ticks, defaults.ticks);
     // Check if we need a special formatter for the tick labels
-    if (ot.type == 'date') {
+    if (ot.type == 'date' || ot.type == 'dateTime') {
       var d_f = d3.time.format(ot.format || "%X");
       d3_axis.tickFormat(function(d) {
         var date = new Date(1000 * d);  // TODO: Implicitly assuming that value is in seconds is most likely NOT a good idea
         var fs = d_f(date); 
         return fs;
       });
+    } else if (ot.type == 'key') {
+      var lm = ot.key_map;
+      d3_axis.tickFormat(function(d) {
+        var l = lm[d] || ('??-' + d);
+        return l;
+      });
+      
     } else if (ot.format) {
       d3_axis.tickFormat(d3.format(ot.format));
     }
