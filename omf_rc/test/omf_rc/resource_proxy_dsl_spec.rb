@@ -16,7 +16,9 @@ describe OmfRc::ResourceProxyDSL do
       register_proxy :mock_proxy
       utility :mock_utility
 
-      register_hook :before_ready
+      register_hook :before_ready do
+        "bob"
+      end
       register_hook :before_release
       register_configure :bravo
       register_request :bravo

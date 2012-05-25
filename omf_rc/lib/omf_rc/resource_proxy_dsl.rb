@@ -14,7 +14,7 @@ module OmfRc::ResourceProxyDSL
 
     def register_hook(name, &register_block)
       define_method(name) do
-        register_block.call if register_block
+        register_block.call(self) if register_block
       end
     end
 
@@ -43,14 +43,13 @@ module OmfRc::ResourceProxyDSL
 
     def register_configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
-        raise ArgumentError "Missing value to conifgure property" if args.empty?
-        register_block.call(args[0], block) if register_block
+        register_block.call(self, *args, block) if register_block
       end
     end
 
     def register_request(name, &register_block)
-      define_method("request_#{name.to_s}") do |*args, &block|
-        register_block.call(block) if block if register_block
+      define_method("request_#{name.to_s}") do |*args|
+        register_block.call(self) if register_block
       end
     end
   end

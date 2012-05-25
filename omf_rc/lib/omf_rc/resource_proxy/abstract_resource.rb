@@ -33,7 +33,6 @@ class OmfRc::ResourceProxy::AbstractResource
 
     # Fire when message published
     @comm.node_event do |e|
-      logger.info e.node
       e.items.each do |item|
         process_omf_message(item.payload, e.node)
       end
@@ -69,10 +68,10 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Create a new resource in the context of this resource. This resource becomes parent, and newly created resource becomes child
   #
-  def create(context_id, type, opts = nil)
+  def create(type, opts = nil)
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
     children << new_resource
-    [new_resource, context_id]
+    new_resource
   end
 
   # Release a resource
@@ -87,17 +86,35 @@ class OmfRc::ResourceProxy::AbstractResource
   def process_omf_message(pubsub_item_payload, node)
     dp = OmfRc::DeferredProcess.new
 
-    dp.callback do |result|
-      if result && result[0].class == self.class
-        context_id = result[1]
-        @comm.create_node(result[0].uid, host) do
-          @comm.subscribe(result[0].uid, host) do
-            inform_msg = OmfCommon::Message.inform(context_id, 'CREATED') do |i|
-              i.element('resource_id', result[0].uid)
-              i.element('resource_address', result[0].uid)
-            end.sign
-            @comm.publish(uid, inform_msg, host)
+    dp.callback do |end_result|
+      if end_result
+        case end_result[:operation]
+        when :create
+          new_uid = end_result[:result]
+          @comm.create_node(new_uid, host) do
+            @comm.subscribe(new_uid, host) do
+              inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'CREATED') do |i|
+                i.element('resource_id', new_uid)
+                i.element('resource_address', new_uid)
+              end.sign
+              @comm.publish(end_result[:inform_to], inform_msg, host)
+            end
           end
+        when :request
+          inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'STATUS') do |i|
+            end_result[:result].each_pair do |k, v|
+              i.property(k) { |p| p.element('current', v) }
+            end
+          end.sign
+          @comm.publish(end_result[:inform_to], inform_msg, host)
+
+        when :configure
+          inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'STATUS') do |i|
+            end_result[:result].each_pair do |k, v|
+              i.property(k) { |p| p.element('current', v) }
+            end
+          end.sign
+          @comm.publish(end_result[:inform_to], inform_msg, host)
         end
       end
     end
@@ -110,7 +127,7 @@ class OmfRc::ResourceProxy::AbstractResource
     dp.fire do
       message = OmfCommon::Message.parse(pubsub_item_payload)
       # Get the context id, which will be included when informing
-      context_id = message.read_content("//context_id")
+      context_id = message.read_content("context_id")
 
       obj = node == uid ? self : children.find { |v| v.uid == node }
 
@@ -118,11 +135,28 @@ class OmfRc::ResourceProxy::AbstractResource
       when :create
         create_opts = opts.dup
         create_opts.uid = nil
-        create(context_id, message.read_property(:type), create_opts)
+        result = create(message.read_property(:type), create_opts)
+        { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
       when :request
-        nil
+        result = Hashie::Mash.new.tap do |mash|
+          message.read_element("//property").each do |p|
+            method_name =  "request_#{p.attr('key')}"
+            if obj.respond_to? method_name
+              mash[p.attr('key')] ||= obj.send(method_name)
+            end
+          end
+        end
+        { operation: :request, result: result, context_id: context_id, inform_to: obj.uid }
       when :configure
-        nil
+        result = Hashie::Mash.new.tap do |mash|
+          message.read_element("//property").each do |p|
+            method_name =  "configure_#{p.attr('key')}"
+            if obj.respond_to? method_name
+              mash[p.attr('key')] ||= obj.send(method_name, p.content)
+            end
+          end
+        end
+        { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
       when :release
         nil
       else

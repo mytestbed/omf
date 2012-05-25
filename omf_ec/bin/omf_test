@@ -60,11 +60,12 @@ request_mock_property = OmfCommon::Message.request do |v|
   v.property('kernel_version')
   v.property('resource_proxy_list')
   v.property('resource_utility_list')
+  v.property('bob')
 end.sign
 
 # A configure message to be sent to mock
 configure_mock_property = OmfCommon::Message.configure do |v|
-  v.property('bob', 'test')
+  v.property('hrn', 'human_readable_name')
 end.sign
 
 # Simple release message

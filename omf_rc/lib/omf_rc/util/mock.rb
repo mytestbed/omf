@@ -3,18 +3,25 @@ module OmfRc::Util::Mock
 
   register_utility :mock
 
-  register_request :nothing
+  register_request :nothing do |resource|
+    resource.uid
+  end
+
   register_configure :nothing
 
-  register_request :resource_proxy_list do |callback|
-    callback.call(success: OmfRc::ResourceFactory.proxy_list)
+  register_configure :hrn do |resource, hrn|
+    resource.hrn = hrn
   end
 
-  register_request :resource_utility_list do |callback|
-    callback.call(success: OmfRc::ResourceFactory.utility_list)
+  register_request :resource_proxy_list do
+    OmfRc::ResourceFactory.proxy_list
   end
 
-  register_request :kernel_version do |callback|
-    OmfRc::Cmd.exec("uname -r", &callback)
+  register_request :resource_utility_list do
+    OmfRc::ResourceFactory.utility_list
+  end
+
+  register_request :kernel_version do
+    OmfCommon::Command.execute("uname -r")
   end
 end

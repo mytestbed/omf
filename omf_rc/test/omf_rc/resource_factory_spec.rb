@@ -2,7 +2,6 @@ require 'test_helper'
 require 'omf_rc/resource_factory'
 
 describe OmfRc::ResourceFactory do
-
   describe "when resource proxies loaded" do
     it "must have list of registered proxies and utilities" do
       OmfRc::ResourceFactory.proxy_list.must_include :mock
@@ -12,6 +11,7 @@ describe OmfRc::ResourceFactory do
       mock = OmfRc::ResourceFactory.new(:mock)
       mock.must_be_kind_of OmfRc::ResourceProxy::AbstractResource
       mock.must_respond_to :request_nothing
+      mock.request_nothing.must_equal mock.uid
       mock.must_respond_to :configure_nothing
     end
   end

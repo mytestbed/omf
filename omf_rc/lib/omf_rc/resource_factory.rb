@@ -22,7 +22,8 @@ class OmfRc::ResourceFactory
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm)
       # Then extend this instance with relevant module identified by type
       resource.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant)
-      # Execute resource bootstrap (before_ready hook) if any
+      # Execute resource before_ready hook if any
+      resource.before_ready if resource.respond_to? :before_ready
       resource
     end
 

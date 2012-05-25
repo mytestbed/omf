@@ -3,15 +3,15 @@ module OmfRc::ResourceProxy::Package
 
   register_utility :package
 
-  register_request :package_version do |callback|
-    OmfRc::Cmd.exec("dpkg -l #{hrn} | awk 'END { print $3 }'", &callback)
+  register_request :package_version do |resource|
+    OmfCommon::Command.execute("dpkg -l #{resource.hrn} | awk 'END { print $3 }'")
   end
 
-  register_configure :install_package do |callback|
-    OmfRc::Cmd.exec("apt-get install -y --reinstall --allow-unauthenticated -qq #{hrn}", &callback)
+  register_configure :install_package do |resource|
+    OmfCommon::Command.execute("apt-get install -y --reinstall --allow-unauthenticated -qq #{resource.hrn}")
   end
 
-  register_configure :remove_package do |callback|
-    OmfRc::Cmd.exec("apt-get purge -y -qq #{hrn}", &callback)
+  register_configure :remove_package do |resource|
+    OmfCommon::Command.execute("apt-get purge -y -qq #{resource.hrn}")
   end
 end
