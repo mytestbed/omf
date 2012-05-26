@@ -3,18 +3,27 @@
     <global level="DEBUG"/>
   </pre_config>
   <!-- outputters -->
-  <outputter type="StdoutOutputter" name="console" level="DEBUG"/>
-<!--
-  <outputter type="OMF::EC::Web::Log::LogOutputter" name="web" level="DEBUG"/>
--->
-	
-  <!-- loggers -->
-  <logger name="nodeHandler" outputters="console, web" level="DEBUG" trace="true"/>
-  <logger name="nodeHandler::web" outputters="console, web" level="INFO"/>
+  <outputter type="StdoutOutputter" name="console" level="INFO"/>
+  <outputter type="OMF::EC::Communicator::PubOutputter" name="pub" level="INFO"/>
+  <outputter type="OMF::EC::OML::OMLOutputter" name="oml" level="DEBUG"/>
   
-  <logger name="nodeHandler::web::access" outputters="web" level="INFO"/>
-  <logger name="nodeHandler::web::access" outputters="console" level="WARN"/>
 
-  <logger name="nodeHandler::comm" outputters="console, web" level="INFO"/>
-  <logger name="nodeHandler::commServer" outputters="console, web" level="INFO"/>
+  <!-- loggers -->
+  <logger name="nodeHandler" outputters="console, pub, oml" level="DEBUG" trace="true"/>
+  <!-- To streamline log file... -->
+  <!-- 1) Only log ERROR-level messages from the Communication stack -->
+  <logger name="nodeHandler::OmfXMPPServices" outputters="console, pub, oml" level="ERROR"/>
+  <logger name="nodeHandler::OMFPubSubTransport" outputters="console, pub, oml" level="ERROR"/>
+  <logger name="nodeHandler::ECCommunicator" outputters="console, pub, oml" level="ERROR"/>
+  <!-- 2) Only log ERROR-level messages from the ALLGROUP NodeSet and the Every-block loop -->
+  <logger name="nodeHandler::set::_ALLGROUPS_" outputters="console, pub, oml" level="ERROR"/>
+  <logger name="nodeHandler::every" outputters="console, pub, oml" level="ERROR"/>
+  
+  <!--
+  <logger name="client" level="INFO" outputters="client, console"/>
+  <logger name="client::gui" trace="true">
+    <level>DEBUG</level>
+    <outputter>gui</outputter>
+  </logger>
+  -->
 </log4r_config>
