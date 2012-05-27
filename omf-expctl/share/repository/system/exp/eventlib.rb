@@ -70,6 +70,7 @@ defEvent(:INTERRUPT, 1) do |event|
 end
 
 onEvent(:INTERRUPT) do |event|
+  OMF::EC::OML::PerformanceMonitor.report_status 'EXP.USER_INTERRUPT'
   MObject.info(:INTERRUPT, "\n\nUser issued an Interruption. Stopping the experiment now! Please wait...\n")
   Experiment.done
 end

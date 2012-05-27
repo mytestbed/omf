@@ -100,6 +100,8 @@ end
 if (NodeHandler.instance.running?)
   NodeHandler.instance.shutdown
   duration = (Time.now - startTime).to_i
+  OMF::EC::OML::PerformanceMonitor.report_status 'EXP.DONE', "Running for #{duration} sec"
   MObject.info('run', "Experiment #{Experiment.ID} finished after #{duration / 60}:#{duration % 60}\n")
+  sleep 2 # flush out stats messages
 end
 
