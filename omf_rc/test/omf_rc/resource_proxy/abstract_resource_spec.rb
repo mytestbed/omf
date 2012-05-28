@@ -47,27 +47,12 @@ describe AbstractResource do
 
   describe "when asked to create another resource" do
     it "must return the newly created resource" do
-      skip
-      @node.create(:interface) do |interface|
-      end
+      @node.create(:interface).must_be_kind_of AbstractResource
     end
 
     it "must add the resource to its created resource list" do
-      skip
-      @node.create(:wifi) do |wifi|
-      end
-    end
-  end
-
-  describe "when asked for the state of the created resources" do
-    it "must call associated request method" do
-      skip
-    end
-  end
-
-  describe "when asked to to configure a created resource" do
-    it "must call associated configure method" do
-      skip
+      child = @node.create(:wifi)
+      @node.children.must_include child
     end
   end
 
@@ -80,8 +65,8 @@ describe AbstractResource do
   describe "when asked for the funcitonalities it supports" do
     it "must returned all the properties can be requested & configured" do
       @node.request_available_properties.must_be_kind_of Hashie::Mash
-      @node.request_available_properties.configure.must_equal [:name]
-      @node.request_available_properties.request.must_equal [:name]
+      @node.request_available_properties.configure.must_include :name
+      @node.request_available_properties.request.must_include :name
     end
   end
 end

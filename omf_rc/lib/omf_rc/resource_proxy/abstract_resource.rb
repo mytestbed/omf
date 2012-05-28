@@ -1,5 +1,6 @@
 require 'omf_common'
 require 'omf_rc/deferred_process'
+require 'omf_rc/message_process_error'
 require 'securerandom'
 require 'hashie'
 
@@ -130,8 +131,10 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     dp.errback do |e|
-      logger.error e.message
-      logger.error e.backtrace.join("\n")
+      inform_msg = OmfCommon::Message.inform(e.context_id, 'FAILED') do |i|
+        i.element("error_message", e.message)
+      end.sign
+      @comm.publish(e.inform_to, inform_msg, host)
     end
 
     dp.fire do
@@ -141,36 +144,45 @@ class OmfRc::ResourceProxy::AbstractResource
 
       obj = node == uid ? self : children.find { |v| v.uid == node }
 
-      case message.operation
-      when :create
-        create_opts = opts.dup
-        create_opts.uid = nil
-        result = create(message.read_property(:type), create_opts)
-        { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
-      when :request
-        result = Hashie::Mash.new.tap do |mash|
-          message.read_element("//property").each do |p|
-            method_name =  "request_#{p.attr('key')}"
-            if obj.respond_to? method_name
-              mash[p.attr('key')] ||= obj.send(method_name)
+      begin
+        case message.operation
+        when :create
+          create_opts = opts.dup
+          create_opts.uid = nil
+          result = obj.create(message.read_property(:type), create_opts)
+          { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
+        when :request
+          result = Hashie::Mash.new.tap do |mash|
+            message.read_element("//property").each do |p|
+              method_name =  "request_#{p.attr('key')}"
+              if obj.respond_to? method_name
+                mash[p.attr('key')] ||= obj.send(method_name)
+              end
             end
           end
-        end
-        { operation: :request, result: result, context_id: context_id, inform_to: obj.uid }
-      when :configure
-        result = Hashie::Mash.new.tap do |mash|
-          message.read_element("//property").each do |p|
-            method_name =  "configure_#{p.attr('key')}"
-            if obj.respond_to? method_name
-              mash[p.attr('key')] ||= obj.send(method_name, p.content)
+          { operation: :request, result: result, context_id: context_id, inform_to: obj.uid }
+        when :configure
+          result = Hashie::Mash.new.tap do |mash|
+            message.read_element("//property").each do |p|
+              method_name =  "configure_#{p.attr('key')}"
+              if obj.respond_to? method_name
+                mash[p.attr('key')] ||= obj.send(method_name, p.content)
+              end
             end
           end
+          { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
+        when :release
+          { operation: :release, result: true, context_id: context_id, inform_to: obj.uid }
+        when :inform
+          # We really don't care about inform messages which created from here
+          nil
+        else
+          raise "Unknown OMF operation #{message.operation}"
         end
-        { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
-      when :release
-        nil
-      else
-        nil
+      rescue => e
+        logger.error e.message
+        logger.error e.backtrace.join("\n")
+        raise OmfRc::MessageProcessError.new(context_id, obj.uid, e.message)
       end
     end
   end
