@@ -28,7 +28,7 @@ def measure(i, table, ctxt)
   t = ctxt[:timeOffset] + ctxt[:timeScale] * i
   angle = i * ctxt[:rad]
   measure_device('Dev1', t, angle, table, ctxt)
-  measure_device('Dev2', t, angle + 0.2 * (rand() - 0.5), table, ctxt)  
+  measure_device('Dev2', t, angle + ctxt[:rad] + 0.2 * (rand() - 0.5), table, ctxt)  
 end
 
 def measure_device(name, t, angle, table, ctxt)

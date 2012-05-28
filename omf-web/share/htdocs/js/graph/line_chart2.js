@@ -48,14 +48,15 @@ var o = OML;
       };
       
       // The following assumes that the data is sorted in ascending value for x_axis
-      var x_max = this.x_max = o.xmax != undefined ? o.xmax : d3.max(data, function(d) {
+      var o_xaxis = o.mapping.x_axis || {}
+      var x_max = this.x_max = o_xaxis.max != undefined ? o_xaxis.max : d3.max(data, function(d) {
         var last = d[d.length - 1];
         var x = x_index(last);
         return x;
       });
       var x_max_cnt = d3.max(data, function(d) {return d.length});
-      var x_min = this.x_min = o.xmin != undefined ? o.xmin : d3.min(data, function(d) {return x_index(d[0]);});
-      var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([0, ca.w]);
+      var x_min = this.x_min = o_xaxis.min != undefined ? o_xaxis.min : d3.min(data, function(d) {return x_index(d[0]);});
+      var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([0, ca.w]).nice();
   
       if (x_max_cnt > ca.w) {
         // To much data, downsample
@@ -77,9 +78,14 @@ var o = OML;
       }
   
   
-      var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return y_index(t)})});
-      var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return y_index(t)})});
-      var y = this.y = d3.scale.linear().domain([y_min, y_max]).range([0, ca.h]);
+      // var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return y_index(t)})});
+      // var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return y_index(t)})});
+      // var y_ext = this.extent_2d(data, y_index, o.y_axis);
+      var y = this.y = d3.scale.linear()
+                        // .domain([y_min, y_max])
+                        .domain(this.extent_2d(data, y_index, o.mapping.y_axis))
+                        .range([0, ca.h])
+                        .nice();
         
       var line = d3.svg.line()
         .x(function(t) { return x(x_index(t)) })
@@ -89,7 +95,9 @@ var o = OML;
       var self = this;
       var lines = this.chart_layer.selectAll(".chart")
                     .data(data, function(d, i) { return i; })
-                    .attr("d", function(d) { return line(d); });
+                    ;
+                    
+      lines.transition().duration(0).attr("d", function(d) { return line(d); });
       lines.enter()
         .append("svg:path")
           .attr("stroke-width", m.stroke_width)

@@ -242,7 +242,15 @@ L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget"
       var max = o.max != undefined ? o.max : d3.max(data, f);
       var min = o.min != undefined ? o.min : d3.min(data, f);
       return [min, max];
+    },
+
+    extent_2d: function(data, f, opts) {
+      var o = opts || {};
+      var max = o.max != undefined ? o.max : d3.max(data, function(s) {return d3.max(s, f)});
+      var min = o.min != undefined ? o.min : d3.min(data, function(s) {return d3.min(s, f)});
+      return [min, max];
     }
+
     
   });
 })

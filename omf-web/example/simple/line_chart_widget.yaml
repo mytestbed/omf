@@ -19,7 +19,10 @@ widget:
       dynamic: 1  # check once a second
     mapping:
       x_axis: t
-      y_axis: amplitude
+      y_axis: 
+        property: x # cos
+        min: -10.5
+        max: 10.5
       group_by: device
     axis:
       x:
@@ -30,5 +33,7 @@ widget:
       
       y:
         legend: Voltage (V)
+    margin: 
+      left: 100
 
       

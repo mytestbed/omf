@@ -25,9 +25,9 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
         width: 1.0,  // <= 1.0 means set width to enclosing element
         height: 0.6,  // <= 1.0 means fraction of width
         margin: {
-          left: 50,
+          left: 100,
           top:  20,
-          right: 30,
+          right: 80,
           bottom: 50
         },
         offset: {
