@@ -7,6 +7,8 @@ module OMF
     module Rack; end
     module Widget; end
     
+    VERSION = 'git:release-5.4'
+    
     def self.start(opts)
       require 'omf-web/runner'
       require 'thin'

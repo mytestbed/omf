@@ -11,12 +11,12 @@ module OMF::Web
   class SessionStore < MObject
     @@sessions = {}
     
-    def self.[](key)
-      self.session[key]
+    def self.[](key, domain)
+      self.session["#{domain}:#{key}"]
     end
     
-    def self.[]=(key, value)
-      self.session[key] = value
+    def self.[]=(key, domain, value)
+      self.session["#{domain}:#{key}"] = value
     end
 
     def self.session(sid = nil)

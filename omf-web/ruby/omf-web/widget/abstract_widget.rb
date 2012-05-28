@@ -40,7 +40,7 @@ module OMF::Web::Widget
       @opts = opts
       @widget_id = "w#{object_id}"
       @name = opts[:name] || 'Unknown: Set opts[:name]'
-      OMF::Web::SessionStore[@widget_id] = self
+      OMF::Web::SessionStore[@widget_id, :w] = self
     end
         
   end # class

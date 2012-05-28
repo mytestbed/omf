@@ -100,7 +100,7 @@ module OMF::Web::Rack
       # topts = (OMF::Web::Tab.description_for(tab_id) || {})[:opts]
       # inst = OMF::Web::SessionStore[tab_id] ||= tab[:class].new(tab_id, topts || {})
       topts = (OMF::Web::Tab.description_for(tab_id) || {})[:opts]
-      inst = OMF::Web::SessionStore[tab_id] ||= OMF::Web::Tab.create_tab(tab_id) #tab[:class].new(tab_id, topts || {})
+      inst = OMF::Web::SessionStore[tab_id, :tab] ||= OMF::Web::Tab.create_tab(tab_id) #tab[:class].new(tab_id, topts || {})
     end
     
     def render_unknown_card(comp_name, req)

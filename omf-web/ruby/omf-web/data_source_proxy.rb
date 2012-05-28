@@ -47,15 +47,15 @@ module OMF::Web
         l_name = "#{ds_name}_links".to_sym
         if (nodes = OMF::Web::SessionStore[n_name])
           # assume links exist as well
-          links = OMF::Web::SessionStore[l_name]                
+          links = OMF::Web::SessionStore[l_name, :dsp]                
         else
-          nodes = OMF::Web::SessionStore[n_name] = self.new(n_name, ds[:nodes])
-          links = OMF::Web::SessionStore[l_name] = self.new(l_name, ds[:links])
+          nodes = OMF::Web::SessionStore[n_name, :dsp] = self.new(n_name, ds[:nodes])
+          links = OMF::Web::SessionStore[l_name, :dsp] = self.new(l_name, ds[:links])
         end
         return [nodes, links]
       end
       
-      proxy = OMF::Web::SessionStore[ds_name] ||= self.new(ds_name, ds)
+      proxy = OMF::Web::SessionStore[ds_name, :dsp] ||= self.new(ds_name, ds)
       return [proxy]
     end
     

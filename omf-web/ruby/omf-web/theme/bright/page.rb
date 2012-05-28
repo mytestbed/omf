@@ -7,14 +7,14 @@ module OMF::Web::Theme
     depends_on :css, "/resource/css/theme/bright/bright.css"
    
     def initialize(opts)
-      super opts
+      super
     end
  
     def content
       div :id => 'doc3' do
         div :id => 'hd' do
           render_top_line
-          h1 @page_title || 'Missing :page_title'
+          h1 @page_title || 'Missing :page_title' 
         end
         div :id => 'bd' do
           render_body
@@ -124,10 +124,10 @@ module OMF::Web::Theme
     
     def render_footer
       span :style => 'float:right;margin-right:10pt' do
-        text '20111030'
+        text @footer_right || OMF::Web::VERSION
       end
       ##                   image_tag 'logo-bottom.gif', {:align => 'right', :style => 'margin-right:10pt
-      text 'Brought to you by the TEMPO Team'
+      text @footer_left || 'Brought to you by the TEMPO Team'
     end
 
     ############ MAKE SURE WE NEED THE REST    

@@ -23,6 +23,7 @@ module OMF::Web::Theme
     }
     
     def initialize(opts)
+      #puts ">>>>> #{opts.keys.inspect}"
       super opts
       @opts = opts
     end
@@ -77,6 +78,10 @@ module OMF::Web::Theme
         dsp.to_javascript(update_interval)
       end.join("\n")
     end
+    
+    def render_additional_headers
+      "\n\n<link href='/resource/css/incoming.css' media='all' rel='stylesheet' type='text/css' />\n"
+    end
 
     def collect_data_sources(dsa)
       dsa
@@ -84,8 +89,7 @@ module OMF::Web::Theme
   
     def to_html(opts = {})
       b = super
-      e = render_externals << render_data_sources
-     
+      e = render_externals << render_additional_headers << render_data_sources
       r = Erector.inline do
         instruct
         html do
