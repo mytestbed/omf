@@ -6,15 +6,27 @@ require 'hashie'
 
 class OmfRc::ResourceProxy::AbstractResource
   DISCONNECT_WAIT = 5
-  attr_accessor :uid, :hrn, :type, :properties, :comm
+  RELEASE_WAIT = 5
+  attr_accessor :uid, :hrn, :type, :comm
   attr_reader :opts, :children, :host
 
+  # Initialisation
+  #
+  # @param [Symbol] type resource proxy type
+  # @param [Hash] opts options to be initialised
+  # @option opts [String] :uid Unique identifier
+  # @option opts [String] :hrn Human readable name
+  # @option opts [String] :pubsub_host pubsub server subdomain, default to 'pubsub'
+  # @option opts [String] :dsl Which pubsub DSL to be used for pubsub communication
+  # @option opts [String] :user pubsub user id
+  # @option opts [String] :password pubsub user password
+  # @option opts [String] :server pubsub server domain
+  # @param [Comm] comm communicator instance, pass this to new resource proxy instance if want to use a common communicator instance.
   def initialize(type, opts = nil, comm = nil)
     @opts = Hashie::Mash.new(opts)
     @type = type
     @uid = @opts.uid || SecureRandom.uuid
     @hrn = @opts.hrn
-    @properties = Hashie::Mash.new(@opts.properties)
     @children ||= []
     @host = nil
 
@@ -50,6 +62,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @comm.connect(opts.user, opts.password, opts.server)
   end
 
+  # Try to clean up pubsub nodes, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
     @comm.pubsub.affiliations(host) do |a|
       my_pubsub_nodes = a[:owner] ? a[:owner].size : 0
@@ -69,6 +82,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Create a new resource in the context of this resource. This resource becomes parent, and newly created resource becomes child
   #
+  # @param (see #initialize)
   def create(type, opts = nil)
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
     children << new_resource
@@ -78,6 +92,15 @@ class OmfRc::ResourceProxy::AbstractResource
   # Release a resource
   #
   def release
+    pubsub_nodes_left = []
+    children.each do |c|
+      c.before_release if c.respond_to? :before_release
+      pubsub_nodes_left << c.uid
+      c.freeze
+    end.clear
+    before_release if respond_to? :before_release
+    freeze
+    pubsub_nodes_left
   end
 
   # Return a list of all properties can be requested and configured
@@ -90,7 +113,30 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
-  private
+  # Make uid accessible through pubsub interface
+  def request_uid
+    uid
+  end
+
+  # Make hrn accessible through pubsub interface
+  def request_hrn
+    hrn
+  end
+
+  # Make hrn configurable through pubsub interface
+  def confgure_hrn(hrn)
+    @hrn = hrn
+  end
+
+  # Request child resources
+  # @return [Mash] child resource mash with uid and hrn
+  def request_child_resources
+    Hashie::Mash.new.tap do |mash|
+      children.each do |c|
+        mash[c.uid] ||= c.hrn
+      end
+    end
+  end
 
   # Parse omf message and execute as instructed by the message
   #
@@ -126,6 +172,18 @@ class OmfRc::ResourceProxy::AbstractResource
             end
           end.sign
           @comm.publish(end_result[:inform_to], inform_msg, host)
+        when :release
+          inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'RELEASED') do |i|
+            i.element('resource_id', end_result[:inform_to])
+          end
+
+          end_result[:result].each do |n|
+            @comm.delete_node(n, host)
+          end
+
+          EM.add_timer(RELEASE_WAIT) do
+            @comm.publish(end_result[:inform_to], inform_msg, host)
+          end
         end
       end
     end
@@ -145,6 +203,8 @@ class OmfRc::ResourceProxy::AbstractResource
       obj = node == uid ? self : children.find { |v| v.uid == node }
 
       begin
+        raise "Resource disappeard #{node}" if obj.nil?
+
         case message.operation
         when :create
           create_opts = opts.dup
@@ -172,7 +232,7 @@ class OmfRc::ResourceProxy::AbstractResource
           end
           { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
         when :release
-          { operation: :release, result: true, context_id: context_id, inform_to: obj.uid }
+          { operation: :release, result: obj.release, context_id: context_id, inform_to: obj.uid }
         when :inform
           # We really don't care about inform messages which created from here
           nil

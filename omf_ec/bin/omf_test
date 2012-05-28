@@ -55,6 +55,8 @@ host = nil
 # Create a resource of type mock
 create_msg = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
 
+create_wifi_msg = OmfCommon::Message.create { |v| v.property('type', 'wifi') }.sign
+
 # A request message to be sent to mock
 request_mock_property = OmfCommon::Message.request do |v|
   v.property('available_properties')
@@ -63,6 +65,17 @@ request_mock_property = OmfCommon::Message.request do |v|
   v.property('resource_utility_list')
   v.property('bob')
 end.sign
+
+request_wifi_property = OmfCommon::Message.request do |v|
+  v.property('link')
+  v.property('available_properties')
+end.sign
+
+# A request message to be sent to node
+request_node_property = OmfCommon::Message.request do |v|
+  v.property('available_properties')
+  v.property('proxies')
+end
 
 # A configure message to be sent to mock
 configure_mock_property = OmfCommon::Message.configure do |v|
@@ -83,7 +96,8 @@ comm.when_ready do
       comm.disconnect(host)
     else
       # Publish the create message to RC's pubsub node
-      comm.publish(options[:node], create_msg, host)
+      comm.publish(options[:node], request_node_property, host)
+      comm.publish(options[:node], create_wifi_msg, host)
     end
   end
 end
@@ -107,14 +121,12 @@ comm.node_event do |e|
 
           comm.subscribe(resource_id, host) do |m|
             EM.add_periodic_timer(2) do
-              comm.publish(resource_id, request_mock_property, host)
-              comm.publish(resource_id, configure_mock_property, host)
+              comm.publish(resource_id, request_wifi_property, host)
+              #comm.publish(resource_id, request_mock_property, host)
+              #comm.publish(resource_id, configure_mock_property, host)
             end
           end
 
-          EM.add_timer(5) do
-            comm.publish(resource_id, release_message, host)
-          end
         when 'STATUS'
           message.read_element("//property").each do |p|
             logger.info "#{p.attr('key')} => #{p.content.strip}"
@@ -134,4 +146,10 @@ end
 trap(:INT) { comm.disconnect(host) }
 trap(:TERM) { comm.disconnect(host) }
 
-EM.run { comm.connect(options[:user], options[:password], options[:server]) }
+EM.run do
+  comm.connect(options[:user], options[:password], options[:server])
+
+  EM.add_timer(5) do
+    comm.publish(options[:node], release_message, host)
+  end
+end
