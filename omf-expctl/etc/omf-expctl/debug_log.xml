@@ -13,7 +13,7 @@
   <!-- To streamline log file... -->
   <!-- 1) Only log ERROR-level messages from the Communication stack -->
   <logger name="nodeHandler::OmfXMPPServices" outputters="console, pub, oml" level="ERROR"/>
-  <logger name="nodeHandler::OMFPubSubTransport" outputters="console, pub, oml" level="ERROR"/>
+  <logger name="nodeHandler::OMFPubSubTransport" outputters="console, pub, oml" level="ERROR" additive="false"/>
   <logger name="nodeHandler::ECCommunicator" outputters="console, pub, oml" level="ERROR"/>
   <!-- 2) Only log ERROR-level messages from the ALLGROUP NodeSet and the Every-block loop -->
   <logger name="nodeHandler::set::_ALLGROUPS_" outputters="console, pub, oml" level="ERROR"/>

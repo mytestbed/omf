@@ -42,6 +42,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts ">> CMC: Switch on node '#{name}'"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODE.ON', name
       begin
         OMF::Services.cmc.on(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex
@@ -60,6 +61,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts ">> CMC: Switch on nodes #{set}"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODESET.ON', set.to_a.inspect
       begin
         OMF::Services.cmc.nodeseton(set)
       rescue Exception => ex
@@ -77,6 +79,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{name}"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODE.OFF', name
       begin
         OMF::Services.cmc.offHard(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex
@@ -93,6 +96,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch of node #{name}"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODES.OFF', name
       begin
         OMF::Services.cmc.offSoft(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex
@@ -110,6 +114,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off hard node"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.ALLNODES.OFF'
       begin
         OMF::Services.cmc.alloffhard(:domain => OConfig.domain)
       rescue Exception => ex
@@ -127,6 +132,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Switch off soft node"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.ALLNODES.OFF'
       begin
         OMF::Services.cmc.alloffsoft(:domain => OConfig.domain)
       rescue Exception => ex
@@ -142,6 +148,7 @@ module CMC
     if NodeHandler.JUST_PRINT
       puts "CMC: Reset node #{name}"
     else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODE.RESET', name
       begin
         OMF::Services.cmc.reset(:domain => OConfig.domain, :hrn => name)
       rescue Exception => ex

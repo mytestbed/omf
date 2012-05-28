@@ -59,7 +59,9 @@ require 'omf-expctl/cmc'
 require 'omf-expctl/antenna'
 require 'omf-expctl/topology'
 require 'omf-expctl/event'
+require 'omf-expctl/oml/performance_monitor'
 require 'omf-expctl/communicator/pub_outputter'
+require 'omf-expctl/oml/oml_outputter'
 require 'omf-common/servicecall'
 
 Project = nil
@@ -561,6 +563,11 @@ class NodeHandler < MObject
     # Setup the slice of this EC
     Experiment.sliceID = OConfig[:ec_config][:slice] if !Experiment.sliceID 
     raise "No slice ID from command line or config file!" if !Experiment.sliceID 
+
+    # Start performace monitor
+    OMF::EC::OML::PerformanceMonitor.start()
+    OMF::EC::OML::PerformanceMonitor.report_status 'EXP.STARTED'
+
     # Start the Logger for this EC and output some info
     startLogger()
     Experiment.sliceID==OConfig[:ec_config][:slice] ? s = "(default)" : s = nil 

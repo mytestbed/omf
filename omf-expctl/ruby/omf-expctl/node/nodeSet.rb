@@ -464,7 +464,9 @@ class NodeSet < MObject
     send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
                                                 :address => mcAddress,
                                                 :port => mcPort,
-                                                :disk => disks[0]))
+                                                :disk => disks[0],
+                                                :oml_url => OConfig[:ec_config][:omluri]
+                                               ))
   end
 
   #
