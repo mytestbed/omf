@@ -26,6 +26,10 @@ module OMF::Web
       end
     end
     
+    def self.[](name)
+      OMF::Web::SessionStore[name.to_sym, :dsp]
+    end
+    
     # Return proxies for 'ds_name'. Note, there can be more then
     # one proxy be needed for a datasource, such as a network which
     # has one ds for the nodes and one for the links

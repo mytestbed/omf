@@ -22,7 +22,7 @@ module OMF::Web::Rack
         Thread.current["sessionID"] = sid
         
         ds_id = req.path_info[1 .. -1].to_sym
-        ds_proxy = OMF::Web::SessionStore[ds_id]
+        ds_proxy = OMF::Web::DataSourceProxy[ds_id]
         unless ds_proxy
           raise MissingArgumentException.new "Can't find data source proxy '#{ds_id}'"
         end
