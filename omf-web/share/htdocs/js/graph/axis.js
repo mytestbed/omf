@@ -15,7 +15,7 @@ L.provide('OML.axis', ["graph.css", "/resource/vendor/d3/d3.js"], function () {
         // type: 'date',
         // format: '%I:%M', // hour:minutes
         // format: ",.0f" // integers with comma-grouping for thousands.
-        //transition: 1000  // smoothly transition the ticks when they change
+        transition: 500  // smoothly transition the ticks when they change
       }      
     };
 

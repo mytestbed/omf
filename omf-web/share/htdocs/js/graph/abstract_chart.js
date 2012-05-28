@@ -231,7 +231,18 @@ L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget"
     
     
     on_highlighted: function(evt) {},
-    on_dehighlighted: function(evt) {}
+    on_dehighlighted: function(evt) {},
+    
+    
+    // Return an array with the 'min' and 'max' value returned by running 'f' over 'data'
+    // However, any 'min' and 'max' values in 'opts' take precedence.
+    //
+    extent: function(data, f, opts) {
+      var o = opts || {};
+      var max = o.max != undefined ? o.max : d3.max(data, f);
+      var min = o.min != undefined ? o.min : d3.min(data, f);
+      return [min, max];
+    }
     
   });
 })

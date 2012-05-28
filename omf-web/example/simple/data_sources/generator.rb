@@ -6,8 +6,8 @@ require 'omf-oml/table'
 # devices.
 #
 
-schema = [[:t, :float], [:device, :string], [:amplitude, :float]]
-table = OMF::OML::OmlTable.new 'generator', schema, :max_size => 60
+schema = [[:t, :float], [:device, :string], [:amplitude, :float], [:x, :float], [:y, :float]]
+table = OMF::OML::OmlTable.new 'generator', schema, :max_size => 20
 
 require 'omf_web'
 OMF::Web.register_datasource table
@@ -18,6 +18,7 @@ samples = 30
 ctxt = {
   :timeOffset => Time.now.to_i,
   :timeScale => 300, # Measure every 10 minutes
+  :radius => 10,
   :fluctuation => 0.1, # max disturbance of sample
   :rad => 2 * Math::PI / samples
 }
@@ -25,8 +26,14 @@ ctxt = {
 
 def measure(i, table, ctxt) 
   t = ctxt[:timeOffset] + ctxt[:timeScale] * i
-  table.add_row [t, 'Sin', Math.sin(i * ctxt[:rad]) + rand() * ctxt[:fluctuation]]
-  table.add_row [t, 'Cos', Math.cos(i * ctxt[:rad]) + rand() * ctxt[:fluctuation]]
+  angle = i * ctxt[:rad]
+  measure_device('Dev1', t, angle, table, ctxt)
+  measure_device('Dev2', t, angle + 0.2 * (rand() - 0.5), table, ctxt)  
+end
+
+def measure_device(name, t, angle, table, ctxt)
+  r = ctxt[:radius] * (1 + (rand() - 0.5) * ctxt[:fluctuation])
+  table.add_row [t, name, r, r * Math.sin(angle), r * Math.cos(angle)]
 end
 
 samples.times {|i| measure(i, table, ctxt) }

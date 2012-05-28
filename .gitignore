@@ -21,3 +21,4 @@ configure-stamp
 *.orig
 */debian/files
 .yardoc/
+omf-web/example/incoming
