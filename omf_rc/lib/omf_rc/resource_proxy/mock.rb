@@ -10,7 +10,7 @@ module OmfRc::ResourceProxy::Mock
   end
 
   register_hook :before_release do |resource|
-    logger.info "#{resource.uid} is now released"
+    logger.info "#{resource.uid} is to be released"
   end
 end
 

@@ -10,4 +10,8 @@ module OmfRc::ResourceProxy::Node
   register_hook :before_release do |resource|
     logger.info "#{resource.uid} is now released"
   end
+
+  register_request :proxies do
+    OmfRc::ResourceFactory.proxy_list
+  end
 end

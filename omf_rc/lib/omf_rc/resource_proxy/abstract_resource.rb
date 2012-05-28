@@ -124,7 +124,7 @@ class OmfRc::ResourceProxy::AbstractResource
   end
 
   # Make hrn configurable through pubsub interface
-  def confgure_hrn(hrn)
+  def configure_hrn(hrn)
     @hrn = hrn
   end
 
@@ -210,6 +210,12 @@ class OmfRc::ResourceProxy::AbstractResource
           create_opts = opts.dup
           create_opts.uid = nil
           result = obj.create(message.read_property(:type), create_opts)
+          message.read_element("//property").each do |p|
+            unless p.attr('key') == 'type'
+              method_name =  "configure_#{p.attr('key')}"
+              result.send(method_name, p.content) if result.respond_to? method_name
+            end
+          end
           { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
         when :request
           result = Hashie::Mash.new.tap do |mash|
