@@ -1,28 +1,24 @@
 require 'hashie'
 module OmfRc::Util::Iw
+  include OmfRc::ResourceProxyDSL
 
   IW_CMD = "iw"
 
-  def configure_property(property, value)
-    known_properties = OmfRc::Cmd.exec("#{IW_CMD} -h").chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq
-
-    if known_properties.include?(property.to_s)
-      OmfRc::Cmd.exec("#{IW_CMD} #{uid} set #{property.to_s} #{value}")
-    else
-      super
+  OmfCommon::Command.execute("#{IW_CMD} help").chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
+    register_configure p do |resource, value|
+      OmfCommon::Command.execute("#{IW_CMD} #{resource.hrn} set #{p} #{value}")
     end
   end
 
-  def request_property(property)
+  register_request :link do |resource|
     known_properties = Hashie::Mash.new
 
-    OmfRc::Cmd.exec("#{IW_CMD} #{uid} link").chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
+    OmfCommon::Command.execute("#{IW_CMD} #{resource.hrn} link").chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
       v.match(/^(.+):\W*(.+)$/).tap do |m|
         m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
       end
     end
 
-    known_properties.send(property) || super
+    known_properties
   end
 end
-

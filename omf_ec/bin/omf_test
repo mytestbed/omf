@@ -7,7 +7,6 @@ $stdout.sync = true
 options = {
   dsl: 'xmpp_blather',
   pubsub_host: 'pubsub',
-  node: 'interlagos'
 }
 
 executable_name = File.basename($PROGRAM_NAME)
@@ -25,6 +24,10 @@ option_parser = OptionParser.new do |opts|
 
   opts.on("-s SERVER", "XMPP server") do |server|
     options[:server] = server
+  end
+
+  opts.on("-n NODE", "PubSub node to subscribe") do |node|
+    options[:uid] = node
   end
 
   opts.on("-d", "--debug", "Debug mode") do
@@ -55,7 +58,10 @@ host = nil
 # Create a resource of type mock
 create_msg = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
 
-create_wifi_msg = OmfCommon::Message.create { |v| v.property('type', 'wifi') }.sign
+create_wifi_msg = OmfCommon::Message.create do |v|
+  v.property('hrn', 'wlan0')
+  v.property('type', 'wifi')
+end.sign
 
 # A request message to be sent to mock
 request_mock_property = OmfCommon::Message.request do |v|
