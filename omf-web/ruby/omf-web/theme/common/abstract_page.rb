@@ -15,7 +15,20 @@ module OMF::Web::Theme
     depends_on :script, %{
       L.baseURL = "/resource";
       OML = {
-        data_sources: {}
+        data_sources: {},
+        widgets: {},
+        
+        show_widget: function(prefix, index, widget_id) {
+          $('.' + prefix).hide();
+          $('#' + prefix + '_' + index).show();
+          
+          var current = $('#' + prefix + '_l_' + index);
+          current.addClass('current');
+          current.siblings().removeClass('current');
+           
+          //s.trigger('activate');
+          OML.widgets[widget_id].resize().update();
+        }
       };
         
       var OHUB = {};

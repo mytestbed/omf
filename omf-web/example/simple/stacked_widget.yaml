@@ -1,0 +1,13 @@
+
+# Defines a widget which contains a stack of other widgets with one
+# shown and a menu to selct the shown one
+#
+widget:
+  id: stacked
+  type: stacked
+  name: Generator
+  wopts:
+    widgets: 
+      - line_chart
+      - scatter_plot
+      - generator_table

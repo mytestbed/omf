@@ -98,9 +98,15 @@ module OMF::Web::Theme
 
     def render_widget_header(widget)
       div :class => :widget_header do
-        span widget.name, :class => :widget_title 
+        span widget.name, :class => :widget_title
+        if tools_menu = widget.tools_menu
+          span :style => 'float:right' do 
+            rawtext tools_menu
+          end
+        end
       end
     end
+
 
     def render_widget_body(widget_inst)
       id = "b#{widget_inst.widget_id}"

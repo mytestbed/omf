@@ -12,7 +12,7 @@ L.provide('OML.scatter_plot', ["graph/abstract_chart", "#OML.abstract_chart", "g
     
     defaults: function() {
       return this.deep_defaults({
-        relative: false,   // If true, report percentage
+        transition: 400, // Time in msec for transition when elements change
         axis: {
           orientation: 'horizontal'
         }
@@ -31,7 +31,12 @@ L.provide('OML.scatter_plot', ["graph/abstract_chart", "#OML.abstract_chart", "g
       this.chart_layer = base.append("svg:g");
       this.axis_layer = base.append('g');
     },
-    
+
+    resize: function() {
+      OML.scatter_plot.__super__.resize.call(this);
+      return this;
+    },   
+
     redraw: function(data) {
       var self = this;
       var o = this.opts;
@@ -56,6 +61,15 @@ L.provide('OML.scatter_plot', ["graph/abstract_chart", "#OML.abstract_chart", "g
       var x = function(d) { return x_f(x_m(d)) + ca.x - r_f(d); };
       var y = function(d) { return ca.ty + ca.h - y_f(y_m(d)) - r_f(d); };
       var rects = this.chart_layer.selectAll("rect").data(data);
+      rects.transition().duration(o.transition)
+        .attr("x", x)
+        .attr("y", y)
+        .attr("width", w_f)
+        .attr("height", w_f)
+        .attr("stroke-width", m.stroke_width)
+        .attr("stroke", m.stroke_color)
+        .attr("fill", m.fill_color)
+        ;
       rects.enter().append("rect")
         .attr("x", x)
         .attr("y", y)
@@ -65,21 +79,11 @@ L.provide('OML.scatter_plot', ["graph/abstract_chart", "#OML.abstract_chart", "g
         .attr("stroke", m.stroke_color)
         .attr("fill", m.fill_color)
         ;
-      rects.transition().duration(1000)
-        .attr("x", x)
-        .attr("y", y)
-        .attr("width", w_f)
-        .attr("height", w_f)
-        .attr("stroke-width", m.stroke_width)
-        .attr("stroke", m.stroke_color)
-        .attr("fill", m.fill_color)
-        ;
-
       rects.exit()
         .remove()
         ;
           
-       this.redraw_axis(data, x_f, y_f);
+      this.redraw_axis(data, x_f, y_f);
     },
     
     redraw_axis: function(data, x, y) {

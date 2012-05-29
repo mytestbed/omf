@@ -19,26 +19,26 @@ nw.create_link :l21, :n2, :n1, :load => 0.9
 require 'omf_web'
 OMF::Web.register_datasource nw
 
-opts = {
-  #:data_sources => table,
-  #:viz_type => 'line_chart',
-  :wtype => 'graph',
-  :wopts => {
-    :viz_type => 'network2',
-    :data_sources => nw.to_tables,
-    :mapping => {
-      :nodes => {
-        :x => {:property => :x},
-        :y => {:property => :y},
-        :radius => {:property => :capacity, :scale => 20, :min => 4},
-        :fill_color => {:property => :capacity, :color => :green_yellow80_red}
-      },
-      :links => {
-        :stroke_width => {:property => :load, :scale => 20},
-        :stroke_color => {:property => :load, :color => :green_yellow80_red}
-      }
-    }
-  }
-}
-OMF::Web::Widget::Graph.addGraph('Network', opts) 
-#OMF::Web::Widget.register('Amplitude', opts) 
+# opts = {
+  # #:data_sources => table,
+  # #:viz_type => 'line_chart',
+  # :wtype => 'graph',
+  # :wopts => {
+    # :viz_type => 'network2',
+    # :data_sources => nw.to_tables,
+    # :mapping => {
+      # :nodes => {
+        # :x => {:property => :x},
+        # :y => {:property => :y},
+        # :radius => {:property => :capacity, :scale => 20, :min => 4},
+        # :fill_color => {:property => :capacity, :color => :green_yellow80_red}
+      # },
+      # :links => {
+        # :stroke_width => {:property => :load, :scale => 20},
+        # :stroke_color => {:property => :load, :color => :green_yellow80_red}
+      # }
+    # }
+  # }
+# }
+# OMF::Web::Widget::Graph.addGraph('Network', opts) 
+# #OMF::Web::Widget.register('Amplitude', opts) 

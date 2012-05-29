@@ -32,6 +32,7 @@ widget:
     # axis:
       # x:
       # y:
+    transition: 950
 
 
       

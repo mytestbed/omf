@@ -49,10 +49,39 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
       // this.init_data_source();
       // this.process_schema();
 // 
+  
+      //o.offset = _.defaults(opts.offset || {}, this.defaults.offset);
+      this.init_data_source();
+      this.process_schema();
+      this.resize();
+  
+    },
+    
+    update: function() {
+      var data;
+      if ((data = this.data_source.events) == null) {
+        throw "Missing events array in data source"
+      }
+      if (data.length == 0) return;
+      
+      this.redraw(data);
+    },
+    
+    resize: function() {
+      var o = this.opts;
       var w = o.width;
       if (w <= 1.0) {
         // check width of enclosing div (base_el)
-        w = w * this.base_el[0][0].clientWidth;
+        var bel = $(o.base_el).parents(".widget_body");
+        var el = bel[0];
+        bel.resize(function(_) {  // doesn't seem to work
+          var i = 0;
+          i + 1;
+          alert(i);
+        });
+        var elw = bel.width();
+        w = w * elw;
+        //w = w * this.base_el[0][0].clientWidth;
         if (isNaN(w)) w = 800; 
       }
       this.w = w;
@@ -71,26 +100,12 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
         y: m.bottom, 
         ty: m.top, 
         w: w - m.left - m.right, 
-        h: h - m.top - m.bottom
+        h: h - m.top - m.bottom,
+        ow: w,  // outer dimensions
+        oh: h
       };
-  
-      //o.offset = _.defaults(opts.offset || {}, this.defaults.offset);
-
-      this.init_data_source();
-      this.process_schema();
-  
+      return this;
     },
-    
-    update: function() {
-      var data;
-      if ((data = this.data_source.events) == null) {
-        throw "Missing events array in data source"
-      }
-      if (data.length == 0) return;
-      
-      this.redraw(data);
-    },
-    
     
     
     // Find the appropriate data source and bind to it

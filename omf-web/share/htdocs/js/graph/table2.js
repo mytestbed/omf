@@ -43,18 +43,42 @@ L.provide('OML.table2', ["graph/abstract_widget", "#OML.abstract_widget", [
 
     initialize: function(opts) {
       OML.table2.__super__.initialize.call(this, opts);
-      var ca = this.widget_area;
-      this.base_el
-        .style('height', ca.h + 'px')
-        .style('width', ca.w + 'px')        
-        .style('margin-left', ca.x + 'px')        
-        .style('margin-top', ca.ty + 'px')        
-        ;
+      // var ca = this.widget_area;
+      // this.base_el
+        // .style('height', ca.h + 'px')
+        // .style('width', ca.w + 'px')        
+        // .style('margin-left', ca.x + 'px')        
+        // .style('margin-top', ca.ty + 'px')        
+        // ;
+      $(opts.base_el).focus(function(e) {
+        // all your magic resize mojo goes here
+        var i = 0;
+      });
       this.init_grid();
       this.update();
     },
     
+    resize: function() {
+      OML.table2.__super__.resize.call(this);
+      var ca = this.widget_area;
+      this.base_el
+        .style('height', ca.oh + 'px')
+        .style('width', ca.w + 'px')        
+        .style('margin-left', ca.x + 'px')
+        .style('margin-right', ca.ow - ca.w - ca.x + 'px') 
+        .style('margin-top', ca.ty + 'px')        
+        ;
+      if (this.grid) {
+        this.grid.resizeCanvas();
+        //this.grid.setColumns(this.columns);
+      }
+        
+      return this;
+    },   
+    
     redraw: function(data) {
+      //this.resize();
+      
       this.data = data;  
       var self = this;
       // Should sort first
@@ -122,6 +146,7 @@ L.provide('OML.table2', ["graph/abstract_widget", "#OML.abstract_widget", [
 
       this.is_ascending = true;
       this.sort_on_column = null;
+      this.columns = columns;
       var grid = this.grid = new Slick.Grid(this.opts.base_el, {getLength: getLength, getItem: getItem}, columns, topts);
       grid.onSort.subscribe(function (e, args) {
         self.sort_on_column = args.sortCol;

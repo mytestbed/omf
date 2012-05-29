@@ -49,7 +49,7 @@ module OMF::Web
       if ds.is_a? Hash
         n_name = "#{ds_name}_nodes".to_sym
         l_name = "#{ds_name}_links".to_sym
-        if (nodes = OMF::Web::SessionStore[n_name])
+        if (nodes = OMF::Web::SessionStore[n_name, :dsp])
           # assume links exist as well
           links = OMF::Web::SessionStore[l_name, :dsp]                
         else

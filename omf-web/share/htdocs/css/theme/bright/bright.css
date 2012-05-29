@@ -164,6 +164,100 @@ html, body { height: 100%; }
   zoom: 1;
 }
 
+/*
+ * Widget Tools Menu
+ */
+ol.widget_tools_menu {
+  display: block;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+/*  height: 29px;
+  padding-left: 50px;*/
+}
+
+ol.widget_tools_menu li {
+  display: inline-block;
+  list-style: none;
+/*  margin-right: 15px;*/
+}
+
+ol.widget_tools_menu a {
+  text-decoration: none;
+}
+
+ol.widget_tools_menu .widget_tools_menu {
+/*  color: #ccc;
+  font-size: 16px;  */
+  text-decoration: none;
+/*  line-height: 25px;  */
+  display: block;
+}
+
+/*ol.widget_tools_menu a {
+  display: inline-block;
+  width: 30;
+  background: url(/resource/image/spinner.gif) 0px 0px no-repeat;
+
+}*/
+
+ol.widget_tools_menu a {
+  display: inline-block;
+  padding: 22px 0 0 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  height: 0px !important;
+  height /**/:22px;
+      
+  width: 22px;
+  border: 1px solid transparent;  /* make room for the 'selected' border */
+  background-color: silver   
+}
+
+ol.widget_tools_menu a:hover {
+  border: 1px solid silver;  
+  background-color: silver; 
+}
+
+ol.widget_tools_menu li.current a {
+  border-bottom: 1px solid #F47030;       
+  border: 1px solid #F47030;  
+}
+
+ol.widget_tools_menu li.line_chart2 a {
+  background: url(/resource/image/graph/line_chart.png) 0px -50px no-repeat;  
+}
+
+ol.widget_tools_menu li.scatter_plot a {
+  background: url(/resource/image/graph/scatter_plot.png) 0px 0px no-repeat;  
+}
+
+ol.widget_tools_menu li.table2 a {
+  background: url(/resource/image/graph/table.png) 0px -50px no-repeat;  
+}
+
+ol.widget_tools_menu li.info a {
+  background: url(/resource/image/graph/info.png) 3px 3px no-repeat;
+  margin-left: 10px  
+}
+
+
+
+
+#nav-products { background-image: url("/images/nav/products.gif"); width: 75px; }
+#nav-blog { background-image: url("/images/nav/blog.gif"); width: 50px; }
+
+ol.widget_tools_menu a:active .widget_tools_menu {
+  color: #00E;
+}
+
+ol.widget_tools_menu li.current .widget_tools_menu {
+/*  color: white;  
+  border-bottom: 4px solid #F47030;*/
+  font-weight: bold;
+}
+
+
 /* Create a bit of space between widgets when in column mode */
 div.column .widget_container {
   margin-bottom: 20px;

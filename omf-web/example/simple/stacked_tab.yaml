@@ -1,0 +1,13 @@
+
+
+# Define a 'dashboard' consisting of two columns of widgets
+#
+
+tab:
+  id: stacked
+  type: two_column
+  name: Stacked
+  topts:
+    layout: layout_33_66
+    left:  []
+    right: [stacked]

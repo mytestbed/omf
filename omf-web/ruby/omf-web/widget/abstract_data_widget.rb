@@ -8,7 +8,7 @@ module OMF::Web::Widget
   class AbstractDataWidget < AbstractWidget
     #depends_on :css, "/resource/css/graph.css"
 
-    attr_reader :name, :opts
+    attr_reader :name, :base_id, :opts
 
 
     # opts
@@ -32,7 +32,7 @@ module OMF::Web::Widget
       unless @data_sources.kind_of? Hash
         @data_sources = {:default => @data_sources}
       end
-      @js_class = opts[:js_class]
+      @js_class = @widget_type = opts[:js_class]
       @js_url = opts[:js_url]
 
       @base_id = "w#{object_id.abs}"
@@ -86,7 +86,7 @@ module OMF::Web::Widget
       div :id => @base_id, :class => "#{@js_class.gsub('.', '_').downcase}" do
         javascript(%{
           L.require('\##@js_class', '#@js_url', function() {
-            var #{@js_var_name} = new #{@js_class}(#{@wopts.to_json});
+            OML.widgets.#{@base_id} = new #{@js_class}(#{@wopts.to_json});
           });
         })
       end

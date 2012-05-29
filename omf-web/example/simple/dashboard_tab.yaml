@@ -9,5 +9,5 @@ tab:
   name: Dashboard
   topts:
     layout: layout_50_50
-    left:  [line_chart, mobile_network]
+    left:  [line_chart, [scatter_plot, generator_table]]
     right: [walk, pie]

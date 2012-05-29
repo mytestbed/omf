@@ -22,6 +22,10 @@ module OMF::Web::Widget
     end
     
     def self.create_widget(name)
+      if name.is_a? Array
+        require 'omf-web/widget/stacked_widget'
+        return OMF::Web::Widget::StackedWidget.new(name)        
+      end
       unless wdescr = @@widgets[name.to_sym]
         raise "Can't create unknown widget '#{name}':(#{@@widgets.keys.inspect})"
       end
@@ -29,19 +33,31 @@ module OMF::Web::Widget
       when :data
         require 'omf-web/widget/graph/graph_widget'
         OMF::Web::Widget::Graph::GraphWidget.new(wdescr)
+      when :stacked
+        require 'omf-web/widget/stacked_widget'
+        return OMF::Web::Widget::StackedWidget.new(wdescr)        
       else
         raise "Unknown widget type '#{type}'"
       end
     end
     
-    attr_reader :widget_id, :name, :opts
+    attr_reader :widget_id, :widget_type, :name, :opts
     
     def initialize(opts = {})
       @opts = opts
       @widget_id = "w#{object_id}"
       @name = opts[:name] || 'Unknown: Set opts[:name]'
+      @widget_type = opts[:type] || 'unknown'
       OMF::Web::SessionStore[@widget_id, :w] = self
     end
+
+    # Return html for an optional widget tools menu to be added
+    # to the widget decoration by the theme.
+    # 
+    def tools_menu()
+      # Nothing
+    end
+    
         
   end # class
 end # OMF::Web::Widget
