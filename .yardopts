@@ -1,3 +1,4 @@
 --title OMF
+--private
 omf_*/lib/**/*.rb
 -
