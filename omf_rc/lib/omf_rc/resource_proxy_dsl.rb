@@ -1,3 +1,5 @@
+# DSL contains some helper methods to ease the process defining resource proxies
+#
 module OmfRc::ResourceProxyDSL
   PROXY_DIR = "omf_rc/resource_proxy"
   UTIL_DIR = "omf_rc/util"
@@ -160,5 +162,4 @@ module OmfRc::ResourceProxyDSL
       end
     end
   end
-
 end

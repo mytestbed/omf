@@ -1,3 +1,5 @@
+# To be used for handling long running processes
+#
 class OmfRc::DeferredProcess
   include EM::Deferrable
 

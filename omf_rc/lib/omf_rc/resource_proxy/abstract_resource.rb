@@ -5,7 +5,9 @@ require 'securerandom'
 require 'hashie'
 
 class OmfRc::ResourceProxy::AbstractResource
+  # Time to wait before shutting down event loop, wait for deleting pubsub nodes
   DISCONNECT_WAIT = 5
+  # Time to wait before releasing resource, wait for deleting pubsub nodes
   RELEASE_WAIT = 5
   attr_accessor :uid, :hrn, :type, :comm
   attr_reader :opts, :children, :host

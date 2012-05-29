@@ -38,6 +38,8 @@ module OmfCommon
       end
     end
 
+    # Construct a property node
+    #
     def property(key, value = nil, &block)
       key_node = Message.new('property')
       key_node.write_attr('key', key)
@@ -58,6 +60,8 @@ module OmfCommon
       self
     end
 
+    # Validate against relaxng schema
+    #
     def valid?
       validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(document)
       if validation.empty?
@@ -68,6 +72,8 @@ module OmfCommon
       end
     end
 
+    # Short cut for adding xml node
+    #
     def element(key, value)
       key_node = Niceogiri::XML::Node.new(key)
       key_node.content = value
@@ -80,6 +86,7 @@ module OmfCommon
       element_name.to_sym
     end
 
+    # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
       xpath(xpath_without_ns.gsub(/(\/+)(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
     end

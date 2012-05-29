@@ -4,16 +4,26 @@ require 'hashie'
 require 'omf_rc/resource_proxy_dsl'
 require 'omf_rc/resource_proxy/abstract_resource'
 
+# Factory class for managing available proxies and creating new resource proxy instances
+#
 class OmfRc::ResourceFactory
+  # List of registered resource proxies
   @@proxy_list = []
+  # List of registered utilities
   @@utility_list = []
 
+  # By default, we use xmpp_blather dsl, which based on blather
   DEFAULT_OPTS = {
     dsl: 'xmpp_blather',
     pubsub_host: 'pubsub'
   }
 
   class << self
+    # Factory method to initiate new resource proxy
+    #
+    # @param (see OmfRc::ResourceProxy::AbstractResource#initialize)
+    #
+    # @see OmfRc::ResourceProxy::AbstractResource
     def new(type, opts = nil, comm = nil, &block)
       raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       type = type.to_s
@@ -27,22 +37,28 @@ class OmfRc::ResourceFactory
       resource
     end
 
+    # Return the proxy list
     def proxy_list
       @@proxy_list
     end
 
+    # Add a proxy to the list
     def register_proxy(proxy)
       @@proxy_list << proxy
     end
 
+    # Return the utility list
     def utility_list
       @@utility_list
     end
 
+    # Add a utility to the list
     def register_utility(utility)
       @@utility_list << utility
     end
 
+    # Require files from default resource proxy library folder
+    #
     def load_default_resource_proxies
       Dir["#{File.dirname(__FILE__)}/resource_proxy/*.rb"].each do |file|
         require "omf_rc/resource_proxy/#{File.basename(file).gsub(/\.rb/, '')}"
