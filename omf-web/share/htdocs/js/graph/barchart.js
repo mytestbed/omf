@@ -56,16 +56,14 @@ L.provide('OML.barchart', ["graph/abstract_chart", "#OML.abstract_chart", "graph
         var key = key_f(s);
         var value = value_f(s);
         sum = sum + value;
-        h[key] = value + (h[key] || 0);
+        if (!h[key]) h[key] = [key, 0]; // need to maintain proper key type
+        h[key][1] = value + h[key][1];
       })
-      var keys = _.keys(h).sort();
-      var bdata;
+      var bdata = _.sortBy(h, function(e){ return e[0]; });
       if (o.relative) {
         var frac = 1.0 / sum;
-        bdata = _.map(keys, function(k) { return [k, frac * h[k]]; });
-      } else {
-        bdata = _.map(keys, function(k) { return [k, h[k]]; });
-      }
+        bdata = _.map(bdata, function(e) { e[1] = frac * e[1]; return e; });
+      } 
       
       var x = d3.scale.ordinal()
           .domain(bdata.map(function(d) { 
@@ -91,14 +89,15 @@ L.provide('OML.barchart', ["graph/abstract_chart", "#OML.abstract_chart", "graph
           .attr("fill", m.fill_color)
           ;
           
-       this.redraw_axis(bdata, keys, x, y);
+       this.redraw_axis(bdata, x, y);
     },
     
-    redraw_axis: function(bdata, ticks, x, y) {
+    redraw_axis: function(bdata, x, y) {
       var self = this;
       var ca = this.widget_area;
       var m = this.mapping;
       var oAxis = this.opts.axis || {};
+      var ticks = _.map(bdata, function(e) {return e[0];});
       
       // Create an X axis with ticks at the boundaries of the bar charts
       //
