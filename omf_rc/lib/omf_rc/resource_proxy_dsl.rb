@@ -8,6 +8,8 @@ module OmfRc::ResourceProxyDSL
     base.extend(ClassMethods)
   end
 
+  # Methods defined here will be available in resource/utility definition files
+  #
   module ClassMethods
     # Register a named proxy entry with factory class, normally this should be done in the proxy module
     #
@@ -131,6 +133,9 @@ module OmfRc::ResourceProxyDSL
     #       end
     #     end
     #   end
+    #
+    # @see OmfCommon::Command.execute
+    #
     def register_configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
       register_block.call(self, *args, block) if register_block

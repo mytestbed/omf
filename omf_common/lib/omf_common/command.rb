@@ -5,7 +5,7 @@ module OmfCommon::Command
   #
   # @example
   #
-  #   OmfRc::Command.execute("uname -a")
+  #   OmfCommon::Command.execute("uname -a")
   def self.execute(*cmd, &block)
     result = nil
     begin

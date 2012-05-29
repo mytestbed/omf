@@ -1,31 +1,89 @@
-# Resource Proxy
+# Extend resource proxy
+
+## Where to put the files
+
+The default location of resource proxy definition files are located in the directory [omf\_rc/lib/omf\_rc/resource_proxy](https://github.com/mytestbed/omf/tree/master/omf_rc/lib/omf_rc/resource_proxy).
+
+Therefore if you would like to implement new resource proxy, for example, for audio device, called audio, simple create a file named audio.rb, and define a module named OmfRc::ResourceProxy::Audio
+
+    module OmfRc::ResourceProxy::Audio
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :audio
+    end
+
+## DSL
+
+In the previous example, we use a method register_proxy to register audio resource proxy. It is provided by included module resource_proxy_dsl.
+
+The full list of resource proxy DSL can be found here: [DSL API](../../OmfRc/ResourceProxyDSL/ClassMethods)
+
+## Resource life-cycle and messaging protocol
+
+Please refer to the new architectural design documentation for some background details. [Architectural design](http://omf.mytestbed.net/projects/omf/wiki/Architectural_Foundation)
 
 ## Abstract class
 
-The abstract class OmfRc::ResourceProxy::Abstract is capturing all the logics regarding resource hierarchy, validation, statemachine and methods to create, configure, and destroy resources.
+The abstract class OmfRc::ResourceProxy::Abstract is capturing all the logics regarding resource hierarchy, communications to pubsub system and methods to create, configure, request and release resources. Please note that the actual functionality of the resources are defined in proxy modules.
 
-A important attribute of resource proxy is 'type', when a new resource instance created, it will extend the object with a pre-defined module with the same name.
+[OmfRc::ResourceProxy::AbstractResource](../../OmfRc/ResourceProxy/AbstractResource)
+
+## Resource proxy utility
+
+To avoid overloading these modules, we can refactor some of the common features into utility modules. These modules basically provide a mapping between properties and underline system application. Take the example of iw utility module implementation here: *(Refer to DSL section for syntax details)*
+
+    require 'hashie'
+
+    module OmfRc::Util::Iw
+      include OmfRc::ResourceProxyDSL
+
+      OmfCommon::Command.execute("iw help").chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
+        register_configure p do |resource, value|
+          OmfCommon::Command.execute("#{IW_CMD} #{resource.hrn} set #{p} #{value}")
+        end
+      end
+
+      register_request :link do |resource|
+        known_properties = Hashie::Mash.new
+
+        OmfCommon::Command.execute("iw #{resource.hrn} link").chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
+          v.match(/^(.+):\W*(.+)$/).tap do |m|
+            m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
+          end
+        end
+
+        known_properties
+      end
+    end
+
+Take the example of the new generic wifi proxy module, we want to configure some wireless related properties (iw), and to load certain drivers/modules (mod). Since we already have these utility modules defined, all we need to do is to simply include these in the wifi module.
+
+
+    module OmfRc::ResourceProxy::Wifi
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :wifi
+
+      utility :mod
+      utility :iw
+    end
 
 ## Resource Proxy module
 
-Since we treat everything as a resource, a resource proxy module defines what functionality the resource can provide, i.e. what it does, instead of what it is.
+A resource proxy module defines what functionality the resource could provide, for example, a resource proxy represents a physical machine can provide property of kernel version, cpu information etc.
 
-Each module should define two methods:
+As explained in the previous section, a proxy module might just simply include some utility modules, or it could register properties specifically to this resource proxy, or even define additional methods (_not recommended though_), the methods defined here will be available to the resource instance as well.
 
-* configure_property(property, value)
-* request_property(property)
+## Factory class
 
-## Resource Proxy Utility
+We can then use resource factory method to create a resource instance.
 
-To avoid overloading these modules, we can refactor some of the common features into utility modules. These modules basically provide a mapping between properties and underline system application. E.g. resource.request_property(:driver_bob) will be parsed to is drive/module bob loaded by executing lsmod command.
+    OmfRc::ResourceFactory.new(:wifi)
 
-Take the example of the new generic wifi proxy module, we want to configure certain interface properties (ifconfig), some wireless related properties (iw), and to load certain drivers/modules (mod). Since we already have these utility modules defined, all we need to do is to simply include these in the wifi module.
+This does following behind the scene
 
-## What about ResourceProxyFactory
+* Extend the instance with resource module named 'wifi' (_should be defined already_).
+* If additional options provided for pubsub communicator, a communicator instance will be created and attached to this resource instance.
+* If before_ready hook provided in the module, they will be executed.
 
-We do not need a factory class per se, we can always start with a root resource (probably virtual) by create a resource with type 'abstract'. Then create new resources by giving a proper type.
-
-## Is 'type' enough to differentiate resources?
-
-If a module definition for certain type is not meeting the requirement, but additional features have been implemented in one of the util modules, we could provide a way to specify and dynamically include additional modules, without creating a new module file.
-
+For implementation details, refer to [OmfRc::ResourceFactory](../../OmfRc/ResourceFactory)

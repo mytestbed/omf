@@ -97,13 +97,13 @@ comm.when_ready do
   host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
 
   # We assume the node where RC runs started already
-  comm.subscribe(options[:node], host) do |e|
+  comm.subscribe(options[:uid], host) do |e|
     if e.error?
       comm.disconnect(host)
     else
       # Publish the create message to RC's pubsub node
-      comm.publish(options[:node], request_node_property, host)
-      comm.publish(options[:node], create_wifi_msg, host)
+      comm.publish(options[:uid], request_node_property, host)
+      comm.publish(options[:uid], create_wifi_msg, host)
     end
   end
 end
@@ -156,6 +156,6 @@ EM.run do
   comm.connect(options[:user], options[:password], options[:server])
 
   EM.add_timer(5) do
-    comm.publish(options[:node], release_message, host)
+    comm.publish(options[:uid], release_message, host)
   end
 end

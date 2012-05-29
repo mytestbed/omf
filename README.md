@@ -18,7 +18,7 @@ OMF is a framework for controlling, instrumenting, and managing experimental pla
 
 ## Documentation
 
-[http://rubydoc.info/github/mytestbed/omf/frames](http://rubydoc.info/github/mytestbed/omf/frames)
+http://rubydoc.info/github/mytestbed/omf/frames
 
 ## Installation
 
@@ -26,21 +26,51 @@ OMF components are released as Ruby Gems.
 
 To install OMF RC, simple type:
 
-    gem install omf_rc --no-ri --no-rdoc
+    gem install omf_rc
 
 For pre-release gems, simply use --pre option:
 
-    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_rc --pre
 
 Common library omf\_common will be included automatically by RC.
 
 To only install OMF Common library:
 
-    gem install omf_common --no-ri --no-rdoc
+    gem install omf_common
+
+## Quick start
+
+Install a XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
+
+Create two users in the XMPP server, one for resource controller (omf\_rc), one for experiment controller (omf\_ec). *This step is required because of the lack of in-band registration support (XEP-0077) in the XMPP library, we will add the support in the final release.*
+
+Install omf\_rc and omf\_ec pre-release gems
+
+    gem install omf_rc --pre
+
+    gem install omf_ec --pre
+
+At this stage, for simplicity, they can be installed on the same machine.
+
+Two ruby executables should now be available in your system: omf\_rc (from omf\_rc gem) and omf\_test (from omf\_ec gem).
+
+Now start rc
+
+    omf_rc -u <rc_xmpp_user> -p <password> -s <xmpp_server_domain> -n <rc_pubsub_node>
+
+Now run ec test script, connecting to rc's pubsub node.
+
+    omf_test -u <ec_xmpp_user> -p <password> -s <xmpp_server_domain> -n <rc_pubsub_node>
+
+To examine debug information, include -d option in the previous commands.
+
+To exit, simply press ctrl + c
 
 ## Extend OMF
 
 We sincerely welcome all contributions to OMF. Simply fork our project via github, and send us pull requests whenever you are ready.
+
+### [Extend resource proxy implementation](http://rubydoc.info/github/mytestbed/omf/file/doc/RESOURCE_PROXY.md)
 
 ## Supported Ruby versions
 
@@ -50,6 +80,8 @@ We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are d
 
 ### Common
 
+Gem name: *omf\_common*
+
 Common library shared among OMF applications
 
 * PubSub communication, with default XMPP implementation, using Blather gem.
@@ -58,8 +90,22 @@ Common library shared among OMF applications
 
 ### Resource Controller
 
+Gem name: *omf\_rc*
+
 * Resource proxy API for designing resource functionalities.
 * Abstract resource provides common features required for all resources.
+
+### Experiment Controller
+
+Gem name: *omf\_ec*
+
+* For the moment, it only provides a sample script to test new messaging protocol
+
+## Tools
+
+Gem name: *omf\_tools*
+
+* Some XMPP testing scripts migrated from 5.4 release
 
 ## OMF 6 design documentation
 

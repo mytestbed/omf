@@ -2,3 +2,4 @@
 --private
 omf_*/lib/**/*.rb
 -
+doc/RESOURCE_PROXY.md
