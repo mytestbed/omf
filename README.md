@@ -101,7 +101,7 @@ Gem name: *omf\_ec*
 
 * For the moment, it only provides a sample script to test new messaging protocol
 
-## Tools
+### Tools
 
 Gem name: *omf\_tools*
 
