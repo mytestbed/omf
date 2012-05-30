@@ -1,3 +1,5 @@
+# Package management utility, could be included in application resource proxy
+#
 module OmfRc::ResourceProxy::Package
   include OmfRc::ResourceProxyDSL
 

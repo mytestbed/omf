@@ -1,23 +1,15 @@
 module OmfRc::Util::Mod
+  include OmfRc::ResourceProxyDSL
 
-  LSMOD_CMD = 'lsmod'
-  MODPROBE_CMD = 'modprobe'
+  register_utility :mod
 
-  def request_property(property)
-    case property
-    when /^(mod|driver)_(.+)$/
-      OmfRc::Cmd.exec(LSMOD).match(/^#{$+}( )+/) ? true : false
-    else
-      super
-    end
+  register_request :modules do
+    OmfCommon::Command.execute('lsmod').split("\n").map do |v|
+      v.match(/^(.+)\W*.+$/) && $1
+    end.compact
   end
 
-  def configure_property(property, value)
-    case property
-    when /^(mod|driver)_(.+)$/
-      OmfRc::Cmd.exec("#{MODPROBE} #{$+}")
-    else
-      super
-    end
+  register_configure :load_module do |resource, value|
+    OmfCommon::Command.execute("modprobe #{value}")
   end
 end
