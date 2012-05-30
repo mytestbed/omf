@@ -9,7 +9,7 @@ function onMapLoaded() {
   
   L.provide('OML.map2', ["graph/abstract_chart", "#OML.abstract_chart"], function () {  
     
-    OML['map2'] = OML.abstract_chart.extend({
+    OML.map2 = OML.abstract_chart.extend({
       //this.opts = opts;
       
       decl_properties: [
@@ -20,6 +20,18 @@ function onMapLoaded() {
         ['stroke_width', 'int', 1], 
         ['stroke_color', 'color', 'black'], 
       ],
+      
+      defaults: function() {
+        return this.deep_defaults({
+          margin: {
+            left: 0,
+            top:  0,
+            right: 0,
+            bottom: 0
+          },
+        }, OML.map2.__super__.defaults.call(this));      
+      },    
+      
       
       init_svg: function(w, h) {
       //this.init = function(opts) {

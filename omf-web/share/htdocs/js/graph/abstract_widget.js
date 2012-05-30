@@ -25,10 +25,10 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
         width: 1.0,  // <= 1.0 means set width to enclosing element
         height: 0.6,  // <= 1.0 means fraction of width
         margin: {
-          left: 100,
+          left: 20,
           top:  20,
-          right: 80,
-          bottom: 50
+          right: 20,
+          bottom: 20
         },
         offset: {
           x: 0,
@@ -54,10 +54,20 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
       this.init_data_source();
       this.process_schema();
       this.resize();
+      
+      var self = this;
+      OHUB.bind('window.resize', function(e) {
+        self.resize();
+        self.update();
+      });
   
     },
     
     update: function() {
+      if ($(this.opts.base_el).is(':hidden')) {
+        return;
+      }
+      
       var data;
       if ((data = this.data_source.events) == null) {
         throw "Missing events array in data source"
@@ -65,6 +75,7 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
       if (data.length == 0) return;
       
       this.redraw(data);
+      
     },
     
     resize: function() {
@@ -84,27 +95,29 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
         //w = w * this.base_el[0][0].clientWidth;
         if (isNaN(w)) w = 800; 
       }
-      this.w = w;
       
       var h = o.height;
       if (h <= 1.0) {
         h = h * w;
       }
-      this.h = h;
-      
-      //var m = _.defaults(opts.margin || {}, this.defaults.margin);
-      var m = o.margin;
-      this.widget_area = {
-        x: m.left, 
-        rx: w - m.left, 
-        y: m.bottom, 
-        ty: m.top, 
-        w: w - m.left - m.right, 
-        h: h - m.top - m.bottom,
-        ow: w,  // outer dimensions
-        oh: h
-      };
+      this._resize_base_el(w,h);
+
       return this;
+    },
+    
+    
+    _resize_base_el: function(w, h) {  
+      var m = this.opts.margin;
+      this.w = w - m.left - m.right; // take away the margins
+      this.h = h - m.top - m.bottom;
+      this.base_el
+        .style('height', this.h + 'px')
+        .style('width', this.w + 'px')        
+        .style('margin-left', m.left + 'px')
+        .style('margin-right', m.right + 'px') 
+        .style('margin-top', m.top + 'px')        
+        .style('margin-bottom', m.bottom + 'px')                
+        ;
     },
     
     

@@ -9,5 +9,32 @@ widget:
   wopts:
     widgets: 
       - line_chart
-      - scatter_plot
-      - generator_table
+      
+      - type: data/scatter_plot
+        wopts:
+          data_source: 
+            name: generator
+            dynamic: 1  # check once a second
+          mapping:
+            x_axis: 
+              property: x
+              min: -10.5
+              max: 10.5
+            y_axis: 
+              property: y
+              min: -10.5
+              max: 10.5
+            fill_color: 
+              property: device
+              color: category10()
+          # axis:
+            # x:
+            # y:
+          transition: 950
+
+      - type: data/table2
+        wopts:
+          data_source: 
+            name: generator
+            dynamic: 1  # check once a second
+

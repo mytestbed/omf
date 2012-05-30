@@ -11,9 +11,8 @@
 widget:
   id: line_chart
   name: Line Chart
-  type: data
+  type: data/line_chart2
   wopts:
-    viz_type: line_chart2
     data_source: 
       name: generator
       dynamic: 1  # check once a second
@@ -29,8 +28,8 @@ widget:
         ticks:
           type: date
           format: %I:%M
+          transition: 0
         legend: Time (sec)
-      
       y:
         legend: Voltage (V)
     margin: 

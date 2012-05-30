@@ -33,6 +33,10 @@ module OMF::Web::Theme
         
       var OHUB = {};
       _.extend(OHUB, Backbone.Events);
+      
+      $(window).resize(function(x) {
+        OHUB.trigger('window.resize', {});
+      });      
     }
     
     def initialize(opts)

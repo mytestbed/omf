@@ -60,14 +60,14 @@ L.provide('OML.table2', ["graph/abstract_widget", "#OML.abstract_widget", [
     
     resize: function() {
       OML.table2.__super__.resize.call(this);
-      var ca = this.widget_area;
-      this.base_el
-        .style('height', ca.oh + 'px')
-        .style('width', ca.w + 'px')        
-        .style('margin-left', ca.x + 'px')
-        .style('margin-right', ca.ow - ca.w - ca.x + 'px') 
-        .style('margin-top', ca.ty + 'px')        
-        ;
+      // var ca = this.widget_area;
+      // this.base_el
+        // .style('height', ca.oh + 'px')
+        // .style('width', ca.w + 'px')        
+        // .style('margin-left', ca.x + 'px')
+        // .style('margin-right', ca.ow - ca.w - ca.x + 'px') 
+        // .style('margin-top', ca.ty + 'px')        
+        // ;
       if (this.grid) {
         this.grid.resizeCanvas();
         //this.grid.setColumns(this.columns);

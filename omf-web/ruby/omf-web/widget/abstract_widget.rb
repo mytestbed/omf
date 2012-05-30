@@ -10,6 +10,8 @@ module OMF::Web::Widget
     @@widgets = {}
     
     def self.register_widget(wdescr)
+      wdescr = deep_symbolize_keys(wdescr)
+      puts "|||>>> #{wdescr.inspect}"
       id = (wdescr[:id] ||= "w#{wdescr.object_id}").to_sym
       if (@@widgets.key? id)
         raise "Repeated try to register widget '#{id}'"
@@ -26,14 +28,18 @@ module OMF::Web::Widget
         require 'omf-web/widget/stacked_widget'
         return OMF::Web::Widget::StackedWidget.new(name)        
       end
-      unless wdescr = @@widgets[name.to_sym]
-        raise "Can't create unknown widget '#{name}':(#{@@widgets.keys.inspect})"
+      if name.is_a? Hash
+        wdescr = name
+      else
+        unless wdescr = @@widgets[name.to_sym]
+          raise "Can't create unknown widget '#{name}':(#{@@widgets.keys.inspect})"
+        end
       end
-      case type = wdescr[:type].to_sym
-      when :data
+      case type = (wdescr[:type] || wdescr['type']).to_s
+      when /^data/
         require 'omf-web/widget/graph/graph_widget'
         OMF::Web::Widget::Graph::GraphWidget.new(wdescr)
-      when :stacked
+      when 'stacked'
         require 'omf-web/widget/stacked_widget'
         return OMF::Web::Widget::StackedWidget.new(wdescr)        
       else
@@ -58,6 +64,25 @@ module OMF::Web::Widget
       # Nothing
     end
     
+    # Taken from active_support
+    #
+    def self.deep_symbolize_keys(obj)
+      if obj.is_a? Hash
+        obj.inject({}) do |result, (key, value)|
+          if value.is_a?(Hash) || value.is_a?(Array)
+            value = deep_symbolize_keys(value) 
+          end
+          result[(key.to_sym rescue key) || key] = value
+          result
+        end
+      elsif obj.is_a? Array
+        obj.collect { |e| deep_symbolize_keys(e) }
+      else
+        obj
+      end
+    end
         
   end # class
+  
+
 end # OMF::Web::Widget

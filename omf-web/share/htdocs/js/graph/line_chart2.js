@@ -92,6 +92,9 @@ var o = OML;
         .y(function(t) { return -1 * y(y_index(t)); })
         ;
   
+      // In case the widget got resized
+      this.chart_layer.attr("transform", "translate(" + ca.x + ", " + (this.h - ca.y) + ")");
+        
       var self = this;
       var lines = this.chart_layer.selectAll(".chart")
                     .data(data, function(d, i) { return i; })
@@ -124,8 +127,10 @@ var o = OML;
       var oAxis = o.axis || {};
 
       if (this.xAxis) {
-        var xAxis = this.xAxis.scale(x);
-        this.axis_layer.select('g.x.axis').call(xAxis);
+        var xAxis = this.xAxis.scale(x).range([0, ca.w]);
+        this.axis_layer.select('g.x.axis')
+              .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
+              .call(xAxis);
       } else {
         var xAxis = this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
         this.axis_layer
@@ -138,8 +143,10 @@ var o = OML;
           
       var inv_y = y.range([ca.h, 0]);
       if (this.yAxis) {
-        var yAxis = this.yAxis.scale(inv_y);
-        this.axis_layer.select('g.y.axis').call(yAxis);
+        var yAxis = this.yAxis.scale(inv_y).range([0, ca.h]);
+        this.axis_layer.select('g.y.axis')
+                .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
+                .call(yAxis);
       } else {
         var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(inv_y).orient("left").range([0, ca.h]);
         this.axis_layer

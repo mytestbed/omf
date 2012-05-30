@@ -106,7 +106,7 @@ L.provide('OML.barchart', ["graph/abstract_chart", "#OML.abstract_chart", "graph
           .rangePoints([0, ca.w], 1.0)
           ;  
       if (this.xAxis) {
-        var xAxis = this.xAxis.scale(ax_f).tick_values(ticks);
+        var xAxis = this.xAxis.scale(ax_f).tick_values(ticks).range([0, ca.w]);
         this.axis_layer.select('g.x.axis').call(xAxis);
       } else {
         var xAxis = this.xAxis = OML.line_chart2_axis(oAxis.x).scale(ax_f).tick_values(ticks).orient("bottom").range([0, ca.w]);      
@@ -122,7 +122,7 @@ L.provide('OML.barchart', ["graph/abstract_chart", "#OML.abstract_chart", "graph
       //
       var inv_y = y.range([ca.h, 0]);
       if (this.yAxis) {
-        var yAxis = this.yAxis.scale(inv_y);
+        var yAxis = this.yAxis.scale(inv_y).range([0, ca.h]);
         this.axis_layer.select('g.y.axis').call(yAxis);
       } else {
         var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(inv_y).orient("left").range([0, ca.h]);

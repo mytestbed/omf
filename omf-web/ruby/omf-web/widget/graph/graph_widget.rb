@@ -15,8 +15,8 @@ module OMF::Web::Widget::Graph
       @name = opts[:name] || 'Unknown'
       
       wopts = opts[:wopts] || {}
-      unless vizType = wopts[:viz_type]
-        raise "Missing widget option ':viz_type' for widget '#{name}'"
+      unless vizType = (wopts[:viz_type] || opts[:type].split('/')[-1])
+        raise "Missing widget option ':viz_type' for widget '#{name}' (#{opts.inspect})"
       end
       opts[:name] = name
       opts[:js_url] = "graph/#{vizType}.js"

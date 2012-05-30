@@ -24,6 +24,18 @@ L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget"
       "category20b()":         d3.scale.category20b(),
       "category20c()":         d3.scale.category20c(),
     },
+    
+    defaults: function() {
+      return this.deep_defaults({
+        margin: {
+          left: 100,
+          top:  40,
+          right: 50,
+          bottom: 40
+        },
+      }, OML.abstract_chart.__super__.defaults.call(this));      
+    },    
+    
         
     //base_css_class: 'oml-chart',
     
@@ -71,12 +83,44 @@ L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget"
 // 
     // },
     
+      
+    _resize_base_el: function(w, h) {  
+      // Do not add margins to the base_el, but to the inside of the SVG panes
+      this.w = w;
+      this.h = h;
+      this.base_el
+        .style('height', this.h + 'px')
+        .style('width', this.w + 'px')        
+        .style('margin-left', 0 + 'px')
+        .style('margin-right', 0 + 'px') 
+        .style('margin-top', 0 + 'px')        
+        .style('margin-bottom', 0 + 'px')                
+        ;
+      
+      //var m = _.defaults(opts.margin || {}, this.defaults.margin);
+      var m = this.opts.margin;
+      var ca = this.widget_area = {
+        x: m.left, 
+        rx: w - m.left, 
+        y: m.bottom, 
+        ty: m.top, 
+        w: w - m.left - m.right, 
+        h: h - m.top - m.bottom,
+        ow: w,  // outer dimensions
+        oh: h
+      };
+      
+    },   
+    
+    
     init_svg: function(w, h) {
       var opts = this.opts;
       
       var vis = opts.svg = this.svg_base = this.base_el.append("svg:svg")
-        .attr("width", w)
-        .attr("height", h)
+        // .attr("width", w)
+        // .attr("height", h)
+        .attr("width", '100%')
+        .attr("height", '100%')
         .attr('class', this.base_css_class);
       var offset = opts.offset;
       if (offset.x) {
