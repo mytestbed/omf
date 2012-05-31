@@ -83,7 +83,7 @@ L.provide('OML.abstract_widget', ["/resource/vendor/d3/d3.js"], function () {
       var w = o.width;
       if (w <= 1.0) {
         // check width of enclosing div (base_el)
-        var bel = $(o.base_el).parents(".widget_body");
+        var bel = $(o.base_el).parents(".widget_container");
         var el = bel[0];
         bel.resize(function(_) {  // doesn't seem to work
           var i = 0;

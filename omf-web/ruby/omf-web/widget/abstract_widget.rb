@@ -50,12 +50,20 @@ module OMF::Web::Widget
     attr_reader :widget_id, :widget_type, :name, :opts
     
     def initialize(opts = {})
+      super
       @opts = opts
       @widget_id = "w#{object_id}"
       @name = opts[:name] || 'Unknown: Set opts[:name]'
       @widget_type = opts[:type] || 'unknown'
       OMF::Web::SessionStore[@widget_id, :w] = self
     end
+    
+    # Return text to provide information about this widget
+    #
+    def widget_info()
+      @opts[:info] || 'No information available'
+    end
+    
 
     # Return html for an optional widget tools menu to be added
     # to the widget decoration by the theme.

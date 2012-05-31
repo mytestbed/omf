@@ -6,6 +6,7 @@ widget:
   id: stacked
   type: stacked
   name: Generator
+  info: This widget shows the output measurements of a large generator.
   wopts:
     widgets: 
       - line_chart

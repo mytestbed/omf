@@ -123,10 +123,14 @@ html, body { height: 100%; }
 }
 
 /**** WIDGET ****/
+
+
 .widget_container {
+/*  
   border: 1px solid #BCD;
   -moz-border-radius: 10px;
   border-radius: 10px;
+  */
   padding: 10px;
 }
 
@@ -138,9 +142,16 @@ html, body { height: 100%; }
   color: #1E6FAF;
   */
   margin-top: 5px;
-  margin-bottom: 20px;
   zoom: 1;
   line-height: 20px;
+  margin-bottom: 0px;
+
+  padding-top: 0px;
+  padding-bottom: 0.4em;
+  padding-bottom: 8px;  
+  margin-right: 20px;
+  border-bottom: 1px solid silver;  
+  
 }
 
 .widget_container span.widget_title {
@@ -153,25 +164,22 @@ html, body { height: 100%; }
 
 
 
-.widget_container .widget_body {
-/*
-  border: 1px solid #BCD;
-*/
-  overflow: hidden;
-  text-align: left;
-  margin: 0px auto;
-  margin-bottom: 20px;
-  zoom: 1;
-}
-
 /*
  * Widget Tools Menu
  */
+
+span.widget_tools_menu {
+  display: inline-block;
+  margin-bottom: 10px;
+  height: 40px;
+}
+
 ol.widget_tools_menu {
   display: block;
   list-style: none;
   margin: 0;
   padding: 0;
+  
 /*  height: 29px;
   padding-left: 50px;*/
 }
@@ -241,12 +249,6 @@ ol.widget_tools_menu li.info a {
   margin-left: 10px  
 }
 
-
-
-
-#nav-products { background-image: url("/images/nav/products.gif"); width: 75px; }
-#nav-blog { background-image: url("/images/nav/blog.gif"); width: 50px; }
-
 ol.widget_tools_menu a:active .widget_tools_menu {
   color: #00E;
 }
@@ -256,6 +258,33 @@ ol.widget_tools_menu li.current .widget_tools_menu {
   border-bottom: 4px solid #F47030;*/
   font-weight: bold;
 }
+
+/*
+ * Widget INFO
+ */
+.widget_container .widget_info {
+  width: auto;
+  margin-right: 20px;  /* Just make sure taht's the same as in the title */
+  background: #CCDEFE;
+  padding: 10px 20 10 20;
+  
+/*  border: 1px solid blue;  
+  border-top: 0px;*/
+}
+
+
+.widget_container .widget_body {
+/*
+  border: 1px solid #BCD;
+*/
+  width: 100%;
+  overflow: hidden;
+  text-align: left;
+  margin: 0px auto;
+  margin-bottom: 20px;
+  zoom: 1;
+}
+
 
 
 /* Create a bit of space between widgets when in column mode */

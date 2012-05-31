@@ -91,6 +91,7 @@ module OMF::Web::Theme
     def render_widget(widget)
       div :class => :widget_container do
         render_widget_header(widget)
+        render_widget_info(widget)
         render_widget_body(widget)
         render_widget_footer(widget)        
       end
@@ -100,13 +101,26 @@ module OMF::Web::Theme
       div :class => :widget_header do
         span widget.name, :class => :widget_title
         if tools_menu = widget.tools_menu
-          span :style => 'float:right' do 
+          span :class => 'widget_tools_menu', :style => 'float:right' do 
             rawtext tools_menu
           end
         end
       end
     end
 
+    def render_widget_info(widget)
+      if widget_info = widget.widget_info
+        wp = "w#{widget.object_id}"
+        div :id => "#{wp}_info", :class => 'widget_info', :style => 'display:none' do
+          text widget_info
+        end  
+        javascript %{
+          $('\##{wp}_info_a').click(function(){
+            $('\##{wp}_info').slideToggle("slow");
+          });
+        }
+      end
+    end
 
     def render_widget_body(widget_inst)
       id = "b#{widget_inst.widget_id}"

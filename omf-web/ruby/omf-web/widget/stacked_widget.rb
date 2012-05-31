@@ -11,12 +11,14 @@ module OMF::Web::Widget
     # declared in 'widgets' array
     #
     def initialize(widgets)
+      opts = {}
       if (widgets.is_a? Hash)
-        @wdescr = widgets
-        @wopts = @wdescr[:wopts] || {}
-        puts ">>>> #{widgets.inspect}"
+        opts = widgets
+        @wopts = opts[:wopts] || {}
+        #puts ">>>> #{widgets.inspect}"
         widgets = @wopts[:widgets] || []
       end
+      super opts
       @widgets = widgets.collect {|w| OMF::Web::Widget::AbstractWidget.create_widget(w) }
       @active_index = 0
       @active_widget = @widgets[0]
@@ -25,7 +27,7 @@ module OMF::Web::Widget
     def content()
       #widget @active_widget
       widgets = @widgets  
-      prefix = "w#{self.object_id}"    
+      prefix = "w#{self.object_id}"
       @widgets.each_with_index do |w, i|
         style = i == @active_index ? '' : 'display:none'
         div :id => "#{prefix}_#{i}", :class => prefix, :style => style do
@@ -39,8 +41,9 @@ module OMF::Web::Widget
     end
     
     def name
-      @active_widget.name
+      @opts[:name] || @active_widget.name
     end
+    
     
     # Return html for an optional widget tools menu to be added
     # to the widget decoration by the theme.
@@ -63,11 +66,10 @@ module OMF::Web::Widget
             end
           end
           li :class => 'info' do
-            a :href => "javascript:OML.show_info('#{wp});"  do
+            a :id => "#{wp}_info_a", :href => "#"  do
               span 'Info' , :class => :widget_tools_menu
             end
-          end
-          
+          end          
         end
       end.to_html
     end    

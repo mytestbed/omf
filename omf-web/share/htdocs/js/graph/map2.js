@@ -25,8 +25,8 @@ function onMapLoaded() {
         return this.deep_defaults({
           margin: {
             left: 0,
-            top:  0,
-            right: 0,
+            top:  10,
+            right: 20,
             bottom: 0
           },
         }, OML.map2.__super__.defaults.call(this));      
