@@ -1,0 +1,17 @@
+
+# Defines a widget which shows the content  
+# of a data source 'voltage' in a table.
+# The data source is dynamic and should be checked
+# at least once a second (wopts/dynamic).
+#
+widget:
+  id: progress_table
+  type: data/table2
+  name: Table
+  wopts:
+    data_source: 
+      name: loading
+    height: 400
+
+
+      

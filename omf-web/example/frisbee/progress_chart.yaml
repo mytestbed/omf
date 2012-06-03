@@ -1,0 +1,30 @@
+
+# Show progress on each node as a line chart over time.
+#
+# 
+widget:
+  id: progess_chart
+  name: Progress
+  type: data
+  wopts:
+    viz_type: line_chart2
+    data_source: 
+      name: loading
+    mapping:
+      x_axis: t
+      y_axis: 
+        property: progress
+        min: 0
+#        max: 10.5
+      group_by: node
+    axis:
+      x:
+        ticks:
+          transition: 0
+        legend: Time (sec)
+      y:
+        legend: Progress
+    margin: 
+#      left: 100
+
+      
