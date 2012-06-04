@@ -59,30 +59,6 @@ L.provide('OML.abstract_chart', ["graph/abstract_widget", "#OML.abstract_widget"
       //this.update(null);
       this.update();         
     },
-    
-
-    // Find the appropriate data source and bind to it
-    //
-    // init_data_source: function() {
-      // var o = this.opts;
-      // var sources = o.data_sources;
-      // var self = this;
-//       
-      // if (! (sources instanceof Array)) {
-        // throw "Expected an array"
-      // }
-      // if (sources.length != 1) {
-        // throw "Can only process a SINGLE source"
-      // }
-      // var ds = this.data_source = OML.data_sources[sources[0].stream];
-      // if (o.dynamic == true) {
-        // ds.on_changed(function(evt) {
-          // self.update();
-        // });
-      // }
-// 
-    // },
-    
       
     _resize_base_el: function(w, h) {  
       // Do not add margins to the base_el, but to the inside of the SVG panes

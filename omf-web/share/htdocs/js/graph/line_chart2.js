@@ -1,9 +1,6 @@
 L.provide('OML.line_chart2', ["graph/abstract_chart", "#OML.abstract_chart", "graph/axis", "#OML.axis", "graph.css", "/resource/vendor/d3/d3.js"], function () {
 
-var o = OML;
-
-  
-  OML['line_chart2'] = OML.abstract_chart.extend({
+  OML.line_chart2 = OML.abstract_chart.extend({
     decl_properties: [
       ['x_axis', 'key', {property: 'x'}], 
       ['y_axis', 'key', {property: 'y'}], 
@@ -47,6 +44,11 @@ var o = OML;
         data = [data];
       };
       
+      var x_max_cnt = d3.max(data, function(d) {return d.length});
+      if (x_max_cnt > ca.w) {
+        data = reduce_data(data);
+      }
+      
       // The following assumes that the data is sorted in ascending value for x_axis
       var o_xaxis = o.mapping.x_axis || {}
       var x_max = this.x_max = o_xaxis.max != undefined ? o_xaxis.max : d3.max(data, function(d) {
@@ -54,67 +56,18 @@ var o = OML;
         var x = x_index(last);
         return x;
       });
-      var x_max_cnt = d3.max(data, function(d) {return d.length});
+      
       var x_min = this.x_min = o_xaxis.min != undefined ? o_xaxis.min : d3.min(data, function(d) {return x_index(d[0]);});
       var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([0, ca.w]).nice();
   
-      if (x_max_cnt > ca.w) {
-        // To much data, downsample
-        var data2 = [];
-        data.map(function(l) {
-            var xcurr = -999999;
-            var l2 = [];
-            l.map(function(t) {
-                var x = Math.round(self.x(x_index(t)));
-                if (x > xcurr) {
-                  l2.push(t);
-                  //xcurr = x + 1; // add a 'spare' pixel between consecutive points
-                  xcurr = x;
-                }
-              });
-            data2.push(l2);
-          });
-        data = data2;
-      }
   
-  
-      // var y_max = this.y_max = o.ymax != undefined ? o.ymax : d3.max(data, function(s) {return d3.max(s, function(t) {return y_index(t)})});
-      // var y_min = this.y_min = o.ymin != undefined ? o.ymin : d3.min(data, function(s) {return d3.min(s, function(t) {return y_index(t)})});
-      // var y_ext = this.extent_2d(data, y_index, o.y_axis);
       var y = this.y = d3.scale.linear()
                         // .domain([y_min, y_max])
                         .domain(this.extent_2d(data, y_index, o.mapping.y_axis))
                         //.range([0, ca.h]) // Set range whenver this function is used - either to draw the lines or the axis
                         .nice();
         
-      
-      // AXIS
-      var oAxis = o.axis || {};
-
-      if (!this.xAxis) {
-        this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
-        this.axis_layer
-          .append('g')
-            .attr('class', 'x axis')
-            ;
-      }
-      var xAxis = this.xAxis.scale(x).range([0, ca.w]);
-      this.axis_layer.select('g.x.axis')
-            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
-            .call(xAxis);
-          
-      if (!this.yAxis) {
-        this.yAxis = OML.line_chart2_axis(oAxis.y).orient("left");
-        this.axis_layer
-          .append('g')
-            .attr('class', 'y axis')
-            ;
-      }
-      y.range([ca.h, 0]);
-      var yAxis = this.yAxis.scale(y).range([0, ca.h]);
-      this.axis_layer.select('g.y.axis')
-                .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
-                .call(yAxis);
+      this.redraw_axis(x, y);
 
       // *** LINES ****
       y.range([0, ca.h]);
@@ -126,6 +79,7 @@ var o = OML;
       // In case the widget got resized
       this.chart_layer.attr("transform", "translate(" + ca.x + ", " + (this.h - ca.y) + ")");
         
+      
       var self = this;
       var lines = this.chart_layer.selectAll(".chart")
                     .data(data, function(d, i) { return i; })
@@ -156,6 +110,55 @@ var o = OML;
       lines.exit().remove();
       
       this.update_selection({});
+    },
+    
+    redraw_axis: function(x, y) {
+      var ca = this.widget_area;
+      var oAxis = this.opts.axis || {};
+
+      if (!this.xAxis) {
+        this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
+        this.axis_layer
+          .append('g')
+            .attr('class', 'x axis')
+            ;
+      }
+      var xAxis = this.xAxis.scale(x).range([0, ca.w]);
+      this.axis_layer.select('g.x.axis')
+            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
+            .call(xAxis);
+          
+      if (!this.yAxis) {
+        this.yAxis = OML.line_chart2_axis(oAxis.y).orient("left");
+        this.axis_layer
+          .append('g')
+            .attr('class', 'y axis')
+            ;
+      }
+      y.range([ca.h, 0]);
+      var yAxis = this.yAxis.scale(y).range([0, ca.h]);
+      this.axis_layer.select('g.y.axis')
+                .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
+                .call(yAxis);
+    },
+    
+    reduce_data: function(data) {
+      // To much data, downsample
+      var data2 = [];
+      data.map(function(l) {
+        var xcurr = -999999;
+        var l2 = [];
+        l.map(function(t) {
+            var x = Math.round(self.x(x_index(t)));
+            if (x > xcurr) {
+              l2.push(t);
+              //xcurr = x + 1; // add a 'spare' pixel between consecutive points
+              xcurr = x;
+            }
+          });
+        data2.push(l2);
+      });
+      return(data2);
     },
     
     on_highlighted: function(evt) {

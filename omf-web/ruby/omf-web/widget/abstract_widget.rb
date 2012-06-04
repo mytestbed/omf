@@ -10,7 +10,7 @@ module OMF::Web::Widget
     @@widgets = {}
     
     def self.register_widget(wdescr)
-      wdescr = deep_symbolize_keys(wdescr)
+      #wdescr = deep_symbolize_keys(wdescr)
       puts "|||>>> #{wdescr.inspect}"
       id = (wdescr[:id] ||= "w#{wdescr.object_id}").to_sym
       if (@@widgets.key? id)
@@ -72,23 +72,6 @@ module OMF::Web::Widget
       # Nothing
     end
     
-    # Taken from active_support
-    #
-    def self.deep_symbolize_keys(obj)
-      if obj.is_a? Hash
-        obj.inject({}) do |result, (key, value)|
-          if value.is_a?(Hash) || value.is_a?(Array)
-            value = deep_symbolize_keys(value) 
-          end
-          result[(key.to_sym rescue key) || key] = value
-          result
-        end
-      elsif obj.is_a? Array
-        obj.collect { |e| deep_symbolize_keys(e) }
-      else
-        obj
-      end
-    end
         
   end # class
   
