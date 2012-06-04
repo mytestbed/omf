@@ -87,40 +87,36 @@ var o = OML;
                         //.range([0, ca.h]) // Set range whenver this function is used - either to draw the lines or the axis
                         .nice();
         
-         
+      
+      // AXIS
       var oAxis = o.axis || {};
 
-      if (this.xAxis) {
-        var xAxis = this.xAxis.scale(x).range([0, ca.w]);
-        this.axis_layer.select('g.x.axis')
-              .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
-              .call(xAxis);
-      } else {
-        var xAxis = this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
+      if (!this.xAxis) {
+        this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
         this.axis_layer
           .append('g')
-            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
             .attr('class', 'x axis')
-            .call(xAxis)
             ;
       }
+      var xAxis = this.xAxis.scale(x).range([0, ca.w]);
+      this.axis_layer.select('g.x.axis')
+            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
+            .call(xAxis);
           
+      if (!this.yAxis) {
+        this.yAxis = OML.line_chart2_axis(oAxis.y).orient("left");
+        this.axis_layer
+          .append('g')
+            .attr('class', 'y axis')
+            ;
+      }
       y.range([ca.h, 0]);
-      if (this.yAxis) {
-        var yAxis = this.yAxis.scale(y).range([0, ca.h]);
-        this.axis_layer.select('g.y.axis')
+      var yAxis = this.yAxis.scale(y).range([0, ca.h]);
+      this.axis_layer.select('g.y.axis')
                 .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
                 .call(yAxis);
-      } else {
-        var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(y).orient("left").range([0, ca.h]);
-        this.axis_layer
-          .append('g')
-            .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
-            .attr('class', 'y axis')
-            .call(yAxis)
-            ;
-      }
-      
+
+      // *** LINES ****
       y.range([0, ca.h]);
       var line = d3.svg.line()
         .x(function(t) { return x(x_index(t)) })
