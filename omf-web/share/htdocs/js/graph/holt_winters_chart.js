@@ -16,6 +16,13 @@ L.provide('OML.holt_winters_chart', ["graph/line_chart2", "#OML.line_chart2"], f
     
     defaults: function() {
       return this.deep_defaults({
+        smooth: {
+          alpha: 0.1,
+          beta: 0.1,
+          lambda: 0.1,
+          delta: 2.5
+        },
+        
       }, OML.line_chart2.__super__.defaults.call(this));      
     },    
     
@@ -31,10 +38,11 @@ L.provide('OML.holt_winters_chart', ["graph/line_chart2", "#OML.line_chart2"], f
       var y_index = m.y_axis;
 
       var ctxt = {'s_old' : null, 'old' : null, 'a': 0, 'b': 0, 'c': 0, 'd': 0};
-      var alpha = 0.1;
-      var beta = 0.1;
-      var lambda = 0.1;
-      var delta = 2.5;
+      var os = o.smooth;
+      var alpha = os.alpha;
+      var beta = os.beta;
+      var lambda = os.lambda;
+      var delta = os.delta;
       data = _.map(data, function(d) {
         var x = x_index(d);
         var y = y_index(d);
