@@ -97,7 +97,7 @@ module OMF::Web::Theme
     end
     
     def render_additional_headers
-      "\n\n<link href='/resource/css/incoming.css' media='all' rel='stylesheet' type='text/css' />\n"
+      #"\n\n<link href='/resource/css/incoming.css' media='all' rel='stylesheet' type='text/css' />\n"
     end
 
     def collect_data_sources(dsa)

@@ -22,9 +22,9 @@ var o = OML;
 
       var ca = this.widget_area; 
       this.legend_layer = base_layer.append("svg:g");
-      this.chart_layer = base_layer.append("svg:g")
-                                    .attr("transform", "translate(" + ca.x + ", " + (this.h - ca.y) + ")");
-      this.axis_layer = base_layer.append('g');
+      this.chart_layer = base_layer.append("svg:g");
+                                    //.attr("transform", "translate(" + ca.x + ", " + (this.h - ca.y) + ")");
+      this.axis_layer = base_layer.append('svg:g').attr("class", "axis_layer");
     },
     
   
@@ -84,9 +84,44 @@ var o = OML;
       var y = this.y = d3.scale.linear()
                         // .domain([y_min, y_max])
                         .domain(this.extent_2d(data, y_index, o.mapping.y_axis))
-                        .range([0, ca.h])
+                        //.range([0, ca.h]) // Set range whenver this function is used - either to draw the lines or the axis
                         .nice();
         
+         
+      var oAxis = o.axis || {};
+
+      if (this.xAxis) {
+        var xAxis = this.xAxis.scale(x).range([0, ca.w]);
+        this.axis_layer.select('g.x.axis')
+              .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
+              .call(xAxis);
+      } else {
+        var xAxis = this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
+        this.axis_layer
+          .append('g')
+            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
+            .attr('class', 'x axis')
+            .call(xAxis)
+            ;
+      }
+          
+      y.range([ca.h, 0]);
+      if (this.yAxis) {
+        var yAxis = this.yAxis.scale(y).range([0, ca.h]);
+        this.axis_layer.select('g.y.axis')
+                .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
+                .call(yAxis);
+      } else {
+        var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(y).orient("left").range([0, ca.h]);
+        this.axis_layer
+          .append('g')
+            .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
+            .attr('class', 'y axis')
+            .call(yAxis)
+            ;
+      }
+      
+      y.range([0, ca.h]);
       var line = d3.svg.line()
         .x(function(t) { return x(x_index(t)) })
         .y(function(t) { return -1 * y(y_index(t)); })
@@ -123,39 +158,7 @@ var o = OML;
           })         
           ;
       lines.exit().remove();
-         
-      var oAxis = o.axis || {};
-
-      if (this.xAxis) {
-        var xAxis = this.xAxis.scale(x).range([0, ca.w]);
-        this.axis_layer.select('g.x.axis')
-              .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
-              .call(xAxis);
-      } else {
-        var xAxis = this.xAxis = OML.line_chart2_axis(oAxis.x).scale(x).orient("bottom").range([0, ca.w]);      
-        this.axis_layer
-          .append('g')
-            .attr("transform", "translate(" + ca.x + "," + (ca.ty + ca.h) + ")")
-            .attr('class', 'x axis')
-            .call(xAxis)
-            ;
-      }
-          
-      var inv_y = y.range([ca.h, 0]);
-      if (this.yAxis) {
-        var yAxis = this.yAxis.scale(inv_y).range([0, ca.h]);
-        this.axis_layer.select('g.y.axis')
-                .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
-                .call(yAxis);
-      } else {
-        var yAxis = this.yAxis = OML.line_chart2_axis(oAxis.y).scale(inv_y).orient("left").range([0, ca.h]);
-        this.axis_layer
-          .append('g')
-            .attr("transform", "translate(" + ca.x + "," + ca.ty + ")")
-            .attr('class', 'y axis')
-            .call(yAxis)
-            ;
-      }
+      
       this.update_selection({});
     },
     
