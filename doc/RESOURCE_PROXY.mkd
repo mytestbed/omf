@@ -18,6 +18,11 @@ Suppose we are managing a formula 1 team's garage, and we want to test the engin
 
 ## Coding
 
+If you want to dive into the code right now, these are the two annotated files used for this example:
+
+* [Garage controller (server side)](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
+* [Test controller (client side)](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb)
+
 ### Resource controller script skeleton (server side)
 
 Firstly, we need a resource controller script runs on the server side, which contains an instance of resource proxy represents 'garage', we can then use resource factory method to create such
@@ -128,7 +133,7 @@ Now we are going to add some features by including the following inside the engi
     end
 
     # We want some default metadata to be availabe for requesting
-    %(provider max_power max_rpm).each do |attr|
+    %w(provider max_power max_rpm).each do |attr|
       register_request attr do |resource|
         resource.metadata[attr]
       end
