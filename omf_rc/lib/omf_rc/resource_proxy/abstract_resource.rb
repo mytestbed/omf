@@ -9,7 +9,10 @@ class OmfRc::ResourceProxy::AbstractResource
   DISCONNECT_WAIT = 5
   # Time to wait before releasing resource, wait for deleting pubsub nodes
   RELEASE_WAIT = 5
-  attr_accessor :uid, :hrn, :type, :comm
+
+  # @!attribute metadata
+  #   @return [String] the resource's internal meta data storage
+  attr_accessor :uid, :hrn, :type, :comm, :metadata
   attr_reader :opts, :children, :host
 
   # Initialisation
@@ -31,6 +34,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @hrn = @opts.hrn
     @children ||= []
     @host = nil
+    @metadata = @opts.metadata || Hashie::Mash.new
 
     @comm = comm || OmfCommon::Comm.new(@opts.dsl)
     # Fire when connection to pubsub server established
@@ -86,6 +90,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @param (see #initialize)
   def create(type, opts = nil)
+    before_create if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
     children << new_resource
     new_resource
@@ -162,7 +167,7 @@ class OmfRc::ResourceProxy::AbstractResource
         when :request
           inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'STATUS') do |i|
             end_result[:result].each_pair do |k, v|
-              i.property(k) { |p| p.element('current', v) }
+              i.property(k, v)
             end
           end.sign
           @comm.publish(end_result[:inform_to], inform_msg, host)
@@ -170,7 +175,7 @@ class OmfRc::ResourceProxy::AbstractResource
         when :configure
           inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'STATUS') do |i|
             end_result[:result].each_pair do |k, v|
-              i.property(k) { |p| p.element('current', v) }
+              i.property(k, v)
             end
           end.sign
           @comm.publish(end_result[:inform_to], inform_msg, host)
