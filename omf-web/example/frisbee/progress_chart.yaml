@@ -7,7 +7,7 @@ widget:
   name: Progress
   type: data
   wopts:
-    viz_type: line_chart2
+    viz_type: holt_winters_chart #line_chart2
     data_source: 
       name: loading
     mapping:
