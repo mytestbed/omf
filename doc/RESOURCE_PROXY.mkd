@@ -1,5 +1,33 @@
 # Extend resource proxy
 
+## Quick start
+
+Install a XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
+
+Create two users in the XMPP server, one for resource controller (omf\_rc), one for experiment controller (omf\_ec). *This step is required because of the lack of in-band registration support (XEP-0077) in the XMPP library, we will add the support in the final release.*
+
+Install omf\_rc and omf\_ec pre-release gems
+
+    gem install omf_rc --pre
+
+    gem install omf_ec --pre
+
+At this stage, for simplicity, they can be installed on the same machine.
+
+Two ruby executables should now be available in your system: omf\_rc (from omf\_rc gem) and omf\_test (from omf\_ec gem).
+
+Now start rc
+
+    omf_rc -u <rc_xmpp_user> -p <password> -s <xmpp_server_domain> -n <rc_pubsub_node>
+
+Now run ec test script, connecting to rc's pubsub node.
+
+    omf_test -u <ec_xmpp_user> -p <password> -s <xmpp_server_domain> -n <rc_pubsub_node>
+
+To examine debug information, include -d option in the previous commands.
+
+To exit, simply press ctrl + c
+
 ## Where to put the files
 
 The default location of resource proxy definition files are located in the directory [omf\_rc/lib/omf\_rc/resource_proxy](https://github.com/mytestbed/omf/tree/master/omf_rc/lib/omf_rc/resource_proxy).
