@@ -21,7 +21,7 @@ Suppose we are managing a formula 1 team's garage, and we want to test the engin
 If you want to dive into the code right now, these are the two annotated files used for this example:
 
 * [Garage controller (server side)](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
-* [Test controller (client side)](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb)
+* [Engine test controller (client side)](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb)
 
 ### Resource controller script skeleton (server side)
 
@@ -37,7 +37,7 @@ This does following behind the scene
 
 Refer to [OmfRc::ResourceFactory](../../OmfRc/ResourceFactory) for implementation.
 
-We start by this skeleton, save it as garage\_controller.rb
+We start with this skeleton, save it as garage\_controller.rb
 
     #!/usr/bin/env ruby
 
@@ -62,8 +62,6 @@ We start by this skeleton, save it as garage\_controller.rb
       trap(:INT) { garage.disconnect }
       trap(:TERM) { garage.disconnect }
     end
-
-Now try the script.
 
 ### Resource proxy mixin module definition
 
@@ -144,9 +142,9 @@ Now we are going to add some features by including the following inside the engi
       resource.metadata.throttle = value.to_f / 100.0
     end
 
-### Engine controller script (client side)
+### Engine test controller script (client side)
 
-Experiment controller is not available yet, we need to use pubsub comm (communicator) from omf\_common library to interact with the XMPP system, i.e. sending out operation messages and capturing the inform messages.
+Experiment controller is not available yet, so we need to use pubsub comm (communicator) from omf\_common library to interact with the XMPP system, i.e. sending out operation messages and capturing the inform messages; and unfortunately this made the test script a bit complicated.
 
     #!/usr/bin/env ruby
 
@@ -158,24 +156,28 @@ Experiment controller is not available yet, we need to use pubsub comm (communic
     options = {
       user: 'bravo',
       password: 'pw',
-      server: 'localhost',
-      uid: 'mclaren',
-      pubsub_host: 'pubsub',
+      server: 'localhost', # XMPP pubsub server domain
+      uid: 'mclaren', # The garage's name, we used the same name in the garage_controller.
+      pubsub_host: 'pubsub'  # The host name of pubsub system
     }
 
+    # We will use Comm directly, with default DSL implementaion :xmpp_blather
     comm = Comm.new(:xmpp_blather)
     host = nil
 
-    # For simplicity, use comm instance directly
+    # Then we can register event handlers to the communicator
+    #
+    # Event triggered when connection is ready
     comm.when_ready do
       logger.info "CONNECTED: #{comm.jid.inspect}"
       host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
 
-      # We assume the node where RC runs started already
+      # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub node
       comm.subscribe(options[:uid], host) do |e|
         if e.error?
           comm.disconnect(host)
         else
+          # If subscribed, we publish a 'create' message, 'create' a new engine for testing
           comm.publish(
             options[:uid],
             Message.create { |v| v.property('type', 'engine') },
@@ -184,7 +186,7 @@ Experiment controller is not available yet, we need to use pubsub comm (communic
       end
     end
 
-    # Fired when messages published to the nodes I subscribed to
+    # Triggered when new messages published to the nodes I subscribed to
     comm.node_event do |e|
       e.items.each do |item|
         begin
@@ -219,10 +221,14 @@ Experiment controller is not available yet, we need to use pubsub comm (communic
       trap(:TERM) { comm.disconnect(host) }
     end
 
-### More actions on engine controller (client side)
+### More actions on engine test controller (client side)
+
+Once we have the engine ready (i.e. we received notify message 'CREATED'), we can subscribe to its pubsub node, and publish additional instructions to the engine.
+
+Add the following code after the line "logger.info "Engine #{engine\_id} ready for testing"
 
     comm.subscribe(engine_id, host) do
-      # Engine is ready, get some information about the engine
+      # Now engine is ready, we can ask for some information about the engine
       comm.publish(engine_id,
                    Message.request do |v|
                      v.property('max_rpm')
@@ -231,27 +237,26 @@ Experiment controller is not available yet, we need to use pubsub comm (communic
                    end.sign,
                    host)
 
-      # Checking RPM every 1 second
+      # We will check engine's RPM every 1 second
       EM.add_periodic_timer(1) do
         comm.publish(engine_id,
                      Message.request { |v| v.property('rpm') }.sign,
                      host)
       end
 
-      # Apply 50% throttle
+      # Now we will apply 50% throttle to the engine
       comm.publish(engine_id,
                    Message.configure { |v| v.property('throttle', '50') }.sign,
                    host)
 
-      # Some time we want to reduce throttle to 0, avoid blowing up the engine
+      # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
       EM.add_timer(5) do
         comm.publish(engine_id,
                      Message.configure { |v| v.property('throttle', '0') }.sign,
                      host)
       end
 
-      # 30 seconds later, we will 'release' this engine
-
+      # 20 seconds later, we will 'release' this engine, i.e. shut it down
       EM.add_timer(20) do
         comm.publish(engine_id,
                      Message.release.sign,
@@ -271,35 +276,9 @@ To load these default resource proxies, simple call a load method provided by Re
 
 ## Full DSL methods list
 
-In the previous example, we use method register\_proxy to register resource proxy, register\_request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource_proxy_dsl.
+In the previous example, we use method register\_proxy to register resource proxy, register\_request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
 
   include OmfRc::ResourceProxyDSL
 
 The full list of resource proxy DSL can be found here: [DSL API](../../OmfRc/ResourceProxyDSL/ClassMethods)
-
-## Abstract class
-
-The abstract class OmfRc::ResourceProxy::Abstract is capturing all the logics regarding resource hierarchy, communications to pubsub system and methods to create, configure, request and release resources. Please note that the actual functionality of the resources are defined in proxy modules.
-
-[OmfRc::ResourceProxy::AbstractResource](../../OmfRc/ResourceProxy/AbstractResource)
-
-## Resource proxy utility
-
-To avoid overloading these modules, we can refactor some of the common features into utility modules. These modules basically provide a mapping between properties and underline system application. Take the example of iw utility module implementation here: *(Refer to DSL section for syntax details)*
-
-    module OmfRc::Util::Iw
-      include OmfRc::ResourceProxyDSL
-
-Take the example of the new generic wifi proxy module, we want to configure some wireless related properties (iw), and to load certain drivers/modules (mod). Since we already have these utility modules defined, all we need to do is to simply include these in the wifi module.
-
-    module OmfRc::ResourceProxy::Wifi
-      include OmfRc::ResourceProxyDSL
-
-      register_proxy :wifi
-
-      utility :iw
-    end
-
-## Resource Proxy module
-
 
