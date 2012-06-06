@@ -16,7 +16,9 @@ Now we need to nstall omf\_rc pre-release gems
 
 Suppose we are managing a formula 1 team's garage, and we want to test the engines' we have, simply by adjusting the throttle and observing the engines' RPM. Unless you had the opportunity to connect your laptop to a real formula 1 engine, we can assume that all we need here is a mock up engine written in ruby.
 
-## Coding
+We will build a garage controller (resource controller) acts as the proxy to the garage and engines, and an engine test controller, which asks garage controller to provide an engine and perform some throttle adjustments, while monitoring engines' RPM.
+
+### Files
 
 If you want to dive into the code right now, these are the two annotated files used for this example:
 
@@ -88,6 +90,15 @@ A resource proxy mixin module represents the functionalities the resource could 
 ### Add more features to engine
 
 Now we are going to add some features by including the following inside the engine proxy module:
+
+These register DSL methods will normally take a name parameter, and a block which be will be executed at the runtime.
+
+An optional yielded variable could used if your actions inside the block need access inside the context of resource proxy itself, i.e. getting or updating the instance object where this mixin module will be applied to.
+
+Normally we don't need to record the state of a real resource inside our resource proxy entities (e.g. the available memory of a running physical machine). In case you need to maintain the state, resource proxy abstract class provides a :metadata attribute (which is a [Hashie::Mash] (https://github.com/intridea/hashie#mash) object), for keeping these information inside the instances.
+
+For more information regarding these DSL methods, go to the section [Full DSL methods list](#Full_DSL_methods_list)
+
 
     # before_ready hook will be called during the initialisation of the resource instance
     #
@@ -278,7 +289,7 @@ To load these default resource proxies, simple call a load method provided by Re
 
 In the previous example, we use method register\_proxy to register resource proxy, register\_request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
 
-  include OmfRc::ResourceProxyDSL
+    include OmfRc::ResourceProxyDSL
 
 The full list of resource proxy DSL can be found here: [DSL API](../../OmfRc/ResourceProxyDSL/ClassMethods)
 
