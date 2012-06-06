@@ -32,7 +32,7 @@ In OMF 6, we switched to the GEM system to release packages.
 
 To install OMF RC, simple do (--pre indicates pre-release):
 
-    gem install omf_rc --pre
+    gem install omf_rc --pre --no-ri --no-rdoc
 
 _We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are dropping support for Ruby 1.8._
 
