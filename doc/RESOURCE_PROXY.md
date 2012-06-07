@@ -275,15 +275,47 @@ Add the following code after the line "logger.info "Engine #{engine\_id} ready f
       end
     end
 
-## Include resource proxy modules as part of the default package
+## Organise resource proxy modules
+
+### Define inline
+
+If you have a rather simple resource controller, with minimal set of features, like the ones described in this tutorial, you could just define these modules as part of the RC script.
+
+### Include resource proxy modules in the default package
 
 The default location of resource proxy definition files are located in the directory [omf\_rc/lib/omf\_rc/resource\_proxy](https://github.com/mytestbed/omf/tree/master/omf_rc/lib/omf_rc/resource_proxy).
 
-If you would like to include these resource proxy definitions as part of default resource controller package, save them under this default directory, following this naming convention: OmfRc::ResourceProxy::Engine will register a proxy named :engine, and saved to file omf\_rc/lib/omf\_rc/resource\_proxy/engine.rb
+If you wish your feature set could be available as part of the default package, save them under this default directory, following this naming convention: OmfRc::ResourceProxy::Engine will register a proxy named :engine, and saved to file omf\_rc/lib/omf\_rc/resource\_proxy/engine.rb
 
 To load these default resource proxies, simple call a load method provided by ResourceFactory class in your resource controller script (e.g. engine\_control.rb)
 
     OmfRc::ResourceFactory.load_default_resource_proxies
+
+Commit your definition files into the git repository and simply send us a pull request.
+
+### Package your proxy definition files as OMF extension gem
+
+### Refactor common features into resource utilities
+
+If a set of features can be shared among different types of resources, it is a good idea to refactor them into resource utilities.
+
+Take this engine test example, if we have more than one type of engine needs to be tested, and they could all be able to adjust throttle, we can create a utility for this.
+
+    module OmfRc::Util::Throttle
+      include OmfRc::ResourceProxyDSL
+
+      register_utility :throttle
+
+      register_configure :throttle do |resource, value|
+        resource.metadata.throttle = value.to_f / 100.0
+      end
+    end
+
+Then include this utility inside the engine resource proxy file by using:
+
+    utility :throttle
+
+You could also overwrite a property definition provided by the utility, by registering it again using the same name.
 
 ## Full DSL methods list
 
