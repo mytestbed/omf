@@ -295,6 +295,12 @@ Commit your definition files into the git repository and simply send us a pull r
 
 ### Package your proxy definition files as OMF extension gem
 
+You could also package your proxy definition files into separate gems, if you feel they should not go into the default RC package.
+
+This process is rather simple, you can check an example gem based on this tutorial here:
+
+https://github.com/jackhong/omf_rc_foo
+
 ### Refactor common features into resource utilities
 
 If a set of features can be shared among different types of resources, it is a good idea to refactor them into resource utilities.
@@ -324,4 +330,3 @@ In the previous example, we use method register\_proxy to register resource prox
     include OmfRc::ResourceProxyDSL
 
 The full list of resource proxy DSL can be found here: [DSL API](../../OmfRc/ResourceProxyDSL/ClassMethods)
-
