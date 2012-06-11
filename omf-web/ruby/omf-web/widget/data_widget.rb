@@ -5,10 +5,10 @@ module OMF::Web::Widget
   # Supports widgets which visualize the content of a +Table+
   # which may also dynamically change.
   #
-  class AbstractDataWidget < AbstractWidget
+  class DataWidget < AbstractWidget
     #depends_on :css, "/resource/css/graph.css"
 
-    attr_reader :name, :base_id, :opts
+    attr_reader :name, :opts #:base_id
 
 
     # opts
@@ -20,31 +20,55 @@ module OMF::Web::Widget
     #     :updateInterval .. if web sockets aren't used, check every :updateInterval sec [3]
     #
     def initialize(opts = {})
-      super opts
-      @wopts = (opts[:wopts] || {}).dup
-      if (ds = @wopts.delete(:data_source))
+      opts = opts.dup # not sure why we may need to this. Is this hash used anywhere wlse?
+      unless vizType = opts[:type].split('/')[-1]
+        raise "Missing widget option ':viz_type' for widget '#{name}' (#{opts.inspect})"
+      end
+      name = opts[:name] ||= 'Unknown'
+      opts[:js_url] = "graph/#{vizType}.js"
+      opts[:js_class] = "OML.#{vizType}"
+      opts[:base_el] = "\##{dom_id}"
+
+      # @js_class = @widget_type = opts[:js_class]
+      # @js_url = opts[:js_url]
+# 
+      # @base_id = "w#{object_id.abs}"
+      # @base_el = "\##{@base_id}"
+      # @wopts['base_el'] = @base_el
+# 
+      # @js_var_name = "oml_#{object_id.abs}"
+      
+      super opts      
+      
+#      @widget_type = vizType
+      
+#      @wopts = opts.dup
+      if (ds = opts.delete(:data_source))
         # single source
         @data_sources = {:default => ds}
       end
-      unless @data_sources ||= @wopts.delete(:data_sources)
-        raise "Missing option ':data_sources' for widget '#@name'"
+      unless @data_sources ||= opts.delete(:data_sources)
+        raise "Missing option ':data_sources' for widget '#{name}'"
       end
       unless @data_sources.kind_of? Hash
         @data_sources = {:default => @data_sources}
       end
-      @js_class = @widget_type = opts[:js_class]
-      @js_url = opts[:js_url]
+      opts[:data_sources] = @data_sources.collect do |name, ds_name|
+        {:stream => ds_name, :name => name}
+      end
+    end
+    
+    # This is the DOM id which should be used by the renderer for this widget. 
+    # We need to keep this here as various renderes at various levels may need
+    # to get a reference to it to allow for such functionalities as 
+    # hiding, stacking, ...
+    def dom_id
+      "w#{object_id.abs}"
+    end
 
-      @base_id = "w#{object_id.abs}"
-      @base_el = "\##{@base_id}"
-      @wopts['base_el'] = @base_el
-
-      @js_var_name = "oml_#{object_id.abs}"
-      #@js_func_name = 'OML.' + @js_url.gsub("::", "_")
-
-      #@dynamic = opts.delete(:dynamic)
-
-
+    def content()
+      OMF::Web::Theme.require 'data_renderer'
+      OMF::Web::Theme::DataRenderer.new(self, @opts)
     end
 
     # A dynamic widget may open a web socket back to this service. Connect
@@ -79,19 +103,6 @@ module OMF::Web::Widget
       end
     end
 
-    def content()
-      @wopts[:data_sources] = @data_sources.collect do |name, ds_name|
-        {:stream => ds_name, :name => name}
-      end
-      div :id => @base_id, :class => "#{@js_class.gsub('.', '_').downcase}" do
-        javascript(%{
-          L.require('\##@js_class', '#@js_url', function() {
-            OML.widgets.#{@base_id} = new #{@js_class}(#{@wopts.to_json});
-          });
-        })
-      end
-    end
-
     def collect_data_sources(ds_set)
       #puts "DATA_SOURCES>>>> #{@data_sources.values.inspect}"
       @data_sources.values.each do |ds|
@@ -102,6 +113,6 @@ module OMF::Web::Widget
 
 
 
-  end # AbstractDataWidget
+  end # DataWidget
 
 end

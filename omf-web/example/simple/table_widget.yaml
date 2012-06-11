@@ -6,15 +6,13 @@
 #
 widget:
   id: generator_table
-  type: data
+  type: data/table2
   name: Table
   dynamic:
     update_interval: 1
-  wopts:
-    viz_type: table2
-    data_source: 
-      name: generator
-      dynamic: 1  # check once a second
+  data_source: 
+    name: generator
+    dynamic: 1  # check once a second
 
 
       

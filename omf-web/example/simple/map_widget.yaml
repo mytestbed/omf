@@ -7,25 +7,24 @@
 #
 widget:
   id: walk
-  type: data
   name: Walk
-  wopts:
-    viz_type: map2
-    data_sources: walk
-    width: 1.0
-    map_center: [151.197189, -33.895508]
+  type: data/map2
+  data_sources: walk
+  width: 1.0
+  map:
+    center: [151.197189, -33.895508]
     zoom: 18
-    mapping:
-      lat:
-        property: lat
-      lng:
-        property: lon
-      radius:
-        property: rssi 
-        min: 10      # ensure that the circle isn't getting too small
-      fill_color:
-        property: rssi
-        scale: 0.04 # 1.0 / 25
-        color: red_yellow20_green() # () indicates a color scale  
-    margin:
-      #:left => 100
+  mapping:
+    lat:
+      property: lat
+    lng:
+      property: lon
+    radius:
+      property: rssi 
+      min: 10      # ensure that the circle isn't getting too small
+    fill_color:
+      property: rssi
+      scale: 0.04 # 1.0 / 25
+      color: red_yellow20_green() # () indicates a color scale  
+  margin:
+    #:left => 100

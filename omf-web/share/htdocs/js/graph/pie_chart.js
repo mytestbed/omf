@@ -3,7 +3,7 @@ L.provide('OML.pie_chart', ["graph/abstract_chart", "#OML.abstract_chart"], func
 var o = OML;
 
   
-  OML['pie_chart'] = OML.abstract_chart.extend({
+  OML.pie_chart = OML.abstract_chart.extend({
     decl_properties: [
       ['value', 'key', {property: 'value'}], 
 //      ['group_by', 'key', {property: 'id', optional: true}],             
@@ -12,6 +12,12 @@ var o = OML;
       ['fill_color', 'color', 'category20()'],
       ['label', 'key', {optional: true}]
     ],
+    
+    defaults: function() {
+      return this.deep_defaults({
+        inner_radius: 0.4 // size of donought hole in the middle
+      }, OML.pie_chart.__super__.defaults.call(this));      
+    },    
     
     configure_base_layer: function(vis) {
       this.legend_layer = vis.append("svg:g");
@@ -29,7 +35,14 @@ var o = OML;
           h = ca.h,
           r = Math.min(w, h) / 2;
           
-      var arc = d3.svg.arc().innerRadius(r * .6).outerRadius(r);
+      var arc = d3.svg.arc().outerRadius(r);
+      var i_r = o.inner_radius;
+      if (i_r > 0) {
+        if (i_r < 1) {
+          i_r = i_r * r; // fractional
+        }
+        arc.innerRadius(i_r);
+      }
       var sa = arc.startAngle();
       
       var self = this;
@@ -41,7 +54,7 @@ var o = OML;
           .data(d3.layout.pie().value(m.value))
         .enter().append("g")
           .attr("class", "arc")
-          .attr("transform", "translate(" + (r + ca.x) + "," + (r + ca.y) + ")");          
+          .attr("transform", "translate(" + (r + ca.x) + "," + (r + ca.ty) + ")");          
       
       arcs.append("path")
           .attr("fill", function(d, i) { 

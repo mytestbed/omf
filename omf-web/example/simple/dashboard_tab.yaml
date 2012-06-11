@@ -3,11 +3,19 @@
 # Define a 'dashboard' consisting of two columns of widgets
 #
 
-tab:
+widget:
   id: dashboard
-  type: two_column
   name: Dashboard
-  topts:
-    layout: layout_50_50
-    left:  [line_chart, [scatter_plot, generator_table]]
-    right: [walk, pie]
+  top_level: true
+  priority: 999
+  type: layout/two_columns/66_33
+  left:  [line_chart, [scatter_plot, generator_table]]
+  right: 
+    - walk
+    
+    - id_ref: pie
+      height: 1.0
+      margin:
+        top: 10
+        left: 20
+        right: 20        

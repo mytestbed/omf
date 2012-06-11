@@ -18,17 +18,6 @@ module OMF::Web::Theme
         data_sources: {},
         widgets: {},
         
-        show_widget: function(prefix, index, widget_id) {
-          $('.' + prefix).hide();
-          $('#' + prefix + '_' + index).show();
-          
-          var current = $('#' + prefix + '_l_' + index);
-          current.addClass('current');
-          current.siblings().removeClass('current');
-           
-          //s.trigger('activate');
-          OML.widgets[widget_id].resize().update();
-        }
       };
         
       var OHUB = {};
@@ -39,9 +28,12 @@ module OMF::Web::Theme
       });      
     }
     
-    def initialize(opts)
-      #puts ">>>>> #{opts.keys.inspect}"
+    attr_reader :opts
+    
+    def initialize(widget, opts)
+      #puts "KEYS>>>>> #{opts.keys.inspect}"
       super opts
+      @widget = widget
       @opts = opts
     end
     
@@ -67,10 +59,13 @@ module OMF::Web::Theme
     end # render_flesh
     
     def render_data_sources
+      return unless @widget
+      
       require 'omf-oml/table'
       require 'set'
       
-      dsh = collect_data_sources(Set.new)
+      dsh = @widget.collect_data_sources(Set.new)
+      puts dsh.inspect
       return if dsh.empty?
       
       js = dsh.to_a.collect do |ds|

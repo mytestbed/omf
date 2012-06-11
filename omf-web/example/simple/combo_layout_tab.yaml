@@ -1,0 +1,19 @@
+
+
+# Define a 'dashboard' consisting of two columns of widgets
+#
+
+widget:
+  id: combo_layout
+  name: Combo Layout
+  top_level: true
+  priority: 800
+  type: layout/one_column
+  widgets: 
+    - type: layout/flow
+      widgets: [line_chart, scatter_plot, generator_table]
+      
+    - type: layout/two_columns/50_50
+      left: [pie] 
+      right: [network]
+

@@ -44,10 +44,6 @@ L.provide('OML.line_chart2', ["graph/abstract_chart", "#OML.abstract_chart", "gr
         data = [data];
       };
       
-      var x_max_cnt = d3.max(data, function(d) {return d.length});
-      if (x_max_cnt > ca.w) {
-        data = reduce_data(data);
-      }
       
       // The following assumes that the data is sorted in ascending value for x_axis
       var o_xaxis = o.mapping.x_axis || {}
@@ -59,6 +55,10 @@ L.provide('OML.line_chart2', ["graph/abstract_chart", "#OML.abstract_chart", "gr
       
       var x_min = this.x_min = o_xaxis.min != undefined ? o_xaxis.min : d3.min(data, function(d) {return x_index(d[0]);});
       var x = this.x = d3.scale.linear().domain([x_min, x_max]).range([0, ca.w]).nice();
+      var x_max_cnt = d3.max(data, function(d) {return d.length});
+      if (x_max_cnt > ca.w) {
+        data = this.reduce_data(data, x, x_index);
+      }
   
   
       var y = this.y = d3.scale.linear()
@@ -142,14 +142,15 @@ L.provide('OML.line_chart2', ["graph/abstract_chart", "#OML.abstract_chart", "gr
                 .call(yAxis);
     },
     
-    reduce_data: function(data) {
+    reduce_data: function(data, x_f, x_index_f) {
       // To much data, downsample
       var data2 = [];
+      var self = this;
       data.map(function(l) {
         var xcurr = -999999;
         var l2 = [];
         l.map(function(t) {
-            var x = Math.round(self.x(x_index(t)));
+            var x = Math.round(x_f(x_index_f(t)));
             if (x > xcurr) {
               l2.push(t);
               //xcurr = x + 1; // add a 'spare' pixel between consecutive points

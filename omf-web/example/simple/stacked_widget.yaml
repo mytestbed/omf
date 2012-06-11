@@ -1,18 +1,25 @@
 
-# Defines a widget which contains a stack of other widgets with one
-# shown and a menu to selct the shown one
+
+# Define a 'dashboard' consisting of two columns of widgets
 #
+
 widget:
   id: stacked
-  type: stacked
-  name: Generator
-  info: This widget shows the output measurements of a large generator.
-  wopts:
-    widgets: 
-      - line_chart
-      
-      - type: data/scatter_plot
-        wopts:
+  name: Stacked
+  toplevel: true
+  priority: 600
+  type: layout/two_column
+  layout: layout_33_66
+  left:  []
+  right:
+    - id: stacked
+      name: Generator
+      type: layout/stacked
+      info: This widget shows the output measurements of a large generator.
+      widgets: 
+        - line_chart
+        
+        - type: data/scatter_plot
           data_source: 
             name: generator
             dynamic: 1  # check once a second
@@ -32,10 +39,10 @@ widget:
             # x:
             # y:
           transition: 950
-
-      - type: data/table2
-        wopts:
+  
+        - type: data/table2
           data_source: 
             name: generator
             dynamic: 1  # check once a second
+
 

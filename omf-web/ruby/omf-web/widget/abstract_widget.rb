@@ -2,59 +2,23 @@
 require 'erector'
 
 module OMF::Web::Widget
-  
+      
   # Maintains the context for a particular code rendering within a specific session.
   #
   class AbstractWidget < Erector::Widget
-    
-    @@widgets = {}
-    
-    def self.register_widget(wdescr)
-      #wdescr = deep_symbolize_keys(wdescr)
-      puts "|||>>> #{wdescr.inspect}"
-      id = (wdescr[:id] ||= "w#{wdescr.object_id}").to_sym
-      if (@@widgets.key? id)
-        raise "Repeated try to register widget '#{id}'"
-      end  
-      @@widgets[id] = wdescr
-    end
-    
-    def self.registered_widgets()
-      @@widgets
-    end
-    
-    def self.create_widget(name)
-      if name.is_a? Array
-        require 'omf-web/widget/stacked_widget'
-        return OMF::Web::Widget::StackedWidget.new(name)        
-      end
-      if name.is_a? Hash
-        wdescr = name
-      else
-        unless wdescr = @@widgets[name.to_sym]
-          raise "Can't create unknown widget '#{name}':(#{@@widgets.keys.inspect})"
-        end
-      end
-      case type = (wdescr[:type] || wdescr['type']).to_s
-      when /^data/
-        require 'omf-web/widget/graph/graph_widget'
-        OMF::Web::Widget::Graph::GraphWidget.new(wdescr)
-      when 'stacked'
-        require 'omf-web/widget/stacked_widget'
-        return OMF::Web::Widget::StackedWidget.new(wdescr)        
-      else
-        raise "Unknown widget type '#{type}'"
-      end
-    end
-    
+
     attr_reader :widget_id, :widget_type, :name, :opts
     
     def initialize(opts = {})
       super
       @opts = opts
       @widget_id = "w#{object_id}"
-      @name = opts[:name] || 'Unknown: Set opts[:name]'
-      @widget_type = opts[:type] || 'unknown'
+      unless @name = opts[:name]
+        @name = opts[:id] ? opts[:id].to_s.capitalize : 'Unknown: Set opts[:name]' 
+      end 
+      unless @widget_type = opts[:type]
+        raise "Missing 'type' in '#{opts.inspect}'"
+      end 
       OMF::Web::SessionStore[@widget_id, :w] = self
     end
     
@@ -72,8 +36,17 @@ module OMF::Web::Widget
       # Nothing
     end
     
+    def layout?
+      return false
+    end
+    
+    def collect_data_sources(ds_set)
+      raise "Should have been implemented"
+    end
+    
+    
         
   end # class
-  
+    
 
 end # OMF::Web::Widget

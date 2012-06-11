@@ -1,0 +1,14 @@
+
+
+# Define a 'dashboard' consisting of two columns of widgets
+#
+
+widget:
+  id: flow
+  name: Flow Layout
+  top_level: true
+  priority: 400
+  type: layout/flow
+  widgets:  [generator_table, line_chart, pie]
+
+

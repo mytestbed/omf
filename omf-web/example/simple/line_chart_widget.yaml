@@ -12,27 +12,26 @@ widget:
   id: line_chart
   name: Line Chart
   type: data/line_chart2
-  wopts:
-    data_source: 
-      name: generator
-      dynamic: 1  # check once a second
-    mapping:
-      x_axis: t
-      y_axis: 
-        property: x # cos
-        min: -10.5
-        max: 10.5
-      group_by: device
-    axis:
-      x:
-        ticks:
-          type: date
-          format: %I:%M
-          transition: 0
-        legend: Time (sec)
-      y:
-        legend: Voltage (V)
-    margin: 
-      left: 100
+  data_source: 
+    name: generator
+    dynamic: 1  # check once a second
+  mapping:
+    x_axis: t
+    y_axis: 
+      property: x # cos
+      min: -10.5
+      max: 10.5
+    group_by: device
+  axis:
+    x:
+      ticks:
+        type: date
+        format: %I:%M
+        transition: 0
+      legend: Time (sec)
+    y:
+      legend: Voltage (V)
+  margin: 
+    left: 100
 
       

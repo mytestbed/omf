@@ -4,7 +4,7 @@ L.provide('OML.table2', ["graph/abstract_widget", "#OML.abstract_widget", [
 
                                 '/resource/vendor/jquery/jquery-ui.custom.min.js',
                                 '/resource/vendor/jquery/jquery.event.drag.js',
-                              ], [
+                             // ], [
 
                                 '/resource/vendor/slickgrid/slick.core.js',
                                 '/resource/vendor/slickgrid/slick.formatters.js',

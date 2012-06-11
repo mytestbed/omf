@@ -11,28 +11,26 @@
 widget:
   id: scatter_plot
   name: Scatter Plot
-  type: data
-  wopts:
-    viz_type: scatter_plot
-    data_source: 
-      name: generator
-      dynamic: 1  # check once a second
-    mapping:
-      x_axis: 
-        property: x
-        min: -10.5
-        max: 10.5
-      y_axis: 
-        property: y
-        min: -10.5
-        max: 10.5
-      fill_color: 
-        property: device
-        color: category10()
-    # axis:
-      # x:
-      # y:
-    transition: 950
+  type: data/scatter_plot
+  data_source: 
+    name: generator
+    dynamic: 1  # check once a second
+  mapping:
+    x_axis: 
+      property: x
+      min: -10.5
+      max: 10.5
+    y_axis: 
+      property: y
+      min: -10.5
+      max: 10.5
+    fill_color: 
+      property: device
+      color: category10()
+  # axis:
+    # x:
+    # y:
+  transition: 950
 
 
       

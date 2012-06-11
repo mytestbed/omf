@@ -6,15 +6,13 @@
 #
 widget:
   id: pie
-  type: data
   name: Pie Chart
-  wopts:
-    viz_type: pie_chart
-    data_sources: animals
-    mapping :
-      value: count
-      fill_color: category10()
-      label: name
-    margin:
-      #:left => 100
+  type: data/pie_chart
+  data_sources: animals
+  mapping :
+    value: count
+    fill_color: category10()
+    label: name
+  margin:
+    #:left => 100
       

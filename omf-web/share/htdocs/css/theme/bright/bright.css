@@ -232,15 +232,15 @@ ol.widget_tools_menu li.current a {
   border: 1px solid #F47030;  
 }
 
-ol.widget_tools_menu li.line_chart2 a {
+ol.widget_tools_menu li.data_line_chart2 a {
   background: url(/resource/image/graph/line_chart.png) 0px -50px no-repeat;  
 }
 
-ol.widget_tools_menu li.scatter_plot a {
+ol.widget_tools_menu li.data_scatter_plot a {
   background: url(/resource/image/graph/scatter_plot.png) 0px 0px no-repeat;  
 }
 
-ol.widget_tools_menu li.table2 a {
+ol.widget_tools_menu li.data_table2 a {
   background: url(/resource/image/graph/table.png) 0px -50px no-repeat;  
 }
 
