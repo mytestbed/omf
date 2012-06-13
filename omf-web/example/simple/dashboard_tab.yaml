@@ -9,7 +9,7 @@ widget:
   top_level: true
   priority: 999
   type: layout/two_columns/66_33
-  left:  [line_chart, [scatter_plot, generator_table]]
+  left:  [[scatter_plot, line_chart, generator_table], mobile_network]
   right: 
     - walk
     
