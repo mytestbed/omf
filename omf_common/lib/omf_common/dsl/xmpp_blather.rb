@@ -1,7 +1,8 @@
 require 'blather/client/dsl'
 require 'omf_common/core_ext/blather/dsl'
 require 'omf_common/core_ext/blather/dsl/pubsub'
-require 'omf_common/core_ext/blather/stanza/registration'
+require 'omf_common/core_ext/blather/stream/features'
+require 'omf_common/core_ext/blather/stream/features/register'
 
 module OmfCommon
   module DSL
