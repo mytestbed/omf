@@ -4,9 +4,7 @@
 
 Install a XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
 
-Create two users in the XMPP server, one for resource controller side, one for client side. *This step is required because of the lack of in-band registration support (XEP-0077) in the XMPP library, we will add the support in the final release.*
-
-For this tutorial, we created two users: alpha and bravo, with both passwords set to 'pw'
+Enable in-band registration support (XEP-0077) on the XMPP server if you do not want to automatically create the users by the time of connection.
 
 Now we need to nstall omf\_rc pre-release gems
 
