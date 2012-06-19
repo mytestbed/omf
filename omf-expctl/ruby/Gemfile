@@ -1,7 +1,9 @@
 # list all required gems here
 # dependencies are added automatically
 # optionally specify gem version using "-v"
+# don't remove the empty line at the end of this file
 
 rdp-rb-readline -v 0.2.0.1
 activesupport -v 3.0.0
 gratr -v 0.4.3
+oml4r --pre

@@ -29,10 +29,7 @@
 #
 
 require 'omf-common/mobject'
-
-# OML4R should be provided in its own GEM - fix the following if that happens
-#require 'oml4r'
-require 'omf-expctl/oml/oml4r'
+require 'oml4r'
 
 module OMF; module EC; module OML; end end end
 
@@ -49,11 +46,11 @@ module OMF::EC::OML
       use_oml = false
       if omlURL = OConfig[:ec_config][:omluri]
         use_oml = true
-        OML4R::Stream.create(:default, omlURL)
+        OML4R::Channel.create(:default, omlURL)
 	
-	# Send the Stats messages to a system (domain) wide database
-	domain = OConfig[:ec_config][:domain]
-	TestbedStatsMP.stream :default, "system_#{domain}"
+        # Send the Stats messages to a system (domain) wide database
+        domain = OConfig[:ec_config][:domain]
+        TestbedStatsMP.channel :default, "system_#{domain}"
       end
       if use_oml
         OML4R::init [], :domain => Experiment.ID,

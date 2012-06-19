@@ -1,7 +1,5 @@
 require 'rubygems'
-# OML4R should be provided in its own GEM - fix the following if that happens
-#require 'oml4r'
-require 'omf-expctl/oml/oml4r'
+require 'oml4r'
 require 'log4r/outputter/outputter'
 
 module OMF; module EC; module OML; end end end
