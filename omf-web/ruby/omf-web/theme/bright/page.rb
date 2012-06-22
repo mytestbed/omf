@@ -19,7 +19,8 @@ module OMF::Web::Theme
         current.addClass('current');
         current.siblings().removeClass('current');
          
-        OML.widgets[widget_id].resize().update();
+        var widget = OML.widgets[widget_id];
+        if (widget) widget.resize().update();
       };
     }
        

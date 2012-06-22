@@ -292,6 +292,58 @@ div.column .widget_container {
   margin-bottom: 20px;
 }
 
+/* Text widget */
+.widget_body .text {
+  font-size: 1.077em;
+  line-height: 18px;
+  text-rendering: auto;
+  font-family: Arial, Helmet, Freesans, sans-serif;
+  color: #333;
+}
+
+.widget_body .text h1 {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-top: 0.5em;
+  margin-bottom: 1em;  
+}
+
+.widget_body .text h2 {
+  font-size: 1.1em;  
+  font-weight: bold;
+  margin-bottom: 1em;  
+}
+
+.widget_body .text h3 {
+  font-size: 1.1em;  
+  font-style: italic;
+  margin-bottom: 1em;  
+}
+
+
+.widget_body .text p,
+.widget_body .text .maruku-equation {  
+  margin-bottom: 18px;
+}
+
+
+
+.widget_body .text .embedded {  
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* Center embedded widget */
+.widget_body .text .embedded div {
+  display: inline-block;
+}
+
+.widget_body .text .embedded .caption {
+  font-size: 0.9em;
+  margin-top: 14px;
+  display: block;
+}
+
 /****** FLASH ******/
 
 .flash, .flash_notice, .flash_alert {

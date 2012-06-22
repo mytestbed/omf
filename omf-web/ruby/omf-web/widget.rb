@@ -73,6 +73,12 @@ module OMF::Web::Widget
       when /^layout/
         require 'omf-web/widget/layout'
         return OMF::Web::Widget::Layout.create_layout_widget(type, wdescr)        
+      when /^text/
+        require 'omf-web/widget/text/text_widget'
+        return OMF::Web::Widget::TextWidget.create_text_widget(type, wdescr)        
+      when /^code/
+        require 'omf-web/widget/code_widget'
+        return OMF::Web::Widget::CodeWidget.create_code_widget(type, wdescr)        
       else
         raise "Unknown widget type '#{type}' (#{wdescr.inspect})"
       end

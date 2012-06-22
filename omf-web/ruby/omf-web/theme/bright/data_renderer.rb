@@ -9,22 +9,7 @@ module OMF::Web::Theme
       @base_id = widget.dom_id
       @js_class = opts[:js_class]
       @js_url = opts[:js_url]
-
-      # opts[:js_url] = "graph/#{vizType}.js"
-      # opts[:js_class] = "OML.#{vizType}"
-
-      # @js_class = @widget_type = opts[:js_class]
-      # @js_url = opts[:js_url]
-# 
-      # @base_id = "w#{object_id.abs}"
-      # @base_el = "\##{@base_id}"
-      # @wopts['base_el'] = @base_el
-# 
-      # @js_var_name = "oml_#{object_id.abs}"
-
-
       @wopts = opts.dup
-      
     end    
 
     def content()

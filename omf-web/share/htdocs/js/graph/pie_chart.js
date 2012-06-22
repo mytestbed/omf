@@ -54,7 +54,8 @@ var o = OML;
           .data(d3.layout.pie().value(m.value))
         .enter().append("g")
           .attr("class", "arc")
-          .attr("transform", "translate(" + (r + ca.x) + "," + (r + ca.ty) + ")");          
+          //.attr("transform", "translate(" + (r + ca.x) + "," + (r + ca.ty) + ")");          
+          .attr("transform", "translate(" + (w / 2 + ca.x) + "," + (h / 2 + ca.ty) + ")");          
       
       arcs.append("path")
           .attr("fill", function(d, i) { 

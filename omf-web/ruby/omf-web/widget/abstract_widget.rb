@@ -40,6 +40,10 @@ module OMF::Web::Widget
       return false
     end
     
+    def title
+      @opts[:title]
+    end
+    
     def collect_data_sources(ds_set)
       raise "Should have been implemented"
     end

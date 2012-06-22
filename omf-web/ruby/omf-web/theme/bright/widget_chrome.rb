@@ -29,7 +29,7 @@ module OMF::Web::Theme
 
     def render_widget_header(widget)
       div :class => :widget_header do
-        span widget.name, :class => :widget_title
+        span widget.title || widget.name, :class => :widget_title
         render_tools_menu
       end
     end
