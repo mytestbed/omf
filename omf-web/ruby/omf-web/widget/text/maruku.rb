@@ -23,6 +23,8 @@ module OMF::Web::Widget::Text
     end
     
     class WidgetElement
+      attr_reader :widget
+      
       def initialize(wdescr)
         @wdescr = wdescr
         @widget = OMF::Web::Widget.create_widget(wdescr)
@@ -62,7 +64,9 @@ module OMF::Web::Widget::Text
         descr = YAML::load(lines.join("\n"))
         descr = OMF::Web::deep_symbolize_keys(descr)
         if (wdescr = descr[:widget])
-          context << WidgetElement.new(wdescr)
+          wel = WidgetElement.new(wdescr)
+          context << wel
+          (doc.attributes[:widgets] ||= []) << wel.widget
         else
           raise "Unknown embeddable '#{descr.inspect}'"
         end

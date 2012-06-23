@@ -15,13 +15,13 @@ module OMF::Web::Widget
     def initialize(opts)
       opts = opts.dup # not sure why we may need to this. Is this hash used anywhere else?
       super opts      
-      @widgets = []
       
       unless (source = opts[:source])
         raise "Missing 'source' option in '#{opts.describe}'"
       end      
       @content = OMF::Web::Widget::Text::Maruku.load_content(source)
       @opts[:title] = @content.attributes[:title] || opts[:title]
+      @widgets = @content.attributes[:widgets] || []
     end
     
     def content()
