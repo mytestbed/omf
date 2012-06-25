@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu1) precise; urgency=low
+
+  * renamed root element in pubsub node
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 21 Jun 2012 18:51:57 +1000
+
 omf-resctl-5.4 (5.4-ubuntu7) oneiric; urgency=low
 
   * fixed typo 

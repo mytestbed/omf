@@ -1,3 +1,9 @@
+omf-expctl-5.4 (5.4.2-ubuntu1) precise; urgency=low
+
+  * renamed root element in pubsub node
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 21 Jun 2012 18:50:50 +1000
+
 omf-expctl-5.4 (5.4-ubuntu6) oneiric; urgency=low
 
   * follow up on #478

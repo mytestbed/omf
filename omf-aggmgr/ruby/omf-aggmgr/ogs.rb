@@ -61,6 +61,7 @@ include WEBrick
 OMF_VERSION = OMF::Common::VERSION(__FILE__)
 OMF_MM_VERSION = OMF::Common::MM_VERSION()
 OMF_VERSION_STRING = "OMF Aggregate Manager #{OMF_VERSION}"
+ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr-#{OMF_MM_VERSION}", "/etc/omf-aggmgr-#{OMF_MM_VERSION}"]
 DEF_CONFIG_FILE = 'omf-aggmgr.yaml'
@@ -198,7 +199,7 @@ def run(params)
       OMF::Services::XmppEndpoint.sender_id = xmpp_params[:user]
       OMF::Services::XmppEndpoint.connection=xmpp_connection
       OMF::Services::XmppEndpoint.pubsub_selector { |opts|
-        "/OMF/system"
+        "/#{ROOT}/system"
       }
 
       begin

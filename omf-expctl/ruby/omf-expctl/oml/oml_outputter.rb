@@ -31,7 +31,7 @@ module OMF::EC::OML
 #    stream :logging
 
     param :logger
-    param :level, :type => :long
+    param :level, :type => :int32
     param :level_name
     param :data
     param :tracer

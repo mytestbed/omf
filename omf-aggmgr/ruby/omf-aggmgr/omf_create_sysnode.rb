@@ -23,6 +23,8 @@
 # THE SOFTWARE.
 
 require "omf-common/communicator/xmpp/omfXMPPServices"
+require 'omf-common/omfVersion'
+ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 #Jabber::debug = true
 
@@ -48,8 +50,8 @@ class Node
   end
 end
 
-OMF = Node.new("/OMF")
-SYSTEM = OMF + "system"
+ROOTNODE = Node.new("/#{ROOT}")
+SYSTEM = ROOTNODE + "system"
 
 # ------- SUPPORTING FUNCTIONS -------
 
@@ -134,9 +136,9 @@ do |args|
   rmnode(args[0])
 end
 
-# Remove all nodes under the given one.  i.e. rmunder("/OMF/system")
-# will delete "/OMF/system/omf.nicta.node1",
-# "/OMF/system/omf.nicta.node2", ... But NOT "/OMF/system" iteself.
+# Remove all nodes under the given one.  i.e. rmunder("/#{ROOT}/system")
+# will delete "/#{ROOT}/system/omf.nicta.node1",
+# "/#{ROOT}/system/omf.nicta.node2", ... But NOT "/#{ROOT}/system" iteself.
 command("rmunder <prefix> -- delete all nodes whose names start with <prefix> (only if owner!)")\
 do |args|
   prefix = args[0]
@@ -144,9 +146,9 @@ do |args|
   nodes.each { |n| puts "Deleting node '#{n}':  #{if rmnode(n) then "success" else "failure" end}" }
 end
 
-command("mksys -- create the system nodes /OMF and /OMF/system")\
+command("mksys -- create the system nodes /#{ROOT} and /#{ROOT}/system")\
 do |args|
-  [OMF, SYSTEM].each do |n|
+  [ROOTNODE, SYSTEM].each do |n|
     begin
       mknode(n)
     rescue Exception => e
@@ -159,19 +161,19 @@ command("mkslice <name> [resource*] -- create a slice node and nodes for the nam
 do |args|
   slice = args[0]
   resources = args[1..-1]
-  mknode(OMF + slice)
-  mknode(OMF + slice + "resources")
-  resources.each { |r| mknode(OMF + slice + "resources" + r) }
+  mknode(ROOTNODE + slice)
+  mknode(ROOTNODE + slice + "resources")
+  resources.each { |r| mknode(ROOTNODE + slice + "resources" + r) }
 end
 
 command("sliceadd <slice> [<resource>*] -- add a (list of) resource(s) to a <slice>")\
 do |args|
   slice = args[0]
   resources = args[1..-1]
-  resources.each { |r| mknode(OMF + slice + "resources" + r) }
+  resources.each { |r| mknode(ROOTNODE + slice + "resources" + r) }
 end
 
-command("resourceadd [<resource>*] -- add a (list of) resource(s) to the system nodes (under /OMF/system)")\
+command("resourceadd [<resource>*] -- add a (list of) resource(s) to the system nodes (under /#{ROOT}/system)")\
 do |args|
   args.each { |r| mknode(SYSTEM + r) }
 end

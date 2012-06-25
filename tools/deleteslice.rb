@@ -2,6 +2,8 @@
 
 require 'omf-common/communicator/omfPubSubMessage.rb'
 require "pubsubTester"
+require 'omf-common/omfVersion'
+ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 @slice = "omf.nicta.slice1"
 @tester = PubSubTester.new("omf@norbit.npc.nicta.com.au", "omf", "norbit.npc.nicta.com.au", "norbit.npc.nicta.com.au", true)
@@ -10,10 +12,10 @@ require "pubsubTester"
 def delete(hrn, sliver)
   msg = @tester.newcmd(:cmdType => "DELETE_SLIVER", :target => "#{hrn}", :slicename => "#{@slice}", :slivername => "#{sliver}", 
   :slivertype => 'openvz')
-  @tester.send("/OMF/system/#{hrn}", msg)
+  @tester.send("/#{ROOT}/system/#{hrn}", msg)
 
   msg = @tester.newcmd(:cmdType => "NOOP", :target => "#{hrn}")
-  @tester.send("/OMF/system/#{hrn}", msg)
+  @tester.send("/#{ROOT}/system/#{hrn}", msg)
 end
 
 delete("omf.nicta.node30", "omf.nicta.node30_1")

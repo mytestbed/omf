@@ -29,6 +29,7 @@ require 'omf-common/mobject'
 require 'omf-common/communicator/omfProtocol'
 require 'omf-common/communicator/xmpp/xmpp'
 require 'omf-common/servicecall'
+require 'omf-common/omfVersion'
 
 class AggmgrServer < MObject
 
@@ -254,7 +255,7 @@ class XmppAggmgrServer < AggmgrServer
 
   include OmfProtocol
   include OMF::ServiceCall::XMPP
-  SLICE_PREFIX = "/OMF"
+  SLICE_PREFIX = "/OMF_#{OMF::Common::MM_VERSION()}"
   SLICE_SUFFIX = "resources"
 
   attr_reader :domains, :connection

@@ -519,7 +519,6 @@ class OMF::EC::Node < MObject
        ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
       return
     else
-      ECCommunicator.instance.send_reset(@nodeID)
       changed
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)

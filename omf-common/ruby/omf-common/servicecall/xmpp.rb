@@ -31,6 +31,8 @@ require 'omf-common/servicecall/endpoint'
 
 require 'omf-common/communicator/xmpp/xmpp'
 require 'omf-common/communicator/xmpp/omfPubSubTransport'
+require 'omf-common/omfVersion'
+ROOTNODE = "OMF_#{OMF::Common::MM_VERSION()}"
 
 module OMF
   module Services
@@ -118,7 +120,7 @@ module OMF
         opts = args.find { |a| a.kind_of? Hash }
 #puts ">>>>> TDB - XMPP - send_request - 1 - @@selector: '#{@@selector}'"
 #puts ">>>>> TDB - XMPP - send_request - 1 - opts: '#{opts}'"
-        pubsub_node = !@@selector.nil? ? @@selector.call(opts) : "/OMF/system"
+        pubsub_node = !@@selector.nil? ? @@selector.call(opts) : "/#{ROOTNODE}/system"
 #puts ">>>>> TDB - XMPP - send_request - psnode: '#{pubsub_node}'"
 
         if args.length == 1 and args[0].kind_of? Hash

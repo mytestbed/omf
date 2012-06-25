@@ -26,9 +26,9 @@
 # This file defines the SliceManager class.  This class implements a
 # service to create and delete slices.  When a slice is created,
 # several pubsub nodes are created on the XMPP server, under
-# "/OMF/<slice_name>".  Resources can then be associated to a slice,
+# "/OMF_x.x/<slice_name>".  Resources can then be associated to a slice,
 # which creates individual pubsub nodes for each resource under
-# "/OMF/<slice_name>/resources/<hrn>".  Here, <hrn> is the Human
+# "/OMF_x.x/<slice_name>/resources/<hrn>".  Here, <hrn> is the Human
 # Readable Name of the resource, and <slice_name> is the name of the
 # slice.
 #
@@ -40,6 +40,8 @@ require 'dm-migrations'
 require 'omf-common/servicecall'
 require 'omf-aggmgr/ogs/serviceMounter'
 require 'omf-aggmgr/ogs/gridService'
+require 'omf-common/omfVersion'
+ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 DataMapper::Logger.new($stdout, :debug)
 DataMapper.setup(:default, 'mysql://localhost/dmtest')
@@ -73,7 +75,7 @@ class SliceManagerService < GridService
   s_param :sliceName, 'sliceName', 'name of the new slice'
   s_param :pubsub_domain, 'pubsubDomain', 'the XMPP pubsub domain to create it on'
   service 'createSlice' do |sliceName, pubsub_domain|
-    # Create /OMF/<sliceName> and /OMF/<sliceName>/resources on <pubsub_domain>
+    # Create /OMF_x.x/<sliceName> and /OMF_x.x/<sliceName>/resources on <pubsub_domain>
     if pubsub_domain.nil?
       MObject.error("SliceManager", "createSlice:  pubsub_domain is empty")
       raise "SliceManager.createSlice: pubsub_domain is missing"
@@ -113,7 +115,7 @@ class SliceManagerService < GridService
   s_param :resources, 'resources', 'comma-separated list of resources to associate with the slice'
   s_param :pubsub_domain, 'pubsub_domain', 'the XMPP pubsub domain that hosts "sliceName"'
   service 'associateResourcesToSlice' do |sliceName, resources, pubsub_domain|
-    # For each resource, create /OMF/<sliceName>/resources/<hrn>,
+    # For each resource, create /OMF_x.x/<sliceName>/resources/<hrn>,
     # where <hrn> is the human readable name of the resource.
     MObject.debug "associateResourcesToSlice"
     if pubsub_domain.nil?
@@ -148,7 +150,7 @@ class SliceManagerService < GridService
   s_param :resources, 'resources', 'list of resources to deassociate from the slice'
   s_param :pubsub_domain, 'pubsub_domain', 'the XMPP pubsub domain that hosts "sliceName"'
   service 'deassociateResourcesFromSlice' do |sliceName, resources, pubsub_domain|
-    # For each resource, delete /OMF/<sliceName>/resources/<hrn>,
+    # For each resource, delete /OMF_x.x/<sliceName>/resources/<hrn>,
     # where <hrn> is the human readable name of the resource.
     MObject.debug "sliceManager", "deassociateResourcesFromSlice #{sliceName}"
     resource_list = resources.split(',')
@@ -340,7 +342,7 @@ class SliceManagerService < GridService
   end
 
   def self.slice_node(slice)
-    "/OMF/#{slice}"
+    "/#{ROOT}/#{slice}"
   end
 
   def self.resources_node(slice)

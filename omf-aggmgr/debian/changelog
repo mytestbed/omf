@@ -1,3 +1,9 @@
+omf-aggmgr-5.4 (5.4.2-ubuntu1) precise; urgency=low
+
+  * renamed root element in pubsub node
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 21 Jun 2012 18:49:32 +1000
+
 omf-aggmgr-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
   * 5.4.1 release 

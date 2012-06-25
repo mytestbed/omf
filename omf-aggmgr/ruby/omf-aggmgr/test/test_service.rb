@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'omf-common/servicecall'
+require 'omf-common/omfVersion'
+ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 #Jabber::debug = true
 
@@ -23,11 +25,11 @@ def run
     end
 
     if slice.nil?
-      "/OMF/system"
+      "/#{ROOT}/system"
     elsif hrn.nil?
-      "/OMF/#{slice}"
+      "/#{ROOT}/#{slice}"
     else
-      "/OMF/#{slice}/#{hrn}"
+      "/#{ROOT}/#{slice}/#{hrn}"
     end
   }
 
