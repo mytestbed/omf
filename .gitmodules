@@ -1,3 +1,6 @@
 [submodule "omf_tools"]
 	path = omf_tools
 	url = https://github.com/mytestbed/omf_tools.git
+[submodule "omf_web"]
+	path = omf_web
+	url = https://github.com/mytestbed/omf_web.git
