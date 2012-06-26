@@ -4,7 +4,9 @@
 
 Install a XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
 
-Enable in-band registration support (XEP-0077) on the XMPP server if you do not want to automatically create the users by the time of connection.
+Enable in-band registration support (XEP-0077) on the XMPP server if you want to automatically create the users by the time of connection.
+
+If your XMPP server has anonymous authentication enabled, you might not have permissions to create pubsub nodes when connected anonymously, to avoid the trouble, please turn off the anonymous authentication mode.
 
 Now we need to nstall omf\_rc pre-release gems
 
