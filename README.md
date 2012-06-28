@@ -38,6 +38,21 @@ _We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are 
 
 [RVM (ruby version manageer)](https://rvm.io/) is strongly recommended if your OS release doesn't provide these ruby versions.
 
+You could also build and install packages using the latest source from git repository:
+
+    git clone https://github.com/mytestbed/omf.git
+
+Then inside the repository directory, type:
+
+    rake
+
+This will install all the necessary gems, build omf gems, and run the test files.
+
+_Some components are linked in omf main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:_
+
+    git submodule init
+    git submodule update
+
 ## Extend OMF resource controller system
 
 One of the biggest changes we are trying to make in version 6 resource controller system is to focus on the core features, and instead of trying to implement all the functionalities and hardware support, we want to provide an abstract entity acts as the proxy, processing the resource related messages based on the [new messaging protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions), and decides what type of the actions to perform according to the operation defined by the message and constrained by the proxy's capabilities which could be easily defined and extended by the resource providers.
@@ -86,6 +101,9 @@ Gem name: *omf\_tools*
 
 * Some XMPP testing scripts migrated from 5.4 release
 
+### Web
+
+### SFA
 
 ## License & Copyright
 
