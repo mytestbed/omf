@@ -102,7 +102,7 @@ For more information regarding these DSL methods, go to the section [Full DSL me
 
     # before_ready hook will be called during the initialisation of the resource instance
     #
-    register_hook :before_ready do |resource|
+    hook :before_ready do |resource|
       resource.metadata.max_power ||= 676 # Set the engine maximum power to 676 bhp
       resource.metadata.provider ||= 'Honda' # Engine provider defaults to Honda
       resource.metadata.max_rpm ||= 12500 # Maximum RPM of the engine is 12,500
@@ -125,7 +125,7 @@ For more information regarding these DSL methods, go to the section [Full DSL me
 
     # before_release hook will be called before the resource is fully released, shut down the engine in this case.
     #
-    register_hook :before_release do |resource|
+    hook :before_release do |resource|
       # Reduce throttle to 0%
       resource.metadata.throttle = 0.0
       # Reduce RPM to 0
@@ -133,7 +133,7 @@ For more information regarding these DSL methods, go to the section [Full DSL me
     end
 
     # We want RPM to be availabe for requesting
-    register_request :rpm do |resource|
+    request :rpm do |resource|
       if resource.metadata.rpm > resource.metadata.max_rpm
         raise 'Engine blown up'
       else
@@ -143,13 +143,13 @@ For more information regarding these DSL methods, go to the section [Full DSL me
 
     # We want some default metadata to be availabe for requesting
     %w(provider max_power max_rpm).each do |attr|
-      register_request attr do |resource|
+      request attr do |resource|
         resource.metadata[attr]
       end
     end
 
     # We want throttle to be availabe for configuring (i.e. changing throttle)
-    register_configure :throttle do |resource, value|
+    configure :throttle do |resource, value|
       resource.metadata.throttle = value.to_f / 100.0
     end
 
@@ -312,7 +312,7 @@ Take this engine test example, if we have more than one type of engine needs to 
 
       register_utility :throttle
 
-      register_configure :throttle do |resource, value|
+      configure :throttle do |resource, value|
         resource.metadata.throttle = value.to_f / 100.0
       end
     end
@@ -325,7 +325,7 @@ You could also overwrite a property definition provided by the utility, by regis
 
 ## Full DSL methods list
 
-In the previous example, we use method register\_proxy to register resource proxy, register\_request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
+In the previous example, we use method register\_proxy to register resource proxy, request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
 
     include OmfRc::ResourceProxyDSL
 

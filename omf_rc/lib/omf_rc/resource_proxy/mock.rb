@@ -5,11 +5,11 @@ module OmfRc::ResourceProxy::Mock
 
   utility :mock
 
-  register_hook :before_ready do |resource|
+  hook :before_ready do |resource|
     logger.info "#{resource.uid} is now ready"
   end
 
-  register_hook :before_release do |resource|
+  hook :before_release do |resource|
     logger.info "#{resource.uid} is to be released"
   end
 end

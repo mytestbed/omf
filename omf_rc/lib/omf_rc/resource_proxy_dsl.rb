@@ -44,15 +44,15 @@ module OmfRc::ResourceProxyDSL
     #
     #    register_proxy :node
     #
-    #    register_hook :before_ready do |resource|
+    #    hook :before_ready do |resource|
     #      logger.info "#{resource.uid} is now ready"
     #    end
     #
-    #    register_hook :before_release do |resource|
+    #    hook :before_release do |resource|
     #      logger.info "#{resource.uid} is now released"
     #    end
     #   end
-    def register_hook(name, &register_block)
+    def hook(name, &register_block)
       define_method(name) do
         register_block.call(self) if register_block
       end
@@ -115,20 +115,20 @@ module OmfRc::ResourceProxyDSL
     #   module OmfRc::Util::Iw
     #     include OmfRc::ResourceProxyDSL
     #
-    #     register_configure :freq do |resource, value|
+    #     configure :freq do |resource, value|
     #       Command.execute("iw #{resource.hrn} set freq #{value}")
     #     end
     #
     #     # or use iterator to define multiple properties
     #     %w(freq channel type).each do |p|
-    #       register_configure p do |resource, value|
+    #       configure p do |resource, value|
     #         Command.execute("iw #{resource.hrn} set freq #{value}")
     #       end
     #     end
     #
     #     # or we can try to parse iw's help page to extract valid properties and then automatically register them
     #     Command.execute("iw help").chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
-    #       register_configure p do |resource, value|
+    #       configure p do |resource, value|
     #         Command.execute("iw #{resource.hrn} set #{p} #{value}")
     #       end
     #     end
@@ -136,7 +136,7 @@ module OmfRc::ResourceProxyDSL
     #
     # @see OmfCommon::Command.execute
     #
-    def register_configure(name, &register_block)
+    def configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
       register_block.call(self, *args, block) if register_block
       end
@@ -144,13 +144,13 @@ module OmfRc::ResourceProxyDSL
 
     # Register a property that could be requested
     #
-    # @param (see #register_configure)
+    # @param (see #configure)
     # @yieldparam [AbstractResource] resource pass the current resource object to the block
     # @example suppose we define a utility for iw command interaction
     #   module OmfRc::Util::Iw
     #     include OmfRc::ResourceProxyDSL
     #
-    #     register_request :freq do |resource|
+    #     request :freq do |resource|
     #       Command.execute("iw #{resource.hrn} link").match(/^(freq):\W*(.+)$/) && $2
     #     end
     #
@@ -161,7 +161,7 @@ module OmfRc::ResourceProxyDSL
     #       end
     #     end
     #   end
-    def register_request(name, &register_block)
+    def request(name, &register_block)
       define_method("request_#{name.to_s}") do |*args|
         register_block.call(self) if register_block
       end

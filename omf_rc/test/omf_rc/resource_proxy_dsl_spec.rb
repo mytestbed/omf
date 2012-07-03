@@ -6,8 +6,8 @@ describe OmfRc::ResourceProxyDSL do
     module OmfRc::Util::MockUtility
       include OmfRc::ResourceProxyDSL
       register_utility :mock_utility
-      register_configure :alpha
-      register_request :alpha
+      configure :alpha
+      request :alpha
     end
 
     module OmfRc::ResourceProxy::MockProxy
@@ -16,12 +16,12 @@ describe OmfRc::ResourceProxyDSL do
       register_proxy :mock_proxy
       utility :mock_utility
 
-      register_hook :before_ready do
+      hook :before_ready do
         "bob"
       end
-      register_hook :before_release
-      register_configure :bravo
-      register_request :bravo
+      hook :before_release
+      configure :bravo
+      request :bravo
     end
   end
 

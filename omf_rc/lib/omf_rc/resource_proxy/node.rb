@@ -3,15 +3,15 @@ module OmfRc::ResourceProxy::Node
 
   register_proxy :node
 
-  register_hook :before_ready do |resource|
+  hook :before_ready do |resource|
     logger.info "#{resource.uid} is now ready"
   end
 
-  register_hook :before_release do |resource|
+  hook :before_release do |resource|
     logger.info "#{resource.uid} is now released"
   end
 
-  register_request :proxies do
+  request :proxies do
     OmfRc::ResourceFactory.proxy_list
   end
 end

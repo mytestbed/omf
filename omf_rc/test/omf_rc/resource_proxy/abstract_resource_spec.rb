@@ -8,8 +8,8 @@ module OmfRc::ResourceProxy
     include OmfRc::ResourceProxyDSL
     register_proxy :node
 
-    register_request :name
-    register_configure :name
+    request :name
+    configure :name
   end
 
   module Interface

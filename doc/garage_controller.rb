@@ -25,7 +25,7 @@ module OmfRc::ResourceProxy::Engine
 
   # before_ready hook will be called during the initialisation of the resource instance
   #
-  register_hook :before_ready do |resource|
+  hook :before_ready do |resource|
     resource.metadata.max_power ||= 676 # Set the engine maximum power to 676 bhp
     resource.metadata.provider ||= 'Honda' # Engine provider defaults to Honda
     resource.metadata.max_rpm ||= 12500 # Maximum RPM of the engine is 12,500
@@ -48,7 +48,7 @@ module OmfRc::ResourceProxy::Engine
 
   # before_release hook will be called before the resource is fully released, shut down the engine in this case.
   #
-  register_hook :before_release do |resource|
+  hook :before_release do |resource|
     # Reduce throttle to 0%
     resource.metadata.throttle = 0.0
     # Reduce RPM to 0
@@ -56,7 +56,7 @@ module OmfRc::ResourceProxy::Engine
   end
 
   # We want RPM to be availabe for requesting
-  register_request :rpm do |resource|
+  request :rpm do |resource|
     if resource.metadata.rpm > resource.metadata.max_rpm
       raise 'Engine blown up'
     else
@@ -66,13 +66,13 @@ module OmfRc::ResourceProxy::Engine
 
   # We want some default metadata to be availabe for requesting
   %w(provider max_power max_rpm).each do |attr|
-    register_request attr do |resource|
+    request attr do |resource|
       resource.metadata[attr]
     end
   end
 
   # We want throttle to be availabe for configuring (i.e. changing throttle)
-  register_configure :throttle do |resource, value|
+  configure :throttle do |resource, value|
     resource.metadata.throttle = value.to_f / 100.0
   end
 end
