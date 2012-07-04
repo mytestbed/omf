@@ -1,5 +1,6 @@
 --title OMF
 --private
+--load yard_extension.rb
 omf_*/lib/**/*.rb
 -
 doc/RESOURCE_PROXY.md
