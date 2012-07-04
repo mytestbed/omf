@@ -53,13 +53,6 @@
       # (can be overwritten on the EC command line)
       :omluri: 'tcp:norbit.npc.nicta.com.au:3003'
 
-      # This should be the IP address of the local interface that is accessible 
-      # from the nodes. This address will be given to the nodes so they can 
-      # retrieve applications from the EC via HTTP.
-      :web:
-        :host: '10.0.0.200'
-        :resource_dir: ["../../omf-common/share/htdocs", "/usr/share/omf-common-5.4/share/htdocs"]
-
       :communicator:
       
         # set this to false if you want to disable signature checks and message signing
