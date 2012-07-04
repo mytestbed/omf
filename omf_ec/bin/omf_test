@@ -56,12 +56,12 @@ comm = OmfCommon::Comm.new(options[:dsl])
 host = nil
 
 # Create a resource of type mock
-create_msg = OmfCommon::Message.create { |v| v.property('type', 'mock') }.sign
+create_msg = OmfCommon::Message.create { |v| v.property('type', 'mock') }
 
 create_wifi_msg = OmfCommon::Message.create do |v|
   v.property('hrn', 'wlan0')
   v.property('type', 'wifi')
-end.sign
+end
 
 # A request message to be sent to mock
 request_mock_property = OmfCommon::Message.request do |v|
@@ -70,12 +70,12 @@ request_mock_property = OmfCommon::Message.request do |v|
   v.property('resource_proxy_list')
   v.property('resource_utility_list')
   v.property('bob')
-end.sign
+end
 
 request_wifi_property = OmfCommon::Message.request do |v|
   v.property('link')
   v.property('available_properties')
-end.sign
+end
 
 # A request message to be sent to node
 request_node_property = OmfCommon::Message.request do |v|
@@ -86,10 +86,10 @@ end
 # A configure message to be sent to mock
 configure_mock_property = OmfCommon::Message.configure do |v|
   v.property('hrn', 'human_readable_name')
-end.sign
+end
 
 # Simple release message
-release_message = OmfCommon::Message.release.sign
+release_message = OmfCommon::Message.release
 
 # For simplicity, use comm instance directly
 comm.when_ready do

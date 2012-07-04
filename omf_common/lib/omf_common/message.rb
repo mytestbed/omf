@@ -13,7 +13,7 @@ module OmfCommon
   #     message.property('memory', 2) do |p|
   #       p.element('unit', 'gb')
   #     end
-  #   end.sign
+  #   end
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
@@ -28,7 +28,7 @@ module OmfCommon
           xml.element('publish_to', args[0]) if operation == 'request'
           xml.element('inform_type', args[1]) if operation == 'inform'
           block.call(xml) if block
-          xml
+          xml.sign
         end
       end
 

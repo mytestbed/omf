@@ -59,32 +59,32 @@ comm.node_event do |e|
                            v.property('max_rpm')
                            v.property('provider')
                            v.property('max_power')
-                         end.sign,
+                         end,
                          host)
 
             # We will check engine's RPM every 1 second
             EM.add_periodic_timer(1) do
              comm.publish(engine_id,
-                          Message.request { |v| v.property('rpm') }.sign,
+                          Message.request { |v| v.property('rpm') },
                           host)
             end
 
             # Now we will apply 50% throttle to the engine
             comm.publish(engine_id,
-                        Message.configure { |v| v.property('throttle', '50') }.sign,
+                        Message.configure { |v| v.property('throttle', '50') },
                         host)
 
             # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
             EM.add_timer(5) do
              comm.publish(engine_id,
-                          Message.configure { |v| v.property('throttle', '0') }.sign,
+                          Message.configure { |v| v.property('throttle', '0') },
                           host)
             end
 
             # 20 seconds later, we will 'release' this engine, i.e. shut it down
             EM.add_timer(20) do
              comm.publish(engine_id,
-                          Message.release.sign,
+                          Message.release,
                           host)
             end
           end

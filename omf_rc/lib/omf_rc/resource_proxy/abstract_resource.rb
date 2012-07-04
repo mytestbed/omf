@@ -160,7 +160,7 @@ class OmfRc::ResourceProxy::AbstractResource
               inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'CREATED') do |i|
                 i.element('resource_id', new_uid)
                 i.element('resource_address', new_uid)
-              end.sign
+              end
               @comm.publish(end_result[:inform_to], inform_msg, host)
             end
           end
@@ -169,7 +169,7 @@ class OmfRc::ResourceProxy::AbstractResource
             end_result[:result].each_pair do |k, v|
               i.property(k, v)
             end
-          end.sign
+          end
           @comm.publish(end_result[:inform_to], inform_msg, host)
 
         when :configure
@@ -177,7 +177,7 @@ class OmfRc::ResourceProxy::AbstractResource
             end_result[:result].each_pair do |k, v|
               i.property(k, v)
             end
-          end.sign
+          end
           @comm.publish(end_result[:inform_to], inform_msg, host)
         when :release
           inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'RELEASED') do |i|
@@ -198,7 +198,7 @@ class OmfRc::ResourceProxy::AbstractResource
     dp.errback do |e|
       inform_msg = OmfCommon::Message.inform(e.context_id, 'FAILED') do |i|
         i.element("error_message", e.message)
-      end.sign
+      end
       @comm.publish(e.inform_to, inform_msg, host)
     end
 

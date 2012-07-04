@@ -19,7 +19,7 @@ describe OmfCommon::Message do
               end
             end
           end
-        end.sign
+        end
         message.valid?.must_equal true
       end
     end
@@ -32,12 +32,12 @@ describe OmfCommon::Message do
             p.element('max_value', 'test')
           end
         end
-      end.sign
+      end
       request.valid?.must_equal true
     end
 
     it "must return a release XML element without failing" do
-      release = Message.release.sign
+      release = Message.release
       release.valid?.must_equal true
     end
 
@@ -51,7 +51,7 @@ describe OmfCommon::Message do
             p.element('target', 'test')
           end
         end
-      end.sign
+      end
       inform.valid?.must_equal true
     end
   end
@@ -65,7 +65,7 @@ describe OmfCommon::Message do
           p.element('unit', 'mb')
           p.element('precision', '0')
         end
-      end.sign.to_xml
+      end.to_xml
 
       message = Message.parse(xml)
 
