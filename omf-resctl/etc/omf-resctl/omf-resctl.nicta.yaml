@@ -63,7 +63,7 @@
     :resizefs: false
     
     # driver to use for Atheros AR5*** cards
-    # valid options are madwifi, ath5k
+    # valid options are madwifi, ath5k, ath9k
     :ar5xxx_driver: ath5k
 
   # Mote settings
