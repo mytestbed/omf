@@ -310,8 +310,6 @@ Take this engine test example, if we have more than one type of engine needs to 
     module OmfRc::Util::Throttle
       include OmfRc::ResourceProxyDSL
 
-      register_utility :throttle
-
       configure :throttle do |resource, value|
         resource.metadata.throttle = value.to_f / 100.0
       end

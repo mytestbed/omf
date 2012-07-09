@@ -5,7 +5,6 @@ describe OmfRc::ResourceProxyDSL do
   before do
     module OmfRc::Util::MockUtility
       include OmfRc::ResourceProxyDSL
-      register_utility :mock_utility
       configure :alpha
       request :alpha
     end
@@ -16,9 +15,7 @@ describe OmfRc::ResourceProxyDSL do
       register_proxy :mock_proxy
       utility :mock_utility
 
-      hook :before_ready do
-        "bob"
-      end
+      hook :before_ready
       hook :before_release
       configure :bravo
       request :bravo
@@ -28,7 +25,6 @@ describe OmfRc::ResourceProxyDSL do
   describe "when included by modules to define resource proxy functionalities" do
     it "must be able to register the modules" do
       OmfRc::ResourceFactory.proxy_list.must_include :mock_proxy
-      OmfRc::ResourceFactory.utility_list.must_include :mock_utility
     end
 
     it "must be able to define methods" do

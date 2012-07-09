@@ -9,8 +9,6 @@ require 'omf_rc/resource_proxy/abstract_resource'
 class OmfRc::ResourceFactory
   # List of registered resource proxies
   @@proxy_list = []
-  # List of registered utilities
-  @@utility_list = []
 
   # By default, we use xmpp_blather dsl, which based on blather
   DEFAULT_OPTS = {
@@ -44,17 +42,7 @@ class OmfRc::ResourceFactory
 
     # Add a proxy to the list
     def register_proxy(proxy)
-      @@proxy_list << proxy
-    end
-
-    # Return the utility list
-    def utility_list
-      @@utility_list
-    end
-
-    # Add a utility to the list
-    def register_utility(utility)
-      @@utility_list << utility
+      @@proxy_list << proxy unless @@proxy_list.include?(proxy)
     end
 
     # Require files from default resource proxy library folder

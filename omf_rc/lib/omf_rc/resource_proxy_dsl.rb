@@ -89,22 +89,6 @@ module OmfRc::ResourceProxyDSL
       end
     end
 
-    # Register a named utility entry with factory class, normally this should be done in the utility module
-    #
-    # @param [Symbol] name of the resource proxy
-    # @example suppose we define a utility for iw command interaction
-    #
-    #   module OmfRc::Util::Iw
-    #     include OmfRc::ResourceProxyDSL
-    #
-    #     # Let the factory know it is available
-    #     register_utility :iw
-    #   end
-    def register_utility(name)
-      name = name.to_sym
-      OmfRc::ResourceFactory.register_utility(name)
-    end
-
     # Register a configurable property
     #
     # @param [Symbol] name of the property
