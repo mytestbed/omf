@@ -1,4 +1,5 @@
 require 'logging'
+require 'active_support/inflector'
 
 require "omf_common/version"
 require "omf_common/message"

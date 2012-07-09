@@ -75,12 +75,12 @@ module OmfRc::ResourceProxyDSL
       name = name.to_s
       begin
         # In case of module defined inline
-        include "OmfRc::Util::#{name.camelcase}".constant
+        include "OmfRc::Util::#{name.camelize}".constantize
       rescue NameError
         begin
           # Then we try to require the file and include the module
           require "#{UTIL_DIR}/#{name}"
-          include "OmfRc::Util::#{name.camelcase}".constant
+          include "OmfRc::Util::#{name.camelize}".constantize
         rescue LoadError => le
           logger.error le.message
         rescue NameError => ne

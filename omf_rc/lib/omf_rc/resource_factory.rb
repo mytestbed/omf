@@ -1,4 +1,3 @@
-require 'omf_common'
 require 'securerandom'
 require 'hashie'
 require 'omf_rc/resource_proxy_dsl'
@@ -29,7 +28,7 @@ class OmfRc::ResourceFactory
       # Create a new instance of abstract resource
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm)
       # Then extend this instance with relevant module identified by type
-      resource.extend("OmfRc::ResourceProxy::#{type.camelcase}".constant)
+      resource.extend("OmfRc::ResourceProxy::#{type.camelize}".constantize)
       # Execute resource before_ready hook if any
       resource.before_ready if resource.respond_to? :before_ready
       resource

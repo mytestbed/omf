@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require "optparse"
-require 'omf_common'
 require 'omf_rc'
 require 'omf_rc/resource_factory'
 $stdout.sync = true

@@ -1,4 +1,3 @@
-require 'omf_common'
 require 'omf_rc/deferred_process'
 require 'omf_rc/message_process_error'
 require 'securerandom'

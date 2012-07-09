@@ -1,3 +1,4 @@
+require 'omf_common'
 require "omf_rc/version"
 
 module OmfRc

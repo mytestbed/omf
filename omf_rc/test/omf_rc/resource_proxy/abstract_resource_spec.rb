@@ -78,5 +78,3 @@ describe AbstractResource do
     end
   end
 end
-
-
