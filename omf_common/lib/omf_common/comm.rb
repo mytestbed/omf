@@ -1,4 +1,4 @@
-require 'omf_common/dsl/xmpp_blather'
+require 'omf_common/dsl/xmpp'
 
 module OmfCommon
   # PubSub communication class, can be extended with different implementations

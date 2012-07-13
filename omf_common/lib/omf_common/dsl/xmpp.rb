@@ -2,7 +2,7 @@ require 'blather/client/dsl'
 
 module OmfCommon
   module DSL
-    module XmppBlather
+    module Xmpp
       include Blather::DSL
 
       PUBSUB_CONFIGURE = Blather::Stanza::X.new({

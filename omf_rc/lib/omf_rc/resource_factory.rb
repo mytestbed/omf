@@ -9,9 +9,9 @@ class OmfRc::ResourceFactory
   # List of registered resource proxies
   @@proxy_list = []
 
-  # By default, we use xmpp_blather dsl, which based on blather
+  # By default, we use xmpp dsl, which based on blather
   DEFAULT_OPTS = {
-    dsl: 'xmpp_blather',
+    dsl: 'xmpp',
     pubsub_host: 'pubsub'
   }
 

@@ -172,8 +172,8 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
       pubsub_host: 'pubsub'  # The host name of pubsub system
     }
 
-    # We will use Comm directly, with default DSL implementaion :xmpp_blather
-    comm = Comm.new(:xmpp_blather)
+    # We will use Comm directly, with default DSL implementaion :xmpp
+    comm = Comm.new(:xmpp)
     host = nil
 
     # Then we can register event handlers to the communicator

@@ -29,7 +29,7 @@ show_help if !@username || !@password || !@server
 
 Blather.logger.level = Logger::DEBUG if @debug
 
-@comm = OmfCommon::Comm.new(:xmpp_blather)
+@comm = OmfCommon::Comm.new(:xmpp)
 
 @comm.when_ready do
   @host = "pubsub.#{@comm.jid.domain}"

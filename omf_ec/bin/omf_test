@@ -5,7 +5,7 @@ require 'omf_common'
 $stdout.sync = true
 
 options = {
-  dsl: 'xmpp_blather',
+  dsl: 'xmpp',
   pubsub_host: 'pubsub',
 }
 
