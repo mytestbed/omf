@@ -102,10 +102,8 @@ class OmfRc::ResourceProxy::AbstractResource
     children.each do |c|
       c.before_release if c.respond_to? :before_release
       pubsub_nodes_left << c.uid
-      c.freeze
     end.clear
     before_release if respond_to? :before_release
-    freeze
     pubsub_nodes_left
   end
 

@@ -59,7 +59,6 @@ describe AbstractResource do
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
       @node.release
-      @node.frozen?.must_equal true
       @node.children.must_be_empty
     end
   end
