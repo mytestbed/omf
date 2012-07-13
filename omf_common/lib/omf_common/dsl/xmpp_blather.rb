@@ -1,7 +1,4 @@
 require 'blather/client/dsl'
-require 'omf_common/core_ext/blather/dsl/pubsub'
-require 'omf_common/core_ext/blather/stream/features'
-require 'omf_common/core_ext/blather/stream/features/register'
 
 module OmfCommon
   module DSL
@@ -38,7 +35,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def create_node(node, host, &block)
-        pubsub.create_with_configuration(node, PUBSUB_CONFIGURE, host, &callback_logging(__method__, node, &block))
+        pubsub.create(node, host, PUBSUB_CONFIGURE, &callback_logging(__method__, node, &block))
       end
 
       # Delete a pubsub node

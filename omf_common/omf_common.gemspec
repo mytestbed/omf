@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest", "~> 2.11.3"
-  s.add_runtime_dependency "blather", "~> 0.7"
+  s.add_runtime_dependency "blather", "~> 0.8.0"
   s.add_runtime_dependency "logging", "~> 1.7.1"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
 end
