@@ -42,6 +42,11 @@ describe AbstractResource do
       @node.uid.must_match /.{8}-.{4}-.{4}-.{4}-.{12}/
       @node.request_uid.must_match /.{8}-.{4}-.{4}-.{4}-.{12}/
     end
+
+    it "could keep state inside 'property' instnace variable" do
+      @node.property.bob = "test"
+      @node.property.bob.must_equal "test"
+    end
   end
 
   describe "when asked to create another resource" do

@@ -9,9 +9,9 @@ class OmfRc::ResourceProxy::AbstractResource
   # Time to wait before releasing resource, wait for deleting pubsub nodes
   RELEASE_WAIT = 5
 
-  # @!attribute metadata
+  # @!attribute property
   #   @return [String] the resource's internal meta data storage
-  attr_accessor :uid, :hrn, :type, :comm, :metadata
+  attr_accessor :uid, :hrn, :type, :comm, :property
   attr_reader :opts, :children, :host
 
   # Initialisation
@@ -25,6 +25,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option opts [String] :user pubsub user id
   # @option opts [String] :password pubsub user password
   # @option opts [String] :server pubsub server domain
+  # @option opts [String] :property A hash for keeping internal state
   # @param [Comm] comm communicator instance, pass this to new resource proxy instance if want to use a common communicator instance.
   def initialize(type, opts = nil, comm = nil)
     @opts = Hashie::Mash.new(opts)
@@ -33,7 +34,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @hrn = @opts.hrn
     @children ||= []
     @host = nil
-    @metadata = @opts.metadata || Hashie::Mash.new
+    @property = @opts.property || Hashie::Mash.new
 
     @comm = comm || OmfCommon::Comm.new(@opts.dsl)
     # Fire when connection to pubsub server established
