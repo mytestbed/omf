@@ -1,0 +1,228 @@
+Usage:	iw [options] command
+Options:
+	--debug		enable netlink debugging
+	--version	show version (3.4)
+Commands:
+	help [command]
+		Print usage for all or a specific command, e.g.
+		"help wowlan" or "help wowlan enable".
+
+	event [-t] [-r] [-f]
+		Monitor events from the kernel.
+		-t - print timestamp
+		-r - print relative timstamp
+		-f - print full frame for auth/assoc etc.
+
+	phy
+	list
+		List all wireless devices and their capabilities.
+
+	phy <phyname> info
+		Show capabilities for the specified wireless device.
+
+	dev
+		List all network interfaces for wireless hardware.
+
+	dev <devname> info
+		Show information for this interface.
+
+	dev <devname> del
+		Remove this virtual interface
+
+	dev <devname> interface add <name> type <type> [mesh_id <meshid>] [4addr on|off] [flags <flag>*]
+	phy <phyname> interface add <name> type <type> [mesh_id <meshid>] [4addr on|off] [flags <flag>*]
+		Add a new virtual interface with the given configuration.
+		Valid interface types are: managed, ibss, monitor, mesh, wds.
+		
+		The flags are only used for monitor interfaces, valid flags are:
+		none:     no special flags
+		fcsfail:  show frames with FCS errors
+		control:  show control frames
+		otherbss: show frames from other BSSes
+		cook:     use cooked mode
+		
+		The mesh_id is used only for mesh mode.
+
+	dev <devname> ibss join <SSID> <freq in MHz> [HT20|HT40+|HT40-|NOHT] [fixed-freq] [<fixed bssid>] [beacon-interval <TU>] [basic-rates <rate in Mbps,rate2,...>] [mcast-rate <rate in Mbps>] [key d:0:abcde]
+		Join the IBSS cell with the given SSID, if it doesn't exist create
+		it on the given frequency. When fixed frequency is requested, don't
+		join/create a cell on a different frequency. When a fixed BSSID is
+		requested use that BSSID and do not adopt another cell's BSSID even
+		if it has higher TSF and the same SSID. If an IBSS is created, create
+		it with the specified basic-rates, multicast-rate and beacon-interval.
+
+	dev <devname> ibss leave
+		Leave the current IBSS cell.
+
+	dev <devname> station dump
+		List all stations known, e.g. the AP on managed interfaces
+
+	dev <devname> station set <MAC address> vlan <ifindex>
+		Set an AP VLAN for this station.
+
+	dev <devname> station set <MAC address> plink_action <open|block>
+		Set mesh peer link action for this station (peer).
+
+	dev <devname> station del <MAC address>
+		Remove the given station entry (use with caution!)
+
+	dev <devname> station get <MAC address>
+		Get information for a specific station.
+
+	dev <devname> survey dump
+		List all gathered channel survey data
+
+	dev <devname> mesh leave
+		Leave a mesh.
+
+	dev <devname> mesh join <mesh ID> [mcast-rate <rate in Mbps>] [<param>=<value>]*
+		Join a mesh with the given mesh ID with mcast-rate and mesh parameters.
+
+	dev <devname> mpath dump
+		List known mesh paths.
+
+	dev <devname> mpath set <destination MAC address> next_hop <next hop MAC address>
+		Set an existing mesh path's next hop.
+
+	dev <devname> mpath new <destination MAC address> next_hop <next hop MAC address>
+		Create a new mesh path (instead of relying on automatic discovery).
+
+	dev <devname> mpath del <MAC address>
+		Remove the mesh path to the given node.
+
+	dev <devname> mpath get <MAC address>
+		Get information on mesh path to the given node.
+
+	dev <devname> scan [-u] [freq <freq>*] [ies <hex as 00:11:..>] [ssid <ssid>*|passive]
+		Scan on the given frequencies and probe for the given SSIDs
+		(or wildcard if not given) unless passive scanning is requested.
+		If -u is specified print unknown data in the scan results.
+		Specified (vendor) IEs must be well-formed.
+
+	dev <devname> scan trigger [freq <freq>*] [ies <hex as 00:11:..>] [ssid <ssid>*|passive]
+		Trigger a scan on the given frequencies with probing for the given
+		SSIDs (or wildcard if not given) unless passive scanning is requested.
+
+	dev <devname> scan dump [-u]
+		Dump the current scan results. If -u is specified, print unknown
+		data in scan results.
+
+	reg get
+		Print out the kernel's current regulatory domain information.
+
+	reg set <ISO/IEC 3166-1 alpha2>
+		Notify the kernel about the current regulatory domain.
+
+	dev <devname> connect [-w] <SSID> [<freq in MHz>] [<bssid>] [key 0:abcde d:1:6162636465]
+		Join the network with the given SSID (and frequency, BSSID).
+		With -w, wait for the connect to finish or fail.
+
+	dev <devname> disconnect
+		Disconnect from the current network.
+
+	dev <devname> link
+		Print information about the current link, if any.
+
+	dev <devname> offchannel <freq> <duration>
+		Leave operating channel and go to the given channel for a while.
+
+	dev <devname> cqm rssi <threshold|off> [<hysteresis>]
+		Set connection quality monitor RSSI threshold.
+		
+
+	phy <phyname> wowlan show 
+		Show WoWLAN status.
+
+	phy <phyname> wowlan disable 
+		Disable WoWLAN.
+
+	phy <phyname> wowlan enable [any] [disconnect] [magic-packet] [gtk-rekey-failure] [eap-identity-request] [4way-handshake] [rfkill-release] [patterns <pattern>*]
+		Enable WoWLAN with the given triggers.
+		Each pattern is given as a bytestring with '-' in places where any byte
+		may be present, e.g. 00:11:22:-:44 will match 00:11:22:33:44 and
+		00:11:22:33:ff:44 etc.
+
+	dev <devname> roc start <freq> <time>
+		
+
+	phy <phyname> set antenna <bitmap> | all | <tx bitmap> <rx bitmap>
+		Set a bitmap of allowed antennas to use for TX and RX.
+		The driver may reject antenna configurations it cannot support.
+
+	dev <devname> set txpower <auto|fixed|limit> [<tx power in mBm>]
+		Specify transmit power level and setting type.
+
+	phy <phyname> set txpower <auto|fixed|limit> [<tx power in mBm>]
+		Specify transmit power level and setting type.
+
+	phy <phyname> set distance <distance>
+		Set appropriate coverage class for given link distance in meters.
+		Valid values: 0 - 114750
+
+	phy <phyname> set coverage <coverage class>
+		Set coverage class (1 for every 3 usec of air propagation time).
+		Valid values: 0 - 255.
+
+	phy <phyname> set netns <pid>
+		Put this wireless device into a different network namespace
+
+	phy <phyname> set rts <rts threshold|off>
+		Set rts threshold.
+
+	phy <phyname> set frag <fragmentation threshold|off>
+		Set fragmentation threshold.
+
+	dev <devname> set channel <channel> [HT20|HT40+|HT40-]
+	phy <phyname> set channel <channel> [HT20|HT40+|HT40-]
+	dev <devname> set freq <freq> [HT20|HT40+|HT40-]
+	phy <phyname> set freq <freq> [HT20|HT40+|HT40-]
+		Set frequency/channel the hardware is using, including HT
+		configuration.
+
+	phy <phyname> set name <new name>
+		Rename this wireless device.
+
+	dev <devname> set peer <MAC address>
+		Set interface WDS peer.
+
+	dev <devname> set noack_map <map>
+		Set the NoAck map for the TIDs. (0x0009 = BE, 0x0006 = BK, 0x0030 = VI, 0x00C0 = VO)
+
+	dev <devname> set 4addr <on|off>
+		Set interface 4addr (WDS) mode.
+
+	dev <devname> set type <type>
+		Set interface type/mode.
+		Valid interface types are: managed, ibss, monitor, mesh, wds.
+
+	dev <devname> set meshid <meshid>
+	dev <devname> set monitor <flag>*
+		Set monitor flags. Valid flags are:
+		none:     no special flags
+		fcsfail:  show frames with FCS errors
+		control:  show control frames
+		otherbss: show frames from other BSSes
+		cook:     use cooked mode
+
+	dev <devname> set mesh_param <param>=<value> [<param>=<value>]*
+		Set mesh parameter (run command without any to see available ones).
+
+	dev <devname> set power_save <on|off>
+		Set power save state to on or off.
+
+	dev <devname> set bitrates [legacy-<2.4|5> <legacy rate in Mbps>*] [mcs-<2.4|5> <MCS index>*]
+		Sets up the specified rate masks.
+		Not passing any arguments would clear the existing mask (if any).
+
+	dev <devname> get mesh_param [<param>]
+		Retrieve mesh parameter (run command without any to see available ones).
+
+	dev <devname> get power_save <param>
+		Retrieve power save state.
+
+
+You can omit the 'phy' or 'dev' if the identification is unique,
+e.g. "iw wlan0 info" or "iw phy0 info". (Don't when scripting.)
+
+Do NOT screenscrape this tool, we don't consider its output stable.
+

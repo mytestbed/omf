@@ -1,0 +1,11 @@
+Connected to 00:14:bf:0c:e7:a4 (on wlan0)
+	SSID: dd-wrt
+	freq: 2427
+	RX: 1772745 bytes (25092 packets)
+	TX: 9473 bytes (111 packets)
+	signal: -37 dBm
+	tx bitrate: 1.0 MBit/s
+
+	bss flags:	short-preamble short-slot-time
+	dtim period:	0
+	beacon int:	100
