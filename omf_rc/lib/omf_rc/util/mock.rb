@@ -1,8 +1,6 @@
 module OmfRc::Util::Mock
   include OmfRc::ResourceProxyDSL
 
-  register_utility :mock
-
   request :nothing do |resource|
     resource.uid
   end
@@ -15,10 +13,6 @@ module OmfRc::Util::Mock
 
   request :resource_proxy_list do
     OmfRc::ResourceFactory.proxy_list
-  end
-
-  request :resource_utility_list do
-    OmfRc::ResourceFactory.utility_list
   end
 
   request :kernel_version do

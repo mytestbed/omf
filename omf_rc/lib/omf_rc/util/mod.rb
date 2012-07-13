@@ -1,12 +1,10 @@
 module OmfRc::Util::Mod
   include OmfRc::ResourceProxyDSL
 
-  register_utility :mod
-
   request :modules do
     OmfCommon::Command.execute('lsmod').split("\n").map do |v|
-      v.match(/^(.+)\W*.+$/) && $1
-    end.compact
+      v.match(/^(\w+).+$/) && $1
+    end.compact.tap { |ary| ary.shift }
   end
 
   configure :load_module do |resource, value|

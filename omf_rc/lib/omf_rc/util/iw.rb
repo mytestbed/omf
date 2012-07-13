@@ -1,10 +1,11 @@
 require 'hashie'
+
 module OmfRc::Util::Iw
   include OmfRc::ResourceProxyDSL
 
   OmfCommon::Command.execute("iw help").chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
     configure p do |resource, value|
-      OmfCommon::Command.execute("#{IW_CMD} #{resource.hrn} set #{p} #{value}")
+      OmfCommon::Command.execute("iw #{resource.hrn} set #{p} #{value}")
     end
   end
 
