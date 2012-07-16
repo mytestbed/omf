@@ -1,3 +1,3 @@
 module OmfRc
-  VERSION = "6.0.0.pre.4"
+  VERSION = "6.0.0.pre.5"
 end

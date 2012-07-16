@@ -20,7 +20,6 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [Hash] opts options to be initialised
   # @option opts [String] :uid Unique identifier
   # @option opts [String] :hrn Human readable name
-  # @option opts [String] :pubsub_host pubsub server subdomain, default to 'pubsub'
   # @option opts [String] :dsl Which pubsub DSL to be used for pubsub communication
   # @option opts [String] :user pubsub user id
   # @option opts [String] :password pubsub user password
@@ -40,7 +39,7 @@ class OmfRc::ResourceProxy::AbstractResource
     # Fire when connection to pubsub server established
     @comm.when_ready do
       logger.info "CONNECTED: #{@comm.jid.inspect}"
-      @host = "#{@opts.pubsub_host}.#{@comm.jid.domain}"
+      @host = @comm.jid.domain
 
       # Once connection established, create a pubsub node, then subscribe to it
       @comm.create_node(uid, host) do |s|
@@ -70,19 +69,19 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Try to clean up pubsub nodes, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
-    @comm.pubsub.affiliations(host) do |a|
+    @comm.affiliations(host) do |a|
       my_pubsub_nodes = a[:owner] ? a[:owner].size : 0
       if my_pubsub_nodes > 0
         logger.info "Cleaning #{my_pubsub_nodes} pubsub node(s)"
         a[:owner].each { |node| @comm.delete_node(node, host) }
       else
         logger.info "Disconnecting now"
-        @comm.disconnect(host)
+        @comm.disconnect
       end
     end
     logger.info "Disconnecting in #{DISCONNECT_WAIT} seconds"
     EM.add_timer(DISCONNECT_WAIT) do
-      @comm.disconnect(host)
+      @comm.disconnect
     end
   end
 

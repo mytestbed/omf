@@ -5,6 +5,8 @@ module OmfCommon
     module Xmpp
       include Blather::DSL
 
+      HOST_PREFIX = 'pubsub'
+
       PUBSUB_CONFIGURE = Blather::Stanza::X.new({
         :type => :submit,
         :fields => [
@@ -24,9 +26,7 @@ module OmfCommon
       end
 
       # Shut down XMPP connection
-      #
-      # @param [String] host Host represents the pubsub address, e.g. pubsub.norbit.npc.nicta.com.au
-      def disconnect(host)
+      def disconnect
         shutdown
       end
 
@@ -35,7 +35,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def create_node(node, host, &block)
-        pubsub.create(node, host, PUBSUB_CONFIGURE, &callback_logging(__method__, node, &block))
+        pubsub.create(node, prefix_host(host), PUBSUB_CONFIGURE, &callback_logging(__method__, node, &block))
       end
 
       # Delete a pubsub node
@@ -43,7 +43,7 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def delete_node(node, host, &block)
-        pubsub.delete(node, host, &callback_logging(__method__, node, &block))
+        pubsub.delete(node, prefix_host(host), &callback_logging(__method__, node, &block))
       end
 
       # Subscribe to a pubsub node
@@ -51,18 +51,24 @@ module OmfCommon
       # @param [String] node Pubsub node name
       # @param [String] host Pubsub host address
       def subscribe(node, host, &block)
-        pubsub.subscribe(node, nil, host, &callback_logging(__method__, node, &block))
+        logger.warn host
+        logger.warn jid.domain
+        pubsub.subscribe(node, nil, prefix_host(host), &callback_logging(__method__, node, &block))
       end
 
       # Un-subscribe all existing subscriptions from all pubsub nodes.
       #
       # @param [String] host Pubsub host address
       def unsubscribe(host)
-        pubsub.subscriptions(host) do |m|
+        pubsub.subscriptions(prefix_host(host)) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
-            pubsub.unsubscribe(s[:node], nil, s[:subid], host, &callback_logging(__method__, s[:node], s[:subid]))
+            pubsub.unsubscribe(s[:node], nil, s[:subid], prefix_host(host), &callback_logging(__method__, s[:node], s[:subid]))
           end
         end
+      end
+
+      def affiliations(host, &block)
+        pubsub.affiliations(prefix_host(host), &callback_logging(__method__, &block))
       end
 
       # Publish to a pubsub node
@@ -71,7 +77,7 @@ module OmfCommon
       # @param [String] message Any XML fragment to be sent as payload
       # @param [String] host Pubsub host address
       def publish(node, message, host, &block)
-        pubsub.publish(node, message, host, &callback_logging(__method__, node, message.operation, &block))
+        pubsub.publish(node, message, prefix_host(host), &callback_logging(__method__, node, message.operation, &block))
       end
 
       # Event callback for pubsub node event(item published)
@@ -90,6 +96,10 @@ module OmfCommon
           logger.debug "#{m} SUCCEED" if callback.respond_to?(:result?) && callback.result?
           block.call(callback) if block
         end
+      end
+
+      def prefix_host(host)
+        "#{HOST_PREFIX}.#{host}"
       end
     end
   end

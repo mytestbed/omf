@@ -11,8 +11,7 @@ class OmfRc::ResourceFactory
 
   # By default, we use xmpp dsl, which based on blather
   DEFAULT_OPTS = {
-    dsl: 'xmpp',
-    pubsub_host: 'pubsub'
+    dsl: 'xmpp'
   }
 
   class << self
