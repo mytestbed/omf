@@ -169,7 +169,6 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
       password: 'pw',
       server: 'localhost', # XMPP pubsub server domain
       uid: 'mclaren', # The garage's name, we used the same name in the garage_controller.
-      pubsub_host: 'pubsub'  # The host name of pubsub system
     }
 
     # We will use Comm directly, with default DSL implementaion :xmpp
@@ -181,7 +180,7 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
     # Event triggered when connection is ready
     comm.when_ready do
       logger.info "CONNECTED: #{comm.jid.inspect}"
-      host = "#{options[:pubsub_host]}.#{comm.jid.domain}"
+      host = comm.jid.domain
 
       # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub node
       comm.subscribe(options[:uid], host) do |e|
@@ -228,8 +227,8 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
 
     EM.run do
       comm.connect(options[:user], options[:password], options[:server])
-      trap(:INT) { comm.disconnect(host) }
-      trap(:TERM) { comm.disconnect(host) }
+      trap(:INT) { comm.disconnect }
+      trap(:TERM) { comm.disconnect }
     end
 
 ### More actions on engine test controller (client side)
