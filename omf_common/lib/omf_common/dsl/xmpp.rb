@@ -51,8 +51,6 @@ module OmfCommon
       # @param [String] topic Pubsub topic name
       # @param [String] host Pubsub host address
       def subscribe(topic, host, &block)
-        logger.warn host
-        logger.warn jid.domain
         pubsub.subscribe(topic, nil, prefix_host(host), &callback_logging(__method__, topic, &block))
       end
 
