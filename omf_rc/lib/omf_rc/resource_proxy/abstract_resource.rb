@@ -217,7 +217,7 @@ class OmfRc::ResourceProxy::AbstractResource
           message.read_element("//property").each do |p|
             unless p.attr('key') == 'type'
               method_name =  "configure_#{p.attr('key')}"
-              result.send(method_name, p.content) if result.respond_to? method_name
+              result.__send__(method_name, p.content) if result.respond_to? method_name
             end
           end
           { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
@@ -226,7 +226,7 @@ class OmfRc::ResourceProxy::AbstractResource
             message.read_element("//property").each do |p|
               method_name =  "request_#{p.attr('key')}"
               if obj.respond_to? method_name
-                mash[p.attr('key')] ||= obj.send(method_name)
+                mash[p.attr('key')] ||= obj.__send__(method_name)
               end
             end
           end
@@ -236,7 +236,7 @@ class OmfRc::ResourceProxy::AbstractResource
             message.read_element("//property").each do |p|
               method_name =  "configure_#{p.attr('key')}"
               if obj.respond_to? method_name
-                mash[p.attr('key')] ||= obj.send(method_name, p.content)
+                mash[p.attr('key')] ||= obj.__send__(method_name, p.content)
               end
             end
           end

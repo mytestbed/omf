@@ -8,7 +8,7 @@ describe OmfCommon::Message do
   describe "when constructing valid messages" do
     it "must return a create or configure XML element without failing" do
       %w(create configure).each do |msg_name|
-        message = Message.send(msg_name) do |m|
+        message = Message.__send__(msg_name) do |m|
           PROP_ELEMENTS.each_with_index do |prop_element, index|
             if index == 0
               m.property(prop_element, rand(100))
