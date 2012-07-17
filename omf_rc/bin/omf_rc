@@ -26,8 +26,8 @@ option_parser = OptionParser.new do |opts|
     options[:server] = server
   end
 
-  opts.on("-n NODE", "PubSub node to create, also becomes the uid of the resource") do |node|
-    options[:uid] = node
+  opts.on("-t TOPIC", "PubSub topic to create, also becomes the uid of the resource") do |topic|
+    options[:uid] = topic
   end
 
   opts.on("-d", "--debug", "Debug mode") do

@@ -32,7 +32,7 @@ module OmfRc::ResourceProxyDSL
     #
     # Currently the system supports two hooks:
     #
-    # * before_ready, called when a resource created, before creating an associated pubsub node
+    # * before_ready, called when a resource created, before creating an associated pubsub topic
     # * before_release, called before a resource released
     #
     # @param [Symbol] name hook name. :before_create or :before_release

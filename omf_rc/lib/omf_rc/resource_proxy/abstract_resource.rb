@@ -4,9 +4,9 @@ require 'securerandom'
 require 'hashie'
 
 class OmfRc::ResourceProxy::AbstractResource
-  # Time to wait before shutting down event loop, wait for deleting pubsub nodes
+  # Time to wait before shutting down event loop, wait for deleting pubsub topics
   DISCONNECT_WAIT = 5
-  # Time to wait before releasing resource, wait for deleting pubsub nodes
+  # Time to wait before releasing resource, wait for deleting pubsub topics
   RELEASE_WAIT = 5
 
   # @!attribute property
@@ -41,16 +41,16 @@ class OmfRc::ResourceProxy::AbstractResource
       logger.info "CONNECTED: #{@comm.jid.inspect}"
       @host = @comm.jid.domain
 
-      # Once connection established, create a pubsub node, then subscribe to it
-      @comm.create_node(uid, host) do |s|
-        # Creating node failed, no point to continue; clean up and disconnect
-        # Otherwise go subscribe to this pubsub node
+      # Once connection established, create a pubsub topic, then subscribe to it
+      @comm.create_topic(uid, host) do |s|
+        # Creating topic failed, no point to continue; clean up and disconnect
+        # Otherwise go subscribe to this pubsub topic
         s.error? ? disconnect : @comm.subscribe(uid, host)
       end
     end
 
     # Fire when message published
-    @comm.node_event do |e|
+    @comm.topic_event do |e|
       e.items.each do |item|
         process_omf_message(item.payload, e.node)
       end
@@ -67,13 +67,13 @@ class OmfRc::ResourceProxy::AbstractResource
     @comm.connect(opts.user, opts.password, opts.server)
   end
 
-  # Try to clean up pubsub nodes, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
+  # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
     @comm.affiliations(host) do |a|
-      my_pubsub_nodes = a[:owner] ? a[:owner].size : 0
-      if my_pubsub_nodes > 0
-        logger.info "Cleaning #{my_pubsub_nodes} pubsub node(s)"
-        a[:owner].each { |node| @comm.delete_node(node, host) }
+      my_pubsub_topics = a[:owner] ? a[:owner].size : 0
+      if my_pubsub_topics > 0
+        logger.info "Cleaning #{my_pubsub_topics} pubsub topic(s)"
+        a[:owner].each { |topic| @comm.delete_topic(topic, host) }
       else
         logger.info "Disconnecting now"
         @comm.disconnect
@@ -98,13 +98,13 @@ class OmfRc::ResourceProxy::AbstractResource
   # Release a resource
   #
   def release
-    pubsub_nodes_left = []
+    pubsub_topics_left = []
     children.each do |c|
       c.before_release if c.respond_to? :before_release
-      pubsub_nodes_left << c.uid
+      pubsub_topics_left << c.uid
     end.clear
     before_release if respond_to? :before_release
-    pubsub_nodes_left
+    pubsub_topics_left
   end
 
   # Return a list of all properties can be requested and configured
@@ -144,7 +144,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Parse omf message and execute as instructed by the message
   #
-  def process_omf_message(pubsub_item_payload, node)
+  def process_omf_message(pubsub_item_payload, topic)
     dp = OmfRc::DeferredProcess.new
 
     dp.callback do |end_result|
@@ -152,7 +152,7 @@ class OmfRc::ResourceProxy::AbstractResource
         case end_result[:operation]
         when :create
           new_uid = end_result[:result]
-          @comm.create_node(new_uid, host) do
+          @comm.create_topic(new_uid, host) do
             @comm.subscribe(new_uid, host) do
               inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'CREATED') do |i|
                 i.element('resource_id', new_uid)
@@ -182,7 +182,7 @@ class OmfRc::ResourceProxy::AbstractResource
           end
 
           end_result[:result].each do |n|
-            @comm.delete_node(n, host)
+            @comm.delete_topic(n, host)
           end
 
           EM.add_timer(RELEASE_WAIT) do
@@ -204,10 +204,10 @@ class OmfRc::ResourceProxy::AbstractResource
       # Get the context id, which will be included when informing
       context_id = message.read_content("context_id")
 
-      obj = node == uid ? self : children.find { |v| v.uid == node }
+      obj = topic == uid ? self : children.find { |v| v.uid == topic }
 
       begin
-        raise "Resource disappeard #{node}" if obj.nil?
+        raise "Resource disappeard #{topic}" if obj.nil?
 
         case message.operation
         when :create

@@ -23,7 +23,7 @@ comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
   host = comm.jid.domain
 
-  # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub node
+  # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
   comm.subscribe(options[:uid], host) do |e|
     if e.error?
       comm.disconnect(host)
@@ -37,8 +37,8 @@ comm.when_ready do
   end
 end
 
-# Triggered when new messages published to the nodes I subscribed to
-comm.node_event do |e|
+# Triggered when new messages published to the topics I subscribed to
+comm.topic_event do |e|
   e.items.each do |item|
     begin
       # Parse the message (pubsub item payload)

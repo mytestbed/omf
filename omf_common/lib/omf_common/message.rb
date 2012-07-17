@@ -38,7 +38,7 @@ module OmfCommon
       end
     end
 
-    # Construct a property node
+    # Construct a property xml node
     #
     def property(key, value = nil, &block)
       key_node = Message.new('property')

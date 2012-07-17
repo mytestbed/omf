@@ -6,7 +6,7 @@ Install a XMPP server. [Installation notes for Openfire](https://omf.mytestbed.n
 
 Enable in-band registration support (XEP-0077) on the XMPP server if you want to automatically create the users by the time of connection.
 
-If your XMPP server has anonymous authentication enabled, you might not have permissions to create pubsub nodes when connected anonymously, to avoid the trouble, please turn off the anonymous authentication mode.
+If your XMPP server has anonymous authentication enabled, you might not have permissions to create pubsub topics when connected anonymously, to avoid the trouble, please turn off the anonymous authentication mode.
 
 Now we need to nstall omf\_rc pre-release gems
 
@@ -182,7 +182,7 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
       logger.info "CONNECTED: #{comm.jid.inspect}"
       host = comm.jid.domain
 
-      # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub node
+      # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
       comm.subscribe(options[:uid], host) do |e|
         if e.error?
           comm.disconnect(host)
@@ -196,8 +196,8 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
       end
     end
 
-    # Triggered when new messages published to the nodes I subscribed to
-    comm.node_event do |e|
+    # Triggered when new messages published to the topics I subscribed to
+    comm.topic_event do |e|
       e.items.each do |item|
         begin
           # Parse the message (pubsub item payload)
@@ -233,7 +233,7 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
 
 ### More actions on engine test controller (client side)
 
-Once we have the engine ready (i.e. we received notify message 'CREATED'), we can subscribe to its pubsub node, and publish additional instructions to the engine.
+Once we have the engine ready (i.e. we received notify message 'CREATED'), we can subscribe to its pubsub topic, and publish additional instructions to the engine.
 
 Add the following code after the line "logger.info "Engine #{engine\_id} ready for testing"
 

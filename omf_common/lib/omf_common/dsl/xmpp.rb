@@ -30,33 +30,33 @@ module OmfCommon
         shutdown
       end
 
-      # Create a new pubsub node with additional configuration
+      # Create a new pubsub topic with additional configuration
       #
-      # @param [String] node Pubsub node name
+      # @param [String] topic Pubsub topic name
       # @param [String] host Pubsub host address
-      def create_node(node, host, &block)
-        pubsub.create(node, prefix_host(host), PUBSUB_CONFIGURE, &callback_logging(__method__, node, &block))
+      def create_topic(topic, host, &block)
+        pubsub.create(topic, prefix_host(host), PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
       end
 
-      # Delete a pubsub node
+      # Delete a pubsub topic
       #
-      # @param [String] node Pubsub node name
+      # @param [String] topic Pubsub topic name
       # @param [String] host Pubsub host address
-      def delete_node(node, host, &block)
-        pubsub.delete(node, prefix_host(host), &callback_logging(__method__, node, &block))
+      def delete_topic(topic, host, &block)
+        pubsub.delete(topic, prefix_host(host), &callback_logging(__method__, topic, &block))
       end
 
-      # Subscribe to a pubsub node
+      # Subscribe to a pubsub topic
       #
-      # @param [String] node Pubsub node name
+      # @param [String] topic Pubsub topic name
       # @param [String] host Pubsub host address
-      def subscribe(node, host, &block)
+      def subscribe(topic, host, &block)
         logger.warn host
         logger.warn jid.domain
-        pubsub.subscribe(node, nil, prefix_host(host), &callback_logging(__method__, node, &block))
+        pubsub.subscribe(topic, nil, prefix_host(host), &callback_logging(__method__, topic, &block))
       end
 
-      # Un-subscribe all existing subscriptions from all pubsub nodes.
+      # Un-subscribe all existing subscriptions from all pubsub topics.
       #
       # @param [String] host Pubsub host address
       def unsubscribe(host)
@@ -71,18 +71,18 @@ module OmfCommon
         pubsub.affiliations(prefix_host(host), &callback_logging(__method__, &block))
       end
 
-      # Publish to a pubsub node
+      # Publish to a pubsub topic
       #
-      # @param [String] node Pubsub node name
+      # @param [String] topic Pubsub topic name
       # @param [String] message Any XML fragment to be sent as payload
       # @param [String] host Pubsub host address
-      def publish(node, message, host, &block)
-        pubsub.publish(node, message, prefix_host(host), &callback_logging(__method__, node, message.operation, &block))
+      def publish(topic, message, host, &block)
+        pubsub.publish(topic, message, prefix_host(host), &callback_logging(__method__, topic, message.operation, &block))
       end
 
-      # Event callback for pubsub node event(item published)
+      # Event callback for pubsub topic event(item published)
       #
-      def node_event(*args, &block)
+      def topic_event(*args, &block)
         pubsub_event(:items?, *args, &callback_logging(__method__, &block))
       end
 

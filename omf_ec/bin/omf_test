@@ -101,7 +101,7 @@ comm.when_ready do
     if e.error?
       comm.disconnect(host)
     else
-      # Publish the create message to RC's pubsub node
+      # Publish the create message to RC's pubsub topic
       comm.publish(options[:uid], request_node_property, host)
       comm.publish(options[:uid], create_wifi_msg, host)
     end

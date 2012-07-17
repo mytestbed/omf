@@ -43,7 +43,7 @@ Blather.logger.level = Logger::DEBUG if @debug
     end
   end
 
-  @comm.create_node('/blather', @host) do |c|
+  @comm.create_topic('/blather', @host) do |c|
     logger.warn c.find_first('error').inspect if c.error?
     @comm.subscribe('/blather', @host) do |m|
       logger.info "Subscribe > Subscribed with id #{m.subid}" if m.subid
@@ -55,7 +55,7 @@ Blather.logger.level = Logger::DEBUG if @debug
   end
 end
 
-@comm.node_event do |m|
+@comm.topic_event do |m|
   logger.info 'Node event >'
   logger.info m.items
 end
