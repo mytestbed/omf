@@ -154,7 +154,7 @@ class OmfRc::ResourceProxy::AbstractResource
           new_uid = end_result[:result]
           @comm.create_topic(new_uid, host) do
             @comm.subscribe(new_uid, host) do
-              inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'CREATED') do |i|
+              inform_msg = OmfCommon::Message.inform('CREATED', end_result[:context_id]) do |i|
                 i.element('resource_id', new_uid)
                 i.element('resource_address', new_uid)
               end
@@ -162,7 +162,7 @@ class OmfRc::ResourceProxy::AbstractResource
             end
           end
         when :request
-          inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'STATUS') do |i|
+          inform_msg = OmfCommon::Message.inform('STATUS', end_result[:context_id]) do |i|
             end_result[:result].each_pair do |k, v|
               i.property(k, v)
             end
@@ -170,14 +170,14 @@ class OmfRc::ResourceProxy::AbstractResource
           @comm.publish(end_result[:inform_to], inform_msg, host)
 
         when :configure
-          inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'STATUS') do |i|
+          inform_msg = OmfCommon::Message.inform('STATUS', end_result[:context_id]) do |i|
             end_result[:result].each_pair do |k, v|
               i.property(k, v)
             end
           end
           @comm.publish(end_result[:inform_to], inform_msg, host)
         when :release
-          inform_msg = OmfCommon::Message.inform(end_result[:context_id], 'RELEASED') do |i|
+          inform_msg = OmfCommon::Message.inform('RELEASED', end_result[:context_id]) do |i|
             i.element('resource_id', end_result[:inform_to])
           end
 
@@ -193,7 +193,7 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     dp.errback do |e|
-      inform_msg = OmfCommon::Message.inform(e.context_id, 'FAILED') do |i|
+      inform_msg = OmfCommon::Message.inform('FAILED', e.context_id) do |i|
         i.element("error_message", e.message)
       end
       @comm.publish(e.inform_to, inform_msg, host)

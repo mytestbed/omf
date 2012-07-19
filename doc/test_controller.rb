@@ -26,7 +26,7 @@ comm.when_ready do
   # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
   comm.subscribe(options[:uid], host) do |e|
     if e.error?
-      comm.disconnect(host)
+      comm.disconnect
     else
       # If subscribed, we publish a 'create' message, 'create' a new engine for testing
       comm.publish(
