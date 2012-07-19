@@ -152,5 +152,12 @@ module OmfRc::ResourceProxyDSL
         register_block.call(self) if register_block
       end
     end
+
+    # Define an arbitrary method to do some work, can be included in configure & request block
+    def work(name, &register_block)
+      define_method(name) do |*args, &block|
+        register_block.call(self, *args, block) if register_block
+      end
+    end
   end
 end

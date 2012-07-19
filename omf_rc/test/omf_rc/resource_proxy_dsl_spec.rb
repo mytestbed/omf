@@ -5,14 +5,15 @@ describe OmfRc::ResourceProxyDSL do
   before do
     module OmfRc::Util::MockUtility
       include OmfRc::ResourceProxyDSL
+
       configure :alpha
 
       request :alpha do |resource|
         resource.uid
       end
 
-      def bravo
-        "bravo"
+      work :bravo do |resource, random_arg|
+        "working on #{random_arg}"
       end
     end
 
@@ -27,7 +28,7 @@ describe OmfRc::ResourceProxyDSL do
       hook :before_release
 
       request :bravo do
-        bravo
+        bravo("printing")
       end
     end
   end
@@ -48,7 +49,7 @@ describe OmfRc::ResourceProxyDSL do
 
       mock_proxy = OmfRc::ResourceFactory.new(:mock_proxy)
       mock_proxy.request_alpha.must_equal mock_proxy.uid
-      mock_proxy.request_bravo.must_equal "bravo"
+      mock_proxy.request_bravo.must_equal "working on printing"
     end
   end
 end
