@@ -1,6 +1,9 @@
 require 'minitest/mock'
 require 'test_helper'
-require 'omf_rc/util/iw'
+
+OmfCommon::Command.stub :execute, fixture("iw/help") do
+  require 'omf_rc/util/iw'
+end
 
 describe OmfRc::Util::Iw do
   describe "when included in the resource instance" do
