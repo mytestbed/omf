@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'mock_helper'
 require 'omf_rc/resource_factory'
 
 describe OmfRc::ResourceFactory do

@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'mock_helper'
 require 'omf_rc/util/mod'
 
 describe OmfRc::Util::Mod do
@@ -12,19 +11,17 @@ describe OmfRc::Util::Mod do
       end
     end
 
-    after do
-      mock_verify_execute
-    end
-
     it "will find out a list of modules" do
-      mock_execute(fixture("lsmod"), "lsmod")
-      OmfRc::ResourceFactory.new(:mod_test).request_modules.must_include "kvm"
-      OmfRc::ResourceFactory.new(:mod_test).request_modules.wont_include "Module"
+      OmfCommon::Command.stub :execute, fixture("lsmod") do
+        OmfRc::ResourceFactory.new(:mod_test).request_modules.must_include "kvm"
+        OmfRc::ResourceFactory.new(:mod_test).request_modules.wont_include "Module"
+      end
     end
 
     it "could load a module" do
-      mock_execute(nil, /modprobe */)
-      OmfRc::ResourceFactory.new(:mod_test).configure_load_module('magic_module').must_be_nil
+      OmfCommon::Command.stub :execute, true do
+        OmfRc::ResourceFactory.new(:mod_test).configure_load_module('magic_module').must_equal true
+      end
     end
   end
 end
