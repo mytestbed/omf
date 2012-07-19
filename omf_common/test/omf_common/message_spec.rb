@@ -42,7 +42,7 @@ describe OmfCommon::Message do
     end
 
     it "must return a inform XML element without failing" do
-      inform = Message.inform('9012c3bc-68de-459a-ac9f-530cc7168e22', 'CREATED') do |m|
+      inform = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
         m.element('resource_id', 'test')
         m.element('resource_address', 'test')
         PROP_ELEMENTS.each do |prop_element|
@@ -52,6 +52,11 @@ describe OmfCommon::Message do
           end
         end
       end
+      inform.valid?.must_equal true
+    end
+
+    it "must return an event inform XML element without providing message context id" do
+      inform = Message.inform('EVENT')
       inform.valid?.must_equal true
     end
   end

@@ -24,7 +24,7 @@ element request {
 element inform {
   attribute msg_id { text },
   element context_id { text },
-  element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" },
+  element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "EVENT" },
   element resource_id { text }?,
   element resource_address { text }?,
   element error_message { text }?,

@@ -86,6 +86,7 @@
         <value>FAILED</value>
         <value>STATUS</value>
         <value>RELEASED</value>
+        <value>EVENT</value>
       </choice>
     </element>
     <optional>

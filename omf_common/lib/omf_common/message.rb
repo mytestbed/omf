@@ -24,9 +24,13 @@ module OmfCommon
       OPERATION.each do |operation|
         define_method(operation) do |*args, &block|
           xml = new(operation, nil, OMF_NAMESPACE)
-          xml.element('context_id', operation == 'inform' ? args[0] : SecureRandom.uuid)
+          if operation == 'inform'
+            xml.element('context_id', args[1] || SecureRandom.uuid)
+            xml.element('inform_type', args[0])
+          else
+            xml.element('context_id', SecureRandom.uuid)
+          end
           xml.element('publish_to', args[0]) if operation == 'request'
-          xml.element('inform_type', args[1]) if operation == 'inform'
           block.call(xml) if block
           xml.sign
         end
