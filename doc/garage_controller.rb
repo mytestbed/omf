@@ -65,15 +65,23 @@ module OmfRc::ResourceProxy::Engine
   end
 
   # We want some default properties to be available for requesting
-  %w(provider max_power max_rpm).each do |attr|
+  %w(max_power max_rpm).each do |attr|
     request attr do |resource|
       resource.property[attr]
     end
   end
 
+  request :provider do |resource, args|
+    "#{resource.property.provider} - #{args.country}"
+  end
+
   # We want throttle to be availabe for configuring (i.e. changing throttle)
   configure :throttle do |resource, value|
     resource.property.throttle = value.to_f / 100.0
+  end
+
+  request :error do |resource|
+    raise "You asked for an error, and you got it"
   end
 end
 

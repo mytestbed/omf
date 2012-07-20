@@ -82,6 +82,7 @@ describe OmfCommon::Message do
       message.read_property("type").must_equal 'vm'
       message.read_property(:type).must_equal 'vm'
       memory = message.read_property(:memory)
+      memory.must_be_kind_of Hashie::Mash
       memory.value.must_equal 1024
       memory.unit.must_equal 'mb'
       memory.precision.must_equal 0

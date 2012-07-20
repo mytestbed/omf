@@ -56,7 +56,9 @@ comm.topic_event do |e|
             comm.publish(engine_id,
                          Message.request do |v|
                            v.property('max_rpm')
-                           v.property('provider')
+                           v.property('provider') do |p|
+                             p.element('country', 'japan')
+                           end
                            v.property('max_power')
                          end,
                          host)
@@ -77,6 +79,10 @@ comm.topic_event do |e|
             EM.add_timer(5) do
              comm.publish(engine_id,
                           Message.configure { |v| v.property('throttle', '0') },
+                          host)
+             # Testing error handling
+             comm.publish(engine_id,
+                          Message.request { |v| v.property('error') },
                           host)
             end
 

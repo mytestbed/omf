@@ -148,8 +148,9 @@ module OmfRc::ResourceProxyDSL
     #     end
     #   end
     def request(name, &register_block)
-      define_method("request_#{name.to_s}") do |*args|
-        register_block.call(self) if register_block
+      define_method("request_#{name.to_s}") do |*args, &block|
+        args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
+        register_block.call(self, *args, block) if register_block
       end
     end
 
