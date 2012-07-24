@@ -8,6 +8,8 @@ class OmfRc::ResourceProxy::AbstractResource
   DISCONNECT_WAIT = 5
   # Time to wait before releasing resource, wait for deleting pubsub topics
   RELEASE_WAIT = 5
+  # Inform message types mapping, e.g. create will expect responding with 'CREATED'
+  INFORM_TYPES = { create: 'CREATED', request: 'STATUS', configure: 'STATUS', release: 'RELEASED', error: 'FAILED'}
 
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
@@ -142,61 +144,61 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  private
+
+  def publish_inform(response)
+    if response.kind_of? StandardError
+      operation, context_id, inform_to, message = :error, response.context_id, response.inform_to, response.message
+    else
+      operation, result, context_id, inform_to = response.operation, response.result, response.context_id, response.inform_to
+    end
+
+    inform_message = OmfCommon::Message.inform(INFORM_TYPES[operation], context_id) do |i|
+      case operation
+      when :create
+        i.element('resource_id', result)
+        i.element('resource_address', result)
+      when :request, :configure
+        result.each_pair { |k, v| i.property(k, v) }
+      when :release
+        i.element('resource_id', inform_to)
+      when :error
+        i.element("error_message", message)
+      end
+    end
+    @comm.publish(inform_to, inform_message, host)
+  end
+
   # Parse omf message and execute as instructed by the message
   #
   def process_omf_message(pubsub_item_payload, topic)
     dp = OmfRc::DeferredProcess.new
 
-    dp.callback do |end_result|
-      if end_result
-        case end_result[:operation]
-        when :create
-          new_uid = end_result[:result]
-          @comm.create_topic(new_uid, host) do
-            @comm.subscribe(new_uid, host) do
-              inform_msg = OmfCommon::Message.inform('CREATED', end_result[:context_id]) do |i|
-                i.element('resource_id', new_uid)
-                i.element('resource_address', new_uid)
-              end
-              @comm.publish(end_result[:inform_to], inform_msg, host)
-            end
+    dp.callback do |response|
+      response = Hashie::Mash.new(response)
+      case response.operation
+      when :create
+        new_uid = response.result
+        @comm.create_topic(new_uid, host) do
+          @comm.subscribe(new_uid, host) do
+            publish_inform(response)
           end
-        when :request
-          inform_msg = OmfCommon::Message.inform('STATUS', end_result[:context_id]) do |i|
-            end_result[:result].each_pair do |k, v|
-              i.property(k, v)
-            end
-          end
-          @comm.publish(end_result[:inform_to], inform_msg, host)
+        end
+      when :request, :configure
+        publish_inform(response)
+      when :release
+        response.result.each do |n|
+          @comm.delete_topic(n, host)
+        end
 
-        when :configure
-          inform_msg = OmfCommon::Message.inform('STATUS', end_result[:context_id]) do |i|
-            end_result[:result].each_pair do |k, v|
-              i.property(k, v)
-            end
-          end
-          @comm.publish(end_result[:inform_to], inform_msg, host)
-        when :release
-          inform_msg = OmfCommon::Message.inform('RELEASED', end_result[:context_id]) do |i|
-            i.element('resource_id', end_result[:inform_to])
-          end
-
-          end_result[:result].each do |n|
-            @comm.delete_topic(n, host)
-          end
-
-          EM.add_timer(RELEASE_WAIT) do
-            @comm.publish(end_result[:inform_to], inform_msg, host)
-          end
+        EM.add_timer(RELEASE_WAIT) do
+          publish_inform(response)
         end
       end
     end
 
     dp.errback do |e|
-      inform_msg = OmfCommon::Message.inform('FAILED', e.context_id) do |i|
-        i.element("error_message", e.message)
-      end
-      @comm.publish(e.inform_to, inform_msg, host)
+      publish_inform(e)
     end
 
     dp.fire do
