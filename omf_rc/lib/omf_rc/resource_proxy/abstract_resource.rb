@@ -238,7 +238,7 @@ class OmfRc::ResourceProxy::AbstractResource
             message.read_element("//property").each do |p|
               method_name =  "configure_#{p.attr('key')}"
               if obj.respond_to? method_name
-                mash[p.attr('key')] ||= obj.__send__(method_name, p.content)
+                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
               end
             end
           end
