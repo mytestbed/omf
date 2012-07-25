@@ -458,7 +458,6 @@ class NodeAgent < MObject
             MObject.info "Have Atheros cards - Using ath9k driver"
             AgentCommands::DEV_MAPPINGS['net/w0'] = Ath9kDevice.new('net/w0', 'wlan0')
             AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
-          end
         end
       }
       wimax_count = 0
