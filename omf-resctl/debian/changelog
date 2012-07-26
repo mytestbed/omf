@@ -1,3 +1,15 @@
+omf-resctl-5.4 (5.4.2-ubuntu3) precise; urgency=low
+
+  * Fixed an error introduced in commit:39b1302a 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 25 Jul 2012 12:43:57 +1000
+
+omf-resctl-5.4 (5.4.2-ubuntu2) precise; urgency=low
+
+  * Add support for ath5k 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 25 Jul 2012 12:23:11 +1000
+
 omf-resctl-5.4 (5.4.2-ubuntu1) precise; urgency=low
 
   * renamed root element in pubsub node
