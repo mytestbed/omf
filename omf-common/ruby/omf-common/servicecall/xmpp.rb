@@ -367,7 +367,7 @@ module OMF
         end
       end # class ResponseMessage
 
-      class RequestManager
+      class RequestManager < MObject
 
         #
         # Create a new RequestManager for the given XMPP pubsub
@@ -429,7 +429,12 @@ module OMF
             while (r = queue.pop) != :timeout
               responses << r
               if block_given?
-                block.call(r)
+                begin
+                  block.call(r)
+                rescue Exception => e
+                  info "Error in block execution (#{e.class}) - '#{e}'"
+                  e.backtrace.each { |b| info b }
+                end
               end
             end
             if responses.empty?
