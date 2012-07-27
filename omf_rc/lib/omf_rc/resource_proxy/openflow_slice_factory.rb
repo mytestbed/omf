@@ -1,11 +1,24 @@
 require 'xmlrpc/client'
 
-module OmfRc::ResourceProxy::Openflowslicefactory
+module OmfRc::ResourceProxy::OpenflowSliceFactory
   include OmfRc::ResourceProxyDSL
 
-  register_proxy :openflowslicefactory
+  register_proxy :openflow_slice_factory
 
-  module OpenflowSpaceKeys
+  module ConnectionDefaults
+    DEFAULT_CONNECTION_HOST = "localhost"
+    DEFAULT_CONNECTION_PATH = "/xmlrc"
+    DEFAULT_CONNECTION_PORT = "8080"
+    DEFAULT_CONNECTION_PROXY_HOST = nil
+    DEFAULT_CONNECTION_PROXY_PORT = nil
+    DEFAULT_CONNECTION_USER = "fvadmin"
+    DEFAULT_CONNECTION_PASSWORD = "openflow"
+    DEFAULT_CONNECTION_USE_SSL = "true"
+    DEFAULT_CONNECTION_TIMEOUT = nil
+  end
+  include ConnectionDefaults
+
+  module OpenflowKeys
     # Argument-names for the Flowvisor handler related with flowSpaces.
     OP_KEY = "operation"
     ID_KEY = "id"
@@ -14,21 +27,23 @@ module OmfRc::ResourceProxy::Openflowslicefactory
     MATCH_KEY = "match"
     ACTIONS_KEY = "actions"
   end
-  include OpenflowSpaceKeys
+  include OpenflowKeys
 
 
   hook :before_ready do |resource|
+    # The arguments for the connection between this proxy and Flowvisor instance.
     resource.property.conn_args = {
-      :host=>"localhost",
-      :path=>"/xmlrc",
-      :port=>"8080",
-      :proxy_host=>nil,
-      :proxy_port=>nil,
-      :user=>"fvadmin",
-      :password=>"openflow",
-      :use_ssl=>true,
-      :timeout=>nil
+      :host=>DEFAULT_CONNECTION_HOST,
+      :path=>DEFAULT_CONNECTION_PATH,
+      :port=>DEFAULT_CONNECTION_PORT,
+      :proxy_host=>DEFAULT_CONNECTION_PROXY_HOST,
+      :proxy_port=>DEFAULT_CONNECTION_PROXY_PORT,
+      :user=>DEFAULT_CONNECTION_USER,
+      :password=>DEFAULT_CONNECTION_PASSWORD,
+      :use_ssl=>DEFAULT_CONNECTION_USE_SSL,
+      :timeout=>DEFAULT_CONNECTION_TIMEOUT
     }
+    # The connection between this proxy and Flowvisor instance.
     resource.property.conn = XMLRPC::Client.new_from_hash(resource.property.conn_args)
     resource.property.conn.instance_variable_get("@http").verify_mode = OpenSSL::SSL::VERIFY_NONE
   end
@@ -42,7 +57,9 @@ module OmfRc::ResourceProxy::Openflowslicefactory
     resource.property.conn_args.update(conn_args)
     resource.property.conn = XMLRPC::Client.new_from_hash(resource.property.conn_args)
     resource.property.conn.instance_variable_get("@http").verify_mode = OpenSSL::SSL::VERIFY_NONE
+    resource.property.conn_args
   end
+
 
   # Key is the request/configure name => value is the name of the related flowvisor handler.
   REQUESTS = { :slices => :listSlices, :devices => :listDevices, :deviceInfo => :getDeviceInfo, :deviceStats => :getSwitchStats }
@@ -59,17 +76,4 @@ module OmfRc::ResourceProxy::Openflowslicefactory
        Hash[*array].each_with_object({}) { |(k, v), h| h[(k.downcase[MATCH_KEY] ? MATCH_KEY : (k.downcase[ACTIONS_KEY] ? ACTIONS_KEY : k))] = v }
      end
   end
-
-  #:slice => :createSlice
-  #:deleteSlice, :getSliceInfo, :getSliceStats, :changePasswd, :changeSlice, :createSlice
-  #:addFlowSpace, :removeFlowSpace , :changeFlowSpace
-
-  #FUNCTIONS_FLOWSPACE.each do |function|
-  #  request function do |resource, function_args|
-  #    str = function.to_s
-  #    str.slice!("FlowSpace")
-  #    function_args[OP_KEY] = str.upcase
-  #    resource.property.conn.call("api.changeFlowSpace", [function_args.each_with_object({}) { |(k, v), h| h[k] = v.to_s }])
-  #  end
-  #end
 end
