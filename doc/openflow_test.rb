@@ -28,15 +28,14 @@ comm.when_ready do
         options[:uid],
         Message.create do |v| 
           v.property('type', 'openflow_slice')
-          v.property('name')
+          v.property('name', 'vs2')
         end,
         host
       )
-      
       #comm.publish(
       #  options[:uid],
       #  Message.configure do |v|
-      #    v.property('connection') do |p|
+      #    v.property('flowvisor') do |p|
       #      p.element('host', 'localhost')
       #    end
       #  end,
@@ -47,7 +46,7 @@ comm.when_ready do
         Message.request do |v|
           v.property('slices')
       #    v.property('devices')
-      #    v.property('flowSpaces')
+          v.property('flowSpaces')
       #    v.property('deviceInfo') do |p|
       #      p.element('pid', '1')
       #    end
@@ -119,6 +118,10 @@ comm.topic_event do |e|
             #  end,
             #  host
             #)
+            EM.add_timer(5) do
+              comm.publish(openflow_slice_id, Message.release, host)
+              logger.info "Openflow Slice #{openflow_slice_id} has been deleted"
+            end
           end
         when 'STATUS'
           message.read_element("//property").each do |p|
