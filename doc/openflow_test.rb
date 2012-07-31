@@ -36,7 +36,7 @@ comm.when_ready do
       #  options[:uid],
       #  Message.configure do |v|
       #    v.property('flowvisor') do |p|
-      #      p.element('host', 'localhost')
+      #      p.element('host', '100.100.100.100')
       #    end
       #  end,
       #  host
@@ -44,7 +44,7 @@ comm.when_ready do
       comm.publish(
         options[:uid],
         Message.request do |v|
-          v.property('slices')
+      #    v.property('slices')
       #    v.property('devices')
           v.property('flowSpaces')
       #    v.property('deviceInfo') do |p|
@@ -76,7 +76,7 @@ comm.topic_event do |e|
               openflow_slice_id,
               Message.request do |v|
                 v.property('info')
-            #    v.property('stats')
+                v.property('stats')
               end,
               host
             )
@@ -90,35 +90,26 @@ comm.topic_event do |e|
             #      p.element('key', 'contact_email')
             #      p.element('value', 'vs2@foo.com')
             #    end
-            #    v.property('createSlice') do |p|
-            #      p.element('arg1', 'vs2')
-            #      p.element('arg2', 'openflow')
-            #      p.element('arg3', 'tcp:127.0.0.1:9934')
-            #      p.element('arg4', 'vs2@fo.com')
-            #    end
-            #    v.property('deleteSlice') do |p|
-            #      p.element('arg1', 'vs2')
-            #    end
             #    v.property('addFlowSpace') do |p|
             #      p.element('dpid', '1')
             #      p.element('priority', '10')
-            #      p.element('match', 'OFMatch[in_port=1]')
-            #      p.element('actions', 'Slice:vs1=4')
+            #      p.element('match', 'OFMatch[in_port=10]')
+            #      p.element('actions', 'Slice:vs2=4')
             #    end
             #    v.property('removeFlowSpace') do |p|
-            #      p.element('id', '17')
+            #      p.element('id', '100')
             #    end
             #    v.property('changeFlowSpace') do |p|
-            #      p.element('id', '18')
+            #      p.element('id', '19')
             #      p.element('dpid', '1')
             #      p.element('priority', '10')
-            #      p.element('match', 'OFMatch[in_port=25]')
-            #      p.element('actions', 'Slice:vs1=4')
+            #      p.element('match', 'OFMatch[in_port=5]')
+            #      p.element('actions', 'Slice:vs2=4')
             #    end
             #  end,
             #  host
             #)
-            EM.add_timer(5) do
+            EM.add_timer(100) do
               comm.publish(openflow_slice_id, Message.release, host)
               logger.info "Openflow Slice #{openflow_slice_id} has been deleted"
             end
