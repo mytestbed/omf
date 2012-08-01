@@ -20,13 +20,8 @@ program_desc "Run a command on the testbed(s)"
 
 version OmfEc::VERSION
 
-desc 'Describe some switch here'
-switch [:s,:switch]
-
-desc 'Describe some flag here'
-default_value 'the default'
-arg_name 'The name of the argument'
-flag [:f,:flagname]
+desc "Debug (this script only, not passed to omf exec)"
+switch [:d, :debug]
 
 desc "Execute an experiment script"
 arg_name 'Describe arguments to exec here'
@@ -47,29 +42,92 @@ command :exec do |c|
 end
 
 desc "Load a disk image on a given set of nodes"
-arg_name 'Describe arguments to load here'
 command :load do |c|
+  c.desc 'Describe a flag to exec'
+  c.default_value 'default'
+  c.flag :f
+
+  c.desc "Aggregate Name"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config]
+
+  c.desc "A valid topology file or description. If a file 'TOPOLOGY' doesn't exist, interpret it as a comma-separated list of nodes)"
+  c.default_value "system:topo:all"
+  c.arg_name "TOPOLOGY"
+  c.flag [:t, :topology]
+
+  c.desc "Disk image to load"
+  c.default_value "baseline.ndz"
+  c.arg_name "IMAGE"
+  c.flag [:i, :image]
+
+  c.desc "A duration (in sec.) after which imageNodes should stop waiting for nodes that have not finished their image installation"
+  c.default_value "800"
+  c.arg_name "SECONDS"
+  c.flag [:o, :timeout]
+
+  c.desc "Path where the resulting Topologies should be saved"
+  c.default_value "/tmp"
+  c.arg_name "PATH"
+  c.flag [:outpath]
+
+  c.desc "Prefix to use for naming the resulting Topologies"
+  c.default_value "your experiment ID"
+  c.arg_name "PREFIX"
+  c.flag [:outprefix]
+
   c.action do |global_options,options,args|
   end
 end
 
 desc "Save a disk image from a given node into a file"
-arg_name 'Describe arguments to save here'
 command :save do |c|
+  c.desc "Aggregate Name"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config]
+
+  c.desc "Save image node"
+  c.arg_name "NODE"
+  c.flag [:n, :node]
+
   c.action do |global_options,options,args|
   end
 end
 
 desc "Switch a given set of nodes ON/OFF or reboot them"
-arg_name 'Describe arguments to tell here'
 command :tell do |c|
+  c.desc "A valid topology file or description. If a file 'TOPOLOGY' doesn't exist, interpret it as a comma-separated list of nodes)"
+  c.default_value "system:topo:all"
+  c.arg_name "TOPOLOGY"
+  c.flag [:t, :topology]
+
+  c.desc "Aggregate Name"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config]
+
+  c.desc "CMC action"
+  c.default_value %w(on offs offh reboot reset)
+  c.arg_name "ACTION"
+  c.flag [:a, :action]
+
   c.action do |global_options,options,args|
   end
 end
 
 desc "Returns the status of a given set of nodes"
-arg_name 'Describe arguments to stat here'
 command :stat do |c|
+  c.desc "Print a summary of the node status for the testbed"
+  c.switch [:s, :summary]
+
+  c.desc "A valid topology file or description. If a file 'TOPOLOGY' doesn't exist, interpret it as a comma-separated list of nodes)"
+  c.default_value "system:topo:all"
+  c.arg_name "TOPOLOGY"
+  c.flag [:t, :topology]
+
+  c.desc "Aggregate Name"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config]
+
   c.action do |global_options,options,args|
   end
 end
