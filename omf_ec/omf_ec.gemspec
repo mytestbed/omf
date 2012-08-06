@@ -21,5 +21,5 @@ Gem::Specification.new do |s|
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest", "~> 2.11.3"
   s.add_runtime_dependency "omf_common", "~> 6.0.0.pre"
-  s.add_runtime_dependency "gli", "~> 1.6.0"
+  s.add_runtime_dependency "gli", "~> 2.0.0.pre"
 end

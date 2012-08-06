@@ -1,20 +1,9 @@
 #!/usr/bin/env ruby
-# 1.9 adds realpath to resolve symlinks; 1.8 doesn't
-# have this method, so we add it so we get resolved symlinks
-# and compatibility
-unless File.respond_to? :realpath
-  class File #:nodoc:
-    def self.realpath path
-      return realpath(File.readlink(path)) if symlink?(path)
-      path
-    end
-  end
-end
-$: << File.expand_path(File.dirname(File.realpath(__FILE__)) + '/../lib')
+#
 require 'gli'
 require 'omf_ec'
 
-include GLI
+include GLI::App
 
 program_desc "Run a command on the testbed(s)"
 
@@ -95,6 +84,19 @@ command :save do |c|
 end
 
 desc "Switch a given set of nodes ON/OFF or reboot them"
+long_desc <<-DESC
+  Specify a CMC action:
+
+  on      - turn node(s) ON
+
+  offs    - turn node(s) OFF (soft)
+
+  offh    - turn node(s) OFF (hard)
+
+  reboot  - treboots node(s) (soft)
+
+  reset   - tresets node(s) (hard)
+DESC
 command :tell do |c|
   c.desc "A valid topology file or description. If a file 'TOPOLOGY' doesn't exist, interpret it as a comma-separated list of nodes)"
   c.default_value "system:topo:all"
@@ -106,9 +108,8 @@ command :tell do |c|
   c.flag [:c, :config]
 
   c.desc "CMC action"
-  c.default_value %w(on offs offh reboot reset)
   c.arg_name "ACTION"
-  c.flag [:a, :action]
+  c.flag [:a, :action], :must_match => %w(on offs offh reboot reset)
 
   c.action do |global_options,options,args|
   end
@@ -133,24 +134,14 @@ command :stat do |c|
 end
 
 pre do |global,command,options,args|
-  # Pre logic here
-  # Return true to proceed; false to abort and not call the
-  # chosen command
-  # Use skips_pre before a command to skip this block
-  # on that command only
   true
 end
 
 post do |global,command,options,args|
-  # Post logic here
-  # Use skips_post before a command to skip this
-  # block on that command only
 end
 
 on_error do |exception|
-  # Error logic here
-  # return false to skip default error handling
   true
 end
 
-exit GLI.run(ARGV)
+exit run(ARGV)
