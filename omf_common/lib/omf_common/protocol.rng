@@ -138,5 +138,8 @@
     <element name="context_id">
       <text/>
     </element>
+    <element name="resource_id">
+      <text/>
+    </element>
   </element>
 </choice>
