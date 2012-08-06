@@ -99,14 +99,16 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Release a resource
   #
-  def release
-    pubsub_topics_left = []
-    children.each do |c|
-      c.before_release if c.respond_to? :before_release
-      pubsub_topics_left << c.uid
-    end.clear
-    before_release if respond_to? :before_release
-    pubsub_topics_left
+  def release(resource_id)
+    obj = children.find { |v| v.uid == resource_id }
+
+    # Release children resource recursively
+    obj.children.each do |c|
+      obj.release(c.uid)
+    end
+    obj.before_release if obj.respond_to? :before_release
+
+    children.delete { |v| v.uid == resource_id }
   end
 
   # Return a list of all properties can be requested and configured
@@ -161,7 +163,7 @@ class OmfRc::ResourceProxy::AbstractResource
       when :request, :configure
         result.each_pair { |k, v| i.property(k, v) }
       when :release
-        i.element('resource_id', inform_to)
+        i.element('resource_id', result)
       when :error
         i.element("error_message", message)
       end
@@ -187,10 +189,6 @@ class OmfRc::ResourceProxy::AbstractResource
       when :request, :configure
         publish_inform(response)
       when :release
-        response.result.each do |n|
-          @comm.delete_topic(n, host)
-        end
-
         EM.add_timer(RELEASE_WAIT) do
           publish_inform(response)
         end
@@ -244,7 +242,8 @@ class OmfRc::ResourceProxy::AbstractResource
           end
           { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
         when :release
-          { operation: :release, result: obj.release, context_id: context_id, inform_to: obj.uid }
+          resource_id = message.read_content("resource_id")
+          { operation: :release, result: obj.release(resource_id), context_id: context_id, inform_to: obj.uid }
         when :inform
           # We really don't care about inform messages which created from here
           nil
