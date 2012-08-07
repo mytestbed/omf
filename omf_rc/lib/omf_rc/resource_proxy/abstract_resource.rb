@@ -108,7 +108,7 @@ class OmfRc::ResourceProxy::AbstractResource
     end
     obj.before_release if obj.respond_to? :before_release
 
-    children.delete { |v| v.uid == resource_id }
+    children.delete(obj)
   end
 
   # Return a list of all properties can be requested and configured
