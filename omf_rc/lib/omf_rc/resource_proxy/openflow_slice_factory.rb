@@ -16,6 +16,17 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
     :timeout=>nil
   }
 
+  def create(type, opts = nil)
+    if type.to_sym != :openflow_slice
+      raise "This resource doesn't create resources of type "+type
+    elsif !self.property.fv
+      raise "This resource is not connected with a Flowvisor instance and cannot create slices"
+    end 
+    opts.property ||= Hashie::Mash.new
+    opts.property.fv = self.property.fv
+    super
+  end
+
   register_proxy :openflow_slice_factory
 
   hook :before_ready do |resource|
@@ -28,6 +39,7 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
   end
 
   configure :flowvisor do |resource, fv_args|
+    raise "Connection with a new Flowvisor instance is not allowed if there are created slices" if !resource.children.empty?
     resource.property.fv_args.update(fv_args)
     resource.config_fv
     resource.property.fv_args
@@ -35,29 +47,26 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
 
   { :slices => "listSlices", :devices => "listDevices", :deviceInfo => "getDeviceInfo", :deviceStats => "getSwitchStats" }.each do |request_sym, handler_name|
     request request_sym do |resource, handler_args|
+      raise "There is no connection with a Flowvisor instance" if !resource.property.fv 
       begin
-        result = resource.property.fv ? resource.property.fv.call("api."+handler_name, *handler_args.values.map(&:to_s)) : nil
-      rescue Exception => bang
-        result = nil
-        logger.error "Request "+request_sym.to_s+" didn't succeed: "+bang.message
+        resource.property.fv.call("api."+handler_name, *handler_args.values.map(&:to_s))
+      rescue Exception
+        raise "Flowvisor instance does not respond normally"
       end
-      result
     end
   end
 
   request :flowSpaces do |resource|
+    raise "There is no connection with a Flowvisor instance" if !resource.property.fv 
     begin
-      if ( result = resource.property.fv ? resource.property.fv.call("api.listFlowSpace") : nil )
-        result.map do |line|
-          array = line.split(/FlowEntry\[|=\[|\],\]?/).reject(&:empty?)
-          Hash[*array]
-        end
+      result = resource.property.fv.call("api.listFlowSpace")
+      result.map do |line|
+        array = line.split(/FlowEntry\[|=\[|\],\]?/).reject(&:empty?)
+        Hash[*array]
       end
-    rescue Exception => bang 
-      result = nil
-      logger.error "Request flowSpaces didn't succeed: "+bang.message
+    rescue Exception
+      raise "Flowvisor instance does not respond normally"
     end
-    result
   end
 
   work :config_fv do |resource|
@@ -68,9 +77,11 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
       resource.property.fv = ( fv.call("api.ping", ping_msg) == ("PONG("+resource.property.fv_args[:user]+"): "+FLOWVISOR_VERSION+"::"+ping_msg) ) ? fv : nil
     rescue
       resource.property.fv = nil
-      fv_args_str = resource.property.fv_args.map{|k,v| "#{k}=\"#{v}\""}.join(' ')
-      logger.error "Connection with Flowvisor ["+fv_args_str+"] was not successful"
+    ensure
+      if !resource.property.fv
+        fv_args_str = resource.property.fv_args.map{|k,v| "#{k}=\"#{v}\""}.join(' ')
+        raise "Connection with Flowvisor ["+fv_args_str+"] was not successful"
+      end
     end
   end
-
 end
