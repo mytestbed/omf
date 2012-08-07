@@ -15,6 +15,16 @@ module OmfRc::ResourceProxy::Garage
   include OmfRc::ResourceProxyDSL
 
   register_proxy :garage
+
+  hook :before_create do |resource, new_resource_type, new_resource_options|
+    if new_resource_type.to_sym == :engine
+      logger.info "I can do it"
+    else
+      raise "Go away, I can't create #{new_resource_type}"
+    end
+    new_resource_options.property ||= Hashie::Mash.new
+    new_resource_options.property.provider = "Cosworth #{resource.uid}"
+  end
 end
 
 

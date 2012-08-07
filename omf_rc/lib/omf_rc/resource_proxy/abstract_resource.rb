@@ -91,7 +91,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @param (see #initialize)
   def create(type, opts = nil)
-    before_create if respond_to? :before_create
+    before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
     children << new_resource
     new_resource

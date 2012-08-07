@@ -53,8 +53,8 @@ module OmfRc::ResourceProxyDSL
     #    end
     #   end
     def hook(name, &register_block)
-      define_method(name) do
-        register_block.call(self) if register_block
+      define_method(name) do |*args, &block|
+        register_block.call(self, *args, block) if register_block
       end
     end
 
