@@ -4,6 +4,7 @@ require 'omf_common'
 module OmfRc::ResourceProxy::OpenflowSlice
   include OmfRc::ResourceProxyDSL
   
+  # The default parameters of a new created slice. The controller is assumed to be in the same working station with Flowvisor instance 
   SLICE_DEFAULTS = {
     :passwd=>"1234",
     :url=>"tcp:127.0.0.1",
@@ -12,10 +13,12 @@ module OmfRc::ResourceProxy::OpenflowSlice
 
   register_proxy :openflow_slice
 
+  # Slice's name is initiated with value "nil"
   hook :before_ready do |resource|
     resource.property.name = nil
   end
 
+  # Before release the related Flowvisor instance should also be update to remove the corresponding slice
   hook :before_release do |resource|
     begin
       resource.property.fv.call("api.deleteSlice", resource.property.name)
@@ -24,6 +27,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
+  # The name is allowed to be one-time configured 
   configure :name do |resource, name|
     raise "The name of this slice has already been configured" if resource.property.name
     resource.property.name = name
@@ -36,6 +40,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
+  # Returns a hash table with the name of this slice, its controller (ip and port) and other related information
   request :info do |resource|
     begin
       result = resource.property.fv.call("api.getSliceInfo", resource.property.name)
@@ -47,6 +52,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
+  # Returns a string with statistics about the use of this slice
   request :stats do |resource|
     begin
       resource.property.fv.call("api.getSliceStats", resource.property.name)
