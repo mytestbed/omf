@@ -1,6 +1,11 @@
 require 'xmlrpc/client'
 require 'omf_common'
 
+# The "Openflow Slice" resource is created from the parent "Openflow Slice Factory" resource.
+# It is related with a slice of a Flowvisor instance, and behaves as a proxy between experimenter and the actual Flowvisor slice.
+# So, the whole state of the slice is keeped in the Flowvisor instance.
+# The communication with Flowvisor is established from the parent resource, and it is included in the resource property "fv".
+#
 module OmfRc::ResourceProxy::OpenflowSlice
   include OmfRc::ResourceProxyDSL
   
@@ -27,7 +32,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
-  # The name is allowed to be one-time configured 
+  # The name is allowed to be one-time configured. Once it is configured, a new slice is created in Flowvisor instance
   configure :name do |resource, name|
     raise "The name of this slice has already been configured" if resource.property.name
     resource.property.name = name
@@ -61,6 +66,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
+  # Configures the slice parameters
   { :passwd => "changePasswd", :change => "changeSlice" }.each do |configure_sym, handler_name|
     configure configure_sym do |resource, handler_args|
       begin
@@ -71,6 +77,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
+  # Configures the flow spaces that this slice controls. 
   [ :addFlowSpace, :removeFlowSpace , :changeFlowSpace ].each do |configure_sym|
     configure configure_sym do |resource, handler_args|
       str = configure_sym.to_s
