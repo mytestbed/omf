@@ -6,7 +6,7 @@
   <outputter type="StdoutOutputter" name="console" level="INFO"/>
   <outputter type="OMF::EC::Communicator::PubOutputter" name="pub" level="INFO"/>
   <outputter type="OMF::EC::OML::OMLOutputter" name="oml" level="DEBUG"/>
-  
+
 
   <!-- loggers -->
   <logger name="nodeHandler" outputters="console, pub, oml" level="DEBUG" trace="true"/>
@@ -18,7 +18,7 @@
   <!-- 2) Only log ERROR-level messages from the ALLGROUP NodeSet and the Every-block loop -->
   <logger name="nodeHandler::set::_ALLGROUPS_" outputters="console, pub, oml" level="ERROR"/>
   <logger name="nodeHandler::every" outputters="console, pub, oml" level="ERROR"/>
-  
+
   <!--
   <logger name="client" level="INFO" outputters="client, console"/>
   <logger name="client::gui" trace="true">

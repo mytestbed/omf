@@ -505,11 +505,6 @@ class NodeBuiltin < MObject
       addLine(getStdoutEl, message)
     when 'STDERR'
       addLine(getStderrEl, message)
-      lines = Array.new
-      lines << "The resource '#{node}' reports that an error occured "
-      lines << "while running the application '#{@name}'"
-      lines << "The error message is '#{message}'" if message
-      NodeHandler.instance.display_error_msg(lines)
     else
       setStatus "UNKNOWN.EVENT: #{eventName} #{message}"
     end

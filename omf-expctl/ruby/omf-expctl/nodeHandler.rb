@@ -824,7 +824,7 @@ class NodeHandler < MObject
       ECCommunicator.instance.send_noop
       if NodeHandler.SHUTDOWN
         info "Shutdown flag is set - Turning Off the resources"
-        OMF::EC::CmdContext.instance.allGroups.powerOff
+        OMF::EC::CmdContext.instance.allGroups.powerOff(true)
       end
       ECCommunicator.instance.stop
     rescue Exception => ex

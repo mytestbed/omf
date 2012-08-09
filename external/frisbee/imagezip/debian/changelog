@@ -1,3 +1,9 @@
+imagezip (1.0.0-2ubuntu5) precise; urgency=low
+
+  * precise build 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 09 Aug 2012 16:55:59 +1000
+
 imagezip (1.0.0-2ubuntu4) oneiric; urgency=low
 
   * moving to oneiric 
