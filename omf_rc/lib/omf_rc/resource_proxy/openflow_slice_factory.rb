@@ -70,7 +70,7 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
     end
   end
 
-  # Returns the flows (flow spaces or flow entries) that exist for this flowvisor
+  # Returns the flows (flow entries) that exist for this flowvisor
   request :flows do |resource|
     raise "There is no connection with a flowvisor instance" if !resource.property.fv 
     result = resource.property.fv.call("api.listFlowSpace")
