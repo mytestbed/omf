@@ -18,19 +18,17 @@ child_uid = nil
 comm = Comm.new(:xmpp)
 host = nil
 
-context_id = nil
-
 comm.when_ready do
   logger.info "# CONNECTED: #{comm.jid.inspect}"
-  logger.info "# Parent resource \"#{parent_uid}\" ready for testing"
+  logger.info "* Parent resource \"#{parent_uid}\" ready for testing"
   host = comm.jid.domain
 
   comm.subscribe(parent_uid, host) do
     message = Message.create do |v|
       v.property('type', 'openflow_slice')
-      v.property('name', 'test')
+      v.property('name', 'vs2')
     end
-    logger.info message.operation.to_s+": "+(context_id = message.read_content('context_id'))
+    logger.info message.operation.to_s+": "+ message.read_content('context_id')
     comm.publish(parent_uid, message, host)
   end
 end
@@ -41,31 +39,47 @@ comm.topic_event do |e|
     if message.operation == :inform
       case message.read_content("inform_type")
       when 'CREATED'
+        logger.info "created: " + message.read_content('context_id')
+
         child_uid = message.read_content("resource_id")
-        logger.info "# Child resource \"#{child_uid}\" ready for testing"
+        logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
         comm.subscribe(child_uid, host) do
-          message = Message.request do |v|
-            v.property('stats')
+          message = Message.configure do |v|
+            v.property('addFlow') do |p|
+              p.element('device', '00:00:00:00:00:00:00:01')
+              p.element('port', '30')
+            end
+            v.property('deleteFlow') do |p|
+              p.element('device', '00:00:00:00:00:00:00:01')
+              p.element('port', '30')
+            end
           end
-          logger.info message.operation.to_s+": "+(context_id = message.read_content('context_id'))
+          logger.info message.operation.to_s+": "+ message.read_content('context_id')
           comm.publish(child_uid, message, host)
+
+          EM.add_timer(10) do
+            message = Message.release
+            logger.info message.operation.to_s+": "+ message.read_content('context_id')
+            comm.publish(child_uid, message, host)
+          end
         end
 
       when 'STATUS'
-        logger.info "status: " + (context_id_new = message.read_content('context_id'))
+        logger.info "status: " + message.read_content('context_id')
         message.read_element("//property").each do |p|
           logger.info "  #{p.attr('key')} => #{p.content.strip}"
         end
 
-        #if context_id == context_id_new
-        #end
-
      when 'FAILED'
+        logger.error "failed: " + message.read_content('context_id')
         logger.error message.read_content("error_message")
         
       when 'RELEASED'
-        logger.warn "Engine turned off (resource released)"
+        logger.warn "released: " + message.read_content('context_id')
+
+        child_uid = message.read_content("resource_id")
+        logger.warn "* Child resource \"#{child_uid}\" is released"
       end
     end
   end
@@ -76,3 +90,4 @@ EM.run do
   trap(:INT) { comm.disconnect }
   trap(:TERM) { comm.disconnect }
 end
+

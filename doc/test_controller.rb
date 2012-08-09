@@ -8,7 +8,7 @@ include OmfCommon
 options = {
   user: 'bravo',
   password: 'pw',
-  server: 'srv.mytestbed.net', # XMPP pubsub server domain
+  server: 'srv.mytestbed.net' # XMPP pubsub server domain
   uid: 'mclaren' # The garage's name, we used the same name in the garage_controller.
 }
 
