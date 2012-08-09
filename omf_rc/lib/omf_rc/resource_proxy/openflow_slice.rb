@@ -16,7 +16,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     :email=>"nobody@nowhere"
   }
 
-  # The default parameters of a new flow (it is also named flow space of flow entry in flowvisor terminology)
+  # The default parameters of a new flow (it is also named flow entry in flowvisor terminology)
   FLOW_DEFAULTS = {
     :priority=>"10",
     :actions=>"4"
@@ -78,7 +78,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
-  # Returns the flows (flow spaces or flow entries) that exist for this flowvisor and are related with this slice
+  # Returns the flows that exist for this flowvisor and are related with this slice
   request :flows do |resource|
     resource.flows
   end
