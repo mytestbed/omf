@@ -14,26 +14,21 @@ options = {
 
 # We will use Comm directly, with default DSL implementaion :xmpp
 comm = Comm.new(:xmpp)
-host = nil
 
 # Then we can register event handlers to the communicator
 #
 # Event triggered when connection is ready
 comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
-  host = comm.jid.domain
 
   # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
-  comm.subscribe(options[:uid], host) do |e|
-    if e.error?
-      comm.disconnect
-    else
+  comm.subscribe(options[:uid]) do |e|
       # If subscribed, we publish a 'create' message, 'create' a new engine for testing
-      comm.publish(
-        options[:uid],
-        Message.create { |v| v.property('type', 'engine') },
-        host)
-    end
+    comm.publish(options[:uid], Message.create { |v| v.property('type', 'engine') })
+  end
+
+  comm.subscribe options[:uid], :error? do
+    comm.disconnect
   end
 end
 
@@ -51,7 +46,7 @@ comm.topic_event do |e|
           engine_id = message.read_content("resource_id")
           logger.info "Engine #{engine_id} ready for testing"
 
-          comm.subscribe(engine_id, host) do
+          comm.subscribe(engine_id) do
             # Now engine is ready, we can ask for some information about the engine
             comm.publish(engine_id,
                          Message.request do |v|
@@ -60,37 +55,30 @@ comm.topic_event do |e|
                              p.element('country', 'japan')
                            end
                            v.property('max_power')
-                         end,
-                         host)
+                         end)
 
             # We will check engine's RPM every 1 second
             EM.add_periodic_timer(1) do
              comm.publish(engine_id,
-                          Message.request { |v| v.property('rpm') },
-                          host)
+                          Message.request { |v| v.property('rpm') })
             end
 
             # Now we will apply 50% throttle to the engine
             comm.publish(engine_id,
-                        Message.configure { |v| v.property('throttle', '50') },
-                        host)
+                        Message.configure { |v| v.property('throttle', '50') })
 
             # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
             EM.add_timer(5) do
              comm.publish(engine_id,
-                          Message.configure { |v| v.property('throttle', '0') },
-                          host)
+                          Message.configure { |v| v.property('throttle', '0') })
              # Testing error handling
              comm.publish(engine_id,
-                          Message.request { |v| v.property('error') },
-                          host)
+                          Message.request { |v| v.property('error') })
             end
 
             # 20 seconds later, we will 'release' this engine, i.e. shut it down
             EM.add_timer(20) do
-             comm.publish(engine_id,
-                          Message.release,
-                          host)
+             comm.publish(engine_id, Message.release)
             end
           end
         when 'STATUS'
