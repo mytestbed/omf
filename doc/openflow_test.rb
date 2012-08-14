@@ -26,7 +26,8 @@ comm.when_ready do
   comm.subscribe(parent_uid, host) do
     message = Message.create do |v|
       v.property('type', 'openflow_slice')
-      v.property('name', 'vs2')
+      v.property('name', 'test')
+      v.property('controller_port', '9934')
     end
     logger.info message.operation.to_s+": "+ message.read_content('context_id')
     comm.publish(parent_uid, message, host)
@@ -48,21 +49,32 @@ comm.topic_event do |e|
           message = Message.configure do |v|
             v.property('addFlow') do |p|
               p.element('device', '00:00:00:00:00:00:00:01')
-              p.element('port', '30')
-            end
-            v.property('deleteFlow') do |p|
-              p.element('device', '00:00:00:00:00:00:00:01')
-              p.element('port', '30')
+              p.element('port', '23')
             end
           end
           logger.info message.operation.to_s+": "+ message.read_content('context_id')
           comm.publish(child_uid, message, host)
 
-          EM.add_timer(10) do
-            message = Message.release
-            logger.info message.operation.to_s+": "+ message.read_content('context_id')
-            comm.publish(child_uid, message, host)
+          message = Message.configure do |v|
+            v.property('addFlow') do |p|
+              p.element('device', '00:00:00:00:00:00:00:01')
+              p.element('port', '15')
+              p.element('ip_dst', '10.0.1.100')
+            end
+            #v.property('deleteFlow') do |p|
+            #  p.element('device', '00:00:00:00:00:00:00:01')
+            #  p.element('port', '30')
+            #  p.element('ip','10.0.1.30')
+            #end
           end
+          logger.info message.operation.to_s+": "+ message.read_content('context_id')
+          comm.publish(child_uid, message, host)
+
+          #EM.add_timer(10) do
+          #  message = Message.release
+          #  logger.info message.operation.to_s+": "+ message.read_content('context_id')
+          #  comm.publish(child_uid, message, host)
+          #end
         end
 
       when 'STATUS'

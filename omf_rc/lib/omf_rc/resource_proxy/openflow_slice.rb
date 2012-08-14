@@ -12,8 +12,8 @@ module OmfRc::ResourceProxy::OpenflowSlice
   # The default parameters of a new slice. The openflow controller is assumed to be in the same working station with flowvisor instance
   SLICE_DEFAULTS = {
     :passwd=>"1234",
-    :url=>"tcp:127.0.0.1",
-    :email=>"nobody@nowhere"
+    :url=>"tcp:127.0.0.1:9933",
+    :email=>"nothing@nowhere"
   }
 
   # The default parameters of a new flow (it is also named flow entry in flowvisor terminology)
@@ -47,33 +47,48 @@ module OmfRc::ResourceProxy::OpenflowSlice
   end
 
   # Configures the slice parameters
-  [ :contact_email, :drop_policy, :controller_hostname, :controller_port ].each do |configure_sym|
+  [:contact_email, :drop_policy, :controller_hostname, :controller_port].each do |configure_sym|
     configure configure_sym do |resource, value|
-      resource.property.fv.call("api.changeSlice"+handler_name, resource.property.name, configure_sym.to_s, value.to_s)
+      resource.property.fv.call("api.changeSlice", resource.property.name, configure_sym.to_s, value.to_s)
     end
   end
 
   # Configures the flows of this slice (deprecated because it should be restricted)
-  #[ :addFlowSpace, :removeFlowSpace , :changeFlowSpace ].each do |configure_sym|
+  #[:addFlowSpace, :removeFlowSpace , :changeFlowSpace].each do |configure_sym|
   #  configure configure_sym do |resource, handler_args|
   #    str = configure_sym.to_s
   #    str.slice!("FlowSpace")
   #    handler_args["operation"] = str.upcase
-  #    resource.property.fv.call("api.changeFlowSpace", [handler_args.each_with_object({}) { |(k, v), h| h[k] = v.to_s }])
+  #    resource.property.fv.call("api.changeFlowSpace", [handler_args.each_with_object({}) {|(k, v), h| h[k] = v.to_s}])
   #  end
   #end
 
-  # Adds a flow to this slice, specified from a device and a port
+  # Adds a flow to this slice, specified from a device and a port [and a dest ip address optionally]
   configure :addFlow do |resource, args|
-    result = resource.property.fv.call( "api.changeFlowSpace", [{ "operation"=>"ADD", "priority"=>resource.priority(FLOW_DEFAULTS[:priority]), "dpid"=>resource.dpid(args.device), "actions"=>resource.actions(FLOW_DEFAULTS[:actions]), "match"=>resource.match(args.port) }] )
+    match = "in_port=#{args.port}"
+    match += ",ip_dst=#{args.ip_dst}" if args.ip_dst 
+    call_args = {
+      "operation"=>"ADD", 
+      "priority"=>resource.priority(FLOW_DEFAULTS[:priority]), 
+      "dpid"=>resource.dpid(args.device), 
+      "actions"=>resource.actions(FLOW_DEFAULTS[:actions]), 
+      "match"=>resource.match(match)
+    }
+    result = resource.property.fv.call("api.changeFlowSpace", [call_args])
     resource.flow(result)
   end
 
-  # Removes a flow from this slice, specified from a device and a port
+  # Removes a flow from this slice, specified from a device and a port [and a dest ip address optionally]
   configure :deleteFlow do |resource, args|
+    match = "in_port=#{args.port}"
+    match += ",ip_dst=#{args.ip_dst}" if args.ip_dst
     resource.flows.each do |h|
-      if ( h["dpid"]==resource.dpid(args.device) && h["ruleMatch"]==resource.match(args.port) )
-        resource.property.fv.call( "api.changeFlowSpace", [{ "operation"=>"REMOVE", "id"=> h["id"]}] )
+      if (h["dpid"]==resource.dpid(args.device) && h["ruleMatch"]==resource.match(match))
+        call_args = {
+          "operation"=>"REMOVE", 
+          "id"=> h["id"]
+        }
+        resource.property.fv.call("api.changeFlowSpace", [call_args])
       end
     end
   end
@@ -103,15 +118,15 @@ module OmfRc::ResourceProxy::OpenflowSlice
       array = line.split(/FlowEntry\[|=\[|\],\]?/).reject(&:empty?)
       Hash[*array]
     end
-    result.delete_if {|h| !h["actionsList"][resource.property.name] }
+    result.delete_if {|h| !h["actionsList"][resource.property.name]}
   end
   # Returns a flow with the given id
   work :flow do |resource, id|
     resource.flows.select {|h| id.include?h["id"]}
   end
   # The wrappers that convert the given arguments (device, port, etc) to appropriately formated arguments for flowvisor
-  work :priority do |resource, value| value.to_s end
-  work :dpid do |resource, value| value end
-  work :actions do |resource, value| "Slice:"+resource.property.name+"="+value.to_s end
-  work :match do |resource, value| "OFMatch[in_port="+value.to_s+"]" end
+  work :priority do |resource, priority| priority.to_s end
+  work :dpid do |resource, device| device.to_s end
+  work :actions do |resource, actions| "Slice:#{resource.property.name}=#{actions.to_s}" end
+  work :match do |resource, match| "OFMatch[#{match}]" end
 end

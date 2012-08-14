@@ -55,18 +55,18 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
   end
 
   # Returns a list of existed slices or connected devices
-  { :slices => "listSlices", :devices => "listDevices" }.each do |request_sym, handler_name|
+  {:slices => "listSlices", :devices => "listDevices"}.each do |request_sym, handler_name|
     request request_sym do |resource|
       raise "There is no connection with a flowvisor instance" if !resource.property.fv 
-      resource.property.fv.call("api."+handler_name)
+      resource.property.fv.call("api.#{handler_name}")
     end
   end
 
   # Returns information or statistics for a specific device, which is related with flowvisor
-  { :deviceInfo => "getDeviceInfo", :deviceStats => "getSwitchStats" }.each do |request_sym, handler_name|
+  {:deviceInfo => "getDeviceInfo", :deviceStats => "getSwitchStats"}.each do |request_sym, handler_name|
     request request_sym do |resource, device|
       raise "There is no connection with a flowvisor instance" if !resource.property.fv 
-      resource.property.fv.call("api."+handler_name, device.to_s)
+      resource.property.fv.call("api.#{handler_name}", device.to_s)
     end
   end
 
@@ -85,8 +85,9 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
     begin
       fv = XMLRPC::Client.new_from_hash(resource.property.fv_args)
       fv.instance_variable_get("@http").verify_mode = OpenSSL::SSL::VERIFY_NONE
-      ping_msg = "ping"
-      resource.property.fv = ( fv.call("api.ping", ping_msg) == ("PONG("+resource.property.fv_args[:user]+"): "+FLOWVISOR_VERSION+"::"+ping_msg) ) ? fv : nil
+      ping_msg = "test"
+      pong_msg = "PONG(#{resource.property.fv_args[:user]}): #{FLOWVISOR_VERSION}::#{ping_msg}"
+      resource.property.fv = (fv.call("api.ping", ping_msg) == pong_msg) ? fv : nil
     rescue
       resource.property.fv = nil
     ensure
