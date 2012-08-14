@@ -15,6 +15,26 @@ module OmfRc::ResourceProxy::Garage
   include OmfRc::ResourceProxyDSL
 
   register_proxy :garage
+
+  # before_create hook will be called before parent creates the child resource. (in the context of parent resource)
+  #
+  # the optional block will have access to three variables:
+  # * resource: the parent resource itself
+  # * new_resource_type: a string or symbol represents the new resource to be created
+  # * new_resource_options: the options hash to be passed to the new resource
+  #
+  # this hook enable us to do things like:
+  # * validating child resources: e.g. if parent could create this new resource
+  # * setting up default child properties based on parent's property value
+  hook :before_create do |resource, new_resource_type, new_resource_options|
+    if new_resource_type.to_sym == :engine
+      logger.info "Resource type engine is allowed"
+    else
+      raise "Go away, I can't create #{new_resource_type}"
+    end
+    new_resource_options.property ||= Hashie::Mash.new
+    new_resource_options.property.provider = "Cosworth #{resource.uid}"
+  end
 end
 
 

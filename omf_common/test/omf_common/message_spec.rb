@@ -37,7 +37,7 @@ describe OmfCommon::Message do
     end
 
     it "must return a release XML element without failing" do
-      release = Message.release
+      release = Message.release { |v| v.element('resource_id', 'test') }
       release.valid?.must_equal true
     end
 
