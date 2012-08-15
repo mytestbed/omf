@@ -30,10 +30,11 @@ module OmfRc::ResourceProxyDSL
 
     # Register some hooks which can be called at certain stage of the operation
     #
-    # Currently the system supports two hooks:
+    # Currently the system supports these hooks:
     #
     # * before_ready, called when a resource created, before creating an associated pubsub topic
     # * before_release, called before a resource released
+    # * before_create, called before parent creates the child resource. (in the context of parent resource)
     #
     # @param [Symbol] name hook name. :before_create or :before_release
     # @yieldparam [AbstractResource] resource pass the current resource object to the block
@@ -43,6 +44,26 @@ module OmfRc::ResourceProxyDSL
     #    include OmfRc::ResourceProxyDSL
     #
     #    register_proxy :node
+    #
+    #    # before_create hook
+    #    #
+    #    # the optional block will have access to three variables:
+    #    # * resource: the parent resource itself
+    #    # * new_resource_type: a string or symbol represents the new resource to be created
+    #    # * new_resource_options: the options hash to be passed to the new resource
+    #    #
+    #    # this hook enable us to do things like:
+    #    # * validating child resources: e.g. if parent could create this new resource
+    #    # * setting up default child properties based on parent's property value
+    #    hook :before_create do |resource, new_resource_type, new_resource_options|
+    #      if new_resource_type.to_sym == :wifi
+    #        logger.info "Resource type wifi is allowed"
+    #      else
+    #        raise "Go away, I can't create #{new_resource_type}"
+    #      end
+    #      new_resource_options.property ||= Hashie::Mash.new
+    #      new_resource_options.property.node_info = "Node #{resource.uid}"
+    #    end
     #
     #    hook :before_ready do |resource|
     #      logger.info "#{resource.uid} is now ready"
@@ -156,6 +177,21 @@ module OmfRc::ResourceProxyDSL
     end
 
     # Define an arbitrary method to do some work, can be included in configure & request block
+    #
+    # @param (see #configure)
+    # @yieldparam [AbstractResource] resource pass the current resource object to the block
+    # @example suppose we define a simple os checking method
+    #
+    #   work :os do
+    #     Command.execute("uname")
+    #   end
+    #
+    #   # then this os method will be available in all proxy definitions which includes this work method definition.
+    #   # if for some reason you need to call 'os' method within the same module, you need to access it via the resource instance.
+    #
+    #   work :install_software do |resource|
+    #     raise 'Can not support non-linux distro yet' if resource.os == 'Linux'
+    #   end
     def work(name, &register_block)
       define_method(name) do |*args, &block|
         register_block.call(self, *args, block) if register_block
