@@ -14,7 +14,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property
-  attr_reader :opts, :children, :host
+  attr_reader :opts, :children
 
   # Initialisation
   #
@@ -34,20 +34,18 @@ class OmfRc::ResourceProxy::AbstractResource
     @uid = @opts.uid || SecureRandom.uuid
     @hrn = @opts.hrn
     @children ||= []
-    @host = nil
     @property = @opts.property || Hashie::Mash.new
 
     @comm = comm || OmfCommon::Comm.new(@opts.dsl)
     # Fire when connection to pubsub server established
     @comm.when_ready do
       logger.info "CONNECTED: #{@comm.jid.inspect}"
-      @host = @comm.jid.domain
 
       # Once connection established, create a pubsub topic, then subscribe to it
-      @comm.create_topic(uid, host) do |s|
+      @comm.create_topic(uid) do |s|
         # Creating topic failed, no point to continue; clean up and disconnect
         # Otherwise go subscribe to this pubsub topic
-        s.error? ? disconnect : @comm.subscribe(uid, host)
+        s.error? ? disconnect : @comm.subscribe(uid)
       end
     end
 
@@ -71,11 +69,11 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
-    @comm.affiliations(host) do |a|
+    @comm.affiliations do |a|
       my_pubsub_topics = a[:owner] ? a[:owner].size : 0
       if my_pubsub_topics > 0
         logger.info "Cleaning #{my_pubsub_topics} pubsub topic(s)"
-        a[:owner].each { |topic| @comm.delete_topic(topic, host) }
+        a[:owner].each { |topic| @comm.delete_topic(topic) }
       else
         logger.info "Disconnecting now"
         @comm.disconnect
@@ -168,7 +166,7 @@ class OmfRc::ResourceProxy::AbstractResource
         i.element("error_message", message)
       end
     end
-    @comm.publish(inform_to, inform_message, host)
+    @comm.publish(inform_to, inform_message)
   end
 
   # Parse omf message and execute as instructed by the message
@@ -181,8 +179,8 @@ class OmfRc::ResourceProxy::AbstractResource
       case response.operation
       when :create
         new_uid = response.result
-        @comm.create_topic(new_uid, host) do
-          @comm.subscribe(new_uid, host) do
+        @comm.create_topic(new_uid) do
+          @comm.subscribe(new_uid) do
             publish_inform(response)
           end
         end

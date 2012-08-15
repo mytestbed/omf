@@ -33,49 +33,43 @@ module OmfCommon
       # Create a new pubsub topic with additional configuration
       #
       # @param [String] topic Pubsub topic name
-      # @param [String] host Pubsub host address
-      def create_topic(topic, host, &block)
-        pubsub.create(topic, prefix_host(host), PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
+      def create_topic(topic, &block)
+        pubsub.create(topic, default_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
       end
 
       # Delete a pubsub topic
       #
       # @param [String] topic Pubsub topic name
-      # @param [String] host Pubsub host address
-      def delete_topic(topic, host, &block)
-        pubsub.delete(topic, prefix_host(host), &callback_logging(__method__, topic, &block))
+      def delete_topic(topic, &block)
+        pubsub.delete(topic, default_host, &callback_logging(__method__, topic, &block))
       end
 
       # Subscribe to a pubsub topic
       #
       # @param [String] topic Pubsub topic name
-      # @param [String] host Pubsub host address
-      def subscribe(topic, host, &block)
-        pubsub.subscribe(topic, nil, prefix_host(host), &callback_logging(__method__, topic, &block))
+      def subscribe(topic, &block)
+        pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
       end
 
       # Un-subscribe all existing subscriptions from all pubsub topics.
-      #
-      # @param [String] host Pubsub host address
-      def unsubscribe(host)
-        pubsub.subscriptions(prefix_host(host)) do |m|
+      def unsubscribe
+        pubsub.subscriptions(default_host) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
-            pubsub.unsubscribe(s[:node], nil, s[:subid], prefix_host(host), &callback_logging(__method__, s[:node], s[:subid]))
+            pubsub.unsubscribe(s[:node], nil, s[:subid], default_host, &callback_logging(__method__, s[:node], s[:subid]))
           end
         end
       end
 
-      def affiliations(host, &block)
-        pubsub.affiliations(prefix_host(host), &callback_logging(__method__, &block))
+      def affiliations(&block)
+        pubsub.affiliations(default_host, &callback_logging(__method__, &block))
       end
 
       # Publish to a pubsub topic
       #
       # @param [String] topic Pubsub topic name
       # @param [String] message Any XML fragment to be sent as payload
-      # @param [String] host Pubsub host address
-      def publish(topic, message, host, &block)
-        pubsub.publish(topic, message, prefix_host(host), &callback_logging(__method__, topic, message.operation, &block))
+      def publish(topic, message, &block)
+        pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, message.operation, &block))
       end
 
       # Event callback for pubsub topic event(item published)
@@ -96,8 +90,8 @@ module OmfCommon
         end
       end
 
-      def prefix_host(host)
-        "#{HOST_PREFIX}.#{host}"
+      def default_host
+        "#{HOST_PREFIX}.#{client.jid.domain}"
       end
     end
   end
