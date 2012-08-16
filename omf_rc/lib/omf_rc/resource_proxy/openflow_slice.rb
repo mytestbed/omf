@@ -1,55 +1,63 @@
-require 'xmlrpc/client'
-require 'omf_common'
-
-# The "Openflow Slice" resource is created from the parent "Openflow Slice Factory" resource.
+# This resource is created from the parent :openflow_slice_factory resource.
 # It is related with a slice of a flowvisor instance, and behaves as a proxy between experimenter and the actual flowvisor slice.
-# So, the whole state of the slice is keeped in the flowvisor instance.
-# The communication with flowvisor is established from the parent resource, and it is included in the resource property "fv".
 #
 module OmfRc::ResourceProxy::OpenflowSlice
   include OmfRc::ResourceProxyDSL
-  
+
   # The default parameters of a new slice. The openflow controller is assumed to be in the same working station with flowvisor instance
   SLICE_DEFAULTS = {
     :passwd=>"1234",
     :url=>"tcp:127.0.0.1:9933",
     :email=>"nothing@nowhere"
   }
-
   # The default parameters of a new flow (it is also named flow entry in flowvisor terminology)
   FLOW_DEFAULTS = {
     :priority=>"10",
     :actions=>"4"
   }
 
+
   register_proxy :openflow_slice
+
+  utility :openflow_tools
+
 
   # Slice's name is initiated with value "nil"
   hook :before_ready do |resource|
     resource.property.name = nil
   end
 
-  # Before release the related flowvisor instance should also be update to remove the corresponding slice
+  # Before release, the related flowvisor instance should also remove the corresponding slice
   hook :before_release do |resource|
-    resource.property.fv.call("api.deleteSlice", resource.property.name)
+    resource.flowvisor_connection.call("api.deleteSlice", resource.property.name)
   end
 
-  # The name is allowed to be one-time configured. Once it is configured, a new slice is created in flowvisor instance
+
+  # The name is one-time configured
   configure :name do |resource, name|
-    raise "The name of this slice has already been configured" if resource.property.name
+    raise "The name cannot be changed" if resource.property.name
     resource.property.name = name.to_s
-    resource.property.fv.call("api.createSlice", name, *SLICE_DEFAULTS.values)
+    begin
+      resource.flowvisor_connection.call("api.createSlice", name.to_s, *SLICE_DEFAULTS.values)
+    rescue Exception => e
+      if e.message["Cannot create slice with existing name"]
+        logger.warn message = "The requested slice already existed in Flowvisor"
+        message
+      else
+        raise e
+      end
+    end
   end
 
   # Configures the slice password
   configure :passwd do |resource, passwd|
-    resource.property.fv.call("api.changePasswd", resource.property.name, passwd.to_s)
+    resource.flowvisor_connection.call("api.changePasswd", resource.property.name, passwd.to_s)
   end
 
   # Configures the slice parameters
   [:contact_email, :drop_policy, :controller_hostname, :controller_port].each do |configure_sym|
     configure configure_sym do |resource, value|
-      resource.property.fv.call("api.changeSlice", resource.property.name, configure_sym.to_s, value.to_s)
+      resource.flowvisor_connection.call("api.changeSlice", resource.property.name, configure_sym.to_s, value.to_s)
     end
   end
 
@@ -63,70 +71,46 @@ module OmfRc::ResourceProxy::OpenflowSlice
   #  end
   #end
 
-  # Adds a flow to this slice, specified from a device and a port [and a dest ip address optionally]
-  configure :addFlow do |resource, args|
-    match = "in_port=#{args.port}"
-    match += ",ip_dst=#{args.ip_dst}" if args.ip_dst 
-    call_args = {
-      "operation"=>"ADD", 
-      "priority"=>resource.priority(FLOW_DEFAULTS[:priority]), 
-      "dpid"=>resource.dpid(args.device), 
-      "actions"=>resource.actions(FLOW_DEFAULTS[:actions]), 
-      "match"=>resource.match(match)
-    }
-    result = resource.property.fv.call("api.changeFlowSpace", [call_args])
-    resource.flow(result)
-  end
-
-  # Removes a flow from this slice, specified from a device and a port [and a dest ip address optionally]
-  configure :deleteFlow do |resource, args|
-    match = "in_port=#{args.port}"
+  # Adds/removes a flow to this slice, specified by a device and a port [and a dest ip address optionally]
+  configure :flows do |resource, args|
+    match =  "in_port=#{args.port}"
     match += ",ip_dst=#{args.ip_dst}" if args.ip_dst
-    resource.flows.each do |h|
-      if (h["dpid"]==resource.dpid(args.device) && h["ruleMatch"]==resource.match(match))
-        call_args = {
-          "operation"=>"REMOVE", 
-          "id"=> h["id"]
-        }
-        resource.property.fv.call("api.changeFlowSpace", [call_args])
-      end
+    case args.action
+    when "add"
+      call_args = {
+        "operation"=> "ADD", 
+        "priority" => FLOW_DEFAULTS[:priority], 
+        "dpid"     => args.device.to_s, 
+        "actions"  => "Slice:#{resource.property.name}=#{FLOW_DEFAULTS[:actions]}", 
+        "match"    => "OFMatch[#{match}]"
+      }
+      result = resource.flowvisor_connection.call("api.changeFlowSpace", [call_args])
+    when "remove"
+      resource.flows.each do |h|
+        flow_is_found  = (h["device"] == args.device.to_s)
+        flow_is_found &= (h["match"]  == "OFMatch[#{match}]")
+        if flow_is_found
+          call_args = {
+            "operation"=> "REMOVE", 
+            "id"       => h["id"]
+          }
+          resource.flowvisor_connection.call("api.changeFlowSpace", [call_args])
+        end
+      end    
     end
-  end
-
-  # Returns the flows that exist for this flowvisor and are related with this slice
-  request :flows do |resource|
     resource.flows
   end
 
+
   # Returns a hash table with the name of this slice, its controller (ip and port) and other related information
   request :info do |resource|
-    result = resource.property.fv.call("api.getSliceInfo", resource.property.name)
-    logger.info result
+    result = resource.flowvisor_connection.call("api.getSliceInfo", resource.property.name)
     result[:name] = resource.property.name
     result
   end
 
   # Returns a string with statistics about the use of this slice
   request :stats do |resource|
-    resource.property.fv.call("api.getSliceStats", resource.property.name)
+    resource.flowvisor_connection.call("api.getSliceStats", resource.property.name)
   end
-
-  # Internal function that returns the flows (flow spaces or flow entries) that exist for this flowvisor and are related with this slice
-  work :flows do |resource|
-    result = resource.property.fv.call("api.listFlowSpace")
-    result.map! do |line|
-      array = line.split(/FlowEntry\[|=\[|\],\]?/).reject(&:empty?)
-      Hash[*array]
-    end
-    result.delete_if {|h| !h["actionsList"][resource.property.name]}
-  end
-  # Returns a flow with the given id
-  work :flow do |resource, id|
-    resource.flows.select {|h| id.include?h["id"]}
-  end
-  # The wrappers that convert the given arguments (device, port, etc) to appropriately formated arguments for flowvisor
-  work :priority do |resource, priority| priority.to_s end
-  work :dpid do |resource, device| device.to_s end
-  work :actions do |resource, actions| "Slice:#{resource.property.name}=#{actions.to_s}" end
-  work :match do |resource, match| "OFMatch[#{match}]" end
 end

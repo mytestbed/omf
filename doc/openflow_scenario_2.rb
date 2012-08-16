@@ -12,7 +12,8 @@ options = {
 }
 
 parent_uid = 'flowvisor'
-child_uid = nil
+context_id = []
+
 
 # We will use Comm directly, with default DSL implementaion :xmpp_blather
 comm = Comm.new(:xmpp)
@@ -22,12 +23,16 @@ comm.when_ready do
   logger.info "* Parent resource \"#{parent_uid}\" ready for testing"
 
   comm.subscribe(parent_uid) do
-    message = Message.create do |v|
-      v.property('type', 'openflow_slice')
-      v.property('name', 'test1')
-    end
-    logger.info message.operation.to_s+": "+ message.read_content('context_id')
-    comm.publish(parent_uid, message)
+    %w{test1 test2}.each do |name|
+      message = Message.create do |v|
+        v.property('type', 'openflow_slice')
+        v.property('name', name)
+        v.property('controller_port', '9934') if name=='test2'
+      end
+      context_id << message.read_content('context_id')
+      logger.info message.operation.to_s+": "+message.read_content('context_id')
+      comm.publish(parent_uid, message)
+    end 
   end
 end
 
@@ -37,17 +42,26 @@ comm.topic_event do |e|
     if message.operation == :inform
       case message.read_content("inform_type")
       when 'CREATED'
-        logger.info "created: " + message.read_content('context_id')
+        logger.info "created: " + (cur_context_id = message.read_content('context_id'))
 
+        ports = cur_context_id == context_id[0] ? [16, 21] : [23, 21]
+        
         child_uid = message.read_content("resource_id")
         logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
         comm.subscribe(child_uid) do
-          message = Message.request do |v|
-            v.property('flows')
+          ports.each do |port|
+            message = Message.configure do |v|
+              v.property('flows') do |p|
+                p.element('action', 'add')
+                p.element('port', port)
+                p.element('device', "00:00:00:00:00:00:00:01")
+                p.element('ip_dst', ports[0] == 16 ? "10.0.1.18" : "10.0.1.20" ) if port == 21
+              end
+            end
+            logger.info message.operation.to_s+": "+ message.read_content('context_id')
+            comm.publish(child_uid, message)
           end
-          logger.info message.operation.to_s+": "+ message.read_content('context_id')
-          comm.publish(child_uid, message)
         end
 
      when 'STATUS'
