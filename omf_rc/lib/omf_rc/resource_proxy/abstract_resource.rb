@@ -240,7 +240,7 @@ class OmfRc::ResourceProxy::AbstractResource
           end
           { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
         when :release
-          resource_id = message.read_content("resource_id")
+          resource_id = message.read_property("resource_id")
           { operation: :release, result: obj.release(resource_id), context_id: context_id, inform_to: obj.uid }
         when :inform
           # We really don't care about inform messages which created from here

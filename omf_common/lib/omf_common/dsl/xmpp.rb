@@ -78,6 +78,38 @@ module OmfCommon
         pubsub_event(:items?, *args, &callback_logging(__method__, &block))
       end
 
+      # Generate OMF related message
+      %w(create configure request inform release).each do |m_name|
+        define_method("generate_#{m_name}_message") do |*args, &block|
+          if block
+            Message.send(m_name, *args, &block)
+          elsif args[0].kind_of? Array
+            Message.send(m_name) do |v|
+              args[0].each do |opt|
+                if opt.kind_of? Hash
+                  opt.each_pair do |key, value|
+                    if value.kind_of? Hash
+                      v.property(key) { |p| value.each_pair { |p_key, p_value| p.element(p_key, p_value) } }
+                    else
+                      v.property(key, value)
+                    end
+                  end
+                else
+                  v.property(opt)
+                end
+              end
+            end
+          end
+        end
+      end
+
+      # Event machine related method delegation
+      %w(add_timer add_periodic_timer).each do |m_name|
+        define_method(m_name) do |*args, &block|
+          EM.send(m_name, *args, &block)
+        end
+      end
+
       private
 
       # Provide a new block wrap to automatically log errors
