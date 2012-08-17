@@ -94,7 +94,7 @@ module OmfRc::ResourceProxy::GenericApplication
   # @param [Symbol] platform the OS platform where this app is running
   #
   %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora state installed \
-    force_tarball_install map_err_to_out).each do |prop|
+    force_tarball_install map_err_to_out tarball_install_path).each do |prop|
     request(prop) { |res| res.property[prop].to_s }
   end
   
@@ -112,7 +112,7 @@ module OmfRc::ResourceProxy::GenericApplication
   # @see OmfRc::ResourceProxy::GenericApplication
   #
   %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install \
-    map_err_to_out).each do |prop|
+    map_err_to_out tarball_install_path).each do |prop|
     configure(prop) { |res, value| res.property[prop] = value }
   end
 
