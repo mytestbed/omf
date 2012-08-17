@@ -43,8 +43,13 @@ comm.topic_event do |e|
         logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
         comm.subscribe(child_uid) do
-          message = Message.request do |v|
-            v.property('flows')
+          message = Message.configure do |v|
+            v.property('flows') do |p|
+              p.element('operation', 'remove')
+              #p.element('id', '239')
+              p.element('port', 14)
+              p.element('device', '00:00:00:00:00:00:00:02')
+            end
           end
           logger.info message.operation.to_s+": "+ message.read_content('context_id')
           comm.publish(child_uid, message)

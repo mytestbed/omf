@@ -5,15 +5,15 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
 
   # The default arguments of the communication between this resource and the flowvisor instance
   FLOWVISOR_CONNECTION_DEFAULTS = {
-    :host=>"localhost",
-    :path=>"/xmlrc",
-    :port=>"8080",
-    :proxy_host=>nil,
-    :proxy_port=>nil,
-    :user=>"fvadmin",
-    :password=>"openflow",
-    :use_ssl=>"true",
-    :timeout=>nil
+    :host       => "localhost",
+    :path       => "/xmlrc",
+    :port       => "8080",
+    :proxy_host => nil,
+    :proxy_port => nil,
+    :user       => "fvadmin",
+    :password   => "openflow",
+    :use_ssl    => "true",
+    :timeout    => nil
   }
 
 
@@ -22,20 +22,18 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
   utility :openflow_tools
 
 
-  # Checks if the created child is an "Openflow Slice" and passes whatever is essential for the communication with flowvisor instance
-  def create(type, opts = nil)
+  # Checks if the created child is an :openflow_slice resource and passes the connection arguments that are essential for the connection with flowvisor instance
+  hook :before_create do |resource, type, opts = nil|
     if type.to_sym != :openflow_slice
       raise "This resource doesn't create resources of type "+type
     end
     begin
-      self.flowvisor_connection
+      resource.flowvisor_connection
     rescue
       raise "This resource is not connected with a flowvisor instance, so it cannot create openflow slices"
     end
-
     opts.property ||= Hashie::Mash.new
-    opts.property.flowvisor_connection_args = self.property.flowvisor_connection_args
-    super
+    opts.property.flowvisor_connection_args = resource.property.flowvisor_connection_args
   end
 
 

@@ -6,14 +6,9 @@ module OmfRc::ResourceProxy::OpenflowSlice
 
   # The default parameters of a new slice. The openflow controller is assumed to be in the same working station with flowvisor instance
   SLICE_DEFAULTS = {
-    :passwd=>"1234",
-    :url=>"tcp:127.0.0.1:9933",
-    :email=>"nothing@nowhere"
-  }
-  # The default parameters of a new flow (it is also named flow entry in flowvisor terminology)
-  FLOW_DEFAULTS = {
-    :priority=>"10",
-    :actions=>"4"
+    :passwd => "1234",
+    :url    => "tcp:127.0.0.1:9933",
+    :email  => "nothing@nowhere"
   }
 
 
@@ -42,7 +37,6 @@ module OmfRc::ResourceProxy::OpenflowSlice
     rescue Exception => e
       if e.message["Cannot create slice with existing name"]
         logger.warn message = "The requested slice already existed in Flowvisor"
-        message
       else
         raise e
       end
@@ -61,43 +55,9 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
-  # Configures the flows of this slice (deprecated because it should be restricted)
-  #[:addFlowSpace, :removeFlowSpace , :changeFlowSpace].each do |configure_sym|
-  #  configure configure_sym do |resource, handler_args|
-  #    str = configure_sym.to_s
-  #    str.slice!("FlowSpace")
-  #    handler_args["operation"] = str.upcase
-  #    resource.property.fv.call("api.changeFlowSpace", [handler_args.each_with_object({}) {|(k, v), h| h[k] = v.to_s}])
-  #  end
-  #end
-
   # Adds/removes a flow to this slice, specified by a device and a port [and a dest ip address optionally]
-  configure :flows do |resource, args|
-    match =  "in_port=#{args.port}"
-    match += ",ip_dst=#{args.ip_dst}" if args.ip_dst
-    case args.action
-    when "add"
-      call_args = {
-        "operation"=> "ADD", 
-        "priority" => FLOW_DEFAULTS[:priority], 
-        "dpid"     => args.device.to_s, 
-        "actions"  => "Slice:#{resource.property.name}=#{FLOW_DEFAULTS[:actions]}", 
-        "match"    => "OFMatch[#{match}]"
-      }
-      result = resource.flowvisor_connection.call("api.changeFlowSpace", [call_args])
-    when "remove"
-      resource.flows.each do |h|
-        flow_is_found  = (h["device"] == args.device.to_s)
-        flow_is_found &= (h["match"]  == "OFMatch[#{match}]")
-        if flow_is_found
-          call_args = {
-            "operation"=> "REMOVE", 
-            "id"       => h["id"]
-          }
-          resource.flowvisor_connection.call("api.changeFlowSpace", [call_args])
-        end
-      end    
-    end
+  configure :flows do |resource, config_desc|
+    resource.flowvisor_connection.call("api.changeFlowSpace", resource.call_parameters(config_desc))
     resource.flows
   end
 
