@@ -138,7 +138,7 @@ module AgentCommands
     lines = Array.new
     case errorReason
       when 'FAILED_CONFIGURE'
-	reason = "Couldn't configure '#{reply.path}'"
+        reason = "Couldn't configure '#{reply.path}'"
         NodeHandler.instance.logError(sender, reason, {:details => message})
         sender.configure(reply.path.split("/"), reason, "CONFIGURED.ERROR")
         lines << "The resource '#{sender}' reports that it failed to configure "

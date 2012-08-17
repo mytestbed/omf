@@ -26,13 +26,13 @@
 #
 # == Description
 #
-# This is the main source file for the Node Handler. It defines the 
+# This is the main source file for the Node Handler. It defines the
 # NodeHandler class.
 #
 # NOTE: Originally 'Node Handler' (EC) was the name of this OMF entity.
 # As of end of 2008, we are adopting a new naming scheme.
-# In this new scheme, the term 'Experiment Controller' (EC) replaces 
-# 'Node Handler'. This code will gradually be changed to reflect this. 
+# In this new scheme, the term 'Experiment Controller' (EC) replaces
+# 'Node Handler'. This code will gradually be changed to reflect this.
 # However, this is change is a low priority task, therefore the
 # reader will see both terms 'EC' and 'EC' used in the code.
 #
@@ -67,7 +67,7 @@ require 'omf-common/servicecall'
 Project = nil
 
 #
-# This class implements the Node Handler, the entry point for 
+# This class implements the Node Handler, the entry point for
 # a user to run an experiment with OMF
 #
 class NodeHandler < MObject
@@ -118,18 +118,18 @@ class NodeHandler < MObject
   @@blocker = ConditionVariable.new
 
   #
-  # Flag for testing and methods to manipulate it. 
-  # If true, don't send commands to node, just log actions   
+  # Flag for testing and methods to manipulate it.
+  # If true, don't send commands to node, just log actions
   #
   @@justPrint = false
-  
-  
+
+
   # list of resources in this slice
   # with corresponding pubsub nodes on the XMPP server
   @@resources = []
 
   #
-  # Constant - Mount point where the Experiment Description should be 
+  # Constant - Mount point where the Experiment Description should be
   # served by the EC's webserver
   #
   EXPFILE_MOUNT = "/ExperimentDescription"
@@ -137,18 +137,18 @@ class NodeHandler < MObject
   #
   # Return the value of the 'slave' options for the EC
   # The EC runs in 'slave mode' when it is invoked on a node/resource, which
-  # can be potentially disconnected from the Control Network. 
-  # The EC's operations in this mode are substantially different from its 
+  # can be potentially disconnected from the Control Network.
+  # The EC's operations in this mode are substantially different from its
   # normal execution.
   #
-  def NodeHandler.SLAVE ; return @@disconnection[:slave] end 
-  def NodeHandler.NAME ; return @@disconnection[:hrn] end 
-  def NodeHandler.EXP_FILE ; return @@expFile end 
+  def NodeHandler.SLAVE ; return @@disconnection[:slave] end
+  def NodeHandler.NAME ; return @@disconnection[:hrn] end
+  def NodeHandler.EXP_FILE ; return @@expFile end
 
   #
   # Return the value of the 'showAppOutput' flag
-  # When this flag is 'true', the EC will display on its standard-out any 
-  # outputs coming from the standard-out of the applications running on the 
+  # When this flag is 'true', the EC will display on its standard-out any
+  # outputs coming from the standard-out of the applications running on the
   # nodes.
   #
   # [Return] true/false (default 'false')
@@ -156,16 +156,16 @@ class NodeHandler < MObject
   def NodeHandler.SHOW_APP_OUTPUT()
     return @@showAppOutput
   end
-  
+
   # return list of resources in this slice
   # with corresponding pubsub nodes on the XMPP server
   def NodeHandler.RESOURCES
     return @@resources
   end
-  
+
   #
   # Return the value of the 'justPrint' attribut
-  # If true, don't send commands to node, just log actions   
+  # If true, don't send commands to node, just log actions
   # [Return] true/false
   #
   def NodeHandler.JUST_PRINT()
@@ -174,7 +174,7 @@ class NodeHandler < MObject
 
   #
   # Set the value of the 'justPrint' attribut
-  # If true, don't send commands to node, just log actions   
+  # If true, don't send commands to node, just log actions
   #
   # - flag = true/false
   #
@@ -184,11 +184,11 @@ class NodeHandler < MObject
 
 
   #
-  # ShutDown Flag: 
+  # ShutDown Flag:
   # When 'true', shutdown after the experiment
   # Default is 'false'
   #
-  @@shutdown = false  
+  @@shutdown = false
 
   #
   # Return the value of the 'shutdown' flag
@@ -207,7 +207,7 @@ class NodeHandler < MObject
   def NodeHandler.SHUTDOWN=(flag)
     @@shutdown= flag
   end
-  
+
   #
   # @@allowmissing Flag:
   # When 'true', continue experiment even if some nodes did not check in
@@ -234,12 +234,12 @@ class NodeHandler < MObject
   end
 
   #
-  # Reset Flag: 
+  # Reset Flag:
   # When 'true', reset nodes before the experiment
   # Default is 'false'
   #
   @@reset = false
-  
+
   #
   # Return the value of the 'reset' flag
   #
@@ -297,7 +297,7 @@ class NodeHandler < MObject
   # and terminate the Node Handler execution
   #
   def NodeHandler.exit(hard = true)
-    if (hard || !interactive?) 
+    if (hard || !interactive?)
       @@mutex.synchronize do
         @@blocker.signal
       end
@@ -323,11 +323,11 @@ class NodeHandler < MObject
   def self.interactive?
     self.instance.interactive?
   end
-  
+
   def interactive?
     @interactive
   end
-  
+
   #
   # Return the interactive state of the Node Handler
   #
@@ -336,7 +336,7 @@ class NodeHandler < MObject
   def self.debug?
     self.instance.debug?
   end
-  
+
   def debug?
     @debug
   end
@@ -348,12 +348,12 @@ class NodeHandler < MObject
   def running?
     return @running
   end
-  
+
   #
   # This is the main running loop of Node Handler
   # It is called by the main execution loop located at the end of this file
-  # After loading and starting the experiment, it will block waiting for a 
-  # mutex. When the experiment is done, a signal will be sent to release the 
+  # After loading and starting the experiment, it will block waiting for a
+  # mutex. When the experiment is done, a signal will be sent to release the
   # mutex and unblock this method.
   #
   def run(main)
@@ -361,10 +361,10 @@ class NodeHandler < MObject
       raise "Already running"
     end
     @running = true
-        
+
     Profiler__::start_profile if @doProfiling
 
-    begin 
+    begin
       require 'omf-expctl/handlerCommands'
       if (@defaultLibs)
         @defaultLibs.split(',').each { |f|
@@ -377,7 +377,7 @@ class NodeHandler < MObject
         }
       end
     end
-    
+
     # Trap SIG_INTERRUPT - Let our Event mechanism handle it
     Signal.trap('SIGINT') {Experiment.interrupt}
     # Load the Experiment File , if any
@@ -420,105 +420,105 @@ class NodeHandler < MObject
       "Usage: #{ENV['ROOTAPP']} exec [OPTIONS] ExperimentName [-- EXP_OPTIONS]"+
       "\n\n\tExperimentName is the filename of the experiment script\n" +
       "\t[EXP_OPTIONS] are any options defined in the experiment script\n" +
-      "\t[OPTIONS] are any of the following:\n\n" 
+      "\t[OPTIONS] are any of the following:\n\n"
 
     opts.on("-a", "--allow-missing",
     "Continue experiment even if some nodes did not check in") {
       @@allowmissing = true
     }
 
-    opts.on("-C", "--configfile FILE", 
+    opts.on("-C", "--configfile FILE",
     "File containing local configuration parameters") {|file|
       @configFile = file
     }
 
-    opts.on("-c", "--config NAME", 
+    opts.on("-c", "--config NAME",
     "Configuration section from the config file ('default' if omitted)") {|name|
       OConfig.config = name
     }
-    
-    opts.on("-d", "--debug", "Operate in debug mode") { 
-      @debug = true 
+
+    opts.on("-d", "--debug", "Operate in debug mode") {
+      @debug = true
       OConfig.config = 'debug'
     }
 
-    opts.on("-i", "--interactive", 
+    opts.on("-i", "--interactive",
     "Run the experiment controller in interactive mode") { @interactive = true }
 
-    opts.on("-l", "--libraries LIST", 
+    opts.on("-l", "--libraries LIST",
     "Comma separated list of libraries to load (defaults to [#{@defaultLibs}])") {|list|
       @defaultLibs = list
     }
 
-    opts.on("--log FILE", 
+    opts.on("--log FILE",
     "File containing logging configuration information") {|file|
       @logConfigFile = file
     }
 
-    opts.on("-m", "--message MESSAGE", 
+    opts.on("-m", "--message MESSAGE",
     "Message to add to experiment trace") {|msg|
       Experiment.message = msg
     }
 
-    opts.on("-n", "--just-print", 
-    "Print the commands that would be executed, but do not execute them") { 
+    opts.on("-n", "--just-print",
+    "Print the commands that would be executed, but do not execute them") {
       NodeHandler.JUST_PRINT = true
     }
 
-    opts.on("-p", "--print URI", 
+    opts.on("-p", "--print URI",
     "Print to the console the content of the experiment resource URI") {|uri|
       printResource(uri)
       exit
     }
 
 
-    opts.on("-o", "--output-result FILE", 
+    opts.on("-o", "--output-result FILE",
     "File to write final state information to") {|file|
       @finalStateFile = file
     }
 
-    opts.on("-e", "--experiment-id EXPID", 
+    opts.on("-e", "--experiment-id EXPID",
     "Set the ID for this experiment, instead of the default standard ID") { |id|
       Experiment.ID = "#{id}"
     }
 
-    opts.on("-O", "--output-app-stdout", 
-    "Display any standard-out outputs from the resources") { 
+    opts.on("-O", "--output-app",
+    "Display STDOUT & STDERR output from the executed applications") {
       @@showAppOutput = true
     }
 
-    opts.on("-r", "--reset", 
-    "If set, then reset (reboot) the nodes before the experiment") { 
-      @@reset = true 
+    opts.on("-r", "--reset",
+    "If set, then reset (reboot) the nodes before the experiment") {
+      @@reset = true
     }
 
-    opts.on("-S", "--slice NAME", 
-    "Name of the Slice where this EC should operate") { |name| 
-      Experiment.sliceID = name 
+    opts.on("-S", "--slice NAME",
+    "Name of the Slice where this EC should operate") { |name|
+      Experiment.sliceID = name
     }
 
-    opts.on("-s", "--shutdown", 
-    "If set, then shut down resources at the end of an experiment") { 
-      @@shutdown = true 
+    opts.on("-s", "--shutdown",
+    "If set, then shut down resources at the end of an experiment") {
+      @@shutdown = true
     }
 
-    opts.on("-t", "--tags TAGS", 
+    opts.on("-t", "--tags TAGS",
     "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
     }
 
 
-    opts.on("--oml-uri URI", 
+    opts.on("--oml-uri URI",
     "The URI to the OML server for this experiment") { |uri|
       omlURI = uri
     }
 
-    opts.on_tail("-h", "--help", "Show this message") { |v| 
+    opts.on_tail("-h", "--help", "Show this message") { |v|
       puts VERSION_STRING; puts opts; exit
     }
 
-    opts.on_tail("-v", "--version", "Show the version\n") { |v| 
-      puts VERSION_STRING; exit 
+    opts.on_tail("-v", "--version", "Show the version\n") { |v|
+      puts VERSION_STRING; exit
     }
 
     opts.on("-x", "--extra-libs LIST",
@@ -526,13 +526,13 @@ class NodeHandler < MObject
       @extraLibs = list
     }
 
-    opts.on("--slave-mode EXPID", 
+    opts.on("--slave-mode EXPID",
     "Run in slave mode in disconnected experiment, EXPID is the exp. ID") { |id|
-      @@disconnection[:slave] = true 
+      @@disconnection[:slave] = true
       Experiment.ID = "#{id}"
     }
 
-    opts.on("--slave-mode-resource NAME", 
+    opts.on("--slave-mode-resource NAME",
     "When in slave mode, NAME is the HRN of the resource for this EC") { |name|
       @@disconnection[:hrn] = name
     }
@@ -550,19 +550,19 @@ class NodeHandler < MObject
     #  }
     #  doProfiling = true
     #}
-   
+
     # Parse the command line
     rest = opts.parse(args)
 
     # Load the Configuration parameters for this EC
     loadControllerConfiguration()
 
-    # If OML configs were on command line, overwrite ones from the config file  
+    # If OML configs were on command line, overwrite ones from the config file
     OConfig[:ec_config][:omluri] = omlURI if omlURI
 
     # Setup the slice of this EC
-    Experiment.sliceID = OConfig[:ec_config][:slice] if !Experiment.sliceID 
-    raise "No slice ID from command line or config file!" if !Experiment.sliceID 
+    Experiment.sliceID = OConfig[:ec_config][:slice] if !Experiment.sliceID
+    raise "No slice ID from command line or config file!" if !Experiment.sliceID
 
     # Start performace monitor
     # cdw: commented out because it doesn't work with latest OML4R
@@ -571,25 +571,25 @@ class NodeHandler < MObject
 
     # Start the Logger for this EC and output some info
     startLogger()
-    Experiment.sliceID==OConfig[:ec_config][:slice] ? s = "(default)" : s = nil 
+    Experiment.sliceID==OConfig[:ec_config][:slice] ? s = "(default)" : s = nil
     info "Slice ID: #{Experiment.sliceID} #{s}"
     info "Experiment ID: #{Experiment.ID}"
-    info "Slave Mode on '#{@@disconnection[:hrn]}'" if @@disconnection[:slave] 
+    info "Slave Mode on '#{@@disconnection[:hrn]}'" if @@disconnection[:slave]
 
-    # NOTE: 
-    # This is not required anymore, now that we have implemented initial 
+    # NOTE:
+    # This is not required anymore, now that we have implemented initial
     # support for federation.
-    # 
+    #
     # Load the Configuration parameters for the default testbed of this EC
-    # WARNING: No federation support yet, so for now the EC gets any 
-    # testbed-specific information by assuming its domain is the same as 
-    # the testbed name. In the future, we will have multiple testbed configs... 
+    # WARNING: No federation support yet, so for now the EC gets any
+    # testbed-specific information by assuming its domain is the same as
+    # the testbed name. In the future, we will have multiple testbed configs...
     # this will not be there, but rather provided by the resource provisioning
     # OConfig.loadTestbedConfiguration()
 
     # Cosmetic - have this displayed here, so the log/sdout shows
     # the 'NodeHandler' class as the source of this log
-    if OConfig[:ec_config][:communicator][:authenticate_messages] 
+    if OConfig[:ec_config][:communicator][:authenticate_messages]
       info "Message authentication is enabled"
     else
       info "Message authentication is disabled"
@@ -637,7 +637,7 @@ class NodeHandler < MObject
   # This config file contains the configuration for the EC
   #
   def loadControllerConfiguration()
-    # First look for config file from the command line or the environment 
+    # First look for config file from the command line or the environment
     cfg = @configFile || ENV['NODEHANDLER_CFG']
     if cfg != nil
       if ! File.exists?(cfg)
@@ -735,7 +735,7 @@ class NodeHandler < MObject
         #hrn = opts.nil? ? nil : opts["hrn"] || opts[:hrn] || opts["name"] || opts[:name]
         #node = hrn.nil? ? "/#{ROOT}/#{Experiment.sliceID}/resources" : "/#{ROOT}/#{Experiment.sliceID}/#{hrn}"
         #node
-        # For now Service Calls are always sent to the AMs listening on the 
+        # For now Service Calls are always sent to the AMs listening on the
         # resources pubsub node of the slice.
         "/#{ROOT}/#{Experiment.sliceID}/resources"
       }
@@ -746,8 +746,8 @@ class NodeHandler < MObject
   # This method starts the Logger for this Experiment Controller
   #
   def startLogger()
-    # First look for log config file from the command line or the environment 
-    log = @logConfigFile || ENV['NODEHANDLER_LOG'] || OConfig[:ec_config][:log] 
+    # First look for log config file from the command line or the environment
+    log = @logConfigFile || ENV['NODEHANDLER_LOG'] || OConfig[:ec_config][:log]
     if log != nil
       if ! File.exists?(log)
         raise "Can't find cfg file '#{log}' (for the EC logs)"
@@ -770,7 +770,7 @@ class NodeHandler < MObject
     end
     # Now start the logger
     @logConfigFile = log
-    MObject.initLog('nodeHandler', Experiment.ID, 
+    MObject.initLog('nodeHandler', Experiment.ID,
                     {:configFile => @logConfigFile})
     debug "Using Log config file: #{@logConfigFile}"
     info "#{VERSION_STRING}"
@@ -789,10 +789,10 @@ class NodeHandler < MObject
   end
 
   #
-  # This method prints the experiment resource, such as an experiment, 
+  # This method prints the experiment resource, such as an experiment,
   # prototype, or application definition to the console.
   #
-  # - uri = the URI referencing the experiment resources 
+  # - uri = the URI referencing the experiment resources
   #
   def printResource(uri)
     loadControllerConfiguration()
@@ -901,9 +901,8 @@ class NodeHandler < MObject
   end
 
   def display_error_msg(lines)
-    error ""
     lines.each { |line| error "  #{line}" }
   end
-end 
+end
 #
 # END of the NodeHandler Class Declaration
