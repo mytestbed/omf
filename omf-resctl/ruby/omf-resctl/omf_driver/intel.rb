@@ -77,26 +77,26 @@ class IntelDevice < WirelessDevice
           else
             raise "Unknown mode '#{value}'. Should be 'managed', or 'ad-hoc'."
         end
-        return "/sbin/iwconfig #{@deviceName} mode #{mode} essid dummy channel 1"
+        return "iwconfig #{@deviceName} mode #{mode} essid dummy channel 1"
 
       when "essid"
         @essid = value
-        return "/sbin/iwconfig #{@deviceName} essid #{value}"
+        return "iwconfig #{@deviceName} essid #{value}"
 
       when "frequency"
-        return "/sbin/iwconfig #{@deviceName} freq #{value}"
+        return "iwconfig #{@deviceName} freq #{value}"
 
       when "tx_power"
-        return "/sbin/iwconfig #{@deviceName} txpower #{value}"
+        return "iwconfig #{@deviceName} txpower #{value}"
 
       when "rate"
-        return "/sbin/iwconfig #{@deviceName} rate #{value}"
+        return "iwconfig #{@deviceName} rate #{value}"
 
       when "rts"
-        return "/sbin/iwconfig #{@deviceName} rts #{value}"
+        return "iwconfig #{@deviceName} rts #{value}"
 
       when "channel"
-        return "/sbin/iwconfig #{@deviceName} channel #{value}"
+        return "iwconfig #{@deviceName} channel #{value}"
 
     end
     super

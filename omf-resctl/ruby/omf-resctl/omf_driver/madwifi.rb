@@ -45,9 +45,9 @@ class MadwifiDevice < WirelessDevice
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
     @driver = 'ath_pci'
-    @wlanconfig = '/sbin/wlanconfig'
-    @iwconfig = '/sbin/iwconfig'
-    @iwpriv = '/sbin/iwpriv'
+    @wlanconfig = 'wlanconfig'
+    @iwconfig = 'iwconfig'
+    @iwpriv = 'iwpriv'
     @toolVersion = getToolVersion
   end
 

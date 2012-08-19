@@ -81,9 +81,9 @@ class Ath5kDevice < WirelessDevice
       pid = nil
       f.each { |l| pid = l }
       debug "Stopping #{name} process at PID: #{pid}"
-      clean = `/bin/kill -9 #{pid}`
+      clean = `kill -9 #{pid}`
       f.close
-      clean = `/bin/rm -f #{fpid} #{fconf}`
+      clean = `rm -f #{fpid} #{fconf}`
     rescue Exception => ex
       debug "Failed to clean #{name} and its related files '#{fpid}' and '#{fconf}'!"
     end
@@ -106,9 +106,9 @@ class Ath5kDevice < WirelessDevice
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
     @driver = 'ath5k'
-    @iw = '/usr/sbin/iw'
-    @hostapd = '/usr/sbin/hostapd'
-    @wpasup = '/sbin/wpa_supplicant'
+    @iw = 'iw'
+    @hostapd = 'hostapd'
+    @wpasup = 'wpa_supplicant'
     @apconf = "/tmp/hostapd.#{@deviceName}.conf"
     @appid = "/tmp/hostapd.#{@deviceName}.pid"
     @wpaconf = "/tmp/wpa.#{@deviceName}.conf"
@@ -150,13 +150,13 @@ class Ath5kDevice < WirelessDevice
         return nil if @channel.nil? || @essid.nil?
         clean = `#{@iw} dev #{@deviceName} del`
         cmd = "#{@iw} phy #{@baseDevice} interface add #{@deviceName} type adhoc ; "+
-              "/sbin/ifconfig #{deviceName} up ; "+
+              "ifconfig #{deviceName} up ; "+
               "#{@iw} dev #{@deviceName} ibss join #{@essid} #{FREQUENCY[@channel.to_i]}"
       when :monitor
         return nil if @channel.nil? || @essid.nil?
         clean = `#{@iw} dev #{@deviceName} del`
         cmd = "#{@iw} phy #{@baseDevice} interface add #{@deviceName} type monitor ; "+
-              "/sbin/ifconfig #{deviceName} up ; "+
+              "ifconfig #{deviceName} up ; "+
               "#{@iw} dev #{@deviceName} set freq #{FREQUENCY[@channel.to_i]}"
     else
       raise "Unknown mode '#{value}'. Should be 'master', 'managed', "+

@@ -57,14 +57,14 @@ class AironetDevice < WirelessDevice
 
     case prop
       when "mode"
-        return "/sbin/iwconfig #{@deviceName} mode #{value} essid #{@essid}"
+        return "iwconfig #{@deviceName} mode #{value} essid #{@essid}"
 
 #      when /.*:status/
-#        return "/sbin/ifconfig #{@deviceName} #{value}"
+#        return "ifconfig #{@deviceName} #{value}"
 
       when "essid"
         @essid = value
-        return "/sbin/iwconfig #{@deviceName} essid #{value}"
+        return "iwconfig #{@deviceName} essid #{value}"
 
       when "channel"
         channel = value.to_i
@@ -115,7 +115,7 @@ class AironetDevice < WirelessDevice
   #
   def activate()
     if (! @loaded)
-      reply = `/sbin/modprobe airo_pci`
+      reply = `modprobe airo_pci`
       if ! $?.success?
         raise "Problems loading Aironet module -- #{reply}"
       end
