@@ -135,5 +135,10 @@ module OmfCommon
         end
       end
     end
+
+    # Iterate each property element
+    def each_property(&block)
+      read_element("//property").each { |v| block.call(v) }
+    end
   end
 end
