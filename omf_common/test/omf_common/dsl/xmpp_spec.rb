@@ -5,8 +5,8 @@ include OmfCommon::DSL::Xmpp
 describe OmfCommon::DSL::Xmpp do
   describe "when omf message related methods" do
     it "must generate omf create xml fragment" do
-      m1 = generate_create_message([type: 'engine'])
-      m2 = generate_create_message do |v|
+      m1 = create_message([type: 'engine'])
+      m2 = create_message do |v|
         v.property('type', 'test')
       end
       m1.must_equal m2
@@ -15,8 +15,8 @@ describe OmfCommon::DSL::Xmpp do
     end
 
     it "must generate omf configure xml fragment" do
-      m1 = generate_configure_message([throttle: 50])
-      m2 = generate_configure_message do |v|
+      m1 = configure_message([throttle: 50])
+      m2 = configure_message do |v|
         v.property('throttle', 50)
       end
       m1.must_equal m2
@@ -25,8 +25,8 @@ describe OmfCommon::DSL::Xmpp do
     end
 
     it "must generate omf inform xml fragment" do
-      m1 = generate_inform_message([inform_type: 'CREATED'])
-      m2 = generate_inform_message do |v|
+      m1 = inform_message([inform_type: 'CREATED'])
+      m2 = inform_message do |v|
         v.property('inform_type', 'test')
       end
       m1.must_equal m2
@@ -35,8 +35,8 @@ describe OmfCommon::DSL::Xmpp do
     end
 
     it "must generate omf release xml fragment" do
-      m1 = generate_release_message([resource_id: 100])
-      m2 = generate_release_message do |v|
+      m1 = release_message([resource_id: 100])
+      m2 = release_message do |v|
         v.property('resource_id', 100)
       end
       m1.must_equal m2
@@ -45,8 +45,8 @@ describe OmfCommon::DSL::Xmpp do
     end
 
     it "must generate omf request xml fragment" do
-      m1 = generate_request_message([:max_rpm, {:provider => {country: 'japan'}}, :max_power])
-      m2 = generate_request_message do |v|
+      m1 = request_message([:max_rpm, {:provider => {country: 'japan'}}, :max_power])
+      m2 = request_message do |v|
         v.property('max_rpm')
         v.property('provider') do |p|
           p.element('country', 'japan')

@@ -9,70 +9,55 @@ options = {
   user: 'user',
   password: 'pw',
   server: 'srv.mytestbed.net', # XMPP pubsub server domain
+  uid: 'flowvisor',
+  debug: false
 }
 
-parent_uid = 'flowvisor'
-child_uid = nil
+Logging.logger.root.level = options[:debug] ? :debug : :info
+Blather.logger = logger
 
-# We will use Comm directly, with default DSL implementaion :xmpp_blather
 comm = Comm.new(:xmpp)
+
+@messages = {
+  create: comm.create_message([type: 'openflow_slice', name: 'test1']),
+  config: comm.configure_message([flows: {operation: 'remove', port: '21', device: '00:00:00:00:00:00:00:01'}]),
+}
 
 comm.when_ready do
   logger.info "# CONNECTED: #{comm.jid.inspect}"
-  logger.info "* Parent resource \"#{parent_uid}\" ready for testing"
+  logger.info "* Parent resource \"#{options[:uid]}\" ready for testing"
 
-  comm.subscribe(parent_uid) do
-    message = Message.create do |v|
-      v.property('type', 'openflow_slice')
-      v.property('name', 'test1')
-    end
-    logger.info message.operation.to_s+": "+ message.read_content('context_id')
-    comm.publish(parent_uid, message)
+  comm.subscribe(options[:uid]) do |event|
+    comm.publish(options[:uid], @messages[:create])
+  end
+
+  comm.add_timer(10) do
+    comm.publish(options[:uid], @messages[:release])
   end
 end
 
-comm.topic_event do |e|
-  e.items.each do |item|
-    message = Message.parse(item.payload)
-    if message.operation == :inform
-      case message.read_content("inform_type")
-      when 'CREATED'
-        logger.info "created: " + message.read_content('context_id')
+comm.on_created_message @messages[:create] do |message|
+  child_uid = message.read_content("resource_id")
+  @messages[:release] ||= comm.release_message([resource_id: child_uid])
+  logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
-        child_uid = message.read_content("resource_id")
-        logger.info "* Child resource \"#{child_uid}\" ready for testing"
-
-        comm.subscribe(child_uid) do
-          message = Message.configure do |v|
-            v.property('flows') do |p|
-              p.element('operation', 'remove')
-              #p.element('id', '239')
-              p.element('port', 14)
-              p.element('device', '00:00:00:00:00:00:00:02')
-            end
-          end
-          logger.info message.operation.to_s+": "+ message.read_content('context_id')
-          comm.publish(child_uid, message)
-        end
-
-     when 'STATUS'
-        logger.info "status: " + message.read_content('context_id')
-        message.read_element("//property").each do |p|
-          logger.info "  #{p.attr('key')} => #{p.content.strip}"
-        end
-
-     when 'FAILED'
-        logger.error "failed: " + message.read_content('context_id')
-        logger.error message.read_content("error_message")
-        
-      when 'RELEASED'
-        logger.warn "released: " + message.read_content('context_id')
-
-        child_uid = message.read_content("resource_id")
-        logger.warn "* Child resource \"#{child_uid}\" is released"
-      end
-    end
+  comm.subscribe(child_uid) do
+    comm.publish(child_uid, @messages[:config])
   end
+end
+
+comm.on_status_message do |message|
+  message.each_property do |p|
+    logger.info "#{p.attr('key')} => #{p.content.strip}"
+  end
+end
+
+comm.on_failed_message do |message|
+  logger.error message.read_content("error_message")
+end
+
+comm.on_released_message do |message|
+  logger.info "Child resource released"
 end
 
 EM.run do
@@ -80,4 +65,3 @@ EM.run do
   trap(:INT) { comm.disconnect }
   trap(:TERM) { comm.disconnect }
 end
-

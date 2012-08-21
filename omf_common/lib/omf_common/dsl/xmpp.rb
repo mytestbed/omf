@@ -72,15 +72,9 @@ module OmfCommon
         pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, message.operation, &block))
       end
 
-      # Event callback for pubsub topic event(item published)
-      #
-      def topic_event(*args, &block)
-        pubsub_event(:items?, *args, &callback_logging(__method__, &block))
-      end
-
       # Generate OMF related message
       %w(create configure request inform release).each do |m_name|
-        define_method("generate_#{m_name}_message") do |*args, &block|
+        define_method("#{m_name}_message") do |*args, &block|
           if block
             Message.send(m_name, *args, &block)
           elsif args[0].kind_of? Array
@@ -108,6 +102,30 @@ module OmfCommon
         define_method(m_name) do |*args, &block|
           EM.send(m_name, *args, &block)
         end
+      end
+
+      %w(created status released failed event).each do |inform_type|
+        define_method("on_#{inform_type}_message") do |*args, &message_block|
+          context_id = args[0].context_id if args[0]
+          event_block = proc do |event|
+            message_block.call(Message.parse(event.items.first.payload))
+          end
+          guard_block = proc do |event|
+            (event.items?) && (!event.delayed?) &&
+              event.items.first.payload &&
+              (omf_message = Message.parse(event.items.first.payload)) &&
+              omf_message.operation == :inform &&
+              omf_message.read_content(:inform_type) == inform_type.upcase &&
+              (context_id ? (omf_message.context_id == context_id) : true)
+          end
+          pubsub_event(guard_block, &callback_logging(__method__, &event_block))
+        end
+      end
+
+      # Event callback for pubsub topic event(item published)
+      #
+      def topic_event(*args, &block)
+        pubsub_event(:items?, *args, &callback_logging(__method__, &block))
       end
 
       private

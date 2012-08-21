@@ -6,9 +6,9 @@ module OmfRc::ResourceProxy::OpenflowSlice
 
   # The default parameters of a new slice. The openflow controller is assumed to be in the same working station with flowvisor instance
   SLICE_DEFAULTS = {
-    :passwd => "1234",
-    :url    => "tcp:127.0.0.1:9933",
-    :email  => "nothing@nowhere"
+    passwd: "1234",
+    url:    "tcp:127.0.0.1:9933",
+    email:  "nothing@nowhere"
   }
 
 
@@ -41,23 +41,26 @@ module OmfRc::ResourceProxy::OpenflowSlice
         raise e
       end
     end
+    resource.property.name
   end
 
   # Configures the slice password
   configure :passwd do |resource, passwd|
     resource.flowvisor_connection.call("api.changePasswd", resource.property.name, passwd.to_s)
+    passwd.to_s
   end
 
   # Configures the slice parameters
   [:contact_email, :drop_policy, :controller_hostname, :controller_port].each do |configure_sym|
     configure configure_sym do |resource, value|
       resource.flowvisor_connection.call("api.changeSlice", resource.property.name, configure_sym.to_s, value.to_s)
+      value.to_s
     end
   end
 
   # Adds/removes a flow to this slice, specified by a device and a port [and a dest ip address optionally]
-  configure :flows do |resource, config_desc|
-    resource.flowvisor_connection.call("api.changeFlowSpace", resource.call_parameters(config_desc))
+  configure :flows do |resource, parameters|
+    resource.flowvisor_connection.call("api.changeFlowSpace", resource.transformed_parameters(parameters))
     resource.flows
   end
 

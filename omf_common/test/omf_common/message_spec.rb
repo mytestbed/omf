@@ -59,6 +59,14 @@ describe OmfCommon::Message do
       inform = Message.inform('EVENT')
       inform.valid?.must_equal true
     end
+
+    it "context_id & resource_id shortcut must work too" do
+      m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
+        m.element('resource_id', 'test')
+      end
+      m.resource_id.must_equal 'test'
+      m.context_id.must_equal '9012c3bc-68de-459a-ac9f-530cc7168e22'
+    end
   end
 
   describe "must be able to parse a XML element into Message object" do

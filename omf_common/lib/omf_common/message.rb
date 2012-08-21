@@ -105,6 +105,16 @@ module OmfCommon
       read_element("//#{element_name}").first.content rescue nil
     end
 
+    # Context ID will be requested quite often
+    def context_id
+      read_property(:context_id) || read_content(:context_id)
+    end
+
+    # Resource ID is another frequent requested property
+    def resource_id
+      read_property(:resource_id) || read_content(:resource_id)
+    end
+
     # Get a property by key
     #
     # @param [String] key name of the property element
@@ -124,6 +134,11 @@ module OmfCommon
           end
         end
       end
+    end
+
+    # Iterate each property element
+    def each_property(&block)
+      read_element("//property").each { |v| block.call(v) }
     end
   end
 end

@@ -5,15 +5,15 @@ module OmfRc::ResourceProxy::OpenflowSliceFactory
 
   # The default arguments of the communication between this resource and the flowvisor instance
   FLOWVISOR_CONNECTION_DEFAULTS = {
-    :host       => "localhost",
-    :path       => "/xmlrc",
-    :port       => "8080",
-    :proxy_host => nil,
-    :proxy_port => nil,
-    :user       => "fvadmin",
-    :password   => "openflow",
-    :use_ssl    => "true",
-    :timeout    => nil
+    host:       "localhost",
+    path:       "/xmlrc",
+    port:       "8080",
+    proxy_host: nil,
+    proxy_port: nil,
+    user:       "fvadmin",
+    password:   "openflow",
+    use_ssl:    "true",
+    timeout:    nil
   }
 
 

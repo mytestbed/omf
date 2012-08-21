@@ -17,7 +17,7 @@ module OmfRc::Util::OpenflowTools
   FLOWVISOR_FLOWENTRY = /FlowEntry\[#{FLOWVISOR_FLOWENTRY_DEVIDED.join(',')},\]/
   # The names of the flow (or flow entry) features 
   FLOW_FEATURES = %w{device match slice actions id priority}
-  # The default parameters of a new flow (or flow entry)
+  # The default features of a new flow (or flow entry)
   FLOW_DEFAULTS = Hashie::Mash.new({
     :priority => "10",
     :actions  => "4"
@@ -43,8 +43,11 @@ module OmfRc::Util::OpenflowTools
   # Internal function that returns the flows (flow entries) that exist in the connected flowvisor instance
   work :flows do |resource, filter = nil|
     result = resource.flowvisor_connection.call("api.listFlowSpace")
-    result.map! {|line| Hashie::Mash[Hash[FLOW_FEATURES.zip line.match(FLOWVISOR_FLOWENTRY)[1..-1]]]}
-    result.delete_if {|hash| !hash["slice"] == resource.property.name} if resource.type.to_sym == :openflow_slice
+    result.map! do |line| 
+      array_feature_value = FLOW_FEATURES.zip line.match(FLOWVISOR_FLOWENTRY)[1..-1]
+      Hashie::Mash.new(Hash[array_feature_value])
+    end
+    result.delete_if {|hash| hash["slice"] != resource.property.name} if resource.type.to_sym == :openflow_slice
     if filter
       result.delete_if do |hash|
         valid = true
@@ -56,25 +59,28 @@ module OmfRc::Util::OpenflowTools
     end
   end
 
-  work :call_parameters do |resource, config_desc|
+  work :transformed_parameters do |resource, parameters|
     result = []
-    match  = "in_port=#{config_desc.port}"
-    match += ",ip_dst=#{config_desc.ip_dst}" if config_desc.ip_dst
-    case config_desc.operation
+    match  = "in_port=#{parameters.port}"
+    match += ",ether_dst=#{parameters.ether_dst}" if parameters.ether_dst
+    match += ",ip_dst=#{parameters.ip_dst}" if parameters.ip_dst
+    case parameters.operation
     when "add"
       h = Hashie::Mash.new
-      h.operation = config_desc.operation.upcase
-      h.priority  = config_desc.priority ? config_desc.priority.to_s : FLOW_DEFAULTS.priority
-      h.dpid      = config_desc.device.to_s
-      h.actions   = "Slice:#{resource.property.name}=#{(config_desc.actions ? config_desc.actions : FLOW_DEFAULTS.actions)}"
+      h.operation = parameters.operation.upcase
+      h.priority  = parameters.priority ? parameters.priority.to_s : FLOW_DEFAULTS.priority
+      h.dpid      = parameters.device.to_s
+      h.actions   = "Slice:#{resource.property.name}=#{(parameters.actions ? parameters.actions : FLOW_DEFAULTS.actions)}"
       h.match     = "OFMatch[#{match}]"
       result << h
     when "remove"
-      resource.flows(config_desc).each do |f|
-        h = Hashie::Mash.new
-        h.operation = "REMOVE"
-        h.id = f.id
-        result << h
+      resource.flows(parameters).each do |f|
+        if f.match == match 
+          h = Hashie::Mash.new
+          h.operation = parameters.operation.upcase
+          h.id = f.id
+          result << h
+        end 
       end    
     end
     result
