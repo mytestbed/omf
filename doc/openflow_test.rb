@@ -20,7 +20,12 @@ comm = Comm.new(:xmpp)
 
 @messages = {
   create: comm.create_message([type: 'openflow_slice', name: 'test1']),
-  config: comm.configure_message([flows: {operation: 'remove', port: '21', device: '00:00:00:00:00:00:00:01'}]),
+  config_a: comm.configure_message([flows: {operation: 'add', device: '00:00:00:00:00:00:00:01', in_port: '16'}]),
+  config_b: comm.configure_message([flows: {operation: 'add', device: '00:00:00:00:00:00:00:02', in_port: '21'}]),
+  config_c: comm.configure_message([flows: {operation: 'add', device: '00:00:00:00:00:00:00:02', in_port: '23'}]),
+  config_d: comm.configure_message([flows: {operation: 'add', device: '00:00:00:00:00:00:00:01', in_port: '15'}]),
+  config_e: comm.configure_message([flows: {operation: 'add', device: '00:00:00:00:00:00:00:01', in_port: '1', eth_src: '00:03:2d:0d:30:d4'}]),
+  config_f: comm.configure_message([flows: {operation: 'add', device: '00:00:00:00:00:00:00:02', in_port: '1', eth_src: '00:03:2d:0d:30:c0'}]),
 }
 
 comm.when_ready do
@@ -30,10 +35,6 @@ comm.when_ready do
   comm.subscribe(options[:uid]) do |event|
     comm.publish(options[:uid], @messages[:create])
   end
-
-  comm.add_timer(10) do
-    comm.publish(options[:uid], @messages[:release])
-  end
 end
 
 comm.on_created_message @messages[:create] do |message|
@@ -42,11 +43,16 @@ comm.on_created_message @messages[:create] do |message|
   logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
   comm.subscribe(child_uid) do
-    comm.publish(child_uid, @messages[:config])
+    comm.publish(child_uid, @messages[:config_a])
+    comm.publish(child_uid, @messages[:config_b])
+    comm.publish(child_uid, @messages[:config_c])
+    comm.publish(child_uid, @messages[:config_d])
+    comm.publish(child_uid, @messages[:config_e])
+    comm.publish(child_uid, @messages[:config_f])
   end
 end
 
-comm.on_status_message do |message|
+comm.on_status_message @messages[:config_a] do |message|
   message.each_property do |p|
     logger.info "#{p.attr('key')} => #{p.content.strip}"
   end
@@ -62,6 +68,13 @@ end
 
 EM.run do
   comm.connect(options[:user], options[:password], options[:server])
-  trap(:INT) { comm.disconnect }
-  trap(:TERM) { comm.disconnect }
+
+  trap(:INT) do 
+    comm.publish(options[:uid], @messages[:release])
+    comm.disconnect
+  end
+  trap(:TERM) do 
+    comm.publish(options[:uid], @messages[:release]) 
+    comm.disconnect
+  end
 end

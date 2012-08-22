@@ -58,7 +58,7 @@ module OmfRc::ResourceProxy::OpenflowSlice
     end
   end
 
-  # Adds/removes a flow to this slice, specified by a device and a port [and a dest ip address optionally]
+  # Adds/removes a flow to this slice, specified by device, port, etc.
   configure :flows do |resource, parameters|
     resource.flowvisor_connection.call("api.changeFlowSpace", resource.transformed_parameters(parameters))
     resource.flows
