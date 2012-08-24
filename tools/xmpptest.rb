@@ -9,7 +9,7 @@ include Jabber
 
 def quit(msg)
   puts msg
-  exit
+  exit 1
 end
 
 if ARGV.empty?

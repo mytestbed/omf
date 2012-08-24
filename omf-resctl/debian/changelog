@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu5) precise; urgency=low
+
+  * fixed some packaging issues
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 21 Aug 2012 17:45:58 +1000
+
 omf-resctl-5.4 (5.4.2-ubuntu4) precise; urgency=low
 
   * removed absolute file paths from OMF drivers for increased cross-platform compatibility 
