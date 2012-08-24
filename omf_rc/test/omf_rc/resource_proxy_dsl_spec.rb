@@ -71,5 +71,22 @@ describe OmfRc::ResourceProxyDSL do
       mock_proxy.bravo("something", "something else").must_equal "something"
       mock_proxy.request_zulu(country: 'uk').must_equal "You called zulu with: country"
     end
+
+    it "must be able to include utility" do
+      Class.new do
+        include OmfRc::ResourceProxyDSL
+        utility :mock_utility
+      end.new.must_respond_to :request_alpha
+    end
+
+    it "must log error if utility can't be found" do
+      Class.new do
+        include OmfRc::ResourceProxyDSL
+        utility :wont_be_found_utility
+        stub :require, true do
+          utility :wont_be_found_utility
+        end
+      end
+    end
   end
 end
