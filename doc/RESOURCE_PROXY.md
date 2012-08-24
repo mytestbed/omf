@@ -327,3 +327,6 @@ In the previous example, we use method register\_proxy to register resource prox
     include OmfRc::ResourceProxyDSL
 
 The full list of resource proxy DSL can be found here: [DSL API](../../OmfRc/ResourceProxyDSL/ClassMethods)
+
+## Testing
+[Unit Testing](http://rubydoc.info/github/mytestbed/omf/file/doc/UNIT_TEST.md)
