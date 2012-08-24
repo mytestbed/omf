@@ -7,7 +7,7 @@ $stdout.sync = true
 options = {
   user: 'alpha',
   password: 'pw',
-  server: 'srv.mytestbed.net', # XMPP server domain
+  server: 'localhost', # XMPP server domain
   uid: 'mclaren', # Id of the garage (resource)
 }
 
