@@ -8,9 +8,14 @@ include OmfCommon
 options = {
   user: 'bravo',
   password: 'pw',
+<<<<<<< HEAD
+  server: 'srv.mytestbed.net' # XMPP pubsub server domain
+  uid: 'mclaren' # The garage's name, we used the same name in the garage_controller.
+=======
   server: 'localhost', # XMPP pubsub server domain
   uid: 'mclaren', # The garage's name, we used the same name in the garage_controller.
   debug: false
+>>>>>>> d402f34c4615f8d8ae2c8e401a3bcb7d0b715b6a
 }
 
 Logging.logger.root.level = options[:debug] ? :debug : :info
