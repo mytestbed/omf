@@ -69,6 +69,7 @@ module OmfCommon
       # @param [String] topic Pubsub topic name
       # @param [String] message Any XML fragment to be sent as payload
       def publish(topic, message, &block)
+        raise StandardError, "Invalid message" unless message.valid?
         pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, message.operation, &block))
       end
 
