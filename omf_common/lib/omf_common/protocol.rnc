@@ -7,8 +7,7 @@ element (create | configure) {
     (attribute key { text } | element key { text }),
     (attribute type { text } | element type { text })?,
     (element value { text } | text),
-    element unit { text }?,
-    element precision { text }?
+    (element * { text })*
   }*
 } |
 element request {
@@ -17,23 +16,20 @@ element request {
   element publish_to { text }?,
   element property {
     (attribute key { text } | element key { text }),
-    element min_value { text }?,
-    element max_value { text }?
+    (element * { text })*
   }*
 } |
 element inform {
   attribute msg_id { text },
   element context_id { text },
-  element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "EVENT" },
+  element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" },
   element resource_id { text }?,
   element resource_address { text }?,
   element error_message { text }?,
   element property {
     (attribute key { text } | element key { text }),
-    element current { text },
-    element target { text }?,
-    element msg { text }?,
-    element progress { text }?
+    (element value { text } | text),
+    (element * { text })*
   }*
 } |
 element release {

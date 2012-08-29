@@ -31,16 +31,12 @@
           </element>
           <text/>
         </choice>
-        <optional>
-          <element name="unit">
+        <zeroOrMore>
+          <element>
+            <anyName/>
             <text/>
           </element>
-        </optional>
-        <optional>
-          <element name="precision">
-            <text/>
-          </element>
-        </optional>
+        </zeroOrMore>
       </element>
     </zeroOrMore>
   </element>
@@ -62,16 +58,12 @@
             <text/>
           </element>
         </choice>
-        <optional>
-          <element name="min_value">
+        <zeroOrMore>
+          <element>
+            <anyName/>
             <text/>
           </element>
-        </optional>
-        <optional>
-          <element name="max_value">
-            <text/>
-          </element>
-        </optional>
+        </zeroOrMore>
       </element>
     </zeroOrMore>
   </element>
@@ -86,7 +78,6 @@
         <value>FAILED</value>
         <value>STATUS</value>
         <value>RELEASED</value>
-        <value>EVENT</value>
       </choice>
     </element>
     <optional>
@@ -112,24 +103,18 @@
             <text/>
           </element>
         </choice>
-        <element name="current">
+        <choice>
+          <element name="value">
+            <text/>
+          </element>
           <text/>
-        </element>
-        <optional>
-          <element name="target">
+        </choice>
+        <zeroOrMore>
+          <element>
+            <anyName/>
             <text/>
           </element>
-        </optional>
-        <optional>
-          <element name="msg">
-            <text/>
-          </element>
-        </optional>
-        <optional>
-          <element name="progress">
-            <text/>
-          </element>
-        </optional>
+        </zeroOrMore>
       </element>
     </zeroOrMore>
   </element>
