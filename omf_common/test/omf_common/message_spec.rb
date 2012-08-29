@@ -55,11 +55,6 @@ describe OmfCommon::Message do
       inform.valid?.must_equal true
     end
 
-    it "must return an event inform XML element without providing message context id" do
-      inform = Message.inform('EVENT')
-      inform.valid?.must_equal true
-    end
-
     it "context_id & resource_id shortcut must work too" do
       m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
         m.element('resource_id', 'test')
@@ -94,6 +89,10 @@ describe OmfCommon::Message do
       memory.value.must_equal 1024
       memory.unit.must_equal 'mb'
       memory.precision.must_equal 0
+      # Each property iterator
+      message.each_property do |v|
+        %w(type os memory).must_include v.attr('key')
+      end
     end
   end
 end
