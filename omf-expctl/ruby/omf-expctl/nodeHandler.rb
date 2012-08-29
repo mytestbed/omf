@@ -259,6 +259,13 @@ class NodeHandler < MObject
   end
 
   #
+  # No AM Flag:
+  # When 'true', do not use the AM and warn when  service calls are made
+  # Default is 'false'
+  #
+  @@noam = false
+
+  #
   # Make a service call and return the HTTP response object. If the call fails
   # a ServiceException is raised.
   #
@@ -427,14 +434,14 @@ class NodeHandler < MObject
       @@allowmissing = true
     }
 
-    opts.on("-C", "--configfile FILE",
-    "File containing local configuration parameters") {|file|
-      @configFile = file
-    }
-
     opts.on("-c", "--config NAME",
     "Configuration section from the config file ('default' if omitted)") {|name|
       OConfig.config = name
+    }
+
+    opts.on("-C", "--configfile FILE",
+    "File containing local configuration parameters") {|file|
+      @configFile = file
     }
 
     opts.on("-d", "--debug", "Operate in debug mode") {
@@ -465,12 +472,15 @@ class NodeHandler < MObject
       NodeHandler.JUST_PRINT = true
     }
 
+    opts.on("-N", "--no-am", "Don't use the Aggregate Manager (AM)") {
+      @noam = true
+    }
+
     opts.on("-p", "--print URI",
     "Print to the console the content of the experiment resource URI") {|uri|
       printResource(uri)
       exit
     }
-
 
     opts.on("-o", "--output-result FILE",
     "File to write final state information to") {|file|
@@ -492,21 +502,20 @@ class NodeHandler < MObject
       @@reset = true
     }
 
-    opts.on("-S", "--slice NAME",
-    "Name of the Slice where this EC should operate") { |name|
-      Experiment.sliceID = name
-    }
-
     opts.on("-s", "--shutdown",
     "If set, then shut down resources at the end of an experiment") {
       @@shutdown = true
+    }
+
+    opts.on("-S", "--slice NAME",
+    "Name of the Slice where this EC should operate") { |name|
+      Experiment.sliceID = name
     }
 
     opts.on("-t", "--tags TAGS",
     "Comma separated list of tags to add to experiment trace") {|tags|
       Experiment.tags = tags
     }
-
 
     opts.on("--oml-uri URI",
     "The URI to the OML server for this experiment") { |uri|
@@ -697,6 +706,11 @@ class NodeHandler < MObject
   # TODO: Most of thes following should NOT be here, but in the Service layer
   #
   def setupServiceCalls()
+    if @noam
+      warn "AM support disabled - any service calls will fail!"
+      return
+    end
+
     domains = []
 
     comm = OConfig[:ec_config][:communicator]

@@ -418,7 +418,7 @@ class OMF::EC::Node < MObject
   def powerOn()
     # Check that EC is NOT in 'Slave Mode' 
     # - If so call CMC to switch node(s) ON
-    CMC.nodeOn(@nodeID) if !NodeHandler.SLAVE
+    CMC.nodeOn(@nodeID) if !NodeHandler.SLAVE && !@noam
     @poweredAt = Time.now
     #if !@isUp
     if @nodeStatus != STATUS_UP
@@ -437,7 +437,7 @@ class OMF::EC::Node < MObject
   def powerOff(hard = false)
     # Check that EC is NOT in 'Slave Mode' 
     # - If so call CMC to switch node(s) OFF
-    if !NodeHandler.SLAVE
+    if !NodeHandler.SLAVE && !@noam
       if hard
         CMC.nodeOffHard(@nodeID)
       else
@@ -523,7 +523,7 @@ class OMF::EC::Node < MObject
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)
       debug("Resetting node")
-      CMC::nodeReset(@nodeID)
+      CMC::nodeReset(@nodeID) if !NodeHandler.SLAVE && !@noam
       @checkedInAt = -1
       @poweredAt = Time.now
       @enrollKey = @enrollKey + 1

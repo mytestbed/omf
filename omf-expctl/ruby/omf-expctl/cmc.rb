@@ -74,10 +74,9 @@ module CMC
   # Switch a given node OFF Hard
   # (i.e. similar to a push of 'power' button)
   #
-  # NOT IMPLEMENTED IN CURRENT CMC
   def CMC.nodeOffHard(name)
     if NodeHandler.JUST_PRINT
-      puts "CMC: Switch of node #{name}"
+      puts "CMC: Switch off node #{name}"
     else
       OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODE.OFF', name
       begin
