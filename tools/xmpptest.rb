@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 # change this to the gembundler path later
+require "rubygems"
 require "xmpp4r"
 require "xmpp4r/pubsub"
 require "socket"
@@ -9,7 +10,7 @@ include Jabber
 
 def quit(msg)
   puts msg
-  exit
+  exit 1
 end
 
 if ARGV.empty?

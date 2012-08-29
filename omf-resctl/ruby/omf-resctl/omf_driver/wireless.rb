@@ -75,7 +75,7 @@ class WirelessDevice < EthernetDevice
   # [Return] the Cell ID of this Device
   #
   def checkStatus
-    reply = `/sbin/iwconfig #{deviceName}`
+    reply = `iwconfig #{deviceName}`
     if ! $?.success?
       warn "Problems running iwconfig -- #{reply}"
       return
@@ -125,7 +125,7 @@ class WirelessDevice < EthernetDevice
     debug "activate: #{deviceName} #{driver} #{loaded?}"
     super()
     if (! loaded?)
-      reply = `/sbin/modprobe #{driver}`
+      reply = `modprobe #{driver}`
       if ! $?.success?
         error "Problems loading module '#{driver}' -- '#{reply}'"
         raise "Problems loading module #{driver} -- #{reply}"

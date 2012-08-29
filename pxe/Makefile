@@ -77,11 +77,11 @@ SOURCE = src
 TEMP = tmp
 
 LIB =	/lib/i386-linux-gnu/ld-linux.so.2 /lib/i386-linux-gnu/libc.so.6 /lib/i386-linux-gnu/libm.so.6 /lib/i386-linux-gnu/libpthread.so.0 
-LIB +=	/lib/i386-linux-gnu/libdl.so.2 /lib/i386-linux-gnu/libcrypt.so.1 /lib/libnih.so.1 /lib/libnih-dbus.so.1
+LIB +=	/lib/i386-linux-gnu/libdl.so.2 /lib/i386-linux-gnu/libcrypt.so.1 /lib/i386-linux-gnu/libnih.so.1 /lib/i386-linux-gnu/libnih-dbus.so.1
 LIB +=	/lib/i386-linux-gnu/libnss_dns.so.2 /lib/i386-linux-gnu/libresolv.so.2
 # Currently nodeagent requires lspci, which requires libpci. Remove this 
 # if not needed.
-LIB += /lib/libpci.so.3
+LIB += /lib/i386-linux-gnu/libpci.so.3
 # for ruby1.8
 LIB +=  /lib/i386-linux-gnu/librt.so.1
 

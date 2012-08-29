@@ -376,8 +376,8 @@ class NodeAgent < MObject
       raise "Name or Slice are not defined in config file or as arguments!"
     end
     # substitute hostname or mac addr, if required
-    @config[:agent][:name].gsub!(/%hostname%/, `/bin/hostname`.chomp)
-    @config[:agent][:name].gsub!(/%fqdn%/, `/bin/hostname --fqdn`.chomp)
+    @config[:agent][:name].gsub!(/%hostname%/, `hostname`.chomp)
+    @config[:agent][:name].gsub!(/%fqdn%/, `hostname --fqdn`.chomp)
     @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.chomp)
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
@@ -437,15 +437,14 @@ class NodeAgent < MObject
           AgentCommands::DEV_MAPPINGS['net/w1'] = IntelDevice.new('net/w1', 'eth3')
         end
       }
-      IO.popen("#{lspci} | grep 'Ethernet controller: Atheros' | wc -l") {|p|
+      IO.popen("#{lspci} | grep 'controller: Atheros Communications Inc. AR5' | wc -l") {|p|
         if p.gets.to_i > 0
           if @ar5xxx_driver == "madwifi"
             require 'omf-resctl/omf_driver/madwifi'
             MObject.info "Have Atheros cards - Using Madwifi driver"
             AgentCommands::DEV_MAPPINGS['net/w0'] = MadwifiDevice.new('net/w0', 'ath0')
             AgentCommands::DEV_MAPPINGS['net/w1'] = MadwifiDevice.new('net/w1', 'ath1')
-          # load ath5k by default
-          else
+          elsif @ar5xxx_driver == "ath5k"
             require 'omf-resctl/omf_driver/ath5k'
             MObject.info "Have Atheros cards - Using ath5k driver"
             AgentCommands::DEV_MAPPINGS['net/w0'] = Ath5kDevice.new('net/w0', 'wlan0')
@@ -453,12 +452,12 @@ class NodeAgent < MObject
           end
         end
       }
-      IO.popen("#{lspci} | grep 'Network controller: Atheros' | wc -l") {|p|
+      IO.popen("#{lspci} | grep 'controller: Atheros Communications Inc. AR9' | wc -l") {|p|
         if p.gets.to_i > 0
-          require 'omf-resctl/omf_driver/ath9k'
-          MObject.info "Have Atheros cards - Using ath9k driver"
-          AgentCommands::DEV_MAPPINGS['net/w0'] = Ath9kDevice.new('net/w0', 'wlan0')
-          AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
+            require 'omf-resctl/omf_driver/ath9k'
+            MObject.info "Have Atheros cards - Using ath9k driver"
+            AgentCommands::DEV_MAPPINGS['net/w0'] = Ath9kDevice.new('net/w0', 'wlan0')
+            AgentCommands::DEV_MAPPINGS['net/w1'] = Ath9kDevice.new('net/w1', 'wlan1')
         end
       }
       wimax_count = 0
@@ -493,6 +492,7 @@ class NodeAgent < MObject
     @running = nil
     @controlIP = nil
     @controlIF = nil
+    @ar5xxx_driver = nil
   end
 
 end

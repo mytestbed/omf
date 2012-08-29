@@ -16,7 +16,7 @@ module OMF::EC::Communicator
       _publish
     end
     
-    # Can't allow log level to be set to DEBUG as sending log mesages
+    # Can't allow log level to be set to DEBUG as sending log messages
     # does also create new log messages which create even more.
     #
     def level=(level)

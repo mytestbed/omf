@@ -82,16 +82,16 @@ module OMF
         Thread.new {
           begin
             # Request with no service or method gets the full list
-            xml = send_request { |r|
+            xml = send_request do |r|
               # r must be a REXML::Element
-              servs = r.elements.collect("serviceGroup") do |e|
-                e.attributes["name"]
-              end
-              servs.each { |s|
-                @services[s] = :pending
-                found << :found if s == target
-              }
-            }
+              if r.kind_of?(REXML::Element) 
+                servs = r.elements.collect("serviceGroup") { |e| e.attributes["name"] }
+                servs.each do |s|
+                  @services[s] = :pending
+                  found << :found if s == target
+                end
+              end 
+            end
             found << :not_found
           rescue ServiceCallException => e
             error "Trying to get service list from domain '#{domain}':  #{e.message}"

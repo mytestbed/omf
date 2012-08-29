@@ -73,7 +73,7 @@ module ManagerCommands
           sliverName = "#{resourceName}_#{n}"
         end
       }
-      # Create pubsub node "/OMF/#{slice}/resources/#{sliverName}"
+      # Create pubsub node "/OMF_x.x/#{slice}/resources/#{sliverName}"
       # TODO: this doesn't work
       addr = communicator.create_address(:sliceID => sliceName, :name => sliverName)
       

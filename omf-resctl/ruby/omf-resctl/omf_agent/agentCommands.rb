@@ -95,7 +95,7 @@ module AgentCommands
   #
   def AgentCommands.ENROLL(communicator, command)
     # Check if we are already 'enrolled' or not
-    if controller.enrolled
+    if controller.enrolled and command.expID!=communicator.expID
       msg = "Cannot ENROLL in experiment #{command.expID}, because still "+
             "enrolled in #{communicator.expID}!"
       MObject.debug("AgentCommands", msg)

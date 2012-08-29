@@ -171,10 +171,6 @@ module OMF
     # args[:noreply] == true means the (multiple) remote responders should not send a reply
     #
     def Services.method_missing(m, args = nil)
-#puts ">>>>> TDB - Services.method_missing - m(#{m.class}): '#{m}' - args: '#{args.inspect}'"
-#puts ">>>>> TDB - Services.method_missing - m found in @@services - '#{@@services[m]}'" if @@services[m] 
-#puts ">>>>> TDB - Services.method_missing - size of @@services - '#{@@services.length}'" 
-#@@services.each { |s| puts ">>>>> TDB - Services.method_missing - s(#{s.class}): '#{s}'" } 
 
       service = @@services[m] || Service.new(m)
       @@services[m] = service

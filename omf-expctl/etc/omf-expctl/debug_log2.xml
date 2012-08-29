@@ -4,11 +4,10 @@
   </pre_config>
   <!-- outputters -->
   <outputter type="StdoutOutputter" name="console" level="DEBUG"/>
-	
+
   <!-- loggers -->
   <logger name="nodeHandler" outputters="console" level="DEBUG" trace="true"/>
   <logger name="nodeHandler::web" outputters="console" level="INFO"/>
-  
 
   <logger name="nodeHandler::comm" outputters="console" level="INFO"/>
   <logger name="nodeHandler::commServer" outputters="console" level="INFO"/>

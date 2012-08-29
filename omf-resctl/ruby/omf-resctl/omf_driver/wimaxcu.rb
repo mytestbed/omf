@@ -47,7 +47,7 @@ class WimaxcuDevice < WimaxDevice
   #
   def initialize(logicalName, deviceName)
     super(logicalName, deviceName)
-    @wimaxcu = '/usr/bin/wimaxcu'
+    @wimaxcu = 'wimaxcu'
     @mode = @profile = @network = nil
   end
 

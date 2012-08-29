@@ -11,14 +11,10 @@
     <formatter type="PatternFormatter" pattern="%d %l %C: %m" />
   </outputter>
   <outputter type="StdoutOutputter" name="console" level="INFO"/>
-  <outputter type="OMF::Common::Web::Log::LogOutputter" name="web" level="DEBUG"/>
+  
 
   <!-- loggers -->
-  <logger name="nodeHandler" outputters="log, console, web" level="DEBUG" trace="true"/>
-  
-  <logger name="nodeHandler::web" outputters="log, console, web" level="WARN"/>
-  <logger name="nodeHandler::web::access" outputters="log" level="INFO"/>
-  <logger name="nodeHandler::web::access" outputters="console, web" level="WARN"/>
+  <logger name="nodeHandler" outputters="log, console" level="DEBUG" trace="true"/>
   
   <!--
   <logger name="client" level="INFO" outputters="client, console"/>

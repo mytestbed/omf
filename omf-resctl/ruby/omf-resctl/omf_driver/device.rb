@@ -43,7 +43,7 @@ class Device < MObject
   #
   def unload
     @@driverLoaded.each_key { |driver|
-      reply = `/sbin/modprobe -r #{driver}`
+      reply = `modprobe -r #{driver}`
       if ! $?.success?
         raise "Problems unloading module #{driver} -- #{reply}"
       end

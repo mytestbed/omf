@@ -9,5 +9,3 @@ cmc:
     # Currently the default testbed is the "indoor" one
     default: 
 
-      # inventory_url: URL to the Inventory GS, where we can get mapping [x,y] to IP@
-      inventory_url: 'http://localhost:5054/inventory'

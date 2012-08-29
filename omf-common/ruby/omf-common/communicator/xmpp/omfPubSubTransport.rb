@@ -51,6 +51,7 @@ class OMFPubSubTransport < MObject
 
   def init(opts)
     raise "PubSub Transport already started" if @@started
+    @@subscriptions = Array.new
     @@queues = Array.new
     @@threads = Array.new
     @@qcounter = 0
@@ -125,6 +126,7 @@ class OMFPubSubTransport < MObject
       node = addr.generate_address
       domain = addr.domain
     end
+    return true if @@subscriptions.include?(node)
     subscribed = false
     index = 0
     # When a new event comes from that server, we push it on our event queue
@@ -150,13 +152,16 @@ class OMFPubSubTransport < MObject
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, domain)
 	      debug "Creating new node '#{node}'"
-	      subscribed = listen(addr, &block)
+	      return listen(addr)
       else
         raise "OMFPubSubTransport - Failed to create PubSub node '#{node}' "+
               "on '#{addr.domain}'"
       end
     end
-    debug "Listening on '#{node}' at '#{domain}'" if subscribed
+    if subscribed
+      debug "Listening on '#{node}' at '#{domain}'" 
+      @@subscriptions << node
+    end
     return subscribed
   end
 

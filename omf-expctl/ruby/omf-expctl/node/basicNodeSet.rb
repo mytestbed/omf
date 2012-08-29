@@ -93,7 +93,7 @@ class BasicNodeSet < NodeSet
   # - hard = true/false (optional, default=false)
   #
   def powerOff(hard = false)
-    nodes.each { |n| n.powerOff() }
+    nodes.each { |n| n.powerOff(hard) }
   end
 
   # Return a set with only itself in it.

@@ -1,3 +1,9 @@
+frisbee (1.0.3-2ubuntu5) precise; urgency=low
+
+  * precise build
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 09 Aug 2012 16:55:16 +1000
+
 frisbee (1.0.3-2ubuntu4) oneiric; urgency=low
 
   * moving to oneiric 

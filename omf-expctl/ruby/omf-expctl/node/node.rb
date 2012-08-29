@@ -223,8 +223,8 @@ class OMF::EC::Node < MObject
     appName, op = appId.split('/')
     if NodeHandler.SHOW_APP_OUTPUT &&
        ((eventName.upcase == "STDOUT") || (eventName.upcase == "STDERR")) 
-       # When requested by user, print SDOUT events on our own standard-out
-       info("Output of app '#{appId}' -> '#{message}'")
+       # When requested by user, print STDOUT & STDERR events on our own standard-out
+       info("App '#{appId}' #{eventName.upcase}: '#{message}'")
     end
     if (appName =~ /^exec:/)
       if ! @execs.key?(appName)
@@ -519,7 +519,6 @@ class OMF::EC::Node < MObject
        ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
       return
     else
-      ECCommunicator.instance.send_reset(@nodeID)
       changed
       notify_observers(self, :before_resetting_node)
       setStatus(STATUS_RESET)

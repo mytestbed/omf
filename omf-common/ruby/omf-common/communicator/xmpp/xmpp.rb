@@ -2,6 +2,8 @@ require 'rubygems'
 require 'xmpp4r'
 require 'omf-common/mobject'
 require 'omf-common/communicator/xmpp/omfXMPPServices'
+require 'omf-common/omfVersion'
+ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 #Jabber::debug = true
 module OMF
@@ -525,8 +527,8 @@ def run(pubsub_domain)
   subs = domain.request_subscriptions
 #  subs.each { |s| domain.unsubscribe(s) }
 
-  listener = domain.listen_to_node("/OMF")
-  listener2 = domain.listen_to_node("/OMF/system")
+  listener = domain.listen_to_node("/#{ROOT}")
+  listener2 = domain.listen_to_node("/#{ROOT}/system")
   i = 1
   m = 0
 
@@ -547,9 +549,9 @@ def run(pubsub_domain)
     item2.add(goodbye)
 
     puts "Pub1"
-    domain.publish_to_node("/OMF", item)
+    domain.publish_to_node("/#{ROOT}", item)
     puts "Pub2"
-    domain.publish_to_node("/OMF/system", item2)
+    domain.publish_to_node("/#{ROOT}/system", item2)
 
     puts "Servicing queue 1"
     until listener.queue.empty?
@@ -576,7 +578,7 @@ def listener(domain)
   domain = OMF::XMPP::PubSub::Domain.new(connection, domain)
   subs = domain.request_subscriptions
 
-  listener = domain.listen_to_node("/OMF/system")
+  listener = domain.listen_to_node("/#{ROOT}/system")
 
   while msg = listener.queue.pop
     puts "RECEIVED:  #{msg.to_s}"

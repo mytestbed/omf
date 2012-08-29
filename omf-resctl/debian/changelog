@@ -1,3 +1,33 @@
+omf-resctl-5.4 (5.4.2-ubuntu5) precise; urgency=low
+
+  * fixed some packaging issues
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 21 Aug 2012 17:45:58 +1000
+
+omf-resctl-5.4 (5.4.2-ubuntu4) precise; urgency=low
+
+  * removed absolute file paths from OMF drivers for increased cross-platform compatibility 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Sun, 19 Aug 2012 14:10:45 +1000
+
+omf-resctl-5.4 (5.4.2-ubuntu3) precise; urgency=low
+
+  * Fixed an error introduced in commit:39b1302a 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 25 Jul 2012 12:43:57 +1000
+
+omf-resctl-5.4 (5.4.2-ubuntu2) precise; urgency=low
+
+  * Add support for ath5k 
+
+ -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 25 Jul 2012 12:23:11 +1000
+
+omf-resctl-5.4 (5.4.2-ubuntu1) precise; urgency=low
+
+  * renamed root element in pubsub node
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 21 Jun 2012 18:51:57 +1000
+
 omf-resctl-5.4 (5.4-ubuntu7) oneiric; urgency=low
 
   * fixed typo 
