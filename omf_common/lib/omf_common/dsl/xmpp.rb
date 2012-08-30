@@ -129,7 +129,7 @@ module OmfCommon
       # Event callback for pubsub topic event(item published)
       #
       def topic_event(*args, &block)
-        pubsub_event(:items?, *args, &callback_logging(__method__, &block))
+        pubsub_event(*args, &callback_logging(__method__, &block))
       end
 
       # Return a topic object represents pubsub topic
