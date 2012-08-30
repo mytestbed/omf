@@ -72,6 +72,7 @@ module OmfCommon
         true
       else
         logger.error validation.map(&:message).join("\n")
+        logger.debug to_s
         false
       end
     end

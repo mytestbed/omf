@@ -160,11 +160,13 @@ describe OmfCommon::DSL::Xmpp do
     it "must generate omf create xml fragment" do
       m1 = @xmpp.create_message([type: 'engine'])
       m2 = @xmpp.create_message do |v|
-        v.property('type', 'test')
+        v.property('type', 'engine')
       end
-      m1.must_equal m2
-      m1.name.must_equal 'create'
-      m1.to_xml.must_match /<property key="type">engine<\/property>/
+      m1.must_be_kind_of OmfCommon::TopicMessage
+      m2.must_be_kind_of OmfCommon::TopicMessage
+      m1.body.name.must_equal 'create'
+      m1.body.to_xml.must_match /<property key="type">engine<\/property>/
+      m2.body.to_xml.must_match /<property key="type">engine<\/property>/
     end
 
     it "must generate omf configure xml fragment" do
@@ -172,19 +174,23 @@ describe OmfCommon::DSL::Xmpp do
       m2 = @xmpp.configure_message do |v|
         v.property('throttle', 50)
       end
-      m1.must_equal m2
-      m1.name.must_equal 'configure'
-      m1.to_xml.must_match /<property key="throttle">50<\/property>/
+      m1.must_be_kind_of OmfCommon::TopicMessage
+      m2.must_be_kind_of OmfCommon::TopicMessage
+      m1.body.name.must_equal 'configure'
+      m1.body.to_xml.must_match /<property key="throttle">50<\/property>/
+      m2.body.to_xml.must_match /<property key="throttle">50<\/property>/
     end
 
     it "must generate omf inform xml fragment" do
       m1 = @xmpp.inform_message([inform_type: 'CREATED'])
       m2 = @xmpp.inform_message do |v|
-        v.property('inform_type', 'test')
+        v.property('inform_type', 'CREATED')
       end
-      m1.must_equal m2
-      m1.name.must_equal 'inform'
-      m1.to_xml.must_match /<property key="inform_type">CREATED<\/property>/
+      m1.must_be_kind_of OmfCommon::TopicMessage
+      m2.must_be_kind_of OmfCommon::TopicMessage
+      m1.body.name.must_equal 'inform'
+      m1.body.to_xml.must_match /<property key="inform_type">CREATED<\/property>/
+      m2.body.to_xml.must_match /<property key="inform_type">CREATED<\/property>/
     end
 
     it "must generate omf release xml fragment" do
@@ -192,9 +198,11 @@ describe OmfCommon::DSL::Xmpp do
       m2 = @xmpp.release_message do |v|
         v.property('resource_id', 100)
       end
-      m1.must_equal m2
-      m1.name.must_equal 'release'
-      m1.to_xml.must_match /<property key="resource_id">100<\/property>/
+      m1.must_be_kind_of OmfCommon::TopicMessage
+      m2.must_be_kind_of OmfCommon::TopicMessage
+      m1.body.name.must_equal 'release'
+      m1.body.to_xml.must_match /<property key="resource_id">100<\/property>/
+      m2.body.to_xml.must_match /<property key="resource_id">100<\/property>/
     end
 
     it "must generate omf request xml fragment" do
@@ -206,12 +214,14 @@ describe OmfCommon::DSL::Xmpp do
         end
         v.property('max_power')
       end
-      m1.must_equal m2
-      m1.name.must_equal 'request'
-      m1.to_xml.must_match /<property key="max_rpm"\/>/
-      m1.to_xml.must_match /<property key="provider">/
-      m1.to_xml.must_match /<country>japan<\/country>/
-      m1.to_xml.must_match /<property key="max_power"\/>/
+      m1.must_be_kind_of OmfCommon::TopicMessage
+      m2.must_be_kind_of OmfCommon::TopicMessage
+      m1.body.name.must_equal 'request'
+      m1.body.to_xml.must_match /<property key="max_rpm"\/>/
+      m1.body.to_xml.must_match /<property key="provider">/
+      m1.body.to_xml.must_match /<country>japan<\/country>/
+      m2.body.to_xml.must_match /<country>japan<\/country>/
+      m1.body.to_xml.must_match /<property key="max_power"\/>/
     end
   end
 
@@ -220,7 +230,7 @@ describe OmfCommon::DSL::Xmpp do
 
     it "must react to omf created message" do
       Blather::Client.stub :new, @client do
-        omf_create = @xmpp.create_message([type: 'engine'])
+        omf_create = OmfCommon::Message.create { |v| v.property('type', 'engine') }
         omf_create.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_created = Blather::XMPPNode.parse(omf_created_xml)
           @client.receive_data omf_created
@@ -235,7 +245,7 @@ describe OmfCommon::DSL::Xmpp do
 
     it "must react to omf status message" do
       Blather::Client.stub :new, @client do
-        omf_request = @xmpp.request_message([:bob])
+        omf_request = OmfCommon::Message.request { |v| v.property('bob') }
         omf_request.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_status = Blather::XMPPNode.parse(omf_status_xml)
           @client.receive_data omf_status
@@ -250,7 +260,7 @@ describe OmfCommon::DSL::Xmpp do
 
     it "must react to omf release message" do
       Blather::Client.stub :new, @client do
-        omf_release = @xmpp.release_message([resource_id: 100])
+        omf_release = OmfCommon::Message.release { |v| v.property('resource_id', '100') }
         omf_release.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_released = Blather::XMPPNode.parse(omf_released_xml)
           @client.receive_data omf_released
@@ -265,7 +275,7 @@ describe OmfCommon::DSL::Xmpp do
 
     it "must react to omf failed message" do
       Blather::Client.stub :new, @client do
-        omf_create = @xmpp.create_message([type: 'engine'])
+        omf_create = OmfCommon::Message.create { |v| v.property('type', 'engine') }
         omf_create.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
           @client.receive_data omf_failed
@@ -286,6 +296,14 @@ describe OmfCommon::DSL::Xmpp do
       @xmpp.add_timer(0.05) { done! }
       @xmpp.add_periodic_timer(0.05) { done! }
       wait!
+    end
+  end
+
+  describe "when asked to get a topic object" do
+    it "must return a topic object (pubsub topic) or nil if not found" do
+      topic = @xmpp.get_topic('xmpp_topic')
+      topic.must_be_kind_of OmfCommon::Topic
+      topic.comm.must_equal @xmpp
     end
   end
 end
