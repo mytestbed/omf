@@ -17,7 +17,7 @@ describe OmfCommon::Topic do
   describe "when topic object initialised" do
     include EM::MiniTest::Spec
 
-    it "must subscribe" do
+    it "must be able to subscribe" do
       Blather::Client.stub :new, @client do
         subscription = Blather::XMPPNode.parse(subscription_xml)
         write_callback = proc do |event|
