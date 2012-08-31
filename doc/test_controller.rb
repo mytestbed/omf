@@ -13,13 +13,22 @@ options = {
   debug: false
 }
 
+garage_id = options[:uid]
+
 Logging.logger.root.level = options[:debug] ? :debug : :info
 Blather.logger = logger
 
 # We will use Comm directly, with default DSL implementaion :xmpp
 comm = Comm.new(:xmpp)
 
-@messages = {
+garage_topic = comm.get_topic(garage_id)
+
+garage_topic.on_message proc { |m| m.operation != :inform } do |message|
+  logger.warn message
+end
+
+# messages { key: Topic }
+msgs = {
   create: comm.create_message([type: 'engine']),
   request: comm.request_message([:max_rpm, {:provider => {country: 'japan'}}, :max_power]),
   request_rpm: comm.request_message([:rpm]),
@@ -28,6 +37,69 @@ comm = Comm.new(:xmpp)
   test_error_handling: comm.request_message([:error]),
 }
 
+msgs[:test_error_handling].on_inform_failed do |message|
+  logger.error message.read_content("error_message")
+end
+
+megs[:create].on_inform_failed do |message|
+  logger.error "Resource creation failed ---"
+  logger.error message.read_content("error_message")
+end
+
+msgs[:request].on_inform_status do |message|
+  message.each_property do |p|
+    logger.info "#{p.attr('key')} => #{p.content.strip}"
+  end
+end
+
+msgs[:request].on_inform_failed do |message|
+  logger.error message.read_content("error_message")
+end
+
+msgs[:request_rpm].on_inform_status do |message|
+  message.each_property do |p|
+    logger.info "#{p.attr('key')} => #{p.content.strip}"
+  end
+end
+
+# Triggered when new messages published to the topics I subscribed to
+msgs[:create].on_inform_created do |message|
+  engine_topic = comm.get_topic(message.resource_id)
+  engine_id = engine_topic.id
+
+  msgs[:release] ||= comm.release_message { |m| m.element('resource_id', engine_id) }
+
+  msgs[:release].on_inform_released  do |message|
+    logger.info "Engine (#{message.resource_id}) turned off (resource released)"
+  end
+
+  logger.info "Engine #{engine_id} ready for testing"
+
+  engine_topic.subscribe do
+    # Now subscribed to engine topic, we can ask for some information about the engine
+    msgs[:request].publish engine_id
+
+    # We will check engine's RPM
+    msgs[:request_rpm].publish engine_id
+
+    # Now we will apply 50% throttle to the engine
+    msgs[:increase_throttle].publish engine_id
+
+    comm.add_timer(5) do
+      # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
+      msgs[:reduce_throttle].publish engine_id
+
+      # Testing error handling
+      msgs[:test_error_handling].publish engine_id
+    end
+
+    # 10 seconds later, we will 'release' this engine, i.e. shut it down
+    comm.add_timer(10) do
+      msgs[:release].publish garage_id
+    end
+  end
+end
+
 # Then we can register event handlers to the communicator
 #
 # Event triggered when connection is ready
@@ -35,63 +107,11 @@ comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
 
   # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
-  comm.subscribe(options[:uid]) do |event|
+  garage_topic.subscribe do
     # If subscribed, we publish a 'create' message, 'create' a new engine for testing
-    comm.publish(options[:uid], @messages[:create])
+    msgs[:create].publish garage_topic.id
   end
 end
-
-# Triggered when new messages published to the topics I subscribed to
-comm.on_created_message @messages[:create] do |message|
-  engine_id = message.read_content("resource_id")
-  @messages[:release] ||= comm.release_message([resource_id: engine_id])
-  logger.info "Engine #{engine_id} ready for testing"
-
-  comm.subscribe(engine_id) do
-    # Now engine is ready, we can ask for some information about the engine
-    comm.publish(engine_id, @messages[:request])
-
-    # We will check engine's RPM every 1 second
-    comm.publish(engine_id, @messages[:request_rpm])
-
-    # Now we will apply 50% throttle to the engine
-    comm.publish(engine_id, @messages[:increase_throttle])
-
-    # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
-    comm.add_timer(5) do
-      comm.publish(engine_id, @messages[:reduce_throttle])
-
-      # Testing error handling
-      comm.publish(engine_id, @messages[:test_error_handling])
-    end
-
-    # 20 seconds later, we will 'release' this engine, i.e. shut it down
-    comm.add_timer(10) do
-      comm.publish(options[:uid], @messages[:release])
-    end
-
-    comm.on_released_message @messages[:release] do |message|
-      logger.info "Engine turned off (resource released)"
-    end
-  end
-end
-
-comm.on_failed_message @messages[:test_error_handling] do |message|
-  logger.error message.read_content("error_message")
-end
-
-comm.on_status_message @messages[:request] do |message|
-  message.each_property do |p|
-    logger.info "#{p.attr('key')} => #{p.content.strip}"
-  end
-end
-
-comm.on_status_message @messages[:request_rpm] do |message|
-  message.each_property do |p|
-    logger.info "#{p.attr('key')} => #{p.content.strip}"
-  end
-end
-
 
 EM.run do
   comm.connect(options[:user], options[:password], options[:server])
