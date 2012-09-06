@@ -199,7 +199,7 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
     # The event handler will be triggered the same context of our original message. (inform message contains same context_id as original operation's context_id
     msgs[:create].on_inform_failed do |message|
       logger.error "Resource creation failed ---"
-      logger.error message.read_content("error_message")
+      logger.error message.read_content("reason")
     end
 
     msgs[:request].on_inform_status do |message|
@@ -209,7 +209,7 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
     end
 
     msgs[:request].on_inform_failed do |message|
-      logger.error message.read_content("error_message")
+      logger.error message.read_content("reason")
     end
 
     msgs[:request_rpm].on_inform_status do |message|

@@ -38,12 +38,12 @@ msgs = {
 }
 
 msgs[:test_error_handling].on_inform_failed do |message|
-  logger.error message.read_content("error_message")
+  logger.error message.read_content("reason")
 end
 
 megs[:create].on_inform_failed do |message|
   logger.error "Resource creation failed ---"
-  logger.error message.read_content("error_message")
+  logger.error message.read_content("reason")
 end
 
 msgs[:request].on_inform_status do |message|
@@ -53,7 +53,7 @@ msgs[:request].on_inform_status do |message|
 end
 
 msgs[:request].on_inform_failed do |message|
-  logger.error message.read_content("error_message")
+  logger.error message.read_content("reason")
 end
 
 msgs[:request_rpm].on_inform_status do |message|
