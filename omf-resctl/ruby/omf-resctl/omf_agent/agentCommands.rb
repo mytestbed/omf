@@ -95,16 +95,17 @@ module AgentCommands
   #
   def AgentCommands.ENROLL(communicator, command)
     # Check if we are already 'enrolled' or not
-    if controller.enrolled and command.expID!=communicator.expID
-      msg = "Cannot ENROLL in experiment #{command.expID}, because still "+
-            "enrolled in #{communicator.expID}!"
-      MObject.debug("AgentCommands", msg)
-      return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg, 
-              :slice_message => true}
-    end
+    # if controller.enrolled and command.expID!=communicator.expID
+    #   msg = "Cannot ENROLL in experiment #{command.expID}, because still "+
+    #         "enrolled in #{communicator.expID}!"
+    #   MObject.debug("AgentCommands", msg)
+    #   return {:success => :ERROR, :reason => :ALREADY_ENROLLED, :info => msg, 
+    #           :slice_message => true}
+    # end
     # Check if the desired image is installed on that node, 
     # if yes or if a desired image is not required, then continue
     # if not, then ignore this ENROLL
+    controller.reset
     communicator.set_EC_address
     desiredImage = command.image
     if (desiredImage != controller.imageName() && desiredImage != '*')

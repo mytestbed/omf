@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu6) precise; urgency=low
+
+  * RC now enrols in any new experiment, even if the current one has not finished (#831)
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 06 Sep 2012 19:13:57 +1000
+
 omf-resctl-5.4 (5.4.2-ubuntu5) precise; urgency=low
 
   * fixed some packaging issues
