@@ -2,7 +2,7 @@ require 'test_helper'
 require 'omf_rc/util/mod'
 
 describe OmfRc::Util::Mod do
-  describe "when included in the resource instance" do
+  describe "when included in the resource proxy" do
     before do
       module OmfRc::ResourceProxy::ModTest
         include OmfRc::ResourceProxyDSL

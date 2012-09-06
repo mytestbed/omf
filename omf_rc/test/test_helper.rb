@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start { add_filter "/test" }
+
 gem 'minitest'
 require 'minitest/autorun'
 require 'minitest/pride'
