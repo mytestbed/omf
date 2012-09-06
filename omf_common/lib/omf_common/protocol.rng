@@ -78,6 +78,8 @@
         <value>FAILED</value>
         <value>STATUS</value>
         <value>RELEASED</value>
+        <value>ERROR</value>
+        <value>WARN</value>
       </choice>
     </element>
     <optional>
@@ -91,7 +93,7 @@
       </element>
     </optional>
     <optional>
-      <element name="error_message">
+      <element name="reason">
         <text/>
       </element>
     </optional>
