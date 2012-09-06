@@ -22,8 +22,8 @@ We will build a garage controller (resource controller) acts as the proxy to the
 
 If you want to dive into the code right now, these are the two annotated files used for this example:
 
-* [Garage controller (server side)](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
-* [Engine test controller (client side)](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb)
+* [Garage controller](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
+* [Engine test controller](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb)
 
 ### Resource controller script skeleton (server side)
 
@@ -77,7 +77,7 @@ The above script will fail to start, complaining that resource proxy of type 'ga
 
 Run the script again, it should prompt user alpha got connected.
 
-We also need definition for engines, since their instances will be created later (via 'create' messages published by the client script, through XMPP).
+We also need definition for engines, since their instances will be created later (via 'create' messages published by the test script, through XMPP).
 
     module OmfRc::ResourceProxy::Engine
       include OmfRc::ResourceProxyDSL
@@ -153,7 +153,7 @@ For more information regarding these DSL methods, go to the section [Full DSL me
       resource.property.throttle = value.to_f / 100.0
     end
 
-### Engine test controller script (client side)
+### Engine test controller script
 
 Experiment controller is not available yet, so we need to use pubsub comm (communicator) from omf\_common library to interact with the XMPP system, i.e. sending out operation messages and capturing the inform messages; and unfortunately this made the test script a bit complicated.
 
@@ -167,111 +167,109 @@ Experiment controller is not available yet, so we need to use pubsub comm (commu
     options = {
       user: 'bravo',
       password: 'pw',
-      server: 'localhost', # XMPP pubsub server domain
-      uid: 'mclaren', # The garage's name, we used the same name in the garage_controller.
+      xmpp_server: 'localhost', # XMPP pubsub server domain
+      garage_id: 'mclaren', # The garage's name, we used the same name in the garage_controller.
     }
 
     # We will use Comm directly, with default DSL implementaion :xmpp
     comm = Comm.new(:xmpp)
-    host = nil
+
+    garage_id = options[:garage_id]
 
     # Then we can register event handlers to the communicator
     #
     # Event triggered when connection is ready
+    garage_topic = comm.get_topic(garage_id)
+
+    garage_topic.on_message proc { |m| m.operation != :inform } do |message|
+      # Just observe non-inform messages
+      logger.info message
+    end
+
+    # We now define a bunch of messages represents the actions we want to perform, by using communicator's message creation utility.
+    msgs = {
+      create: comm.create_message([type: 'engine']),
+      request: comm.request_message([:max_rpm, :provider, :max_power]),
+      request_rpm: comm.request_message([:rpm]),
+      increase_throttle: comm.configure_message([throttle: 50]),
+      reduce_throttle: comm.configure_message([throttle: 0])
+    }
+
+    # Then for each message object, we could add some event handler to it (what to do when certain event happened)
+    # The event handler will be triggered the same context of our original message. (inform message contains same context_id as original operation's context_id
+    msgs[:create].on_inform_failed do |message|
+      logger.error "Resource creation failed ---"
+      logger.error message.read_content("error_message")
+    end
+
+    msgs[:request].on_inform_status do |message|
+      message.each_property do |p|
+        logger.info "#{p.attr('key')} => #{p.content.strip}"
+      end
+    end
+
+    msgs[:request].on_inform_failed do |message|
+      logger.error message.read_content("error_message")
+    end
+
+    msgs[:request_rpm].on_inform_status do |message|
+      message.each_property do |p|
+        logger.info "#{p.attr('key')} => #{p.content.strip}"
+      end
+    end
+
+    msgs[:create].on_inform_created do |message|
+      logger.info "Engine #{engine_id} ready for testing"
+      # We then know about newly created engine resource, can find out its id (topic id)
+      engine_topic = comm.get_topic(message.resource_id)
+      engine_id = engine_topic.id
+
+      # We now can construct a release message since we now know its id
+      msgs[:release] = comm.release_message { |m| m.element('resource_id', engine_id) }
+
+      msgs[:release].on_inform_released  do |message|
+        logger.info "Engine (#{message.resource_id}) turned off (resource released)"
+      end
+
+      # We can now subscribe to the newly created engine resource
+      engine_topic.subscribe do
+        # Now subscribed to engine, we can ask for some information about the engine
+        msgs[:request].publish engine_id
+
+        # We will check engine's RPM
+        msgs[:request_rpm].publish engine_id
+
+        # Now we will apply 50% throttle to the engine
+        msgs[:increase_throttle].publish engine_id
+
+        comm.add_timer(5) do
+          # Some time later, we want to reduce the throttle, to avoid blowing up the engine
+          msgs[:reduce_throttle].publish engine_id
+        end
+
+        # Some time later, we will 'release' this engine, i.e. shut it down
+        comm.add_timer(10) do
+          msgs[:release].publish garage_id
+        end
+      end
+    end
+
+    # This when_ready event triggered when connection is ready
     comm.when_ready do
       logger.info "CONNECTED: #{comm.jid.inspect}"
-      host = comm.jid.domain
 
       # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
-      comm.subscribe(options[:uid], host) do |e|
-        if e.error?
-          comm.disconnect(host)
-        else
-          # If subscribed, we publish a 'create' message, 'create' a new engine for testing
-          comm.publish(
-            options[:uid],
-            Message.create { |v| v.property('type', 'engine') },
-            host)
-        end
+      garage_topic.subscribe do
+        # Once subscribed, we publish a 'create' message defined earlier, 'create' a new engine for testing
+        msgs[:create].publish garage_topic.id
       end
     end
 
-    # Triggered when new messages published to the topics I subscribed to
-    comm.topic_event do |e|
-      e.items.each do |item|
-        begin
-          # Parse the message (pubsub item payload)
-          message = Message.parse(item.payload)
-          # We are only interested in inform messages for the moment
-          if message.operation == :inform
-            inform_type = message.read_content("inform_type")
-            case inform_type
-            when 'CREATED'
-              engine_id = message.read_content("resource_id")
-              logger.info "Engine #{engine_id} ready for testing"
-            when 'STATUS'
-              message.read_element("//property").each do |p|
-                logger.info "#{p.attr('key')} => #{p.content.strip}"
-              end
-            when 'FAILED'
-              logger.error message.read_content("error_message")
-            when 'RELEASED'
-              logger.warn "Engine turned off (resource released)"
-            end
-          end
-        rescue => e
-          logger.error "#{e.message}\n#{e.backtrace.join("\n")}"
-        end
-      end
-    end
-
+    # Now we simply connect the communicator
     EM.run do
-      comm.connect(options[:user], options[:password], options[:server])
+      comm.connect(options[:user], options[:password], options[:xmpp_server])
       trap(:INT) { comm.disconnect }
       trap(:TERM) { comm.disconnect }
-    end
-
-### More actions on engine test controller (client side)
-
-Once we have the engine ready (i.e. we received notify message 'CREATED'), we can subscribe to its pubsub topic, and publish additional instructions to the engine.
-
-Add the following code after the line "logger.info "Engine #{engine\_id} ready for testing"
-
-    comm.subscribe(engine_id, host) do
-      # Now engine is ready, we can ask for some information about the engine
-      comm.publish(engine_id,
-                   Message.request do |v|
-                     v.property('max_rpm')
-                     v.property('provider')
-                     v.property('max_power')
-                   end,
-                   host)
-
-      # We will check engine's RPM every 1 second
-      EM.add_periodic_timer(1) do
-        comm.publish(engine_id,
-                     Message.request { |v| v.property('rpm') },
-                     host)
-      end
-
-      # Now we will apply 50% throttle to the engine
-      comm.publish(engine_id,
-                   Message.configure { |v| v.property('throttle', '50') },
-                   host)
-
-      # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
-      EM.add_timer(5) do
-        comm.publish(engine_id,
-                     Message.configure { |v| v.property('throttle', '0') },
-                     host)
-      end
-
-      # 20 seconds later, we will 'release' this engine, i.e. shut it down
-      EM.add_timer(20) do
-        comm.publish(engine_id,
-                     Message.release,
-                     host)
-      end
     end
 
 ## Organise resource proxy modules
