@@ -11,14 +11,9 @@ describe OmfRc::ResourceProxy::Node do
       @node.request_proxies.must_include :node
     end
 
-    it "must provide hooks" do
-      @node.before_ready
-      @node.before_release
-    end
-
     it "must provide a list of supported network devices" do
       devices = [
-        { name: 'eth0', driver: 'e1000e', category: 'net', subcategory: nil, proxy: 'net' },
+        { name: 'eth0', driver: 'e1000e', category: 'net', proxy: 'net' },
         { name: 'wlan0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' }
       ]
 

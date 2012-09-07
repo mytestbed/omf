@@ -3,22 +3,13 @@ module OmfRc::ResourceProxy::Node
 
   register_proxy :node
 
-  hook :before_ready do |resource|
-    logger.info "#{resource.uid} is now ready"
-  end
-
-  hook :before_release do |resource|
-    logger.info "#{resource.uid} is now released"
-  end
-
   request :proxies do
     OmfRc::ResourceFactory.proxy_list
   end
 
   request :devices do |resource|
     devices = []
-    sys_path = "/sys/class"
-    Dir.chdir(sys_path) do
+    Dir.chdir("/sys/class") do
       Dir.glob("net").find_all { |v| File.directory?(v) }.each do |v|
         category = File.basename(v)
         Dir.glob("#{category}/*").each do |v|
@@ -27,12 +18,10 @@ module OmfRc::ResourceProxy::Node
             proxy = subcategory || category
             File.exist?("#{v}/device/uevent") && File.open("#{v}/device/uevent") do |f|
               driver = f.read.match(/DRIVER=(.+)/) && $1
-              devices << {
-                name: File.basename(v),
-                driver: driver,
-                category: category,
-                subcategory: subcategory,
-                proxy: (proxy if resource.request_proxies.include?(proxy)) }
+              device = { name: File.basename(v), driver: driver, category: category }
+              device[:subcategory] = subcategory if subcategory
+              device[:proxy] = proxy if resource.request_proxies.include?(proxy.to_sym)
+              devices << device
             end
           end
         end
