@@ -29,7 +29,7 @@ end
 require 'omf-expctl/nodeHandler'
 
 startTime = Time.now
-cleanExit = false
+@@cleanexit = true
 
 # Initialize the state tracking, Parse the command line options, and run the EC
 begin
@@ -37,7 +37,6 @@ begin
   TraceState.init()
   NodeHandler.instance.parseOptions(ARGV)
   NodeHandler.instance.run(self)
-  cleanExit = true
 
 # Process the various Exceptions...
 rescue Interrupt, SystemExit
@@ -45,6 +44,7 @@ rescue Interrupt, SystemExit
 rescue OEDLException => ex 
   begin
     return if ex.to_s == "(SystemExit) exit"
+    @@cleanexit = false
     bt = ex.backtrace 
     MObject.fatal('run', "----------")
     MObject.fatal('run', "  A fatal error was encountered while processing "+
@@ -58,11 +58,13 @@ rescue OEDLException => ex
   end
 rescue ServiceException => sex
   begin
+    @@cleanexit = false
     MObject.fatal('run', "Failed to call an Aggregate Manager Service")
     MObject.fatal('run', "Exception: #{sex.message} : #{sex.response.body}")
   rescue Exception
   end
 rescue Exception => ex
+  @@cleanexit = false
   if Experiment.running?
     begin
       MObject.fatal('run', "----------")
@@ -74,14 +76,13 @@ rescue Exception => ex
     MObject.fatal('run', "----------")
     MObject.fatal('run', "  Exception raised, no experiment running.")
   end
-    MObject.fatal('run', "  Exception (#{ex.class}): #{ex}")
-    MObject.fatal('run', "  For more information see the EC log file")
-    MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
-    MObject.fatal('run', "  (or see config file to find the log's location)")
-    bt = ex.backtrace.join("\n\t")
-    MObject.debug('run', "Trace:\n\t#{bt}\n")
-    MObject.fatal('run', "----------")
-
+  MObject.fatal('run', "  Exception (#{ex.class}): #{ex}")
+  MObject.fatal('run', "  For more information see the EC log file")
+  MObject.fatal('run', "  (usually at: /tmp/#{Experiment.ID}.log)")
+  MObject.fatal('run', "  (or see config file to find the log's location)")
+  bt = ex.backtrace.join("\n\t")
+  MObject.debug('run', "Trace:\n\t#{bt}\n")
+  MObject.fatal('run', "----------")
 end
 
 # If EC is called in 'interactive' mode, then start a Ruby interpreter
@@ -102,6 +103,6 @@ if (NodeHandler.instance.running?)
   duration = (Time.now - startTime).to_i
   OMF::EC::OML::PerformanceMonitor.report_status 'EXP.DONE', "Running for #{duration} sec"
   MObject.info('run', "Experiment #{Experiment.ID} finished after #{duration / 60}:#{duration % 60}\n")
-  sleep 2 # flush out stats messages
 end
 
+exit(@@cleanexit)

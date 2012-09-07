@@ -378,7 +378,7 @@ class NodeAgent < MObject
     # substitute hostname or mac addr, if required
     @config[:agent][:name].gsub!(/%hostname%/, `hostname`.chomp)
     @config[:agent][:name].gsub!(/%fqdn%/, `hostname --fqdn`.chomp)
-    @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@config[:communicator][:control_if]} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.chomp)
+    
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
     @resizefs = @config[:agent][:resizefs] 
@@ -389,6 +389,8 @@ class NodeAgent < MObject
     if @config[:communicator][:control_if] != nil
       @controlIF = @config[:communicator][:control_if]
       @controlIP = `ifconfig #{@controlIF} | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`.chomp
+      @config[:agent][:name].gsub!(/%macaddr%/, `ifconfig #{@controlIF} | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'`.chomp)
+      @config[:agent][:name].gsub!(/%ipaddr%/, @controlIP)
     end
 
     # Use Mote configuration parameters from Config File if defined

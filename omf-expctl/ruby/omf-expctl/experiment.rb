@@ -325,6 +325,16 @@ class Experiment
     TraceState.experiment(:status, "DONE")
   end
 
+  def Experiment.failed(msg = nil)
+    if msg.nil?
+      MObject.error('Experiment',"Experiment failed! No reason given.")
+    else
+      MObject.error('Experiment',"Experiment failed! Reason: '#{msg}'")
+    end
+    @@cleanexit = false
+    TraceState.experiment(:status, "FAILED")
+  end
+
   def Experiment.interrupt
     if @@is_running
       @@is_running = false

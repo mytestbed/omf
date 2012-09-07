@@ -477,7 +477,7 @@ class NodeHandler < MObject
     }
 
     opts.on("-p", "--print URI",
-    "Print to the console the content of the experiment resource URI") {|uri|
+    "Print the contents of the experiment script") {|uri|
       printResource(uri)
       exit
     }
@@ -625,17 +625,13 @@ class NodeHandler < MObject
         break
       end
       if (@@expFile != nil)
-        fatal('init', " Found additional experiment file '#{s}'")
-        puts opts
-        exit -1
+        raise "Found additional experiment file '#{s}'"
       end
       @@expFile = s
     }
 
     if (@@expFile.nil? && ! (@interactive || @web_ui))
-      fatal('init', " Missing experiment file")
-      puts opts
-      exit -1
+      raise "Missing experiment file"
     end
 
     Experiment.expArgs = rest - [@@expFile]
@@ -845,10 +841,6 @@ class NodeHandler < MObject
       raise "Failed to shutdown the Communicator! - Error: '#{ex}'"
     end
 
-    Antenna.each { |a|
-      a.signal.off
-    }
-
     # dump state
     begin
       if (@finalStateFile.nil?)
@@ -865,7 +857,6 @@ class NodeHandler < MObject
     rescue Exception => ex
       debug("Exception while saving final state (#{ex})")
     end
-
 
     @running = nil
   end

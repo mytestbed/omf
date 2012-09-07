@@ -204,40 +204,6 @@ module OConfig
   end
 
   #
-  # Similar to 'load' method, but use the external loading function, which may 
-  # be defined in the EC config file. This loading method is obsolete, and 
-  # should be removed.
-  # See 'load' for more info on 'uri' and 'evalRuby' arguments.
-  #
-  def self.loadExternal(uri, evalRuby = false)
-    getProc('load').call(uri, evalRuby)
-  end
-
-  #
-  # Retrieve and return a piece of code from the Node Handler configuration 
-  # file as a Proc. This method is obsolete, as we have adopted a design
-  # where the EC get most of its config from the Inventory service. Thus it 
-  # should be removed.
-  #
-  # - name = name identifying the code block to retrieve in the EC config file
-  # 
-  # [Return] the retrieved code block.
-  #
-  def self.getProc(name)
-    if (@@procs[name] == nil)
-      if ((code = self[name]) == nil)
-        raise "Undefined code segment '#{name}' in config file"
-      end
-      begin
-        @@procs[name] = eval("lambda { #{code} }")
-      rescue Exception => ex
-        MObject.fatal('oconfig', "Exception while eval proc '#{name}': ", ex)
-      end
-    end
-    @@procs[name]
-  end
-
-  #
   # Set the domain for this Experiment Controller
   #
   # - domain =  Name of the domain where this EC is running

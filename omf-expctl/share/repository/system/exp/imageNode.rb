@@ -74,16 +74,11 @@ MESSAGES = {:checkinfailed => MSG_CHECKINFAILED, :imagefailed => MSG_IMAGEFAILED
 #response = NodeHandler.service_call(url, "Image does not exist")
 response = OMF::Services.frisbee.checkImage(:img => "#{prop.image.value}", :domain => "#{prop.domain.value}")
 if response.elements[1].name != "OK"
-  MObject.error("Frisbee Service Call", response.root.text)
-  Experiment.done
-  exit
+  Experiment.failed("Frisbee service reported: #{response.root.text}")
 end
 # - check if timeout value from command line is really an integer
 if (prop.timeout.value.to_i == 0)
-  MObject.error("The timeout value '#{prop.timeout.value}' is not an integer!")
-  MObject.error("Check command line syntax.")
-  Experiment.done
-  exit -1
+  Experiment.failed("The timeout value '#{prop.timeout.value}' is not an integer!")
 end
 
 @allNodes = []
@@ -219,6 +214,10 @@ everyNS('image', 10) { |ns|
 }
 
 onEvent(:INTERRUPT) {
+  clearPXE
+}
+
+onEvent(:EXPERIMENT_FAILED) {
   clearPXE
 }
 

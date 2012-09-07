@@ -62,6 +62,7 @@ everyNS('save', 10) { |ns|
       if status =~ /DONE.ERR/
         info("- Saving disk image of '#{n}' finished with ERRORS!")
         info("  Check the log file (probably disk read error on the node)")
+        Experiment.failed("Error while saving the image")
       else
         info("- Saving disk image of '#{n}' finished with success.")
       end
@@ -88,6 +89,10 @@ everyNS('save', 10) { |ns|
 }
 
 onEvent(:INTERRUPT) {
+  clearPXE
+}
+
+onEvent(:EXPERIMENT_FAILED) {
   clearPXE
 }
 

@@ -64,6 +64,15 @@ onEvent(:EXPERIMENT_DONE, true) do |event|
   Experiment.close
 end
 
+defEvent(:EXPERIMENT_FAILED) do |event|
+  exp_status = Experiment.state("status/text()")
+  event.fire if allEqual(exp_status, "FAILED")
+end
+
+onEvent(:EXPERIMENT_FAILED, true) do |event|
+  Experiment.close
+end
+
 defEvent(:INTERRUPT, 1) do |event|
   exp_status = Experiment.state("status/text()")
   event.fire if allEqual(exp_status, "INTERRUPTED")
