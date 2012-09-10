@@ -1,25 +1,44 @@
 default namespace = "http://schema.mytestbed.net/6.0/protocol"
 
-element (create | configure) {
+start = (create | configure | request | release | inform)
+
+anything = (text | element * { (text | anything) * })
+
+create = element create {
   attribute msg_id { text },
   element context_id { text },
   element property {
-    (attribute key { text } | element key { text }),
-    (attribute type { text } | element type { text })?,
-    (element value { text } | text),
-    (element * { text })*
-  }*
-} |
-element request {
+    attribute key { text },
+    anything *
+  } *
+}
+
+configure = element configure {
+  attribute msg_id { text },
+  element context_id { text },
+  element property {
+    attribute key { text },
+    anything *
+  } *
+}
+
+request = element request {
   attribute msg_id { text },
   element context_id { text },
   element publish_to { text }?,
   element property {
-    (attribute key { text } | element key { text }),
-    (element * { text })*
+    (attribute key { text }),
+    anything *
   }*
-} |
-element inform {
+}
+
+release = element release {
+  attribute msg_id { text },
+  element context_id { text },
+  element resource_id { text }
+}
+
+inform = element inform {
   attribute msg_id { text },
   element context_id { text },
   element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN"},
@@ -27,13 +46,8 @@ element inform {
   element resource_address { text }?,
   element reason { text }?,
   element property {
-    (attribute key { text } | element key { text }),
-    (element value { text } | text),
-    (element * { text })*
-  }*
-} |
-element release {
-  attribute msg_id { text },
-  element context_id { text },
-  element resource_id { text }
+    attribute key { text },
+    (element type { text })?,
+    anything *
+  } *
 }

@@ -1,132 +1,136 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<choice ns="http://schema.mytestbed.net/6.0/protocol" xmlns="http://relaxng.org/ns/structure/1.0">
-  <element>
+<grammar ns="http://schema.mytestbed.net/6.0/protocol" xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
     <choice>
-      <name>create</name>
-      <name>configure</name>
+      <ref name="create"/>
+      <ref name="configure"/>
+      <ref name="request"/>
+      <ref name="release"/>
+      <ref name="inform"/>
     </choice>
-    <attribute name="msg_id"/>
-    <element name="context_id">
+  </start>
+  <define name="anything">
+    <choice>
       <text/>
-    </element>
-    <zeroOrMore>
-      <element name="property">
-        <choice>
-          <attribute name="key"/>
-          <element name="key">
-            <text/>
-          </element>
-        </choice>
-        <optional>
-          <choice>
-            <attribute name="type"/>
-            <element name="type">
-              <text/>
-            </element>
-          </choice>
-        </optional>
-        <choice>
-          <element name="value">
-            <text/>
-          </element>
-          <text/>
-        </choice>
+      <element>
+        <anyName/>
         <zeroOrMore>
-          <element>
-            <anyName/>
+          <choice>
             <text/>
-          </element>
+            <ref name="anything"/>
+          </choice>
         </zeroOrMore>
       </element>
-    </zeroOrMore>
-  </element>
-  <element name="request">
-    <attribute name="msg_id"/>
-    <element name="context_id">
-      <text/>
-    </element>
-    <optional>
-      <element name="publish_to">
+    </choice>
+  </define>
+  <define name="create">
+    <element name="create">
+      <attribute name="msg_id"/>
+      <element name="context_id">
         <text/>
       </element>
-    </optional>
-    <zeroOrMore>
-      <element name="property">
-        <choice>
+      <zeroOrMore>
+        <element name="property">
           <attribute name="key"/>
-          <element name="key">
-            <text/>
-          </element>
-        </choice>
-        <zeroOrMore>
-          <element>
-            <anyName/>
-            <text/>
-          </element>
-        </zeroOrMore>
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="configure">
+    <element name="configure">
+      <attribute name="msg_id"/>
+      <element name="context_id">
+        <text/>
       </element>
-    </zeroOrMore>
-  </element>
-  <element name="inform">
-    <attribute name="msg_id"/>
-    <element name="context_id">
-      <text/>
+      <zeroOrMore>
+        <element name="property">
+          <attribute name="key"/>
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </zeroOrMore>
     </element>
-    <element name="inform_type">
-      <choice>
-        <value>CREATED</value>
-        <value>FAILED</value>
-        <value>STATUS</value>
-        <value>RELEASED</value>
-        <value>ERROR</value>
-        <value>WARN</value>
-      </choice>
+  </define>
+  <define name="request">
+    <element name="request">
+      <attribute name="msg_id"/>
+      <element name="context_id">
+        <text/>
+      </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
+      <zeroOrMore>
+        <element name="property">
+          <attribute name="key"/>
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </zeroOrMore>
     </element>
-    <optional>
+  </define>
+  <define name="release">
+    <element name="release">
+      <attribute name="msg_id"/>
+      <element name="context_id">
+        <text/>
+      </element>
       <element name="resource_id">
         <text/>
       </element>
-    </optional>
-    <optional>
-      <element name="resource_address">
+    </element>
+  </define>
+  <define name="inform">
+    <element name="inform">
+      <attribute name="msg_id"/>
+      <element name="context_id">
         <text/>
       </element>
-    </optional>
-    <optional>
-      <element name="reason">
-        <text/>
-      </element>
-    </optional>
-    <zeroOrMore>
-      <element name="property">
+      <element name="inform_type">
         <choice>
-          <attribute name="key"/>
-          <element name="key">
-            <text/>
-          </element>
+          <value>CREATED</value>
+          <value>FAILED</value>
+          <value>STATUS</value>
+          <value>RELEASED</value>
+          <value>ERROR</value>
+          <value>WARN</value>
         </choice>
-        <choice>
-          <element name="value">
-            <text/>
-          </element>
+      </element>
+      <optional>
+        <element name="resource_id">
           <text/>
-        </choice>
-        <zeroOrMore>
-          <element>
-            <anyName/>
-            <text/>
-          </element>
-        </zeroOrMore>
-      </element>
-    </zeroOrMore>
-  </element>
-  <element name="release">
-    <attribute name="msg_id"/>
-    <element name="context_id">
-      <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="resource_address">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="reason">
+          <text/>
+        </element>
+      </optional>
+      <zeroOrMore>
+        <element name="property">
+          <attribute name="key"/>
+          <optional>
+            <element name="type">
+              <text/>
+            </element>
+          </optional>
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </zeroOrMore>
     </element>
-    <element name="resource_id">
-      <text/>
-    </element>
-  </element>
-</choice>
+  </define>
+</grammar>

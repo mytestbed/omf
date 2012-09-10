@@ -79,10 +79,14 @@ module OmfCommon
 
     # Short cut for adding xml node
     #
-    def element(key, value)
-      key_node = Niceogiri::XML::Node.new(key)
-      key_node.content = value
+    def element(key, value = nil, &block)
+      key_node = Message.new(key)
       add_child(key_node)
+      if block
+        block.call(key_node)
+      else
+        key_node.content = value if value
+      end
     end
 
     # The root element_name represents operation
@@ -130,6 +134,8 @@ module OmfCommon
         else
           Hashie::Mash.new.tap do |mash|
             e.element_children.each do |child|
+              puts "*"
+              puts child
               mash[child.element_name] ||= child.content.ducktype
             end
           end
