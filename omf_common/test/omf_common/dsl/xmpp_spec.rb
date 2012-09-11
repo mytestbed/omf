@@ -209,16 +209,15 @@ describe OmfCommon::DSL::Xmpp do
       m1 = @xmpp.request_message([:max_rpm, {:provider => {country: 'japan'}}, :max_power])
       m2 = @xmpp.request_message do |v|
         v.property('max_rpm')
-        v.property('provider') do |p|
-          p.element('country', 'japan')
-        end
+        v.property('provider', { country: 'japan' })
         v.property('max_power')
       end
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'request'
       m1.body.to_xml.must_match /<property key="max_rpm"\/>/
-      m1.body.to_xml.must_match /<property key="provider">/
+      m1.body.to_xml.must_match /<property key="provider" type="hash">/
+      m2.body.to_xml.must_match /<property key="provider" type="hash">/
       m1.body.to_xml.must_match /<country>japan<\/country>/
       m2.body.to_xml.must_match /<country>japan<\/country>/
       m1.body.to_xml.must_match /<property key="max_power"\/>/

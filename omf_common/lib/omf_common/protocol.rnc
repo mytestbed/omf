@@ -9,6 +9,7 @@ create = element create {
   element context_id { text },
   element property {
     attribute key { text },
+    (attribute type { text })?,
     anything *
   } *
 }
@@ -18,6 +19,7 @@ configure = element configure {
   element context_id { text },
   element property {
     attribute key { text },
+    (attribute type { text })?,
     anything *
   } *
 }
@@ -28,6 +30,7 @@ request = element request {
   element publish_to { text }?,
   element property {
     (attribute key { text }),
+    (attribute type { text })?,
     anything *
   }*
 }
@@ -38,6 +41,7 @@ release = element release {
   element resource_id { text },
   element property {
     (attribute key { text }),
+    (attribute type { text })?,
     anything *
   }*
 }
@@ -51,7 +55,7 @@ inform = element inform {
   element reason { text }?,
   element property {
     attribute key { text },
-    (element type { text })?,
+    (attribute type { text })?,
     anything *
   } *
 }

@@ -10,9 +10,7 @@ module OmfCommon
   #
   #   Message.request do |message|
   #     message.property('os', 'debian')
-  #     message.property('memory', 2) do |p|
-  #       p.element('unit', 'gb')
-  #     end
+  #     message.property('memory', { value: 2, unit: 'gb' })
   #   end
   #
   class Message < Niceogiri::XML::Node
@@ -44,17 +42,70 @@ module OmfCommon
 
     # Construct a property xml node
     #
-    def property(key, value = nil, &block)
+    def property(key, value = nil)
       key_node = Message.new('property')
       key_node.write_attr('key', key)
-      add_child(key_node)
-      if block
-        key_node.element('value', value) if value
-        block.call(key_node)
-      else
-        key_node.content = value if value
+
+      unless value.nil?
+        if [Array, Hash].include? value.class
+          key_node.write_attr('type', value.class.to_s.downcase)
+        end
+        c_node = value_node_set(value)
+
+        if c_node.class == Array
+          c_node.each { |c_n| key_node.add_child(c_n) }
+        else
+          key_node.add_child(c_node)
+        end
       end
+      add_child(key_node)
       key_node
+    end
+
+    def value_node_set(value, key = nil)
+      case value
+      when Hash
+        [].tap do |array|
+          value.each_pair do |k, v|
+            n = Message.new(k)
+
+            if [Array, Hash].include? v.class
+              n.write_attr('type', v.class.to_s.downcase)
+            end
+
+            c_node = value_node_set(v, k)
+            if c_node.class == Array
+              c_node.each { |c_n| n.add_child(c_n) }
+            else
+              n.add_child(c_node)
+            end
+            array << n
+          end
+        end
+      when Array
+        value.map do |v|
+          n = Message.new('item')
+
+          if [Array, Hash].include? v.class
+            n.write_attr('type', v.class.to_s.downcase)
+          end
+
+          c_node = value_node_set(v, 'item')
+          if c_node.class == Array
+            c_node.each { |c_n| n.add_child(c_n) }
+          else
+            n.add_child(c_node)
+          end
+          n
+        end
+      else
+        if key.nil?
+          value.to_s
+        else
+          n = Message.new(key)
+          n.add_child(value.to_s)
+        end
+      end
     end
 
     # Generate SHA1 of canonicalised xml and write into the ID attribute of the message
@@ -128,18 +179,25 @@ module OmfCommon
     def read_property(key)
       key = key.to_s
       e = read_element("//property[@key='#{key}']").first
-      if e
-        if e.children.size == 1
-          e.content.ducktype
-        else
-          Hashie::Mash.new.tap do |mash|
-            e.element_children.each do |child|
-              puts "*"
-              puts child
-              mash[child.element_name] ||= child.content.ducktype
-            end
-          end
+      reconstruct_data(e) if e
+    end
+
+    def reconstruct_data(node)
+      case node.attr('type')
+      when 'array'
+        mash ||= Hashie::Mash.new
+        mash[:items] = node.element_children.map do |child|
+          reconstruct_data(child)
         end
+        mash
+      when 'hash'
+        mash ||= Hashie::Mash.new
+        node.element_children.each do |child|
+          mash[child.attr('key') || child.element_name] ||= reconstruct_data(child)
+        end
+        mash
+      else
+        node.content.ducktype
       end
     end
 

@@ -32,6 +32,9 @@
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
+          <optional>
+            <attribute name="type"/>
+          </optional>
           <zeroOrMore>
             <ref name="anything"/>
           </zeroOrMore>
@@ -48,6 +51,9 @@
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
+          <optional>
+            <attribute name="type"/>
+          </optional>
           <zeroOrMore>
             <ref name="anything"/>
           </zeroOrMore>
@@ -69,6 +75,9 @@
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
+          <optional>
+            <attribute name="type"/>
+          </optional>
           <zeroOrMore>
             <ref name="anything"/>
           </zeroOrMore>
@@ -88,6 +97,9 @@
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
+          <optional>
+            <attribute name="type"/>
+          </optional>
           <zeroOrMore>
             <ref name="anything"/>
           </zeroOrMore>
@@ -130,9 +142,7 @@
         <element name="property">
           <attribute name="key"/>
           <optional>
-            <element name="type">
-              <text/>
-            </element>
+            <attribute name="type"/>
           </optional>
           <zeroOrMore>
             <ref name="anything"/>

@@ -84,11 +84,7 @@ module OmfCommon
                 args[0].each do |opt|
                   if opt.kind_of? Hash
                     opt.each_pair do |key, value|
-                      if value.kind_of? Hash
-                        v.property(key) { |p| value.each_pair { |p_key, p_value| p.element(p_key, p_value) } }
-                      else
-                        v.property(key, value)
-                      end
+                      v.property(key, value)
                     end
                   else
                     v.property(opt)
