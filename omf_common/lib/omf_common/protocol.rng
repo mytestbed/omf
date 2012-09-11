@@ -85,6 +85,14 @@
       <element name="resource_id">
         <text/>
       </element>
+      <zeroOrMore>
+        <element name="property">
+          <attribute name="key"/>
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </zeroOrMore>
     </element>
   </define>
   <define name="inform">
