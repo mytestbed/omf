@@ -2,7 +2,7 @@ default namespace = "http://schema.mytestbed.net/6.0/protocol"
 
 start = (create | configure | request | release | inform)
 
-anything = (text | element * { (text | anything) * })
+anything = ( text | element * { (attribute type { text })?, (text | anything) * })
 
 create = element create {
   attribute msg_id { text },

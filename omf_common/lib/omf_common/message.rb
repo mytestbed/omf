@@ -47,9 +47,7 @@ module OmfCommon
       key_node.write_attr('key', key)
 
       unless value.nil?
-        if [Array, Hash].include? value.class
-          key_node.write_attr('type', value.class.to_s.downcase)
-        end
+        key_node.write_attr('type', value.class.to_s.downcase)
         c_node = value_node_set(value)
 
         if c_node.class == Array
@@ -68,10 +66,7 @@ module OmfCommon
         [].tap do |array|
           value.each_pair do |k, v|
             n = Message.new(k)
-
-            if [Array, Hash].include? v.class
-              n.write_attr('type', v.class.to_s.downcase)
-            end
+            n.write_attr('type', v.class.to_s.downcase)
 
             c_node = value_node_set(v, k)
             if c_node.class == Array
@@ -85,10 +80,7 @@ module OmfCommon
       when Array
         value.map do |v|
           n = Message.new('item')
-
-          if [Array, Hash].include? v.class
-            n.write_attr('type', v.class.to_s.downcase)
-          end
+          n.write_attr('type', v.class.to_s.downcase)
 
           c_node = value_node_set(v, 'item')
           if c_node.class == Array
@@ -190,7 +182,7 @@ module OmfCommon
           reconstruct_data(child)
         end
         mash
-      when 'hash'
+      when /hash/
         mash ||= Hashie::Mash.new
         node.element_children.each do |child|
           mash[child.attr('key') || child.element_name] ||= reconstruct_data(child)

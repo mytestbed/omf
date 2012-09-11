@@ -14,6 +14,9 @@
       <text/>
       <element>
         <anyName/>
+        <optional>
+          <attribute name="type"/>
+        </optional>
         <zeroOrMore>
           <choice>
             <text/>

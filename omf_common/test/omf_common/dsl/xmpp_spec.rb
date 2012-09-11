@@ -165,8 +165,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'create'
-      m1.body.to_xml.must_match /<property key="type">engine<\/property>/
-      m2.body.to_xml.must_match /<property key="type">engine<\/property>/
+      m1.body.to_xml.must_match /<property key="type" type="string">engine<\/property>/
+      m2.body.to_xml.must_match /<property key="type" type="string">engine<\/property>/
     end
 
     it "must generate omf configure xml fragment" do
@@ -177,8 +177,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'configure'
-      m1.body.to_xml.must_match /<property key="throttle">50<\/property>/
-      m2.body.to_xml.must_match /<property key="throttle">50<\/property>/
+      m1.body.to_xml.must_match /<property key="throttle" type="fixnum">50<\/property>/
+      m2.body.to_xml.must_match /<property key="throttle" type="fixnum">50<\/property>/
     end
 
     it "must generate omf inform xml fragment" do
@@ -189,8 +189,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'inform'
-      m1.body.to_xml.must_match /<property key="inform_type">CREATED<\/property>/
-      m2.body.to_xml.must_match /<property key="inform_type">CREATED<\/property>/
+      m1.body.to_xml.must_match /<property key="inform_type" type="string">CREATED<\/property>/
+      m2.body.to_xml.must_match /<property key="inform_type" type="string">CREATED<\/property>/
     end
 
     it "must generate omf release xml fragment" do
@@ -201,8 +201,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'release'
-      m1.body.to_xml.must_match /<property key="resource_id">100<\/property>/
-      m2.body.to_xml.must_match /<property key="resource_id">100<\/property>/
+      m1.body.to_xml.must_match /<property key="resource_id" type="fixnum">100<\/property>/
+      m2.body.to_xml.must_match /<property key="resource_id" type="fixnum">100<\/property>/
     end
 
     it "must generate omf request xml fragment" do
@@ -218,8 +218,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.body.to_xml.must_match /<property key="max_rpm"\/>/
       m1.body.to_xml.must_match /<property key="provider" type="hash">/
       m2.body.to_xml.must_match /<property key="provider" type="hash">/
-      m1.body.to_xml.must_match /<country>japan<\/country>/
-      m2.body.to_xml.must_match /<country>japan<\/country>/
+      m1.body.to_xml.must_match /<country type="string">japan<\/country>/
+      m2.body.to_xml.must_match /<country type="string">japan<\/country>/
       m1.body.to_xml.must_match /<property key="max_power"\/>/
     end
   end
