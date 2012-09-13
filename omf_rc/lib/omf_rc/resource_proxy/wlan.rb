@@ -3,6 +3,7 @@ module OmfRc::ResourceProxy::Wlan
 
   register_proxy :wlan
 
+  utility :ip
   utility :mod
   utility :iw
 end
