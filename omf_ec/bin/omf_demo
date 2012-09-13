@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+#
+require 'gli'
+require 'omf_ec'
+require 'omf_common'
+$stdout.sync = true
+
+include GLI::App
+include OmfCommon
+
+program_desc "Run a command on the testbed(s)"
+
+version OmfEc::VERSION
+
+desc "Debug mode (printing debug logging messages)"
+switch [:d, :debug]
+
+desc "Execute an experiment script"
+arg_name 'path_to_script_file'
+command :exec do |c|
+  c.desc "XMPP user name"
+  c.arg_name "USER"
+  c.flag [:u, :user]
+
+  c.desc "XMPP user password"
+  c.arg_name "PASSWORD"
+  c.flag [:p, :password]
+
+  c.desc "XMPP server domain"
+  c.arg_name "DOMAIN"
+  c.flag [:s, :server]
+
+  c.action do |global_options,options,args|
+    if global_options[:debug]
+      Logging.logger.root.level = :debug
+      Blather.logger = logger
+    end
+    unless options[:user] && options[:password] && options[:server]
+      help_now! "Incomplete options"
+    end
+    @opts = options
+    @comm = Comm.new(:xmpp)
+    begin
+      load args[0], true
+    rescue => e
+      logger.fatal e.message
+      logger.fatal e.backtrace.join("\n")
+    end
+  end
+end
+
+on_error do |exception|
+  true
+end
+
+exit run(ARGV)
