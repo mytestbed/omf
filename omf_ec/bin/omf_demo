@@ -11,7 +11,6 @@ include OmfCommon
 program_desc "Run a command on the testbed(s)"
 
 version OmfEc::VERSION
-
 desc "Debug mode (printing debug logging messages)"
 switch [:d, :debug]
 
@@ -45,6 +44,12 @@ command :exec do |c|
     rescue => e
       logger.fatal e.message
       logger.fatal e.backtrace.join("\n")
+    end
+
+    EM.run do
+      @comm.connect(@opts[:user], @opts[:password], @opts[:server])
+      trap(:INT) { @comm.disconnect }
+      trap(:TERM) { @comm.disconnect }
     end
   end
 end
