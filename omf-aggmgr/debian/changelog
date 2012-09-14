@@ -1,3 +1,9 @@
+omf-aggmgr-5.4 (5.4.2-ubuntu2) precise; urgency=low
+
+  * disabled result2 service due to omf-web and omf-oml package conversion to gem. See ticket #838.
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 14 Sep 2012 17:03:08 +1000
+
 omf-aggmgr-5.4 (5.4.2-ubuntu1) precise; urgency=low
 
   * renamed root element in pubsub node

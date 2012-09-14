@@ -29,7 +29,8 @@
 # This file defines the ResultService class.
 #
 
-require 'omf-oml/sequel/sequel_server'
+raise "The result2 service is currently unuseable. Please see ticket #838"
+
 require 'omf-aggmgr/ogs/legacyGridService'
 
 require 'json'

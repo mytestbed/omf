@@ -1,6 +1,6 @@
 #!/bin/bash
 
-packages="omf-aggmgr omf-common omf-expctl omf-oml omf-resctl omf-web"
+packages="omf-aggmgr omf-common omf-expctl omf-resctl"
 
 rm *.deb *.changes *.upload *.build
 
