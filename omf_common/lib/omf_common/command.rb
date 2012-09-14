@@ -16,21 +16,17 @@ module OmfCommon::Command
           result = stdout.read.chomp
         when 1
           # Exit status 1, log minor error as warning
-          #logger.warn stderr.read.chomp
-          raise StandardError, stderr.read.chomp
+          logger.warn stderr.read.chomp
         when 2
           # Exit status 2, log standard error
-          #logger.error stderr.read.chomp
-          raise StandardError, stderr.read.chomp
+          logger.error stderr.read.chomp
         else
           # Exit status greater than 2, log fatal error
-          #logger.fatal stderr.read.chomp
-          raise StandardError, stderr.read.chomp
+          logger.fatal stderr.read.chomp
         end
       end
     rescue Errno::ENOENT => e
-      #logger.fatal e.message
-      raise e
+      logger.fatal e.message
     end
     result
   end
