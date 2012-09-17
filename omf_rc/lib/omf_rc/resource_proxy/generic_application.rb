@@ -46,6 +46,7 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.installed ||= false 
     res.property.map_err_to_out ||= false 
     res.property.event_sequence ||= 0 
+    res.property.parameters ||= Hash.new
     define_method("on_app_event") { |*args| process_event(self, *args) }
   end
 
@@ -65,7 +66,8 @@ module OmfRc::ResourceProxy::GenericApplication
                   "#{event_type}: '#{msg}'"
       res.property.state = :stop if event_type.to_s.include?('DONE')
       res.comm.publish(res.uid,
-        OmfCommon::Message.inform('APP_EVENT') do |message|
+        OmfCommon::Message.inform('STATUS') do |message|
+          message.property('status_type' , 'APP_EVENT')
           message.property('event' , event_type.to_s.upcase)
           message.property('app' , app_id)
           message.property('msg' , "#{msg}")
@@ -105,6 +107,24 @@ module OmfRc::ResourceProxy::GenericApplication
   request :platform do |res|
     res.property.platform = detect_platform if res.property.platform.nil?
     res.property.platform.to_s
+  end
+
+  # Configure the array of application parameters supported by this Generic 
+  # Application RP
+  # 
+  # @param [Hash] value = { 'param1' => {},
+  #                         'param2' => {},
+  #                         ... }
+  #
+  # @see OmfRc::ResourceProxy::GenericApplication
+  #
+  configure :parameters do |res, value|
+    if value.kind_of? Hash
+      values.each do |param,attributes|
+        res.property.parameters[param] = attributes
+      end
+    else
+    end
   end
 
   # Configure the basic properties of this Generic Application RP
