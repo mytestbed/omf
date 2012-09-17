@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'em/minitest/spec'
 require 'omf_rc/resource_factory'
 
 include OmfRc::ResourceProxy
@@ -64,6 +65,7 @@ describe AbstractResource do
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
       child = @node.create(:wifi, { hrn: 'default_wifi' })
+      @node.children.wont_be_empty
       @node.release(child.uid)
       @node.children.must_be_empty
     end
@@ -80,6 +82,50 @@ describe AbstractResource do
       @node.request_hrn.must_equal 'default_node'
       @node.configure_hrn('bob')
       @node.request_hrn.must_equal 'bob'
+    end
+  end
+
+  describe "when interacted with communication layer" do
+    include EM::MiniTest::Spec
+
+    before do
+      @client = Blather::Client.new
+      @stream = MiniTest::Mock.new
+      @stream.expect(:send, true, [Blather::Stanza])
+      @client.post_init @stream, Blather::JID.new('n@d/r')
+      @xmpp = Class.new { include OmfCommon::DSL::Xmpp }.new
+    end
+
+    it "must be able to send inform message" do
+      informs = {
+        :create => Hashie::Mash.new({ operation: :request, result: { k: 'value' }, context_id: 'id', inform_to: 'topic' })
+      }
+      @node.comm.stub :publish, proc { |inform_to, message| message.valid?.must_equal true} do
+        @node.publish_inform(informs[:create])
+      end
+    end
+
+    it "must be able to connect & disconnect" do
+      Blather::Client.stub :new, @client do
+        Blather::Stream::Client.stub(:start, @client) do
+          @node = OmfRc::ResourceFactory.new(:node, { hrn: 'default_node', user: 'bob', password: 'pw', server: 'example.com'}, @xmpp)
+          @client.stub(:connected?, true) do
+            @node.connect
+            @node.comm.jid.inspect.must_equal "bob@example.com"
+          end
+        end
+      end
+    end
+  end
+
+  describe "when request/configure property not pre-defined in proxy" do
+    it "must try property hash" do
+      @node.property[:bob] = "bob"
+      @node.request_bob.must_equal "bob"
+      @node.configure_bob("not_bob")
+      @node.request_bob.must_equal "not_bob"
+      proc { @node.request_bobs_cousin }.must_raise NoMethodError
+      proc { @node.bobs_cousin }.must_raise NoMethodError
     end
   end
 end

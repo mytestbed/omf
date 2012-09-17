@@ -62,6 +62,17 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  # If method missing, try the property mash
+  def method_missing(method_name, *args)
+    if (method_name =~ /request_(.+)/)
+      property.send($1) || super
+    elsif (method_name =~ /configure_(.+)/)
+      property.send($1) ? property.send("[]=", $1, *args) : super
+    else
+      super
+    end
+  end
+
   # Connect to pubsub server
   def connect
     @comm.connect(opts.user, opts.password, opts.server)
@@ -91,6 +102,7 @@ class OmfRc::ResourceProxy::AbstractResource
   def create(type, opts = nil)
     before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
+    after_create(new_resource) if respond_to? :after_create
     children << new_resource
     new_resource
   end
@@ -99,6 +111,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   def release(resource_id)
     obj = children.find { |v| v.uid == resource_id }
+    raise StandardError, "Resource #{resource_id} could not be found" if obj.nil?
 
     # Release children resource recursively
     obj.children.each do |c|
@@ -111,7 +124,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Return a list of all properties can be requested and configured
   #
-  def request_available_properties
+  def request_available_properties(*args)
     Hashie::Mash.new(request: [], configure: []).tap do |mash|
       methods.each do |m|
         mash[$1] << $2.to_sym if m =~ /(request|configure)_(.+)/ && $2 != "available_properties"
@@ -144,8 +157,6 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
-  private
-
   def publish_inform(response)
     if response.kind_of? StandardError
       operation, context_id, inform_to, message = :error, response.context_id, response.inform_to, response.message
@@ -163,11 +174,13 @@ class OmfRc::ResourceProxy::AbstractResource
       when :release
         i.element('resource_id', result)
       when :error
-        i.element("error_message", message)
+        i.element("reason", message)
       end
     end
     @comm.publish(inform_to, inform_message)
   end
+
+  private
 
   # Parse omf message and execute as instructed by the message
   #
@@ -212,20 +225,19 @@ class OmfRc::ResourceProxy::AbstractResource
           create_opts = opts.dup
           create_opts.uid = nil
           result = obj.create(message.read_property(:type), create_opts)
-          message.read_element("//property").each do |p|
+          message.each_property do |p|
             unless p.attr('key') == 'type'
               method_name =  "configure_#{p.attr('key')}"
-              result.__send__(method_name, p.content) if result.respond_to? method_name
+              result.__send__(method_name, p.content)
             end
           end
+          result.after_initial_configured if result.respond_to? :after_initial_configured
           { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
         when :request
           result = Hashie::Mash.new.tap do |mash|
             message.read_element("//property").each do |p|
               method_name =  "request_#{p.attr('key')}"
-              if obj.respond_to? method_name
-                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
-              end
+              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
             end
           end
           { operation: :request, result: result, context_id: context_id, inform_to: obj.uid }
@@ -233,15 +245,13 @@ class OmfRc::ResourceProxy::AbstractResource
           result = Hashie::Mash.new.tap do |mash|
             message.read_element("//property").each do |p|
               method_name =  "configure_#{p.attr('key')}"
-              if obj.respond_to? method_name
-                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
-              end
+              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
             end
           end
           { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
         when :release
-          resource_id = message.read_property("resource_id")
-          { operation: :release, result: obj.release(resource_id), context_id: context_id, inform_to: obj.uid }
+          resource_id = message.resource_id
+          { operation: :release, result: obj.release(resource_id).uid, context_id: context_id, inform_to: obj.uid }
         when :inform
           # We really don't care about inform messages which created from here
           nil

@@ -27,10 +27,7 @@ describe OmfCommon::Message do
     it "must return a request XML element without failing" do
       request = Message.request('foo@bar') do |m|
         PROP_ELEMENTS.each do |prop_element|
-          m.property(prop_element) do |p|
-            p.element('min_value', 'test')
-            p.element('max_value', 'test')
-          end
+          m.property(prop_element, {min_value: 'test', max_value: 'test'})
         end
       end
       request.valid?.must_equal true
@@ -46,10 +43,7 @@ describe OmfCommon::Message do
         m.element('resource_id', 'test')
         m.element('resource_address', 'test')
         PROP_ELEMENTS.each do |prop_element|
-          m.property(prop_element) do |p|
-            p.element('current', 'test')
-            p.element('target', 'test')
-          end
+          m.property(prop_element, { current: 'test', target: 'test'})
         end
       end
       inform.valid?.must_equal true
@@ -69,29 +63,33 @@ describe OmfCommon::Message do
       xml = Message.create do |m|
         m.property('type', 'vm')
         m.property('os', 'debian')
-        m.property('memory', 1024) do |p|
-          p.element('unit', 'mb')
-          p.element('precision', '0')
-        end
-      end.to_xml
+        m.property('memory', { value: 1024, unit: 'mb', precision: 0 })
+        m.property('devices', [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ])
+      end.canonicalize
 
       message = Message.parse(xml)
 
       message.must_be_kind_of Message
       message.operation.must_equal :create
-      message.read_element("//property").size.must_equal 3
+      message.read_element("//property").size.must_equal 4
       message.read_content("unit").must_equal 'mb'
-      message.read_element("/create/property").size.must_equal 3
+      message.read_element("/create/property").size.must_equal 4
       message.read_property("type").must_equal 'vm'
       message.read_property(:type).must_equal 'vm'
+
       memory = message.read_property(:memory)
       memory.must_be_kind_of Hashie::Mash
       memory.value.must_equal 1024
       memory.unit.must_equal 'mb'
       memory.precision.must_equal 0
+
+      devices = message.read_property(:devices)
+      devices.items.must_be_kind_of Array
+      devices.items.size.must_equal 2
+      devices.items.find { |v| v.name == 'w1'}.driver.items.size.must_equal 2
       # Each property iterator
       message.each_property do |v|
-        %w(type os memory).must_include v.attr('key')
+        %w(type os memory devices).must_include v.attr('key')
       end
     end
   end

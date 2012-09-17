@@ -35,6 +35,12 @@ module OmfRc::ResourceProxy::Garage
     new_resource_options.property ||= Hashie::Mash.new
     new_resource_options.property.provider = "Cosworth #{resource.uid}"
   end
+
+  hook :after_create do |resource, new_resource|
+    # new resource created
+    logger.info resource.uid
+    logger.info new_resource.uid
+  end
 end
 
 
@@ -46,6 +52,8 @@ module OmfRc::ResourceProxy::Engine
   # before_ready hook will be called during the initialisation of the resource instance
   #
   hook :before_ready do |resource|
+    # We can now initialise some properties which will be stored in resource's property variable.
+    # A set of or request/configure methods for these properties are available automatically, so you don't have to define them again using request/configure DSL method, unless you would like to overwrite the default behaviour.
     resource.property.max_power ||= 676 # Set the engine maximum power to 676 bhp
     resource.property.provider ||= 'Honda' # Engine provider defaults to Honda
     resource.property.max_rpm ||= 12500 # Maximum RPM of the engine is 12,500
@@ -66,6 +74,10 @@ module OmfRc::ResourceProxy::Engine
     end
   end
 
+  hook :after_initial_configured do |resource|
+    logger.info "New maximum power is now: #{resource.property.max_power}"
+  end
+
   # before_release hook will be called before the resource is fully released, shut down the engine in this case.
   #
   hook :before_release do |resource|
@@ -81,13 +93,6 @@ module OmfRc::ResourceProxy::Engine
       raise 'Engine blown up'
     else
       resource.property.rpm.to_i
-    end
-  end
-
-  # We want some default properties to be available for requesting
-  %w(max_power max_rpm).each do |attr|
-    request attr do |resource|
-      resource.property[attr]
     end
   end
 

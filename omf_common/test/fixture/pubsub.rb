@@ -218,7 +218,7 @@ def omf_failed_xml
         <inform xmlns="http://schema.mytestbed.net/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
           <inform_type>FAILED</inform_type>
-          <error_message>No idea</error_message>
+          <reason>No idea</reason>
         </inform>
       </item>
     </items>
