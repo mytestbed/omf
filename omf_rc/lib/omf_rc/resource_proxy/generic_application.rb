@@ -33,6 +33,9 @@ module OmfRc::ResourceProxy::GenericApplication
   utility :platform_tools
   utility :common_tools
 
+  MAX_PARAMETER_NUMBER = 1000
+  DEFAULT_MANDATORY_PARAMETER = false
+
   hook :before_ready do |res|
     res.property.app_id ||= nil 
     res.property.binary_path ||= nil 
@@ -46,6 +49,7 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.installed ||= false 
     res.property.map_err_to_out ||= false 
     res.property.event_sequence ||= 0 
+    res.property.param_defs ||= Hash.new
     res.property.parameters ||= Hash.new
     define_method("on_app_event") { |*args| process_event(self, *args) }
   end
@@ -109,21 +113,42 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.platform.to_s
   end
 
-  # Configure the array of application parameters supported by this Generic 
+  # Defines the application parameters supported by this Generic 
   # Application RP
   # 
-  # @param [Hash] value = { 'param1' => {},
-  #                         'param2' => {},
+  # @param [Hash] value = { 'param1' => {:cmd => '--foo', :order => 1, :dynamic => false, :type => 'Integer' },
+  #                         'param2' => {:cmd => '-d', :dynamic => true, :type => 'Boolean'},
+  #                         'param3' => {:cmd => 'name', :dynamic => false, :type => 'String', :default => 'foo'},  
   #                         ... }
+  # :cmd
+  # :order
+  # :dynamic
+  # :type = Numeric|String|Boolean
+  # :default
+  # :mandatory
+  # :value
   #
   # @see OmfRc::ResourceProxy::GenericApplication
   #
-  configure :parameters do |res, value|
-    if value.kind_of? Hash
-      values.each do |param,attributes|
-        res.property.parameters[param] = attributes
+  configure :parameters do |res, params|
+    if params.kind_of? Hash
+      params.each do |p,v|
+        # if this param has no set order, then assign the highest number to it
+        # this will allow sorting the parameters later
+        v[:order] = MAX_PARAMETER_NUMBER if v[:order].nil?
+        # similarly if this param has no set mandatory field, assign it a default one
+        v[:mandatory] = DEFAULT_MANDATORY_PARAMETER if v[:mandatory].nil?
+        # TODO: continue implementing type checking later...
+        #if res.correct_value_type?(v) 
+          res.property.parameters[p] = v if res.property.parameters[p].nil?
+          res.property.parameters[p] = res.property.parameters[p].merge(v)
+        #else
+        #  res.log_inform_error "Configuration of parameter '#{p}' failed type checking. "+
+        #    "Type: '#{v[:type]}' - Value: '#{v[:value].inspect}' - Default: '#{v[:default].inspect}'"
+        #end
       end
     else
+      res.log_inform_error "Parameter configuration failed! Parameters not passed as Hash (#{params.inspect})"
     end
   end
 
@@ -235,7 +260,7 @@ module OmfRc::ResourceProxy::GenericApplication
       # start a new instance of this app 
       res.property.app_id = res.hrn.nil? ? res.uid : res.hrn 
       ExecApp.new(res.property.app_id, res, 
-                  res.property.binary_path, 
+                  res.build_command_line, 
                   res.property.map_err_to_out)
                   res.property.state = :run 
     elsif res.property.state == :pause
@@ -259,5 +284,44 @@ module OmfRc::ResourceProxy::GenericApplication
     end
   end
 
+  # TODO: continue implementing type checking later...
+  # 
+  # work('value_match_type?') do |res,type,value|
+  #   passed = true if type.nil? || value.nil?
+  #   passed = true if type.class == value.class
+
+  #   default_class = param[:default].nil? ? nil
+  #   passed = false if 
+  #   unless param[:type].nil?
+  #     case param[:type]
+  #     when 'String'
+  #       pass = false if 
+  #     end
+        
+  #   end
+  #   passed
+  # end
+
+  work('build_command_line') do |res|
+    cmd_line = ""
+    cmd_line += res.property.binary_path + " "
+    sorted_parameters = res.property.parameters.sort_by {|k,v| v[:order]}
+    sorted_parameters.each do |param,attribut|
+      mandatory = false
+      mandatory = attribut[:mandatory] if attribut[:mandatory].kind_of?(TrueClass) || attribut[:mandatory].kind_of?(FalseClass)
+      mandatory = eval(attribut[:mandatory].downcase) if attribut[:mandatory].kind_of?(String)
+      if mandatory
+        v = attribut[:value].nil? ? attribut[:default] : attribut[:value]
+        if attribut[:type] == "Boolean"
+          cmd_line += "#{attribut[:cmd]} " if v == true 
+        else
+          cmd_line += "#{attribut[:cmd]} #{v} "
+        end
+      else 
+        cmd_line += "#{attribut[:cmd]} #{attribut[:value]} " unless attribut[:value].nil?
+      end
+    end
+    cmd_line
+  end
 
 end
