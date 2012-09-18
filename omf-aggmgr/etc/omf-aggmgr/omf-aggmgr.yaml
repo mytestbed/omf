@@ -10,6 +10,7 @@
   :password: "123"
   :port: 5222
   :use_dnssrv: false
+  :accept_omf53_requests: false
 
 :http:
   :port: 5054

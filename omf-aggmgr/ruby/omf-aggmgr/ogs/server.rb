@@ -256,6 +256,7 @@ class XmppAggmgrServer < AggmgrServer
   include OmfProtocol
   include OMF::ServiceCall::XMPP
   SLICE_PREFIX = "/OMF_#{OMF::Common::MM_VERSION()}"
+  SLICE_LEGACY_PREFIX = "/OMF"
   SLICE_SUFFIX = "resources"
 
   attr_reader :domains, :connection
@@ -273,6 +274,7 @@ class XmppAggmgrServer < AggmgrServer
     @password = xmpp_params[:password]
     @port = xmpp_params[:port]
     @use_dnssrv = xmpp_params[:use_dnssrv]
+    @omf53 = xmpp_params[:accept_omf53_requests]
     @connection = xmpp_params[:connection]
 
     @services = Hash.new
@@ -426,9 +428,21 @@ class XmppAggmgrServer < AggmgrServer
             make_dispatcher(domain, "#{SLICE_PREFIX}/#{node}/#{SLICE_SUFFIX}")
           end
         end
+        if @omf53
+          begin
+            make_dispatcher(domain, "#{SLICE_LEGACY_PREFIX}/#{node}/#{SLICE_SUFFIX}")
+          rescue Exception => e
+            puts "'#{e.message}'"
+            if e.message == "item-not-found: " then
+              domain.create_node("#{SLICE_LEGACY_PREFIX}/#{node}/#{SLICE_SUFFIX}")
+              make_dispatcher(domain, "#{SLICE_LEGACY_PREFIX}/#{node}/#{SLICE_SUFFIX}")
+            end
+          end
+        end
       end
-      make_dispatcher(domain, "#{SLICE_PREFIX}/system")
     end
+    make_dispatcher(domain, "#{SLICE_PREFIX}/system")
+    make_dispatcher(domain, "#{SLICE_LEGACY_PREFIX}/system") if @omf53
   end
 
   def teardown_dispatchers

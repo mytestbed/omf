@@ -1,3 +1,9 @@
+omf-expctl-5.4 (5.4.2-ubuntu3) precise; urgency=low
+
+  * added the "--no-am" flag to disable all AM communication
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 18 Sep 2012 11:53:47 +1000
+
 omf-expctl-5.4 (5.4.2-ubuntu2) precise; urgency=low
 
   * improved logging, fixed issue #806, removed default STDERR reporting in apps
