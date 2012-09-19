@@ -8,6 +8,8 @@ module OmfRc::Util::CommonTools
   # message will have the type ERROR/WARN, and its 'reason' element set to the
   # String S
   #
+  # @yieldparam [String] msg the error or warning message
+  #
 	%w(error warn).each do |type|
 		work("log_inform_#{type}") do |res, msg|
 		  logger.send(type, msg)
@@ -18,5 +20,18 @@ module OmfRc::Util::CommonTools
         end
       )
     end
+  end
+
+  # This utility block returns true if its given value parameter is a Boolean,
+  # which in Ruby means that it is either of the class TrueClass or FalseClass
+  #
+  # @yieldparam [Object] obj the Object to test as Boolean
+  #
+  # [Boolean] true or fals
+  #
+  work('boolean?') do |res,obj|
+    result = false
+    result = true if obj.kind_of?(TrueClass) || obj.kind_of?(FalseClass)
+    result
   end
 end

@@ -1,6 +1,6 @@
 #
 # Copyright (c) 2012 National ICT Australia (NICTA), Australia
-##
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -24,6 +24,51 @@
 # This module defines a Resource Proxy (RP) for a Generic Application
 # Utility dependencies: platform_toos, common_tools
 #
+# This Generic Application Proxy has the following properties:
+#
+# @param [String] binary_path the path to the binary of this app
+# @param [String] pkg_tarball the URI of the installation tarball of this app 
+# @param [String] pkg_ubuntu the name of the Ubuntu package for this app
+# @param [String] pkg_fedora the name of the Fedora package for this app
+# @param [String] state the state of this Application RP 
+#                 (stop, start, pause, install)
+# @param [Boolean] installed is this application installed? (true/false)
+# @param [Boolean] force_tarball_install if true then force the installation 
+#                  from tarball even if other distribution-specific 
+#                  installation are available (default = false)
+# @param [Boolean] map_err_to_out if true then map StdErr to StdOut for this 
+#                  app (default = false)
+# @param [Symbol] platform the OS platform where this app is running
+# @param [Hash] environment the environment variables to set prior to starting 
+#               this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
+#               (with k1 being either a String or a Symbol)
+#
+# @param [Hash] parameters the command line parameters available for this app.
+#               This hash is of the form: { :param1 => attribut1, ... }
+#               with param1 being the id of this parameter for this Proxy and
+#               with attribut1 being another Hash with the following possible
+#               keys and values (all are optional):
+#               :cmd [String] the command line for this parameter 
+#               :order [Fixnum] the appearance order on the command line 
+#               :dynamic [Boolean] this parameter can be dynammically changed
+#               :type [Numeric|String|Boolean] this parameter's type
+#               :default value given by default to this parameter 
+#               :value value to set for this parameter
+#               :mandatory [Boolean] this parameter is mandatory
+#
+# Two examples of valid parameters definition are:
+#
+# { :host => {:default => 'localhost', :type => 'String', 
+#             :mandatory => true, :order => 2},
+#   :port => {:default => 5000, :type => 'Numeric', :cmd => '-p', 
+#             :mandatory => true, :order => 1}, 
+#   :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size', 
+#             :mandatory => true, :dynamic => true}
+#   :title => {:type => 'String', :mandatory => false} }
+# 
+# and
+#
+# { :title => {:value => "My First Application"} }                   
 #
 module OmfRc::ResourceProxy::GenericApplication
   include OmfRc::ResourceProxyDSL 
@@ -49,8 +94,8 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.installed ||= false 
     res.property.map_err_to_out ||= false 
     res.property.event_sequence ||= 0 
-    res.property.param_defs ||= Hash.new
     res.property.parameters ||= Hash.new
+    res.property.environments ||= Hash.new
     define_method("on_app_event") { |*args| process_event(self, *args) }
   end
 
@@ -82,30 +127,15 @@ module OmfRc::ResourceProxy::GenericApplication
                                        event_type.to_s.include?('DONE.OK')
   end
 
-  # Request the basic properties of this Generic Application RP. These
-  # properties are:
-  #
-  # @param [String] binary_path the path to the binary of this app
-  # @param [String] pkg_tarball the URI of the installation tarball of this app 
-  # @param [String] pkg_ubuntu the name of the Ubuntu package for this app
-  # @param [String] pkg_fedora the name of the Fedora package for this app
-  # @param [String] state the state of this Application RP 
-  #                 (stop, start, pause, install)
-  # @param [Boolean] installed is this application installed? (true/false)
-  # @param [Boolean] force_tarball_install if true then force the installation 
-  #                  from tarball even if other distribution-specific 
-  #                  installation are available (default = false)
-  # @param [Boolean] map_err_to_out if true then map StdErr to StdOut for this 
-  #                  app (default = false)
-  # @param [Symbol] platform the OS platform where this app is running
+  # Request the basic properties of this Generic Application RP. 
+  # @see OmfRc::ResourceProxy::GenericApplication
   #
   %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora state installed \
     force_tarball_install map_err_to_out tarball_install_path).each do |prop|
     request(prop) { |res| res.property[prop].to_s }
   end
   
-  # Request the platform properties of this Generic Application RP
-  #
+  # Request the platform property of this Generic Application RP
   # @see OmfRc::ResourceProxy::GenericApplication
   #
   request :platform do |res|
@@ -113,21 +143,19 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.platform.to_s
   end
 
-  # Defines the application parameters supported by this Generic 
-  # Application RP
-  # 
-  # @param [Hash] value = { 'param1' => {:cmd => '--foo', :order => 1, :dynamic => false, :type => 'Integer' },
-  #                         'param2' => {:cmd => '-d', :dynamic => true, :type => 'Boolean'},
-  #                         'param3' => {:cmd => 'name', :dynamic => false, :type => 'String', :default => 'foo'},  
-  #                         ... }
-  # :cmd
-  # :order
-  # :dynamic
-  # :type = Numeric|String|Boolean
-  # :default
-  # :mandatory
-  # :value
+  # Configure the environments property of this Generic Application RP
+  # @see OmfRc::ResourceProxy::GenericApplication
   #
+  configure :environments do |res, envs|
+    if envs.kind_of? Hash
+      res.property.environments = res.property.environments.merge(envs)
+    else
+      res.log_inform_error "Environment configuration failed! "+
+        "Environments not passed as Hash (#{envs.inspect})"
+    end
+  end
+
+  # Configure the parameters property of this Generic Application RP
   # @see OmfRc::ResourceProxy::GenericApplication
   #
   configure :parameters do |res, params|
@@ -136,24 +164,29 @@ module OmfRc::ResourceProxy::GenericApplication
         # if this param has no set order, then assign the highest number to it
         # this will allow sorting the parameters later
         v[:order] = MAX_PARAMETER_NUMBER if v[:order].nil?
-        # similarly if this param has no set mandatory field, assign it a default one
+        # if this param has no set mandatory field, assign it a default one
         v[:mandatory] = DEFAULT_MANDATORY_PARAMETER if v[:mandatory].nil?
-        # TODO: continue implementing type checking later...
-        #if res.correct_value_type?(v) 
-          res.property.parameters[p] = v if res.property.parameters[p].nil?
-          res.property.parameters[p] = res.property.parameters[p].merge(v)
-        #else
-        #  res.log_inform_error "Configuration of parameter '#{p}' failed type checking. "+
-        #    "Type: '#{v[:type]}' - Value: '#{v[:value].inspect}' - Default: '#{v[:default].inspect}'"
-        #end
+        merged_val = res.property.parameters[p].nil? ? v : res.property.parameters[p].merge(v)
+        new_val = res.sanitize_parameter(p,merged_val)
+        # only set this new parameter if it passes the type check
+        if res.pass_type_checking?(new_val) 
+          res.property.parameters[p] = new_val
+          res.dynamic_parameter_update(p,new_val)
+        else
+          res.log_inform_error "Configuration of parameter '#{p}' failed "+
+            "type checking. Defined type is #{new_val[:type]} while assigned "+
+            "value/default are #{new_val[:value].inspect} / "+
+            "#{new_val[:default].inspect}"
+        end
       end
     else
-      res.log_inform_error "Parameter configuration failed! Parameters not passed as Hash (#{params.inspect})"
+      res.log_inform_error "Parameter configuration failed! Parameters not "+
+        "passed as Hash (#{params.inspect})"
     end
+
   end
 
   # Configure the basic properties of this Generic Application RP
-  #
   # @see OmfRc::ResourceProxy::GenericApplication
   #
   %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install \
@@ -163,6 +196,7 @@ module OmfRc::ResourceProxy::GenericApplication
 
   # Configure the state of this Generic Application RP. The valid states are
   # stop, run, pause, install. The semantic of each states are:
+  #
   # - stop: the initial state for an Application RP, and the final state for 
   #         an applicaiton RP, for which the application instance finished 
   #         its execution or its installation
@@ -284,41 +318,134 @@ module OmfRc::ResourceProxy::GenericApplication
     end
   end
 
-  # TODO: continue implementing type checking later...
-  # 
-  # work('value_match_type?') do |res,type,value|
-  #   passed = true if type.nil? || value.nil?
-  #   passed = true if type.class == value.class
+  # Check if a parameter is dynamic, and if so update its value if the
+  # application is currently running
+  #
+  # @yieldparam [String] name the parameter id as known by this app
+  # @yieldparam [Hash] att the Hash holding the parameter's attributs
+  # @see OmfRc::ResourceProxy::GenericApplication
+  #
+  work('dynamic_parameter_update') do |res,name,att|
+    # Only update a parameter if it is dynamic and the application is running
+    dynamic = false
+    dynamic = att[:dynamic] if res.boolean?(att[:dynamic])
+    # dynamic = att[:dynamic] if res.is_boolean?(att[:dynamic])
+    # dynamic = eval(att[:dynamic].downcase) if att[:dynamic].kind_of?(String)
+    if dynamic && res.property.state == :run
+      line = ""
+      line += "#{att[:cmd]} " unless att[:cmd].nil?
+      line += "#{att[:value]}"
+      ExecApp[res.property.app_id].stdin(line)
+      logger.debug "Updated parameter #{name} with value #{att[:value].inspect}"
+    end
+  end
 
-  #   default_class = param[:default].nil? ? nil
-  #   passed = false if 
-  #   unless param[:type].nil?
-  #     case param[:type]
-  #     when 'String'
-  #       pass = false if 
-  #     end
-        
-  #   end
-  #   passed
-  # end
+  # First, convert any 'true' or 'false' strings from the :mandatory and 
+  # :dynamic attributs of a given parameter into TrueClass or FalseClass 
+  # instances.
+  # Second, if that parameter is of a type Boolean, then perform the same
+  # conversion on the assigned default and value of this parameter
+  #
+  #  @yieldparam [String] name the parameter id as known by this app
+  #  @yieldparam [Hash] att the Hash holding the parameter's attributs
+  #
+  # [Hash] a copy of the input Hash with the above conversion performed in it
+  #
+  work('sanitize_parameter') do |res,name,att|
+    begin
+      if !att[:mandatory].nil? && !res.boolean?(att[:mandatory])
+        att[:mandatory] = eval(att[:mandatory].downcase)  
+      end   
+      if !att[:dynamic].nil? && !res.boolean?(att[:dynamic])
+       att[:dynamic] = eval(att[:dynamic].downcase) 
+      end
+      if (att[:type] == 'Boolean')
+        att[:value] = eval(att[:value].downcase) if !att[:value].nil? && !res.boolean?(att[:value])
+        att[:default] = eval(att[:default].downcase) if !att[:default].nil? && !res.boolean?(att[:default])
+      end
+    rescue Exception => ex
+      res.log_inform_error "Cannot sanitize the parameter '#{param}' (#{att.inspect})"
+    end
+    att
+  end
 
-  work('build_command_line') do |res|
-    cmd_line = ""
-    cmd_line += res.property.binary_path + " "
-    sorted_parameters = res.property.parameters.sort_by {|k,v| v[:order]}
-    sorted_parameters.each do |param,attribut|
-      mandatory = false
-      mandatory = attribut[:mandatory] if attribut[:mandatory].kind_of?(TrueClass) || attribut[:mandatory].kind_of?(FalseClass)
-      mandatory = eval(attribut[:mandatory].downcase) if attribut[:mandatory].kind_of?(String)
-      if mandatory
-        v = attribut[:value].nil? ? attribut[:default] : attribut[:value]
-        if attribut[:type] == "Boolean"
-          cmd_line += "#{attribut[:cmd]} " if v == true 
-        else
-          cmd_line += "#{attribut[:cmd]} #{v} "
+  # Check if a requested value or default for a parameter has the same
+  # type as the type defined for that parameter
+  # The checking procedure is as follows:
+  # - first check if a type was set for this parameter, if not then return true
+  #   Thus if no type was defined for this parameter then return true 
+  #   regardless of the type of the given value or default
+  # - second check if a value is given, if so check if it has the same type as
+  #   the defined type, if so then return true, if not then return false.
+  # - second if no value is given but a default is given, then perform the same 
+  #   check as above but using the default in-place of the value
+  #
+  # @yieldparam [Hash] att the Hash holding the parameter's attributs
+  #
+  # [Boolean] true or false
+  #
+  work('pass_type_checking?') do |res,att|
+    #logger.debug "Type checking - t: #{att[:type]} - d: #{att[:default].inspect} - v: #{att[:value].inspect}"
+    passed = false
+    unless att[:type].nil?
+      if att[:type] == 'Boolean'
+        unless att[:value].nil?
+          passed = true if res.boolean?(att[:value])  
         end
-      else 
-        cmd_line += "#{attribut[:cmd]} #{attribut[:value]} " unless attribut[:value].nil?
+        if att[:value].nil? && !att[:default].nil?
+         passed = true if res.boolean?(att[:default])  
+        end
+      else
+        klass = Module.const_get(att[:type].capitalize.to_sym)
+        unless att[:value].nil?
+          passed = true if att[:value].kind_of?(klass)  
+        end
+        if att[:value].nil? && !att[:default].nil?
+         passed = true if att[:default].kind_of?(klass)  
+        end
+      end
+    else
+      passed = true
+    end
+    passed
+  end
+
+  # Build the command line, which will be used to start this app
+  # This command line will be of the form:
+  # "env -i VAR1=value1 ... application_path parameterA valueA ..." 
+  #
+  # The environment variables and the parameters in that command line are 
+  # taken respectively from the 'environments' and 'parameters' properties of
+  # this Generic Application Resource Proxy.
+  #
+  # [String] the full command line
+  #
+  work('build_command_line') do |res|
+    cmd_line = "env -i " # Start with a 'clean' environments
+    res.property.environments.each do |e,v|
+      val = v.kind_of?(String) ? "'#{v}'" : v
+      cmd_line += "#{e.to_s.upcase}=#{val} "
+    end
+    cmd_line += res.property.binary_path + " "
+    # Add command line parameter in their specified order if any
+    sorted_parameters = res.property.parameters.sort_by {|k,v| v[:order]}
+    sorted_parameters.each do |param,att|
+      needed = false
+      needed = att[:mandatory] if res.boolean?(att[:mandatory])
+      # needed = att[:mandatory] if res.is_boolean?(att[:mandatory])
+      # needed = eval(att[:mandatory].downcase) if att[:mandatory].kind_of?(String)
+      # If the parameter is mandatory and no value was given, then take the default
+      val = att[:value]
+      val = att[:default] if needed && att[:value].nil?
+      # Finally add the parameter if is value/default is not nil
+      unless val.nil?
+        if att[:type] == "Boolean"
+          # for Boolean param, only the command is printed if value==true 
+          cmd_line += "#{att[:cmd]} " if val == true 
+        else
+          # for all other type of param, we print "cmd value"
+          cmd_line += "#{att[:cmd]} #{val} "
+        end
       end
     end
     cmd_line
