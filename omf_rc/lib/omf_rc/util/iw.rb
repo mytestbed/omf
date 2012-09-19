@@ -9,7 +9,7 @@ module OmfRc::Util::Iw
   hook :before_ready do |device|
     device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
     device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
-    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.pid"
+    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.conf"
     device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
   end
 
@@ -52,7 +52,7 @@ module OmfRc::Util::Iw
     CommandLine.new("iw", "phy :phy interface add :dev type :type",
                     :phy => device.hrn.gsub(/wlan/, 'phy'),
                     :dev => device.hrn,
-                    :type => type).run
+                    :type => type.to_s).run
   end
 
   # Set up and run a hostapd instance
@@ -85,29 +85,27 @@ module OmfRc::Util::Iw
   end
 
   work :validate_iw_properties do |device|
-    unless %w(master managed adhoc monitor).inlcude? device.property.mode
+    unless %w(master managed adhoc monitor).include? device.property.mode
       raise ArgumentError, "Mode must be master, managed, adhoc, or monitor, got #{device.property.mode}"
-    end
-
-    unless %w(a b g n).inlcude? device.property.hw_mode
-      raise ArgumentError, "Hardware mode must be a, b, g, or n, got #{device.property.hw_mode}"
     end
 
     case device.property.mode.to_sym
     when :master
-      %(channel essid).each do |p|
-        raise ArgumentError, "#{p} must not be nil"
+      unless %w(a b g n).include? device.property.hw_mode
+        raise ArgumentError, "Hardware mode must be a, b, g, or n, got #{device.property.hw_mode}"
+      end
+      %w(channel essid).each do |p|
+        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
       end
     when :managed
-      %(essid).each do |p|
-        raise ArgumentError, "#{p} must not be nil"
+      %w(essid).each do |p|
+        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
       end
     when :adhoc
-      %(essid frequency).each do |p|
-        raise ArgumentError, "#{p} must not be nil"
+      %w(essid frequency).each do |p|
+        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
       end
     end
-
   end
 
   configure :mode do |device, value|
@@ -120,11 +118,11 @@ module OmfRc::Util::Iw
     when :master
       device.delele_interface
       device.add_interface(:managed)
-      hostapd
+      device.hostapd
     when :managed
       device.delele_interface
       device.add_interface(:managed)
-      wpasup
+      device.wpasup
     when :adhoc
       device.delele_interface
       device.add_interface(:adhoc)
