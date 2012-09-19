@@ -9,8 +9,8 @@ module OmfRc::Util::Iw
   hook :before_ready do |device|
     device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
     device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
-    device.property.ap_conf
-    device.property.ap_pid
+    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.pid"
+    device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
   end
 
   # Parse iw help page and set up all configure methods available for iw command
@@ -84,22 +84,50 @@ module OmfRc::Util::Iw
                     :wpa_pid => device.property.wpa_pid)
   end
 
+  work :validate_iw_properties do |device|
+    unless %w(master managed adhoc monitor).inlcude? device.property.mode
+      raise ArgumentError, "Mode must be master, managed, adhoc, or monitor, got #{device.property.mode}"
+    end
+
+    unless %w(a b g n).inlcude? device.property.hw_mode
+      raise ArgumentError, "Hardware mode must be a, b, g, or n, got #{device.property.hw_mode}"
+    end
+
+    case device.property.mode.to_sym
+    when :master
+      %(channel essid).each do |p|
+        raise ArgumentError, "#{p} must not be nil"
+      end
+    when :managed
+      %(essid).each do |p|
+        raise ArgumentError, "#{p} must not be nil"
+      end
+    when :adhoc
+      %(essid frequency).each do |p|
+        raise ArgumentError, "#{p} must not be nil"
+      end
+    end
+
+  end
+
   configure :mode do |device, value|
     # capture value hash and store internally
     device.property.update(value)
 
+    device.validate_iw_properties
+
     case device.property.mode.to_sym
     when :master
-      delele_interface
-      add_interface(:managed)
+      device.delele_interface
+      device.add_interface(:managed)
       hostapd
     when :managed
-      delele_interface
-      add_interface(:managed)
+      device.delele_interface
+      device.add_interface(:managed)
       wpasup
     when :adhoc
-      delele_interface
-      add_interface(:adhoc)
+      device.delele_interface
+      device.add_interface(:adhoc)
       # TODO this should go to ip
       CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run
 
@@ -108,8 +136,8 @@ module OmfRc::Util::Iw
                       :essid => device.property.essid,
                       :frequency => device.property.frequency).run
     when :monitor
-      delele_interface
-      add_interface(:monitor)
+      device.delele_interface
+      device.add_interface(:monitor)
       # TODO this should go to ip
       CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run
     end
