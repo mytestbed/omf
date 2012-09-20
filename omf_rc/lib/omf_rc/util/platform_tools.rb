@@ -114,7 +114,7 @@ module OmfRc::Util::PlatformTools
       next false
     end
 
-   eTagFile = "#{file}.etag"
+    eTagFile = "#{file}.etag"
     download = true
     cmd = ""
     remoteETag = nil

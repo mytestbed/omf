@@ -236,18 +236,18 @@ module OmfRc::ResourceProxy::GenericApplication
   # (see the description of configure :state)
   #
   work('switch_to_install') do |res|
-   if res.property.state.to_sym == :stop
-    if res.property.installed
-      res.log_inform_warn "The application is already installed"
-    else
-          # Select the proper installation method based on the platform
-          # and the value of 'force_tarball_install'
-          res.property.state = :install
-          if res.property.force_tarball_install || 
-           (res.property.platform == :unknown)
-           installing = res.install_tarball(res.property.pkg_tarball, 
-            res.property.tarball_install_path)
-         elsif res.property.platform == :ubuntu 
+    if res.property.state.to_sym == :stop
+      if res.property.installed
+        res.log_inform_warn "The application is already installed"
+      else
+        # Select the proper installation method based on the platform
+        # and the value of 'force_tarball_install'
+        res.property.state = :install
+        if res.property.force_tarball_install || 
+          (res.property.platform == :unknown)
+          installing = res.install_tarball(res.property.pkg_tarball, 
+              res.property.tarball_install_path)
+        elsif res.property.platform == :ubuntu 
           installing = res.install_ubuntu(res.property.pkg_ubuntu)
         elsif res.property.platform == :fedora 
           installing = res.install_fedora(res.property.pkg_fedora)
@@ -364,7 +364,7 @@ module OmfRc::ResourceProxy::GenericApplication
         att[:default] = eval(att[:default].downcase) if !att[:default].nil? && !res.boolean?(att[:default])
       end
     rescue Exception => ex
-      res.log_inform_error "Cannot sanitize the parameter '#{param}' (#{att.inspect})"
+      res.log_inform_error "Cannot sanitize the parameter '#{name}' (#{att.inspect})"
     end
     att
   end
@@ -385,22 +385,29 @@ module OmfRc::ResourceProxy::GenericApplication
   # [Boolean] true or false
   #
   work('pass_type_checking?') do |res,att|
+    logger.info "TC - t: #{att[:type]} - d: #{att[:default]} - v: #{att[:value]}"
     passed = false
     unless att[:type].nil?
-      if att[:type] == 'Boolean'
-        unless att[:value].nil?
-          passed = true if res.boolean?(att[:value])  
+      if att[:type] == 'Boolean' # HACK: as Ruby does not have a Boolean type
+        if !att[:default].nil? && !att[:value].nil?
+          passed = true if res.boolean?(att[:default]) && res.boolean?(att[:value])
+        elsif att[:default].nil? && att[:value].nil?
+          passed = true
+        elsif att[:default].nil?
+          passed = true if res.boolean?(att[:value]) 
+        elsif att[:value].nil?
+          passed = true if res.boolean?(att[:default]) 
         end
-        if att[:value].nil? && !att[:default].nil?
-         passed = true if res.boolean?(att[:default])  
-        end
-      else
+      else # HACK: Now for all other types... 
         klass = Module.const_get(att[:type].capitalize.to_sym)
-        unless att[:value].nil?
-          passed = true if att[:value].kind_of?(klass)  
-        end
-        if att[:value].nil? && !att[:default].nil?
-         passed = true if att[:default].kind_of?(klass)  
+        if !att[:default].nil? && !att[:value].nil?
+          passed = true if att[:default].kind_of?(klass) && att[:value].kind_of?(klass)
+        elsif att[:default].nil? && att[:value].nil?
+          passed = true
+        elsif att[:default].nil?
+          passed = true if att[:value].kind_of?(klass)
+        elsif att[:value].nil?
+          passed = true if att[:default].kind_of?(klass)
         end
       end
     else
