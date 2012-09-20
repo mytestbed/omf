@@ -6,9 +6,12 @@ module OmfRc::Util::Iw
   include Cocaine
   include Hashie
 
-  hook :before_ready do |device|
+  work :init_wpa_conf_pid do |device|
     device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
     device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
+  end
+
+  work :init_ap_conf_pid do |device|
     device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.conf"
     device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
   end
@@ -29,7 +32,21 @@ module OmfRc::Util::Iw
   request :link do |device|
     known_properties = Mash.new
 
-    command = CommandLine.new("iw", ":dev link", :dev => device.hrn)
+    command = CommandLine.new("iw", "dev :dev link", :dev => device.hrn)
+
+    command.run.chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
+      v.match(/^(.+):\W*(.+)$/).tap do |m|
+        m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
+      end
+    end
+
+    known_properties
+  end
+
+  request :info do |device|
+    known_properties = Mash.new
+
+    command = CommandLine.new("iw", "dev :dev info", :dev => device.hrn)
 
     command.run.chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
       v.match(/^(.+):\W*(.+)$/).tap do |m|
@@ -58,6 +75,8 @@ module OmfRc::Util::Iw
   # Set up and run a hostapd instance
   #
   work :hostapd do |device|
+    device.init_ap_conf_pid
+
     File.open(device.property.ap_conf, "w") do |f|
       f << "driver=nl80211\ninterface=#{device.hrn}\nssid=#{device.property.essid}\nchannel=#{device.property.channel}\n"
       f << "hw_mode=#{device.property.hw_mode}\n" if %w(a b g).include? device.property.hw_mode
@@ -77,6 +96,8 @@ module OmfRc::Util::Iw
   end
 
   work :wpasup do |device|
+    device.init_wpa_conf_pid
+
     File.open(device.property.wpa_conf, "w") do |f|
       f << "network={\n  ssid=\"#{device.property.essid}\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
     end
