@@ -34,6 +34,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @uid = @opts.uid || SecureRandom.uuid
     @hrn = @opts.hrn
     @children ||= []
+
     @property = @opts.property || Hashie::Mash.new
 
     @comm = comm || OmfCommon::Comm.new(@opts.dsl)

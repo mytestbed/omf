@@ -28,7 +28,6 @@ describe OmfRc::ResourceProxy::Node do
           when "ieee80211/*"
             ["#{sys_dir}/ieee80211/phy0"]
           when "net/eth*"
-            #["#{sys_dir}/net/eth0", "#{sys_dir}/net/wlan0"]
             ["#{sys_dir}/net/eth0"]
           end
         end

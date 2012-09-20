@@ -6,16 +6,6 @@ module OmfRc::Util::Iw
   include Cocaine
   include Hashie
 
-  work :init_wpa_conf_pid do |device|
-    device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
-    device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
-  end
-
-  work :init_ap_conf_pid do |device|
-    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.conf"
-    device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
-  end
-
   # Parse iw help page and set up all configure methods available for iw command
   #
   CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
@@ -43,18 +33,34 @@ module OmfRc::Util::Iw
     known_properties
   end
 
+  # Parse iw info command output and return as a mash
+  #
   request :info do |device|
     known_properties = Mash.new
 
     command = CommandLine.new("iw", "dev :dev info", :dev => device.hrn)
 
-    command.run.chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
-      v.match(/^(.+):\W*(.+)$/).tap do |m|
+    command.run.chomp.split("\n").drop(1).each do |v|
+      v.match(/^\W*(.+) (.+)$/).tap do |m|
         m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
       end
     end
 
     known_properties
+  end
+
+  # Initialise wpa related conf and pid location
+  #
+  work :init_wpa_conf_pid do |device|
+    device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
+    device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
+  end
+
+  # Initialise access point conf and pid location
+  #
+  work :init_ap_conf_pid do |device|
+    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.conf"
+    device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
   end
 
   # Delete current interface, clean up
@@ -67,7 +73,7 @@ module OmfRc::Util::Iw
   #
   work :add_interface do |device, type|
     CommandLine.new("iw", "phy :phy interface add :dev type :type",
-                    :phy => device.hrn.gsub(/wlan/, 'phy'),
+                    :phy => device.property.phy,
                     :dev => device.hrn,
                     :type => type.to_s).run
   end
@@ -106,6 +112,8 @@ module OmfRc::Util::Iw
   end
 
   work :validate_iw_properties do |device|
+    raise ArgumentError, "Missing phyical device name" if device.property.phy.nil?
+
     unless %w(master managed adhoc monitor).include? device.property.mode
       raise ArgumentError, "Mode must be master, managed, adhoc, or monitor, got #{device.property.mode}"
     end
@@ -135,17 +143,16 @@ module OmfRc::Util::Iw
 
     device.validate_iw_properties
 
+    device.delele_interface rescue logger.warn "Interface #{device.hrn} not found"
+
     case device.property.mode.to_sym
     when :master
-      device.delele_interface
       device.add_interface(:managed)
       device.hostapd
     when :managed
-      device.delele_interface
       device.add_interface(:managed)
       device.wpasup
     when :adhoc
-      device.delele_interface
       device.add_interface(:adhoc)
       # TODO this should go to ip
       CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run
@@ -155,7 +162,6 @@ module OmfRc::Util::Iw
                       :essid => device.property.essid,
                       :frequency => device.property.frequency).run
     when :monitor
-      device.delele_interface
       device.add_interface(:monitor)
       # TODO this should go to ip
       CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run

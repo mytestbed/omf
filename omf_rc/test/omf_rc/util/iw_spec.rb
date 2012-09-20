@@ -18,7 +18,7 @@ describe OmfRc::Util::Iw do
         end
       end
 
-      @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00')
+      @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00' })
     end
 
     it "must provide features defined in proxy" do
@@ -27,10 +27,18 @@ describe OmfRc::Util::Iw do
       end
     end
 
-    it "could request properties of the wifi device" do
+    it "could request properties of the wifi interface" do
       Cocaine::CommandLine.stub(:new, @command) do
         @command.expect(:run, fixture("iw/link"))
         @wlan00.request_link.keys.must_include "ssid"
+        @command.verify
+      end
+    end
+
+    it "could request info of the wifi interface" do
+      Cocaine::CommandLine.stub(:new, @command) do
+        @command.expect(:run, fixture("iw/info"))
+        @wlan00.request_info.keys.must_equal ["ifindex", "type", "wiphy"]
         @command.verify
       end
     end
@@ -43,11 +51,32 @@ describe OmfRc::Util::Iw do
       end
     end
 
-    it "must initialise some wpa & hostapd defaults" do
-      @wlan00.request_wpa_conf.must_equal "/tmp/wpa.wlan00.conf"
-      @wlan00.request_wpa_pid.must_equal "/tmp/wpa.wlan00.pid"
+    it "must could initialise wpa config/pid file path" do
+      @wlan00.init_ap_conf_pid
       @wlan00.request_ap_conf.must_equal "/tmp/hostapd.wlan00.conf"
       @wlan00.request_ap_pid.must_equal "/tmp/hostapd.wlan00.pid"
+    end
+
+    it "must could initialise wpa config/pid file path" do
+      @wlan00.init_wpa_conf_pid
+      @wlan00.request_wpa_conf.must_equal "/tmp/wpa.wlan00.conf"
+      @wlan00.request_wpa_pid.must_equal "/tmp/wpa.wlan00.pid"
+    end
+
+    it "could delete current interface" do
+      Cocaine::CommandLine.stub(:new, @command) do
+        @command.expect(:run, true)
+        @wlan00.delele_interface
+        @command.verify
+      end
+    end
+
+    it "could add a new interface" do
+      Cocaine::CommandLine.stub(:new, @command) do
+        @command.expect(:run, true)
+        @wlan00.add_interface(:managed)
+        @command.verify
+      end
     end
 
     it "must be able to set up wlan connection in different modes" do
