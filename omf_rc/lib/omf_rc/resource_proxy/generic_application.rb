@@ -18,7 +18,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
 
 #
 # This module defines a Resource Proxy (RP) for a Generic Application
@@ -49,12 +48,14 @@
 #               with attribut1 being another Hash with the following possible
 #               keys and values (all are optional):
 #               :cmd [String] the command line for this parameter 
-#               :order [Fixnum] the appearance order on the command line 
-#               :dynamic [Boolean] this parameter can be dynammically changed
+#               :order [Fixnum] the appearance order on the command line,
+#                               default is FIFO 
+#               :dynamic [Boolean] this parameter can be dynammically changed,
+#                                  default false
 #               :type [Numeric|String|Boolean] this parameter's type
 #               :default value given by default to this parameter 
 #               :value value to set for this parameter
-#               :mandatory [Boolean] this parameter is mandatory
+#               :mandatory [Boolean] this parameter is mandatory, default false
 #
 # Two examples of valid parameters definition are:
 #
@@ -143,6 +144,14 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.platform.to_s
   end
 
+  # Configure the basic properties of this Generic Application RP
+  # @see OmfRc::ResourceProxy::GenericApplication
+  #
+  %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install \
+    map_err_to_out tarball_install_path).each do |prop|
+    configure(prop) { |res, value| res.property[prop] = value }
+  end
+
   # Configure the environments property of this Generic Application RP
   # @see OmfRc::ResourceProxy::GenericApplication
   #
@@ -153,6 +162,7 @@ module OmfRc::ResourceProxy::GenericApplication
       res.log_inform_error "Environment configuration failed! "+
         "Environments not passed as Hash (#{envs.inspect})"
     end
+    res.property.environments
   end
 
   # Configure the parameters property of this Generic Application RP
@@ -183,15 +193,7 @@ module OmfRc::ResourceProxy::GenericApplication
       res.log_inform_error "Parameter configuration failed! Parameters not "+
         "passed as Hash (#{params.inspect})"
     end
-
-  end
-
-  # Configure the basic properties of this Generic Application RP
-  # @see OmfRc::ResourceProxy::GenericApplication
-  #
-  %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install \
-    map_err_to_out tarball_install_path).each do |prop|
-    configure(prop) { |res, value| res.property[prop] = value }
+    res.property.parameters[p]
   end
 
   # Configure the state of this Generic Application RP. The valid states are
@@ -329,14 +331,12 @@ module OmfRc::ResourceProxy::GenericApplication
     # Only update a parameter if it is dynamic and the application is running
     dynamic = false
     dynamic = att[:dynamic] if res.boolean?(att[:dynamic])
-    # dynamic = att[:dynamic] if res.is_boolean?(att[:dynamic])
-    # dynamic = eval(att[:dynamic].downcase) if att[:dynamic].kind_of?(String)
     if dynamic && res.property.state == :run
       line = ""
       line += "#{att[:cmd]} " unless att[:cmd].nil?
       line += "#{att[:value]}"
       ExecApp[res.property.app_id].stdin(line)
-      logger.debug "Updated parameter #{name} with value #{att[:value].inspect}"
+      logger.info "Updated parameter #{name} with value #{att[:value].inspect}"
     end
   end
 
@@ -377,7 +377,7 @@ module OmfRc::ResourceProxy::GenericApplication
   #   regardless of the type of the given value or default
   # - second check if a value is given, if so check if it has the same type as
   #   the defined type, if so then return true, if not then return false.
-  # - second if no value is given but a default is given, then perform the same 
+  # - third if no value is given but a default is given, then perform the same 
   #   check as above but using the default in-place of the value
   #
   # @yieldparam [Hash] att the Hash holding the parameter's attributs
@@ -385,7 +385,6 @@ module OmfRc::ResourceProxy::GenericApplication
   # [Boolean] true or false
   #
   work('pass_type_checking?') do |res,att|
-    #logger.debug "Type checking - t: #{att[:type]} - d: #{att[:default].inspect} - v: #{att[:value].inspect}"
     passed = false
     unless att[:type].nil?
       if att[:type] == 'Boolean'
@@ -432,8 +431,6 @@ module OmfRc::ResourceProxy::GenericApplication
     sorted_parameters.each do |param,att|
       needed = false
       needed = att[:mandatory] if res.boolean?(att[:mandatory])
-      # needed = att[:mandatory] if res.is_boolean?(att[:mandatory])
-      # needed = eval(att[:mandatory].downcase) if att[:mandatory].kind_of?(String)
       # If the parameter is mandatory and no value was given, then take the default
       val = att[:value]
       val = att[:default] if needed && att[:value].nil?
