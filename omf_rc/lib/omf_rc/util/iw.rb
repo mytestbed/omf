@@ -158,9 +158,9 @@ module OmfRc::Util::Iw
       CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run
 
       CommandLine.new("iw", "dev :device ibss join :essid :frequency",
-                      :device => device.hrn,
-                      :essid => device.property.essid,
-                      :frequency => device.property.frequency).run
+                      :device => device.hrn.to_s,
+                      :essid => device.property.essid.to_s,
+                      :frequency => device.property.frequency.to_s).run
     when :monitor
       device.add_interface(:monitor)
       # TODO this should go to ip
