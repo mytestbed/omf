@@ -14,7 +14,7 @@ describe OmfRc::ResourceProxy::Node do
     it "must provide a list of supported network devices" do
       devices = [
         { name: 'eth0', driver: 'e1000e', category: 'net', proxy: 'net' },
-        { name: 'wlan0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' }
+        { name: 'phy0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' }
       ]
 
       Dir.stub :chdir, proc { |*args, &block| block.call } do
@@ -23,8 +23,13 @@ describe OmfRc::ResourceProxy::Node do
           case pattern
           when "net"
             ["#{sys_dir}/net"]
-          when "net/*"
-            ["#{sys_dir}/net/eth0", "#{sys_dir}/net/wlan0"]
+          when "ieee80211"
+            ["#{sys_dir}/ieee80211"]
+          when "ieee80211/*"
+            ["#{sys_dir}/ieee80211/phy0"]
+          when "net/eth*"
+            #["#{sys_dir}/net/eth0", "#{sys_dir}/net/wlan0"]
+            ["#{sys_dir}/net/eth0"]
           end
         end
         Dir.stub :glob, glob_proc do
