@@ -110,6 +110,8 @@ module OmfRc::Util::Iw
       f << "network={\n  ssid=\"#{device.property.essid}\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
     end
     CommandLine.new("wpa_supplicant", "-B -P :wpa_pid -i:dev -c:wpa_conf",
+                    :dev => device.hrn,
+                    :wpa_conf => device.property.wpa_conf,
                     :wpa_pid => device.property.wpa_pid).run
   end
 
