@@ -83,6 +83,7 @@ module OmfRc::ResourceProxy::GenericApplication
   DEFAULT_MANDATORY_PARAMETER = false
 
   hook :before_ready do |res|
+    puts "TOTO"
     res.property.app_id ||= nil 
     res.property.binary_path ||= nil 
     res.property.platform ||= nil 
@@ -395,7 +396,6 @@ module OmfRc::ResourceProxy::GenericApplication
   # [Boolean] true or false
   #
   work('pass_type_checking?') do |res,att|
-    logger.info "TC - t: #{att[:type]} - d: #{att[:default]} - v: #{att[:value]}"
     passed = false
     unless att[:type].nil?
       if att[:type] == 'Boolean' # HACK: as Ruby does not have a Boolean type
