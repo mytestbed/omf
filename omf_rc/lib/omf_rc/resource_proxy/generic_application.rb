@@ -171,22 +171,27 @@ module OmfRc::ResourceProxy::GenericApplication
   configure :parameters do |res, params|
     if params.kind_of? Hash
       params.each do |p,v|
-        # if this param has no set order, then assign the highest number to it
-        # this will allow sorting the parameters later
-        v[:order] = MAX_PARAMETER_NUMBER if v[:order].nil?
-        # if this param has no set mandatory field, assign it a default one
-        v[:mandatory] = DEFAULT_MANDATORY_PARAMETER if v[:mandatory].nil?
-        merged_val = res.property.parameters[p].nil? ? v : res.property.parameters[p].merge(v)
-        new_val = res.sanitize_parameter(p,merged_val)
-        # only set this new parameter if it passes the type check
-        if res.pass_type_checking?(new_val) 
-          res.property.parameters[p] = new_val
-          res.dynamic_parameter_update(p,new_val)
+        if v.kind_of? Hash
+          # if this param has no set order, then assign the highest number to it
+          # this will allow sorting the parameters later
+          v[:order] = MAX_PARAMETER_NUMBER if v[:order].nil?
+          # if this param has no set mandatory field, assign it a default one
+          v[:mandatory] = DEFAULT_MANDATORY_PARAMETER if v[:mandatory].nil?
+          merged_val = res.property.parameters[p].nil? ? v : res.property.parameters[p].merge(v)
+          new_val = res.sanitize_parameter(p,merged_val)
+          # only set this new parameter if it passes the type check
+          if res.pass_type_checking?(new_val) 
+            res.property.parameters[p] = new_val
+            res.dynamic_parameter_update(p,new_val)
+          else
+            res.log_inform_error "Configuration of parameter '#{p}' failed "+
+              "type checking. Defined type is #{new_val[:type]} while assigned "+
+              "value/default are #{new_val[:value].inspect} / "+
+              "#{new_val[:default].inspect}"
+          end
         else
-          res.log_inform_error "Configuration of parameter '#{p}' failed "+
-            "type checking. Defined type is #{new_val[:type]} while assigned "+
-            "value/default are #{new_val[:value].inspect} / "+
-            "#{new_val[:default].inspect}"
+          res.log_inform_error "Configuration of parameter '#{p}' failed!"+
+            "Options not passed as Hash (#{v.inspect})"
         end
       end
     else
@@ -295,10 +300,15 @@ module OmfRc::ResourceProxy::GenericApplication
     if res.property.state == :stop 
       # start a new instance of this app 
       res.property.app_id = res.hrn.nil? ? res.uid : res.hrn 
-      ExecApp.new(res.property.app_id, res, 
-                  res.build_command_line, 
-                  res.property.map_err_to_out)
-                  res.property.state = :run 
+      # we need at least a defined binary path to run an app...
+      if res.property.binary_path.nil?
+        res.log_inform_warn "Binary path not set! No Application to run!"
+      else
+        ExecApp.new(res.property.app_id, res, 
+                    res.build_command_line, 
+                    res.property.map_err_to_out)
+        res.property.state = :run
+      end
     elsif res.property.state == :pause
       # resume this paused app
       res.property.state = :run
@@ -438,7 +448,7 @@ module OmfRc::ResourceProxy::GenericApplication
     sorted_parameters.each do |param,att|
       needed = false
       needed = att[:mandatory] if res.boolean?(att[:mandatory])
-      # If the parameter is mandatory and no value was given, then take the default
+      # For mandatory parameter without a value, take the default one
       val = att[:value]
       val = att[:default] if needed && att[:value].nil?
       # Finally add the parameter if is value/default is not nil

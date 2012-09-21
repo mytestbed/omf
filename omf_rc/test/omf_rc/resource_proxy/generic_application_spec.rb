@@ -34,8 +34,11 @@ describe OmfRc::ResourceProxy::GenericApplication do
     end
 
     it "must be able to configure its environments property" do
+      # First give it a valid environment property
       test_environments = { 'foo' => 123, 'bar_bar' => 'bar_123' }
       @app_test.method(:configure_environments).call(test_environments)
+      # Then give it an invalid one, which it should ignore
+      @app_test.method(:configure_environments).call(nil)
       @app_test.property.environments.must_be_kind_of Hash
       @app_test.property.environments['foo'].must_equal 123
       @app_test.property.environments['bar_bar'].must_equal 'bar_123'
@@ -44,8 +47,14 @@ describe OmfRc::ResourceProxy::GenericApplication do
 
   describe "when configuring its parameters property" do
     it "must be able to set its parameters property" do
+      # First give it a valid parameter property
       test_params = { :p1 => { :cmd => '--foo', :value => 'foo'} }
       @app_test.method(:configure_parameters).call(test_params)
+      # Then give it a couple of invalid ones, which it should ignore
+      @app_test.stub :log_inform_error, nil do      
+        @app_test.method(:configure_parameters).call(nil)
+       @app_test.method(:configure_parameters).call( { :p1 => nil } )
+     end
       @app_test.property.parameters.must_be_kind_of Hash
       @app_test.property.parameters[:p1].must_be_kind_of Hash
       @app_test.property.parameters[:p1][:cmd].must_equal '--foo'
@@ -67,21 +76,30 @@ describe OmfRc::ResourceProxy::GenericApplication do
 
     it "must be able to sanitize its parameters property" do
       test_params = { :p1 => { :mandatory => 'true', :dynamic => false},
-                      :p2 => { :type => 'Boolean', :default => true, :value => 'false'},
-                      :p3 => { :type => 'Boolean', :default => 'true', :value => false} }
+                      :p2 => { :mandatory => true, :dynamic => 'false'},
+                      :p3 => { :type => 'Boolean', :default => true, :value => 'false'},
+                      :p4 => { :type => 'Boolean', :default => 'true', :value => false} }
       @app_test.method(:configure_parameters).call(test_params)
       @app_test.property.parameters[:p1][:mandatory].must_be_kind_of TrueClass
       @app_test.property.parameters[:p1][:dynamic].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p2][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p2][:value].must_be_kind_of FalseClass
+      @app_test.property.parameters[:p2][:mandatory].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p2][:dynamic].must_be_kind_of FalseClass
       @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
       @app_test.property.parameters[:p3][:value].must_be_kind_of FalseClass
+      @app_test.property.parameters[:p4][:default].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p4][:value].must_be_kind_of FalseClass
     end
 
     it "must be able to validate the correct type of a defined parameter" do
       test_params = { :p1 => { :type => 'String', :default => 'foo', :value => 'bar'},
                       :p2 => { :type => 'Numeric', :default => 123, :value => 456},
-                      :p3 => { :type => 'Boolean', :default => true, :value => true} }
+                      :p3 => { :type => 'Boolean', :default => true, :value => true},
+                      :p4 => { :type => 'Boolean'},
+                      :p5 => { :type => 'Boolean', :default => true},
+                      :p6 => { :type => 'Boolean', :value => true},
+                      :p7 => { :type => 'Numeric'},
+                      :p8 => { :type => 'Numeric', :default => 123},
+                      :p9 => { :type => 'Numeric', :value => 123} }
       @app_test.method(:configure_parameters).call(test_params)
       @app_test.property.parameters[:p1][:default].must_be_kind_of String
       @app_test.property.parameters[:p1][:value].must_be_kind_of String
@@ -89,6 +107,14 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.parameters[:p2][:value].must_be_kind_of Numeric
       @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
       @app_test.property.parameters[:p3][:value].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p4][:default].must_be_nil
+      @app_test.property.parameters[:p4][:value].must_be_nil
+      @app_test.property.parameters[:p5][:default].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p6][:value].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p7][:default].must_be_nil
+      @app_test.property.parameters[:p7][:value].must_be_nil
+      @app_test.property.parameters[:p8][:default].must_be_kind_of Numeric
+      @app_test.property.parameters[:p9][:value].must_be_kind_of Numeric
     end
 
     it "must be able to detect incorrect type setting for a defined parameter, and DO NOT update the parameter in that case" do
@@ -108,6 +134,22 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
       @app_test.property.parameters[:p3][:value].must_be_kind_of TrueClass
     end
+
+    it "must update any valid dynamic parameter with the given value" do
+      # set the parameter as dynamic
+      params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true} }
+      @app_test.method(:configure_parameters).call(params1)
+      # then update it
+      params2 = { :p1 => { :value => 'bar'} }
+      @app_test.property.state = :run
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map); end
+        def ExecApp.[](id); return ExecApp.new(nil,nil,nil,nil) end
+        def stdin(msg); msg.must_equal '--foo bar' end
+      end
+      @app_test.method(:configure_parameters).call(params2)
+    end
+
   end
 
   describe "when receiving an event from a running application instance" do
@@ -211,22 +253,91 @@ describe OmfRc::ResourceProxy::GenericApplication do
   end
 
   describe "when configuring its state property to :run" do
-  end
-
-  describe "when configuring its state property to :install" do
-    it "must do nothing if its original state is not :run or :pause" do
-      @app_test.property.state = :stop
-      @app_test.method(:configure_state).call(:stop)
-      @app_test.property.state.must_equal :stop
+    it "must do nothing if its original state is :install" do
       @app_test.property.state = :install
-      @app_test.method(:configure_state).call(:stop)
+      @app_test.method(:configure_state).call(:run)
       @app_test.property.state.must_equal :install
     end
 
-    # it "must stop the app instance if its original state is :run or :pause" do
-    # end
-  end 
+    it "must get back to the :run state if its original state is :pause" do
+      @app_test.property.state = :pause
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
 
+    it "must do nothing if its binary path is not set" do
+      @app_test.property.state = :stop
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :stop
+    end
+    
+    it "must start an app using ExecApp and a correct command line if its original state is :stop" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          app_id.must_equal "an_application"
+          res.must_be_kind_of OmfRc::ResourceProxy::AbstractResource
+          cmd_line.must_equal "env -i FOO=123 BAR_BAR='bar_123' my_cmd  123 -param1 bar p3  hello "
+          err_out_map.must_equal false
+        end
+      end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      test_env = { 'foo' => 123, 'bar_bar' => 'bar_123' }
+      test_params = { :p1 => { :type => 'String', :mandatory => true, :cmd => '-param1', :default => 'foo', :value => 'bar', :order => 2},
+                      :p2 => { :type => 'Numeric', :mandatory => true, :default => 123, :order => 1 },
+                      :p3 => { :type => 'Boolean', :cmd => 'p3', :default => false, :value => true},
+                      :p4 => { :type => 'String', :default => 'hi', :value => 'hello'},
+                      :p5 => { :type => 'Numeric', :default => 456}, }
+      @app_test.method(:configure_environments).call(test_env)
+      @app_test.method(:configure_parameters).call(test_params)
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
+  end
+
+  describe "when configuring its state property to :pause" do
+    it "must do nothing if its original state is :stop or :install" do
+      @app_test.property.state = :stop
+      @app_test.method(:configure_state).call(:pause)
+      @app_test.property.state.must_equal :stop
+      @app_test.property.state = :install
+      @app_test.method(:configure_state).call(:pause)
+      @app_test.property.state.must_equal :install
+    end
+
+    it "must do switch its state to :pause if its original state is :run or :pause" do
+      @app_test.property.state = :run
+      @app_test.method(:configure_state).call(:pause)
+      @app_test.property.state.must_equal :pause
+      @app_test.property.state = :pause
+      @app_test.method(:configure_state).call(:pause)
+      @app_test.property.state.must_equal :pause
+    end
+  end
+
+  describe "when configuring its state property to :stop" do
+    it "must do nothing if its original state is :stop or :install" do
+      @app_test.property.state = :stop
+      @app_test.method(:configure_state).call(:pause)
+      @app_test.property.state.must_equal :stop
+      @app_test.property.state = :install
+      @app_test.method(:configure_state).call(:pause)
+      @app_test.property.state.must_equal :install
+    end
+
+    it "must stop its running application if its original state is :run or :pause" do
+      @app_test.property.state = :run
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map); end
+        def ExecApp.[](id); return ExecApp.new(nil,nil,nil,nil) end
+        def stdin(msg); msg.must_equal 'exit' end
+        def signal(sig); sig.must_equal 'TERM' end
+        def kill(sig); sig.must_equal 'KILL' end
+      end
+      @app_test.method(:configure_state).call(:stop)
+      @app_test.property.state.must_equal :stop
+    end
+  end
 
 
 end
