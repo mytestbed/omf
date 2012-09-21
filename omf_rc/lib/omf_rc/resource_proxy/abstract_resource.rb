@@ -229,7 +229,7 @@ class OmfRc::ResourceProxy::AbstractResource
           message.each_property do |p|
             unless p.attr('key') == 'type'
               method_name =  "configure_#{p.attr('key')}"
-              result.__send__(method_name, p.content)
+              result.__send__(method_name, message.read_property(p.attr('key')))
             end
           end
           result.after_initial_configured if result.respond_to? :after_initial_configured
