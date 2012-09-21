@@ -17,8 +17,12 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.must_respond_to :on_app_event
     end
 
-    it "must have its state property set to 'stop'" do
+    it "must have its properties set to sensible initial values" do
       @app_test.request_state.to_sym.must_equal :stop
+      @app_test.request_tarball_install_path.must_equal '/'
+      @app_test.request_force_tarball_install.must_equal 'false'
+      @app_test.request_installed.must_equal 'false'
+      @app_test.request_map_err_to_out.must_equal 'false'
     end
 
     it "must be able to configure/request its basic properties" do
