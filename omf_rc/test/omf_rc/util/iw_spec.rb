@@ -79,13 +79,14 @@ describe OmfRc::Util::Iw do
       end
     end
 
-    it "must be able to set up wlan connection in different modes" do
+    it "must be able to validate iw parameters when setting up mode" do
       lambda { @wlan00.configure_mode(mode: 'master') }.must_raise ArgumentError
       lambda { @wlan00.configure_mode(mode: 'bob') }.must_raise ArgumentError
       lambda { @wlan00.configure_mode(mode: 'master', hw_mode: 'x') }.must_raise ArgumentError
       lambda { @wlan00.configure_mode(hw_mode: 'x') }.must_raise ArgumentError
+    end
 
-
+    it "must be able to configure as master mode" do
       Cocaine::CommandLine.stub(:new, @command) do
         3.times { @command.expect(:run, true) }
 
@@ -100,6 +101,46 @@ describe OmfRc::Util::Iw do
         File.open("/tmp/hostapd.wlan00.conf") do |f|
           f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=1\nhw_mode=g\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
         end
+
+        3.times { @command.expect(:run, true) }
+
+        @wlan00.configure_mode(mode: 'master', channel: 16, essid: 'bob', hw_mode: 'n')
+        File.open("/tmp/hostapd.wlan00.conf") do |f|
+          f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=16\nhw_mode=a\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
+        end
+
+        @command.verify
+      end
+    end
+
+    it "must be able to configure as managed mode" do
+      Cocaine::CommandLine.stub(:new, @command) do
+        3.times { @command.expect(:run, true) }
+
+        @wlan00.configure_mode(mode: 'managed', essid: 'bob')
+        File.open("/tmp/wpa.wlan00.conf") do |f|
+          f.read.must_match "network={\n  ssid=\"bob\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
+        end
+
+        @command.verify
+      end
+    end
+
+    it "must be able to configure as adhoc/ibss mode" do
+      Cocaine::CommandLine.stub(:new, @command) do
+        4.times { @command.expect(:run, true) }
+
+        @wlan00.configure_mode(mode: 'adhoc', essid: 'bob', frequency: 2412)
+        @command.verify
+      end
+    end
+
+    it "must be able to configure as monitor mode" do
+      Cocaine::CommandLine.stub(:new, @command) do
+        3.times { @command.expect(:run, true) }
+
+        @wlan00.configure_mode(mode: 'monitor')
+        @command.verify
       end
     end
   end

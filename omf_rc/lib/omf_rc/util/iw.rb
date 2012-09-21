@@ -6,6 +6,8 @@ module OmfRc::Util::Iw
   include Cocaine
   include Hashie
 
+  utility :ip
+
   # Parse iw help page and set up all configure methods available for iw command
   #
   CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
@@ -108,7 +110,7 @@ module OmfRc::Util::Iw
       f << "network={\n  ssid=\"#{device.property.essid}\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
     end
     CommandLine.new("wpa_supplicant", "-B -P :wpa_pid -i:dev -c:wpa_conf",
-                    :wpa_pid => device.property.wpa_pid)
+                    :wpa_pid => device.property.wpa_pid).run
   end
 
   work :validate_iw_properties do |device|
@@ -155,8 +157,7 @@ module OmfRc::Util::Iw
     when :adhoc
       device.add_interface(:adhoc)
       # TODO this should go to ip
-      CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run
-
+      device.interface_up
       CommandLine.new("iw", "dev :device ibss join :essid :frequency",
                       :device => device.hrn.to_s,
                       :essid => device.property.essid.to_s,
@@ -164,7 +165,7 @@ module OmfRc::Util::Iw
     when :monitor
       device.add_interface(:monitor)
       # TODO this should go to ip
-      CommandLine.new("ip", "link set :dev up", :dev => device.hrn).run
+      device.interface_up
     end
   end
 end

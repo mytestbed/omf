@@ -21,4 +21,8 @@ module OmfRc::Util::Ip
                    ).run
     resource.request_ip_addr
   end
+
+  work :interface_up do |resource|
+    CommandLine.new("ip", "link set :dev up", :dev => resource.hrn).run
+  end
 end
