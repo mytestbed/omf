@@ -8,7 +8,7 @@ module OmfCommon
     end
 
     def publish(topic_id, &block)
-      comm.publish(topic_id, body, &block)
+      comm.publish(topic_id, body.dup, &block)
     end
 
     %w(created status failed released).each do |inform_type|

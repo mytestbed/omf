@@ -30,6 +30,11 @@ describe OmfCommon::Topic do
         @client.stub :write, write_callback do
           @message.publish(@topic.id) do |event|
             event.must_equal published
+          end
+
+          # Can publish again
+          @message.publish(@topic.id) do |event|
+            event.must_equal published
             done!
           end
         end
