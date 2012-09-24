@@ -7,6 +7,8 @@ module OmfRc::Util::Iw
   include Hashie
 
   utility :ip
+  utility :wpa
+  utility :hostapd
 
   # Parse iw help page and set up all configure methods available for iw command
   #
@@ -51,20 +53,6 @@ module OmfRc::Util::Iw
     known_properties
   end
 
-  # Initialise wpa related conf and pid location
-  #
-  work :init_wpa_conf_pid do |device|
-    device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
-    device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
-  end
-
-  # Initialise access point conf and pid location
-  #
-  work :init_ap_conf_pid do |device|
-    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.conf"
-    device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
-  end
-
   # Delete current interface, clean up
   #
   work :delele_interface do |device|
@@ -80,41 +68,17 @@ module OmfRc::Util::Iw
                     :type => type.to_s).run
   end
 
-  # Set up and run a hostapd instance
+  # Set up or join a ibss network
   #
-  work :hostapd do |device|
-    device.init_ap_conf_pid
-
-    File.open(device.property.ap_conf, "w") do |f|
-      f << "driver=nl80211\ninterface=#{device.hrn}\nssid=#{device.property.essid}\nchannel=#{device.property.channel}\n"
-      f << "hw_mode=#{device.property.hw_mode}\n" if %w(a b g).include? device.property.hw_mode
-      if device.property.hw_mode == 'n'
-        if device.property.channel.to_i < 15
-          f << "hw_mode=g\n"
-        else device.property.channel.to_i > 15
-          f << "hw_mode=a\n"
-        end
-        f << "wmm_enabled=1\nieee80211n=1\nht_capab=[HT20-]\n"
-      end
-    end
-
-    CommandLine.new("hostapd", "-B -P :ap_pid :ap_conf",
-                    :ap_pid => device.property.ap_pid,
-                    :ap_conf => device.property.ap_conf).run
+  work :join_ibss do |device|
+    CommandLine.new("iw", "dev :device ibss join :essid :frequency",
+                      :device => device.hrn.to_s,
+                      :essid => device.property.essid.to_s,
+                      :frequency => device.property.frequency.to_s).run
   end
 
-  work :wpasup do |device|
-    device.init_wpa_conf_pid
-
-    File.open(device.property.wpa_conf, "w") do |f|
-      f << "network={\n  ssid=\"#{device.property.essid}\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
-    end
-    CommandLine.new("wpa_supplicant", "-B -P :wpa_pid -i:dev -c:wpa_conf",
-                    :dev => device.hrn,
-                    :wpa_conf => device.property.wpa_conf,
-                    :wpa_pid => device.property.wpa_pid).run
-  end
-
+  # Validate internal properties based on interface mode
+  #
   work :validate_iw_properties do |device|
     raise ArgumentError, "Missing phyical device name" if device.property.phy.nil?
 
@@ -141,6 +105,8 @@ module OmfRc::Util::Iw
     end
   end
 
+  # Configure the interface with mode managed, master, adhoc or monitor
+  #
   configure :mode do |device, value|
     # capture value hash and store internally
     device.property.update(value)
@@ -148,6 +114,8 @@ module OmfRc::Util::Iw
     device.validate_iw_properties
 
     device.delele_interface rescue logger.warn "Interface #{device.hrn} not found"
+
+    # TODO should just remove all interfaces from physical device, at least make it optional
 
     case device.property.mode.to_sym
     when :master
@@ -158,15 +126,10 @@ module OmfRc::Util::Iw
       device.wpasup
     when :adhoc
       device.add_interface(:adhoc)
-      # TODO this should go to ip
       device.interface_up
-      CommandLine.new("iw", "dev :device ibss join :essid :frequency",
-                      :device => device.hrn.to_s,
-                      :essid => device.property.essid.to_s,
-                      :frequency => device.property.frequency.to_s).run
+      device.join_ibss
     when :monitor
       device.add_interface(:monitor)
-      # TODO this should go to ip
       device.interface_up
     end
   end
