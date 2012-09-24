@@ -15,7 +15,7 @@ module OmfCommon
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol.rng"
+    SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
     OPERATION = %w(create configure request release inform)
 
     class << self
@@ -110,12 +110,12 @@ module OmfCommon
     # Validate against relaxng schema
     #
     def valid?
-      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(document)
+      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(self.document)
       if validation.empty?
         true
       else
         logger.error validation.map(&:message).join("\n")
-        logger.debug to_s
+        logger.debug self.to_s
         false
       end
     end
