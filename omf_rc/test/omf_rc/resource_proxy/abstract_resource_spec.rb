@@ -106,6 +106,7 @@ describe AbstractResource do
         @node.inform(:error, 'failed')
         @node.inform(:warn, Exception.new('going to fail'))
         @node.inform(:error, Exception.new('failed'))
+        @node.inform(:failed, Exception.new('failed'))
       end
 
       lambda { @node.inform(:failed, 'bob') }.must_raise ArgumentError
