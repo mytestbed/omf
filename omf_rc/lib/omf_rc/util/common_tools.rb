@@ -8,15 +8,13 @@ module OmfRc::Util::CommonTools
   # message will have the type ERROR/WARN, and its 'reason' element set to the
   # String S
   #
-	%w(error warn).each do |type|
-		work("log_inform_#{type}") do |res, msg|
-		  logger.send(type, msg)
-      res.comm.publish(
-        res.uid,
-        OmfCommon::Message.inform(type.upcase) do |message|
-          message.element('reason' , msg)
-        end
-      )
+  %w(error warn).each do |type|
+    work("log_inform_#{type}") do |res, msg|
+      logger.send(type, msg)
+      res.comm.publish(res.uid,
+                       OmfCommon::Message.inform(type.upcase) do |message|
+                         message.element('reason' , msg)
+                       end)
     end
   end
 end

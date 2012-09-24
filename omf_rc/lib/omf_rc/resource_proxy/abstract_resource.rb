@@ -8,8 +8,6 @@ class OmfRc::ResourceProxy::AbstractResource
   DISCONNECT_WAIT = 5
   # Time to wait before releasing resource, wait for deleting pubsub topics
   RELEASE_WAIT = 5
-  # Inform message types mapping, e.g. create will expect responding with 'CREATED'
-  INFORM_TYPES = { create: 'CREATED', request: 'STATUS', configure: 'STATUS', release: 'RELEASED', error: 'FAILED'}
 
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
@@ -158,24 +156,45 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
-  def publish_inform(response)
-    if response.kind_of? StandardError
-      operation, context_id, inform_to, message = :error, response.context_id, response.inform_to, response.message
-    else
-      operation, result, context_id, inform_to = response.operation, response.result, response.context_id, response.inform_to
+  # Publish an inform message
+  # @param [Symbol] inform_type the type of inform message
+  # @param [Hash|Hashie::Mash|Exception|String] inform_type the type of inform message
+  def inform(inform_type, inform_data)
+    inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
+
+    case inform_type
+    when :failed
+      unless inform_data.kind_of? Exception
+        raise ArgumentError, "FAILED message requires an Exception (or MessageProcessError)"
+      end
+    when :created, :released
+      unless inform_data.respond_to?(:resource_id) && !inform_data.resource_id.nil?
+        raise ArgumentError, "CREATED or RELEASED message requires inform_data object respond to resource_id"
+      end
+    when :status
+      unless inform_data.respond_to?(:status) && inform_data.status.kind_of?(Hash)
+        raise ArgumentError, "STATUS message requires a hash represents properties"
+      end
     end
 
-    inform_message = OmfCommon::Message.inform(INFORM_TYPES[operation], context_id) do |i|
-      case operation
-      when :create
-        i.element('resource_id', result)
-        i.element('resource_address', result)
-      when :request, :configure
-        result.each_pair { |k, v| i.property(k, v) }
-      when :release
-        i.element('resource_id', result)
-      when :error
-        i.element("reason", message)
+    context_id = inform_data.context_id if inform_data.respond_to? :context_id
+    inform_to = inform_data.inform_to if inform_data.respond_to? :inform_to
+    inform_to ||= self.uid
+
+    inform_message = OmfCommon::Message.inform(inform_type.to_s.upcase, context_id) do |i|
+      case inform_type
+      when :created
+        i.element('resource_id', inform_data.resource_id)
+        i.element('resource_address', inform_data.resource_id)
+      when :status
+        inform_data.status.each_pair { |k, v| i.property(k, v) }
+      when :released
+        i.element('resource_id', inform_data.resource_id)
+      when :error, :warn
+        i.element("reason", (inform_data.message rescue inform_data))
+        logger.__send__(inform_type, (inform_data.message rescue inform_data))
+      when :failed
+        i.element("reason", inform_data.message)
       end
     end
     @comm.publish(inform_to, inform_message)
@@ -195,20 +214,20 @@ class OmfRc::ResourceProxy::AbstractResource
         new_uid = response.result
         @comm.create_topic(new_uid) do
           @comm.subscribe(new_uid) do
-            publish_inform(response)
+            inform(:created, response)
           end
         end
       when :request, :configure
-        publish_inform(response)
+        inform(:status, response)
       when :release
         EM.add_timer(RELEASE_WAIT) do
-          publish_inform(response)
+          inform(:released, response)
         end
       end
     end
 
     dp.errback do |e|
-      publish_inform(e)
+      inform(:failed, e)
     end
 
     dp.fire do
@@ -233,7 +252,7 @@ class OmfRc::ResourceProxy::AbstractResource
             end
           end
           result.after_initial_configured if result.respond_to? :after_initial_configured
-          { operation: :create, result: result.uid, context_id: context_id, inform_to: uid }
+          { operation: :create, resource_id: result.uid, context_id: context_id, inform_to: uid }
         when :request
           result = Hashie::Mash.new.tap do |mash|
             message.read_element("//property").each do |p|
@@ -241,7 +260,7 @@ class OmfRc::ResourceProxy::AbstractResource
               mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
             end
           end
-          { operation: :request, result: result, context_id: context_id, inform_to: obj.uid }
+          { operation: :request, status: result, context_id: context_id, inform_to: obj.uid }
         when :configure
           result = Hashie::Mash.new.tap do |mash|
             message.read_element("//property").each do |p|
@@ -249,10 +268,10 @@ class OmfRc::ResourceProxy::AbstractResource
               mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
             end
           end
-          { operation: :configure, result: result, context_id: context_id, inform_to: obj.uid }
+          { operation: :configure, status: result, context_id: context_id, inform_to: obj.uid }
         when :release
           resource_id = message.resource_id
-          { operation: :release, result: obj.release(resource_id).uid, context_id: context_id, inform_to: obj.uid }
+          { operation: :release, resource_id: obj.release(resource_id).uid, context_id: context_id, inform_to: obj.uid }
         when :inform
           # We really don't care about inform messages which created from here
           nil

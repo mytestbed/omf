@@ -97,12 +97,20 @@ describe AbstractResource do
     end
 
     it "must be able to send inform message" do
-      informs = {
-        :create => Hashie::Mash.new({ operation: :request, result: { k: 'value' }, context_id: 'id', inform_to: 'topic' })
-      }
       @node.comm.stub :publish, proc { |inform_to, message| message.valid?.must_equal true} do
-        @node.publish_inform(informs[:create])
+        @node.inform(:created, resource_id: 'bob', context_id: 'id', inform_to: 'topic')
+        @node.inform(:released, resource_id: 'bob', context_id: 'id', inform_to: 'topic')
+        @node.inform(:status, status: { key: 'value' }, context_id: 'id', inform_to: 'topic')
+        @node.inform(:created, resource_id: 'bob', context_id: 'id', inform_to: 'topic')
+        @node.inform(:warn, 'going to fail')
+        @node.inform(:error, 'failed')
+        @node.inform(:warn, Exception.new('going to fail'))
+        @node.inform(:error, Exception.new('failed'))
       end
+
+      lambda { @node.inform(:failed, 'bob') }.must_raise ArgumentError
+      lambda { @node.inform(:created, 'topic') }.must_raise ArgumentError
+      lambda { @node.inform(:status, 'topic') }.must_raise ArgumentError
     end
 
     it "must be able to connect & disconnect" do
