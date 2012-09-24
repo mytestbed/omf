@@ -35,7 +35,9 @@ module OmfRc::Util::PlatformTools
   # - Fedora (by looking for a Fedora string in /etc/*release files)
   #
   # Further methods and OS platform may be supported later
-  # 
+  #
+  # [Symbol] either :unknown | :ubuntu | :fedora
+  #
   work('detect_platform') do 
     r = `cat /etc/*release`.upcase
     platform = :unknown
@@ -52,6 +54,10 @@ module OmfRc::Util::PlatformTools
   # Further checks may be implemented later 
   # (e.g. is the pkg provided by any known repository, etc...)
   # 
+  # @yieldparam [String] pkg_name the package name to check
+  #
+  # [Boolean] true or fals
+  #
   work('valid_pkg_name') do |res, pkg_name|
     valid_name = false
     plat = res.detect_platform
@@ -65,6 +71,8 @@ module OmfRc::Util::PlatformTools
   # This utility block install a package on an Ubuntu platform using
   # the underlying apt-get tool
   # 
+  # @yieldparam [String] pkg_name the package name to install
+  #
   work('install_ubuntu') do |res, pkg_name|
     next false unless res.valid_pkg_name(pkg_name)
     ExecApp.new("#{res.hrn.nil? ? res.uid : res.hrn}_INSTALL",
@@ -78,6 +86,8 @@ module OmfRc::Util::PlatformTools
   # This utility block install a package on an Fedora platform using
   # the underlying yum tool
   # 
+  # @yieldparam [String] pkg_name the package name to install
+  #
   work('install_fedora') do |res, pkg_name|
     next false unless res.valid_pkg_name(pkg_name)
     ExecApp.new("#{res.hrn.nil? ? res.uid : res.hrn}_INSTALL",
@@ -88,6 +98,9 @@ module OmfRc::Util::PlatformTools
   # This utility block install a software from a tarball archive. It first 
   # tries to download the tarball at a given URI (if it has not been 
   # downloaded earlier), then it unarchives it at the given install_path
+  #
+  # @yieldparam [String] pkg_name the package name to install
+  # @yieldparam [String] install_path the path where to install this package
   # 
   work('install_tarball') do |res, pkg_name, install_path|
     next false unless res.valid_pkg_name(pkg_name)
@@ -101,7 +114,7 @@ module OmfRc::Util::PlatformTools
       next false
     end
 
-   eTagFile = "#{file}.etag"
+    eTagFile = "#{file}.etag"
     download = true
     cmd = ""
     remoteETag = nil
