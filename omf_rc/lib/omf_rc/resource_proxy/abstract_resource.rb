@@ -211,7 +211,7 @@ class OmfRc::ResourceProxy::AbstractResource
       response = Hashie::Mash.new(response)
       case response.operation
       when :create
-        new_uid = response.result
+        new_uid = response.resource_id
         @comm.create_topic(new_uid) do
           @comm.subscribe(new_uid) do
             inform(:created, response)
