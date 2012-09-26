@@ -56,6 +56,16 @@ describe OmfCommon::Message do
       m.resource_id.must_equal 'test'
       m.context_id.must_equal '9012c3bc-68de-459a-ac9f-530cc7168e22'
     end
+
+    it "must be able to pretty print an app_event message" do
+      Message.inform('STATUS') do |m|
+        m.property('status_type', 'APP_EVENT')
+        m.property('event', 'DONE.OK')
+        m.property('app', 'app100')
+        m.property('msg', 'Everything will be OK')
+        m.property('seq', 1)
+      end.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
+    end
   end
 
   describe "must be able to parse a XML element into Message object" do
@@ -93,4 +103,5 @@ describe OmfCommon::Message do
       end
     end
   end
+
 end

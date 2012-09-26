@@ -194,8 +194,15 @@ module OmfCommon
     end
 
     # Iterate each property element
+    #
     def each_property(&block)
       read_element("//property").each { |v| block.call(v) }
+    end
+
+    # Pretty print for application event message
+    #
+    def print_app_event
+      "APP_EVENT (#{read_property(:app)}, ##{read_property(:seq)}, #{read_property(:event)}): #{read_property(:msg)}"
     end
   end
 end
