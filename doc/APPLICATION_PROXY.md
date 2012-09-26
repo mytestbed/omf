@@ -1,0 +1,275 @@
+# How to use the Generic Application Proxy
+
+## Before we could start
+
+Read the [Resource Proxy tutorial](https://github.com/mytestbed/omf/blob/master/doc/RESOURCE_PROXY.md), and set up a testing environment as explained in the first section of that previous tutorial.
+
+## Objectives
+
+OMF6 comes with some bundled Resource Proxies, one of them is the Generic Application Proxy. This proxy allows you to interact with an application X which you have specifically defined. For example, through this proxy you can declare the parameters that the application X supports, you can configure the values of this parameters, you can start/pause/stop application X, you can request its installation, etc...
+
+This tutorial provides a simple example on how to use this Generic Application Proxy to interact with the ping application, and further describes all the different properties that you can configure for such a Generic Application.
+
+### Files
+
+These are the two files used for this example:
+
+* [Application controller](https://github.com/mytestbed/omf/blob/master/doc/application_controller.rb)
+* [Engine test controller](https://github.com/mytestbed/omf/blob/master/doc/application_tester.rb)
+
+## Quick Start - simple example
+
+### Resource controller
+
+Firstly, we need a resource controller which will create an instance of a generic application proxy. In a typical use case, this resource controller may run on a remote machine where you would like to configure and run your application.
+
+This resource controller is essentially similar to the one used in the [Resource Proxy tutorial](https://github.com/mytestbed/omf/blob/master/doc/RESOURCE_PROXY.md). It has the following code, which you may save as application_controller.rb
+
+    #!/usr/bin/env ruby
+
+    require 'omf_rc'
+    require 'omf_rc/resource_factory'
+    require 'omf_rc/resource_proxy/generic_application.rb'
+    $stdout.sync = true
+
+    options = {
+      user: 'app_proxy_test',
+      password: '123',
+      server: 'localhost', # Pubsub server domain
+      uid: 'app_test', # Id of the resource
+    }
+
+    EM.run do
+      # Use resource factory method to initialise a new instance of the resource
+      my_application = OmfRc::ResourceFactory.new(:generic_application, options)
+      # Make the resource connect to the Pubsub server
+      my_application.connect
+
+      # Disconnect the resource from Pubsub server, when these two signals received
+      trap(:INT) { my_application.disconnect }
+      trap(:TERM) { my_application.disconnect }
+    end
+
+Once you run the above controller code, you should see something similar to:
+    [2012-09-01 16:04:48] INFO  CONNECTED: app_proxy_test@localhost/e5c4d731
+
+
+### Interacting with the Generic Application Proxy
+
+In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the [Resource Proxy tutorial](https://github.com/mytestbed/omf/blob/master/doc/RESOURCE_PROXY.md).
+
+In the following simple tester script, we set the Generic Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, we update the values of some parameters, and finally ask the proxy to re-start the application.
+
+You may save the following tester code as application_tester.rb. 
+
+    #!/usr/bin/env ruby
+
+    require 'omf_common'
+    $stdout.sync = true
+
+    include OmfCommon
+
+    options = {
+      user: 'app_proxy_tester',
+      password: '123',
+      server: 'localhost', # Pubsub pubsub server domain
+      uid: 'app_test' # Name of the application resource (see applicaiton_controller.rb)
+    }
+
+    app_id = options[:uid]
+
+    comm = Comm.new(:xmpp)
+
+    # Ask our communicator to give us the topic to which the Generic Application
+    # Proxy is subscribed
+    app_topic = comm.get_topic(app_id)
+
+    # For any 'inform' message posted on that topic...
+    # if it is an event from the application, log it as information
+    # if it is an error/warning from the Application Proxy, log it accordingly
+    app_topic.on_message  do |m|
+      if m.operation == :inform
+        case m.read_content("inform_type")
+        when 'STATUS'
+          if m.read_property("status_type") == 'APP_EVENT'
+            logger.info "APP_EVENT #{m.read_property('event')} "+
+            "from app #{m.read_property("app")} - msg: #{m.read_property("msg")}"
+          end
+        when 'ERROR'
+          logger.error m.read_content('reason') if m.read_content("inform_type") == 'ERROR'
+        when 'WARN'
+          logger.warn m.read_content('reason') if m.read_content("inform_type") == 'WARN'
+        end
+      end
+    end
+
+    # Here we construct the different messages that we will publish later when we 
+    # will interact with the Application proxy
+    msgs = {
+      # request the OS platform on which the App Proxy is running
+      req_platform: comm.request_message([:platform]),
+      # configure the 'binary_path' property of the App Proxy
+      conf_path: comm.configure_message([binary_path: "/bin/ping"]),
+      # configure the available parameters for the application handled by the App Proxy
+      conf_parameters: comm.configure_message([parameters: {
+        :timestamp => {:type => 'Boolean', :cmd => '-D', :mandatory => false},
+        :target => {:type => 'String', :cmd => '', :mandatory => true, :default => 'localhost', :order => 2},
+        :count => {:type => 'Numeric', :cmd => '-c', :mandatory => true, :default =>3, :order => 1},
+      }]),
+      # update the value of some parameters
+      update_param: comm.configure_message([parameters: {
+        :target => {:value => 'nicta.com.au'},
+        :timestamp => {:value => true}
+      }]),
+      # ask the App Proxy to run the application
+      run_application: comm.configure_message([state: :run])
+    }
+
+    # Register a block of commands to handle all 'inform' messages
+    # published as replies to our 'req_platform' 
+    msgs[:req_platform].on_inform_status do |m|
+      m.each_property do |p|
+        logger.info "#{p.attr('key')} => #{p.content.strip}"
+      end
+    end
+
+    # Then we can register event handlers to the communicator
+    #
+    # Event triggered when connection is ready
+    comm.when_ready do
+      logger.info "CONNECTED: #{comm.jid.inspect}"
+
+      # We assume that a application resource proxy instance is up already, 
+      # so we subscribe to its pubsub topic
+      app_topic.subscribe do
+        # If subscribed, we start publishing messages some messages
+        # to interact with our Application Proxy
+        msgs[:req_platform].publish app_topic.id
+        sleep 1
+        msgs[:conf_path].publish app_topic.id
+        sleep 1
+        msgs[:conf_parameters].publish app_topic.id
+        sleep 1
+        msgs[:run_application].publish app_topic.id
+        sleep 2
+        msgs[:update_param].publish app_topic.id
+        sleep 1
+        msgs[:run_application].publish app_topic.id
+        sleep 2
+      end
+    end
+
+    EM.run do
+      comm.connect(options[:user], options[:password], options[:server])
+      trap(:INT) { comm.disconnect }
+      trap(:TERM) { comm.disconnect }
+    end
+
+
+Once you run the above controller code, you should see something similar to:
+    [2012-09-01 16:04:55] INFO  CONNECTED: app_proxy_tester@localhost/15edc88e
+    [2012-09-01 16:04:55] INFO  platform => ubuntu
+
+    [2012-09-01 16:04:58] INFO  APP_EVENT STARTED from app app_test - msg: env -i /bin/ping -c 3  localhost
+    [2012-09-01 16:04:58] INFO  APP_EVENT STDOUT from app app_test - msg: PING localhost (127.0.0.1) 56(84) bytes of data.
+    [2012-09-01 16:04:58] INFO  APP_EVENT STDOUT from app app_test - msg: 64 bytes from localhost (127.0.0.1): icmp_req=1 ttl=64 time=0.068 ms
+    [2012-09-01 16:04:59] INFO  APP_EVENT STDOUT from app app_test - msg: 64 bytes from localhost (127.0.0.1): icmp_req=2 ttl=64 time=0.057 ms
+    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg: 64 bytes from localhost (127.0.0.1): icmp_req=3 ttl=64 time=0.057 ms
+    [2012-09-01 16:05:00] INFO  APP_EVENT DONE.OK from app app_test - msg: status: pid 1153 exit 0
+    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg:
+    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg: --- localhost ping statistics ---
+    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg: 3 packets transmitted, 3 received, 0% packet loss, time 1998ms
+    [2012-09-01 16:05:01] INFO  APP_EVENT STDOUT from app app_test - msg: rtt min/avg/max/mdev = 0.057/0.060/0.068/0.010 ms
+
+    [2012-09-01 16:05:01] INFO  APP_EVENT STARTED from app app_test - msg: env -i /bin/ping -c 3  nicta.com.au -D
+    [2012-09-01 16:05:01] INFO  APP_EVENT STDOUT from app app_test - msg: PING nicta.com.au (221.199.217.18) 56(84) bytes of data.
+    [2012-09-01 16:05:01] INFO  APP_EVENT STDOUT from app app_test - msg: [1348639501.936964] 64 bytes from nicta.com.au (221.199.217.18): icmp_req=1 ttl=63 time=0.150 ms
+    [2012-09-01 16:05:02] INFO  APP_EVENT STDOUT from app app_test - msg: [1348639502.936231] 64 bytes from nicta.com.au (221.199.217.18): icmp_req=2 ttl=63 time=0.149 ms
+    [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg: [1348639503.936268] 64 bytes from nicta.com.au (221.199.217.18): icmp_req=3 ttl=63 time=0.154 ms
+    [2012-09-01 16:05:03] INFO  APP_EVENT DONE.OK from app app_test - msg: status: pid 1166 exit 0
+    [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg:
+    [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg: --- nicta.com.au ping statistics ---
+    [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: 3 packets transmitted, 3 received, 0% packet loss, time 1999ms
+    [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: rtt min/avg/max/mdev = 0.149/0.151/0.154/0.002 ms
+## Generic Application Proxy - References
+
+In addition to the binary_path, parameters, state properties which we configured in the previous simple example, the Generic Application proxy as more properties which you can set/query, and which are described below.
+
+### General Properties
+
+- binary_path (String) the path to the binary of this app
+- pkg_tarball (String) the URI of the installation tarball of this app 
+- pkg_ubuntu (String) the name of the Ubuntu package for this app
+- pkg_fedora (String) the name of the Fedora package for this app
+- installed (Boolean) is this application installed? (default = false)
+- force_tarball_install (Boolean) if true then force the installation from tarball even if other distribution-specific installation are available (default = false)
+- map_err_to_out (Boolean) if true then map StdErr to StdOut for this app (default = false)
+- platform (Symbol) the OS platform where this app is running, the proxy currently auto-detect the ubuntu and fedora OS (:ubuntu, :fedora, :unknown)
+
+
+### State Property
+- state (String) the state of this Application Proxy (stop, run, pause, install)
+
+About the proxy's state:
+
+- when the proxy is first launched, its default state is 'stop' 
+- from the 'stop' state, it can go to either the 'run' or 'install' states
+- from the 'run' state it can go to either the 'stop' or 'pause' states
+- from the 'pause' state it can go to either the 'stop' or 'run' states
+- from the 'install' state it can go to only the 'stop' state
+
+When entering the 'run' state, the proxy will launch the defined application with the environments and parameters which are described further down. The application will run until it finishes on its own will, or until the proxy enters the 'stop' state.
+
+When entering the 'stop' state, and if the application is running, the proxy will attempt to cleanly shut down the application. First, it will write the string 'EXIT' to the application's standard-input. If the application is still running 4s after this, the proxy will send the SIGTERM signal to it. Finally, if the application is still running 4s later, the proxy will send the SIGKILL signal to it.
+
+When entering the 'pause' state, the generic proxy will do nothing. It is up to other specific proxy to implement some tasks to perform there.
+
+When entering the 'install' state, and if the property 'installed' is false, the proxy will attempt to install the application using the following steps. Once these steps are completed, the proxy will enter the 'stop' state.
+
+- first if the force_tarball_install and pkg_tarball properties are set, the proxy will download the tarball at the given URI and extract it at the root directory '/'
+- otherwise the proxy will try to detect which OS platform it is running on
+- if it detects an ubuntu OS and if pkg_ubuntu is set, it will use 'apt-get' to attempt the package installation
+- if it detects a fedora OS and if pkg_fedora is set, it will use 'yum' to attempt the package installation
+- if it cannot detect the OS and if pkg_tarball is set, it will download the tarball and extract it at the root directory '/'
+
+### Parameter Properties
+
+- parameters (Hash) the command line parameters available for this app. 
+
+This hash is of the form: { :param1 => attribut1, ... } with param1 being the id of this parameter for this Proxy and with attribut1 being another Hash with the following possible keys and values (all are optional):
+     :cmd (String) the command line for this parameter 
+     :order (Fixnum) the appearance order on the command line, default FIFO 
+     :dynamic (Boolean) parameter can be dynammically changed, default false
+     :type (Numeric|String|Boolean) this parameter's type
+     :default value given by default to this parameter 
+     :value value to set for this parameter
+     :mandatory (Boolean) this parameter is mandatory, default false
+
+Two examples of valid parameters definition are:
+
+    { :host => {:default => 'localhost', :type => 'String', 
+             :mandatory => true, :order => 2},
+      :port => {:default => 5000, :type => 'Numeric', :cmd => '-p', 
+             :mandatory => true, :order => 1}, 
+      :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size', 
+             :mandatory => true, :dynamic => true}
+      :title => {:type => 'String', :mandatory => false} 
+    }
+ 
+and
+
+    { :title => {:value => "My First Application"} }   
+
+ 
+### Environment Properties
+
+- environment (Hash) the environment variables to set prior to starting this app
+
+The following Hash:
+
+    { :foo => "Hello", :bar_bar => 123 }  
+ 
+will result in following environment variables being set before the application is started:
+
+    FOO="Hello"
+    BAR_BAR=123
