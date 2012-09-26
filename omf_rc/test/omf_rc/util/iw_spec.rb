@@ -1,5 +1,6 @@
 require 'minitest/mock'
 require 'test_helper'
+require 'cocaine'
 
 @command = MiniTest::Mock.new
 
