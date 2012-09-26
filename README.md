@@ -1,4 +1,3 @@
-#alice
 # OMF
 
 [![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
