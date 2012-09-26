@@ -7,9 +7,9 @@ class YardExtension < YARD::Handlers::Ruby::Base
 
   def process
     name = statement.parameters.first.jump(:tstring_content, :ident).source
-    case statement.method_name.source
+    case statement.method_name.source.to_sym
     when :hook, :work
-      object = YARD::CodeObjects::MethodObject.new(namespace, "[#{statement.method_name.source}] #{name}")
+      object = YARD::CodeObjects::MethodObject.new(namespace, "#{name}")
     when :configure, :request
       object = YARD::CodeObjects::MethodObject.new(namespace, "#{statement.method_name.source}_#{name}")
     end

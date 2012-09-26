@@ -197,5 +197,83 @@ module OmfRc::ResourceProxyDSL
         register_block.call(self, *args, block) if register_block
       end
     end
+
+    # Extend existing hook definition by alias existing method name as "orig_#{method_name}"
+    #
+    # @param [#to_s] hook_name name of existing hook
+    # @example extend a hook definition
+    #
+    #   # suppose existing hook defined as this:
+    #   hook :before_ready do |resource|
+    #     logger.info "I am ready"
+    #   end
+    #
+    #   # now in a new proxy where we want to extend this hook, add more functionality:
+    #
+    #   extend_hook :before_ready
+    #
+    #   hook :before_ready do |resource|
+    #     resource.orig_before_ready
+    #
+    #     logger.info "Now I am really ready"
+    #   end
+    #
+    #   # if we simply want to overwrite the existing hook, just define the same hook without using extend_hook
+    #
+    #   hook :before_ready do |resource|
+    #     logger.info "Not sure if I am ready or not"
+    #   end
+    #
+    def extend_hook(hook_name)
+      hook_name = hook_name.to_s
+      alias_method "orig_#{hook_name}", hook_name
+    end
+
+    # Extend existing work definition by alias existing method name as "orig_#{method_name}"
+    #
+    # @see #extend_hook
+    #
+    def extend_work(work_name)
+      work_name = work_name.to_s
+      alias_method "orig_#{work_name}", work_name
+    end
+
+    # Extend existing configure definition
+    #
+    # @param [#to_s] configure_name name of existing configurable property
+    #
+    # Slightly different to extend_hook, the actual method_name defined by a configure property is "configure_#{configurable_property_name}"
+    #
+    # @example to extend a configurable property
+    #
+    #   configure :bob do |resource, value|
+    #     resource.property.bob = value
+    #   end
+    #
+    #   # To extend this, simply do
+    #
+    #   extend_configure :bob
+    #
+    #   configure :bob do |resource, value|
+    #     resource.orig_configure_bob(value)
+    #     resource.property.bob = "New value: #{value}"
+    #   end
+    #
+    # @see #extend_hook
+    #
+    def extend_configure(configure_name)
+      configure_name = configure_name.to_s
+      alias_method "orig_configure_#{configure_name}", "configure_#{configure_name}"
+    end
+
+    # Extend existing request definition
+    #
+    # @see #extend_hook
+    # @see #extend_configure
+    def extend_request(request_name)
+      request_name = request_name.to_s
+      alias_method "orig_request_#{request_name}", "request_#{request_name}"
+    end
+
   end
 end
