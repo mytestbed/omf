@@ -20,7 +20,9 @@ Please visit our official website [mytestbed.net](https://www.mytestbed.net) for
 
 ## Documentation
 
-http://rubydoc.info/github/mytestbed/omf
+Official source code documentation can be found here.
+
+http://mytestbed.net/doc/omf/
 
 ## OMF 6 design documentation
 
@@ -70,7 +72,7 @@ When a new instance of resource proxy is being created, such mixin modules can b
 
 This little tutorial will give a brief example on how to implement the resource proxy definitions.
 
-[Example: implement your own resource proxy files](http://rubydoc.info/github/mytestbed/omf/file/doc/RESOURCE_PROXY.md)
+[Example: implement your own resource proxy files](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html)
 
 If you would like to extend or improve OMF, simply [fork our project](https://github.com/mytestbed/omf/fork_select) via github, and send us pull requests whenever you are ready. There is a great guide [here](http://help.github.com/fork-a-repo/) regarding forking a repo on github.
 
