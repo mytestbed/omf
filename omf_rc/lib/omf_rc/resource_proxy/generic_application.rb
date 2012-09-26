@@ -21,55 +21,56 @@
 
 #
 # This module defines a Resource Proxy (RP) for a Generic Application
+#
 # Utility dependencies: platform_toos, common_tools
 #
 # This Generic Application Proxy has the following properties:
 #
-# @param [String] binary_path the path to the binary of this app
-# @param [String] pkg_tarball the URI of the installation tarball of this app 
-# @param [String] pkg_ubuntu the name of the Ubuntu package for this app
-# @param [String] pkg_fedora the name of the Fedora package for this app
-# @param [String] state the state of this Application RP 
-#                 (stop, start, pause, install)
-# @param [Boolean] installed is this application installed? (true/false)
-# @param [Boolean] force_tarball_install if true then force the installation 
-#                  from tarball even if other distribution-specific 
-#                  installation are available (default = false)
-# @param [Boolean] map_err_to_out if true then map StdErr to StdOut for this 
-#                  app (default = false)
-# @param [Symbol] platform the OS platform where this app is running
-# @param [Hash] environment the environment variables to set prior to starting 
-#               this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
-#               (with k1 being either a String or a Symbol)
+# - binary_path (String) the path to the binary of this app
+# - pkg_tarball (String) the URI of the installation tarball of this app 
+# - pkg_ubuntu (String) the name of the Ubuntu package for this app
+# - pkg_fedora (String) the name of the Fedora package for this app
+# - state (String) the state of this Application RP 
+#     (stop, run, pause, install)
+# - installed (Boolean) is this application installed? (default false)
+# - force_tarball_install (Boolean) if true then force the installation 
+#     from tarball even if other distribution-specific 
+#     installation are available (default false)
+# - map_err_to_out (Boolean) if true then map StdErr to StdOut for this 
+#     app (default false)
+# - platform (Symbol) the OS platform where this app is running
 #
-# @param [Hash] parameters the command line parameters available for this app.
-#               This hash is of the form: { :param1 => attribut1, ... }
-#               with param1 being the id of this parameter for this Proxy and
-#               with attribut1 being another Hash with the following possible
-#               keys and values (all are optional):
-#               :cmd [String] the command line for this parameter 
-#               :order [Fixnum] the appearance order on the command line,
-#                               default is FIFO 
-#               :dynamic [Boolean] this parameter can be dynammically changed,
-#                                  default false
-#               :type [Numeric|String|Boolean] this parameter's type
-#               :default value given by default to this parameter 
-#               :value value to set for this parameter
-#               :mandatory [Boolean] this parameter is mandatory, default false
+# - environment (Hash) the environment variables to set prior to starting 
+#     this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
+#     (with k1 being either a String or a Symbol)
+#
+# - parameters (Hash) the command line parameters available for this app.
+#     This hash is of the form: { :param1 => attribut1, ... }
+#     with param1 being the id of this parameter for this Proxy and
+#     with attribut1 being another Hash with the following possible
+#     keys and values (all are optional):
+#     :cmd (String) the command line for this parameter 
+#     :order (Fixnum) the appearance order on the command line, default FIFO 
+#     :dynamic (Boolean) parameter can be dynammically changed, default false
+#     :type (Numeric|String|Boolean) this parameter's type
+#     :default value given by default to this parameter 
+#     :value value to set for this parameter
+#     :mandatory (Boolean) this parameter is mandatory, default false
 #
 # Two examples of valid parameters definition are:
 #
-# { :host => {:default => 'localhost', :type => 'String', 
+#     { :host => {:default => 'localhost', :type => 'String', 
 #             :mandatory => true, :order => 2},
-#   :port => {:default => 5000, :type => 'Numeric', :cmd => '-p', 
+#       :port => {:default => 5000, :type => 'Numeric', :cmd => '-p', 
 #             :mandatory => true, :order => 1}, 
-#   :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size', 
+#       :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size', 
 #             :mandatory => true, :dynamic => true}
-#   :title => {:type => 'String', :mandatory => false} }
+#       :title => {:type => 'String', :mandatory => false} 
+#     }
 # 
 # and
 #
-# { :title => {:value => "My First Application"} }                   
+#     { :title => {:value => "My First Application"} }                   
 #
 module OmfRc::ResourceProxy::GenericApplication
   include OmfRc::ResourceProxyDSL 
