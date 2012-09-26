@@ -198,7 +198,7 @@ module OmfRc::ResourceProxyDSL
       end
     end
 
-    # Extend existing hook definition by alias existing method name as "orig_#{method_name}"
+    # Extend existing hook definition by alias existing method name as "orig_[method_name]"
     #
     # @param [#to_s] hook_name name of existing hook
     # @example extend a hook definition
@@ -229,7 +229,7 @@ module OmfRc::ResourceProxyDSL
       alias_method "orig_#{hook_name}", hook_name
     end
 
-    # Extend existing work definition by alias existing method name as "orig_#{method_name}"
+    # Extend existing work definition by alias existing method name as "orig_[method_name]"
     #
     # @see #extend_hook
     #
@@ -242,7 +242,7 @@ module OmfRc::ResourceProxyDSL
     #
     # @param [#to_s] configure_name name of existing configurable property
     #
-    # Slightly different to extend_hook, the actual method_name defined by a configure property is "configure_#{configurable_property_name}"
+    # Slightly different to extend_hook, the actual method_name defined by a configure property is "configure_[configurable_property_name]"
     #
     # @example to extend a configurable property
     #

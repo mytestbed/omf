@@ -158,7 +158,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Publish an inform message
   # @param [Symbol] inform_type the type of inform message
-  # @param [Hash|Hashie::Mash|Exception|String] inform_type the type of inform message
+  # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
   def inform(inform_type, inform_data)
     inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
 

@@ -10,6 +10,7 @@ require "omf_common/topic_message"
 require "omf_common/core_ext/string"
 require "omf_common/core_ext/object"
 
+# Use global default logger from logging gem
 include Logging.globally
 
 Logging.appenders.stdout('stdout',

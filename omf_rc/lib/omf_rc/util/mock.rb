@@ -5,7 +5,8 @@ module OmfRc::Util::Mock
     resource.uid
   end
 
-  configure :nothing
+  configure :nothing do
+  end
 
   configure :hrn do |resource, hrn|
     resource.hrn = hrn
