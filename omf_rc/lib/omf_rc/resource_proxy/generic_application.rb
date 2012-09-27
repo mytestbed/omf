@@ -458,7 +458,10 @@ module OmfRc::ResourceProxy::GenericApplication
           cmd_line += "#{att[:cmd]} " if val == true 
         else
           # for all other type of param, we print "cmd value"
-          cmd_line += "#{att[:cmd]} #{val} "
+          # with a user-provided prefix/suffix if defined
+          cmd_line += "#{att[:cmd]} "
+          cmd_line += att[:prefix].nil? ? "#{val}" : "#{att[:prefix]}#{val}"
+          cmd_line += att[:suffix].nil? ? " " : "#{att[:suffix]} "
         end
       end
     end
