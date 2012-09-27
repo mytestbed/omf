@@ -284,9 +284,16 @@ class OmfRc::ResourceProxy::AbstractResource
           raise "Unknown OMF operation #{message.operation}"
         end
       rescue => e
-        logger.error e.message
-        logger.error e.backtrace.join("\n")
-        raise OmfRc::MessageProcessError.new(context_id, obj.uid, e.message)
+        if (e.kind_of? NoMethodError) && (message.operation == :configure || message.operation == :request)
+          msg = "Cannot #{message.operation} unknown property "+
+            "'#{message.read_element("//property")}' for resource '#{type}'"
+          logger.warn msg
+          raise OmfRc::MessageProcessError.new(context_id, obj.uid, msg)
+        else
+          logger.error e.message
+          logger.error e.backtrace.join("\n")
+          raise OmfRc::MessageProcessError.new(context_id, obj.uid, e.message)
+        end
       end
     end
   end
