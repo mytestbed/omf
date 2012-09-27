@@ -14,6 +14,9 @@ module OmfRc::ResourceProxyDSL
     # Register a named proxy entry with factory class, normally this should be done in the proxy module
     #
     # @param [Symbol] name of the resource proxy
+    # @param [Hash] opts options to be passed to proxy registration
+    # @option opts [String, Array] :create_by resource can only be created by these resources.
+    #
     # @example suppose we define a module for wifi
     #
     #   module OmfRc::ResourceProxy::Wifi
@@ -21,11 +24,17 @@ module OmfRc::ResourceProxyDSL
     #
     #     # Let the factory know it is available
     #     register_proxy :wifi
+    #
+    #     # or use option :create_by
+    #     register_proxy :wifi, :create_by => :node
     #   end
     #
-    def register_proxy(name)
+    def register_proxy(name, opts = {})
       name = name.to_sym
-      OmfRc::ResourceFactory.register_proxy(name)
+      if opts[:create_by] && !opts[:create_by].kind_of?(Array)
+        opts[:create_by] = [opts[:create_by]]
+      end
+      OmfRc::ResourceFactory.register_proxy(name => opts)
     end
 
     # Register some hooks which can be called at certain stage of the operation

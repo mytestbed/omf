@@ -99,6 +99,11 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @param (see #initialize)
   def create(type, opts = nil)
+    proxy_info = OmfRc::ResourceFactory.proxy_list[type]
+    if proxy_info && proxy_info.create_by && !proxy_info.create_by.include?(self.type.to_sym)
+      raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
+    end
+
     before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, @comm)
     after_create(new_resource) if respond_to? :after_create

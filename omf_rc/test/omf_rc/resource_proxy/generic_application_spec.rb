@@ -55,7 +55,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
       test_params = { :p1 => { :cmd => '--foo', :value => 'foo'} }
       @app_test.method(:configure_parameters).call(test_params)
       # Then give it a couple of invalid ones, which it should ignore
-      @app_test.stub :log_inform_error, nil do      
+      @app_test.stub :log_inform_error, nil do
         @app_test.method(:configure_parameters).call(nil)
        @app_test.method(:configure_parameters).call( { :p1 => nil } )
      end
@@ -129,7 +129,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
       new_params = { :p1 => { :type => 'String', :value => true},
                      :p2 => { :type => 'Numeric', :default => 456, :value => '456' },
                      :p3 => { :type => 'Boolean', :default => 123, :value => false} }
-      @app_test.stub :log_inform_error, nil do      
+      @app_test.stub :log_inform_error, nil do
         @app_test.method(:configure_parameters).call(new_params)
       end
       @app_test.property.parameters[:p1][:value].must_equal 'foo'
@@ -203,7 +203,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
         @did_call_install_tarball = true
       end
       def call_configure
-        @app_test.stub :install_tarball, @stub_tarball_tasks do      
+        @app_test.stub :install_tarball, @stub_tarball_tasks do
           @app_test.method(:configure_state).call(:install).must_equal :install
           @did_call_install_tarball.must_equal true
         end
@@ -233,7 +233,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
         pkg.must_equal 'foo'
         @did_call_install_ubuntu = true
       end
-      @app_test.stub :install_ubuntu, @stub_ubuntu_tasks do      
+      @app_test.stub :install_ubuntu, @stub_ubuntu_tasks do
         @app_test.method(:configure_state).call(:install).must_equal :install
         @did_call_install_ubuntu.must_equal true
       end
@@ -249,7 +249,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
         pkg.must_equal 'foo'
         @did_call_install_fedora = true
       end
-      @app_test.stub :install_fedora, @stub_fedora_tasks do      
+      @app_test.stub :install_fedora, @stub_fedora_tasks do
         @app_test.method(:configure_state).call(:install).must_equal :install
         @did_call_install_fedora.must_equal true
       end
@@ -274,7 +274,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.method(:configure_state).call(:run)
       @app_test.property.state.must_equal :stop
     end
-    
+
     it "must start an app using ExecApp and a correct command line if its original state is :stop" do
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map)

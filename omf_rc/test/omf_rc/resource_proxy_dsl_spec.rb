@@ -25,10 +25,16 @@ describe OmfRc::ResourceProxyDSL do
       end
     end
 
+    module OmfRc::ResourceProxy::MockRootProxy
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :mock_root_proxy
+    end
+
     module OmfRc::ResourceProxy::MockProxy
       include OmfRc::ResourceProxyDSL
 
-      register_proxy :mock_proxy
+      register_proxy :mock_proxy, :create_by => :mock_root_proxy
 
       utility :mock_utility
 
@@ -44,6 +50,12 @@ describe OmfRc::ResourceProxyDSL do
       request :delta do
         bravo("printing")
       end
+    end
+
+    module OmfRc::ResourceProxy::UselessProxy
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :useless_proxy
     end
   end
 
@@ -87,6 +99,12 @@ describe OmfRc::ResourceProxyDSL do
           utility :wont_be_found_utility
         end
       end
+    end
+
+    it "must check new proxy's create_by option when ask a proxy create a new proxy" do
+      OmfRc::ResourceFactory.new(:mock_root_proxy).create(:mock_proxy)
+      OmfRc::ResourceFactory.new(:mock_root_proxy).create(:useless_proxy)
+      lambda { OmfRc::ResourceFactory.new(:useless_proxy).create(:mock_proxy) }.must_raise StandardError
     end
   end
 end

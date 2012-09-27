@@ -7,7 +7,7 @@ require 'omf_rc/resource_proxy/abstract_resource'
 #
 class OmfRc::ResourceFactory
   # List of registered resource proxies
-  @@proxy_list = []
+  @@proxy_list = Hashie::Mash.new
 
   # By default, we use xmpp dsl, which based on blather
   DEFAULT_OPTS = {
@@ -21,7 +21,9 @@ class OmfRc::ResourceFactory
     #
     # @see OmfRc::ResourceProxy::AbstractResource
     def new(type, opts = nil, comm = nil, &block)
-      raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
+      unless @@proxy_list.include?(type)
+        raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
+      end
       type = type.to_s
       opts = opts ? DEFAULT_OPTS.merge(opts) : DEFAULT_OPTS
       # Create a new instance of abstract resource
@@ -39,8 +41,12 @@ class OmfRc::ResourceFactory
     end
 
     # Add a proxy to the list
-    def register_proxy(proxy)
-      @@proxy_list << proxy unless @@proxy_list.include?(proxy)
+    def register_proxy(proxy_opts)
+      if @@proxy_list.has_key? proxy_opts[:name]
+        raise StandardError, "Resource has been registered already"
+      else
+        @@proxy_list.update(proxy_opts)
+      end
     end
 
     # Require files from default resource proxy library folder
