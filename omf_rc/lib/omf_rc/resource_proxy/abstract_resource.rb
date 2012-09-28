@@ -137,12 +137,12 @@ class OmfRc::ResourceProxy::AbstractResource
   end
 
   # Make uid accessible through pubsub interface
-  def request_uid
+  def request_uid(*args)
     uid
   end
 
   # Make hrn accessible through pubsub interface
-  def request_hrn
+  def request_hrn(*args)
     hrn
   end
 
@@ -153,7 +153,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Request child resources
   # @return [Mash] child resource mash with uid and hrn
-  def request_child_resources
+  def request_child_resources(*args)
     Hashie::Mash.new.tap do |mash|
       children.each do |c|
         mash[c.uid] ||= c.hrn
