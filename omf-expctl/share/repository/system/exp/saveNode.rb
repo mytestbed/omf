@@ -38,6 +38,14 @@ defProperty('node', 'omf.nicta.node1', "Node to save image of")
 defProperty('pxe', '1.1.6', "PXE version to use")
 defProperty('domain', "#{OConfig.domain}", "Domain of the node to save")
 defProperty('started', 'false', "internal flag")
+defProperty('image', nil, "image file name")
+defProperty('resize', nil, "resize the primary partition to 'resize' GB or \
+resize and leave 'resize' percent free disk space")
+
+warn "Saving only works for ext2/ext3 partitions and MBR (msdos) partition tables. \
+Saving any other filesystem or partition table type will produce a 0 byte image."
+warn "Resizing the first partition will DELETE ALL OTHER PARTITIONS on your node. \
+Press CTRL-C now if you don't want this." if !prop.resize.value.nil?
 
 OMF::Services.pxe.setBootImageNS(:ns => "#{prop.node.value}", :domain => "#{prop.domain.value}")
 
@@ -99,6 +107,6 @@ onEvent(:EXPERIMENT_FAILED) {
 onEvent(:ALL_UP) {
   clearPXE
   group('save').each { |n|
-    n.saveImage
+    n.saveImage(prop.image.value, prop.resize.value)
   }
 }

@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu7) precise; urgency=low
+
+  * added resize option to load and save
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 28 Sep 2012 18:48:00 +1000
+
 omf-resctl-5.4 (5.4.2-ubuntu6) precise; urgency=low
 
   * RC now enrols in any new experiment, even if the current one has not finished (#831)

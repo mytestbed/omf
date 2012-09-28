@@ -40,6 +40,8 @@ defProperty('outpath', "/tmp", "Path where to place the topology files resulting
 defProperty('outprefix', "#{Experiment.ID}", "Prefix to use for the topology files resulting from this image")
 # The following value of 1200sec for timeout is based on trial imaging experiments 
 defProperty('timeout', 1200, "Stop the imaging process <timeout> sec after the last node has powered up")
+defProperty('resize', nil, "resize the primary partition to 'resize' GB or \
+resize and leave 'resize' percent free disk space")
 
 # Define some constants
 MSG_CHECKINFAILED = <<TEXT
@@ -234,7 +236,7 @@ onEvent(:ALL_UP) {
     nodeCount += 1
   }
   if (nodeCount != 0)
-    group('image').loadImage(Experiment.property('image'), "#{prop.domain.value}")
+    group('image').loadImage(prop.image.value, prop.resize.value, prop.domain.value)
   end
 }
 

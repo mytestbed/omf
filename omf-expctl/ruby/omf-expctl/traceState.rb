@@ -239,7 +239,7 @@ class TraceState < MObject
   # - image = the name for the loaded disk image
   # - opts = options for this disk image loading
   #
-  def self.nodeLoadImage(node, image, opts)
+  def self.nodeLoadImage(node, image, resize, opts)
     procEl = self.instance.getNodeComponent(node, 'apps', 'apps')
     appEl = ImageNodeApp.new(opts, self, procEl)
     appEl.setStatus('ISSUED')

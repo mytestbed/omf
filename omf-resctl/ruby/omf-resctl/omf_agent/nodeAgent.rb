@@ -61,7 +61,7 @@ class NodeAgent < MObject
   @@instance = nil
 
   attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport, 
-    :motetype, :resizefs, :ar5xxx_driver
+    :motetype, :ar5xxx_driver
 
   attr_accessor :allowDisconnection, :enrolled, :index
 
@@ -381,7 +381,6 @@ class NodeAgent < MObject
     
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
-    @resizefs = @config[:agent][:resizefs] 
     @ar5xxx_driver = @config[:agent][:ar5xxx_driver]
     @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
                    @config[:communicator][:xmpp][:pubsub_gateway]

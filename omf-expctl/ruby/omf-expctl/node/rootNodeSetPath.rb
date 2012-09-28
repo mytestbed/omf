@@ -114,8 +114,8 @@ class RootNodeSetPath < NodeSetPath
   # - image = name of the disk image to load onto the nodes 
   # - domain = name of the domain of the nodes 
   #
-  def loadImage(image, domain)
-    @nodeSet.loadImage(image, domain)
+  def loadImage(image, resize, domain)
+    @nodeSet.loadImage(image, resize, domain)
   end
   
   #

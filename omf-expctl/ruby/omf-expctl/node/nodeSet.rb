@@ -422,7 +422,7 @@ class NodeSet < MObject
   # this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
-  def loadImage(image, domain = nil)
+  def loadImage(image, resize = nil, domain = nil)
     # it would be better if the nodes query the inventory themselves
     # for their default disk
     disks = []
@@ -458,14 +458,15 @@ class NodeSet < MObject
     end
     opts = {:disk => disks[0], :mcAddress => mcAddress, :mcPort => mcPort}
     each { |n|
-      n.loadImage(image, opts)
+      n.loadImage(image, resize, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
     send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
                                                 :address => mcAddress,
                                                 :port => mcPort,
                                                 :disk => disks[0],
-                                                :oml_url => OConfig[:ec_config][:omluri]
+                                                :oml_url => OConfig[:ec_config][:omluri],
+                                                :resize => resize
                                                ))
   end
 

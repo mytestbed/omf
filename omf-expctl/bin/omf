@@ -83,6 +83,9 @@ def parseOptions()
     opts.on( '', '--outprefix PREFIX', "Prefix to use for naming the resulting Topologies" ) do|p|
       @options[:outprefix] = p
     end
+    opts.on( '-r', '--resize SIZE', "Resize the disk image to SIZE GB or leave SIZE % free space" ) do|r|
+      @options[:resize] = r
+    end
   end
 
   begin
@@ -140,6 +143,7 @@ def run(cmd)
           "--timeout '#{@options[:timeout]}'"]
     args << "--outpath '#{@options[:outpath]}'" if @options[:outpath]
     args << "--outprefix '#{@options[:outprefix]}'" if @options[:outprefix]
+    args << "--resize '#{@options[:resize]}'" if @options[:resize]
     if !@options[:aggregate].empty?
       args << "--domain '#{@options[:aggregate]}'"
     end
@@ -152,6 +156,7 @@ def run(cmd)
       exit 1
     end
     args=["-r -S pxe_slice -s system:exp:saveNode", "--", "--node '#{@options[:node]}'"]
+    args << "--resize '#{@options[:resize]}'" if @options[:resize]
     if !@options[:aggregate].empty?
       args << "--domain '#{@options[:aggregate]}'"
     end
@@ -239,6 +244,8 @@ def help(cmd = nil)
     puts "      -o, --timeout TIMEOUT     a duration (in sec.) after which imageNodes should stop waiting for"
     puts "                                nodes that have not finished their image installation"
     puts "                                (default is 800 sec, i.e. 13min 20sec)"
+    puts "      -r, --resize SIZE         Resizes the first partition to SIZE GB or to maximum size if SIZE=0 or"
+    puts "                                leave x percent of free space if SIZE=x%"    
     puts "          --outpath PATH        Path where the resulting Topologies should be saved" 
     puts "                                (default is '/tmp')"
     puts "          --outprefix PREFIX    Prefix to use for naming the resulting Topologies" 
@@ -259,9 +266,11 @@ def help(cmd = nil)
     puts "      #{@this_app} #{cmd} -n NODE [-h] [-c AGGREGATE]"
     puts " "
     puts "      With: "
-    puts "      -h, --help       print this help message"
-    puts "      -n, --node NODE  a valid description of a single node"
-    puts "                       (no default here, you have to enter a node!)"
+    puts "      -h, --help          print this help message"
+    puts "      -n, --node NODE     a valid description of a single node"
+    puts "                          (no default here, you have to enter a node!)"
+    puts "      -r, --resize SIZE   Resizes the first partition to SIZE GB or to maximum size if SIZE=0 or"
+    puts "                          leave x percent of free space if SIZE=x%"        
     puts " "
     puts "      Some Examples: " 
     puts "                    #{@this_app} #{cmd} -n omf.nicta.node1"

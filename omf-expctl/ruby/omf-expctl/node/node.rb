@@ -321,11 +321,7 @@ class OMF::EC::Node < MObject
   # where 'x' and 'y' are the node's coordinate and
   # 'ts' is a time stamp of the form 'YYYY-MM-DD-hh:mm:ss'.
   #
-  # imgName = Name of file which will contain the saved image
-  # imgHost = Name or IP address of host which will contain the saved image
-  # disk = Disk containing the image to save (e.g. '/dev/sda')
-  #
-  def saveImage(imgName = nil, domain = OConfig.domain)
+  def saveImage(imgName = nil, resize = nil)
     
     begin
       disk = OMF::Services.inventory.getDefaultDisk(@nodeID, OConfig.domain).elements[1].text
@@ -354,7 +350,8 @@ class OMF::EC::Node < MObject
                                                 :target => @nodeID,
                                                 :address => imgHost,
                                                 :port => imgPort,
-                                                :disk => disk))
+                                                :disk => disk,
+                                                :resize => resize))
   end
 
   def method_missing(method, *args)
@@ -408,8 +405,8 @@ class OMF::EC::Node < MObject
   # - image = Name of image in repository
   # - opts = Operational parameters used to issue command
   #
-  def loadImage(image, opts) 
-    TraceState.nodeLoadImage(self, image, opts)
+  def loadImage(image, resize, opts) 
+    TraceState.nodeLoadImage(self, image, resize, opts)
   end
 
   #

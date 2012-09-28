@@ -71,8 +71,7 @@ module AgentCommands
     'net/e1' => EthernetDevice.new('net/e1', 'eth1')
   }
   
-  SHRINKPART = "/usr/sbin/shrinkpart-#{OMF_MM_VERSION}.sh"
-  GROWPART = "/usr/sbin/growpart-#{OMF_MM_VERSION}.sh"
+  RESIZE = "/usr/sbin/resize-#{OMF_MM_VERSION}.rb"
 
   # 
   # Return the Application ID for the OML Proxy Collection Server
@@ -491,15 +490,13 @@ module AgentCommands
     mcAddress = command.address
     mcPort = command.port
     disk = command.disk
-
+    resize = command.resize
     MObject.info("AgentCommands", "Image from ", mcAddress, ":", mcPort)
     ip = controller.controlIP
     raise "Could not get the IP address from the control interface. 
       Check the control_if parameter of this RC!" if ip == nil
     cmd = "frisbee -i #{ip} -m #{mcAddress} -p #{mcPort} #{disk}"
-    if controller.resizefs == true
-      cmd = "#{cmd}; #{GROWPART} #{disk}"
-    end
+    cmd = "#{cmd}; #{RESIZE} #{disk} #{resize}" if !resize.nil?
     MObject.debug("AgentCommands", "Frisbee command: ", cmd)
     ExecApp.new('builtin:load_image', controller, cmd, true)
   end
@@ -515,10 +512,9 @@ module AgentCommands
     imgHost = command.address
     imgPort = command.port
     disk = command.disk
+    resize = command.resize
     cmd = "imagezip -z1 #{disk} - | nc -q 0 #{imgHost} #{imgPort}"
-    if controller.resizefs == true
-      cmd = "#{SHRINKPART} #{disk}; #{cmd}; #{GROWPART} #{disk}"
-    end
+    cmd = "#{RESIZE} #{disk} #{resize}; #{cmd}" if !resize.nil?
     MObject.debug("AgentCommands", "Image save command: #{cmd}")
     ExecApp.new('builtin:save_image', controller, cmd, true)
   end
