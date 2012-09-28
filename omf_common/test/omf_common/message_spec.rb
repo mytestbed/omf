@@ -104,4 +104,17 @@ describe OmfCommon::Message do
     end
   end
 
+  describe "when query the message object" do
+    it "must return nil if content of a property is empty string" do
+      xml = Message.request do |m|
+        m.property('type', 'vm')
+        m.property('empty')
+        m.element('empty')
+      end
+
+      xml.read_property('type').must_equal 'vm'
+      xml.read_property('empty').must_equal nil
+      xml.read_content('empty').must_equal nil
+    end
+  end
 end
