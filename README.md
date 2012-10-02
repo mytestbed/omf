@@ -24,17 +24,19 @@ Official source code documentation can be found here.
 
 http://mytestbed.net/doc/omf/
 
-## OMF 6 design documentation
-
-For full documentation regarding the design of OMF version 6, please visit our [official documentation](http://omf.mytestbed.net/projects/omf/wiki/Architectural_Foundation)
+For full documentation regarding the design of OMF version 6, please visit our [design documentation](http://omf.mytestbed.net/projects/omf/wiki/Architectural_Foundation)
 
 ## Installation
 
 In OMF 6, we switched to the GEM system to release packages.
 
-To install OMF RC, simple do (--pre indicates pre-release):
+To install OMF Resource Controller (RC), simple do (--pre indicates pre-release):
 
     gem install omf_rc --pre --no-ri --no-rdoc
+
+For OMF Experiment Controller (EC):
+
+    gem install omf_ec --pre --no-ri --no-rdoc
 
 _We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are dropping support for Ruby 1.8._
 
@@ -55,7 +57,11 @@ _Some components are linked in omf main repository as git submodules, if you wan
     git submodule init
     git submodule update
 
-## Extend OMF resource controller system
+## New messaging protocol
+
+[OMF messaging protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions)
+
+## OMF resource controller system
 
 One of the biggest changes we are trying to make in version 6 resource controller system is to focus on the core features, and instead of trying to implement all the functionalities and hardware support, we want to provide an abstract entity acts as the proxy, processing the resource related messages based on the [new messaging protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions), and decides what type of the actions to perform according to the operation defined by the message and constrained by the proxy's capabilities which could be easily defined and extended by the resource providers.
 
@@ -73,6 +79,8 @@ When a new instance of resource proxy is being created, such mixin modules can b
 This little tutorial will give a brief example on how to implement the resource proxy definitions.
 
 [Example: implement your own resource proxy files](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html)
+
+## Contributing
 
 If you would like to extend or improve OMF, simply [fork our project](https://github.com/mytestbed/omf/fork_select) via github, and send us pull requests whenever you are ready. There is a great guide [here](http://help.github.com/fork-a-repo/) regarding forking a repo on github.
 
@@ -95,17 +103,20 @@ Common library shared among the OMF components
 Gem name: *omf\_rc*
 
 * Resource proxy API for designing resource functionalities.
-* Abstract resource provides common features required for all resources.
+* Abstract resource provides common features shared across all type of resources.
+
+### Experiment Controller
+
+Gem name: *omf\_ec*
+
+* It currently supports using a PubSub oriented API to send & receive OMF messages, controlling resources.
+* Stable release of EC will support existing OEDL syntax.
 
 ### Tools
 
 Gem name: *omf\_tools*
 
 * Some XMPP testing scripts migrated from 5.4 release
-
-### Web
-
-### SFA
 
 ## License & Copyright
 

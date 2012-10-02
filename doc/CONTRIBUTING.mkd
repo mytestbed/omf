@@ -1,0 +1,137 @@
+# Contributing
+
+## Getting the source
+
+From github.com
+
+    git clone https://github.com/mytestbed/omf.git
+
+From mytesbed.net
+
+    git clone git://git.mytestbed.net/omf.git
+
+## Modify the source
+
+Feel free to modify the code, fix a bug, add a feature, correct a typo in documentation, no contribution is too small.
+
+We do have some guidelines, and we do appreciate if you could follow them.
+
+### Readable code
+
+The following ruby coding style will be used: https://github.com/bbatsov/ruby-style-guide
+
+_NO TRAILING WHITE SPACES_
+
+Please make sure your files do not contain trailing white spaces. Most editors and IDEs can be configured to do it automatically.
+
+### Semantic versioning
+
+Choose git tag name according to semantic versioning rules: http://semver.org/
+
+### Useful documentation
+
+Yard is used for auto generating OMF code documentation. Refer to this guide for details: http://yardoc.org/guides/index.html
+
+### Meaningful commit message
+
+Please provide a meaningful commit message for each commit.
+
+The commit message should be formatted properly:
+
+    Capitalized, short (50 chars or less) summary
+
+    More detailed explanatory text, if necessary.
+    In some contexts, the first line is treated as the subject of an email and the rest of the text as the body.
+    The blank line separating the summary from the body is critical (unless you omit the body entirely);
+    tools like rebase can get confused if you run the two together.
+
+You could modify commit message if you realised you made a mistake after committed.
+
+    git commit --amend
+
+### Test your changes
+
+We are using MiniTest as our unit testing framework, and the integration with Travis CI & Jenkins allows these tests & gem package builds to be executed upon every single commit made.
+
+You can examine test folder under components to find out how test files are organised.
+
+You can execute these tests manually by issuing rake command inside components directory. For example:
+
+    cd omf_common; rake
+
+For more information regarding MiniTest, please go to the official site:
+
+https://github.com/seattlerb/minitest
+
+_Eventmachine in minitest_
+
+To test asynchronous eventmachine based code, refer to this minitest pluging:
+
+https://github.com/phiggins/em-minitest-spec
+
+### Sign your commit
+
+You could sign your commit & tag using -s option in git.
+
+    git commit -s
+    git tag -s
+
+## Share your change
+
+Your changes & hacks made locally could be useful for other OMF users and OMF project in general. Please share your changes with us.
+
+## Using git
+
+This git tutorial will give you plenty of tips to get started if you need some help regarding git.
+
+http://schacon.github.com/git/gittutorial.html
+
+## Set up git identity
+
+If you want to contribute your changes to us, please configure your Git environment, with at least your name and a valid email address, so we can properly acknowledge your work when integrating your commits. You can do it with:
+
+    git config --global user.name "your name"
+    git config --global user.email "your email address"
+
+See git config -h for all options.
+
+The @--global@ sets these parameters for all your Git repos. You can limit this to the current repo by removing this option.
+
+These options could also be set up via editing .gitconfig file.
+
+## Announce your changes
+
+When you are satisfied with your changes, you can provide them to us so we can review them and integrate them into the main tree.
+
+Please create an issue in our issue tracking system http://mytestbed.net/projects/omf/issues so it can tracked.
+
+Then you have these options to provide us the access to your changes
+
+* Prepare a git patch and send it to omf-user@lists.nicta.com.au.
+* Prepare a git patch and attach to the issue you created.
+* Send a pull request to omf-user@lists.nicta.com.au
+* Send a email to omf-user@lists.nicta.com.au, or simply in the issue you created, provide how we can access your own repository and pull the commits you made.
+(if you fork OMF via github, your forked repository should be public accessible)
+
+### Patch creation
+
+The first two options need you to create patches from the Git branch containing your changes.
+
+The best way to do this is with [git format-patch(1)](http://schacon.github.com/git/git-format-patch.html) to have export them in a suitable format:
+
+    git format-patch origin/release/2.x..HEAD # Assuming you started working from origin/release/2.x
+
+### Pull request
+
+If your repository is publicly accessible (_e.g._, on a server with anonymous read access or GitHub), you can also send us a pull request. Use "@git request-pull(1)@":http://schacon.github.com/git/git-request-pull.html rather than GitHub's internal system [see 2,3 for reasons]
+
+    git request-pull origin/release/2.x http://url/of/repo # Assuming you started working from origin/release/2.x
+
+## Manage your own repository
+
+* these 3rd party proxy code as separate gems/package
+* 3rd party own and maintain the source code of their contribution
+* we fork their stable version upon their notice that it is ok, and build and ship the gem(s) for OMF, which we host on our repo
+* whenever they inform us of a new stable version, we update our fork
+* if they abandon their contribution, we have the necessary code to take over and still provide it if we want
+
