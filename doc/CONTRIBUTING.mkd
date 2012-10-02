@@ -109,7 +109,7 @@ Then you have these options to provide us the access to your changes
 
 * Prepare a git patch and send it to omf-user@lists.nicta.com.au.
 * Prepare a git patch and attach to the issue you created.
-* Send a pull request to omf-user@lists.nicta.com.au
+* Send a pull request to omf-user@lists.nicta.com.au.
 * Send a email to omf-user@lists.nicta.com.au, or simply in the issue you created, provide how we can access your own repository and pull the commits you made.
 (if you fork OMF via github, your forked repository should be public accessible)
 
@@ -117,21 +117,34 @@ Then you have these options to provide us the access to your changes
 
 The first two options need you to create patches from the Git branch containing your changes.
 
-The best way to do this is with [git format-patch(1)](http://schacon.github.com/git/git-format-patch.html) to have export them in a suitable format:
+The best way to do this is with [git format-patch](http://schacon.github.com/git/git-format-patch.html) to have export them in a suitable format:
 
-    git format-patch origin/release/2.x..HEAD # Assuming you started working from origin/release/2.x
+    git format-patch origin/master..HEAD # Assuming you started working from origin/master
 
 ### Pull request
 
-If your repository is publicly accessible (_e.g._, on a server with anonymous read access or GitHub), you can also send us a pull request. Use "@git request-pull(1)@":http://schacon.github.com/git/git-request-pull.html rather than GitHub's internal system [see 2,3 for reasons]
+If your repository is publicly accessible (_e.g., on a server with anonymous read access or GitHub_), you can also send us a pull request, using [git request-pull](http://schacon.github.com/git/git-request-pull.html).
 
-    git request-pull origin/release/2.x http://url/of/repo # Assuming you started working from origin/release/2.x
+    git request-pull origin/master http://url/of/repo # Assuming you started working from origin/master
 
 ## Manage your own repository
 
-* these 3rd party proxy code as separate gems/package
-* 3rd party own and maintain the source code of their contribution
-* we fork their stable version upon their notice that it is ok, and build and ship the gem(s) for OMF, which we host on our repo
-* whenever they inform us of a new stable version, we update our fork
-* if they abandon their contribution, we have the necessary code to take over and still provide it if we want
+The flexibility of new OMF design means that you could develop your own resource proxy to meet certain specific needs, which might not be needed as part of core OMF system. For example [omf\_rc\_openflow](https://github.com/kohoumas/omf_rc_openflow), a plugin which extends OMF to provide a set of Openflow related functionality, has been set up as a separate git repository, managed by its maintainer, and released regularly via rubygems.
 
+Please consider the following:
+
+* Start such repository only if you think it won't be necessary for OMF core system to include such features.
+* Once your plugin is stable enough, we can include your plugin as part of the official OMF release guide.
+* Follow the same guidelines as modifying OMF code when come to code quality control.
+* If your project seems to be short lived (as part of your study, for example), please notify us for the necessary shift of the ownership, simply, do not throw anything, they might still be useful for the us.
+
+
+### Gem creation and release
+
+If you are not familiar with ruby's package system, this official guide http://guides.rubygems.org/ will certainly help.
+
+We kindly provide a gem skeleton for you to start with:
+
+https://github.com/jackhong/omf
+
+Also, omf\_rc\_openflow gem mentioned earlier will be a good place to visit.

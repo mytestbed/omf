@@ -61,6 +61,12 @@ _Some components are linked in omf main repository as git submodules, if you wan
 
 [OMF messaging protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions)
 
+## Contributing
+
+Contribute to OMF project? Please refer to this document for some notes:
+
+{file:doc/CONTRIBUTING.mkd}
+
 ## OMF resource controller system
 
 One of the biggest changes we are trying to make in version 6 resource controller system is to focus on the core features, and instead of trying to implement all the functionalities and hardware support, we want to provide an abstract entity acts as the proxy, processing the resource related messages based on the [new messaging protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions), and decides what type of the actions to perform according to the operation defined by the message and constrained by the proxy's capabilities which could be easily defined and extended by the resource providers.
@@ -78,11 +84,7 @@ When a new instance of resource proxy is being created, such mixin modules can b
 
 This little tutorial will give a brief example on how to implement the resource proxy definitions.
 
-[Example: implement your own resource proxy files](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html)
-
-## Contributing
-
-If you would like to extend or improve OMF, simply [fork our project](https://github.com/mytestbed/omf/fork_select) via github, and send us pull requests whenever you are ready. There is a great guide [here](http://help.github.com/fork-a-repo/) regarding forking a repo on github.
+{file:doc/RESOURCE\_PROXY.mkd Example: implement your own resource proxy files}
 
 ## Components
 
