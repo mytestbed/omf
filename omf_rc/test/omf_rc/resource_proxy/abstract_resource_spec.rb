@@ -133,7 +133,7 @@ describe AbstractResource do
       @node.request_bob.must_equal "bob"
       @node.configure_bob("not_bob")
       @node.request_bob.must_equal "not_bob"
-      proc { @node.request_bobs_cousin }.must_raise NoMethodError
+      proc { @node.request_bobs_cousin }.must_raise OmfRc::UnknownPropertyError
       proc { @node.bobs_cousin }.must_raise NoMethodError
     end
   end

@@ -3,6 +3,8 @@ module OmfRc::ResourceProxy::Node
 
   register_proxy :node
 
+  utility :mod
+
   request :proxies do
     OmfRc::ResourceFactory.proxy_list
   end
