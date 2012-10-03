@@ -34,7 +34,53 @@ module OmfRc::ResourceProxy::VirtualMachine
   utility :common_tools
 
   hook :before_ready do |res|
-    res.property.foo ||= "foo"
+    res.property.state ||= :unbuild
+    res.property.vm_type ||= "kvm"
+    res.property.vm_os ||= "ubuntu"
+    res.property.vm_os_version ||= "natty"
+    res.property.arch ||= "i386"
+    res.property.hostname ||= "vm-#{Time.now.to_i}"
+    res.property.memory ||= 512
+    res.property.cpus ||= 1
+    res.property.rootsize ||= 20000
+    res.property.user ||= "administrator"
+    res.property.pass ||= "omf"
+    res.property.libvirt ||= "qemu:///system"
+    res.property.overwrite ||= false
+    res.property.ip ||= nil
+    res.property.netmask ||= nil
+    res.property.network ||= nil
+    res.property.broadcast ||= nil
+    res.property.gateway ||= nil
+    res.property.dns ||= nil
+    res.property.bridge ||= nil
+    res.property.ubuntu_mirror ||= "http://au.archive.ubuntu.com/ubuntu/"
+    res.property.ubuntu_variant ||= "minbase"
+    res.property.ubuntu_pkg ||= []
   end
+
+  configure :state do |res, value|
+    case value.to_s.downcase.to_sym
+    when :build then res.switch_to_build
+    when :stop then res.switch_to_stop
+    when :run then res.switch_to_run
+    end
+    res.property.state
+  end
+
+  work('switch_to_build') do |res|
+    unless res.property.state.to_sym == :run
+		end
+	end
+
+  work('switch_to_stop') do |res|
+    if res.property.state.to_sym == :run
+		end
+	end
+
+  work('switch_to_run') do |res|
+    if res.property.state.to_sym == :build
+		end
+	end
 
 end
