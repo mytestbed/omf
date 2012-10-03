@@ -5,8 +5,8 @@
 garage_id = "mclaren"
 garage_topic = @comm.get_topic(garage_id)
 
-garage_topic.on_message proc { |m| m.operation != :inform } do |message|
-  logger.info message
+garage_topic.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' } do |message|
+  logger.error message
 end
 
 msgs = {

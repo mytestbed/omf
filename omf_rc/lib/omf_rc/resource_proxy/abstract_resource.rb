@@ -238,6 +238,11 @@ class OmfRc::ResourceProxy::AbstractResource
     dp.fire do
       begin
         message = OmfCommon::Message.parse(pubsub_item_payload)
+
+        unless message.valid?
+          raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
+        end
+
         # Get the context id, which will be included when informing
         context_id = message.read_content("context_id")
 
