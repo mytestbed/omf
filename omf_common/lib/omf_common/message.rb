@@ -150,7 +150,8 @@ module OmfCommon
     # We just want to know the content of an non-repeatable element
     #
     def read_content(element_name)
-      read_element("//#{element_name}").first.content rescue nil
+      element_content = read_element("//#{element_name}").first.content rescue nil
+      element_content.empty? ? nil : element_content
     end
 
     # Context ID will be requested quite often
@@ -189,7 +190,7 @@ module OmfCommon
         end
         mash
       else
-        node.content.ducktype
+        node.content.empty? ? nil : node.content.ducktype
       end
     end
 

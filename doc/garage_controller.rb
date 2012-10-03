@@ -16,24 +16,9 @@ module OmfRc::ResourceProxy::Garage
 
   register_proxy :garage
 
-  # before_create hook will be called before parent creates the child resource. (in the context of parent resource)
-  #
-  # the optional block will have access to three variables:
-  # * resource: the parent resource itself
-  # * new_resource_type: a string or symbol represents the new resource to be created
-  # * new_resource_options: the options hash to be passed to the new resource
-  #
-  # this hook enable us to do things like:
-  # * validating child resources: e.g. if parent could create this new resource
-  # * setting up default child properties based on parent's property value
-  hook :before_create do |resource, new_resource_type, new_resource_options|
-    if new_resource_type.to_sym == :engine
-      logger.info "Resource type engine is allowed"
-    else
-      raise "Go away, I can't create #{new_resource_type}"
-    end
-    new_resource_options.property ||= Hashie::Mash.new
-    new_resource_options.property.provider = "Cosworth #{resource.uid}"
+  hook :before_create do |resource, new_resource_type, new_resource_opts|
+    new_resource_opts.property ||= Hashie::Mash.new
+    new_resource_opts.property.provider = "Honda #{resource.uid}"
   end
 
   hook :after_create do |resource, new_resource|
@@ -107,6 +92,27 @@ module OmfRc::ResourceProxy::Engine
 
   request :error do |resource|
     raise "You asked for an error, and you got it"
+  end
+end
+
+# We can define a new type of engine, say MP4, which extends some of the original engine methods
+#
+module OmfRc::ResourceProxy::Mp4
+  include OmfRc::ResourceProxy::Engine
+  include OmfRc::ResourceProxyDSL
+
+  register_proxy :mp4
+
+  extend_hook :before_ready
+  extend_request :provider
+
+  hook :before_ready do |resource|
+    resource.orig_before_ready
+    logger.info 'This is new before ready hook'
+  end
+
+  request :provider do |resource, args|
+    "Extended provider method: " + resource.orig_request_provider(args)
   end
 end
 
