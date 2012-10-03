@@ -127,13 +127,7 @@ module OMF::OML
     end
     
     def describe
-      # @schema.collect do |name, type|
-        # if type.kind_of? Class
-          # type = CLASS2TYPE[type] || 'unknown'
-        # end
-        # {:name => name, :type => type}
-      # end
-      @schema
+      @schema.map {|c| {:name => c[:name], :type => c[:type], :title => c[:title] }}
     end
     
     def to_json(*opt)

@@ -534,7 +534,7 @@ class ExperimentProperty < MObject
   def set(value)
     @value = value
     #info(@name, ' = ', value.inspect, '(type:', value.class,')')
-    info('value = ', value.inspect, ' (',value.class,')')
+    info("#{@name} = #{value.inspect} (#{value.class})")
     @changeListeners.each { |l|
       l.call(value)
     }
