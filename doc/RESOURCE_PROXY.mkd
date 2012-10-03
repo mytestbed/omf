@@ -24,7 +24,7 @@ We will build a garage controller (resource controller) acts as the proxy to the
 If you want to dive into the code right now, these are the two annotated files used for this example:
 
 * [Garage controller](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
-* [Engine test controller](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb)
+* [Engine test controller](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb)
 
 ### Resource controller script skeleton
 
@@ -79,7 +79,15 @@ Refer to the [Garage controller](https://github.com/mytestbed/omf/blob/master/do
 
 ### Engine test controller script
 
-Refer to the [Engine test controller](https://github.com/mytestbed/omf/blob/master/doc/test_controller.rb) to see how to control this tutorial using our XMMP communicator.
+Refer to the [Engine test controller](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb) to see how to control this tutorial using our XMMP communicator.
+
+To test this script, make sure you start the garage\_controller first. (You could modify the XMPP setup in the script if necessary)
+
+Then simply download the file, and use the EC script loader to run it.
+
+    omf_pre exec -u charlie -s localhost -p password engine_test.rb
+
+Type omf\_pre to see all the options.
 
 ## Organise resource proxy modules
 
