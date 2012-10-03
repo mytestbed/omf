@@ -123,6 +123,9 @@ module OmfRc::ResourceProxyDSL
 
     # Register a configurable property
     #
+    # Please note that the result of the last line in the configure block will be returned via 'inform' message.
+    # If you want to make sure that user get a proper notification about the configure operation, simply use the last line to return such notification
+    #
     # @param [Symbol] name of the property
     # @yieldparam [AbstractResource] resource pass the current resource object to the block
     # @yieldparam [Object] value pass the value to be configured
@@ -132,25 +135,24 @@ module OmfRc::ResourceProxyDSL
     #     include OmfRc::ResourceProxyDSL
     #
     #     configure :freq do |resource, value|
-    #       Command.execute("iw #{resource.hrn} set freq #{value}")
+    #       `iw #{resource.hrn} set freq #{value}`
+    #       "Frequency set to #{value}"
     #     end
     #
     #     # or use iterator to define multiple properties
     #     %w(freq channel type).each do |p|
     #       configure p do |resource, value|
-    #         Command.execute("iw #{resource.hrn} set freq #{value}")
+    #         `iw #{resource.hrn} set freq #{value}`
     #       end
     #     end
     #
     #     # or we can try to parse iw's help page to extract valid properties and then automatically register them
-    #     Command.execute("iw help").chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
+    #     `iw help`.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
     #       configure p do |resource, value|
-    #         Command.execute("iw #{resource.hrn} set #{p} #{value}")
+    #         `iw #{resource.hrn} set #{p} #{value}`
     #       end
     #     end
     #   end
-    #
-    # @see OmfCommon::Command.execute
     #
     def configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
@@ -168,11 +170,11 @@ module OmfRc::ResourceProxyDSL
     #     include OmfRc::ResourceProxyDSL
     #
     #     request :freq do |resource|
-    #       Command.execute("iw #{resource.hrn} link").match(/^(freq):\W*(.+)$/) && $2
+    #       `iw #{resource.hrn} link`.match(/^(freq):\W*(.+)$/) && $2
     #     end
     #
     #     # or we can grab everything from output of iw link command and return as a hash(mash)
-    #     Command.execute("iw #{resource.hrn} link").chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
+    #     `iw #{resource.hrn} link`.chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
     #       v.match(/^(.+):\W*(.+)$/).tap do |m|
     #         m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
     #       end
@@ -192,7 +194,7 @@ module OmfRc::ResourceProxyDSL
     # @example suppose we define a simple os checking method
     #
     #   work :os do
-    #     Command.execute("uname")
+    #     `uname`
     #   end
     #
     #   # then this os method will be available in all proxy definitions which includes this work method definition.
