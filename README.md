@@ -84,41 +84,7 @@ When a new instance of resource proxy is being created, such mixin modules can b
 
 This little tutorial will give a brief example on how to implement the resource proxy definitions.
 
-{file:doc/RESOURCE\_PROXY.mkd Example: implement your own resource proxy files}
-
-## Components
-
-This indicates the current status of varies OMF components.
-
-### Common
-
-Gem name: *omf\_common*
-
-Common library shared among the OMF components
-
-* PubSub communication, with default XMPP implementation, using Blather gem.
-* OMF message class for authoring and parsing messages based on new OMF messaging protocol.
-* RelaxNG schema for messaging protocol definition and validation.
-
-### Resource Controller
-
-Gem name: *omf\_rc*
-
-* Resource proxy API for designing resource functionalities.
-* Abstract resource provides common features shared across all type of resources.
-
-### Experiment Controller
-
-Gem name: *omf\_ec*
-
-* It currently supports using a PubSub oriented API to send & receive OMF messages, controlling resources.
-* Stable release of EC will support existing OEDL syntax.
-
-### Tools
-
-Gem name: *omf\_tools*
-
-* Some XMPP testing scripts migrated from 5.4 release
+### {file:doc/RESOURCE\_PROXY.mkd Example: implement your own resource proxy files}
 
 ## License & Copyright
 
