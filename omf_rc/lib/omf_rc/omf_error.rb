@@ -9,3 +9,11 @@ class OmfRc::MessageProcessError < StandardError
     super(msg)
   end
 end
+
+# No method error that caused by configure/request unknown property
+#
+class OmfRc::UnknownPropertyError < NoMethodError
+  def initialize(msg = nil)
+    super(msg)
+  end
+end

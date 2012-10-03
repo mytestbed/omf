@@ -1,5 +1,5 @@
 require 'omf_rc/deferred_process'
-require 'omf_rc/message_process_error'
+require 'omf_rc/omf_error'
 require 'securerandom'
 require 'hashie'
 
@@ -64,9 +64,9 @@ class OmfRc::ResourceProxy::AbstractResource
   # If method missing, try the property mash
   def method_missing(method_name, *args)
     if (method_name =~ /request_(.+)/)
-      property.send($1) || super
+      property.send($1) || (raise OmfRc::UnknownPropertyError)
     elsif (method_name =~ /configure_(.+)/)
-      property.send($1) ? property.send("[]=", $1, *args) : super
+      property.send($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError)
     else
       super
     end
@@ -284,7 +284,7 @@ class OmfRc::ResourceProxy::AbstractResource
           raise "Unknown OMF operation #{message.operation}"
         end
       rescue => e
-        if (e.kind_of? NoMethodError) && (message.operation == :configure || message.operation == :request)
+        if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
           msg = "Cannot #{message.operation} unknown property "+
             "'#{message.read_element("//property")}' for resource '#{type}'"
           logger.warn msg
