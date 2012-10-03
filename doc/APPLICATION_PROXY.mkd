@@ -23,7 +23,7 @@ These are the two files used for this example:
 
 Firstly, we need a resource controller which will create an instance of a generic application proxy. In a typical use case, this resource controller may run on a remote machine where you would like to configure and run your application.
 
-This resource controller is essentially similar to the one used in the [Resource Proxy tutorial](https://github.com/mytestbed/omf/blob/master/doc/RESOURCE_PROXY.md). It has the following code, which you may save as application_controller.rb
+This resource controller is essentially similar to the one used in the [Resource Proxy tutorial](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html). It has the following code, which you may save as application_controller.rb
 
     #!/usr/bin/env ruby
 
@@ -56,7 +56,7 @@ Once you run the above controller code, you should see something similar to:
 
 ### Interacting with the Generic Application Proxy
 
-In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the [Resource Proxy tutorial](https://github.com/mytestbed/omf/blob/master/doc/RESOURCE_PROXY.md).
+In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the [Resource Proxy tutorial](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html).
 
 In the following simple tester script, we set the Generic Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, we update the values of some parameters, and finally ask the proxy to re-start the application.
 
