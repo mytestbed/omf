@@ -2,7 +2,7 @@
 
 ## Before we could start
 
-Read the [Resource Proxy tutorial](https://github.com/mytestbed/omf/blob/master/doc/RESOURCE_PROXY.md), and set up a testing environment as explained in the first section of that previous tutorial.
+Read the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}, and set up a testing environment as explained in the first section of that previous tutorial.
 
 ## Objectives
 
@@ -15,7 +15,7 @@ This tutorial provides a simple example on how to use this Generic Application P
 These are the two files used for this example:
 
 * [Application controller](https://github.com/mytestbed/omf/blob/master/doc/application_controller.rb)
-* [Engine test controller](https://github.com/mytestbed/omf/blob/master/doc/application_tester.rb)
+* [Application test controller](https://github.com/mytestbed/omf/blob/master/doc/application_tester.rb)
 
 ## Quick Start - simple example
 
@@ -23,7 +23,7 @@ These are the two files used for this example:
 
 Firstly, we need a resource controller which will create an instance of a generic application proxy. In a typical use case, this resource controller may run on a remote machine where you would like to configure and run your application.
 
-This resource controller is essentially similar to the one used in the [Resource Proxy tutorial](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html). It has the following code, which you may save as application_controller.rb
+This resource controller is essentially similar to the one used in the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}. It has the following code, which you may save as application\_controller.rb
 
     #!/usr/bin/env ruby
 
@@ -56,11 +56,11 @@ Once you run the above controller code, you should see something similar to:
 
 ### Interacting with the Generic Application Proxy
 
-In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the [Resource Proxy tutorial](http://mytestbed.net/doc/omf/file.RESOURCE_PROXY.html).
+In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}.
 
 In the following simple tester script, we set the Generic Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, we update the values of some parameters, and finally ask the proxy to re-start the application.
 
-You may save the following tester code as application_tester.rb. 
+You may save the following tester code as application\_tester.rb.
 
     #!/usr/bin/env ruby
 
@@ -103,7 +103,7 @@ You may save the following tester code as application_tester.rb.
       end
     end
 
-    # Here we construct the different messages that we will publish later when we 
+    # Here we construct the different messages that we will publish later when we
     # will interact with the Application proxy
     msgs = {
       # request the OS platform on which the App Proxy is running
@@ -126,7 +126,7 @@ You may save the following tester code as application_tester.rb.
     }
 
     # Register a block of commands to handle all 'inform' messages
-    # published as replies to our 'req_platform' 
+    # published as replies to our 'req_platform'
     msgs[:req_platform].on_inform_status do |m|
       m.each_property do |p|
         logger.info "#{p.attr('key')} => #{p.content.strip}"
@@ -139,7 +139,7 @@ You may save the following tester code as application_tester.rb.
     comm.when_ready do
       logger.info "CONNECTED: #{comm.jid.inspect}"
 
-      # We assume that a application resource proxy instance is up already, 
+      # We assume that a application resource proxy instance is up already,
       # so we subscribe to its pubsub topic
       app_topic.subscribe do
         # If subscribed, we start publishing messages some messages
@@ -193,17 +193,17 @@ Once you run the above controller code, you should see something similar to:
     [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: rtt min/avg/max/mdev = 0.149/0.151/0.154/0.002 ms
 ## Generic Application Proxy - References
 
-In addition to the binary_path, parameters, state properties which we configured in the previous simple example, the Generic Application proxy as more properties which you can set/query, and which are described below.
+In addition to the binary\_path, parameters, state properties which we configured in the previous simple example, the Generic Application proxy as more properties which you can set/query, and which are described below.
 
 ### General Properties
 
-- binary_path (String) the path to the binary of this app
-- pkg_tarball (String) the URI of the installation tarball of this app 
-- pkg_ubuntu (String) the name of the Ubuntu package for this app
-- pkg_fedora (String) the name of the Fedora package for this app
+- binary\_path (String) the path to the binary of this app
+- pkg\_tarball (String) the URI of the installation tarball of this app
+- pkg\_ubuntu (String) the name of the Ubuntu package for this app
+- pkg\_fedora (String) the name of the Fedora package for this app
 - installed (Boolean) is this application installed? (default = false)
-- force_tarball_install (Boolean) if true then force the installation from tarball even if other distribution-specific installation are available (default = false)
-- map_err_to_out (Boolean) if true then map StdErr to StdOut for this app (default = false)
+- force\_tarball\_install (Boolean) if true then force the installation from tarball even if other distribution-specific installation are available (default = false)
+- map\_err\_to\_out (Boolean) if true then map StdErr to StdOut for this app (default = false)
 - platform (Symbol) the OS platform where this app is running, the proxy currently auto-detect the ubuntu and fedora OS (:ubuntu, :fedora, :unknown)
 
 
@@ -212,7 +212,7 @@ In addition to the binary_path, parameters, state properties which we configured
 
 About the proxy's state:
 
-- when the proxy is first launched, its default state is 'stop' 
+- when the proxy is first launched, its default state is 'stop'
 - from the 'stop' state, it can go to either the 'run' or 'install' states
 - from the 'run' state it can go to either the 'stop' or 'pause' states
 - from the 'pause' state it can go to either the 'stop' or 'run' states
@@ -226,49 +226,49 @@ When entering the 'pause' state, the generic proxy will do nothing. It is up to 
 
 When entering the 'install' state, and if the property 'installed' is false, the proxy will attempt to install the application using the following steps. Once these steps are completed, the proxy will enter the 'stop' state.
 
-- first if the force_tarball_install and pkg_tarball properties are set, the proxy will download the tarball at the given URI and extract it at the root directory '/'
+- first if the force\_tarball\_install and pkg\_tarball properties are set, the proxy will download the tarball at the given URI and extract it at the root directory '/'
 - otherwise the proxy will try to detect which OS platform it is running on
-- if it detects an ubuntu OS and if pkg_ubuntu is set, it will use 'apt-get' to attempt the package installation
-- if it detects a fedora OS and if pkg_fedora is set, it will use 'yum' to attempt the package installation
-- if it cannot detect the OS and if pkg_tarball is set, it will download the tarball and extract it at the root directory '/'
+- if it detects an ubuntu OS and if pkg\_ubuntu is set, it will use 'apt-get' to attempt the package installation
+- if it detects a fedora OS and if pkg\_fedora is set, it will use 'yum' to attempt the package installation
+- if it cannot detect the OS and if pkg\_tarball is set, it will download the tarball and extract it at the root directory '/'
 
 ### Parameter Properties
 
-- parameters (Hash) the command line parameters available for this app. 
+- parameters (Hash) the command line parameters available for this app.
 
 This hash is of the form: { :param1 => attribut1, ... } with param1 being the id of this parameter for this Proxy and with attribut1 being another Hash with the following possible keys and values (all are optional):
-     :cmd (String) the command line for this parameter 
-     :order (Fixnum) the appearance order on the command line, default FIFO 
+     :cmd (String) the command line for this parameter
+     :order (Fixnum) the appearance order on the command line, default FIFO
      :dynamic (Boolean) parameter can be dynammically changed, default false
      :type (Numeric|String|Boolean) this parameter's type
-     :default value given by default to this parameter 
+     :default value given by default to this parameter
      :value value to set for this parameter
      :mandatory (Boolean) this parameter is mandatory, default false
 
 Two examples of valid parameters definition are:
 
-    { :host => {:default => 'localhost', :type => 'String', 
+    { :host => {:default => 'localhost', :type => 'String',
              :mandatory => true, :order => 2},
-      :port => {:default => 5000, :type => 'Numeric', :cmd => '-p', 
-             :mandatory => true, :order => 1}, 
-      :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size', 
+      :port => {:default => 5000, :type => 'Numeric', :cmd => '-p',
+             :mandatory => true, :order => 1},
+      :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size',
              :mandatory => true, :dynamic => true}
-      :title => {:type => 'String', :mandatory => false} 
+      :title => {:type => 'String', :mandatory => false}
     }
- 
+
 and
 
-    { :title => {:value => "My First Application"} }   
+    { :title => {:value => "My First Application"} }
 
- 
+
 ### Environment Properties
 
 - environment (Hash) the environment variables to set prior to starting this app
 
 The following Hash:
 
-    { :foo => "Hello", :bar_bar => 123 }  
- 
+    { :foo => "Hello", :bar_bar => 123 }
+
 will result in following environment variables being set before the application is started:
 
     FOO="Hello"
