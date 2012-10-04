@@ -1,6 +1,5 @@
-require "omf_ec/dsl"
 require "omf_ec/version"
+require "omf_ec/dsl"
 
 module OmfEc
-  # Your code goes here...
 end

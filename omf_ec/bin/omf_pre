@@ -55,6 +55,7 @@ command :exec do |c|
     end
 
     begin
+      include OmfEc::DSL
       load args[0], true
     rescue => e
       logger.fatal e.message
