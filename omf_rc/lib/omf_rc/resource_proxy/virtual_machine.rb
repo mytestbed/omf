@@ -33,30 +33,35 @@ module OmfRc::ResourceProxy::VirtualMachine
   register_proxy :virtual_machine
   utility :common_tools
 
+  VMBUILDER = "/usr/bin/vmbuilder"
+  VIRSH = "/usr/bin/virsh"
+  VM_NAME_DEFAULT = "anonymous_vm"
+  #VM_PATH_DEFAULT = "/var/lib/libvirt/images/"
+  VM_PATH_DEFAULT = "/home/thierry/experiments/omf6-dev/images"
+  VM_TYPE_DEFAULT = 'kvm'
+  VM_OS_DEFAULT = 'ubuntu'
+  VM_OPTS_DEFAULT = { cpus: 1, mem: 512, libvirt: 'qemu:///system',
+                      rootsize: 20000, overwrite: false,
+                      ip: nil, mask: nil, net: nil, bcast: nil, 
+                      gw: nil, dns: nil }
+  UBUNTU_DEFAULT = { suite: 'natty', arch: 'i386',
+                      user: 'administrator', pass: 'omf',
+                      mirror: 'http://10.0.0.200:9999/ubuntu',
+                      #mirror: 'http://au.archive.ubuntu.com/ubuntu/',
+                      variant: 'minbase',
+                      bridge: nil,
+                      pkg: ['openssh-server'] }
+
   hook :before_ready do |res|
-    res.property.state ||= :unbuild
-    res.property.vm_type ||= "kvm"
-    res.property.vm_os ||= "ubuntu"
-    res.property.vm_os_version ||= "natty"
-    res.property.arch ||= "i386"
-    res.property.hostname ||= "vm-#{Time.now.to_i}"
-    res.property.memory ||= 512
-    res.property.cpus ||= 1
-    res.property.rootsize ||= 20000
-    res.property.user ||= "administrator"
-    res.property.pass ||= "omf"
-    res.property.libvirt ||= "qemu:///system"
-    res.property.overwrite ||= false
-    res.property.ip ||= nil
-    res.property.netmask ||= nil
-    res.property.network ||= nil
-    res.property.broadcast ||= nil
-    res.property.gateway ||= nil
-    res.property.dns ||= nil
-    res.property.bridge ||= nil
-    res.property.ubuntu_mirror ||= "http://au.archive.ubuntu.com/ubuntu/"
-    res.property.ubuntu_variant ||= "minbase"
-    res.property.ubuntu_pkg ||= []
+    res.property.use_sudo ||= true
+    res.property.state ||= :stop
+    res.property.built ||= false
+    res.property.vm_name ||= "#{VM_NAME_DEFAULT}_#{Time.now.to_i}"
+    res.property.vm_directory ||= VM_PATH_DEFAULT
+    res.property.vm_type ||= VM_TYPE_DEFAULT
+    res.property.vm_os ||= VM_OS_DEFAULT
+    res.property.vm_opts ||= Hash.new
+    res.property.ubuntu_opts ||= Hash.new
   end
 
   configure :state do |res, value|
@@ -68,19 +73,65 @@ module OmfRc::ResourceProxy::VirtualMachine
     res.property.state
   end
 
+  work('build_ubuntu') do |res,cmd|
+    opts = UBUNTU_DEFAULT.merge(res.property.ubuntu_opts.to_hash(:symbolize_keys => true))
+    opts.each do |k,v|
+      if k == :pkg 
+        v.each { |p| cmd += "--addpkg #{p} "} if v.length > 0
+      else
+        cmd += "--#{k.to_s} #{v} " unless v.nil?
+      end
+    end
+    cmd
+  end
+
   work('switch_to_build') do |res|
-    unless res.property.state.to_sym == :run
-		end
-	end
+    vm_path = "#{res.property.vm_directory}/#{res.property.vm_name}"
+    if res.property.state.to_sym == :stop
+      `mkdir -p #{vm_path}`
+      if $?.exitstatus != 0
+        res.log_inform_error "Cannot create VM directory at #{vm_path}"
+      else
+        # Construct the vmbuilder command
+        cmd = "cd #{vm_path} ; "
+        cmd += res.property.use_sudo ? "sudo " : ""
+        cmd += "#{VMBUILDER} #{res.property.vm_type} #{res.property.vm_os} "+
+                "--hostname #{res.property.vm_name} "
+        # Add vmbuilder options, use defaults for undefined ones
+        opts = VM_OPTS_DEFAULT.merge(res.property.vm_opts.to_hash(:symbolize_keys => true))
+        opts.each do |k,v|
+          if k == :overwrite
+            cmd += "-o " if v
+          else
+            cmd += "--#{k.to_s} #{v} " unless v.nil?
+          end
+        end
+        # Add OS-specific options, e.g. call 'build_ubuntu' if OS is ubuntu
+        cmd = res.send("build_#{res.property.vm_os}", cmd)
+        logger.info "Building VM with: '#{cmd}'"
+        result = `#{cmd}`
+        if $?.exitstatus != 0
+          res.log_inform_error "Cannot build VM: #{result}"
+        else
+          res.property.built = true
+          logger.info "VM Built successfully!"
+        end
+      end
+    end
+  end
 
   work('switch_to_stop') do |res|
     if res.property.state.to_sym == :run
-		end
-	end
+      opts = VM_OPTS_DEFAULT.merge(res.property.vm_opts.to_hash(:symbolize_keys => true))
+      cmd = "#{VIRSH} -c #{opts[:libvirt]} destroy #{res.property.vm_name}"
+    end
+  end
 
   work('switch_to_run') do |res|
-    if res.property.state.to_sym == :build
-		end
-	end
+    if res.property.state.to_sym == :stop && res.property.built
+      opts = VM_OPTS_DEFAULT.merge(res.property.vm_opts.to_hash(:symbolize_keys => true))
+      cmd = "#{VIRSH} -c #{opts[:libvirt]} start #{res.property.vm_name}"
+    end
+  end
 
 end
