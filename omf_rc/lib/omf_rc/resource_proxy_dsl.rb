@@ -44,6 +44,15 @@ module OmfRc::ResourceProxyDSL
     # * before_ready, called when a resource created, before creating an associated pubsub topic
     # * before_release, called before a resource released
     # * before_create, called before parent creates the child resource. (in the context of parent resource)
+    # * after_create, called after parent creates the child resource.
+    # * after_initial_configured, called after child resource created, and initial set of properties have been configured.
+    #
+    # The sequence of execution is:
+    # * before_create
+    # * before_ready
+    # * after_create
+    # * after_initial_configured
+    # * before_release
     #
     # @param [Symbol] name hook name. :before_create or :before_release
     # @yieldparam [AbstractResource] resource pass the current resource object to the block
@@ -74,12 +83,34 @@ module OmfRc::ResourceProxyDSL
     #      new_resource_options.property.node_info = "Node #{resource.uid}"
     #    end
     #
+    #    # after_create hook
+    #    #
+    #    # the optional block will have access to these variables:
+    #    # * resource: the parent resource itself
+    #    # * new_resource: the child resource instance
+    #    hook :after_create do |resource, new_resource|
+    #      logger.info "#{resource.uid} created #{new_resource.uid}
+    #    end
+    #
+    #    # before_ready hook
+    #    #
+    #    # the optional block will have access to resource instance. Useful to initialise resource
     #    hook :before_ready do |resource|
     #      logger.info "#{resource.uid} is now ready"
     #    end
     #
+    #    # before_release hook
+    #    #
+    #    # the optional block will have access to resource instance. Useful to clean up resource before release it.
     #    hook :before_release do |resource|
     #      logger.info "#{resource.uid} is now released"
+    #    end
+    #
+    #    # after_initial_configured hook
+    #    #
+    #    # the optional block will have access to resource instance. Useful for actions depends on certain configured property values.
+    #    hook :after_initial_configured do |resource|
+    #      logger.info "#{resource.uid} has an IP address" unless resource.request_ip_addr.nil?
     #    end
     #   end
     def hook(name, &register_block)

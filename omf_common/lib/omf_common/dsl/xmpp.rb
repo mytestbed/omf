@@ -124,8 +124,11 @@ module OmfCommon
 
       # Event callback for pubsub topic event(item published)
       #
-      def topic_event(*args, &block)
-        pubsub_event(*args, &callback_logging(__method__, &block))
+      def topic_event(&block)
+        guard_block = proc do |event|
+          (event.items?) && (!event.delayed?) && event.items.first.payload
+        end
+        pubsub_event(guard_block, &callback_logging(__method__, &block))
       end
 
       # Return a topic object represents pubsub topic

@@ -35,6 +35,7 @@ module OmfCommon
       end
 
       def parse(xml)
+        raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
         xml_root = Nokogiri::XML(xml).root
         new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
       end

@@ -68,8 +68,8 @@ describe OmfCommon::Message do
     end
   end
 
-  describe "must be able to parse a XML element into Message object" do
-    it "must behave" do
+  describe "when asked to parse a XML element into Message object" do
+    it "must create the message object correctly " do
       xml = Message.create do |m|
         m.property('type', 'vm')
         m.property('os', 'debian')
@@ -101,6 +101,11 @@ describe OmfCommon::Message do
       message.each_property do |v|
         %w(type os memory devices).must_include v.attr('key')
       end
+    end
+
+    it "must fail if parse an empty xml" do
+      lambda { Message.parse("") }.must_raise ArgumentError
+      lambda { Message.parse(nil) }.must_raise ArgumentError
     end
   end
 

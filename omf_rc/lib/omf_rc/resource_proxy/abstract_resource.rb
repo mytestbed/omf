@@ -236,13 +236,18 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     dp.fire do
-      message = OmfCommon::Message.parse(pubsub_item_payload)
-      # Get the context id, which will be included when informing
-      context_id = message.read_content("context_id")
-
-      obj = topic == uid ? self : children.find { |v| v.uid == topic }
-
       begin
+        message = OmfCommon::Message.parse(pubsub_item_payload)
+
+        unless message.valid?
+          raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
+        end
+
+        # Get the context id, which will be included when informing
+        context_id = message.read_content("context_id")
+
+        obj = topic == uid ? self : children.find { |v| v.uid == topic }
+
         raise "Resource disappeard #{topic}" if obj.nil?
 
         case message.operation

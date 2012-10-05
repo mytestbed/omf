@@ -22,7 +22,7 @@ module OmfCommon
           event.node == self.id &&
           (valid_guard?(message_guard_proc) ? message_guard_proc.call(omf_message) : true)
       end
-      comm.topic_event(guard_block, &event_block)
+      comm.pubsub_event(guard_block, &event_block)
     end
 
     private
