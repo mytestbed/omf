@@ -42,7 +42,7 @@ module OmfRc::ResourceProxy::VirtualMachine
   VM_OS_DEFAULT = 'ubuntu'
   VM_DEFAULT = Hashie::Mash.new({
                       cpus: 1, mem: 512, libvirt: 'qemu:///system',
-                      rootsize: 20000, overwrite: false,
+                      rootsize: 20000, overwrite: true,
                       ip: nil, mask: nil, net: nil, bcast: nil, 
                       gw: nil, dns: nil 
                       })
@@ -51,21 +51,35 @@ module OmfRc::ResourceProxy::VirtualMachine
                       user: 'administrator', pass: 'omf',
                       mirror: 'http://10.0.0.200:9999/ubuntu',
                       #mirror: 'http://au.archive.ubuntu.com/ubuntu/',
-                      #variant: 'minbase',
                       bridge: nil,
-                      pkg: ['openssh-server'] 
+                      #variant: 'minbase',
+                      #pkg: ['openssh-server'] 
+                      #pkg: ['openssh-server','sudo','inetutils-ping','host',
+                      #      'net-tools','vim','gpgv'] 
+                      pkg: ['openssh-server','sudo','inetutils-ping','host',
+                            'net-tools','vim','gpgv',
+                            'build-essential','automake', 'curl',
+                            'zlib1g-dev','libxslt-dev','libxml2-dev','libssl-dev',
+                            'iw'] 
+                      })
+    OMF_DEFAULT = Hashie::Mash.new({
+                      server: 'srv.mytestbed.net', 
+                      user: nil, password: nil,
+                      topic: nil
                       })
 
   hook :before_ready do |res|
     res.property.use_sudo ||= true
     res.property.state ||= :stop
     res.property.built ||= false
+    res.property.enable_omf ||= true
     res.property.vm_name ||= "#{VM_NAME_DEFAULT}_#{Time.now.to_i}"
     res.property.vm_directory ||= VM_PATH_DEFAULT
     res.property.vm_type ||= VM_TYPE_DEFAULT
     res.property.vm_os ||= VM_OS_DEFAULT
     res.property.vm_opts ||= VM_DEFAULT
     res.property.ubuntu_opts ||= UBUNTU_DEFAULT
+    res.property.omf_opts ||= OMF_DEFAULT
   end
 
   configure :vm_opts do |res, opts|
@@ -113,6 +127,29 @@ module OmfRc::ResourceProxy::VirtualMachine
     cmd
   end
 
+  work('enable_omf') do |res,cmd|
+    boot = "#{res.property.vm_directory}/#{res.property.vm_name}/boot.sh"
+    f = File.open(boot,'w')
+    f << "echo 'nameserver 10.0.0.200' >> /etc/resolv.conf"
+    f << "curl -L https://get.rvm.io | bash -s stable"
+    f << "source /etc/profile.d/rvm.sh"
+    f << "command rvm install 1.9.3"
+    f << "PATH=$PATH:/usr/local/rvm/rubies/ruby-1.9.3-p194/bin/"
+    f << "source /usr/local/rvm/environments/ruby-1.9.3-p194"
+    f << "gem install omf_rc --pre --no-ri --no-rdoc"
+    u = res.property.omf_opts.user.nil? ? \
+      "#{res.property.vm_name}-node" : res.property.vm_name
+    p = res.property.omf_opts.password.nil? ? \
+      "123456" : res.property.password
+    t = res.property.omf_opts.topic.nil? ? \
+      u : res.property.topic
+    f << "omf_rc -u #{u} -p #{p} -t #{t} -s #{res.property.omf_opts.server}"
+    f.close
+    cmd += "--firstboot #{boot}"
+    cmd
+  end
+
+
   work('switch_to_build') do |res|
     vm_path = "#{res.property.vm_directory}/#{res.property.vm_name}"
     if res.property.built 
@@ -131,7 +168,7 @@ module OmfRc::ResourceProxy::VirtualMachine
       # Add vmbuilder options, use defaults when undefined
       opts = res.property.vm_opts.empty? ? VM_DEFAULT : res.property.vm_opts
       opts.each do |k,v|
-        if k == :overwrite
+        if k.to_sym == :overwrite
           cmd += "-o " if v
         else
           cmd += "--#{k.to_s} #{v} " unless v.nil?
@@ -139,6 +176,7 @@ module OmfRc::ResourceProxy::VirtualMachine
       end
       # Add OS-specific options, e.g. call 'build_ubuntu' if OS is ubuntu
       cmd = res.send("build_#{res.property.vm_os}", cmd)
+      cmd = res.enable_omf(cmd) if res.property.enable_omf
       logger.info "Building VM with: '#{cmd}'"
       result = `#{cmd} 2>&1`
       if $?.exitstatus != 0
