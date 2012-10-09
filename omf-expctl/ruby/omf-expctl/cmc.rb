@@ -54,18 +54,51 @@ module CMC
   #
   # Switch a given set of nodes ON
   #
-  # - set = a String describing the set of nodes to switch ON
+  # - set = an Array describing the set of nodes to switch ON
   #
-  # NOT IMPLEMENTED IN CURRENT CMC
   def CMC.nodeSetOn(set)
     if NodeHandler.JUST_PRINT
-      puts ">> CMC: Switch on nodes #{set}"
+      puts ">> CMC: Switch on nodes #{set.inspect}"
     else
-      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODESET.ON', set.to_a.inspect
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODESET.ON', set.inspect
       begin
-        OMF::Services.cmc.nodeseton(set)
+	nodeSet = set.map { |i| i.to_s }.join(",")
+        OMF::Services.cmc.on(:domain => OConfig.domain, :set =>nodeSet)
       rescue Exception => ex
         MObject.debug("CMC", "Can't switch ON nodes '#{set}'")
+      end
+    end
+  end
+
+  #
+  # Switch a given set of nodes ON
+  #
+  # - set = an Array describing the set of nodes to switch ON
+  #
+  def CMC.nodeSetOff(set, hard)
+    if NodeHandler.JUST_PRINT
+      puts ">> CMC: Switch off nodes #{set.inspect}"
+    else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODESET.OFF', set.inspect
+      begin
+	nodeSet = set.map { |i| i.to_s }.join(",")
+        OMF::Services.cmc.off(:domain => OConfig.domain, :set =>nodeSet)
+      rescue Exception => ex
+        MObject.debug("CMC", "Can't switch OFF (hard='#{hard}') nodes '#{set}'")
+      end
+    end
+  end
+
+  def CMC.nodeSetReset(set)
+    if NodeHandler.JUST_PRINT
+      puts ">> CMC: Reset nodes #{set.inspect}"
+    else
+      OMF::EC::OML::PerformanceMonitor.report_status 'CMC.NODESET.RESET', set.inspect
+      begin
+	nodeSet = set.map { |i| i.to_s }.join(",")
+        OMF::Services.cmc.reset(:domain => OConfig.domain, :set =>nodeSet)
+      rescue Exception => ex
+        MObject.debug("CMC", "Can't reset nodes '#{set}'")
       end
     end
   end

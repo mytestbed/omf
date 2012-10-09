@@ -35,19 +35,22 @@ else
 end
 
 $stderr.print " Talking to the CMC service, please wait"
-
-topo.eachNode {|n|
-  tuples << ["#{n.to_s}", eval("OMF::Services.cmc.#{call}"+
-    "(n.to_s, OConfig.domain).elements[1].name")]
-  $stderr.print "."
-}
-
-puts
-puts "-----------------------------------------------"
-puts " Domain: #{OConfig.domain} - Command: #{call}"
-tuples.each {|t|
-  puts " Node: #{t[0]}   \t Reply: #{t[1]}"
-}
-puts "-----------------------------------------------"
+nodeSet = topo.eachNode {|n| n.to_s}.join(",")
+begin
+  result = eval("OMF::Services.cmc.#{call}(:set=>nodeSet, :domain=>OConfig.domain)")
+  puts
+  puts "-----------------------------------------------"
+  puts " Domain: #{OConfig.domain} - Command: #{call}"
+  result.elements.each("#{call.upcase}/detail/#{call.upcase}") {|e|
+    reply = e.elements[1].name
+    if reply == "ERROR"
+      reply = reply + "(#{e.elements[1].get_text()})"
+    end
+    puts " Node: #{e.attributes['name']}   \t Reply: #{reply}"
+  }
+  puts "-----------------------------------------------"
+rescue Exception => ex
+  puts " Failed to execute #{call} command: #{ex}"
+end
 
 Experiment.done

@@ -22,3 +22,5 @@ configure-stamp
 */debian/files
 .yardoc/
 omf-web/example/incoming
+*/debian/omf-expctl-5.4/
+*/debian/omf-resctl-5.4/

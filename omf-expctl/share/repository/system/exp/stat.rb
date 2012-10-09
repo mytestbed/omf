@@ -20,30 +20,39 @@ tuples = []
 
 $stderr.print " Talking to the CMC service, please wait"
 
-topo.eachNode {|n|
-  tuples << ["#{n.to_s}", "#{OMF::Services.cmc.status(n.to_s, OConfig.domain).
-    first_element("NODE_STATUS/detail/node").attributes['state']}"]
-  $stderr.print "."
-}
+nodeSet = topo.eachNode {|n| n.to_s}.join(",")
+result = eval("OMF::Services.cmc.status(:set=>nodeSet, :domain=>OConfig.domain)")
 
 puts
 puts "-----------------------------------------------"
 puts " Domain: #{OConfig.domain}"
 if property.summary.value
   on = off = unknown = 0
-  tuples.each {|t|
-    on += 1 if t[1] == "POWERON"
-    off += 1 if t[1] == "POWEROFF"
-    unknown += 1 if t[1] == "UNKNOWN"
-  }
+  result.elements.each("NODE_STATUS/detail/node") {|e|
+  if e.attributes['state']
+    state = e.attributes['state']
+  else
+    state = e.elements['ERROR'].get_text()
+  end
+  puts " Node: #{e.attributes['name']}   \t State: #{state}"
+    on += 1 if state == "POWERON"
+    off += 1 if state == "POWEROFF"
+    unknown += 1 if state == "NOT REGISTERED"
+}
   puts " Number of nodes in 'Power ON' state:\t#{on}"
   puts " Number of nodes in 'Power OFF' state:\t#{off}"
   puts " Number of nodes in 'Unknown' state:\t#{unknown}"
 else
-  tuples.each {|t|
-    puts " Node: #{t[0]}   \t State: #{t[1]}"
-  }
+  result.elements.each("NODE_STATUS/detail/node") {|e|
+  if e.attributes['state']
+    state = e.attributes['state']
+  else
+    state = e.elements['ERROR'].get_text()
+  end
+  puts " Node: #{e.attributes['name']}   \t State: #{state}"
+}
 end
+
 puts "-----------------------------------------------"
 
 Experiment.done

@@ -415,9 +415,7 @@ class OMF::EC::Node < MObject
   def powerOn()
     # Check that EC is NOT in 'Slave Mode' 
     # - If so call CMC to switch node(s) ON
-    CMC.nodeOn(@nodeID) if !NodeHandler.SLAVE && !@noam
     @poweredAt = Time.now
-    #if !@isUp
     if @nodeStatus != STATUS_UP
       setStatus(STATUS_POWERED_ON) 
     end

@@ -245,14 +245,16 @@ class RootNodeSetPath < NodeSetPath
   # This method reset all nodes in the NodeSet of this Root Path.
   #
   def powerReset()
-    eachNode { |n| n.reset() }
+    @nodeSet.powerReset()
+    #eachNode { |n| n.reset() }
   end
 
   #
   # This method powers ON all nodes in the NodeSet of this Root Path.
   #
   def powerOn()
-    eachNode { |n| n.powerOn() }
+    @nodeSet.powerOn()
+    #eachNode { |n| n.powerOn() }
   end
 
   #
@@ -264,7 +266,8 @@ class RootNodeSetPath < NodeSetPath
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    eachNode { |n| n.powerOff(hard) }
+    @nodeSet.powerOff(hard)
+    #eachNode { |n| n.powerOff(hard) }
   end
 
   #

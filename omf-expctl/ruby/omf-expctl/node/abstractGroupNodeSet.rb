@@ -84,6 +84,12 @@ class AbstractGroupNodeSet < NodeSet
       g.powerOff(hard)
     }
   end
+
+  def powerReset()
+    groups.each { |g|
+      g.powerReset
+    }
+  end
   
   # Return all groups included in this group. If +recursive+
   # is true, also include all groups included by groups.

@@ -118,10 +118,7 @@ module OMF
                                                              "service" => service,
                                                              "method" => method)
         opts = args.find { |a| a.kind_of? Hash }
-#puts ">>>>> TDB - XMPP - send_request - 1 - @@selector: '#{@@selector}'"
-#puts ">>>>> TDB - XMPP - send_request - 1 - opts: '#{opts}'"
         pubsub_node = !@@selector.nil? ? @@selector.call(opts) : "/#{ROOTNODE}/system"
-#puts ">>>>> TDB - XMPP - send_request - psnode: '#{pubsub_node}'"
 
         if args.length == 1 and args[0].kind_of? Hash
           args[0].each_pair do |name, value|
@@ -133,14 +130,12 @@ module OMF
           end
         end
 
-
         wait_policy = :wait
         if service.nil?
           wait_policy = :multiple
         elsif not opts.nil? and opts[:nonblocking]
           wait_policy = :nowait
         end
-#puts ">>>>> TDB - XMPP - send_request - m: '#{message.to_s}'" 
         r = @request_manager.make_request(message, pubsub_node, wait_policy, &block)
 
         if r.kind_of? REXML::Element then
@@ -283,11 +278,18 @@ module OMF
         # Add an argument to the message, with given name and value.
         #
         # name:: [String]
-        # value:: [String]
+        # value:: [String|Array]
         def set_arg(name, value)
           arg = @args.add_element(REXML::Element.new("argument"))
           add_key_to_element(arg, "name", name)
-          add_key_to_element(arg, "value", value)
+          if value.kind_of? Array
+            array = arg.add_element(REXML::Element.new("value"))
+            value.each do |v|
+              add_key_to_element(array, "item", v)
+            end
+          else
+            add_key_to_element(arg, "value", value)
+          end
         end
 
         # Return the value of a named argument
