@@ -83,11 +83,13 @@ module OmfRc::ResourceProxy::VirtualMachine
     res.property.img_builder ||= IMAGE_BUILDER_DEFAULT
 
     res.property.action ||= :stop
+    res.property.state ||= :stopped
     res.property.ready ||= false
     res.property.enable_omf ||= true
     res.property.vm_name ||= "#{VM_NAME_DEFAULT_PREFIX}_#{Time.now.to_i}"
     res.property.image_directory ||= VM_DIR_DEFAULT
     res.property.image_path ||= "#{VM_DIR_DEFAULT}/#{res.property.vm_name}"
+    res.property.vm_definition ||= ''
     res.property.vm_os ||= VM_OS_DEFAULT
     res.property.vmbuilder_opts ||= VMBUILDER_DEFAULT
     res.property.ubuntu_opts ||= UBUNTU_DEFAULT
@@ -151,7 +153,7 @@ module OmfRc::ResourceProxy::VirtualMachine
     when :delete then res.switch_to_delete
     when :clone then res.switch_to_delete
     end
-    res.property.state
+    res.property.action = value
   end
 
   work('switch_to_build') do |res|
@@ -163,7 +165,7 @@ module OmfRc::ResourceProxy::VirtualMachine
       res.log_inform_error "Cannot create VM directory at "+
         "#{res.property.image_path}" if $?.exitstatus != 0
     end
-    if res.property.action.to_sym == :stop && File.directory?(res.property.image_path)
+    if res.property.state.to_sym == :stopped && File.directory?(res.property.image_path)
       cmd = res.send("build_img_#{res.property.img_builder}")
       logger.info "Building VM with: '#{cmd}'"
       result = `#{cmd} 2>&1`
@@ -175,60 +177,82 @@ module OmfRc::ResourceProxy::VirtualMachine
          res.inform(:status, Hashie::Mash.new({:status => {:ready => true}}))
       end
     else
-      res.log_inform_error "Cannot build VM image, as VM is not stopped or "+
-        "its directory does not exist (VM path: '#{res.property.image_path}')"
+      res.log_inform_error "Cannot build VM image: it is not stopped or "+
+        "its directory does not exist (name: '#{res.property.vm_name}' "+
+        "- state: #{res.property.state} - path: '#{res.property.image_path}')"
     end
   end
 
   work('switch_to_define') do |res|
+    unless File.exist?(res.property.vm_definition)
+        res.log_inform_error "Cannot define VM (name: "+
+          "'#{res.property.vm_name}'): definition path not set "+
+          "or file does not exist (path: '#{res.property.vm_definition}')"
+    else
+      if res.property.state.to_sym == :stopped
+        cmd = res.send("#{res.property.virt_mngt}_define")
+        logger.info "Defining VM with: '#{cmd}'"
+        result = `#{cmd} 2>&1`
+        if $?.exitstatus != 0
+          res.log_inform_error "Cannot define VM: '#{result}'"
+        else
+          res.property.ready = true
+         logger.info "VM defined successfully!"
+         res.inform(:status, Hashie::Mash.new({:status => {:ready => true}}))
+        end
+      else
+        res.log_inform_warn "Cannot define VM: it is not stopped"+
+        "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
+      end 
+    end
   end
 
   work('switch_to_stop') do |res|
-    if res.property.action.to_sym == :run
+    if res.property.state.to_sym == :running
       cmd = res.send("#{res.property.virt_mngt}_stop")
       logger.info "Stopping VM with: '#{cmd}'"
       result = `#{cmd} 2>&1`
       if $?.exitstatus != 0
         res.log_inform_error "Cannot stop VM: '#{result}'"
       else
-        res.property.action.to_sym == :stop
+        res.property.state = :stopped
       end
     else
       res.log_inform_warn "Cannot stop VM: it is not running "+
-        "(VM name: '#{res.property.vm_name}')"
+        "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
     end
   end
 
   work('switch_to_run') do |res|
-    if res.property.action.to_sym == :stop && res.property.ready
+    if res.property.state.to_sym == :stopped && res.property.ready
       cmd = res.send("#{res.property.virt_mngt}_run")
       logger.info "Running VM with: '#{cmd}'"
       result = `#{cmd} 2>&1`
       if $?.exitstatus != 0
         res.log_inform_error "Cannot run VM: '#{result}'"
       else
-        res.property.action.to_sym == :run
+        res.property.state = :running
       end
     else
       res.log_inform_warn "Cannot run VM: it is not stopped or ready yet "+
-        "(VM name: '#{res.property.vm_name}')"
+        "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
     end
   end
 
   work('switch_to_delete') do |res|
-    if res.property.action.to_sym == :stop && res.property.ready     
+    if res.property.state.to_sym == :stopped && res.property.ready     
       cmd = res.send("#{res.property.virt_mngt}_delete")
       logger.info "Deleting VM with: '#{cmd}'"
       result = `#{cmd} 2>&1`
       if $?.exitstatus != 0
         res.log_inform_error "Cannot delete VM: '#{result}'"
       else
-        res.property.action.to_sym = :stop
         res.property.ready = false
       end
     else
       res.log_inform_warn "Cannot delete VM: it is not stopped or ready yet "+
-        "(VM name: '#{res.property.vm_name}')"
+        "(name: '#{res.property.vm_name}' - state: #{res.property.state} "+
+        "- ready: #{res.property.ready}"
     end
   end
 
@@ -254,7 +278,7 @@ module OmfRc::ResourceProxy::VirtualMachine
     f << <<-eos
 #!/bin/bash
 # Fix DNS setting
-echo 'nameserver 10.0.0.200' >> /etc/resolv.conf
+echo 'nameserver #{res.property.vmbuilder_opts.dns}' >> /etc/resolv.conf
 # Regenerate SSH key for each image instance
 rm /etc/ssh/ssh_host*key*
 dpkg-reconfigure -fnoninteractive -pcritical openssh-server
@@ -315,7 +339,12 @@ eos
 
   work('libvirt_delete') do |res|
     cmd = "#{VIRSH} -c #{res.property.hypervisor_uri} "+
-          "undefine #{res.property.vm_name} ; rm -rf #{image_path}"
+          "undefine #{res.property.vm_name} ; rm -rf #{res.property.image_path}"
+  end
+
+  work('libvirt_define') do |res|
+    cmd = "#{VIRSH} -c #{res.property.hypervisor_uri} "+
+          "define #{res.property.vm_definition}"
   end
 
 end
