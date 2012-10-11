@@ -118,9 +118,9 @@ module OMF::EC
       def initialize(name)
         @name = name
         @ms = {}
-        @db = Sequel.postgres
-        # Set the assumed capabilites of the used OML backend
+        # Create a generic Sequel object which can be used to serialize the query.
         # TODO: Make sure this is generic enough
+        @db = Sequel.postgres
         @db.instance_variable_set('@server_version', 90105)
       end
 
