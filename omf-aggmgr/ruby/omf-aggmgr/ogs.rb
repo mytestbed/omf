@@ -166,7 +166,7 @@ def run(params)
               MObject.debug :xmpp_connection, "Re-connected to XMPP server OK"
             end
           rescue Exception => e
-            MObject.debug :xmpp_connection, "Failed Trying to re-connect to XMPP server: #{e.class}"
+            MObject.debug :xmpp_connection, "Failed Trying to re-connect to XMPP server: #{e.inspect}"
           end
           sleep 3
         end
