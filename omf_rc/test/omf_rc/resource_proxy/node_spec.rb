@@ -37,5 +37,23 @@ describe OmfRc::ResourceProxy::Node do
         end
       end
     end
+
+    it "must provide a list of created applications" do
+      @node.create(:generic_application, { :uid => 'app_test', :hrn => 'app_test' })
+
+      @node.request_applications.must_equal [
+        { name: 'app_test', type: 'generic_application', uid: 'app_test' }
+      ]
+    end
+
+    it "must provide a list of created interfaces" do
+      @node.create(:wlan, { :uid => 'wlan0', :hrn => 'wlan0' })
+      @node.create(:net, { :uid => 'eth0', :hrn => 'eth0' })
+
+      @node.request_interfaces.must_equal [
+        { name: 'eth0', type: 'net', uid: 'eth0' },
+        { name: 'wlan0', type: 'wlan', uid: 'wlan0' }
+      ]
+    end
   end
 end
