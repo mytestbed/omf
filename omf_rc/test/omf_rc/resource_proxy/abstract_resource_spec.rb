@@ -130,7 +130,9 @@ describe AbstractResource do
   describe "when request/configure property not pre-defined in proxy" do
     it "must try property hash" do
       @node.property[:bob] = "bob"
+      @node.property[:false] = false
       @node.request_bob.must_equal "bob"
+      @node.request_false.must_equal false
       @node.configure_bob("not_bob")
       @node.request_bob.must_equal "not_bob"
       proc { @node.request_bobs_cousin }.must_raise OmfRc::UnknownPropertyError
