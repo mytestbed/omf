@@ -8,8 +8,8 @@ ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 #Jabber::debug = true
 module OMF
   module XMPP
-    CONNECTION_TIMEOUT = 10
-    READ_TIMEOUT = 5
+    CONNECTION_TIMEOUT = 30
+    READ_TIMEOUT = 15
 
     module PubSub
     end
