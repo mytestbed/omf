@@ -16,7 +16,7 @@ app_id = options[:uid]
 
 comm = Comm.new(:xmpp)
 
-# Ask our communicator to give us the topic to which the Generic Application
+# Ask our communicator to give us the topic to which the Application
 # Proxy is subscribed
 app_topic = comm.get_topic(app_id)
 

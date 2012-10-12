@@ -20,11 +20,11 @@
 # THE SOFTWARE.
 
 #
-# This module defines a Resource Proxy (RP) for a Generic Application
+# This module defines a Resource Proxy (RP) for an Application
 #
 # Utility dependencies: platform_toos, common_tools
 #
-# This Generic Application Proxy has the following properties:
+# This Application Proxy has the following properties:
 #
 # - binary_path (String) the path to the binary of this app
 # - pkg_tarball (String) the URI of the installation tarball of this app 
@@ -39,10 +39,12 @@
 # - map_err_to_out (Boolean) if true then map StdErr to StdOut for this 
 #     app (default false)
 # - platform (Symbol) the OS platform where this app is running
-#
 # - environment (Hash) the environment variables to set prior to starting 
 #     this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
 #     (with k1 being either a String or a Symbol)
+# - OML specific properties, as defined by OML at 
+#   http://oml.mytestbed.net/doc/oml/html/liboml2.html
+#   http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
 #
 # - parameters (Hash) the command line parameters available for this app.
 #     This hash is of the form: { :param1 => attribut1, ... }
@@ -72,11 +74,11 @@
 #
 #     { :title => {:value => "My First Application"} }                   
 #
-module OmfRc::ResourceProxy::GenericApplication
+module OmfRc::ResourceProxy::Application
   include OmfRc::ResourceProxyDSL 
   require 'omf_common/exec_app'
 
-  register_proxy :generic_application
+  register_proxy :application
   utility :platform_tools
   utility :common_tools
 
@@ -98,6 +100,11 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.event_sequence ||= 0 
     res.property.parameters ||= Hash.new
     res.property.environments ||= Hash.new
+    res.property.use_oml ||= false
+    res.property.oml_configfile ||= nil
+    res.property.oml_config ||= nil
+    res.property.oml_logfile ||= nil
+    res.property.oml_loglevel ||= nil
     define_method("on_app_event") { |*args| process_event(self, *args) }
   end
 
@@ -129,32 +136,32 @@ module OmfRc::ResourceProxy::GenericApplication
                                        event_type.to_s.include?('DONE.OK')
   end
 
-  # Request the basic properties of this Generic Application RP. 
-  # @see OmfRc::ResourceProxy::GenericApplication
+  # Request the basic properties of this Application RP. 
+  # @see OmfRc::ResourceProxy::Application
   #
   %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora state installed \
     force_tarball_install map_err_to_out tarball_install_path).each do |prop|
     request(prop) { |res| res.property[prop].to_s }
   end
   
-  # Request the platform property of this Generic Application RP
-  # @see OmfRc::ResourceProxy::GenericApplication
+  # Request the platform property of this Application RP
+  # @see OmfRc::ResourceProxy::Application
   #
   request :platform do |res|
     res.property.platform = detect_platform if res.property.platform.nil?
     res.property.platform.to_s
   end
 
-  # Configure the basic properties of this Generic Application RP
-  # @see OmfRc::ResourceProxy::GenericApplication
+  # Configure the basic properties of this Application RP
+  # @see OmfRc::ResourceProxy::Application
   #
   %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install \
     map_err_to_out tarball_install_path).each do |prop|
     configure(prop) { |res, value| res.property[prop] = value }
   end
 
-  # Configure the environments property of this Generic Application RP
-  # @see OmfRc::ResourceProxy::GenericApplication
+  # Configure the environments property of this Application RP
+  # @see OmfRc::ResourceProxy::Application
   #
   configure :environments do |res, envs|
     if envs.kind_of? Hash
@@ -166,8 +173,8 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.environments
   end
 
-  # Configure the parameters property of this Generic Application RP
-  # @see OmfRc::ResourceProxy::GenericApplication
+  # Configure the parameters property of this Application RP
+  # @see OmfRc::ResourceProxy::Application
   #
   configure :parameters do |res, params|
     if params.kind_of? Hash
@@ -202,7 +209,7 @@ module OmfRc::ResourceProxy::GenericApplication
     res.property.parameters[p]
   end
 
-  # Configure the state of this Generic Application RP. The valid states are
+  # Configure the state of this Application RP. The valid states are
   # stop, run, pause, install. The semantic of each states are:
   #
   # - stop: the initial state for an Application RP, and the final state for 
@@ -214,7 +221,7 @@ module OmfRc::ResourceProxy::GenericApplication
   #        only enter this state from a previous 'pause' or 'stop' state.
   # - pause: upon entering this state, the currently running instance of this
   #          application should be paused (it is the responsibility of 
-  #          specialised Application Proxy to ensure that! The default Generic
+  #          specialised Application Proxy to ensure that! The default
   #          Application Proxy does nothing to the application instance when
   #          entering this state). The Application RP can only enter this 
   #          state from a previous 'run' state.
@@ -336,7 +343,7 @@ module OmfRc::ResourceProxy::GenericApplication
   #
   # @yieldparam [String] name the parameter id as known by this app
   # @yieldparam [Hash] att the Hash holding the parameter's attributs
-  # @see OmfRc::ResourceProxy::GenericApplication
+  # @see OmfRc::ResourceProxy::Application
   #
   work('dynamic_parameter_update') do |res,name,att|
     # Only update a parameter if it is dynamic and the application is running
@@ -432,7 +439,7 @@ module OmfRc::ResourceProxy::GenericApplication
   #
   # The environment variables and the parameters in that command line are 
   # taken respectively from the 'environments' and 'parameters' properties of
-  # this Generic Application Resource Proxy.
+  # this Application Resource Proxy.
   #
   # [String] the full command line
   #
@@ -465,7 +472,57 @@ module OmfRc::ResourceProxy::GenericApplication
         end
       end
     end
+    # Add OML parameters if required
+logger.info "FOO A"
+    foo = res.build_oml_config(cmd_line) if res.property.use_oml
+logger.info "FOO: #{foo}"
     cmd_line
   end
+
+  work('build_oml_config') do |res, cmd|
+    if !res.property.oml_configfile.nil?
+      if File.exist?(res.property.oml_configfile)
+        cmd += "--oml-config #{res.property.oml_configfile}"
+      else
+        res.log_inform_warn "OML enabled but OML config file does not exist"+
+        "(file: '#{res.property.oml_configfile}')"
+      end
+    elsif !res.property.oml_config.nil?
+      o = res.property.oml_config
+      ofile = "/tmp/#{res.property.uid}.xml"
+      of = File.open(ofile,'w')
+      of << "<omlc exp_id='#{o.exp_id}' id='#{o.id}'>\n"
+      o.collection.each do |c|
+        puts c.inspect
+        of << "  <collect url='#{c.url}'>\n"
+        c.measure.each do |m|
+          # samples as precedence over interval
+          s = ''
+          s = "interval='#{m.interval}'" if m.interval
+          s = "samples='#{m.samples}'" if m.samples
+          of << "    <mp name='#{m.name}' #{s}>\n"
+          m.filters.each do |f|
+            line = "      <f pname='#{f.metric}' "
+            line += "fname='#{f.filter}' " unless f.filter.nil? 
+            line += "/>\n" 
+            of << line           
+          end
+          of << "    </mp>\n"
+        end
+        of << "  </collect>\n"      
+      end
+      of << "</omlc>"
+      f.close
+      cmd += "--oml-config #{ofile}"
+    else
+      res.log_inform_warn "OML enabled but no OML configuration was given"+
+        "(file: '#{res.property.oml_configfile}' - "+
+        "config: '#{res.property.oml_config}')"
+    end
+    cmd += "--oml-log-level #{res.property.oml_loglevel} " unless res.property.oml_loglevel.nil?
+    cmd += "--oml-log-file #{res.property.oml_logfile} " unless res.property.oml_logfile.nil?
+    cmd
+  end
+
 
 end
