@@ -24,6 +24,12 @@ _NO TRAILING WHITE SPACES_
 
 Please make sure your files do not contain trailing white spaces. Most editors and IDEs can be configured to do it automatically.
 
+If you got existing code that could contain trailing white spaces, simply run this command in root directory of the project:
+
+    find . -not \( -name .git -prune \) -type f -print0 | xargs -0 sed -i "s/[[:space:]]*$//"
+
+and then commit the change.
+
 ### Semantic versioning
 
 Choose git tag name according to semantic versioning rules: http://semver.org/
