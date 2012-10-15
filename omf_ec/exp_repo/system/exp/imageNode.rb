@@ -38,7 +38,7 @@ defProperty('image', 'baseline.ndz', "Image to load on nodes")
 defProperty('domain', "#{OConfig.domain}", "Domain of the nodes to image")
 defProperty('outpath', "/tmp", "Path where to place the topology files resulting from this image")
 defProperty('outprefix', "#{Experiment.ID}", "Prefix to use for the topology files resulting from this image")
-# The following value of 1200sec for timeout is based on trial imaging experiments 
+# The following value of 1200sec for timeout is based on trial imaging experiments
 defProperty('timeout', 1200, "Stop the imaging process <timeout> sec after the last node has powered up")
 
 # Define some constants
@@ -89,7 +89,7 @@ end
 @allNodes = []
 
 #
-# Define the group of node to image and set them into PXE boot 
+# Define the group of node to image and set them into PXE boot
 #
 defGroup('image', prop.nodes) {|ns|
    ns.image = "pxe-5.4"
@@ -106,7 +106,7 @@ def outputTopologyFile(type, nset)
   begin
     filename = "#{prop.outpath.value}/#{prop.outprefix.value}-topo-#{type}.rb"
     toponame = "#{prop.outprefix.value}-topo-#{type}"
-    
+
     # we need to put the array back into the original order
     # since nodes were added in the order they signed in
     sortedNodes = Array.new(@allNodes)
@@ -164,7 +164,7 @@ everyNS('image', 10) { |ns|
       startupDelayMax = startupDelay if startupDelay > startupDelayMax
       if n.poweredAt.to_i > lastUpTime
         lastUpTime = n.poweredAt.to_i
-      end	
+      end
 
       status = n.match('apps/*/status/')[0].to_s
       nodesDone += 1 if status =~ /DONE/
@@ -191,7 +191,7 @@ everyNS('image', 10) { |ns|
     if (nodesDone >= nodeCnt) || ((lastUpTime+prop.timeout.value) < Time.now.to_i)
       # we are done
       info " ----------------------------- "
-      info " Imaging Process Done " 
+      info " Imaging Process Done "
       nodesWhichNeverCheckedIn = @allNodes - nodesWithErrorList - nodesPendingList - nodesWithSuccessList
       if (l = nodesWhichNeverCheckedIn.length) > 0
         f = outputTopologyFile(:checkinfailed, nodesWhichNeverCheckedIn)

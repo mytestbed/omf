@@ -25,7 +25,7 @@
 # This is an OMF Prototype definition
 # This prototype contains a single UDP traffic generator, which uses the
 # existing modified application otg2_mp.
-# Note: the application 'otg2_mp' was contributed by a student and is not 
+# Note: the application 'otg2_mp' was contributed by a student and is not
 # officially supported by the OMF/OML team
 #
 defPrototype("test:proto:sender2_mp") do |p|

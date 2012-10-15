@@ -43,14 +43,14 @@ def check_outcome
   # Test 02 is successfull if:
   # 1) each resource has been enrolled in all its groups as defined above
   # AND
-  # 2) for each of the exec commands above, the log file has a message from 
+  # 2) for each of the exec commands above, the log file has a message from
   #    the AgentCommands module containing "DONE.OK"
   logfile = "#{property.logpath}/#{Experiment.ID}.log"
   lines = IO.readlines("#{logfile}")
   # 1)
   match1 = lines.grep(/is\ Enrolled/)
   result1 = (match1.length == 8) ? true : false
-  # 2) 
+  # 2)
   match1 = lines.grep(/DONE\.OK/)
   match2 = match1.grep(/AgentCommands/)
   result2 = (match2.length == 6) ? true : false

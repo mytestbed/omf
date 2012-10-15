@@ -25,11 +25,11 @@
 # This is an OMF Prototype definition
 # This prototype contains a single UDP traffic sink, which uses the
 # existing modified application otr2_mp.
-# Note: the application 'otr2_mp' was contributed by a student and is not 
+# Note: the application 'otr2_mp' was contributed by a student and is not
 # officially supported by the OMF/OML team
 #
 defPrototype("test:proto:receiver2_mp") do |p|
-  
+
   p.name = "Receiver2-Multipah"
   p.description = "Nodes which receive packets from multiple paths"
   # List properties of prototype

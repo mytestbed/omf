@@ -1,6 +1,6 @@
 
 
-@startuml 
+@startuml
 
 enum MessageType {
   CREATE
@@ -71,4 +71,3 @@ ResourceProxy "1" *-- "1" Topic : topic
 
 
 @enduml
-  

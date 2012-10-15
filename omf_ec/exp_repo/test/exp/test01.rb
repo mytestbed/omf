@@ -31,7 +31,7 @@ end
 
 def check_outcome
 
-  # Test 01 is successfull if for each of the 2 exec commands above, the log 
+  # Test 01 is successfull if for each of the 2 exec commands above, the log
   # file has a message from the AgentCommands module containing "DONE.OK"
   logfile = "#{property.logpath}/#{Experiment.ID}.log"
   lines = IO.readlines("#{logfile}")

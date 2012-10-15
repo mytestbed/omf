@@ -79,7 +79,7 @@ def check_outcome
   # 1)
   match1 = lines.grep(/CONFIGURED\.OK/)
   r1 = (match1.length >= 10) ? true : false
-  # 2) 
+  # 2)
   match1 = lines.grep(/APP_EVENT\ STARTED/)
   r2 = (match1.length == 2) ? true : false
   match1 = lines.grep(/APP_EVENT DONE\.OK/)
@@ -93,7 +93,7 @@ def check_outcome
   r5 = (cnt2 >= 1) ? true : false
   # 4)
   max = PKTSIZE
-  ms('udp_in').project(:pkt_length_max).each do |r| 
+  ms('udp_in').project(:pkt_length_max).each do |r|
     value = r.tuple
     max = value[0]
   end

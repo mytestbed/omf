@@ -36,7 +36,7 @@ TEXT
   a.defProperty('oml-id', 'ID for this oml client','--oml-id')
   a.defProperty('oml-exp-id', 'ID for this experiment','--oml-exp-id')
 
-  # Where to find the application 'wlanconfig_oml2' which calls wlanconfig 
+  # Where to find the application 'wlanconfig_oml2' which calls wlanconfig
   # and parses its outputs
   a.path = "/usr/bin/wlanconfig_oml2"
 }
