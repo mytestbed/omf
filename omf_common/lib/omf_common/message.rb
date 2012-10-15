@@ -179,11 +179,9 @@ module OmfCommon
     def reconstruct_data(node)
       case node.attr('type')
       when 'array'
-        mash ||= Hashie::Mash.new
-        mash[:items] = node.element_children.map do |child|
+        node.element_children.map do |child|
           reconstruct_data(child)
         end
-        mash
       when /hash/
         mash ||= Hashie::Mash.new
         node.element_children.each do |child|
