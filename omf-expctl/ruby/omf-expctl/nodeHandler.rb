@@ -575,8 +575,8 @@ class NodeHandler < MObject
 
     # Start performace monitor
     # cdw: commented out because it doesn't work with latest OML4R
-    #OMF::EC::OML::PerformanceMonitor.start()
-    #OMF::EC::OML::PerformanceMonitor.report_status 'EXP.STARTED'
+    # OMF::EC::OML::PerformanceMonitor.start()
+    # OMF::EC::OML::PerformanceMonitor.report_status 'EXP.STARTED'
 
     # Start the Logger for this EC and output some info
     startLogger()

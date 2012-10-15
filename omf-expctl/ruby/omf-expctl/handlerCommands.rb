@@ -54,7 +54,7 @@ class OEDLIllegalArgumentException < OEDLException
   def initialize(cmdName, argName, legalValues = [], message = nil)
     @cmdName = cmdName
     @argName = argName
-    message ||= "Illegal values for argument '#{argName}' in command '#{cmdName}'"
+    message ||= "Illegal values for argument '#{argName}' in command '#{cmdName}'. Should be one of '#{legalValues.join(', ')}'"
     super(message)
   end
 end
@@ -538,10 +538,11 @@ module OMF::EC
       return a
     end
 
-    def defGraph(uri = nil, &block)
-      require 'omf-expctl/graph/graph'
-      OMF::EC::Graph::Graph.new(uri, &block)
-    end
+    # def defGraph(uri = nil, &block)
+    #   require 'omf-expctl/graph/graph2'
+    #   gd = OMF::EC::Graph::GraphDescription.new(uri, &block)
+    #   block.call(gd)
+    # end
 
     # Note: we plan to give user full access to SQL query definition in OEDL
     # this will allow them to define JOIN queries to retrieve the name of the
@@ -712,6 +713,9 @@ module OMF::EC
     end
   end
 end
+
+require 'omf-expctl/graph/graph2'
+
 #def _load(file)
 #  eval "require('#{file}')", self.binding
 #end

@@ -53,9 +53,10 @@ module OMF::EC::OML
         TestbedStatsMP.channel :default, "system_#{domain}"
       end
       if use_oml
-        OML4R::init [], :domain => Experiment.ID,
+        OML4R::init [], :expID => Experiment.ID,
                         :nodeID => "console",
-                        :appID => "ec_ctl"
+                        :appName => "ec_ctl",
+                        :omlServer => omlURL
       end
     end
 
