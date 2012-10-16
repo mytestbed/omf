@@ -102,7 +102,7 @@ module OmfRc::ResourceProxy::Application
     res.property.environments ||= Hash.new
     res.property.use_oml ||= false
     res.property.oml_configfile ||= nil
-    res.property.oml_config ||= nil
+    res.property.oml ||= nil
     res.property.oml_logfile ||= nil
     res.property.oml_loglevel ||= nil
     define_method("on_app_event") { |*args| process_event(self, *args) }
@@ -213,25 +213,25 @@ module OmfRc::ResourceProxy::Application
   # stop, run, pause, install. The semantic of each states are:
   #
   # - stop: the initial state for an Application RP, and the final state for
-  #         an applicaiton RP, for which the application instance finished
-  #         its execution or its installation
+  #   an applicaiton RP, for which the application instance finished
+  #   its execution or its installation
   # - run: upon entering in this state, a new instance of the application is
-  #        started, the Application RP stays in this state until the
-  #        application instance is finished or paused. The Application RP can
-  #        only enter this state from a previous 'pause' or 'stop' state.
+  #   started, the Application RP stays in this state until the
+  #   application instance is finished or paused. The Application RP can
+  #   only enter this state from a previous 'pause' or 'stop' state.
   # - pause: upon entering this state, the currently running instance of this
-  #          application should be paused (it is the responsibility of 
-  #          specialised Application Proxy to ensure that! The default
-  #          Application Proxy does nothing to the application instance when
-  #          entering this state). The Application RP can only enter this
-  #          state from a previous 'run' state.
+  #   application should be paused (it is the responsibility of 
+  #   specialised Application Proxy to ensure that! The default
+  #   Application Proxy does nothing to the application instance when
+  #   entering this state). The Application RP can only enter this
+  #   state from a previous 'run' state.
   # - install: upon entering in this state, a new installation of the
-  #            application will be performed by the Application RP, which will
-  #            stay in this state until the installation is finished. The
-  #            Application RP can only enter this state from a previous 'stop'
-  #            state, and can only enter a 'stop' state once the installation
-  #            is finished.
-  #            Supported install methods are: Tarball, Ubuntu, and Fedora
+  #   application will be performed by the Application RP, which will
+  #   stay in this state until the installation is finished. The
+  #   Application RP can only enter this state from a previous 'stop'
+  #   state, and can only enter a 'stop' state once the installation
+  #   is finished.
+  #   Supported install methods are: Tarball, Ubuntu, and Fedora
   #
   # @yieldparam [String] value the state to set this app into
   #
@@ -391,8 +391,8 @@ module OmfRc::ResourceProxy::Application
   # type as the type defined for that parameter
   # The checking procedure is as follows:
   # - first check if a type was set for this parameter, if not then return true
-  #   Thus if no type was defined for this parameter then return true
-  #   regardless of the type of the given value or default
+  #   (thus if no type was defined for this parameter then return true
+  #   regardless of the type of the given value or default)
   # - second check if a value is given, if so check if it has the same type as
   #   the defined type, if so then return true, if not then return false.
   # - third if no value is given but a default is given, then perform the same
@@ -433,13 +433,15 @@ module OmfRc::ResourceProxy::Application
     passed
   end
 
-  # Build the command line, which will be used to start this app
+  # Build the command line, which will be used to start this app.
+  #
   # This command line will be of the form:
   # "env -i VAR1=value1 ... application_path parameterA valueA ..."
   #
   # The environment variables and the parameters in that command line are
   # taken respectively from the 'environments' and 'parameters' properties of
-  # this Application Resource Proxy.
+  # this Application Resource Proxy. If the 'use_oml' property is set, then
+  # add to the command line the necessary oml parameters.
   #
   # [String] the full command line
   #
@@ -473,12 +475,31 @@ module OmfRc::ResourceProxy::Application
       end
     end
     # Add OML parameters if required
-logger.info "FOO A"
-    foo = res.build_oml_config(cmd_line) if res.property.use_oml
-logger.info "FOO: #{foo}"
+    cmd_line = res.build_oml_config(cmd_line) if res.property.use_oml
     cmd_line
   end
 
+  # Add the required OML parameter to the command line for this application
+  #
+  # - if the 'oml_configfile' property is set with a filename, then we use that
+  #   file as the OML Configuration file. Thus we add the parameter
+  #   "--oml-config filename" to this application's command line
+  # - if the 'oml' property is set with a Hash holding an OML configuration, 
+  #   then we write turn it into OML's XML configuration representation, write
+  #   it to a temporary file, and add the parameter "--oml-config tmpfile" to 
+  #   this application's command line
+  #
+  # The 'oml_configfile' case takes precedence over the 'oml' case above.
+  #
+  # Regardless of which case is performed, we will always set the 
+  # '--oml-log-level' and '--oml-log-file' parameter on the command line if 
+  # the corresponsding 'oml_logfile' and 'oml_loglevel' properties are set for
+  # this application resource.
+  #
+  # @yieldparam [String] cmd the String to which OML parameters will be added
+  #
+  # [String] the resulting command line
+  #
   work('build_oml_config') do |res, cmd|
     if !res.property.oml_configfile.nil?
       if File.exist?(res.property.oml_configfile)
@@ -487,13 +508,12 @@ logger.info "FOO: #{foo}"
         res.log_inform_warn "OML enabled but OML config file does not exist"+
         "(file: '#{res.property.oml_configfile}')"
       end
-    elsif !res.property.oml_config.nil?
-      o = res.property.oml_config
-      ofile = "/tmp/#{res.property.uid}.xml"
+    elsif !res.property.oml.nil?
+      o = res.property.oml
+      ofile = "/tmp/#{res.uid}-#{Time.now.to_i}.xml"
       of = File.open(ofile,'w')
       of << "<omlc exp_id='#{o.exp_id}' id='#{o.id}'>\n"
       o.collection.each do |c|
-        puts c.inspect
         of << "  <collect url='#{c.url}'>\n"
         c.measure.each do |m|
           # samples as precedence over interval
@@ -512,12 +532,12 @@ logger.info "FOO: #{foo}"
         of << "  </collect>\n"      
       end
       of << "</omlc>"
-      f.close
+      of.close
       cmd += "--oml-config #{ofile}"
     else
       res.log_inform_warn "OML enabled but no OML configuration was given"+
         "(file: '#{res.property.oml_configfile}' - "+
-        "config: '#{res.property.oml_config}')"
+        "config: '#{res.property.oml.inspect}')"
     end
     cmd += "--oml-log-level #{res.property.oml_loglevel} " unless res.property.oml_loglevel.nil?
     cmd += "--oml-log-file #{res.property.oml_logfile} " unless res.property.oml_logfile.nil?
