@@ -27,16 +27,16 @@
 # This Application Proxy has the following properties:
 #
 # - binary_path (String) the path to the binary of this app
-# - pkg_tarball (String) the URI of the installation tarball of this app 
+# - pkg_tarball (String) the URI of the installation tarball of this app
 # - pkg_ubuntu (String) the name of the Ubuntu package for this app
 # - pkg_fedora (String) the name of the Fedora package for this app
-# - state (String) the state of this Application RP 
+# - state (String) the state of this Application RP
 #     (stop, run, pause, install)
 # - installed (Boolean) is this application installed? (default false)
-# - force_tarball_install (Boolean) if true then force the installation 
-#     from tarball even if other distribution-specific 
+# - force_tarball_install (Boolean) if true then force the installation
+#     from tarball even if other distribution-specific
 #     installation are available (default false)
-# - map_err_to_out (Boolean) if true then map StdErr to StdOut for this 
+# - map_err_to_out (Boolean) if true then map StdErr to StdOut for this
 #     app (default false)
 # - platform (Symbol) the OS platform where this app is running
 # - environment (Hash) the environment variables to set prior to starting 
@@ -51,28 +51,28 @@
 #     with param1 being the id of this parameter for this Proxy and
 #     with attribut1 being another Hash with the following possible
 #     keys and values (all are optional):
-#     :cmd (String) the command line for this parameter 
-#     :order (Fixnum) the appearance order on the command line, default FIFO 
+#     :cmd (String) the command line for this parameter
+#     :order (Fixnum) the appearance order on the command line, default FIFO
 #     :dynamic (Boolean) parameter can be dynammically changed, default false
 #     :type (Numeric|String|Boolean) this parameter's type
-#     :default value given by default to this parameter 
+#     :default value given by default to this parameter
 #     :value value to set for this parameter
 #     :mandatory (Boolean) this parameter is mandatory, default false
 #
 # Two examples of valid parameters definition are:
 #
-#     { :host => {:default => 'localhost', :type => 'String', 
+#     { :host => {:default => 'localhost', :type => 'String',
 #             :mandatory => true, :order => 2},
-#       :port => {:default => 5000, :type => 'Numeric', :cmd => '-p', 
-#             :mandatory => true, :order => 1}, 
-#       :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size', 
+#       :port => {:default => 5000, :type => 'Numeric', :cmd => '-p',
+#             :mandatory => true, :order => 1},
+#       :size => {:default => 512, :type => 'Numeric', :cmd => '--pkt-size',
 #             :mandatory => true, :dynamic => true}
-#       :title => {:type => 'String', :mandatory => false} 
+#       :title => {:type => 'String', :mandatory => false}
 #     }
-# 
+#
 # and
 #
-#     { :title => {:value => "My First Application"} }                   
+#     { :title => {:value => "My First Application"} }
 #
 module OmfRc::ResourceProxy::Application
   include OmfRc::ResourceProxyDSL 
@@ -86,18 +86,18 @@ module OmfRc::ResourceProxy::Application
   DEFAULT_MANDATORY_PARAMETER = false
 
   hook :before_ready do |res|
-    res.property.app_id ||= nil 
-    res.property.binary_path ||= nil 
-    res.property.platform ||= nil 
-    res.property.pkg_tarball ||= nil 
-    res.property.tarball_install_path ||= '/' 
+    res.property.app_id ||= nil
+    res.property.binary_path ||= nil
+    res.property.platform ||= nil
+    res.property.pkg_tarball ||= nil
+    res.property.tarball_install_path ||= '/'
     res.property.force_tarball_install ||= false
-    res.property.pkg_ubuntu ||= nil 
-    res.property.pkg_fedora ||= nil 
-    res.property.state ||= :stop 
-    res.property.installed ||= false 
-    res.property.map_err_to_out ||= false 
-    res.property.event_sequence ||= 0 
+    res.property.pkg_ubuntu ||= nil
+    res.property.pkg_fedora ||= nil
+    res.property.state ||= :stop
+    res.property.installed ||= false
+    res.property.map_err_to_out ||= false
+    res.property.event_sequence ||= 0
     res.property.parameters ||= Hash.new
     res.property.environments ||= Hash.new
     res.property.use_oml ||= false
@@ -111,7 +111,7 @@ module OmfRc::ResourceProxy::Application
   # This method processes an event coming from the application instance, which
   # was started by this Resource Proxy (RP). It is a callback, which is usually
   # called by the ExecApp class in OMF
-  # 
+  #
   # @param [AbstractResource] res this RP
   # @param [String] event_type the type of event from the app instance
   #                 (STARTED, DONE.OK, DONE.ERROR, STDOUT, STDERR)
@@ -188,7 +188,7 @@ module OmfRc::ResourceProxy::Application
           merged_val = res.property.parameters[p].nil? ? v : res.property.parameters[p].merge(v)
           new_val = res.sanitize_parameter(p,merged_val)
           # only set this new parameter if it passes the type check
-          if res.pass_type_checking?(new_val) 
+          if res.pass_type_checking?(new_val)
             res.property.parameters[p] = new_val
             res.dynamic_parameter_update(p,new_val)
           else
@@ -212,10 +212,10 @@ module OmfRc::ResourceProxy::Application
   # Configure the state of this Application RP. The valid states are
   # stop, run, pause, install. The semantic of each states are:
   #
-  # - stop: the initial state for an Application RP, and the final state for 
-  #         an applicaiton RP, for which the application instance finished 
+  # - stop: the initial state for an Application RP, and the final state for
+  #         an applicaiton RP, for which the application instance finished
   #         its execution or its installation
-  # - run: upon entering in this state, a new instance of the application is 
+  # - run: upon entering in this state, a new instance of the application is
   #        started, the Application RP stays in this state until the
   #        application instance is finished or paused. The Application RP can
   #        only enter this state from a previous 'pause' or 'stop' state.
@@ -223,18 +223,18 @@ module OmfRc::ResourceProxy::Application
   #          application should be paused (it is the responsibility of 
   #          specialised Application Proxy to ensure that! The default
   #          Application Proxy does nothing to the application instance when
-  #          entering this state). The Application RP can only enter this 
+  #          entering this state). The Application RP can only enter this
   #          state from a previous 'run' state.
   # - install: upon entering in this state, a new installation of the
   #            application will be performed by the Application RP, which will
-  #            stay in this state until the installation is finished. The 
+  #            stay in this state until the installation is finished. The
   #            Application RP can only enter this state from a previous 'stop'
   #            state, and can only enter a 'stop' state once the installation
   #            is finished.
   #            Supported install methods are: Tarball, Ubuntu, and Fedora
-  # 
+  #
   # @yieldparam [String] value the state to set this app into
-  #  
+  #
   configure :state do |res, value|
     case value.to_s.downcase.to_sym
     when :install then res.switch_to_install
@@ -256,19 +256,19 @@ module OmfRc::ResourceProxy::Application
         # Select the proper installation method based on the platform
         # and the value of 'force_tarball_install'
         res.property.state = :install
-        if res.property.force_tarball_install || 
+        if res.property.force_tarball_install ||
           (res.property.platform == :unknown)
-          installing = res.install_tarball(res.property.pkg_tarball, 
+          installing = res.install_tarball(res.property.pkg_tarball,
               res.property.tarball_install_path)
-        elsif res.property.platform == :ubuntu 
+        elsif res.property.platform == :ubuntu
           installing = res.install_ubuntu(res.property.pkg_ubuntu)
-        elsif res.property.platform == :fedora 
+        elsif res.property.platform == :fedora
           installing = res.install_fedora(res.property.pkg_fedora)
         end
         res.property.state = :stop unless installing
       end
     else
-      # cannot install as we are not stopped 
+      # cannot install as we are not stopped
       res.log_inform_warn "Not in STOP state. Cannot switch to INSTALL state!"
     end
   end
@@ -305,15 +305,15 @@ module OmfRc::ResourceProxy::Application
   # (see the description of configure :state)
   #
   work('switch_to_run') do |res|
-    if res.property.state == :stop 
-      # start a new instance of this app 
-      res.property.app_id = res.hrn.nil? ? res.uid : res.hrn 
+    if res.property.state == :stop
+      # start a new instance of this app
+      res.property.app_id = res.hrn.nil? ? res.uid : res.hrn
       # we need at least a defined binary path to run an app...
       if res.property.binary_path.nil?
         res.log_inform_warn "Binary path not set! No Application to run!"
       else
-        ExecApp.new(res.property.app_id, res, 
-                    res.build_command_line, 
+        ExecApp.new(res.property.app_id, res,
+                    res.build_command_line,
                     res.property.map_err_to_out)
         res.property.state = :run
       end
@@ -331,7 +331,7 @@ module OmfRc::ResourceProxy::Application
   # (see the description of configure :state)
   #
   work('switch_to_pause') do |res|
-    if res.property.state == :run 
+    if res.property.state == :run
       # pause this app
       res.property.state = :pause
       # do more things here...
@@ -358,8 +358,8 @@ module OmfRc::ResourceProxy::Application
     end
   end
 
-  # First, convert any 'true' or 'false' strings from the :mandatory and 
-  # :dynamic attributs of a given parameter into TrueClass or FalseClass 
+  # First, convert any 'true' or 'false' strings from the :mandatory and
+  # :dynamic attributs of a given parameter into TrueClass or FalseClass
   # instances.
   # Second, if that parameter is of a type Boolean, then perform the same
   # conversion on the assigned default and value of this parameter
@@ -372,10 +372,10 @@ module OmfRc::ResourceProxy::Application
   work('sanitize_parameter') do |res,name,att|
     begin
       if !att[:mandatory].nil? && !res.boolean?(att[:mandatory])
-        att[:mandatory] = eval(att[:mandatory].downcase)  
-      end   
+        att[:mandatory] = eval(att[:mandatory].downcase)
+      end
       if !att[:dynamic].nil? && !res.boolean?(att[:dynamic])
-       att[:dynamic] = eval(att[:dynamic].downcase) 
+       att[:dynamic] = eval(att[:dynamic].downcase)
       end
       if (att[:type] == 'Boolean')
         att[:value] = eval(att[:value].downcase) if !att[:value].nil? && !res.boolean?(att[:value])
@@ -391,11 +391,11 @@ module OmfRc::ResourceProxy::Application
   # type as the type defined for that parameter
   # The checking procedure is as follows:
   # - first check if a type was set for this parameter, if not then return true
-  #   Thus if no type was defined for this parameter then return true 
+  #   Thus if no type was defined for this parameter then return true
   #   regardless of the type of the given value or default
   # - second check if a value is given, if so check if it has the same type as
   #   the defined type, if so then return true, if not then return false.
-  # - third if no value is given but a default is given, then perform the same 
+  # - third if no value is given but a default is given, then perform the same
   #   check as above but using the default in-place of the value
   #
   # @yieldparam [Hash] att the Hash holding the parameter's attributs
@@ -411,11 +411,11 @@ module OmfRc::ResourceProxy::Application
         elsif att[:default].nil? && att[:value].nil?
           passed = true
         elsif att[:default].nil?
-          passed = true if res.boolean?(att[:value]) 
+          passed = true if res.boolean?(att[:value])
         elsif att[:value].nil?
-          passed = true if res.boolean?(att[:default]) 
+          passed = true if res.boolean?(att[:default])
         end
-      else # HACK: Now for all other types... 
+      else # HACK: Now for all other types...
         klass = Module.const_get(att[:type].capitalize.to_sym)
         if !att[:default].nil? && !att[:value].nil?
           passed = true if att[:default].kind_of?(klass) && att[:value].kind_of?(klass)
@@ -435,9 +435,9 @@ module OmfRc::ResourceProxy::Application
 
   # Build the command line, which will be used to start this app
   # This command line will be of the form:
-  # "env -i VAR1=value1 ... application_path parameterA valueA ..." 
+  # "env -i VAR1=value1 ... application_path parameterA valueA ..."
   #
-  # The environment variables and the parameters in that command line are 
+  # The environment variables and the parameters in that command line are
   # taken respectively from the 'environments' and 'parameters' properties of
   # this Application Resource Proxy.
   #
@@ -461,8 +461,8 @@ module OmfRc::ResourceProxy::Application
       # Finally add the parameter if is value/default is not nil
       unless val.nil?
         if att[:type] == "Boolean"
-          # for Boolean param, only the command is printed if value==true 
-          cmd_line += "#{att[:cmd]} " if val == true 
+          # for Boolean param, only the command is printed if value==true
+          cmd_line += "#{att[:cmd]} " if val == true
         else
           # for all other type of param, we print "cmd value"
           # with a user-provided prefix/suffix if defined

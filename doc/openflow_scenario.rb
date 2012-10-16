@@ -106,13 +106,13 @@ end
 EM.run do
   comm.connect(options[:user], options[:password], options[:server])
 
-  trap(:INT) do 
+  trap(:INT) do
     comm.publish(options[:uid], @messages[:release_1])
     comm.publish(options[:uid], @messages[:release_2])
     comm.disconnect
   end
-  trap(:TERM) do 
-    comm.publish(options[:uid], @messages[:release_1]) 
+  trap(:TERM) do
+    comm.publish(options[:uid], @messages[:release_1])
     comm.publish(options[:uid], @messages[:release_2])
     comm.disconnect
   end

@@ -33,7 +33,7 @@ defGroup('Actor', property.res1) {|n|
     app.setProperty('arg2', 'DEF') # Displays "--arg2 DEF"
     app.setProperty('arg3', property.pboolean) # Displays "-b"
     app.setProperty('arg4', true) # Displays "--arg4"
-    app.setProperty('arg5', false) # Displays nothing 
+    app.setProperty('arg5', false) # Displays nothing
     app.setProperty('arg6', property.pinteger) # Displays "-i 123" in second position!
     app.setProperty('arg7', 456) # Displays "--arg7 456"
     app.setProperty('arg8', "ZZZ") # Displays "ZZZ"
@@ -61,8 +61,8 @@ end
 def check_outcome
 
   # Test 03 is successfull if all of the following are true:
-  # 1) the tarball is installed OK AND the application runs OK 
-  # 2) the application outputs the correct payload from the tarball 
+  # 1) the tarball is installed OK AND the application runs OK
+  # 2) the application outputs the correct payload from the tarball
   # 3) the application accepts and outputs the correct arguments
   logfile = "#{property.logpath}/#{Experiment.ID}.log"
   lines = IO.readlines("#{logfile}")
@@ -80,7 +80,7 @@ def check_outcome
   match2 = match1.grep(/AgentCommands/)
   r4 = (match2.length == 1) ? true : false
 
-  puts "Check Outcome [r1:#{r1} - r2:#{r2} - r3:#{r3} - r4:#{r4}]" 
+  puts "Check Outcome [r1:#{r1} - r2:#{r2} - r3:#{r3} - r4:#{r4}]"
   return true if r1 && r2 && r3 && r4
   return false
 

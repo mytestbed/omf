@@ -24,7 +24,7 @@
 
 # This is an OMF Definition for the existing application called 'otr2_mp'
 # This definition will allow OMF entities to use and instrument this application
-# Note: the application 'otr2_mp' was contributed by a student and is not 
+# Note: the application 'otr2_mp' was contributed by a student and is not
 # officially supported by the OMF/OML team
 #
 defApplication('test:app:otr2_mp', 'otr2_mp') do |a|
@@ -40,7 +40,7 @@ multiple paths to the destination.
 TEXT
 
   # Define the properties that can be configured for this application
-  # 
+  #
   # syntax: defProperty(name, description, parameter, options = nil)
   #
   a.defProperty('sink', 'Processing to do with received packets [udpi|udpmi]', '--sink', {:type => :string, :dynamic => false})

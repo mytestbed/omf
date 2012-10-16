@@ -37,7 +37,7 @@ This version 2 is compatible with OMLv2.
 TEXT
 
   # Define the properties that can be configured for this application
-  # 
+  #
   # syntax: defProperty(name, description, parameter, options = nil)
   #
   a.defProperty('udp:local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})

@@ -29,7 +29,7 @@ defApplication('test:app:echo', 'echo') { |a|
   a.version(1, 0, 0)
   a.shortDescription = "The shell Echo command"
   a.description = <<TEXT
-echo is a wrapper around the echo shell command. 
+echo is a wrapper around the echo shell command.
 TEXT
 
   a.path = "/bin/echo"

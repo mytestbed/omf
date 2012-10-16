@@ -76,7 +76,7 @@ def check_outcome
   # 1)
   match1 = lines.grep(/CONFIGURED\.OK/)
   r1 = (match1.length >= 10) ? true : false
-  # 2) 
+  # 2)
   match1 = lines.grep(/APP_EVENT\ STARTED/)
   r2 = (match1.length == 4) ? true : false
   match1 = lines.grep(/APP_EVENT DONE\.OK/)

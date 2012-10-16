@@ -94,9 +94,9 @@ describe OmfCommon::Message do
       memory.precision.must_equal 0
 
       devices = message.read_property(:devices)
-      devices.items.must_be_kind_of Array
-      devices.items.size.must_equal 2
-      devices.items.find { |v| v.name == 'w1'}.driver.items.size.must_equal 2
+      devices.must_be_kind_of Array
+      devices.size.must_equal 2
+      devices.find { |v| v.name == 'w1'}.driver.size.must_equal 2
       # Each property iterator
       message.each_property do |v|
         %w(type os memory devices).must_include v.attr('key')

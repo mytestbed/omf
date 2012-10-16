@@ -39,7 +39,7 @@ app_topic.on_message  do |m|
   end
 end
 
-# Here we construct the different messages that we will publish later when we 
+# Here we construct the different messages that we will publish later when we
 # will interact with the Application proxy
 msgs = {
   # request the OS platform on which the App Proxy is running
@@ -62,7 +62,7 @@ msgs = {
 }
 
 # Register a block of commands to handle all 'inform' messages
-# published as replies to our 'req_platform' 
+# published as replies to our 'req_platform'
 msgs[:req_platform].on_inform_status do |m|
   m.each_property do |p|
     logger.info "#{p.attr('key')} => #{p.content.strip}"
@@ -76,7 +76,7 @@ end
 comm.when_ready do
   logger.info "CONNECTED: #{comm.jid.inspect}"
 
-  # We assume that a application resource proxy instance is up already, 
+  # We assume that a application resource proxy instance is up already,
   # so we subscribe to its pubsub topic
   app_topic.subscribe do
     # If subscribed, we start publishing messages some messages

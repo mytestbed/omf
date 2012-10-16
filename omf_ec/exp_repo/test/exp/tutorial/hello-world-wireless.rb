@@ -64,7 +64,7 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   Experiment.done
 end
 
-if property.graph.value 
+if property.graph.value
   addTab(:defaults)
   addTab(:graph2) do |tab|
     opts = { :postfix => %{This graph shows the Sequence Number from the UDP traffic.}, :updateEvery => 1 }

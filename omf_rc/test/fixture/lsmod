@@ -1,106 +1,106 @@
 Module                  Size  Used by
-ip6table_filter        12540  0 
+ip6table_filter        12540  0
 ip6_tables             22175  1 ip6table_filter
-iptable_filter         12536  0 
+iptable_filter         12536  0
 ip_tables              22042  1 iptable_filter
-ebtable_nat            12580  0 
+ebtable_nat            12580  0
 ebtables               26235  1 ebtable_nat
 x_tables               19073  5 ebtables,ip_tables,iptable_filter,ip6_tables,ip6table_filter
-parport_pc             22364  0 
-ppdev                  12763  0 
-lp                     17149  0 
+parport_pc             22364  0
+ppdev                  12763  0
+lp                     17149  0
 parport                31858  3 lp,ppdev,parport_pc
-rfcomm                 33656  8 
-bnep                   17567  2 
-cpufreq_stats          12866  0 
-cpufreq_userspace      12576  0 
-cpufreq_powersave      12454  0 
-cpufreq_conservative    13147  0 
-pci_stub               12429  1 
-vboxpci                19066  0 
-autofs4                27582  2 
-vboxnetadp             25443  0 
-vboxnetflt             23571  0 
+rfcomm                 33656  8
+bnep                   17567  2
+cpufreq_stats          12866  0
+cpufreq_userspace      12576  0
+cpufreq_powersave      12454  0
+cpufreq_conservative    13147  0
+pci_stub               12429  1
+vboxpci                19066  0
+autofs4                27582  2
+vboxnetadp             25443  0
+vboxnetflt             23571  0
 vboxdrv               190105  3 vboxnetflt,vboxnetadp,vboxpci
-uinput                 17440  1 
-nfsd                  211858  2 
-nfs                   312243  0 
+uinput                 17440  1
+nfsd                  211858  2
+nfs                   312243  0
 nfs_acl                12511  2 nfs,nfsd
 auth_rpcgss            37143  2 nfs,nfsd
 fscache                36739  1 nfs
 lockd                  67328  2 nfs,nfsd
 sunrpc                173671  6 lockd,auth_rpcgss,nfs_acl,nfs,nfsd
-loop                   22641  0 
-fuse                   61981  1 
-kvm                   287662  0 
-snd_hda_codec_conexant    45252  1 
-joydev                 17266  0 
-arc4                   12458  2 
-coretemp               12898  0 
-crc32c_intel           12747  0 
-btusb                  17502  2 
+loop                   22641  0
+fuse                   61981  1
+kvm                   287662  0
+snd_hda_codec_conexant    45252  1
+joydev                 17266  0
+arc4                   12458  2
+coretemp               12898  0
+crc32c_intel           12747  0
+btusb                  17502  2
 bluetooth             119406  23 btusb,bnep,rfcomm
 crc16                  12343  1 bluetooth
-snd_hda_intel          26345  0 
-ghash_clmulni_intel    13133  0 
-i2c_i801               16870  0 
+snd_hda_intel          26345  0
+ghash_clmulni_intel    13133  0
+i2c_i801               16870  0
 snd_hda_codec          78031  2 snd_hda_intel,snd_hda_codec_conexant
 snd_hwdep              13186  1 snd_hda_codec
 snd_pcm                63900  2 snd_hda_codec,snd_hda_intel
 snd_page_alloc         13003  2 snd_pcm,snd_hda_intel
-aesni_intel            50667  0 
+aesni_intel            50667  0
 aes_x86_64             16796  1 aesni_intel
-pcspkr                 12579  0 
-psmouse                64455  0 
-thinkpad_acpi          61270  0 
+pcspkr                 12579  0
+psmouse                64455  0
+thinkpad_acpi          61270  0
 aes_generic            33026  2 aes_x86_64,aesni_intel
 nvram                  13049  1 thinkpad_acpi
 cryptd                 14517  2 aesni_intel,ghash_clmulni_intel
-serio_raw              12931  0 
-snd_seq                45093  0 
-evdev                  17562  15 
+serio_raw              12931  0
+snd_seq                45093  0
+evdev                  17562  15
 snd_seq_device         13176  1 snd_seq
 snd_timer              22917  2 snd_seq,snd_pcm
-iwlwifi               170823  0 
-i915                  355994  3 
+iwlwifi               170823  0
+i915                  355994  3
 mac80211              192768  1 iwlwifi
 snd                    52850  9 snd_timer,snd_seq_device,snd_seq,thinkpad_acpi,snd_pcm,snd_hwdep,snd_hda_codec,snd_hda_intel,snd_hda_codec_conexant
 cfg80211              137140  2 mac80211,iwlwifi
 drm_kms_helper         27227  1 i915
-iTCO_wdt               17081  0 
+iTCO_wdt               17081  0
 iTCO_vendor_support    12704  1 iTCO_wdt
 drm                   167670  4 drm_kms_helper,i915
 soundcore              13065  1 snd
-battery                13109  0 
+battery                13109  0
 rfkill                 19012  4 cfg80211,thinkpad_acpi,bluetooth
 i2c_algo_bit           12841  1 i915
 i2c_core               23876  5 i2c_algo_bit,drm,drm_kms_helper,i915,i2c_i801
-ac                     12624  0 
+ac                     12624  0
 power_supply           13475  2 ac,battery
-tpm_tis                17454  0 
+tpm_tis                17454  0
 tpm                    17862  1 tpm_tis
 tpm_bios               12948  1 tpm
 video                  17628  1 i915
-wmi                    13243  0 
-acpi_cpufreq           12935  1 
+wmi                    13243  0
+acpi_cpufreq           12935  1
 mperf                  12453  1 acpi_cpufreq
 button                 12937  1 i915
 processor              28157  1 acpi_cpufreq
-xfs                   594991  4 
-dm_mod                 63545  12 
-sd_mod                 36136  2 
+xfs                   594991  4
+dm_mod                 63545  12
+sd_mod                 36136  2
 crc_t10dif             12348  1 sd_mod
-sdhci_pci              17976  0 
-ahci                   24997  1 
+sdhci_pci              17976  0
+ahci                   24997  1
 libahci                22860  1 ahci
-xhci_hcd               73170  0 
+xhci_hcd               73170  0
 libata                140589  2 libahci,ahci
 sdhci                  27053  1 sdhci_pci
 mmc_core               72460  2 sdhci,sdhci_pci
-ehci_hcd               40215  0 
+ehci_hcd               40215  0
 scsi_mod              162372  2 libata,sd_mod
 usbcore               128498  4 ehci_hcd,xhci_hcd,btusb
-e1000e                120822  0 
+e1000e                120822  0
 usb_common             12354  1 usbcore
-thermal                17383  0 
+thermal                17383  0
 thermal_sys            18040  3 thermal,processor,video

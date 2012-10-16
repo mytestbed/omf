@@ -18,8 +18,8 @@ defApplication('nmapURI', 'nmap') { |app|
 
 defGroup('Actor', property.res1) {|n|
   n.addApplication("nmapURI") {|app|
-    app.setProperty('target', "127.0.0.1") 
-    app.setProperty('port', '101-200') 
+    app.setProperty('target', "127.0.0.1")
+    app.setProperty('port', '101-200')
   }
 }
 
@@ -49,19 +49,19 @@ def check_outcome
   # Test 06 is successfull if:
   # 1) the application nmap has been unpacked on the resource
   # AND
-  # 2) for the Actor group, the log file has a message from the AgentCommands 
+  # 2) for the Actor group, the log file has a message from the AgentCommands
   #    module containing "DONE.OK" for the install of the app, and for the app
   #    execution
 
-  # Test 06 is successfull if for each of the 2 exec commands above, the log 
+  # Test 06 is successfull if for each of the 2 exec commands above, the log
   # file has a message from the AgentCommands module containing "DONE.OK"
   logfile = "#{property.logpath}/#{Experiment.ID}.log"
   lines = IO.readlines("#{logfile}")
-  # 1) 
+  # 1)
   match1 = lines.grep(/Unpacking\ nmap/)
   match2 = match1.grep(/AgentCommands/)
   result1 = (match2.length == 1) ? true : false
-  # 2) 
+  # 2)
   match1 = lines.grep(/DONE\.OK/)
   match2 = match1.grep(/AgentCommands/)
   result2 = (match2.length >= 2) ? true : false

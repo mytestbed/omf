@@ -2,7 +2,7 @@ require 'test_helper'
 require 'omf_rc/util/common_tools'
 
 describe OmfRc::Util::CommonTools do
-  
+
   describe "when included in the resource proxy" do
     before do
       module OmfRc::ResourceProxy::Test

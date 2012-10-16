@@ -25,9 +25,9 @@
 
 # This is an OMF Definition for the existing application called 'otg2_mp'
 # This definition will allow OMF entities to use and instrument this application
-# Note: the application 'otg2_mp' was contributed by a student and is not 
+# Note: the application 'otg2_mp' was contributed by a student and is not
 # officially supported by the OMF/OML team
-# 
+#
 defApplication('test:app:otg2', 'otg2') do |a|
 
   a.path = "/usr/bin/otg2_mp"
@@ -42,7 +42,7 @@ multiple paths to the destination.
 TEXT
 
   # Define the properties that can be configured for this application
-  # 
+  #
   # syntax: defProperty(name, description, parameter, options = nil)
   #
   a.defProperty('protocol', 'Protocol to use [udpm|udp|tcp]','--protocol')

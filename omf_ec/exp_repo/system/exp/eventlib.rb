@@ -20,18 +20,18 @@
 # THE SOFTWARE.
 #
 #
-# = eventlib.rb 
+# = eventlib.rb
 #
 # == Description
 #
-# This Ruby file contains various common Event declarations, which the EC will 
+# This Ruby file contains various common Event declarations, which the EC will
 # load before the user's experiment file
 #
 
 #
-# This provide some default Event definition that the user may use in his 
+# This provide some default Event definition that the user may use in his
 # experiment, without having to worry about how to define them.
-# To start one of the event monitoring defined here, the user need to associate 
+# To start one of the event monitoring defined here, the user need to associate
 # at least one block of tasks to it, using the onEvent() OEDL call.
 # See the OEDL documentation for more info and a tutorial
 #
@@ -40,7 +40,7 @@ defEvent(:ALL_UP_AND_INSTALLED) do |event|
   node_status = allGroups.state("status/@value")
   app_status = allGroups.state("apps/app/status/@value")
   if allEqual(node_status, "UP") && allEqual(app_status, "INSTALLED.OK")
-    event.fire 
+    event.fire
   end
 end
 
@@ -77,7 +77,7 @@ end
 defEvent(:NO_USER_DEFINED_EVENTS) do |event|
   if Experiment.running? && !Experiment.disconnection_allowed?
     if Event.empty?(:ignore => [:EXPERIMENT_DONE, :NO_USER_DEFINED_EVENTS])
-      event.fire 
+      event.fire
     end
   end
 end

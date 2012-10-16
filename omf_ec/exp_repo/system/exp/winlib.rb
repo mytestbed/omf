@@ -42,7 +42,7 @@
 # e.g. if console's hostname is 'console.grid.orbit-lab.org' and prefix is 'node'
 #      and the resource is at coordinate [1,2]
 #      then the returned HRN is 'node1-2.grid.orbit-lab.org'
-# 
+#
 HRN_PREFIX='node'
 @@hrnSuffix = nil
 def hrn(x,y)
@@ -54,7 +54,7 @@ def hrn(x,y)
 end
 
 # THIS IS FOR WINLAB ONLY
-# Turns a list of node in the 5.2 [x,y] syntax into a list of 5.3 HRN 
+# Turns a list of node in the 5.2 [x,y] syntax into a list of 5.3 HRN
 # (this code is from the 5.2. Topology class)
 #
 def turn_52_to_53(nodes)
@@ -108,7 +108,7 @@ end
 
 # THIS IS FOR WINLAB ONLY
 # Provide a new 'defGroup52' method which accept 5.3 node coordinate syntax,
-# turns them into 5.3 HRN syntax and call the 5.3 defGroup with it 
+# turns them into 5.3 HRN syntax and call the 5.3 defGroup with it
 #
 def defGroup52(groupName, selector = nil, &block)
   sel = process_selector(selector)
@@ -118,7 +118,7 @@ end
 
 # THIS IS FOR WINLAB ONLY
 # Provide a new 'defTopology52' method which accept 5.3 node coordinate syntax,
-# turns them into 5.3 HRN syntax and call the 5.3 defTopology with it 
+# turns them into 5.3 HRN syntax and call the 5.3 defTopology with it
 #
 def defTopology52(topoName, selector = nil, &block)
   sel = process_selector(selector)
@@ -129,10 +129,10 @@ end
 #
 # Testing Topology: uncomment below and run with "omf-5.3 exec winlib.rb"
 #
-#defTopology52('topo1', [2,3]) 
-#defTopology52('topo2', [[2,3],[4,5],[6,7]]) 
-#defTopology52('topo3', [1..2,4..5]) 
-#defTopology52('topo4', [[1..2,4..5],[6,7],[8,9]]) 
+#defTopology52('topo1', [2,3])
+#defTopology52('topo2', [[2,3],[4,5],[6,7]])
+#defTopology52('topo3', [1..2,4..5])
+#defTopology52('topo4', [[1..2,4..5],[6,7],[8,9]])
 #defProperty('res2', [1..2,1..2], "Some nodes")
 #defTopology52('topo5', property.res2)
 #(1..5).each { |i|
@@ -144,10 +144,10 @@ end
 #
 # Testing Groups: uncomment below and run with "omf-5.3 exec winlib.rb"
 #
-#defGroup52('group1', [2,3]) 
-#defGroup52('group2', [[2,3],[4,5],[6,7]]) 
-#defGroup52('group3', [1..2,4..5]) 
-#defGroup52('group4', [[1..2,4..5],[6,7],[8,9]]) 
+#defGroup52('group1', [2,3])
+#defGroup52('group2', [[2,3],[4,5],[6,7]])
+#defGroup52('group3', [1..2,4..5])
+#defGroup52('group4', [[1..2,4..5],[6,7],[8,9]])
 #defProperty('res1', [1..2,1..2], "Some nodes")
 #defGroup52('group5', property.res1)
 #defGroup52('group6', ['group1','group2'])
