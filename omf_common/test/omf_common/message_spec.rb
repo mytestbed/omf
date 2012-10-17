@@ -75,15 +75,18 @@ describe OmfCommon::Message do
         m.property('os', 'debian')
         m.property('memory', { value: 1024, unit: 'mb', precision: 0 })
         m.property('devices', [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ])
+        m.property('true', true)
+        m.property('false', false)
+        m.property('boolean_array', [false, true])
       end.canonicalize
 
       message = Message.parse(xml)
 
       message.must_be_kind_of Message
       message.operation.must_equal :create
-      message.read_element("//property").size.must_equal 4
+      message.read_element("//property").size.must_equal 7
       message.read_content("unit").must_equal 'mb'
-      message.read_element("/create/property").size.must_equal 4
+      message.read_element("/create/property").size.must_equal 7
       message.read_property("type").must_equal 'vm'
       message.read_property(:type).must_equal 'vm'
 
@@ -99,8 +102,12 @@ describe OmfCommon::Message do
       devices.find { |v| v.name == 'w1'}.driver.size.must_equal 2
       # Each property iterator
       message.each_property do |v|
-        %w(type os memory devices).must_include v.attr('key')
+        %w(type os memory devices true false boolean_array).must_include v.attr('key')
       end
+
+      message.read_property(:true).must_equal true
+      message.read_property(:false).must_equal false
+      message.read_property('boolean_array').must_equal [false, true]
     end
 
     it "must fail if parse an empty xml" do
