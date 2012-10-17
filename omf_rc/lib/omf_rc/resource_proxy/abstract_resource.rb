@@ -133,6 +133,7 @@ class OmfRc::ResourceProxy::AbstractResource
       methods.each do |m|
         mash[$1] << $2.to_sym if m =~ /(request|configure)_(.+)/ && $2 != "available_properties"
       end
+      (mash.request + property.keys).uniq
     end
   end
 
