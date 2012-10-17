@@ -28,6 +28,14 @@ For full documentation regarding the design of OMF version 6, please visit our [
 
 ## Installation
 
+### I do not have git, ruby, or gem ...
+
+Please check and install these additional dependencies for your environment:
+
+{file:doc/INSTALLATION.mkd Detailed installation guide}
+
+### From rubygems
+
 In OMF 6, we switched to the GEM system to release packages.
 
 To install OMF Resource Controller (RC), simple do (--pre indicates pre-release):
@@ -41,6 +49,8 @@ For OMF Experiment Controller (EC):
 _We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are dropping support for Ruby 1.8._
 
 [RVM (ruby version manageer)](https://rvm.io/) is strongly recommended if your OS release doesn't provide these ruby versions.
+
+### From repository
 
 You could also build and install packages using the latest source from git repository:
 
