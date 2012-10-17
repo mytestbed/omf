@@ -6,7 +6,6 @@ Type following in your console:
 
     sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel
     sudo yum groupinstall development-tools development-libs
-    sudo yum install -y
 
     curl -L https://get.rvm.io | bash -s stable –ruby
 
