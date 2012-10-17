@@ -91,6 +91,8 @@ module OmfCommon
                   end
                 end
               end
+            else
+              Message.send(m_name)
             end
 
           OmfCommon::TopicMessage.new(message, self)
