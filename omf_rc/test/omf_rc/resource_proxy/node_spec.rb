@@ -37,10 +37,10 @@ describe OmfRc::ResourceProxy::Node do
     end
 
     it "must provide a list of created applications" do
-      @node.create(:generic_application, { :uid => 'app_test', :hrn => 'app_test' })
+      @node.create(:application, { :uid => 'app_test', :hrn => 'app_test' })
 
       @node.request_applications.must_equal [
-        { name: 'app_test', type: 'generic_application', uid: 'app_test' }
+        { name: 'app_test', type: 'application', uid: 'app_test' }
       ]
     end
 
