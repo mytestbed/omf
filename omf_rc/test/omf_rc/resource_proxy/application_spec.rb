@@ -1,19 +1,19 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy/generic_application'
+require 'omf_rc/resource_proxy/application'
 
 
 
-describe OmfRc::ResourceProxy::GenericApplication do
+describe OmfRc::ResourceProxy::Application do
 
   before do
-    @app_test = OmfRc::ResourceFactory.new(:generic_application, { hrn: 'an_application' })
+    @app_test = OmfRc::ResourceFactory.new(:application, { hrn: 'an_application' })
     @app_test.comm = MiniTest::Mock.new
     @app_test.comm.expect :publish, nil, [String,OmfCommon::Message]
   end
 
   describe "when initialised" do
     it "must respond to an 'on_app_event' call back" do
-      #OmfRc::ResourceProxy::GenericApplication.method_defined?(:on_app_event).must_equal true
+      #OmfRc::ResourceProxy::Application.method_defined?(:on_app_event).must_equal true
       @app_test.must_respond_to :on_app_event
     end
 
@@ -78,28 +78,12 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.parameters[:p2][:default].must_equal 'bar_bar'
     end
 
-    it "must be able to sanitize its parameters property" do
-      test_params = { :p1 => { :mandatory => 'true', :dynamic => false},
-                      :p2 => { :mandatory => true, :dynamic => 'false'},
-                      :p3 => { :type => 'Boolean', :default => true, :value => 'false'},
-                      :p4 => { :type => 'Boolean', :default => 'true', :value => false} }
-      @app_test.method(:configure_parameters).call(test_params)
-      @app_test.property.parameters[:p1][:mandatory].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p1][:dynamic].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p2][:mandatory].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p2][:dynamic].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p3][:value].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p4][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p4][:value].must_be_kind_of FalseClass
-    end
-
     it "must be able to validate the correct type of a defined parameter" do
       test_params = { :p1 => { :type => 'String', :default => 'foo', :value => 'bar'},
                       :p2 => { :type => 'Numeric', :default => 123, :value => 456},
-                      :p3 => { :type => 'Boolean', :default => true, :value => true},
+                      :p3 => { :type => 'Boolean', :default => true, :value => false},
                       :p4 => { :type => 'Boolean'},
-                      :p5 => { :type => 'Boolean', :default => true},
+                      :p5 => { :type => 'Boolean', :default => false},
                       :p6 => { :type => 'Boolean', :value => true},
                       :p7 => { :type => 'Numeric'},
                       :p8 => { :type => 'Numeric', :default => 123},
@@ -110,10 +94,10 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.parameters[:p2][:default].must_be_kind_of Numeric
       @app_test.property.parameters[:p2][:value].must_be_kind_of Numeric
       @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p3][:value].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p3][:value].must_be_kind_of FalseClass
       @app_test.property.parameters[:p4][:default].must_be_nil
       @app_test.property.parameters[:p4][:value].must_be_nil
-      @app_test.property.parameters[:p5][:default].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p5][:default].must_be_kind_of FalseClass
       @app_test.property.parameters[:p6][:value].must_be_kind_of TrueClass
       @app_test.property.parameters[:p7][:default].must_be_nil
       @app_test.property.parameters[:p7][:value].must_be_nil
@@ -141,10 +125,11 @@ describe OmfRc::ResourceProxy::GenericApplication do
 
     it "must update any valid dynamic parameter with the given value" do
       # set the parameter as dynamic
-      params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true} }
+      params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true},
+                  :p2 => { :cmd => '--notcalled', :dynamic => false} }
       @app_test.method(:configure_parameters).call(params1)
       # then update it
-      params2 = { :p1 => { :value => 'bar'} }
+      params2 = { :p1 => { :value => 'bar'} , :p2 => { :value => 'abc'}  }
       @app_test.property.state = :run
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map); end

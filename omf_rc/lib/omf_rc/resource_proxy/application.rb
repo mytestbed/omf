@@ -185,8 +185,7 @@ module OmfRc::ResourceProxy::Application
           v[:order] = MAX_PARAMETER_NUMBER if v[:order].nil?
           # if this param has no set mandatory field, assign it a default one
           v[:mandatory] = DEFAULT_MANDATORY_PARAMETER if v[:mandatory].nil?
-          merged_val = res.property.parameters[p].nil? ? v : res.property.parameters[p].merge(v)
-          new_val = res.sanitize_parameter(p,merged_val)
+          new_val = res.property.parameters[p].nil? ? v : res.property.parameters[p].merge(v)
           # only set this new parameter if it passes the type check
           if res.pass_type_checking?(new_val)
             res.property.parameters[p] = new_val
@@ -356,35 +355,6 @@ module OmfRc::ResourceProxy::Application
       ExecApp[res.property.app_id].stdin(line)
       logger.info "Updated parameter #{name} with value #{att[:value].inspect}"
     end
-  end
-
-  # First, convert any 'true' or 'false' strings from the :mandatory and
-  # :dynamic attributs of a given parameter into TrueClass or FalseClass
-  # instances.
-  # Second, if that parameter is of a type Boolean, then perform the same
-  # conversion on the assigned default and value of this parameter
-  #
-  #  @yieldparam [String] name the parameter id as known by this app
-  #  @yieldparam [Hash] att the Hash holding the parameter's attributs
-  #
-  # [Hash] a copy of the input Hash with the above conversion performed in it
-  #
-  work('sanitize_parameter') do |res,name,att|
-    begin
-      if !att[:mandatory].nil? && !res.boolean?(att[:mandatory])
-        att[:mandatory] = eval(att[:mandatory].downcase)
-      end
-      if !att[:dynamic].nil? && !res.boolean?(att[:dynamic])
-       att[:dynamic] = eval(att[:dynamic].downcase)
-      end
-      if (att[:type] == 'Boolean')
-        att[:value] = eval(att[:value].downcase) if !att[:value].nil? && !res.boolean?(att[:value])
-        att[:default] = eval(att[:default].downcase) if !att[:default].nil? && !res.boolean?(att[:default])
-      end
-    rescue Exception => ex
-      res.log_inform_error "Cannot sanitize the parameter '#{name}' (#{att.inspect})"
-    end
-    att
   end
 
   # Check if a configured value or default for a parameter has the same
