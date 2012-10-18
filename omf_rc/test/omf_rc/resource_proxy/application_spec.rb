@@ -20,16 +20,16 @@ describe OmfRc::ResourceProxy::Application do
     it "must have its properties set to sensible initial values" do
       @app_test.request_state.to_sym.must_equal :stop
       @app_test.request_tarball_install_path.must_equal '/'
-      @app_test.request_force_tarball_install.must_equal 'false'
-      @app_test.request_installed.must_equal 'false'
-      @app_test.request_map_err_to_out.must_equal 'false'
+      @app_test.request_force_tarball_install.must_equal false
+      @app_test.request_installed.must_equal false
+      @app_test.request_map_err_to_out.must_equal false
     end
 
     it "must be able to configure/request its basic properties" do
       basic_prop = %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install map_err_to_out tarball_install_path)
       basic_prop.each do |p|
-        @app_test.method("configure_#{p}".to_sym).call('foo')
-        @app_test.method("request_#{p}".to_sym).call.must_equal 'foo'
+        @app_test.send("configure_#{p}".to_sym, 'foo')
+        @app_test.send("request_#{p}".to_sym).must_equal 'foo'
       end
     end
 
@@ -161,7 +161,7 @@ describe OmfRc::ResourceProxy::Application do
     it "must set installed property to true if the event is 'DONE.OK' and the app_id's suffix is '_INSTALL'" do
       @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
       @app_test.request_state.to_sym.must_equal :stop
-      @app_test.request_installed.must_equal "true"
+      @app_test.request_installed.must_equal true
     end
   end
 

@@ -135,14 +135,6 @@ module OmfRc::ResourceProxy::Application
       res.property.installed = true if app_id.include?("_INSTALL") &&
                                        event_type.to_s.include?('DONE.OK')
   end
-
-  # Request the basic properties of this Application RP. 
-  # @see OmfRc::ResourceProxy::Application
-  #
-  %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora state installed \
-    force_tarball_install map_err_to_out tarball_install_path).each do |prop|
-    request(prop) { |res| res.property[prop].to_s }
-  end
   
   # Request the platform property of this Application RP
   # @see OmfRc::ResourceProxy::Application
@@ -150,14 +142,6 @@ module OmfRc::ResourceProxy::Application
   request :platform do |res|
     res.property.platform = detect_platform if res.property.platform.nil?
     res.property.platform.to_s
-  end
-
-  # Configure the basic properties of this Application RP
-  # @see OmfRc::ResourceProxy::Application
-  #
-  %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install \
-    map_err_to_out tarball_install_path).each do |prop|
-    configure(prop) { |res, value| res.property[prop] = value }
   end
 
   # Configure the environments property of this Application RP
