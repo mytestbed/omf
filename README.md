@@ -28,6 +28,8 @@ For full documentation regarding the design of OMF version 6, please visit our [
 
 ## Installation
 
+_If you have Eventmachine 1.0.0 installed on your system and you noticed some delay behaviour, please uninstall it and use version 0.12.x instead._
+
 ### I do not have git, ruby, or gem ...
 
 Please check and install these additional dependencies for your environment:
