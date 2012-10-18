@@ -274,3 +274,81 @@ will result in following environment variables being set before the application 
 
     FOO="Hello"
     BAR_BAR=123
+
+### OML Properties
+
+The OML properties are based on the [libOML man page](http://omf.mytestbed.net/doc/oml/latest/liboml2.html) and its [configuration file man page](http://omf.mytestbed.net/doc/oml/latest/liboml2.conf.html)
+
+- oml\_loglevel (Integer) set a specific OML log level (default unset)
+- oml\_logfile (String) set a specific path for OML log file (default unset)
+- oml\_configfile (String) path of the OML XML config file (optional)
+- oml (Hash) OML specific properties (optional), this Hash contains the 
+    following keys:
+      - :available_mps (Hash) list of available OML Measurement Points 
+      - :collection (Hash) list of required OML Measurement Stream to collect
+          when this application is running, as defined at
+          http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
+      - :experiment (String) name of the experiment in which this application
+          is running
+      - :id (String) OML id to use for this application when it is running
+
+Note that if both oml/_configfile and oml.collection properties are set, the application will use the OML config file given by the oml/_configfile property and will discard the configuration information contained in oml.collection, oml.experiment, and oml.id
+
+Here is an example of valid configuration for the oml property:
+
+    one_message = comm.configure_message([oml: {
+      :available_mps => [
+        { :mp => 'radiotap', 
+          :fields => [
+            {:field => 'sig_strength_dBm', :unit => 'dBm', :type => 'Fixnum'},
+            {:field => 'noise_strength_dBm', :unit => 'dBm', :type => 'Fixnum'},
+            {:field => 'power', :unit => 'mW', :type => 'Fixnum'}
+          ]
+        },
+        { :mp => 'udp', 
+          :fields => [
+            {:field => 'pkt_len', :unit => 'Byte', :type => 'Fixnum'},
+            {:field => 'source', :type => 'String'},
+            {:field => 'target', :type => 'String'}
+          ]
+        },
+        { :mp => 'tcp', 
+          :fields => [
+            {:field => 'throughput', :unit => 'Byte/sec', :type => 'Fixnum'},
+            {:field => 'rtt', :unit => 'ms', :type => 'Fixnum'},
+            {:field => 'source', :type => 'String'},
+            {:field => 'target', :type => 'String'}        ]
+        },
+      ]
+    }])
+
+    another_message = comm.configure_message([oml: {
+      :experiment => 'my_foo_experiment',
+      :id => 'my_bar_application',
+      :collection => [
+        { :url => 'tcp://10.0.0.200:3003',
+          :streams => [
+            { :mp => 'radiotap', 
+              :interval => 2,
+              :filters => [
+                {:field => 'sig_strength_dBm', :operation => 'avg'},
+                {:field => 'noise_strength_dBm', :operation => 'avg'},
+                {:field => 'power', :operation => 'avg', :rename => 'energy'}
+              ]
+            },
+            { :mp => 'udp',
+              :samples => 10,
+              :filters => [{:field => 'pkt_len', :operation => 'stddev'}]
+            }
+          ]
+        },
+        { :url => 'tcp://srv.mytestbed.net:3003',
+          :streams => [
+            { :mp => 'tcp',
+              :interval => 5,
+              :filters => [{:field => 'throughput', :operation => 'avg'}]
+            }
+          ]
+        }
+      ]
+    }])

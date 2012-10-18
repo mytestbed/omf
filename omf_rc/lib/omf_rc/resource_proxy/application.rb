@@ -42,9 +42,19 @@
 # - environment (Hash) the environment variables to set prior to starting 
 #     this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
 #     (with k1 being either a String or a Symbol)
-# - oml (Hash) OML specific properties, as defined by OML at 
-#   http://oml.mytestbed.net/doc/oml/html/liboml2.html
-#   http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
+# - use_oml (Boolean) if true enable OML for this application (default false)
+# - oml_loglevel (Integer) set a specific OML log level (default unset)
+# - oml_logfile (String) set a specific path for OML log file (default unset)
+# - oml_configfile (String) path of the OML config file (optional)
+# - oml (Hash) OML specific properties (optional), this Hash contains the 
+#     following keys:
+#       - :available_mps (Hash) list of available OML Measurement Points 
+#       - :collection (Hash) list of required OML Measurement Stream to collect
+#           when this application is running, as defined at
+#           http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
+#       - :experiment (String) name of the experiment in which this application
+#           is running
+#       - :id (String) OML id to use for this application when it is running
 # - parameters (Hash) the command line parameters available for this app.
 #     This hash is of the form: { :param1 => attribut1, ... }
 #     with param1 being the id of this parameter for this Proxy and
@@ -57,6 +67,9 @@
 #     :default value given by default to this parameter
 #     :value value to set for this parameter
 #     :mandatory (Boolean) this parameter is mandatory, default false
+#
+# Note: this application proxy will merge new Hash values for the properties
+# environment, oml, and parameters properties with the old Hash values.
 #
 # Two examples of valid parameters definition are:
 #
