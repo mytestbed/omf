@@ -1,8 +1,6 @@
 require 'test_helper'
 require 'omf_rc/resource_proxy/application'
 
-
-
 describe OmfRc::ResourceProxy::Application do
 
   before do
@@ -46,6 +44,16 @@ describe OmfRc::ResourceProxy::Application do
       @app_test.property.environments.must_be_kind_of Hash
       @app_test.property.environments['foo'].must_equal 123
       @app_test.property.environments['bar_bar'].must_equal 'bar_123'
+    end
+
+    it "must be able to configure its available OML measurement points" do
+      test_oml_spec = eval(fixture('oml.spec'))
+      @app_test.method(:configure_oml).call(test_oml_spec)
+      @app_test.property.oml.must_be_kind_of Hash
+      @app_test.property.oml.has_key?(:available_mps).must_equal true
+      @app_test.property.oml[:available_mps].length.must_be :> , 0
+      @app_test.property.oml[:available_mps][0].must_be_kind_of Hash
+      @app_test.property.oml[:available_mps][0].has_key?(:mp).must_equal true
     end
   end
 

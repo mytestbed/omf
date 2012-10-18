@@ -42,10 +42,9 @@
 # - environment (Hash) the environment variables to set prior to starting 
 #     this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
 #     (with k1 being either a String or a Symbol)
-# - OML specific properties, as defined by OML at 
+# - oml (Hash) OML specific properties, as defined by OML at 
 #   http://oml.mytestbed.net/doc/oml/html/liboml2.html
 #   http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
-#
 # - parameters (Hash) the command line parameters available for this app.
 #     This hash is of the form: { :param1 => attribut1, ... }
 #     with param1 being the id of this parameter for this Proxy and
@@ -102,7 +101,7 @@ module OmfRc::ResourceProxy::Application
     res.property.environments ||= Hash.new
     res.property.use_oml ||= false
     res.property.oml_configfile ||= nil
-    res.property.oml ||= nil
+    res.property.oml ||= Hash.new
     res.property.oml_logfile ||= nil
     res.property.oml_loglevel ||= nil
     define_method("on_app_event") { |*args| process_event(self, *args) }
@@ -147,14 +146,16 @@ module OmfRc::ResourceProxy::Application
   # Configure the environments property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
-  configure :environments do |res, envs|
-    if envs.kind_of? Hash
-      res.property.environments = res.property.environments.merge(envs)
-    else
-      res.log_inform_error "Environment configuration failed! "+
-        "Environments not passed as Hash (#{envs.inspect})"
+  %w(environments oml).each do |prop|
+    configure(prop) do |res, value|
+      if value.kind_of? Hash
+        res.property[prop] = res.property[prop].merge(value)
+      else
+        res.log_inform_error "Configuration failed for '#{prop}'! "+
+          "Value not passed as Hash (#{value.inspect})"
+      end
+      res.property[prop]
     end
-    res.property.environments
   end
 
   # Configure the parameters property of this Application RP
@@ -463,7 +464,7 @@ module OmfRc::ResourceProxy::Application
         res.log_inform_warn "OML enabled but OML config file does not exist"+
         "(file: '#{res.property.oml_configfile}')"
       end
-    elsif !res.property.oml.nil?
+    elsif !res.property.oml.collection.nil?
       o = res.property.oml
       ofile = "/tmp/#{res.uid}-#{Time.now.to_i}.xml"
       of = File.open(ofile,'w')
