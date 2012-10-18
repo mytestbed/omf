@@ -1,0 +1,30 @@
+{
+  :experiment => 'my_foo_experiment',
+  :id => 'my_bar_application',
+  :collection => [
+    { :url => 'tcp://10.0.0.200:3003',
+      :streams => [
+        { :mp => 'radiotap', 
+          :interval => 2,
+          :filters => [
+            {:field => 'sig_strength_dBm', :operation => 'avg'},
+            {:field => 'noise_strength_dBm', :operation => 'avg'},
+            {:field => 'power', :operation => 'avg', :rename => 'energy'}
+          ]
+        },
+        { :mp => 'udp',
+          :samples => 10,
+          :filters => [{:field => 'pkt_len', :operation => 'stddev'}]
+        }
+      ]
+    },
+    { :url => 'tcp://srv.mytestbed.net:3003',
+      :streams => [
+        { :mp => 'tcp',
+          :interval => 5,
+          :filters => [{:field => 'throughput', :operation => 'avg'}]
+        }
+      ]
+    }
+  ]
+}

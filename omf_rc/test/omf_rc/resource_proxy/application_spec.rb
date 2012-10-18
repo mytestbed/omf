@@ -282,6 +282,53 @@ describe OmfRc::ResourceProxy::Application do
       @app_test.method(:configure_state).call(:run)
       @app_test.property.state.must_equal :run
     end
+
+    it "must start an app with OML command line options when use_oml parameter is set" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          cmd_line.must_equal "env -i my_cmd --oml-config /tmp/bar.xml --oml-log-level 1 --oml-log-file foo "
+        end
+      end
+      class File ; def self.exist?(f) ; true end end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      @app_test.property.use_oml = true
+      @app_test.property.oml_loglevel = 1
+      @app_test.property.oml_logfile = "foo"
+      @app_test.property.oml_configfile = "/tmp/bar.xml"
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
+
+    it "must start an app using its own built OML config when use_oml and oml parameters are set" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          xml_file = cmd_line.split('env -i my_cmd --oml-config ')[1]
+          File.open(xml_file, 'r').read.must_equal fixture('oml.xml')
+          File.delete(xml_file)
+        end
+      end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      @app_test.property.use_oml = true
+      @app_test.property.oml = eval(fixture('oml.hash'))
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
+
+    it "must not use any oml options if use_oml is set but both oml or oml_config are not set" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          cmd_line.must_equal "env -i my_cmd "
+        end
+      end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      @app_test.property.use_oml = true
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
+
   end
 
   describe "when configuring its state property to :pause" do

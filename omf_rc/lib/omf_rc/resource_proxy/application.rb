@@ -385,7 +385,7 @@ module OmfRc::ResourceProxy::Application
         elsif att[:value].nil?
           passed = true if res.boolean?(att[:default])
         end
-      else # HACK: Now for all other types...
+      else # Now for all other types...
         klass = Module.const_get(att[:type].capitalize.to_sym)
         if !att[:default].nil? && !att[:value].nil?
           passed = true if att[:default].kind_of?(klass) && att[:value].kind_of?(klass)
@@ -428,8 +428,7 @@ module OmfRc::ResourceProxy::Application
       needed = false
       needed = att[:mandatory] if res.boolean?(att[:mandatory])
       # For mandatory parameter without a value, take the default one
-      val = att[:value]
-      val = att[:default] if needed && att[:value].nil?
+      val = (needed && att[:value].nil?) ? att[:default] : att[:value]
       # Finally add the parameter if is value/default is not nil
       unless val.nil?
         if att[:type] == "Boolean"
@@ -475,7 +474,7 @@ module OmfRc::ResourceProxy::Application
   work('build_oml_config') do |res, cmd|
     if !res.property.oml_configfile.nil?
       if File.exist?(res.property.oml_configfile)
-        cmd += "--oml-config #{res.property.oml_configfile}"
+        cmd += "--oml-config #{res.property.oml_configfile} "
       else
         res.log_inform_warn "OML enabled but OML config file does not exist"+
         "(file: '#{res.property.oml_configfile}')"
@@ -504,7 +503,7 @@ module OmfRc::ResourceProxy::Application
         end
         of << "  </collect>\n"      
       end
-      of << "</omlc>"
+      of << "</omlc>\n"
       of.close
       cmd += "--oml-config #{ofile}"
     else
