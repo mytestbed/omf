@@ -387,7 +387,7 @@ module OmfRc::ResourceProxy::Application
     att
   end
 
-  # Check if a requested value or default for a parameter has the same
+  # Check if a configured value or default for a parameter has the same
   # type as the type defined for that parameter
   # The checking procedure is as follows:
   # - first check if a type was set for this parameter, if not then return true
@@ -487,7 +487,9 @@ module OmfRc::ResourceProxy::Application
   # - if the 'oml' property is set with a Hash holding an OML configuration, 
   #   then we write turn it into OML's XML configuration representation, write
   #   it to a temporary file, and add the parameter "--oml-config tmpfile" to 
-  #   this application's command line
+  #   this application's command line. The OML configuration hash is based 
+  #   on the liboml2.conf man page here: 
+  #   http://omf.mytestbed.net/doc/oml/latest/liboml2.conf.html
   #
   # The 'oml_configfile' case takes precedence over the 'oml' case above.
   #
@@ -512,22 +514,23 @@ module OmfRc::ResourceProxy::Application
       o = res.property.oml
       ofile = "/tmp/#{res.uid}-#{Time.now.to_i}.xml"
       of = File.open(ofile,'w')
-      of << "<omlc exp_id='#{o.exp_id}' id='#{o.id}'>\n"
+      of << "<omlc experiment='#{o.experiment}' id='#{o.id}'>\n"
       o.collection.each do |c|
         of << "  <collect url='#{c.url}'>\n"
-        c.measure.each do |m|
+        c.streams.each do |m|
           # samples as precedence over interval
           s = ''
           s = "interval='#{m.interval}'" if m.interval
           s = "samples='#{m.samples}'" if m.samples
-          of << "    <mp name='#{m.name}' #{s}>\n"
+          of << "    <stream mp='#{m.mp}' #{s}>\n"
           m.filters.each do |f|
-            line = "      <f pname='#{f.metric}' "
-            line += "fname='#{f.filter}' " unless f.filter.nil? 
+            line = "      <filter field='#{f.field}' "
+            line += "operation='#{f.operation}' " unless f.operation.nil? 
+            line += "rename='#{f.rename}' " unless f.rename.nil? 
             line += "/>\n" 
             of << line           
           end
-          of << "    </mp>\n"
+          of << "    </stream>\n"
         end
         of << "  </collect>\n"      
       end
