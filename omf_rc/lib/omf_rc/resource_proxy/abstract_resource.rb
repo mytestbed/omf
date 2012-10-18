@@ -133,6 +133,7 @@ class OmfRc::ResourceProxy::AbstractResource
       methods.each do |m|
         mash[$1] << $2.to_sym if m =~ /(request|configure)_(.+)/ && $2 != "available_properties"
       end
+      (mash.request + property.keys).uniq
     end
   end
 
@@ -265,9 +266,17 @@ class OmfRc::ResourceProxy::AbstractResource
           { operation: :create, resource_id: result.uid, context_id: context_id, inform_to: uid }
         when :request
           result = Hashie::Mash.new.tap do |mash|
-            message.read_element("//property").each do |p|
-              method_name =  "request_#{p.attr('key')}"
-              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
+            properties = message.read_element("//property")
+            if properties.empty?
+              obj.request_available_properties.request.each do |r_p|
+                method_name = "request_#{r_p.to_s}"
+                mash[r_p] ||= obj.__send__(method_name)
+              end
+            else
+              properties.each do |p|
+                method_name =  "request_#{p.attr('key')}"
+                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
+              end
             end
           end
           { operation: :request, status: result, context_id: context_id, inform_to: obj.uid }

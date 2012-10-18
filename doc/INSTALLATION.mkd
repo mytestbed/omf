@@ -1,0 +1,39 @@
+# INSTALLATION
+
+## Fedora
+
+Type following in your console:
+
+    sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel
+    sudo yum groupinstall development-tools development-libs
+
+    curl -L https://get.rvm.io | bash -s stable –ruby
+
+    rvm install 1.9.3
+    rvm use 1.9.3
+    rvm gemset create omf
+    rvm use 1.9.3@omf --default
+
+Then finally:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_ec --pre --no-ri --no-rdoc
+
+## Debian
+
+Issue the following commands:
+
+    sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
+
+    curl -L https://get.rvm.io | bash -s stable –ruby
+
+    rvm install 1.9.3
+    rvm use 1.9.3
+    rvm gemset create omf
+    rvm use 1.9.3@omf --default
+
+Then finally:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_ec --pre --no-ri --no-rdoc
+

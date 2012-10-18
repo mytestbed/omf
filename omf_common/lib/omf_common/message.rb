@@ -48,7 +48,7 @@ module OmfCommon
       key_node.write_attr('key', key)
 
       unless value.nil?
-        key_node.write_attr('type', value.class.to_s.downcase)
+        key_node.write_attr('type', ruby_type_2_prop_type(value.class))
         c_node = value_node_set(value)
 
         if c_node.class == Array
@@ -67,7 +67,7 @@ module OmfCommon
         [].tap do |array|
           value.each_pair do |k, v|
             n = Message.new(k)
-            n.write_attr('type', v.class.to_s.downcase)
+            n.write_attr('type', ruby_type_2_prop_type(v.class))
 
             c_node = value_node_set(v, k)
             if c_node.class == Array
@@ -81,7 +81,7 @@ module OmfCommon
       when Array
         value.map do |v|
           n = Message.new('item')
-          n.write_attr('type', v.class.to_s.downcase)
+          n.write_attr('type', ruby_type_2_prop_type(v.class))
 
           c_node = value_node_set(v, 'item')
           if c_node.class == Array
@@ -188,6 +188,8 @@ module OmfCommon
           mash[child.attr('key') || child.element_name] ||= reconstruct_data(child)
         end
         mash
+      when /boolean/
+        node.content == "true"
       else
         node.content.empty? ? nil : node.content.ducktype
       end
@@ -203,6 +205,17 @@ module OmfCommon
     #
     def print_app_event
       "APP_EVENT (#{read_property(:app)}, ##{read_property(:seq)}, #{read_property(:event)}): #{read_property(:msg)}"
+    end
+
+    private
+
+    def ruby_type_2_prop_type(ruby_class_type)
+      v_type = ruby_class_type.to_s.downcase
+      if %w(trueclass falseclass).include?(v_type)
+        'boolean'
+      else
+        v_type
+      end
     end
   end
 end
