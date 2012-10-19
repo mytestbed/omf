@@ -1,5 +1,25 @@
 # INSTALLATION
 
+This detailed installation guide will provide you more information related to your specific OS environment. You are welcome to expand the list if you OS has not been covered here.
+
+## Generic
+
+No matter which OS you are using, Ruby 1.9 is probably always going to be required.
+
+RVM is recommended if you do not have Ruby available via the official distribution channel, or the version available is too old, or you will have multiple versions installed and potentially cause confusion and trouble.
+
+[RVM official site](https://rvm.io) should provide you all the information to install it, but in short, it will be a simple command:
+
+    curl -L https://get.rvm.io | bash -s stable –ruby
+
+Then if you run:
+
+    rvm requirements
+
+Then you will see the what is required to install Ruby in your OS environment.
+
+You could probably find your OS already have Ruby 1.9 available in the package management system or via binary installer (windows); and it should be all right to use that. There are might be additional dependent packages needed to build gems that requires native extension, please refer to those gems' official installation guide to get more details.
+
 ## Fedora
 
 Type following in your console:
