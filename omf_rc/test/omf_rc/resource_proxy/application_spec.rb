@@ -297,14 +297,13 @@ describe OmfRc::ResourceProxy::Application do
           cmd_line.must_equal "env -i my_cmd --oml-config /tmp/bar.xml --oml-log-level 1 --oml-log-file foo "
         end
       end
-      class File ; def self.exist?(f) ; true end end
       @app_test.property.state = :stop
       @app_test.property.binary_path = "my_cmd"
       @app_test.property.use_oml = true
       @app_test.property.oml_loglevel = 1
       @app_test.property.oml_logfile = "foo"
       @app_test.property.oml_configfile = "/tmp/bar.xml"
-      @app_test.method(:configure_state).call(:run)
+      File.stub(:exist?, true) { @app_test.method(:configure_state).call(:run) }
       @app_test.property.state.must_equal :run
     end
 
