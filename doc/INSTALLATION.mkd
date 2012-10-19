@@ -57,3 +57,24 @@ Then finally:
     gem install omf_rc --pre --no-ri --no-rdoc
     gem install omf_ec --pre --no-ri --no-rdoc
 
+## Mac OS X
+
+Please use homebrew to get Ruby 1.9.3 installed using RVM.
+
+    ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
+
+RVM requires Xcode version 3.2.1 or later, however Xcode 4.2 will break gems with native extensions.
+
+    brew install libksba
+
+    curl -L https://get.rvm.io | bash -s stable –ruby
+
+    rvm install 1.9.3
+    rvm use 1.9.3
+    rvm gemset create omf
+    rvm use 1.9.3@omf --default
+
+Then finally:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_ec --pre --no-ri --no-rdoc
