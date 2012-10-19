@@ -12,7 +12,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property
-  attr_reader :opts, :children
+  attr_reader :opts, :children, :membership
 
   # Initialisation
   #
@@ -32,6 +32,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @uid = @opts.uid || SecureRandom.uuid
     @hrn = @opts.hrn
     @children ||= []
+    @membership ||= []
 
     @property = @opts.property || Hashie::Mash.new
 
@@ -149,16 +150,26 @@ class OmfRc::ResourceProxy::AbstractResource
   # Make hrn configurable through pubsub interface
   def configure_hrn(hrn)
     @hrn = hrn
+    @hrn
+  end
+
+  # Make resource part of the group topic, it will overwrite existing membership array
+  #
+  # @param [String] name of group topic
+  # @param [Array] name of group topics
+  def configure_membership(*args)
+    new_membership = [args[0]].flatten
+    @membership = new_membership
+    @membership.each do |m|
+      @comm.subscribe(m)
+    end
+    @membership
   end
 
   # Request child resources
-  # @return [Mash] child resource mash with uid and hrn
+  # @return [Hashie::Mash] child resource mash with uid and hrn
   def request_child_resources(*args)
-    Hashie::Mash.new.tap do |mash|
-      children.each do |c|
-        mash[c.uid] ||= c.hrn
-      end
-    end
+    children.map { |c| Hashie::Mash.new({ uid: c.uid, name: c.hrn }) }
   end
 
   # Publish an inform message
@@ -235,69 +246,67 @@ class OmfRc::ResourceProxy::AbstractResource
       inform(:failed, e)
     end
 
-    dp.fire do
-      begin
-        message = OmfCommon::Message.parse(pubsub_item_payload)
+    message = OmfCommon::Message.parse(pubsub_item_payload)
 
-        unless message.valid?
-          raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
-        end
+    unless message.valid?
+      raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
+    end
 
-        # Get the context id, which will be included when informing
-        context_id = message.read_content("context_id")
+    if topic == uid || membership.include?(topic)
+      objs = [self]
+    else
+      objs = children.find_all { |v| v.uid == topic || v.membership.include?(topic)}
+    end
 
-        obj = topic == uid ? self : children.find { |v| v.uid == topic }
+    objs.each do |obj|
+      dp.fire do
+        begin
+          default_dp_response = {
+            operation: message.operation,
+            context_id: message.context_id,
+            inform_to: message.publish_to || obj.uid
+          }
 
-        raise "Resource disappeard #{topic}" if obj.nil?
-
-        case message.operation
-        when :create
-          create_opts = opts.dup
-          create_opts.uid = nil
-          result = obj.create(message.read_property(:type), create_opts)
-          message.each_property do |p|
-            unless p.attr('key') == 'type'
-              method_name =  "configure_#{p.attr('key')}"
-              result.__send__(method_name, message.read_property(p.attr('key')))
+          case message.operation
+          when :create
+            create_opts = opts.dup
+            create_opts.uid = nil
+            result = obj.create(message.read_property(:type), create_opts)
+            message.each_property do |p|
+              unless p.attr('key') == 'type'
+                method_name =  "configure_#{p.attr('key')}"
+                result.__send__(method_name, message.read_property(p.attr('key')))
+              end
             end
-          end
-          result.after_initial_configured if result.respond_to? :after_initial_configured
-          { operation: :create, resource_id: result.uid, context_id: context_id, inform_to: uid }
-        when :request
-          result = Hashie::Mash.new.tap do |mash|
-            message.read_element("//property").each do |p|
-              method_name =  "request_#{p.attr('key')}"
-              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
+            result.after_initial_configured if result.respond_to? :after_initial_configured
+            default_dp_response.merge({ resource_id: result.uid })
+          when :request, :configure
+            result = Hashie::Mash.new.tap do |mash|
+              message.each_property do |p|
+                method_name =  "#{message.operation.to_s}_#{p.attr('key')}"
+                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
+              end
             end
+            default_dp_response.merge({ status: result })
+          when :release
+            resource_id = message.resource_id
+            default_dp_response.merge({ resource_id: obj.release(resource_id).uid })
+          when :inform
+            nil # We really don't care about inform messages which created from here
+          else
+            raise "Unknown OMF operation #{message.operation}"
           end
-          { operation: :request, status: result, context_id: context_id, inform_to: obj.uid }
-        when :configure
-          result = Hashie::Mash.new.tap do |mash|
-            message.read_element("//property").each do |p|
-              method_name =  "configure_#{p.attr('key')}"
-              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
-            end
+        rescue => e
+          if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
+            msg = "Cannot #{message.operation} unknown property "+
+              "'#{message.read_element("//property")}' for resource '#{type}'"
+            logger.warn msg
+            raise OmfRc::MessageProcessError.new(message.context_id, message.publish_to || obj.uid, msg)
+          else
+            logger.error e.message
+            logger.error e.backtrace.join("\n")
+            raise OmfRc::MessageProcessError.new(message.context_id, message.publish_to || obj.uid, e.message)
           end
-          { operation: :configure, status: result, context_id: context_id, inform_to: obj.uid }
-        when :release
-          resource_id = message.resource_id
-          { operation: :release, resource_id: obj.release(resource_id).uid, context_id: context_id, inform_to: obj.uid }
-        when :inform
-          # We really don't care about inform messages which created from here
-          nil
-        else
-          raise "Unknown OMF operation #{message.operation}"
-        end
-      rescue => e
-        if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
-          msg = "Cannot #{message.operation} unknown property "+
-            "'#{message.read_element("//property")}' for resource '#{type}'"
-          logger.warn msg
-          raise OmfRc::MessageProcessError.new(context_id, obj.uid, msg)
-        else
-          logger.error e.message
-          logger.error e.backtrace.join("\n")
-          raise OmfRc::MessageProcessError.new(context_id, obj.uid, e.message)
         end
       end
     end

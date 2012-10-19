@@ -152,7 +152,11 @@ module OmfCommon
     #
     def read_content(element_name)
       element_content = read_element("//#{element_name}").first.content rescue nil
-      element_content.empty? ? nil : element_content
+      unless element_content.nil?
+        element_content.empty? ? nil : element_content
+      else
+        nil
+      end
     end
 
     # Context ID will be requested quite often
@@ -163,6 +167,10 @@ module OmfCommon
     # Resource ID is another frequent requested property
     def resource_id
       read_property(:resource_id) || read_content(:resource_id)
+    end
+
+    def publish_to
+      read_property(:publish_to) || read_content(:publish_to)
     end
 
     # Get a property by key

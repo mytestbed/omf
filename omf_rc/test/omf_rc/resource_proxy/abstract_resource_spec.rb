@@ -58,7 +58,7 @@ describe AbstractResource do
     it "must add the resource to its created resource list" do
       child = @node.create(:wifi, { hrn: 'default_wifi' })
       @node.children.must_include child
-      @node.request_child_resources[child.uid].must_equal 'default_wifi'
+      @node.request_child_resources.find { |v| v.uid == child.uid }.name.must_equal 'default_wifi'
     end
   end
 
