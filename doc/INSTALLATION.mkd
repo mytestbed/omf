@@ -10,7 +10,7 @@ RVM is recommended if you do not have Ruby available via the official distributi
 
 [RVM official site](https://rvm.io) should provide you all the information to install it, but in short, it will be a simple command:
 
-    curl -L https://get.rvm.io | bash -s stable –ruby
+    curl -L https://get.rvm.io | bash -s stable --ruby
 
 Then if you run:
 
@@ -24,10 +24,10 @@ You could probably find your OS already have Ruby 1.9 available in the package m
 
 Type following in your console:
 
-    sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel
+    sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml
     sudo yum groupinstall development-tools development-libs
 
-    curl -L https://get.rvm.io | bash -s stable –ruby
+    curl -L https://get.rvm.io | bash -s stable --ruby
 
     rvm install 1.9.3
     rvm use 1.9.3
@@ -45,7 +45,7 @@ Issue the following commands:
 
     sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
 
-    curl -L https://get.rvm.io | bash -s stable –ruby
+    curl -L https://get.rvm.io | bash -s stable --ruby
 
     rvm install 1.9.3
     rvm use 1.9.3
@@ -67,7 +67,7 @@ RVM requires Xcode version 3.2.1 or later, however Xcode 4.2 will break gems wit
 
     brew install libksba
 
-    curl -L https://get.rvm.io | bash -s stable –ruby
+    curl -L https://get.rvm.io | bash -s stable --ruby
 
     rvm install 1.9.3
     rvm use 1.9.3
