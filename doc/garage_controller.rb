@@ -4,12 +4,18 @@ require 'omf_rc'
 require 'omf_rc/resource_factory'
 $stdout.sync = true
 
-options = {
-  user: 'alpha',
-  password: 'pw',
-  server: 'localhost', # XMPP server domain
-  uid: 'mclaren', # Id of the garage (resource)
+Blather.logger = logger
+
+opts = {
+  # XMPP server domain
+  server: 'localhost',
+  # List of garages
+  garages: ['mclaren', 'ferrari'],# Name of the garages (resource)
+  # Debug mode of not
+  debug: false
 }
+
+Logging.logger.root.level = :debug if opts[:debug]
 
 module OmfRc::ResourceProxy::Garage
   include OmfRc::ResourceProxyDSL
@@ -117,12 +123,19 @@ module OmfRc::ResourceProxy::Mp4
 end
 
 EM.run do
+  garages = opts.delete(:garages)
   # Use resource factory method to initialise a new instance of garage
-  garage = OmfRc::ResourceFactory.new(:garage, options)
-  # Let garage connect to XMPP server
-  garage.connect
+  garages = garages.map do |g|
+    logger.info "Starting #{g}"
+    garage = OmfRc::ResourceFactory.new(
+      :garage,
+      opts.merge(user: g, password: 'pw', uid: g)
+    )
+    garage.connect
+    garage
+  end
 
   # Disconnect garage from XMPP server, when these two signals received
-  trap(:INT) { garage.disconnect }
-  trap(:TERM) { garage.disconnect }
+  trap(:INT) { garages.each(&:disconnect) }
+  trap(:TERM) { garages.each(&:disconnect) }
 end
