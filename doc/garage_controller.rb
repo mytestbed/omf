@@ -18,7 +18,7 @@ module OmfRc::ResourceProxy::Garage
 
   hook :before_create do |resource, new_resource_type, new_resource_opts|
     new_resource_opts.property ||= Hashie::Mash.new
-    new_resource_opts.property.provider = "Honda #{resource.uid}"
+    new_resource_opts.property.provider = ">> #{resource.uid}"
   end
 
   hook :after_create do |resource, new_resource|
@@ -32,19 +32,19 @@ end
 module OmfRc::ResourceProxy::Engine
   include OmfRc::ResourceProxyDSL
 
-  register_proxy :engine
+  register_proxy :engine, :create_by => :garage
+
+  # We can now initialise some properties which will be stored in resource's property variable.
+  # A set of or request/configure methods for these properties are available automatically, so you don't have to define them again using request/configure DSL method, unless you would like to overwrite the default behaviour.
+  property :max_power, :default => 676 # Set the engine maximum power to 676 bhp
+  property :provider, :default => "Honda"
+  property :max_rpm, :default => 12500 # Maximum RPM of the engine is 12,500
+  property :rpm, :default => 1000 # Engine starts, RPM will stay at 1000 (i.e. engine is idle)
+  property :throttle, :default => 0.0 # Throttle is 0% initially
 
   # before_ready hook will be called during the initialisation of the resource instance
   #
   hook :before_ready do |resource|
-    # We can now initialise some properties which will be stored in resource's property variable.
-    # A set of or request/configure methods for these properties are available automatically, so you don't have to define them again using request/configure DSL method, unless you would like to overwrite the default behaviour.
-    resource.property.max_power ||= 676 # Set the engine maximum power to 676 bhp
-    resource.property.provider ||= 'Honda' # Engine provider defaults to Honda
-    resource.property.max_rpm ||= 12500 # Maximum RPM of the engine is 12,500
-    resource.property.rpm ||= 1000 # After engine starts, RPM will stay at 1000 (i.e. engine is idle)
-    resource.property.throttle ||= 0.0 # Throttle is 0% initially
-
     # The following simulates the engine RPM, it basically says:
     # * Applying 100% throttle will increase RPM by 5000 per second
     # * Engine will reduce RPM by 250 per second when no throttle applied

@@ -6,6 +6,8 @@ describe OmfRc::ResourceProxyDSL do
     module OmfRc::Util::MockUtility
       include OmfRc::ResourceProxyDSL
 
+      property :mock_prop, :default => 1
+
       configure :alpha
 
       request :alpha do |resource|
@@ -105,6 +107,11 @@ describe OmfRc::ResourceProxyDSL do
       OmfRc::ResourceFactory.new(:mock_root_proxy).create(:mock_proxy)
       OmfRc::ResourceFactory.new(:mock_root_proxy).create(:useless_proxy)
       lambda { OmfRc::ResourceFactory.new(:useless_proxy).create(:mock_proxy) }.must_raise StandardError
+    end
+
+    it "must be able to define property with default vlaue" do
+      mock_proxy = OmfRc::ResourceFactory.new(:mock_proxy)
+      mock_proxy.property.mock_prop.must_equal 1
     end
   end
 end
