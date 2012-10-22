@@ -12,7 +12,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property
-  attr_reader :opts, :children
+  attr_reader :opts, :children, :membership
 
   # Initialisation
   #
@@ -32,6 +32,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @uid = @opts.uid || SecureRandom.uuid
     @hrn = @opts.hrn
     @children ||= []
+    @membership ||= []
 
     @property = @opts.property || Hashie::Mash.new
 
@@ -133,7 +134,6 @@ class OmfRc::ResourceProxy::AbstractResource
       methods.each do |m|
         mash[$1] << $2.to_sym if m =~ /(request|configure)_(.+)/ && $2 != "available_properties"
       end
-      (mash.request + property.keys).uniq
     end
   end
 
@@ -150,16 +150,26 @@ class OmfRc::ResourceProxy::AbstractResource
   # Make hrn configurable through pubsub interface
   def configure_hrn(hrn)
     @hrn = hrn
+    @hrn
+  end
+
+  # Make resource part of the group topic, it will overwrite existing membership array
+  #
+  # @param [String] name of group topic
+  # @param [Array] name of group topics
+  def configure_membership(*args)
+    new_membership = [args[0]].flatten
+    @membership = new_membership
+    @membership.each do |m|
+      @comm.subscribe(m)
+    end
+    @membership
   end
 
   # Request child resources
-  # @return [Mash] child resource mash with uid and hrn
+  # @return [Hashie::Mash] child resource mash with uid and hrn
   def request_child_resources(*args)
-    Hashie::Mash.new.tap do |mash|
-      children.each do |c|
-        mash[c.uid] ||= c.hrn
-      end
-    end
+    children.map { |c| Hashie::Mash.new({ uid: c.uid, name: c.hrn }) }
   end
 
   # Publish an inform message
@@ -208,11 +218,37 @@ class OmfRc::ResourceProxy::AbstractResource
 
   private
 
+  # Find resource object based on topic name
+  def objects_by_topic(name)
+    if name == uid || membership.include?(name)
+      objs = [self]
+    else
+      objs = children.find_all { |v| v.uid == name || v.membership.include?(name)}
+    end
+  end
+
+  def inform_to_address(obj, publish_to = nil)
+    publish_to || obj.uid
+  end
+
   # Parse omf message and execute as instructed by the message
   #
   def process_omf_message(pubsub_item_payload, topic)
+    message = OmfCommon::Message.parse(pubsub_item_payload)
+
+    unless message.valid?
+      raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
+    end
+
+    objects_by_topic(topic).each do |obj|
+      execute_omf_operation(message, obj)
+    end
+  end
+
+  def execute_omf_operation(message, obj)
     dp = OmfRc::DeferredProcess.new
 
+    # When successfully executed
     dp.callback do |response|
       response = Hashie::Mash.new(response)
       case response.operation
@@ -232,81 +268,69 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
 
+    # When failed
     dp.errback do |e|
       inform(:failed, e)
     end
 
+    # Fire the process
     dp.fire do
       begin
-        message = OmfCommon::Message.parse(pubsub_item_payload)
-
-        unless message.valid?
-          raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
-        end
-
-        # Get the context id, which will be included when informing
-        context_id = message.read_content("context_id")
-
-        obj = topic == uid ? self : children.find { |v| v.uid == topic }
-
-        raise "Resource disappeard #{topic}" if obj.nil?
+        default_response = {
+          operation: message.operation,
+          context_id: message.context_id,
+          inform_to: inform_to_address(obj, message.publish_to)
+        }
 
         case message.operation
         when :create
-          create_opts = opts.dup
-          create_opts.uid = nil
-          result = obj.create(message.read_property(:type), create_opts)
+          new_opts = opts.dup.merge(uid: nil)
+          new_obj = obj.create(message.read_property(:type), new_opts)
           message.each_property do |p|
             unless p.attr('key') == 'type'
-              method_name =  "configure_#{p.attr('key')}"
-              result.__send__(method_name, message.read_property(p.attr('key')))
+              method_name = "configure_#{p.attr('key')}"
+              new_obj.__send__(method_name, message.read_property(p.attr('key')))
             end
           end
-          result.after_initial_configured if result.respond_to? :after_initial_configured
-          { operation: :create, resource_id: result.uid, context_id: context_id, inform_to: uid }
-        when :request
+          new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
+          default_response.merge(resource_id: new_obj.uid)
+        when :request, :configure
           result = Hashie::Mash.new.tap do |mash|
             properties = message.read_element("//property")
-            if properties.empty?
+            if message.operation == :request && properties.empty?
               obj.request_available_properties.request.each do |r_p|
                 method_name = "request_#{r_p.to_s}"
                 mash[r_p] ||= obj.__send__(method_name)
               end
             else
               properties.each do |p|
-                method_name =  "request_#{p.attr('key')}"
+                method_name =  "#{message.operation.to_s}_#{p.attr('key')}"
                 mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
               end
             end
           end
-          { operation: :request, status: result, context_id: context_id, inform_to: obj.uid }
-        when :configure
-          result = Hashie::Mash.new.tap do |mash|
-            message.read_element("//property").each do |p|
-              method_name =  "configure_#{p.attr('key')}"
-              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
-            end
-          end
-          { operation: :configure, status: result, context_id: context_id, inform_to: obj.uid }
+          default_response.merge(status: result)
         when :release
           resource_id = message.resource_id
-          { operation: :release, resource_id: obj.release(resource_id).uid, context_id: context_id, inform_to: obj.uid }
+          default_response.merge(resource_id: obj.release(resource_id).uid)
         when :inform
-          # We really don't care about inform messages which created from here
-          nil
+          nil # We really don't care about inform messages which created from here
         else
-          raise "Unknown OMF operation #{message.operation}"
+          raise StandardError, <<-ERROR
+            Invalid message received (Unknown OMF operation #{message.operation}): #{pubsub_item_payload}.
+            Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
+          ERROR
         end
       rescue => e
         if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
           msg = "Cannot #{message.operation} unknown property "+
             "'#{message.read_element("//property")}' for resource '#{type}'"
           logger.warn msg
-          raise OmfRc::MessageProcessError.new(context_id, obj.uid, msg)
+          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), msg)
         else
           logger.error e.message
           logger.error e.backtrace.join("\n")
-          raise OmfRc::MessageProcessError.new(context_id, obj.uid, e.message)
+          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), e.message)
         end
       end
     end
