@@ -218,11 +218,37 @@ class OmfRc::ResourceProxy::AbstractResource
 
   private
 
+  # Find resource object based on topic name
+  def objects_by_topic(name)
+    if name == uid || membership.include?(name)
+      objs = [self]
+    else
+      objs = children.find_all { |v| v.uid == name || v.membership.include?(name)}
+    end
+  end
+
+  def inform_to_address(obj, publish_to = nil)
+    publish_to || obj.uid
+  end
+
   # Parse omf message and execute as instructed by the message
   #
   def process_omf_message(pubsub_item_payload, topic)
+    message = OmfCommon::Message.parse(pubsub_item_payload)
+
+    unless message.valid?
+      raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
+    end
+
+    objects_by_topic(topic).each do |obj|
+      execute_omf_operation(message, obj)
+    end
+  end
+
+  def execute_omf_operation(message, obj)
     dp = OmfRc::DeferredProcess.new
 
+    # When successfully executed
     dp.callback do |response|
       response = Hashie::Mash.new(response)
       case response.operation
@@ -242,71 +268,61 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
 
+    # When failed
     dp.errback do |e|
       inform(:failed, e)
     end
 
-    message = OmfCommon::Message.parse(pubsub_item_payload)
+    # Fire the process
+    dp.fire do
+      begin
+        default_response = {
+          operation: message.operation,
+          context_id: message.context_id,
+          inform_to: inform_to_address(obj, message.publish_to)
+        }
 
-    unless message.valid?
-      raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
-    end
-
-    if topic == uid || membership.include?(topic)
-      objs = [self]
-    else
-      objs = children.find_all { |v| v.uid == topic || v.membership.include?(topic)}
-    end
-
-    objs.each do |obj|
-      dp.fire do
-        begin
-          default_dp_response = {
-            operation: message.operation,
-            context_id: message.context_id,
-            inform_to: message.publish_to || obj.uid
-          }
-
-          case message.operation
-          when :create
-            create_opts = opts.dup
-            create_opts.uid = nil
-            result = obj.create(message.read_property(:type), create_opts)
+        case message.operation
+        when :create
+          new_opts = opts.dup.merge(uid: nil)
+          new_obj = obj.create(message.read_property(:type), new_opts)
+          message.each_property do |p|
+            unless p.attr('key') == 'type'
+              method_name = "configure_#{p.attr('key')}"
+              new_obj.__send__(method_name, message.read_property(p.attr('key')))
+            end
+          end
+          new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
+          default_response.merge(resource_id: new_obj.uid)
+        when :request, :configure
+          result = Hashie::Mash.new.tap do |mash|
             message.each_property do |p|
-              unless p.attr('key') == 'type'
-                method_name =  "configure_#{p.attr('key')}"
-                result.__send__(method_name, message.read_property(p.attr('key')))
-              end
+              method_name =  "#{message.operation.to_s}_#{p.attr('key')}"
+              mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
             end
-            result.after_initial_configured if result.respond_to? :after_initial_configured
-            default_dp_response.merge({ resource_id: result.uid })
-          when :request, :configure
-            result = Hashie::Mash.new.tap do |mash|
-              message.each_property do |p|
-                method_name =  "#{message.operation.to_s}_#{p.attr('key')}"
-                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
-              end
-            end
-            default_dp_response.merge({ status: result })
-          when :release
-            resource_id = message.resource_id
-            default_dp_response.merge({ resource_id: obj.release(resource_id).uid })
-          when :inform
-            nil # We really don't care about inform messages which created from here
-          else
-            raise "Unknown OMF operation #{message.operation}"
           end
-        rescue => e
-          if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
-            msg = "Cannot #{message.operation} unknown property "+
-              "'#{message.read_element("//property")}' for resource '#{type}'"
-            logger.warn msg
-            raise OmfRc::MessageProcessError.new(message.context_id, message.publish_to || obj.uid, msg)
-          else
-            logger.error e.message
-            logger.error e.backtrace.join("\n")
-            raise OmfRc::MessageProcessError.new(message.context_id, message.publish_to || obj.uid, e.message)
-          end
+          default_response.merge(status: result)
+        when :release
+          resource_id = message.resource_id
+          default_response.merge(resource_id: obj.release(resource_id).uid)
+        when :inform
+          nil # We really don't care about inform messages which created from here
+        else
+          raise StandardError, <<-ERROR
+            Invalid message received (Unknown OMF operation #{message.operation}): #{pubsub_item_payload}.
+            Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
+          ERROR
+        end
+      rescue => e
+        if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
+          msg = "Cannot #{message.operation} unknown property "+
+            "'#{message.read_element("//property")}' for resource '#{type}'"
+          logger.warn msg
+          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), msg)
+        else
+          logger.error e.message
+          logger.error e.backtrace.join("\n")
+          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), e.message)
         end
       end
     end
