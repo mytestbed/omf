@@ -110,7 +110,8 @@ class OMFPubSubTransport < MObject
       node = addr.generate_address
       domain = addr.domain
     end
-    @@xmppServices.leave_node(node, nil, domain) 
+    @@xmppServices.leave_node(node, nil, domain)
+    @@subscriptions.delete(node)
     debug "Unsubscribed from '#{node}' at '#{domain}'"
   end
 
