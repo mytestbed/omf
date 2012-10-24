@@ -33,6 +33,19 @@ option_parser = OptionParser.new do |opts|
   opts.on("-d", "--debug", "Debug mode") do
     options[:debug] = true
   end
+
+  opts.on("--oml-uri URI", "URI of server to send measurements to (tcp:host:port)") do |uri|
+    options[:oml_uri] = uri
+  end
+  opts.on("--oml-exp-id NAME", "Name for the experiment DB") do |id|
+    options[:oml_exp_id] = id
+  end
+  opts.on("--oml-id NAME", "Name to identify this OML client instance (optional, default: uid/hrn)") do |id|
+    options[:oml_id] = id
+  end
+  opts.on("--oml-app NAME", "Name to identiy this application for OML (optional, default: uid/hrn)") do |id|
+    options[:oml_app] = id
+  end
 end
 
 begin

@@ -20,9 +20,11 @@ module OmfCommon
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def connect(username, password, server)
+        require 'omf_common/dsl/xmpp_mp' if self.instrument 
         jid = "#{username}@#{server}"
         client.setup(jid, password)
         client.run
+        OmfCommon::DSL::Xmpp::Foo.inject("foo", 100, 200)
       end
 
       # Shut down XMPP connection

@@ -25,6 +25,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option opts [String] :password pubsub user password
   # @option opts [String] :server pubsub server domain
   # @option opts [String] :property A hash for keeping internal state
+  # @option opts [hash] :instrument A hash for keeping instrumentation-related state  
   # @param [Comm] comm communicator instance, pass this to new resource proxy instance if want to use a common communicator instance.
   def initialize(type, opts = nil, comm = nil)
     @opts = Hashie::Mash.new(opts)
@@ -36,7 +37,27 @@ class OmfRc::ResourceProxy::AbstractResource
 
     @property = @opts.property || Hashie::Mash.new
 
-    @comm = comm || OmfCommon::Comm.new(@opts.dsl)
+    @oml_uri = @opts.oml_uri
+    @oml_exp_id = @opts.oml_exp_id
+    @oml_enabled = (@oml_uri && @oml_exp_id) ? true : false
+    require 'oml4r' if @oml_enabled
+
+    @comm = comm || OmfCommon::Comm.new(@opts.dsl, @oml_enabled)
+    
+    # OML4R's init must be done after Comm's init so that MPs declared in 
+    # Comm are taken into account
+    if @oml_enabled  
+      @oml_id = @opts.oml_id.nil? ? (hrn.nil? ? uid : hrn) : @opts.oml_id
+      @oml_app = @opts.oml_app.nil? ? @oml_id : @opts.oml_app
+      OML4R::init(ARGV, { 
+        :appName => @oml_app,
+        :expID => @oml_exp_id,
+        :nodeID => @oml_id,
+        :omlServer => @oml_uri}
+      )
+      logger.info "OML Instrumentation Enabled (uri: #{@oml_uri} - exp: #{@oml_exp_id} - id: #{@oml_id} - app: #{@oml_app})"
+    end
+
     # Fire when connection to pubsub server established
     @comm.when_ready do
       logger.info "CONNECTED: #{@comm.jid.inspect}"
