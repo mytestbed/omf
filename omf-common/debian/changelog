@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4.2-ubuntu3) precise; urgency=low
+
+  * explicitly use ruby1.8 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 26 Oct 2012 06:12:23 +1100
+
 omf-common-5.4 (5.4.2-ubuntu2) precise; urgency=low
 
   * fixed issues #805 and #806
