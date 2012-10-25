@@ -47,8 +47,21 @@ module OmfCommon
       # Subscribe to a pubsub topic
       #
       # @param [String] topic Pubsub topic name
-      def subscribe(topic, &block)
-        pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+      # @param [Boolean] create_if_non_existent create the topic if non-existent, use this option with caution
+      def subscribe(topic, create_if_non_existent = false, &block)
+        if create_if_non_existent
+          affiliations do |a|
+            if a[:owner] && a[:owner].include?(topic)
+              pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+            else
+              create_topic(topic) do
+                pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+              end
+            end
+          end
+        else
+          pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+        end
       end
 
       # Un-subscribe all existing subscriptions from all pubsub topics.
