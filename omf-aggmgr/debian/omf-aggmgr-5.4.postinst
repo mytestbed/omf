@@ -27,7 +27,7 @@ case "$1" in
     . /usr/share/debconf/confmodule
     cd /usr/share/omf-aggmgr-$VER/gems/1.8
     echo "Installing gems for OMF to $PWD"
-    GEM_PATH=$PWD gem install --no-ri --no-rdoc -l -f -i . cache/*.gem
+    GEM_PATH=$PWD gem1.8 install --no-ri --no-rdoc -l -f -i . cache/*.gem
     chmod 777 /var/lib/omf-images-$VER
     ;;
     
