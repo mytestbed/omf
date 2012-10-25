@@ -4,6 +4,16 @@ require 'securerandom'
 require 'openssl'
 
 module OmfCommon
+
+  class MPMessage < OML4R::MPBase
+    name :message
+    param :time, :type => :int32
+    param :operation, :type => :string
+    param :msg_id, :type => :string
+    param :context_id, :type => :string
+    param :content, :type => :string
+  end
+
   # Refer to resource life cycle, instance methods are basically construct & parse XML fragment
   #
   # @example To create a valid omf message, e.g. a 'configure' message:
@@ -17,6 +27,7 @@ module OmfCommon
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
     SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
     OPERATION = %w(create configure request release inform)
+    @@msg_id_list = []
 
     class << self
       OPERATION.each do |operation|
@@ -37,7 +48,11 @@ module OmfCommon
       def parse(xml)
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
         xml_root = Nokogiri::XML(xml).root
-        new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
+        result = new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
+        if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(result.msg_id)
+          MPMessage.inject(Time.now.to_i, result.operation.to_s, result.msg_id, result.context_id, result.to_s.gsub("\n",'')) 
+        end
+        result 
       end
     end
 
@@ -105,8 +120,19 @@ module OmfCommon
     #
     def sign
       write_attr('msg_id', OpenSSL::Digest::SHA1.new(canonicalize)) if read_attr('id').nil? || read_attr('id').empty?
+      if OmfCommon::Measure.enabled?
+        MPMessage.inject(Time.now.to_i, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
+        @@msg_id_list << msg_id
+      end
       self
     end
+
+    # param :time, :type => :int32
+    # param :operation, :type => :string
+    # param :msg_id, :type => :string
+    # param :context_id, :type => :string
+    # param :content, :type => :string
+
 
     # Validate against relaxng schema
     #
@@ -171,6 +197,10 @@ module OmfCommon
 
     def publish_to
       read_property(:publish_to) || read_content(:publish_to)
+    end
+
+    def msg_id
+      read_attr('msg_id')
     end
 
     # Get a property by key

@@ -3,6 +3,22 @@ require 'omf_rc/omf_error'
 require 'securerandom'
 require 'hashie'
 
+class OmfRc::ResourceProxy::MPPublished < OML4R::MPBase
+  name :proxy_published
+  param :time, :type => :int32
+  param :uid, :type => :string
+  param :topic, :type => :string
+  param :msg_id, :type => :string
+end
+
+class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
+  name :proxy_received
+  param :time, :type => :int32
+  param :uid, :type => :string
+  param :topic, :type => :string
+  param :msg_id, :type => :string
+end
+
 class OmfRc::ResourceProxy::AbstractResource
   # Time to wait before shutting down event loop, wait for deleting pubsub topics
   DISCONNECT_WAIT = 5
@@ -37,27 +53,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
     @property = @opts.property || Hashie::Mash.new
 
-    @oml_uri = @opts.oml_uri
-    @oml_exp_id = @opts.oml_exp_id
-    @oml_enabled = (@oml_uri && @oml_exp_id) ? true : false
-    require 'oml4r' if @oml_enabled
-
-    @comm = comm || OmfCommon::Comm.new(@opts.dsl, @oml_enabled)
-    
-    # OML4R's init must be done after Comm's init so that MPs declared in 
-    # Comm are taken into account
-    if @oml_enabled  
-      @oml_id = @opts.oml_id.nil? ? (hrn.nil? ? uid : hrn) : @opts.oml_id
-      @oml_app = @opts.oml_app.nil? ? @oml_id : @opts.oml_app
-      OML4R::init(ARGV, { 
-        :appName => @oml_app,
-        :expID => @oml_exp_id,
-        :nodeID => @oml_id,
-        :omlServer => @oml_uri}
-      )
-      logger.info "OML Instrumentation Enabled (uri: #{@oml_uri} - exp: #{@oml_exp_id} - id: #{@oml_id} - app: #{@oml_app})"
-    end
-
+    @comm = comm || OmfCommon::Comm.new(@opts.dsl)
     # Fire when connection to pubsub server established
     @comm.when_ready do
       logger.info "CONNECTED: #{@comm.jid.inspect}"
@@ -235,6 +231,8 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     @comm.publish(inform_to, inform_message)
+    OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_i,
+      self.uid, inform_to, inform_message.msg_id) if OmfCommon::Measure.enabled?
   end
 
   private
@@ -262,6 +260,8 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     objects_by_topic(topic).each do |obj|
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_i,
+        self.uid, topic, message.msg_id) if OmfCommon::Measure.enabled?
       execute_omf_operation(message, obj)
     end
   end

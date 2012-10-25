@@ -20,16 +20,16 @@ module OmfCommon
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def connect(username, password, server)
-        require 'omf_common/dsl/xmpp_mp' if self.instrument 
         jid = "#{username}@#{server}"
         client.setup(jid, password)
         client.run
-        OmfCommon::DSL::Xmpp::Foo.inject("foo", 100, 200)
+        MPConnection.inject(Time.now.to_i, jid, 'connect') if OmfCommon::Measure.enabled?
       end
 
       # Shut down XMPP connection
       def disconnect
         shutdown
+        OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_i, jid, 'disconnect') if OmfCommon::Measure.enabled?
       end
 
       # Create a new pubsub topic with additional configuration
@@ -51,6 +51,7 @@ module OmfCommon
       # @param [String] topic Pubsub topic name
       def subscribe(topic, &block)
         pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+        MPSubscription.inject(Time.now.to_i, jid, 'join', topic) if OmfCommon::Measure.enabled?
       end
 
       # Un-subscribe all existing subscriptions from all pubsub topics.
@@ -58,6 +59,7 @@ module OmfCommon
         pubsub.subscriptions(default_host) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
             pubsub.unsubscribe(s[:node], nil, s[:subid], default_host, &callback_logging(__method__, s[:node], s[:subid]))
+            MPSubscription.inject(Time.now.to_i, jid, 'leave', s[:node]) if OmfCommon::Measure.enabled?
           end
         end
       end
@@ -73,6 +75,7 @@ module OmfCommon
       def publish(topic, message, &block)
         raise StandardError, "Invalid message" unless message.valid?
         pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, message.operation, &block))
+        MPPublished.inject(Time.now.to_i, jid, topic, message.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled?
       end
 
       # Generate OMF related message
@@ -130,7 +133,9 @@ module OmfCommon
       #
       def topic_event(&block)
         guard_block = proc do |event|
-          (event.items?) && (!event.delayed?) && event.items.first.payload
+          passed = (event.items?) && (!event.delayed?) && event.items.first.payload
+          MPReceived.inject(Time.now.to_i, jid, event.node, event.items.first.payload.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled? && passed
+          passed
         end
         pubsub_event(guard_block, &callback_logging(__method__, &block))
       end

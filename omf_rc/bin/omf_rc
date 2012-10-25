@@ -10,55 +10,50 @@ options = {
 }
 
 executable_name = File.basename($PROGRAM_NAME)
-
-option_parser = OptionParser.new do |opts|
-  opts.banner = "usage: #{executable_name} [options]"
-
-  opts.on("-u USER", "Username") do |user|
-    options[:user] = user
-  end
-
-  opts.on("-p PASSWORD", "Password") do |password|
-    options[:password] = password
-  end
-
-  opts.on("-s SERVER", "XMPP server") do |server|
-    options[:server] = server
-  end
-
-  opts.on("-t TOPIC", "PubSub topic to create, also becomes the uid of the resource, default to hostname") do |topic|
-    options[:uid] = topic
-  end
-
-  opts.on("-d", "--debug", "Debug mode") do
-    options[:debug] = true
-  end
-
-  opts.on("--oml-uri URI", "URI of server to send measurements to (tcp:host:port)") do |uri|
-    options[:oml_uri] = uri
-  end
-  opts.on("--oml-exp-id NAME", "Name for the experiment DB") do |id|
-    options[:oml_exp_id] = id
-  end
-  opts.on("--oml-id NAME", "Name to identify this OML client instance (optional, default: uid/hrn)") do |id|
-    options[:oml_id] = id
-  end
-  opts.on("--oml-app NAME", "Name to identiy this application for OML (optional, default: uid/hrn)") do |id|
-    options[:oml_app] = id
-  end
-end
+oml_enabled = false
 
 begin
-  option_parser.parse!
+  oml_enabled = OML4R::init(ARGV, :appName => executable_name) do |opts|
+    opts.banner = "usage: #{executable_name} [options]"
+
+    opts.on("-u USER", "Username") do |user|
+      options[:user] = user
+    end
+
+    opts.on("-p PASSWORD", "Password") do |password|
+      options[:password] = password
+    end
+
+    opts.on("-s SERVER", "PubSub server") do |server|
+      options[:server] = server
+    end
+
+    opts.on("-t TOPIC", "PubSub topic to create, also becomes the uid of the resource, default to hostname") do |topic|
+      options[:uid] = topic
+    end
+
+    opts.on("-d", "--debug", "Debug mode") do
+      options[:debug] = true
+    end
+  end
 rescue => e
-  puts e.message
-  puts ""
-  puts option_parser.help
-  exit(1)
+  # right now OML4R does not raise proper exceptions :(
+  # OML4R requires --oml-noop to be set if we want to run without doing any
+  # measurements... this is too restrictive here, we want to run without OML
+  # if no OML parameters were set and this even if --oml-noop is not set. 
+  if e.message.include?('OML4R: Missing values for parameters :expID ')
+    puts e.message
+    puts "Keep running but without OML4R... (maybe you should set --oml-noop)"
+  else
+    puts e.message
+    exit(1)
+  end
 end
 
-unless options[:server] && options[:user] && options[:server]
-  puts option_parser.help
+OmfCommon::Measure.enable if oml_enabled
+
+unless options[:server] && options[:user] && options[:password]
+  puts "Missing parameters to connect to a PubSub Server (run with --help)"
   exit(1)
 end
 

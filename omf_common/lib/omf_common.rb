@@ -2,6 +2,7 @@ require 'logging'
 require 'active_support/inflector'
 
 require "omf_common/version"
+require 'omf_common/measure'
 require "omf_common/message"
 require "omf_common/comm"
 require "omf_common/command"
