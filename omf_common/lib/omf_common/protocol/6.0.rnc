@@ -7,6 +7,7 @@ anything = ( text | element * { (attribute type { text })?, (text | anything) * 
 create = element create {
   attribute msg_id { text },
   element context_id { text },
+  element publish_to { text }?,
   element property {
     attribute key { text },
     (attribute type { text })?,
@@ -17,6 +18,7 @@ create = element create {
 configure = element configure {
   attribute msg_id { text },
   element context_id { text },
+  element publish_to { text }?,
   element property {
     attribute key { text },
     (attribute type { text })?,
@@ -39,6 +41,7 @@ release = element release {
   attribute msg_id { text },
   element context_id { text },
   element resource_id { text },
+  element publish_to { text }?,
   element property {
     (attribute key { text }),
     (attribute type { text })?,

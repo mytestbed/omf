@@ -32,6 +32,11 @@
       <element name="context_id">
         <text/>
       </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -51,6 +56,11 @@
       <element name="context_id">
         <text/>
       </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -97,6 +107,11 @@
       <element name="resource_id">
         <text/>
       </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>

@@ -27,8 +27,8 @@ module OmfCommon
             xml.element('inform_type', args[0])
           else
             xml.element('context_id', SecureRandom.uuid)
+            xml.element('publish_to', args[0]) if args[0]
           end
-          xml.element('publish_to', args[0]) if operation == 'request'
           block.call(xml) if block
           xml.sign
         end
