@@ -35,4 +35,4 @@ else
    exit 1;
 fi
 export GEM_PATH=/usr/share/omf-common$VER/gems/1.8
-exec ruby -I/usr/share/omf-common$VER $PDIR/$APP $*
+exec ruby1.8 -I/usr/share/omf-common$VER $PDIR/$APP $*

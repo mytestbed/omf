@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby1.8
 
 require 'omf-common/servicecall'
 require 'omf-common/omfVersion'

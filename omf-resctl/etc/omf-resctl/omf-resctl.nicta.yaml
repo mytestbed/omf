@@ -10,7 +10,7 @@
     
     # Interface to the control network from which this resource can be 
     # controlled & managed
-    :control_if: 'control'
+    :control_if: 'eth1'
 
     # set this to true or false if you want to enable or disable signature checks and message signing                                       
     :authenticate_messages: false
