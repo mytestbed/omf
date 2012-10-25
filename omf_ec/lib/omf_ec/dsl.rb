@@ -1,9 +1,66 @@
-require 'omf_ec/experiment'
+require 'eventmachine'
 
 # DSL methods to be used for OEDL scripts
 #
 module OmfEc
   module DSL
+    # Experiment instance
+    def exp
+      Experiment.instance
+    end
+
+    # Experiment's communicator instance
+    def comm
+      exp.comm
+    end
+
+    def after(time, &block)
+      comm.add_timer(time, block)
+    end
+
+    def every(time, &block)
+      comm.add_periodic_timer(time, block)
+    end
+
+    def def_group(name, &block)
+      comm.subscribe(name, true) do |m|
+        unless m.error?
+          group = Group.new(name)
+          exp.groups << group
+          block.call group
+        end
+      end
+    end
+
+    alias_method :defGroup, :def_group
+
+    def group(name, &block)
+      group = exp.groups.find {|v| v.name == name}
+      block.call(group)
+    end
+
+    # Exit the experiment
+    def done!
+      exp.done
+    end
+
+    # Create a topic object, subscribe to it, add it to resource tree
+    #
+    #def def_garage(name)
+    #  Experiment.instance.state.garage ||= {}
+    #  Experiment.instance.state.garage[name] ||= {}
+    #  Experiment.instance.state.garage[name].topic = Experiment.instance.comm.get_topic(name)
+    #  Experiment.instance.state.garage[name].topic.subscribe
+    #end
+
+    #def all_garages
+    #  Experiment.instance.state.garage
+    #end
+
+    def get_garage(id)
+      exp.state.garage[id]
+    end
+
     # Define an experiment property which can be used to bind
     # to application and other properties. Changing an experiment
     # property should also change the bound properties, or trigger
@@ -14,12 +71,11 @@ module OmfEc
     # - description = short text description of this property
     #
     def def_property(name, default_value, description = nil)
-      Experiment.instance.def_property(name, default_value)
+      Experiment.instance.property[name] = default_value
     end
 
     alias_method :defProperty, :def_property
 
-    #
     # Return the context for setting experiment wide properties
     #
     # [Return] a Property Context
@@ -30,128 +86,6 @@ module OmfEc
 
     alias_method :prop, :property
 
-    #
-    # Define a new topology. The topology can
-    # be described by an optionally array declaration, or
-    # with a block with the newly created topology as
-    # single argument.
-    #
-    # - refName = the name for this new topology
-    # - nodeArray = optional, an array with the node to add in this topology
-    # - &block = optional, a block containing commands that define this topology
-    #
-    # [Return] the newly created Topology object
-    #
-    def def_topology(refName, nodeArray = nil, &block)
-      topo = Topology.create(refName, nodeArray)
-      if (! block.nil?)
-        block.call(topo)
-      end
-      return topo
-    end
-
-    alias_method :defTopology, :def_topology
-
-    #
-    # Define a new prototype. The supplied block is
-    # executed with the new Prototype instance
-    # as a single argument.
-    #
-    # - refName = reference name for this property
-    # - name = optional, short/easy to remember name for this property
-    # - &block = a code-block to execute on the newly created property
-    #
-    def def_prototype(refName, name = nil, &block)
-      p = Prototype.create(refName)
-      p.name = name
-      block.call(p)
-    end
-
-    alias_method :defPrototype, :def_prototype
-    #
-    # Define a set of nodes to be used in the experiment.
-    # This can either be a specific declaration of nodes to
-    # use, or a set combining other sets.
-    #
-    # - groupName = name of this group of nodes
-    # - selector = optional, this can be: a String refering to the name of an
-    #              existing Topology, or an Array with the name of existing
-    #              Groups to add to this group, or an Array explicitly describing
-    #              the nodes to include in this group
-    # - &block = a code-block with commands, which will be executed on the nodes
-    #            in this group
-    #
-    # [Return] a RootNodeSetPath object referring to this new group of nodes
-    #
-    def def_group(groupName, selector = nil, &block)
-      if (NodeSet[groupName] != nil)
-        raise "Node set '#{groupName}' already defined. Choose different name."
-      end
-
-      if selector.kind_of?(ExperimentProperty)
-        selector = selector.value
-      end
-
-      if (selector != nil)
-        # What kind of selector do we have?
-        if selector.kind_of?(String)
-          begin
-            # Selector is the name of an existing Topology (e.g. "myTopo")
-            topo = Topology[selector]
-            ns = BasicNodeSet.new(groupName, topo)
-            # This raises an exception if Selector does not refer to an existing
-            # Topology
-          rescue
-            # Selector is a comma-separated list of existing resources
-            # These resources are identified by their HRNs
-            # e.g. "node1, node2, node3"
-            tname = "-:topo:#{groupName}"
-            topo = Topology.create(tname, selector.split(","))
-            ns = BasicNodeSet.new(groupName, topo)
-          end
-          # Selector is an Array of String
-        elsif selector.kind_of?(Array) && selector[0].kind_of?(String)
-          begin
-            # Selector is an array of group names
-            # Thus we are creating a Group or Groups
-            ns = GroupNodeSet.new(groupName, selector)
-            # This raises an exception if Selector contains a name, which does
-            # not refer to an existing defined Group
-          rescue
-            # Selector is an array of resource names, which are identified by their
-            # HRNs, e.g. ['node1','node2','node3']
-            tname = "-:topo:#{groupName}"
-            topo = Topology.create(tname, selector)
-            ns = BasicNodeSet.new(groupName, topo)
-          end
-        else
-          raise "Unknown node set declaration '#{selector}: #{selector.class}'"
-        end
-      else
-        ns = BasicNodeSet.new(groupName)
-      end
-
-      return RootNodeSetPath.new(ns, nil, nil, block)
-    end
-
-    alias_method :defGroup, :def_group
-
-    # Evaluate a code-block in the context of a previously defined
-    # group of nodes.
-    #
-    # - groupName = the name of the group of nodes
-    # - &block = the code-block to evaluate/execute on the group of nodes
-    #
-    # [Return] a RootNodeSetPath object referring to the group of nodes
-    #
-    def group(groupName, &block)
-      ns = NodeSet[groupName.to_s]
-      if (ns == nil)
-        warn "Undefined node set '#{groupName}'"
-        return EmptyGroup.new
-      end
-      return RootNodeSetPath.new(ns, nil, nil, block)
-    end
 
     def resource(resName)
       res = OMF::EC::Node[resName]
@@ -188,23 +122,18 @@ module OmfEc
 
     alias_method :allNodes!, :all_nodes!
 
+    # Check if all elements in array equal the value provided
+    #
     def all_equal(array, value)
-      return false if array.nil? || array.empty?
-      res = true
-      if array
-        array.each { |v| res = false if v.to_s != value.to_s }
-      end
-      res
+      array.empty? ? false : array.all? { |v| v.to_s == value.to_s }
     end
 
     alias_method :allEqual, :all_equal
 
+    # Check if any elements in array equals the value provided
+    #
     def one_equal(array, value)
-      res = false
-      if array
-        array.each { |v| res = true if v.to_s == value.to_s }
-      end
-      res
+      array.any? ? false : array.all? { |v| v.to_s == value.to_s }
     end
 
     alias_method :oneEqual, :one_equal
@@ -220,35 +149,6 @@ module OmfEc
     end
 
     alias_method :onEvent, :on_event
-
-    # Periodically execute 'block' every 'interval' seconds until block
-    # returns nil.
-    #
-    # - name = the name for this periodic action
-    # - interval = interval at which to execute the action (in sec, default=60)
-    # - initial = optional, any initial conditions that will be passed to the
-    #             Thread running this code-block
-    # - &block = the code-block to periodically execute/evaluate. This periodic
-    #            task is stopped when block returns 'nil'
-    #
-    def every(name, interval = 60, initial = nil, &block)
-      Thread.new(initial) { |context|
-        while true
-          Kernel.sleep(interval)
-          MObject.debug("every(#{name}): fires - #{context}")
-          begin
-            if ((context = block.call(context)) == nil)
-              break
-            end
-          rescue Exception => ex
-            bt = ex.backtrace.join("\n\t")
-            MObject.error("every(#{name})",
-                          "Exception: #{ex} (#{ex.class})\n\t#{bt}")
-          end
-        end
-        MObject.debug("every(#{name}): finishes")
-      }
-    end
 
     # Periodically execute 'block' against a group of nodes every 'interval' sec
     #
@@ -326,48 +226,12 @@ module OmfEc
 
     # Wait for some time before issuing more commands
     #
-    # - time = Time to wait in seconds (can be
+    # - duration = Time to wait in seconds (can be
     #
-    def wait(time)
-      if time.kind_of?(ExperimentProperty)
-        duration = time.value
-      else
-        duration = time
-      end
-      info "Request from Experiment Script: Wait for #{duration}s...."
-      Kernel.sleep duration
+    def wait(duration)
+      warn "Wait will pause the entire event system, so I won't do it. Please use timer instead."
     end
 
-    # Debugging support:
-    # print an information message to the 'stdout' & the logfile of EC
-    #
-    # - *msg = message to print
-    #
-    def info(*msg)
-      logger.info *msg
-    end
-
-    #
-    # Debugging support:
-    # print an warning message to the 'stdout' & the logfile of EC
-    #
-    # - *msg = message to print
-    #
-    def warn(*msg)
-      logger.warn *msg
-    end
-
-    #
-    # Debugging support:
-    # print an error message to the 'stdout' & the logfile of EC
-    #
-    # - *msg = message to print
-    #
-    def error(*msg)
-      logger.error *msg
-    end
-
-    #
     # Reporting/Debugging support:
     # print the XML tree of states/attributs of EC
     #
