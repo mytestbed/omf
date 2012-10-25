@@ -231,7 +231,7 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     @comm.publish(inform_to, inform_message)
-    OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_i,
+    OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
       self.uid, inform_to, inform_message.msg_id) if OmfCommon::Measure.enabled?
   end
 
@@ -260,7 +260,7 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     objects_by_topic(topic).each do |obj|
-      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_i,
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f,
         self.uid, topic, message.msg_id) if OmfCommon::Measure.enabled?
       execute_omf_operation(message, obj)
     end

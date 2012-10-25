@@ -7,7 +7,7 @@ module OmfCommon
 
   class MPMessage < OML4R::MPBase
     name :message
-    param :time, :type => :int32
+    param :time, :type => :double
     param :operation, :type => :string
     param :msg_id, :type => :string
     param :context_id, :type => :string
@@ -27,6 +27,10 @@ module OmfCommon
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
     SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
     OPERATION = %w(create configure request release inform)
+    # When OML instrumentation is enabled, we do not want to send a the same 
+    # measurement twice, once when a message is created for publishing to T,
+    # and once when this message comes back (as we are also a subscriber of T)
+    # Thus we keep track of message IDs here (again only when OML is enabled)
     @@msg_id_list = []
 
     class << self
@@ -50,7 +54,7 @@ module OmfCommon
         xml_root = Nokogiri::XML(xml).root
         result = new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
         if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(result.msg_id)
-          MPMessage.inject(Time.now.to_i, result.operation.to_s, result.msg_id, result.context_id, result.to_s.gsub("\n",'')) 
+          MPMessage.inject(Time.now.to_f, result.operation.to_s, result.msg_id, result.context_id, result.to_s.gsub("\n",'')) 
         end
         result 
       end
@@ -121,7 +125,7 @@ module OmfCommon
     def sign
       write_attr('msg_id', OpenSSL::Digest::SHA1.new(canonicalize)) if read_attr('id').nil? || read_attr('id').empty?
       if OmfCommon::Measure.enabled?
-        MPMessage.inject(Time.now.to_i, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
+        MPMessage.inject(Time.now.to_f, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
         @@msg_id_list << msg_id
       end
       self
