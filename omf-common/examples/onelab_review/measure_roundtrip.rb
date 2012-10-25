@@ -1,4 +1,4 @@
-#!/usr/bin/ruby1.8
+#!/usr/bin/env ruby1.8
 #
 # Copyright (c) 2010 National ICT Australia (NICTA), Australia
 #

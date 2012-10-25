@@ -34,4 +34,4 @@ else
    echo "Cannot find the ruby module location ($APP)."
    exit 1;
 fi
-GEM_PATH=/usr/share/omf-common-$VER/gems/1.8 exec ruby -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP $*
+GEM_PATH=/usr/share/omf-common-$VER/gems/1.8 exec ruby1.8 -I$PDIR -I/usr/share/omf-common-$VER $PDIR/$APP $*

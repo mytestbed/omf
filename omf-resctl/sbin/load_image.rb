@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby1.8
 
 require 'omf-common/mobject'
 require 'omf-common/execApp'
