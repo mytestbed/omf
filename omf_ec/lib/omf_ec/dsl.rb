@@ -41,7 +41,7 @@ module OmfEc
 
     # Exit the experiment
     def done!
-      exp.done
+      comm.disconnect
     end
 
     # Create a topic object, subscribe to it, add it to resource tree
