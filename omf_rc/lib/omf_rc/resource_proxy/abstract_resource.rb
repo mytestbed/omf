@@ -3,20 +3,24 @@ require 'omf_rc/omf_error'
 require 'securerandom'
 require 'hashie'
 
+# OML Measurement Point (MP)
+# This MP is for measurements about messages published by the Resource Proxy
 class OmfRc::ResourceProxy::MPPublished < OML4R::MPBase
   name :proxy_published
-  param :time, :type => :int32
-  param :uid, :type => :string
-  param :topic, :type => :string
-  param :msg_id, :type => :string
+  param :time, :type => :double # Time (s) when this message was published 
+  param :uid, :type => :string # UID for this Resource Proxy
+  param :topic, :type => :string # Pubsub topic to publish this message to
+  param :msg_id, :type => :string # Unique ID this message
 end
 
+# OML Measurement Point (MP)
+# This MP is for measurements about messages received by the Resource Proxy
 class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   name :proxy_received
-  param :time, :type => :int32
-  param :uid, :type => :string
-  param :topic, :type => :string
-  param :msg_id, :type => :string
+  param :time, :type => :double # Time (s) when this message was received 
+  param :uid, :type => :string # UID for this Resource Proxy
+  param :topic, :type => :string # Pubsub topic where this message came from
+  param :msg_id, :type => :string # Unique ID this message
 end
 
 class OmfRc::ResourceProxy::AbstractResource
