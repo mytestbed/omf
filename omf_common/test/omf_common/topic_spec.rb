@@ -10,7 +10,7 @@ describe OmfCommon::Topic do
     @stream = MiniTest::Mock.new
     @stream.expect(:send, true, [Blather::Stanza])
     @client.post_init @stream, Blather::JID.new('n@d/r')
-    @comm = Class.new { include OmfCommon::DSL::Xmpp }.new
+    @comm = Comm.new(:xmpp)
     @topic = @comm.get_topic('mclaren')
   end
 
