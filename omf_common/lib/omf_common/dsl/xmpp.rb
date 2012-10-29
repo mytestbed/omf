@@ -74,7 +74,11 @@ module OmfCommon
       # @param [String] message Any XML fragment to be sent as payload
       def publish(topic, message, &block)
         raise StandardError, "Invalid message" unless message.valid?
-        pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, message.operation, &block))
+        new_block = proc do |stanza|
+          published_messages << OpenSSL::Digest::SHA1.new(message)
+          block.call(stanza) if block
+        end
+        pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, &block))
         MPPublished.inject(Time.now.to_f, jid, topic, message.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled?
       end
 
@@ -87,11 +91,18 @@ module OmfCommon
 
       # Event callback for pubsub topic event(item published)
       #
-      def topic_event(&block)
+      def topic_event(additional_guard = nil, &block)
         guard_block = proc do |event|
-          passed = (event.items?) && (!event.delayed?) && event.items.first.payload
+          passed = (event.items?) && (!event.delayed?) && event.items.first.payload &&
+            !published_messages.include?(OpenSSL::Digest::SHA1.new(event.items.first.payload))
+
           MPReceived.inject(Time.now.to_f, jid, event.node, event.items.first.payload.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled? && passed
-          passed
+
+          if additional_guard
+            passed && additional_guard.call(event)
+          else
+            passed
+          end
         end
         pubsub_event(guard_block, &callback_logging(__method__, &block))
       end

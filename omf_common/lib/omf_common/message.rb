@@ -27,7 +27,7 @@ module OmfCommon
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
     SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
     OPERATION = %w(create configure request release inform)
-    # When OML instrumentation is enabled, we do not want to send a the same 
+    # When OML instrumentation is enabled, we do not want to send a the same
     # measurement twice, once when a message is created for publishing to T,
     # and once when this message comes back (as we are also a subscriber of T)
     # Thus we keep track of message IDs here (again only when OML is enabled)
@@ -54,9 +54,9 @@ module OmfCommon
         xml_root = Nokogiri::XML(xml).root
         result = new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
         if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(result.msg_id)
-          MPMessage.inject(Time.now.to_f, result.operation.to_s, result.msg_id, result.context_id, result.to_s.gsub("\n",'')) 
+          MPMessage.inject(Time.now.to_f, result.operation.to_s, result.msg_id, result.context_id, result.to_s.gsub("\n",''))
         end
-        result 
+        result
       end
     end
 
