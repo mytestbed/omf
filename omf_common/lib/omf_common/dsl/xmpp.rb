@@ -74,11 +74,13 @@ module OmfCommon
       # @param [String] message Any XML fragment to be sent as payload
       def publish(topic, message, &block)
         raise StandardError, "Invalid message" unless message.valid?
+
         new_block = proc do |stanza|
-          published_messages << OpenSSL::Digest::SHA1.new(message)
+          published_messages << OpenSSL::Digest::SHA1.new(message.to_s)
           block.call(stanza) if block
         end
-        pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, &block))
+
+        pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, &new_block))
         MPPublished.inject(Time.now.to_f, jid, topic, message.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled?
       end
 
