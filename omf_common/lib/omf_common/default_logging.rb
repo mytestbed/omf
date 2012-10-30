@@ -12,5 +12,30 @@ module OmfCommon
                                          :color_scheme => 'default'))
     Logging.logger.root.appenders = 'default_stdout'
     Logging.logger.root.level = :info
+
+    # Alias logging method using default logger
+    def info(*args, &block)
+      logger.info(*args, &block)
+    end
+
+    # @see #info
+    def debug(*args, &block)
+      logger.debug(*args, &block)
+    end
+
+    # @see #info
+    def error(*args, &block)
+      logger.error(*args, &block)
+    end
+
+    # @see #info
+    def fatal(*args, &block)
+      logger.fatal(*args, &block)
+    end
+
+    # @see #info
+    def warn(*args, &block)
+      logger.warn(*args, &block)
+    end
   end
 end
