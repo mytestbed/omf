@@ -12,6 +12,9 @@ version OmfEc::VERSION
 desc "Debug mode (printing debug logging messages)"
 switch [:d, :debug]
 
+desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
+switch [:x, :xmpp]
+
 desc "Execute an experiment script"
 arg_name 'path_to_script_file'
 command :exec do |c|
@@ -33,9 +36,12 @@ command :exec do |c|
   c.switch [:k, :check]
 
   c.action do |global_options, options, args|
+    if global_options[:xmpp]
+      Blather.logger = logger
+    end
+
     if global_options[:debug]
       Logging.logger.root.level = :debug
-      Blather.logger = logger
     end
     unless options[:user] && options[:password] && options[:server]
       help_now! "Incomplete options"
@@ -58,7 +64,7 @@ command :exec do |c|
 
       comm.when_ready do
         logger.info "CONNECTED: #{comm.jid.inspect}"
-        load args[0], true
+        load args[0]
       end
 
       EM.run do
