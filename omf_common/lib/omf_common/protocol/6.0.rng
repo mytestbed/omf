@@ -128,9 +128,11 @@
   <define name="inform">
     <element name="inform">
       <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
+      <optional>
+        <element name="context_id">
+          <text/>
+        </element>
+      </optional>
       <element name="inform_type">
         <choice>
           <value>CREATED</value>

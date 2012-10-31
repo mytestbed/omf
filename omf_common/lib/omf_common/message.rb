@@ -23,7 +23,7 @@ module OmfCommon
         define_method(operation) do |*args, &block|
           xml = new(operation, nil, OMF_NAMESPACE)
           if operation == 'inform'
-            xml.element('context_id', args[1] || SecureRandom.uuid)
+            xml.element('context_id', args[1]) if args[1]
             xml.element('inform_type', args[0])
           else
             xml.element('context_id', SecureRandom.uuid)

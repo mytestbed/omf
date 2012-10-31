@@ -51,7 +51,7 @@ release = element release {
 
 inform = element inform {
   attribute msg_id { text },
-  element context_id { text },
+  element context_id { text }?,
   element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN"},
   element resource_id { text }?,
   element resource_address { text }?,
