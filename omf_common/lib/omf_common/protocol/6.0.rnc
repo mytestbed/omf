@@ -8,6 +8,7 @@ create = element create {
   attribute msg_id { text },
   element context_id { text },
   element publish_to { text }?,
+  element guard { anything * }?,
   element property {
     attribute key { text },
     (attribute type { text })?,
@@ -19,6 +20,7 @@ configure = element configure {
   attribute msg_id { text },
   element context_id { text },
   element publish_to { text }?,
+  element guard { anything * }?,
   element property {
     attribute key { text },
     (attribute type { text })?,
@@ -30,6 +32,7 @@ request = element request {
   attribute msg_id { text },
   element context_id { text },
   element publish_to { text }?,
+  element guard { anything * }?,
   element property {
     (attribute key { text }),
     (attribute type { text })?,
@@ -42,6 +45,7 @@ release = element release {
   element context_id { text },
   element resource_id { text },
   element publish_to { text }?,
+  element guard { anything * }?,
   element property {
     (attribute key { text }),
     (attribute type { text })?,

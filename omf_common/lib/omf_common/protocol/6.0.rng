@@ -37,6 +37,13 @@
           <text/>
         </element>
       </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -61,6 +68,13 @@
           <text/>
         </element>
       </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -83,6 +97,13 @@
       <optional>
         <element name="publish_to">
           <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
         </element>
       </optional>
       <zeroOrMore>
@@ -110,6 +131,13 @@
       <optional>
         <element name="publish_to">
           <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
         </element>
       </optional>
       <zeroOrMore>
