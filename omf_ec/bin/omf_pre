@@ -64,7 +64,12 @@ command :exec do |c|
 
       comm.when_ready do
         logger.info "CONNECTED: #{comm.jid.inspect}"
-        load args[0]
+        begin
+          load args[0]
+        rescue => e
+          logger.error e.message
+          logger.error e.backtrace.join("\n")
+        end
       end
 
       EM.run do

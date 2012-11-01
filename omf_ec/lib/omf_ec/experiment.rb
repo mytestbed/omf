@@ -9,27 +9,30 @@ module OmfEc
     attr_reader :state
     attr_accessor :comm
     attr_accessor :groups
+    attr_accessor :events
 
     def initialize
-      @property ||= Hashie::Mash.new
-      @state ||= Hashie::Mash.new
-      @comm ||= OmfCommon::Comm.new(:xmpp)
-      @groups ||= []
+      self.property ||= Hashie::Mash.new
+      self.comm ||= OmfCommon::Comm.new(:xmpp)
+      self.state ||= []
+      self.groups ||= []
+      self.events ||= []
+    end
+
+    def process_events
+      self.events.find_all { |v| v[:callback] }.each do |event|
+        if event[:trigger].call
+          event[:callback].call
+          self.events.delete(event) if event[:consume_event]
+        end
+      end
     end
 
     # Purely for backward compatibility
     class << self
       def done
-        @comm.disconnect
+        self.comm.disconnect
       end
-    end
-  end
-end
-
-class Hashie::Mash
-  def add_engine(&block)
-    each_pair do |key, value|
-      value.__send__(:add_engine, &block)
     end
   end
 end

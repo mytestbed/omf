@@ -1,4 +1,5 @@
 require 'omf_ec/experiment'
+require 'omf_ec/group_context'
 
 module OmfEc
   class Group
@@ -20,8 +21,9 @@ module OmfEc
           end
           c.publish name
           c.on_inform_status do |i|
-            info "#{name} added"
+            info "#{name} added to #{self.name}"
             block.call if block
+            Experiment.instance.process_events
           end
         end
       end
@@ -32,7 +34,7 @@ module OmfEc
       opts = opts.merge(hrn: name)
 
       # Naming convention of child resource group
-      resource_group_name = "#{self.name}_#{opts[:type]}_#{opts[:hrn]}"
+      resource_group_name = "#{self.name}_#{opts[:type]}"#_#{opts[:hrn]}"
 
       comm.subscribe(resource_group_name, true) do |m|
         unless m.error?
@@ -44,12 +46,22 @@ module OmfEc
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
             block.call if block
+            Experiment.instance.process_events
+          end
+
+          rg = comm.get_topic(resource_group_name)
+          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.empty? } do |i|
+            i.each_property do |p|
+              info "#{p.attr('key')} #{p.content}"
+            end
+            Experiment.instance.process_events
           end
         end
       end
     end
 
-    def resources
+    def resources(opts)
+      GroupContext.new(opts.merge(group: self.name))
     end
 
     def request(group, *properties)
@@ -58,14 +70,21 @@ module OmfEc
           m.property(p)
         end
         m.property(:uid)
+        m.property(:hrn)
       end
       r.publish group
       r.on_inform_status do |i|
-        info i
+        Experiment.instance.process_events
+        i.each_property do |p|
+          info "#{p.attr('key')} #{p.content}"
+        end
       end
     end
 
-    def release(group)
+    def release(opts, &block)
+      # Naming convention of child resource group
+      resource_group_name = "#{self.name}_#{opts[:type]}"#_#{opts[:hrn]}"
+
       r = comm.request_message(group) do |m|
         m.property(:uid)
       end
@@ -76,7 +95,9 @@ module OmfEc
         r_m = comm.release_message { |m| m.element('resource_id', uid) }
         r_m.publish 'world'
         r_m.on_inform_released do |m|
-          info m
+          info "#{m.resource_id} released"
+          block.call if block
+          Experiment.instance.process_events
         end
       end
     end
