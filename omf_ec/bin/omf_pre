@@ -5,6 +5,7 @@ require 'omf_ec'
 $stdout.sync = true
 
 include GLI::App
+include OmfEc
 
 program_desc "Run a command on the testbed(s)"
 

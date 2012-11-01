@@ -1,12 +1,13 @@
-require 'omf_ec/experiment'
-require 'omf_ec/group_context'
-
 module OmfEc
   class Group
     attr_accessor :name
 
     def initialize(name)
       self.name = name
+    end
+
+    def exp
+      Experiment.instance
     end
 
     def comm
@@ -22,6 +23,7 @@ module OmfEc
           c.publish name
           c.on_inform_status do |i|
             info "#{name} added to #{self.name}"
+            exp.state << { hrn: name }
             block.call if block
             Experiment.instance.process_events
           end
@@ -45,14 +47,18 @@ module OmfEc
           c.publish self.name
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
+            exp.state << opts.merge(uid: i.resource_id)
             block.call if block
             Experiment.instance.process_events
           end
 
           rg = comm.get_topic(resource_group_name)
-          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.empty? } do |i|
-            i.each_property do |p|
-              info "#{p.attr('key')} #{p.content}"
+          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
+            r = exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+            unless r.nil?
+              i.each_property do |p|
+                r[p.attr('key').to_sym] = p.content.ducktype
+              end
             end
             Experiment.instance.process_events
           end
@@ -62,23 +68,6 @@ module OmfEc
 
     def resources(opts)
       GroupContext.new(opts.merge(group: self.name))
-    end
-
-    def request(group, *properties)
-      r = comm.request_message(group) do |m|
-        properties.each do |p|
-          m.property(p)
-        end
-        m.property(:uid)
-        m.property(:hrn)
-      end
-      r.publish group
-      r.on_inform_status do |i|
-        Experiment.instance.process_events
-        i.each_property do |p|
-          info "#{p.attr('key')} #{p.content}"
-        end
-      end
     end
 
     def release(opts, &block)

@@ -22,15 +22,15 @@ module OmfRc::ResourceProxy::Garage
 
   register_proxy :garage
 
-  hook :before_create do |resource, new_resource_type, new_resource_opts|
+  hook :before_create do |garage, new_resource_type, new_resource_opts|
     new_resource_opts.property ||= Hashie::Mash.new
-    new_resource_opts.property.provider = ">> #{resource.uid}"
+    new_resource_opts.property.provider = ">> #{garage.uid}"
   end
 
-  hook :after_create do |resource, new_resource|
+  hook :after_create do |garage, engine|
     # new resource created
-    logger.info resource.uid
-    logger.info new_resource.uid
+    logger.info garage.uid
+    logger.info engine.uid
   end
 end
 
@@ -50,53 +50,59 @@ module OmfRc::ResourceProxy::Engine
 
   # before_ready hook will be called during the initialisation of the resource instance
   #
-  hook :before_ready do |resource|
+  hook :before_ready do |engine|
     # The following simulates the engine RPM, it basically says:
     # * Applying 100% throttle will increase RPM by 5000 per second
     # * Engine will reduce RPM by 250 per second when no throttle applied
     # * If RPM exceed engine's maximum RPM, the engine will blow.
     #
     EM.add_periodic_timer(1) do
-      unless resource.property.rpm == 0
-        raise 'Engine blown up' if resource.property.rpm > resource.property.max_rpm
-        resource.property.rpm += (resource.property.throttle * 5000 - 250)
-        resource.property.rpm = 1000 if resource.property.rpm < 1000
+      unless engine.property.rpm == 0
+        raise 'Engine blown up' if engine.property.rpm > engine.property.max_rpm
+        engine.property.rpm += (engine.property.throttle * 5000 - 250)
+        engine.property.rpm = 1000 if engine.property.rpm < 1000
+        engine.membership.each do |m|
+          engine.inform(:status, {
+            inform_to: m,
+            status: { uid: engine.uid, rpm: engine.property.rpm.to_i }
+          })
+        end
       end
     end
   end
 
-  hook :after_initial_configured do |resource|
-    logger.info "New maximum power is now: #{resource.property.max_power}"
+  hook :after_initial_configured do |engine|
+    logger.info "New maximum power is now: #{engine.property.max_power}"
   end
 
   # before_release hook will be called before the resource is fully released, shut down the engine in this case.
   #
-  hook :before_release do |resource|
+  hook :before_release do |engine|
     # Reduce throttle to 0%
-    resource.property.throttle = 0.0
+    engine.property.throttle = 0.0
     # Reduce RPM to 0
-    resource.property.rpm = 0
+    engine.property.rpm = 0
   end
 
   # We want RPM to be availabe for requesting
-  request :rpm do |resource|
-    if resource.property.rpm > resource.property.max_rpm
+  request :rpm do |engine|
+    if engine.property.rpm > engine.property.max_rpm
       raise 'Engine blown up'
     else
-      resource.property.rpm.to_i
+      engine.property.rpm.to_i
     end
   end
 
-  request :provider do |resource, args|
-    "#{resource.property.provider} - #{args.country}"
+  request :provider do |engine, args|
+    "#{engine.property.provider} - #{args.country}"
   end
 
   # We want throttle to be availabe for configuring (i.e. changing throttle)
-  configure :throttle do |resource, value|
-    resource.property.throttle = value.to_f / 100.0
+  configure :throttle do |engine, value|
+    engine.property.throttle = value.to_f / 100.0
   end
 
-  request :error do |resource|
+  request :error do |engine|
     raise "You asked for an error, and you got it"
   end
 end
@@ -112,13 +118,13 @@ module OmfRc::ResourceProxy::Mp4
   extend_hook :before_ready
   extend_request :provider
 
-  hook :before_ready do |resource|
-    resource.orig_before_ready
+  hook :before_ready do |engine|
+    engine.orig_before_ready
     logger.info 'This is new before ready hook'
   end
 
-  request :provider do |resource, args|
-    "Extended provider method: " + resource.orig_request_provider(args)
+  request :provider do |engine, args|
+    "Extended provider method: " + engine.orig_request_provider(args)
   end
 end
 
