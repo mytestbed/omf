@@ -9,8 +9,6 @@ Blather.logger = logger
 opts = {
   # XMPP server domain
   server: 'localhost',
-  # List of garages
-  garages: ['mclaren', 'ferrari'],# Name of the garages (resource)
   # Debug mode of not
   debug: false
 }
@@ -29,8 +27,8 @@ module OmfRc::ResourceProxy::Garage
 
   hook :after_create do |garage, engine|
     # new resource created
-    logger.info garage.uid
-    logger.info engine.uid
+    info garage.uid
+    info engine.uid
   end
 end
 
@@ -61,18 +59,20 @@ module OmfRc::ResourceProxy::Engine
         raise 'Engine blown up' if engine.property.rpm > engine.property.max_rpm
         engine.property.rpm += (engine.property.throttle * 5000 - 250)
         engine.property.rpm = 1000 if engine.property.rpm < 1000
-        engine.membership.each do |m|
-          engine.inform(:status, {
-            inform_to: m,
-            status: { uid: engine.uid, rpm: engine.property.rpm.to_i }
-          })
+        if engine.property.rpm > 4000
+          engine.membership.each do |m|
+            engine.inform(:status, {
+              inform_to: m,
+              status: { uid: engine.uid, rpm: engine.property.rpm.to_i }
+            })
+          end
         end
       end
     end
   end
 
   hook :after_initial_configured do |engine|
-    logger.info "New maximum power is now: #{engine.property.max_power}"
+    info "New maximum power is now: #{engine.property.max_power}"
   end
 
   # before_release hook will be called before the resource is fully released, shut down the engine in this case.
@@ -120,7 +120,7 @@ module OmfRc::ResourceProxy::Mp4
 
   hook :before_ready do |engine|
     engine.orig_before_ready
-    logger.info 'This is new before ready hook'
+    info 'This is new before ready hook'
   end
 
   request :provider do |engine, args|
@@ -129,10 +129,11 @@ module OmfRc::ResourceProxy::Mp4
 end
 
 EM.run do
-  garages = opts.delete(:garages)
+  #garages = opts.delete(:garages)
   # Use resource factory method to initialise a new instance of garage
-  garages = garages.map do |g|
-    logger.info "Starting #{g}"
+  garages = (1..5).map do |g|
+    g = "garage_#{g}"
+    info "Starting #{g}"
     garage = OmfRc::ResourceFactory.new(
       :garage,
       opts.merge(user: g, password: 'pw', uid: g)
