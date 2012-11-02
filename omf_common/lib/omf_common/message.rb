@@ -2,6 +2,7 @@ require 'niceogiri'
 require 'hashie'
 require 'securerandom'
 require 'openssl'
+require 'omf_common/relaxng_schema'
 
 module OmfCommon
   # Refer to resource life cycle, instance methods are basically construct & parse XML fragment
@@ -15,7 +16,6 @@ module OmfCommon
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
     OPERATION = %w(create configure request release inform)
 
     class << self
@@ -111,7 +111,7 @@ module OmfCommon
     # Validate against relaxng schema
     #
     def valid?
-      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(self.document)
+      validation = RelaxNGSchema.instance.schema.validate(self.document)
       if validation.empty?
         true
       else
