@@ -66,7 +66,7 @@ module OmfEc
       end
     end
 
-    def resources(opts)
+    def resources(opts = {})
       GroupContext.new(opts.merge(group: self.name))
     end
 

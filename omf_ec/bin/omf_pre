@@ -8,7 +8,6 @@ include GLI::App
 include OmfEc
 
 program_desc "Run a command on the testbed(s)"
-
 version OmfEc::VERSION
 desc "Debug mode (printing debug logging messages)"
 switch [:d, :debug]
@@ -64,7 +63,8 @@ command :exec do |c|
       include OmfEc::DSL
 
       comm.when_ready do
-        logger.info "CONNECTED: #{comm.jid.inspect}"
+        logger.info "Connected: #{comm.jid.inspect}"
+        logger.info "Start experiment: #{exp.id}"
         begin
           load args[0]
         rescue => e
@@ -75,8 +75,8 @@ command :exec do |c|
 
       EM.run do
         comm.connect(options[:user], options[:password], options[:server])
-        trap(:INT) { comm.disconnect }
-        trap(:TERM) { comm.disconnect }
+        trap(:INT) { Experiment.done }
+        trap(:TERM) { Experiment.done }
       end
     rescue => e
       logger.fatal e.message

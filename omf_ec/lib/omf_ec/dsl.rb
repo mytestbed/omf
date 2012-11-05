@@ -36,7 +36,7 @@ module OmfEc
     end
 
     def def_group(name, members = [], &block)
-      comm.subscribe(name, true) do |m|
+      comm.subscribe(name, create_if_non_existent: true) do |m|
         unless m.error?
           group = Group.new(name)
           exp.groups << group
@@ -54,7 +54,7 @@ module OmfEc
 
     # Exit the experiment
     def done!
-      comm.disconnect
+      Experiment.done
     end
 
     alias_method :done, :done!
