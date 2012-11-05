@@ -38,7 +38,7 @@ module OmfEc
       # Naming convention of child resource group
       resource_group_name = "#{self.name}_#{opts[:type]}"#_#{opts[:hrn]}"
 
-      comm.subscribe(resource_group_name, true) do |m|
+      comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
         unless m.error?
           c = comm.create_message(self.name) do |m|
             m.property(:type, opts[:type])

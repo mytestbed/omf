@@ -80,16 +80,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
-    @comm.affiliations do |a|
-      my_pubsub_topics = a[:owner] ? a[:owner].size : 0
-      if my_pubsub_topics > 0
-        logger.info "Cleaning #{my_pubsub_topics} pubsub topic(s)"
-        a[:owner].each { |topic| @comm.delete_topic(topic) }
-      else
-        logger.info "Disconnecting now"
-        @comm.disconnect
-      end
-    end
+    @comm.disconnect(delete_affiliations: true)
     logger.info "Disconnecting in #{DISCONNECT_WAIT} seconds"
     EM.add_timer(DISCONNECT_WAIT) do
       @comm.disconnect
