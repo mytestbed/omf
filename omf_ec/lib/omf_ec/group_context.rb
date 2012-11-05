@@ -18,6 +18,11 @@ module OmfEc
       Experiment.instance.comm
     end
 
+    def [](opts = {})
+      self.guard.merge(opts)
+      self
+    end
+
     def method_missing(name, *args, &block)
       if name =~ /(.+)=/
         self.operation = :configure
