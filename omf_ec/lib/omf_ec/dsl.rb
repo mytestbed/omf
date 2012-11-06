@@ -5,9 +5,6 @@ require 'eventmachine'
 #
 module OmfEc
   module DSL
-    # Adding all top level resources to this
-    GLOBAL_GROUP = 'universe'
-
     # Experiment instance
     def experiment
       Experiment.instance
@@ -45,8 +42,6 @@ module OmfEc
       end
     end
 
-    alias_method :defGroup, :def_group
-
     def group(name, &block)
       group = exp.groups.find {|v| v.name == name}
       block.call(group)
@@ -71,8 +66,6 @@ module OmfEc
     def def_property(name, default_value, description = nil)
       exp.property[name] = default_value
     end
-
-    alias_method :defProperty, :def_property
 
     # Return the context for setting experiment wide properties
     #
@@ -128,8 +121,6 @@ module OmfEc
       end
     end
 
-    alias_method :allEqual, :all_equal
-
     # Check if any elements in array equals the value provided
     #
     def one_equal(array, value)
@@ -144,8 +135,6 @@ module OmfEc
       end
     end
 
-    alias_method :defEvent, :def_event
-
     def on_event(name, consume_event = true, &callback)
       event = exp.events.find { |v| v[:name] == name }
       if event.nil?
@@ -156,8 +145,6 @@ module OmfEc
       end
     end
 
-    alias_method :onEvent, :on_event
-
     # Wait for some time before issuing more commands
     #
     # - duration = Time to wait in seconds (can be
@@ -165,5 +152,7 @@ module OmfEc
     def wait(duration)
       warn "Wait will pause the entire event system, so I won't do it. Please use after instead."
     end
+
+    include OmfEc::BackwardDSL
   end
 end
