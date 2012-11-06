@@ -9,12 +9,12 @@ include OmfEc
 
 program_desc "Run a command on the testbed(s)"
 version OmfEc::VERSION
+
 desc "Debug mode (printing debug logging messages)"
 switch [:d, :debug]
 
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
 switch [:x, :xmpp]
-
 
 desc "XMPP user name"
 arg_name "USER"
@@ -38,7 +38,7 @@ command :exec do |c|
   c.flag [:e, :experiment]
 
   c.desc "Check script version (you need to define OMF_VERSIONS in your script"
-  c.switch [:k, :check]
+  c.switch "version_check"
 
   c.action do |global_options, options, args|
     if global_options[:xmpp]
