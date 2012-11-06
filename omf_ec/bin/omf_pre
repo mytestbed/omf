@@ -15,22 +15,27 @@ switch [:d, :debug]
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
 switch [:x, :xmpp]
 
+
+desc "XMPP user name"
+arg_name "USER"
+flag [:u, :user]
+
+desc "XMPP user password"
+arg_name "PASSWORD"
+flag [:p, :password]
+
+desc "XMPP server domain"
+arg_name "DOMAIN"
+flag [:server]
+
+config_file(".config/omf_ec.yml")
+
 desc "Execute an experiment script"
 arg_name 'path_to_script_file'
 command :exec do |c|
-  c.config_file(".config/omf/ec.yml")
-
-  c.desc "XMPP user name"
-  c.arg_name "USER"
-  c.flag [:u, :user]
-
-  c.desc "XMPP user password"
-  c.arg_name "PASSWORD"
-  c.flag [:p, :password]
-
-  c.desc "XMPP server domain"
-  c.arg_name "DOMAIN"
-  c.flag [:server]
+  c.desc "Experiment name"
+  c.arg_name "EXP_NAME"
+  c.flag [:e, :experiment]
 
   c.desc "Check script version (you need to define OMF_VERSIONS in your script"
   c.switch [:k, :check]
@@ -43,10 +48,9 @@ command :exec do |c|
     if global_options[:debug]
       Logging.logger.root.level = :debug
     end
-    unless options[:user] && options[:password] && options[:server]
+    unless global_options[:user] && global_options[:password] && global_options[:server]
       help_now! "Incomplete options"
     end
-    @opts = options
 
     # Check version
     if options[:check]
@@ -64,6 +68,7 @@ command :exec do |c|
 
       comm.when_ready do
         logger.info "Connected: #{comm.jid.inspect}"
+        exp.name = options[:experiment] if options[:experiment]
         logger.info "Start experiment: #{exp.id}"
         begin
           load args[0]
@@ -74,7 +79,7 @@ command :exec do |c|
       end
 
       EM.run do
-        comm.connect(options[:user], options[:password], options[:server])
+        comm.connect(global_options[:user], global_options[:password], global_options[:server])
         trap(:INT) { Experiment.done }
         trap(:TERM) { Experiment.done }
       end
