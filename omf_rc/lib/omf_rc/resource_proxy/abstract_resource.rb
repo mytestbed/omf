@@ -128,15 +128,18 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   def release(resource_id)
     obj = children.find { |v| v.uid == resource_id }
-    raise StandardError, "Resource #{resource_id} could not be found" if obj.nil?
+    if obj.nil?
+      warn "#{resource_id} does not belong to #{self.uid}(#{self.hrn})"
+      nil
+    else
+      # Release children resource recursively
+      obj.children.each do |c|
+        obj.release(c.uid)
+      end
+      obj.before_release if obj.respond_to? :before_release
 
-    # Release children resource recursively
-    obj.children.each do |c|
-      obj.release(c.uid)
+      children.delete(obj)
     end
-    obj.before_release if obj.respond_to? :before_release
-
-    children.delete(obj)
   end
 
   # Return a list of all properties can be requested and configured
@@ -345,7 +348,8 @@ class OmfRc::ResourceProxy::AbstractResource
           default_response.merge(status: result)
         when :release
           resource_id = message.resource_id
-          default_response.merge(resource_id: obj.release(resource_id).uid)
+          released_obj = obj.release(resource_id)
+          released_obj ? default_response.merge(resource_id: released_obj.uid) : nil
         when :inform
           nil # We really don't care about inform messages which created from here
         else

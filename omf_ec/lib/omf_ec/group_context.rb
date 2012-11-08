@@ -71,7 +71,7 @@ module OmfEc
 
           release_m.on_inform_released do |m|
             info "#{m.resource_id} released"
-            r = exp.state.find { |v| v[:uid] == m.read_property(:uid) }
+            r = exp.state.find { |v| v[:uid] == m.resource_id }
             r[:released] = true unless r.nil?
             block.call if block
             Experiment.instance.process_events
