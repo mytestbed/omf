@@ -71,26 +71,5 @@ module OmfEc
     def resources
       GroupContext.new(group: self.name)
     end
-
-    def release(opts, &block)
-      # Naming convention of child resource group
-      resource_group_name = "#{self.name}_#{opts[:type]}"#_#{opts[:hrn]}"
-
-      r = comm.request_message(group) do |m|
-        m.property(:uid)
-      end
-      r.publish group
-      r.on_inform_status do |i|
-        uid = i.read_property(:uid)
-        info "Going to release #{uid}"
-        r_m = comm.release_message { |m| m.element('resource_id', uid) }
-        r_m.publish 'world'
-        r_m.on_inform_released do |m|
-          info "#{m.resource_id} released"
-          block.call if block
-          Experiment.instance.process_events
-        end
-      end
-    end
   end
 end

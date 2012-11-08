@@ -27,8 +27,7 @@ module OmfRc::ResourceProxy::Garage
 
   hook :after_create do |garage, engine|
     # new resource created
-    info garage.uid
-    info engine.uid
+    info "Engine #{engine.uid} CREATED in #{garage.uid}"
   end
 end
 
@@ -72,7 +71,7 @@ module OmfRc::ResourceProxy::Engine
   end
 
   hook :after_initial_configured do |engine|
-    info "New maximum power is now: #{engine.property.max_power}"
+    info "Engine #{engine.uid} configured using options defined in create messages."
   end
 
   # before_release hook will be called before the resource is fully released, shut down the engine in this case.
@@ -120,7 +119,7 @@ module OmfRc::ResourceProxy::Mp4
 
   hook :before_ready do |engine|
     engine.orig_before_ready
-    info 'This is new before ready hook'
+    info 'Engine (type MP4) is ready'
   end
 
   request :provider do |engine, args|

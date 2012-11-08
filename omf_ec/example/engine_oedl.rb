@@ -1,42 +1,61 @@
 # OMF_VERSIONS = 6.0
 #
-defGroup('world') do |g|
-  g.add_resource('mclaren')
-  g.add_resource('ferrari')
+defProperty('num_of_garage', 1, 'Number of garage to start')
+
+defGroup(exp.id) do |g|
+  (1..prop.num_of_garage).each do |i|
+    g.add_resource("garage_#{i}")
+  end
 end
 
-defEvent :all_up do
-  allEqual(['mclaren', 'ferrari']) do |name|
-    exp.state.any? { |v| v[:hrn] == name }
-  end
+defEvent :all_garages_up do
+  exp.state.find_all { |v| v[:hrn] =~ /garage_.+/ }.size >= exp.property.num_of_garage
+end
+
+defEvent :all_engines_up do
+  exp.state.find_all { |v| v[:type] == 'engine' }.size >= exp.property.num_of_garage
 end
 
 defEvent :rpm_reached do
-  allEqual(exp.state.find_all { |v| v[:type] == 'engine' }) do |engine|
-    engine[:rpm] && engine[:rpm] >= 4000
-  end
+  exp.state.find_all do |v|
+    v[:type] == 'engine' &&
+      v[:rpm] && v[:rpm] >= 4000
+  end.size >= prop.num_of_garage
+end
+
+defEvent :all_off do
+  exp.state.find_all do |v|
+    v[:released]
+  end.size >= prop.num_of_garage
+end
+
+onEvent :all_off do
+  info "All done!"
+  Experiment.done
 end
 
 onEvent :rpm_reached do
-  group('world') do |g|
+  group(exp.id) do |g|
     info "All engines RPM reached 4000"
     info "Release All engines throttle"
-    g.resources(type: 'engine').throttle = 0
+    g.resources[type: 'engine'].throttle = 0
 
-    after 5.seconds do
-      info "All done!"
-      Experiment.done!
+    after 7.seconds do
+      info "Shutting ALL engines off"
+      g.resources[type: 'engine'].release
     end
   end
 end
 
-onEvent :all_up do
-  group('world') do |g|
+onEvent :all_garages_up do
+  group(exp.id) do |g|
     g.create_resource('primary_engine', type: 'engine')
+  end
+end
 
-    after 2.seconds do
-      info "Accelerating all engines"
-      g.resources(type: 'engine', name: 'primary_engine').throttle = 50
-    end
+onEvent :all_engines_up do
+  info "Accelerating all engines"
+  group(exp.id) do |g|
+    g.resources[type: 'engine'][name: 'primary_engine'].throttle = 40
   end
 end
