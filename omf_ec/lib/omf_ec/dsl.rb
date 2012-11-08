@@ -59,18 +59,15 @@ module OmfEc
     # property should also change the bound properties, or trigger
     # commands to change them.
     #
-    # - name = name of property
-    # - defaultValue = default value for this property
-    # - description = short text description of this property
+    # @param name of property
+    # @param default_value for this property
+    # @param description short text description of this property
     #
     def def_property(name, default_value, description = nil)
       exp.property[name] = default_value
     end
 
     # Return the context for setting experiment wide properties
-    #
-    # [Return] a Property Context
-    #
     def property
       Experiment.instance.property
     end

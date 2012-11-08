@@ -30,7 +30,6 @@ module OmfEc
       else
         self.operation = :request
       end
-      info self
       send_message(name, *args, &block)
     end
 

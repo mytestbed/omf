@@ -7,7 +7,7 @@ require 'hashie'
 # This MP is for measurements about messages published by the Resource Proxy
 class OmfRc::ResourceProxy::MPPublished < OML4R::MPBase
   name :proxy_published
-  param :time, :type => :double # Time (s) when this message was published 
+  param :time, :type => :double # Time (s) when this message was published
   param :uid, :type => :string # UID for this Resource Proxy
   param :topic, :type => :string # Pubsub topic to publish this message to
   param :msg_id, :type => :string # Unique ID this message
@@ -17,7 +17,7 @@ end
 # This MP is for measurements about messages received by the Resource Proxy
 class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   name :proxy_received
-  param :time, :type => :double # Time (s) when this message was received 
+  param :time, :type => :double # Time (s) when this message was received
   param :uid, :type => :string # UID for this Resource Proxy
   param :topic, :type => :string # Pubsub topic where this message came from
   param :msg_id, :type => :string # Unique ID this message
@@ -45,7 +45,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option opts [String] :password pubsub user password
   # @option opts [String] :server pubsub server domain
   # @option opts [String] :property A hash for keeping internal state
-  # @option opts [hash] :instrument A hash for keeping instrumentation-related state  
+  # @option opts [hash] :instrument A hash for keeping instrumentation-related state
   # @param [Comm] comm communicator instance, pass this to new resource proxy instance if want to use a common communicator instance.
   def initialize(type, opts = nil, comm = nil)
     @opts = Hashie::Mash.new(opts)
@@ -102,7 +102,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
     @comm.disconnect(delete_affiliations: true)
-    logger.info "Disconnecting in #{DISCONNECT_WAIT} seconds"
+    logger.info "Disconnecting #{hrn}(#{uid}) in #{DISCONNECT_WAIT} seconds"
     EM.add_timer(DISCONNECT_WAIT) do
       @comm.disconnect
     end
@@ -307,12 +307,6 @@ class OmfRc::ResourceProxy::AbstractResource
         }
 
         guard = message.read_element("//guard").first
-
-        logger.warn <<-WARN
-          #{obj.uid}
-          #{guard}
-          #{message}
-        WARN
 
         unless guard.nil? || guard.element_children.empty?
           guard_check = guard.element_children.all? do |g|

@@ -36,13 +36,15 @@ module OmfEc
       opts = opts.merge(hrn: name)
 
       # Naming convention of child resource group
-      resource_group_name = "#{self.name}_#{opts[:type]}"#_#{opts[:hrn]}"
+      resource_group_name = "#{self.name}_#{opts[:type]}"
 
       comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
         unless m.error?
           c = comm.create_message(self.name) do |m|
-            m.property(:type, opts[:type])
             m.property(:membership, resource_group_name)
+            opts.each_pair do |k, v|
+              m.property(k, v)
+            end
           end
           c.publish self.name
           c.on_inform_created do |i|
