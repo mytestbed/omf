@@ -101,16 +101,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
-    @comm.affiliations do |a|
-      my_pubsub_topics = a[:owner] ? a[:owner].size : 0
-      if my_pubsub_topics > 0
-        logger.info "Cleaning #{my_pubsub_topics} pubsub topic(s)"
-        a[:owner].each { |topic| @comm.delete_topic(topic) }
-      else
-        logger.info "Disconnecting now"
-        @comm.disconnect
-      end
-    end
+    @comm.disconnect(delete_affiliations: true)
     logger.info "Disconnecting in #{DISCONNECT_WAIT} seconds"
     EM.add_timer(DISCONNECT_WAIT) do
       @comm.disconnect
@@ -166,6 +157,14 @@ class OmfRc::ResourceProxy::AbstractResource
   # Make hrn accessible through pubsub interface
   def request_hrn(*args)
     hrn
+  end
+
+  alias_method :request_name, :request_hrn
+  alias_method :name, :hrn
+  alias_method :name=, :hrn=
+
+  def request_type(*args)
+    type
   end
 
   # Make hrn configurable through pubsub interface
@@ -307,6 +306,21 @@ class OmfRc::ResourceProxy::AbstractResource
           inform_to: inform_to_address(obj, message.publish_to)
         }
 
+        guard = message.read_element("//guard").first
+
+        logger.warn <<-WARN
+          #{obj.uid}
+          #{guard}
+          #{message}
+        WARN
+
+        unless guard.nil? || guard.element_children.empty?
+          guard_check = guard.element_children.all? do |g|
+            obj.__send__("request_#{g.element_name}") == g.content.ducktype
+          end
+          next nil unless guard_check
+        end
+
         case message.operation
         when :create
           new_opts = opts.dup.merge(uid: nil)
@@ -349,7 +363,7 @@ class OmfRc::ResourceProxy::AbstractResource
       rescue => e
         if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
           msg = "Cannot #{message.operation} unknown property "+
-            "'#{message.read_element("//property")}' for resource '#{type}'"
+            "'#{message.read_element("//property")}' for resource '#{obj.type}'"
           logger.warn msg
           raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), msg)
         else

@@ -2,6 +2,7 @@ require 'niceogiri'
 require 'hashie'
 require 'securerandom'
 require 'openssl'
+require 'omf_common/relaxng_schema'
 
 module OmfCommon
 
@@ -25,7 +26,6 @@ module OmfCommon
   #
   class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
     OPERATION = %w(create configure request release inform)
     # When OML instrumentation is enabled, we do not want to send a the same
     # measurement twice, once when a message is created for publishing to T,
@@ -38,12 +38,12 @@ module OmfCommon
         define_method(operation) do |*args, &block|
           xml = new(operation, nil, OMF_NAMESPACE)
           if operation == 'inform'
-            xml.element('context_id', args[1] || SecureRandom.uuid)
+            xml.element('context_id', args[1]) if args[1]
             xml.element('inform_type', args[0])
           else
             xml.element('context_id', SecureRandom.uuid)
+            xml.element('publish_to', args[0]) if args[0]
           end
-          xml.element('publish_to', args[0]) if operation == 'request'
           block.call(xml) if block
           xml.sign
         end
@@ -141,7 +141,7 @@ module OmfCommon
     # Validate against relaxng schema
     #
     def valid?
-      validation = Nokogiri::XML::RelaxNG(File.open(SCHEMA_FILE)).validate(self.document)
+      validation = RelaxNGSchema.instance.schema.validate(self.document)
       if validation.empty?
         true
       else

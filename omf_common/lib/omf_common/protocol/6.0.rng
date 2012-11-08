@@ -32,6 +32,18 @@
       <element name="context_id">
         <text/>
       </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -51,6 +63,18 @@
       <element name="context_id">
         <text/>
       </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -75,6 +99,13 @@
           <text/>
         </element>
       </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -97,6 +128,18 @@
       <element name="resource_id">
         <text/>
       </element>
+      <optional>
+        <element name="publish_to">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <ref name="anything"/>
+          </zeroOrMore>
+        </element>
+      </optional>
       <zeroOrMore>
         <element name="property">
           <attribute name="key"/>
@@ -113,9 +156,11 @@
   <define name="inform">
     <element name="inform">
       <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
+      <optional>
+        <element name="context_id">
+          <text/>
+        </element>
+      </optional>
       <element name="inform_type">
         <choice>
           <value>CREATED</value>

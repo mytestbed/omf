@@ -27,8 +27,30 @@ module OmfCommon
       end
 
       # Shut down XMPP connection
-      def disconnect
-        shutdown
+      def disconnect(opts = {})
+        if opts[:delete_affiliations]
+          affiliations do |a|
+            # owner means topics created, owned
+            owner_topics = a[:owner] ? a[:owner].size : 0
+            # none means... topics subscribed to
+            none_topics = a[:none] ? a[:none].size : 0
+
+            if none_topics > 0
+              info "Unsubscribing #{none_topics} pubsub topic(s)"
+              unsubscribe
+              if owner_topics > 0
+                info "Deleting #{owner_topics} pubsub topic(s) in 2 seconds"
+                EM.add_timer(2) do
+                  a[:owner].each { |topic| delete_topic(topic) }
+                end
+              end
+            else
+              shutdown
+            end
+          end
+        else
+          shutdown
+        end
         OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_f, jid, 'disconnect') if OmfCommon::Measure.enabled?
       end
 
@@ -49,8 +71,22 @@ module OmfCommon
       # Subscribe to a pubsub topic
       #
       # @param [String] topic Pubsub topic name
-      def subscribe(topic, &block)
-        pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+      # @param [Hash] opts
+      # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
+      def subscribe(topic, opts = {}, &block)
+        if opts[:create_if_non_existent]
+          affiliations do |a|
+            if a[:owner] && a[:owner].include?(topic)
+              pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+            else
+              create_topic(topic) do
+                pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+              end
+            end
+          end
+        else
+          pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+        end
         MPSubscription.inject(Time.now.to_f, jid, 'join', topic) if OmfCommon::Measure.enabled?
       end
 
@@ -114,10 +150,17 @@ module OmfCommon
       # Provide a new block wrap to automatically log errors
       def callback_logging(*args, &block)
         m = args.empty? ? "OPERATION" : args.map {|v| v.to_s.upcase }.join(" ")
-        proc do |callback|
-          logger.error callback if callback.respond_to?(:error?) && callback.error?
-          logger.debug "#{m} SUCCEED" if callback.respond_to?(:result?) && callback.result?
-          block.call(callback) if block
+        proc do |stanza|
+          if stanza.respond_to?(:error?) && stanza.error?
+            e_stanza = Blather::StanzaError.import(stanza)
+            if [:unexpected_request].include? e_stanza.name
+              logger.debug e_stanza
+            else
+              logger.error e_stanza
+            end
+          end
+          logger.debug "#{m} SUCCEED" if stanza.respond_to?(:result?) && stanza.result?
+          block.call(stanza) if block
         end
       end
 
