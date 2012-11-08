@@ -33,6 +33,7 @@ module OmfEc
     class << self
       def done
         self.comm.disconnect(delete_affiliations: true)
+        info "Exit in 5 seconds..."
         self.comm.add_timer(5) do
           self.comm.disconnect
         end

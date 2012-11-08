@@ -64,7 +64,7 @@ module OmfEc
     # @param description short text description of this property
     #
     def def_property(name, default_value, description = nil)
-      exp.property[name] = default_value
+      exp.property[name] ||= default_value
     end
 
     # Return the context for setting experiment wide properties

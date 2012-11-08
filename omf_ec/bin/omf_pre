@@ -31,7 +31,7 @@ flag [:server]
 config_file(".config/omf_ec.yml")
 
 desc "Execute an experiment script"
-arg_name 'path_to_script_file'
+arg_name "path_to_script_file [-- --experiment_property value]"
 command :exec do |c|
   c.desc "Experiment name"
   c.arg_name "EXP_NAME"
@@ -41,15 +41,19 @@ command :exec do |c|
   c.switch "version_check"
 
   c.action do |global_options, options, args|
+    unless global_options[:user] && global_options[:password] && global_options[:server]
+      help_now! "Incomplete options"
+    end
+
+    help_now! "Missing experiment script" if args[0].nil?
+    help_now! "Experiment script not found" unless File.exist?(args[0])
+
     if global_options[:xmpp]
       Blather.logger = logger
     end
 
     if global_options[:debug]
       Logging.logger.root.level = :debug
-    end
-    unless global_options[:user] && global_options[:password] && global_options[:server]
-      help_now! "Incomplete options"
     end
 
     # Check version
@@ -63,9 +67,22 @@ command :exec do |c|
       end
     end
 
-    begin
-      include OmfEc::DSL
+    include OmfEc::DSL
 
+    # User provided exp properties
+    if args.size > 1
+      exp_properties = args[1..-1]
+
+      exp_properties.in_groups_of(2) do |p|
+        unless p[0] =~ /^--(.+)/ && !p[1].nil?
+          help_now! "Malformatted properties '#{exp_properties.join(' ')}'"
+        else
+          exp.property[$1.to_sym] = p[1].ducktype
+        end
+      end
+    end
+
+    begin
       comm.when_ready do
         logger.info "Connected: #{comm.jid.inspect}"
         exp.name = options[:experiment] if options[:experiment]
