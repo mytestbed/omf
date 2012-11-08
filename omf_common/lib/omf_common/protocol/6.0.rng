@@ -125,14 +125,14 @@
       <element name="context_id">
         <text/>
       </element>
-      <element name="resource_id">
-        <text/>
-      </element>
       <optional>
         <element name="publish_to">
           <text/>
         </element>
       </optional>
+      <element name="resource_id">
+        <text/>
+      </element>
       <optional>
         <element name="guard">
           <zeroOrMore>

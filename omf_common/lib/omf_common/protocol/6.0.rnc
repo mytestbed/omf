@@ -43,8 +43,8 @@ request = element request {
 release = element release {
   attribute msg_id { text },
   element context_id { text },
-  element resource_id { text },
   element publish_to { text }?,
+  element resource_id { text },
   element guard { anything * }?,
   element property {
     (attribute key { text }),
