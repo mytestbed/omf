@@ -58,6 +58,10 @@ module OmfEc
           rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
             r = exp.state.find { |v| v[:uid] == i.read_property(:uid) }
             unless r.nil?
+              if i.read_property("status_type") == 'APP_EVENT'
+                info "APP_EVENT #{i.read_property('event')} "+
+                  "from app #{i.read_property("app")} - msg: #{i.read_property("msg")}"
+              end
               i.each_property do |p|
                 r[p.attr('key').to_sym] = p.content.ducktype
               end
@@ -70,6 +74,14 @@ module OmfEc
 
     def resources
       GroupContext.new(group: self.name)
+    end
+
+    def exec(name)
+      create_resource(name, type: 'application', binary_path: name)
+      # FIXME should not assume its ready in 1 second
+      after 1.second do
+        resources[type: 'application', name: name].state = :run
+      end
     end
   end
 end

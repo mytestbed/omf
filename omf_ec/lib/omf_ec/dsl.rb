@@ -32,19 +32,30 @@ module OmfEc
       comm.add_periodic_timer(time, block)
     end
 
-    def def_group(name, members = [], &block)
+    def def_group(name, *members, &block)
       comm.subscribe(name, create_if_non_existent: true) do |m|
         unless m.error?
           group = Group.new(name)
           exp.groups << group
-          block.call group
+          if block
+            block.call group
+          else
+            members.each do |m|
+              group.add_resource(m)
+            end
+          end
         end
       end
     end
 
     def group(name, &block)
       group = exp.groups.find {|v| v.name == name}
-      block.call(group)
+      block.call(group) if block
+      group
+    end
+
+    def all_groups(&block)
+      group(exp.id, &block)
     end
 
     # Exit the experiment
@@ -77,18 +88,6 @@ module OmfEc
     def resource(resName)
       res = OMF::EC::Node[resName]
       return res
-    end
-
-    # Evaluate a code-block over all nodes in all groups of the experiment.
-    #
-    # - &block = the code-block to evaluate/execute on all the groups of nodes
-    #
-    # [Return] a RootNodeSetPath object referring to all the groups of nodes
-    #
-    def all_groups(&block)
-      NodeSet.freeze
-      ns = DefinedGroupNodeSet.instance
-      return RootNodeSetPath.new(ns, nil, nil, block)
     end
 
     # Evalute block over all nodes in an the experiment, even those

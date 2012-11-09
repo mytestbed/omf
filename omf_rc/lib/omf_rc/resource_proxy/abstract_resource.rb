@@ -182,7 +182,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [Array] name of group topics
   def configure_membership(*args)
     new_membership = [args[0]].flatten
-    @membership = new_membership
+    @membership += new_membership
     @membership.each do |m|
       @comm.subscribe(m)
     end

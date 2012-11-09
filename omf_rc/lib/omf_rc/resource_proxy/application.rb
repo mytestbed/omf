@@ -39,16 +39,16 @@
 # - map_err_to_out (Boolean) if true then map StdErr to StdOut for this
 #     app (default false)
 # - platform (Symbol) the OS platform where this app is running
-# - environment (Hash) the environment variables to set prior to starting 
+# - environment (Hash) the environment variables to set prior to starting
 #     this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
 #     (with k1 being either a String or a Symbol)
 # - use_oml (Boolean) if true enable OML for this application (default false)
 # - oml_loglevel (Integer) set a specific OML log level (default unset)
 # - oml_logfile (String) set a specific path for OML log file (default unset)
 # - oml_configfile (String) path of the OML config file (optional)
-# - oml (Hash) OML specific properties (optional), this Hash contains the 
+# - oml (Hash) OML specific properties (optional), this Hash contains the
 #     following keys:
-#       - :available_mps (Hash) list of available OML Measurement Points 
+#       - :available_mps (Hash) list of available OML Measurement Points
 #       - :collection (Hash) list of required OML Measurement Stream to collect
 #           when this application is running, as defined at
 #           http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
@@ -87,7 +87,7 @@
 #     { :title => {:value => "My First Application"} }
 #
 module OmfRc::ResourceProxy::Application
-  include OmfRc::ResourceProxyDSL 
+  include OmfRc::ResourceProxyDSL
   require 'omf_common/exec_app'
 
   register_proxy :application
@@ -135,19 +135,23 @@ module OmfRc::ResourceProxy::Application
                   "(##{res.property.event_sequence}) - "+
                   "#{event_type}: '#{msg}'"
       res.property.state = :stop if event_type.to_s.include?('DONE')
-      res.comm.publish(res.uid,
-        OmfCommon::Message.inform('STATUS') do |message|
-          message.property('status_type' , 'APP_EVENT')
-          message.property('event' , event_type.to_s.upcase)
-          message.property('app' , app_id)
-          message.property('msg' , "#{msg}")
-          message.property('seq' , "#{res.property.event_sequence}")
-        end)
+
+      (res.membership + [res.uid]).each do |m|
+        res.inform(:status, {
+          inform_to: m,
+          status: { status_type: 'APP_EVENT',
+                    event: event_type.to_s.upcase,
+                    app: app_id,
+                    msg: msg,
+                    seq: res.property.event_sequence }
+        })
+      end
+
       res.property.event_sequence += 1
       res.property.installed = true if app_id.include?("_INSTALL") &&
                                        event_type.to_s.include?('DONE.OK')
   end
-  
+
   # Request the platform property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
@@ -217,7 +221,7 @@ module OmfRc::ResourceProxy::Application
   #   application instance is finished or paused. The Application RP can
   #   only enter this state from a previous 'pause' or 'stop' state.
   # - pause: upon entering this state, the currently running instance of this
-  #   application should be paused (it is the responsibility of 
+  #   application should be paused (it is the responsibility of
   #   specialised Application Proxy to ensure that! The default
   #   Application Proxy does nothing to the application instance when
   #   entering this state). The Application RP can only enter this
@@ -451,17 +455,17 @@ module OmfRc::ResourceProxy::Application
   # - if the 'oml_configfile' property is set with a filename, then we use that
   #   file as the OML Configuration file. Thus we add the parameter
   #   "--oml-config filename" to this application's command line
-  # - if the 'oml' property is set with a Hash holding an OML configuration, 
+  # - if the 'oml' property is set with a Hash holding an OML configuration,
   #   then we write turn it into OML's XML configuration representation, write
-  #   it to a temporary file, and add the parameter "--oml-config tmpfile" to 
-  #   this application's command line. The OML configuration hash is based 
-  #   on the liboml2.conf man page here: 
+  #   it to a temporary file, and add the parameter "--oml-config tmpfile" to
+  #   this application's command line. The OML configuration hash is based
+  #   on the liboml2.conf man page here:
   #   http://omf.mytestbed.net/doc/oml/latest/liboml2.conf.html
   #
   # The 'oml_configfile' case takes precedence over the 'oml' case above.
   #
-  # Regardless of which case is performed, we will always set the 
-  # '--oml-log-level' and '--oml-log-file' parameter on the command line if 
+  # Regardless of which case is performed, we will always set the
+  # '--oml-log-level' and '--oml-log-file' parameter on the command line if
   # the corresponsding 'oml_logfile' and 'oml_loglevel' properties are set for
   # this application resource.
   #
@@ -492,14 +496,14 @@ module OmfRc::ResourceProxy::Application
           of << "    <stream mp='#{m.mp}' #{s}>\n"
           m.filters.each do |f|
             line = "      <filter field='#{f.field}' "
-            line += "operation='#{f.operation}' " unless f.operation.nil? 
-            line += "rename='#{f.rename}' " unless f.rename.nil? 
-            line += "/>\n" 
-            of << line           
+            line += "operation='#{f.operation}' " unless f.operation.nil?
+            line += "rename='#{f.rename}' " unless f.rename.nil?
+            line += "/>\n"
+            of << line
           end
           of << "    </stream>\n"
         end
-        of << "  </collect>\n"      
+        of << "  </collect>\n"
       end
       of << "</omlc>\n"
       of.close
