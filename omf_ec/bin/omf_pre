@@ -17,16 +17,22 @@ desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug m
 switch [:x, :xmpp]
 
 desc "XMPP user name"
-arg_name "USER"
+arg_name "user"
 flag [:u, :user]
 
 desc "XMPP user password"
-arg_name "PASSWORD"
+arg_name "password"
 flag [:p, :password]
 
 desc "XMPP server domain"
-arg_name "DOMAIN"
+arg_name "domain"
+default_value "localhost"
 flag [:server]
+
+desc "Log file directory"
+arg_name "directory"
+default_value "/tmp"
+flag [:log_file_dir]
 
 config_file(".config/omf_ec.yml")
 
@@ -34,7 +40,7 @@ desc "Execute an experiment script"
 arg_name "path_to_script_file [-- --experiment_property value]"
 command :exec do |c|
   c.desc "Experiment name"
-  c.arg_name "EXP_NAME"
+  c.arg_name "experiment_name"
   c.flag [:e, :experiment]
 
   c.desc "Check script version (you need to define OMF_VERSIONS in your script"
@@ -68,6 +74,13 @@ command :exec do |c|
     end
 
     include OmfEc::DSL
+
+    if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
+      Logging.logger.root.add_appenders(
+        Logging.appenders.file("#{global_options[:log_file_dir]}/#{exp.id}.log")
+      )
+    end
+
 
     # User provided exp properties
     if args.size > 1
