@@ -38,15 +38,16 @@ module OmfCommon
             if none_topics > 0
               info "Unsubscribing #{none_topics} pubsub topic(s)"
               unsubscribe
-              if owner_topics > 0
-                info "Deleting #{owner_topics} pubsub topic(s) in 2 seconds"
-                EM.add_timer(2) do
-                  a[:owner].each { |topic| delete_topic(topic) }
-                end
-              end
-            else
-              shutdown
             end
+
+            if owner_topics > 0
+              info "Deleting #{owner_topics} pubsub topic(s) in 2 seconds"
+              EM.add_timer(2) do
+                a[:owner].each { |topic| delete_topic(topic) }
+              end
+            end
+
+            shutdown if none_topics == 0 && owner_topics == 0
           end
         else
           shutdown
