@@ -4,6 +4,8 @@ require 'omf_rc'
 require 'omf_rc/resource_factory'
 $stdout.sync = true
 
+NUM_OF_GARAGES = 1
+
 Blather.logger = logger
 
 opts = {
@@ -130,7 +132,7 @@ end
 EM.run do
   #garages = opts.delete(:garages)
   # Use resource factory method to initialise a new instance of garage
-  garages = (1..5).map do |g|
+  garages = (1..NUM_OF_GARAGES).map do |g|
     g = "garage_#{g}"
     info "Starting #{g}"
     garage = OmfRc::ResourceFactory.new(
