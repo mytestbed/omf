@@ -55,7 +55,13 @@ module OmfEc
     end
 
     def all_groups(&block)
-      group(exp.id, &block)
+      exp.groups.each do |g|
+        block.call(g) if block
+      end
+    end
+
+    def all_nodes!(&block)
+      group(exp.id, &block) if block
     end
 
     # Exit the experiment
@@ -84,24 +90,6 @@ module OmfEc
     end
 
     alias_method :prop, :property
-
-    def resource(resName)
-      res = OMF::EC::Node[resName]
-      return res
-    end
-
-    # Evalute block over all nodes in an the experiment, even those
-    # that do not belong to any groups
-    #
-    # - &block = the code-block to evaluate/execute on all the nodes
-    #
-    # [Return] a RootNodeSetPath object referring to all the nodes
-    #
-    def all_nodes!(&block)
-      NodeSet.freeze
-      ns = RootGroupNodeSet.instance
-      return RootNodeSetPath.new(ns, nil, nil, block)
-    end
 
     # Check if all elements in array equal the value provided
     #

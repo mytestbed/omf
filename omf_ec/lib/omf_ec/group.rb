@@ -14,18 +14,20 @@ module OmfEc
       Experiment.instance.comm
     end
 
-    def add_resource(name, &block)
-      comm.subscribe(name) do |m|
-        unless m.error?
-          c = comm.configure_message(self.name) do |m|
-            m.property(:membership, self.name)
-          end
-          c.publish name
-          c.on_inform_status do |i|
-            info "#{name} added to #{self.name}"
-            exp.state << { hrn: name }
-            block.call if block
-            Experiment.instance.process_events
+    def add_resource(*names, &block)
+      names.each do |name|
+        comm.subscribe(name) do |m|
+          unless m.error?
+            c = comm.configure_message(self.name) do |m|
+              m.property(:membership, self.name)
+            end
+            c.publish name
+            c.on_inform_status do |i|
+              info "#{name} added to #{self.name}"
+              exp.state << { hrn: name }
+              block.call if block
+              Experiment.instance.process_events
+            end
           end
         end
       end

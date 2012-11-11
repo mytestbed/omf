@@ -9,6 +9,7 @@ module OmfEc
         v5_style(:allEqual, base)
         v5_style(:onEvent, base)
         v5_style(:allGroups, base)
+        v5_style(:allNodes!, base)
       end
 
       def v5_style(name, base)

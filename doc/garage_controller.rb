@@ -4,7 +4,7 @@ require 'omf_rc'
 require 'omf_rc/resource_factory'
 $stdout.sync = true
 
-NUM_OF_GARAGES = 1
+NUM_OF_GARAGES = 3
 
 Blather.logger = logger
 

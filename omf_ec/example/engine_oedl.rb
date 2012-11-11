@@ -2,10 +2,10 @@
 #
 defProperty('num_of_garage', 1, 'Number of garage to start')
 
+garages = (1..prop.num_of_garage).map { |i| "garage_#{i}" }
+
 defGroup(exp.id) do |g|
-  (1..prop.num_of_garage).each do |i|
-    g.add_resource("garage_#{i}")
-  end
+  g.add_resource(*garages)
 end
 
 defEvent :all_garages_up do
@@ -35,7 +35,7 @@ onEvent :all_off do
 end
 
 onEvent :rpm_reached do
-  group(exp.id) do |g|
+  allGroups do |g|
     info "All engines RPM reached 4000"
     info "Release All engines throttle"
     g.resources[type: 'engine'].throttle = 0
@@ -48,14 +48,14 @@ onEvent :rpm_reached do
 end
 
 onEvent :all_garages_up do
-  group(exp.id) do |g|
+  allGroups do |g|
     g.create_resource('primary_engine', type: 'engine')
   end
 end
 
 onEvent :all_engines_up do
   info "Accelerating all engines"
-  group(exp.id) do |g|
+  allGroups do |g|
     g.resources[type: 'engine'][name: 'primary_engine'].throttle = 40
   end
 end
