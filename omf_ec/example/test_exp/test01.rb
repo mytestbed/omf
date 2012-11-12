@@ -13,23 +13,20 @@ defEvent(:ALL_UP) do
 end
 
 onEvent(:ALL_UP) do |event|
+  wait 3
+  info "TEST - allGroups"
+  group("Actor").exec("/bin/date")
+
+  wait 3.seconds
+  info "TEST - group"
+  group("Actor").exec("/bin/hostname")
+
+  wait 3.seconds
+  group("Actor") do |g|
+    g.resources[type: 'application'].release
+  end
+
   after 3.seconds do
-    info "TEST - allGroups"
-    group("Actor").exec("/bin/date")
-  end
-
-  after 6.seconds do
-    info "TEST - group"
-    group("Actor").exec("/bin/hostname")
-  end
-
-  after 9.seconds do
-    group("Actor") do |g|
-      g.resources[type: 'application'].release
-    end
-
-    after 2.seconds do
-      Experiment.done
-    end
+    Experiment.done
   end
 end

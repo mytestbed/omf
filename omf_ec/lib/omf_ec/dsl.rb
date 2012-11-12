@@ -134,7 +134,8 @@ module OmfEc
     # - duration = Time to wait in seconds (can be
     #
     def wait(duration)
-      warn "Wait will pause the entire event system, so I won't do it. Please use after instead."
+      info "Request from Experiment Script: Wait for #{duration}s...."
+      sleep duration
     end
 
     include OmfEc::BackwardDSL
