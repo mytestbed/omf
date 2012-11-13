@@ -75,12 +75,13 @@ command :exec do |c|
 
     include OmfEc::DSL
 
+    OmfEc.exp.name = options[:experiment] if options[:experiment]
+
     if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
       Logging.logger.root.add_appenders(
         Logging.appenders.file("#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log")
       )
     end
-
 
     # User provided exp properties
     if args.size > 1
@@ -98,7 +99,6 @@ command :exec do |c|
     begin
       OmfEc.comm.when_ready do
         logger.info "Connected: #{OmfEc.comm.jid.inspect}"
-        OmfEc.exp.name = options[:experiment] if options[:experiment]
         logger.info "Start experiment: #{OmfEc.exp.id}"
         begin
           load args[0]
