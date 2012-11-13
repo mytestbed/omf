@@ -138,6 +138,7 @@ class OmfRc::ResourceProxy::AbstractResource
       end
       obj.before_release if obj.respond_to? :before_release
 
+      @comm.delete_topic(obj.uid)
       children.delete(obj)
     end
   end

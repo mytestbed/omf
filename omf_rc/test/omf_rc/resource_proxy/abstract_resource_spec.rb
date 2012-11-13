@@ -64,10 +64,12 @@ describe AbstractResource do
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      child = @node.create(:wifi, { hrn: 'default_wifi' })
-      @node.children.wont_be_empty
-      @node.release(child.uid)
-      @node.children.must_be_empty
+      @node.comm.stub :delete_topic, nil do
+        child = @node.create(:wifi, { hrn: 'default_wifi' })
+        @node.children.wont_be_empty
+        @node.release(child.uid)
+        @node.children.must_be_empty
+      end
     end
   end
 
