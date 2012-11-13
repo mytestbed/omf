@@ -5,38 +5,24 @@ require 'eventmachine'
 #
 module OmfEc
   module DSL
-    # Experiment instance
-    def experiment
-      Experiment.instance
-    end
-
-    alias_method :exp, :experiment
-
-    # Experiment's communicator instance
-    def communicator
-      exp.comm
-    end
-
-    alias_method :comm, :communicator
-
     # Use EM timer to execute after certain time
     #
     # @example do something after 2 seconds
     #
     #   after 2.seconds { 'do something' }
     def after(time, &block)
-      comm.add_timer(time, block)
+      OmfEc.comm.add_timer(time, block)
     end
 
     def every(time, &block)
-      comm.add_periodic_timer(time, block)
+      OmfEc.comm.add_periodic_timer(time, block)
     end
 
     def def_group(name, *members, &block)
-      comm.subscribe(name, create_if_non_existent: true) do |m|
+      OmfEc.comm.subscribe(name, create_if_non_existent: true) do |m|
         unless m.error?
           group = Group.new(name)
-          exp.groups << group
+          OmfEc.exp.groups << group
           if block
             block.call group
           else
@@ -49,19 +35,19 @@ module OmfEc
     end
 
     def group(name, &block)
-      group = exp.groups.find {|v| v.name == name}
+      group = OmfEc.exp.groups.find {|v| v.name == name}
       block.call(group) if block
       group
     end
 
     def all_groups(&block)
-      exp.groups.each do |g|
+      OmfEc.exp.groups.each do |g|
         block.call(g) if block
       end
     end
 
     def all_nodes!(&block)
-      group(exp.id, &block) if block
+      group(OmfEc.exp.id, &block) if block
     end
 
     # Exit the experiment
@@ -81,12 +67,12 @@ module OmfEc
     # @param description short text description of this property
     #
     def def_property(name, default_value, description = nil)
-      exp.property[name] ||= default_value
+      OmfEc.exp.property[name] ||= default_value
     end
 
     # Return the context for setting experiment wide properties
     def property
-      Experiment.instance.property
+      OmfEc.exp.property
     end
 
     alias_method :prop, :property
@@ -112,15 +98,15 @@ module OmfEc
     end
 
     def def_event(name, &trigger)
-      if exp.events.find { |v| v[:name] == name }
+      if OmfEc.exp.events.find { |v| v[:name] == name }
         raise RuntimeError, "Event '#{name}' has been defined"
       else
-        exp.events << { name: name, trigger: trigger }
+        OmfEc.exp.events << { name: name, trigger: trigger }
       end
     end
 
     def on_event(name, consume_event = true, &callback)
-      event = exp.events.find { |v| v[:name] == name }
+      event = OmfEc.exp.events.find { |v| v[:name] == name }
       if event.nil?
         raise RuntimeError, "Event '#{name}' not defined"
       else

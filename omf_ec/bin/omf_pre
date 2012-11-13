@@ -77,7 +77,7 @@ command :exec do |c|
 
     if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
       Logging.logger.root.add_appenders(
-        Logging.appenders.file("#{global_options[:log_file_dir]}/#{exp.id}.log")
+        Logging.appenders.file("#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log")
       )
     end
 
@@ -90,16 +90,16 @@ command :exec do |c|
         unless p[0] =~ /^--(.+)/ && !p[1].nil?
           help_now! "Malformatted properties '#{exp_properties.join(' ')}'"
         else
-          exp.property[$1.to_sym] = p[1].ducktype
+          OmfEc.exp.property[$1.to_sym] = p[1].ducktype
         end
       end
     end
 
     begin
-      comm.when_ready do
-        logger.info "Connected: #{comm.jid.inspect}"
-        exp.name = options[:experiment] if options[:experiment]
-        logger.info "Start experiment: #{exp.id}"
+      OmfEc.comm.when_ready do
+        logger.info "Connected: #{OmfEc.comm.jid.inspect}"
+        OmfEc.exp.name = options[:experiment] if options[:experiment]
+        logger.info "Start experiment: #{OmfEc.exp.id}"
         begin
           load args[0]
         rescue => e
@@ -109,7 +109,7 @@ command :exec do |c|
       end
 
       EM.run do
-        comm.connect(global_options[:user], global_options[:password], global_options[:server])
+        OmfEc.comm.connect(global_options[:user], global_options[:password], global_options[:server])
         trap(:INT) { Experiment.done }
         trap(:TERM) { Experiment.done }
       end

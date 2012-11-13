@@ -32,10 +32,10 @@ module OmfEc
     # Purely for backward compatibility
     class << self
       def done
-        self.comm.disconnect(delete_affiliations: true)
+        OmfEc.comm.disconnect(delete_affiliations: true)
         info "Exit in 5 seconds..."
-        self.comm.add_timer(5) do
-          self.comm.disconnect
+        OmfEc.comm.add_timer(5) do
+          OmfEc.comm.disconnect
         end
       end
     end

@@ -10,14 +10,6 @@ module OmfEc
       self
     end
 
-    def exp
-      Experiment.instance
-    end
-
-    def comm
-      Experiment.instance.comm
-    end
-
     def [](opts = {})
       self.guard.merge!(opts)
       self
@@ -42,7 +34,7 @@ module OmfEc
       # if release, we need to request resource ids first
       op_name = self.operation == :release ? "request_message" : "#{self.operation}_message"
 
-      o_m = comm.__send__(op_name, send_to) do |m|
+      o_m = OmfEc.comm.__send__(op_name, send_to) do |m|
         m.element(:guard) do |g|
           self.guard.each_pair do |k, v|
             g.element(k, v)
@@ -65,20 +57,20 @@ module OmfEc
         if self.operation == :release
           uid = i.read_property(:uid)
           info "Going to release #{uid}"
-          release_m = comm.release_message(self.group) { |m| m.element('resource_id', uid) }
+          release_m = OmfEc.comm.release_message(self.group) { |m| m.element('resource_id', uid) }
 
           release_m.publish self.group
 
           release_m.on_inform_released do |m|
             info "#{m.resource_id} released"
-            r = exp.state.find { |v| v[:uid] == m.resource_id }
+            r = OmfEc.exp.state.find { |v| v[:uid] == m.resource_id }
             r[:released] = true unless r.nil?
             block.call if block
             Experiment.instance.process_events
           end
         end
 
-        r = exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+        r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
         unless r.nil?
           i.each_property do |p|
             r[p.attr('key').to_sym] = p.content.ducktype

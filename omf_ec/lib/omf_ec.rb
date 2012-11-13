@@ -7,4 +7,19 @@ require "omf_ec/group_context"
 require "omf_ec/dsl"
 
 module OmfEc
+  class << self
+    # Experiment instance
+    def experiment
+      Experiment.instance
+    end
+
+    alias_method :exp, :experiment
+
+    # Experiment's communicator instance
+    def communicator
+      Experiment.instance.comm
+    end
+
+    alias_method :comm, :communicator
+  end
 end
