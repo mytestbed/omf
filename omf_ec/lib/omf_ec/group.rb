@@ -7,10 +7,13 @@ module OmfEc
       self.name = name
     end
 
-    def add_resource(*names, &block)
+    def add_resource(*names)
       names.each do |name|
         OmfEc.comm.subscribe(name) do |m|
           unless m.error?
+            # resource with uid: name is available
+            OmfEc.exp.state << { uid: name } unless OmfEc.exp.state.find { |v| v[:uid] == name }
+
             if OmfEc.exp.groups.include?(name)
               group(name).resources.membership = self.name
             else
@@ -20,8 +23,8 @@ module OmfEc
               c.publish name
               c.on_inform_status do |i|
                 info "#{name} added to #{self.name}"
-                OmfEc.exp.state << { hrn: name }
-                block.call if block
+                r = OmfEc.exp.state.find { |v| v[:uid] == name }
+                r[:membership] = i.read_property(:membership)
                 Experiment.instance.process_events
               end
             end

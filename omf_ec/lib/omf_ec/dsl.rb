@@ -18,18 +18,12 @@ module OmfEc
       OmfEc.comm.add_periodic_timer(time, block)
     end
 
-    def def_group(name, *members, &block)
+    def def_group(name, &block)
       OmfEc.comm.subscribe(name, create_if_non_existent: true) do |m|
         unless m.error?
-          group = Group.new(name)
+          group = OmfEc::Group.new(name)
           OmfEc.exp.groups << group
-          if block
-            block.call group
-          else
-            members.each do |m|
-              group.add_resource(m)
-            end
-          end
+          block.call group if block
         end
       end
     end
@@ -52,7 +46,7 @@ module OmfEc
 
     # Exit the experiment
     def done!
-      Experiment.done
+      OmfEc::Experiment.done
     end
 
     alias_method :done, :done!
@@ -115,14 +109,6 @@ module OmfEc
       end
     end
 
-    # Wait for some time before issuing more commands
-    #
-    # - duration = Time to wait in seconds (can be
-    #
-    def wait(duration)
-      info "Request from Experiment Script: Wait for #{duration}s...."
-      sleep duration
-    end
 
     include OmfEc::BackwardDSL
   end
