@@ -4,21 +4,21 @@ defProperty('num_of_garage', 1, 'Number of garage to start')
 
 garages = (1..prop.num_of_garage).map { |i| "garage_#{i}" }
 
-defEvent :all_engines_up do
-  OmfEc.exp.state.find_all do |v|
+defEvent :all_engines_up do |state|
+  state.find_all do |v|
     v[:type] == 'engine'
   end.size >= prop.num_of_garage
 end
 
-defEvent :rpm_reached do
-  OmfEc.exp.state.find_all do |v|
+defEvent :rpm_reached do |state|
+  state.find_all do |v|
     v[:type] == 'engine' &&
       v[:rpm] && v[:rpm] >= 4000
   end.size >= prop.num_of_garage
 end
 
-defEvent :all_off do
-  OmfEc.exp.state.find_all do |v|
+defEvent :all_off do |state|
+  state.find_all do |v|
     v[:released]
   end.size >= prop.num_of_garage
 end

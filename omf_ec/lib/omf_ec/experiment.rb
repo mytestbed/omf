@@ -22,7 +22,7 @@ module OmfEc
 
     def process_events
       self.events.find_all { |v| v[:callback] }.each do |event|
-        if event[:trigger].call
+        if event[:trigger].call(self.state)
           self.events.delete(event) if event[:consume_event]
           event[:callback].call
         end
