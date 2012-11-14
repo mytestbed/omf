@@ -348,6 +348,8 @@ class OmfRc::ResourceProxy::AbstractResource
               end
             end
           end
+          # Always return uid
+          result.uid = obj.uid
           default_response.merge(status: result)
         when :release
           resource_id = message.resource_id
