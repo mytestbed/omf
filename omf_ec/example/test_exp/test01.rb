@@ -8,8 +8,8 @@ defProperty('res2', "unconfigured-node-2", "ID of a node")
 
 defGroup('Actor', property.res1, property.res2)
 
-defEvent(:ALL_UP) do
-  exp.state.size >= 2
+defEvent(:ALL_UP) do |state|
+  state.size >= 2
 end
 
 onEvent(:ALL_UP) do |event|

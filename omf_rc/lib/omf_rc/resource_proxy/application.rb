@@ -143,7 +143,8 @@ module OmfRc::ResourceProxy::Application
                     event: event_type.to_s.upcase,
                     app: app_id,
                     msg: msg,
-                    seq: res.property.event_sequence }
+                    seq: res.property.event_sequence,
+                    uid: res.uid }
         })
       end
 
