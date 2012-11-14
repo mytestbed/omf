@@ -73,7 +73,8 @@ module OmfEc
         r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
         unless r.nil?
           i.each_property do |p|
-            r[p.attr('key').to_sym] = p.content.ducktype
+            p_key = p.attr('key').to_sym
+            r[p_key] = i.read_property(p_key)
           end
         end
         Experiment.instance.process_events

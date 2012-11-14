@@ -14,12 +14,12 @@ defProperty('wifi', "g", "wifi type to use")
 defProperty('channel', "6", "wifi channel to use")
 
 defGroup('Sender', property.res1) {|node|
-  node.addApplication("test:app:otg2") {|app|
-    app.setProperty('udp:local_host', '192.168.0.2')
-    app.setProperty('udp:dst_host', '192.168.0.3')
-    app.setProperty('udp:dst_port', 3000)
-    app.measure('udp_out', :interval => 3)
-  }
+  #node.addApplication("test:app:otg2") {|app|
+  #  app.setProperty('udp:local_host', '192.168.0.2')
+  #  app.setProperty('udp:dst_host', '192.168.0.3')
+  #  app.setProperty('udp:dst_port', 3000)
+  #  app.measure('udp_out', :interval => 3)
+  #}
   node.net.w0.mode = property.mode1
   node.net.w0.type = property.wifi
   node.net.w0.channel = property.channel
@@ -28,11 +28,11 @@ defGroup('Sender', property.res1) {|node|
 }
 
 defGroup('Receiver', property.res2) {|node|
-  node.addApplication("test:app:otr2") {|app|
-    app.setProperty('udp:local_host', '192.168.0.3')
-    app.setProperty('udp:local_port', 3000)
-    app.measure('udp_in', :samples => 3)
-  }
+  #node.addApplication("test:app:otr2") {|app|
+  #  app.setProperty('udp:local_host', '192.168.0.3')
+  #  app.setProperty('udp:local_port', 3000)
+  #  app.measure('udp_in', :samples => 3)
+  #}
   node.net.w0.mode = property.mode2
   node.net.w0.type = property.wifi
   node.net.w0.channel = property.channel
@@ -40,19 +40,19 @@ defGroup('Receiver', property.res2) {|node|
   node.net.w0.ip = "192.168.0.3"
 }
 
-onEvent(:ALL_UP_AND_INSTALLED) do |event|
+#onEvent(:ALL_UP_AND_INSTALLED) do |event|
   wait 10
-  allGroups.startApplications
+  #allGroups.startApplications
   wait 10
   info "TEST - Running ifconfig on Sender"
-  group('Sender').exec("ifconfig")
+  group('Sender').exec("/sbin/ifconfig")
   wait 15
   info "TEST - Running ifconfig on Receiver"
-  group('Receiver').exec("ifconfig")
+  group('Receiver').exec("/sbin/ifconfig")
   wait 15
-  allGroups.stopApplications
+  #allGroups.stopApplications
   Experiment.done
-end
+#end
 
 
 #

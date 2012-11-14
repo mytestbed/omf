@@ -186,7 +186,7 @@ class OmfRc::ResourceProxy::AbstractResource
     new_membership.each do |n_m|
       unless @membership.include?(n_m)
         @membership << n_m
-        @comm.subscribe(m)
+        @comm.subscribe(n_m)
       end
     end
     @membership

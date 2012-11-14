@@ -1,7 +1,7 @@
 module OmfEc
   class Group
     attr_accessor :name
-    attr_accessor :net_context
+    attr_accessor :net_ifs
 
     def initialize(name)
       self.name = name
@@ -78,28 +78,6 @@ module OmfEc
       GroupContext.new(group: self.name)
     end
 
-    # The following are ODEL 5 methods
-
-    # Create an application for the group and start it
-    #
-    def exec(name)
-      create_resource(name, type: 'application', binary_path: name)
-      # FIXME should not assume its ready in 1 second
-      after 1.second do
-        resources[type: 'application', name: name].state = :run
-      end
-    end
-
-    # @example
-    #   group('actor') do |g|
-    #     g.net.w0.ip = '0.0.0.0'
-    #     g.net.e0.ip = '0.0.0.1'
-    #   end
-    def net
-      self.net_context ||= NetContext.new(group: self.name)
-      self.net_context
-      #g.create_resource('wlan0', type: 'wlan')
-      #g.resources[name: 'wlan0']
-    end
+    include OmfEc::Backward::Group
   end
 end
