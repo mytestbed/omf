@@ -184,10 +184,10 @@ class OmfRc::ResourceProxy::AbstractResource
   def configure_membership(*args)
     new_membership = [args[0]].flatten
     new_membership.each do |n_m|
-      unless @membership.include?(n_m)
-        @membership << n_m
-        @comm.subscribe(n_m)
-      end
+      @membership << n_m unless @membership.include?(n_m)
+    end
+    @membership.each do |m|
+      @comm.subscribe(m)
     end
     @membership
   end
