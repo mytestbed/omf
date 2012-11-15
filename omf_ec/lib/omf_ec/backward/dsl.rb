@@ -43,10 +43,9 @@ module OmfEc
               on_event "all_joined_to_#{name}".to_sym do
                 block.call group
 
-                info group.net_ifs
-
                 # Deal with brilliant net.w0.ip syntax...
                 group.net_ifs && group.net_ifs.each do |nif|
+                  nif.map_channel_freq
                   r_type = nif.conf.delete(:type)
                   r_hrn = nif.conf.delete(:hrn)
 
@@ -54,7 +53,7 @@ module OmfEc
                     group.create_resource(r_hrn, :type => r_type)
 
                     after 2.seconds do
-                      group.resources[:type => r_type].mode = nif.conf.merge(:phy => "<%= devices[#{nif.conf.delete(:index)}] %>")
+                      group.resources[:type => r_type].mode = nif.conf.merge(:phy => "phy#{nif.conf.delete(:index)}")
                     end
 
                     after 4.seconds do
