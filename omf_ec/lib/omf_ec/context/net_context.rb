@@ -1,4 +1,4 @@
-module OmfEc
+module OmfEc::Context
   class NetContext
     # Wifi frequency channel matching
     FREQUENCY= {
