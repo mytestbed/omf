@@ -29,9 +29,6 @@
   <define name="create">
     <element name="create">
       <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
       <optional>
         <element name="publish_to">
           <text/>
@@ -60,9 +57,6 @@
   <define name="configure">
     <element name="configure">
       <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
       <optional>
         <element name="publish_to">
           <text/>
@@ -91,9 +85,6 @@
   <define name="request">
     <element name="request">
       <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
       <optional>
         <element name="publish_to">
           <text/>
@@ -122,9 +113,6 @@
   <define name="release">
     <element name="release">
       <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
       <optional>
         <element name="publish_to">
           <text/>

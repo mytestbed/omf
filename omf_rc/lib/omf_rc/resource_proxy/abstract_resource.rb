@@ -312,7 +312,7 @@ class OmfRc::ResourceProxy::AbstractResource
       begin
         default_response = {
           operation: message.operation,
-          context_id: message.context_id,
+          context_id: message.msg_id,
           inform_to: inform_to_address(obj, message.publish_to)
         }
 

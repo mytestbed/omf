@@ -42,7 +42,6 @@ module OmfCommon
             xml.element('context_id', args[1]) if args[1]
             xml.element('inform_type', args[0])
           else
-            xml.element('context_id', SecureRandom.uuid)
             xml.element('publish_to', args[0]) if args[0]
           end
           block.call(xml) if block
@@ -124,7 +123,8 @@ module OmfCommon
     # Generate SHA1 of canonicalised xml and write into the ID attribute of the message
     #
     def sign
-      write_attr('msg_id', OpenSSL::Digest::SHA512.new(canonicalize)) if read_attr('id').nil? || read_attr('id').empty?
+      #write_attr('msg_id', OpenSSL::Digest::SHA512.new(canonicalize))
+      write_attr('msg_id', SecureRandom.uuid)
       if OmfCommon::Measure.enabled?
         MPMessage.inject(Time.now.to_f, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
         @@msg_id_list << msg_id

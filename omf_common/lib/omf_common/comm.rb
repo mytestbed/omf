@@ -40,7 +40,7 @@ module OmfCommon
 
     %w(created status released failed).each do |inform_type|
       define_method("on_#{inform_type}_message") do |*args, &message_block|
-        context_id = args[0].context_id if args[0]
+        msg_id = args[0].msg_id if args[0]
         event_block = proc do |event|
           message_block.call(Message.parse(event.items.first.payload))
         end
@@ -50,7 +50,7 @@ module OmfCommon
             (omf_message = Message.parse(event.items.first.payload)) &&
             omf_message.operation == :inform &&
             omf_message.read_content(:inform_type) == inform_type.upcase &&
-            (context_id ? (omf_message.context_id == context_id) : true)
+            (msg_id ? (omf_message.context_id == msg_id) : true)
         end
         topic_event(guard_block, &callback_logging(__method__, &event_block))
       end

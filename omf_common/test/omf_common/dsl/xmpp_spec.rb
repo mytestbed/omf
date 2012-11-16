@@ -230,7 +230,7 @@ describe OmfCommon::DSL::Xmpp do
     it "must react to omf created message" do
       Blather::Client.stub :new, @client do
         omf_create = OmfCommon::Message.create { |v| v.property('type', 'engine') }
-        omf_create.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+        omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_created = Blather::XMPPNode.parse(omf_created_xml)
           @client.receive_data omf_created
           @xmpp.on_created_message(omf_create) do |n|
@@ -245,7 +245,7 @@ describe OmfCommon::DSL::Xmpp do
     it "must react to omf status message" do
       Blather::Client.stub :new, @client do
         omf_request = OmfCommon::Message.request { |v| v.property('bob') }
-        omf_request.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+        omf_request.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_status = Blather::XMPPNode.parse(omf_status_xml)
           @client.receive_data omf_status
           @xmpp.on_status_message(omf_request) do |n|
@@ -260,7 +260,7 @@ describe OmfCommon::DSL::Xmpp do
     it "must react to omf release message" do
       Blather::Client.stub :new, @client do
         omf_release = OmfCommon::Message.release { |v| v.property('resource_id', '100') }
-        omf_release.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+        omf_release.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_released = Blather::XMPPNode.parse(omf_released_xml)
           @client.receive_data omf_released
           @xmpp.on_released_message(omf_release) do |n|
@@ -275,7 +275,7 @@ describe OmfCommon::DSL::Xmpp do
     it "must react to omf failed message" do
       Blather::Client.stub :new, @client do
         omf_create = OmfCommon::Message.create { |v| v.property('type', 'engine') }
-        omf_create.stub :context_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+        omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
           @client.receive_data omf_failed
           @xmpp.on_failed_message(omf_create) do |n|
