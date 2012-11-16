@@ -1,16 +1,14 @@
 require 'test_helper'
-require 'omf_ec/group_context'
+require 'omf_ec/context'
 
-describe OmfEc::GroupContext do
+describe OmfEc::Context do
   before do
-    @context = OmfEc::GroupContext.new(group: 'universe')
+    @context = OmfEc::Context::GroupContext.new(group: 'universe')
   end
 
   describe "when initialised with options" do
     it "must be able to respond to random group operation method" do
-      #@context.bob = 5
-
-      #@context.alice
+      skip
     end
 
     it "must be able to construct guards" do

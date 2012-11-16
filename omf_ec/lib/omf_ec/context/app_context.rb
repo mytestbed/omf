@@ -1,4 +1,4 @@
-module OmfEc
+module OmfEc::Context
   class AppContext
     attr_accessor :conf
 

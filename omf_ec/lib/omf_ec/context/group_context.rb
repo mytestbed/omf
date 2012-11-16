@@ -1,4 +1,4 @@
-module OmfEc
+module OmfEc::Context
   class GroupContext
     attr_accessor :group
     attr_accessor :guard

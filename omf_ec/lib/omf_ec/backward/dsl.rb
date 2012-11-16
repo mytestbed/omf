@@ -22,6 +22,10 @@ module OmfEc
         end
       end
 
+      # Place holder for defApplication magic
+      def defApplication
+      end
+
       def defGroup(name, *members, &block)
         OmfEc.comm.subscribe(name, create_if_non_existent: true) do |m|
           unless m.error?
@@ -49,6 +53,7 @@ module OmfEc
                   r_type = nif.conf.delete(:type)
                   r_hrn = nif.conf.delete(:hrn)
 
+                  # FIXME using 'after' here is just hopeless
                   after 2.seconds do
                     group.create_resource(r_hrn, :type => r_type)
 

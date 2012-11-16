@@ -75,7 +75,7 @@ module OmfEc
     end
 
     def resources
-      GroupContext.new(group: self.name)
+      OmfEc::Context::GroupContext.new(group: self.name)
     end
 
     include OmfEc::Backward::Group

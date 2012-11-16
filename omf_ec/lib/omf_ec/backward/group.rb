@@ -13,30 +13,44 @@ module OmfEc
         end
       end
 
+      def startApplications
+        resources[type: 'application'].state = :run
+      end
+
+      def stopApplications
+        resources[type: 'application'].state = :stop
+      end
+
+      def addApplication(name, &block)
+        app = OmfEc::Context::AppContext.new(binary_path: name, type: 'application')
+        block.call app
+
+        # Then should just create the resource with app.conf
+        # create_resource(name, app.conf)
+      end
+
       # @example
-      #   group('actor') do |g|
+      #   group('actor', 'node1', 'node2') do |g|
       #     g.net.w0.ip = '0.0.0.0'
       #     g.net.e0.ip = '0.0.0.1'
       #   end
       def net
         self.net_ifs ||= []
         self
-        #g.create_resource('wlan0', type: 'wlan')
-        #g.resources[name: 'wlan0']
       end
 
       def method_missing(name, *args, &block)
         if name =~ /w(\d+)/
           net = self.net_ifs.find { |v| v.conf[:hrn] == "wlan#{$1}" }
           if net.nil?
-            net = OmfEc::NetContext.new(:group => self.name, :type => 'wlan', :hrn => "wlan#{$1}", :index => $1)
+            net = OmfEc::Context::NetContext.new(:type => 'wlan', :hrn => "wlan#{$1}", :index => $1)
             self.net_ifs << net
           end
           net
         elsif name =~ /e(\d+)/
           net = self.net_ifs.find { |v| v.conf[:hrn] == "eth#{$1}" }
           if net.nil?
-            net = OmfEc::NetContext.new(:group => self.name, :type => 'net', :hrn => "eth#{$1}", :index => $1)
+            net = OmfEc::Context::NetContext.new(:type => 'net', :hrn => "eth#{$1}", :index => $1)
             self.net_ifs << net
           end
           net
