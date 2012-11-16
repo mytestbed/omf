@@ -27,7 +27,11 @@ flag [:p, :password]
 desc "XMPP server domain"
 arg_name "domain"
 default_value "localhost"
-flag [:server]
+flag [:s, :server]
+
+desc "Private key file"
+arg_name "key", :optional
+flag [:private_key]
 
 desc "Log file directory"
 arg_name "directory"
@@ -60,6 +64,11 @@ command :exec do |c|
 
     if global_options[:debug]
       Logging.logger.root.level = :debug
+    end
+
+    # Import private key
+    if global_options[:private_key]
+      OmfCommon::Key.instance.import(global_options[:private_key])
     end
 
     # Check version

@@ -6,6 +6,9 @@ anything = ( text | element * { (attribute type { text })?, (text | anything) * 
 
 create = element create {
   attribute msg_id { text },
+  attribute timestamp { text },
+  attribute digest { text },
+  attribute signature { text }?,
   element publish_to { text }?,
   element guard { anything * }?,
   element property {
@@ -17,6 +20,9 @@ create = element create {
 
 configure = element configure {
   attribute msg_id { text },
+  attribute timestamp { text },
+  attribute digest { text },
+  attribute signature { text }?,
   element publish_to { text }?,
   element guard { anything * }?,
   element property {
@@ -28,6 +34,9 @@ configure = element configure {
 
 request = element request {
   attribute msg_id { text },
+  attribute timestamp { text },
+  attribute digest { text },
+  attribute signature { text }?,
   element publish_to { text }?,
   element guard { anything * }?,
   element property {
@@ -39,6 +48,9 @@ request = element request {
 
 release = element release {
   attribute msg_id { text },
+  attribute timestamp { text },
+  attribute digest { text },
+  attribute signature { text }?,
   element publish_to { text }?,
   element resource_id { text },
   element guard { anything * }?,
@@ -51,6 +63,9 @@ release = element release {
 
 inform = element inform {
   attribute msg_id { text },
+  attribute timestamp { text },
+  attribute digest { text },
+  attribute signature { text }?,
   element context_id { text }?,
   element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN"},
   element resource_id { text }?,

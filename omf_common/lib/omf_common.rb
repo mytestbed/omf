@@ -7,6 +7,7 @@ require 'omf_common/comm'
 require 'omf_common/command'
 require 'omf_common/topic'
 require 'omf_common/topic_message'
+require 'omf_common/key'
 require 'omf_common/core_ext/string'
 require 'omf_common/core_ext/object'
 

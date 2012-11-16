@@ -123,8 +123,17 @@ module OmfCommon
     # Generate SHA1 of canonicalised xml and write into the ID attribute of the message
     #
     def sign
-      #write_attr('msg_id', OpenSSL::Digest::SHA512.new(canonicalize))
       write_attr('msg_id', SecureRandom.uuid)
+      write_attr('timestamp', Time.now.utc.iso8601)
+      canonical_msg = self.canonicalize
+
+      priv_key =  OmfCommon::Key.instance.private_key
+      digest = OpenSSL::Digest::SHA512.new(canonical_msg)
+
+      signature = Base64.encode64(priv_key.sign(digest, canonical_msg)).encode('utf-8') if priv_key
+      write_attr('digest', digest)
+      write_attr('signature', signature) if signature
+
       if OmfCommon::Measure.enabled?
         MPMessage.inject(Time.now.to_f, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
         @@msg_id_list << msg_id
