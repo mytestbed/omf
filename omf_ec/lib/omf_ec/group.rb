@@ -51,7 +51,7 @@ module OmfEc
           c.publish self.name
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
-            OmfEc.exp.state << opts.merge(uid: i.resource_id)
+            OmfEc.exp.state << { uid: i.resource_id, type: opts[:type] }
             block.call if block
             Experiment.instance.process_events
           end

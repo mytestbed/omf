@@ -2,6 +2,7 @@ require 'niceogiri'
 require 'hashie'
 require 'securerandom'
 require 'openssl'
+require 'cgi'
 require 'omf_common/relaxng_schema'
 
 module OmfCommon
@@ -112,10 +113,10 @@ module OmfCommon
         end
       else
         if key.nil?
-          value.to_s
+          string_value(value)
         else
           n = Message.new(key)
-          n.add_child(value.to_s)
+          n.add_child(string_value(value))
         end
       end
     end
@@ -212,28 +213,35 @@ module OmfCommon
     # @param [String] key name of the property element
     # @return [Object] the content of the property, as string, integer, float, or mash(hash with indifferent access)
     #
-    def read_property(key)
+    def read_property(key, data_binding = nil)
       key = key.to_s
       e = read_element("//property[@key='#{key}']").first
-      reconstruct_data(e) if e
+      reconstruct_data(e, data_binding) if e
     end
 
-    def reconstruct_data(node)
-      case node.attr('type')
+    def reconstruct_data(node, data_binding = nil)
+      node_type =  node.attr('type')
+      case node_type
       when 'array'
         node.element_children.map do |child|
-          reconstruct_data(child)
+          reconstruct_data(child, data_binding)
         end
       when /hash/
         mash ||= Hashie::Mash.new
         node.element_children.each do |child|
-          mash[child.attr('key') || child.element_name] ||= reconstruct_data(child)
+          mash[child.attr('key') || child.element_name] ||= reconstruct_data(child, data_binding)
         end
         mash
       when /boolean/
         node.content == "true"
       else
-        node.content.empty? ? nil : node.content.ducktype
+        if node.content.empty?
+          nil
+        elsif data_binding && node_type == 'string'
+          ERB.new(node.content).result(data_binding)
+        else
+          node.content.ducktype
+        end
       end
     end
 
@@ -258,6 +266,16 @@ module OmfCommon
       else
         v_type
       end
+    end
+
+    # Get string of a value object, escape if object is string
+    def string_value(value)
+      if value.kind_of? String
+        value = CGI::escape_html(value)
+      else
+        value = value.to_s
+      end
+      value
     end
   end
 end

@@ -46,6 +46,7 @@ module OmfRc::ResourceProxy::Engine
   property :max_rpm, :default => 12500 # Maximum RPM of the engine is 12,500
   property :rpm, :default => 1000 # Engine starts, RPM will stay at 1000 (i.e. engine is idle)
   property :throttle, :default => 0.0 # Throttle is 0% initially
+  property :sn
 
   # before_ready hook will be called during the initialisation of the resource instance
   #
@@ -73,7 +74,7 @@ module OmfRc::ResourceProxy::Engine
   end
 
   hook :after_initial_configured do |engine|
-    info "Engine #{engine.uid} configured using options defined in create messages."
+    info "Engine #{engine.uid} (SN: #{engine.property.sn}) configured using options defined in create messages."
   end
 
   # before_release hook will be called before the resource is fully released, shut down the engine in this case.

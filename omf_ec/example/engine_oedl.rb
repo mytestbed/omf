@@ -24,11 +24,17 @@ defEvent :all_off do |state|
 end
 
 defGroup(OmfEc.exp.id, *garages) do |g|
-  g.create_resource('primary_engine', type: 'engine')
+  g.create_resource('primary_engine', type: 'engine', sn: "<%= rand(1000) %>")
 
   onEvent :all_engines_up do
     info "Accelerating all engines"
     g.resources[type: 'engine'][name: 'primary_engine'].throttle = 40
+
+    g.resources[type: 'engine'][name: 'primary_engine'].sn
+
+    after 1 do
+      info OmfEc.exp.state
+    end
   end
 
   onEvent :all_off do

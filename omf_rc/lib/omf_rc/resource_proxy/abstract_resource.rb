@@ -94,6 +94,10 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  def get_binding
+    binding
+  end
+
   # Connect to pubsub server
   def connect
     @comm.connect(opts.user, opts.password, opts.server)
@@ -328,7 +332,8 @@ class OmfRc::ResourceProxy::AbstractResource
           message.each_property do |p|
             unless p.attr('key') == 'type'
               method_name = "configure_#{p.attr('key')}"
-              new_obj.__send__(method_name, message.read_property(p.attr('key')))
+              p_value = message.read_property(p.attr('key'), new_obj.get_binding)
+              new_obj.__send__(method_name, p_value)
             end
           end
           new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
@@ -344,7 +349,8 @@ class OmfRc::ResourceProxy::AbstractResource
             else
               properties.each do |p|
                 method_name =  "#{message.operation.to_s}_#{p.attr('key')}"
-                mash[p.attr('key')] ||= obj.__send__(method_name, message.read_property(p.attr('key')))
+                p_value = message.read_property(p.attr('key'), obj.get_binding)
+                mash[p.attr('key')] ||= obj.__send__(method_name, p_value)
               end
             end
           end

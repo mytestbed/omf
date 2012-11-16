@@ -57,6 +57,17 @@ describe OmfCommon::Message do
       m.context_id.must_equal '9012c3bc-68de-459a-ac9f-530cc7168e22'
     end
 
+    it "must escape erb code in property" do
+      m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
+        m.property('bob', "hello <%= world %>")
+        m.property('alice', "hello <%= 1 % 2 %>")
+      end
+      m.read_property('bob').must_equal "hello <%= world %>"
+      world = 'world'
+      m.read_property('bob', binding).must_equal "hello world"
+      m.read_property('alice', binding).must_equal "hello 1"
+    end
+
     it "must be able to pretty print an app_event message" do
       Message.inform('STATUS') do |m|
         m.property('status_type', 'APP_EVENT')
