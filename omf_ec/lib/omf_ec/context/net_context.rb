@@ -1,6 +1,4 @@
 module OmfEc
-
-
   class NetContext
     # Wifi frequency channel matching
     FREQUENCY= {
@@ -13,11 +11,9 @@ module OmfEc
       161 => 5805, 165 => 5825
     }
 
-    attr_accessor :group
     attr_accessor :conf
 
     def initialize(opts)
-      self.group = opts.delete(:group)
       self.conf = opts
       self
     end
