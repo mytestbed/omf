@@ -26,7 +26,7 @@ module OmfCommon
   #   end
   #
   class Message < Niceogiri::XML::Node
-    OMF_NAMESPACE = "http://schema.mytestbed.net/#{OmfCommon::PROTOCOL_VERSION}/protocol"
+    OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
     OPERATION = %w(create configure request release inform)
     # When OML instrumentation is enabled, we do not want to send a the same
     # measurement twice, once when a message is created for publishing to T,

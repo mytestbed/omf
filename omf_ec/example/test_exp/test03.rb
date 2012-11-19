@@ -42,7 +42,7 @@ defGroup('Receiver', property.res2) {|node|
 
 #onEvent(:ALL_UP_AND_INSTALLED) do |event|
   wait 10
-  #allGroups.startApplications
+  allGroups.startApplications
   wait 10
   info "TEST - Running ifconfig on Sender"
   group('Sender').exec("/sbin/ifconfig")
@@ -50,7 +50,7 @@ defGroup('Receiver', property.res2) {|node|
   info "TEST - Running ifconfig on Receiver"
   group('Receiver').exec("/sbin/ifconfig")
   wait 15
-  #allGroups.stopApplications
+  allGroups.stopApplications
   Experiment.done
 #end
 

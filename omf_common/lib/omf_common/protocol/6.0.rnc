@@ -1,4 +1,4 @@
-default namespace = "http://schema.mytestbed.net/6.0/protocol"
+default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
 start = (create | configure | request | release | inform)
 
