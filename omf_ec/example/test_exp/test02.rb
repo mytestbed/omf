@@ -23,6 +23,6 @@ group("GroupOfGroup").exec("/bin/hostname")
 wait 5
 info "---------------"
 info "TEST - allGroup"
-allGroups { |g| g.exec("/bin/hostname") }
+allGroups.exec("/bin/hostname")
 wait 5
 Experiment.done
