@@ -86,9 +86,9 @@ class OmfRc::ResourceProxy::AbstractResource
   # If method missing, try the property mash
   def method_missing(method_name, *args)
     if (method_name =~ /request_(.+)/)
-      property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError)
+      property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError, method_name)
     elsif (method_name =~ /configure_(.+)/)
-      property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError)
+      property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError, method_name)
     else
       super
     end
@@ -316,11 +316,11 @@ class OmfRc::ResourceProxy::AbstractResource
           inform_to: inform_to_address(obj, message.publish_to)
         }
 
-        guard = message.read_element("//guard").first
+        guard = message.read_element("guard").first
 
         unless guard.nil? || guard.element_children.empty?
           guard_check = guard.element_children.all? do |g|
-            obj.__send__("request_#{g.element_name}") == g.content.ducktype
+            obj.__send__("request_#{g.attr('key')}") == g.content.ducktype
           end
           next nil unless guard_check
         end
@@ -340,7 +340,7 @@ class OmfRc::ResourceProxy::AbstractResource
           default_response.merge(resource_id: new_obj.uid)
         when :request, :configure
           result = Hashie::Mash.new.tap do |mash|
-            properties = message.read_element("//property")
+            properties = message.read_element("property")
             if message.operation == :request && properties.empty?
               obj.request_available_properties.request.each do |r_p|
                 method_name = "request_#{r_p.to_s}"
@@ -371,8 +371,8 @@ class OmfRc::ResourceProxy::AbstractResource
         end
       rescue => e
         if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
-          msg = "Cannot #{message.operation} unknown property "+
-            "'#{message.read_element("//property")}' for resource '#{obj.type}'"
+          msg = "Cannot #{message.operation} unknown property '#{e.message}' for resource '#{obj.type}'. Original message fragment: " +
+            "'#{message.read_element("property")}'"
           logger.warn msg
           raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), msg)
         else
