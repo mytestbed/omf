@@ -1,8 +1,10 @@
 # OMF_VERSIONS = 6.0
 
+@comm = OmfEc.comm
+
 # @comm is default communicator defined in script runner
 #
-garage_id = "mclaren"
+garage_id = "garage_1"
 garage_topic = @comm.get_topic(garage_id)
 
 garage_topic.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' } do |message|
@@ -52,6 +54,7 @@ msgs[:create].on_inform_created do |message|
 
   msgs[:release].on_inform_released  do |message|
     logger.info "Engine (#{message.resource_id}) turned off (resource released)"
+    done!
   end
 
   logger.info "Engine #{engine_id} ready for testing"
@@ -81,15 +84,7 @@ msgs[:create].on_inform_created do |message|
   end
 end
 
-# Then we can register event handlers to the communicator
-#
-# Event triggered when connection is ready
-@comm.when_ready do
-  logger.info "CONNECTED: #{@comm.jid.inspect}"
-
-  # We assume that a garage resource proxy instance is up already, so we subscribe to its pubsub topic
-  garage_topic.subscribe do
-    # If subscribed, we publish a 'create' message, 'create' a new engine for testing
-    msgs[:create].publish garage_topic.id
-  end
+garage_topic.subscribe do
+  # If subscribed, we publish a 'create' message, 'create' a new engine for testing
+  msgs[:create].publish garage_topic.id
 end
