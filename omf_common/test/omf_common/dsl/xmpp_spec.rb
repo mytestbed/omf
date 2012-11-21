@@ -177,8 +177,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'configure'
-      m1.body.to_xml.must_match /<property key="throttle" type="fixnum">50<\/property>/
-      m2.body.to_xml.must_match /<property key="throttle" type="fixnum">50<\/property>/
+      m1.body.to_xml.must_match /<property key="throttle" type="integer">50<\/property>/
+      m2.body.to_xml.must_match /<property key="throttle" type="integer">50<\/property>/
     end
 
     it "must generate omf inform xml fragment" do
@@ -201,8 +201,8 @@ describe OmfCommon::DSL::Xmpp do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'release'
-      m1.body.to_xml.must_match /<property key="resource_id" type="fixnum">100<\/property>/
-      m2.body.to_xml.must_match /<property key="resource_id" type="fixnum">100<\/property>/
+      m1.body.to_xml.must_match /<property key="resource_id" type="integer">100<\/property>/
+      m2.body.to_xml.must_match /<property key="resource_id" type="integer">100<\/property>/
     end
 
     it "must generate omf request xml fragment" do

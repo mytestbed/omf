@@ -37,7 +37,7 @@ module OmfEc::Context
       o_m = OmfEc.comm.__send__(op_name, send_to) do |m|
         m.element(:guard) do |g|
           self.guard.each_pair do |k, v|
-            g.element(k, v)
+            g.property(k, v)
           end
         end
 

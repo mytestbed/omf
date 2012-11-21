@@ -181,7 +181,7 @@ module OmfCommon
 
     # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
-      xpath(xpath_without_ns.gsub(/(\/+)(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
+      xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
     end
 
     # In case you think method :element_by_xpath_with_default_namespace is too long
@@ -191,7 +191,7 @@ module OmfCommon
     # We just want to know the content of an non-repeatable element
     #
     def read_content(element_name)
-      element_content = read_element("//#{element_name}").first.content rescue nil
+      element_content = read_element("#{element_name}").first.content rescue nil
       unless element_content.nil?
         element_content.empty? ? nil : element_content
       else
@@ -224,7 +224,7 @@ module OmfCommon
     #
     def read_property(key, data_binding = nil)
       key = key.to_s
-      e = read_element("//property[@key='#{key}']").first
+      e = read_element("property[@key='#{key}']").first
       reconstruct_data(e, data_binding) if e
     end
 
@@ -257,7 +257,7 @@ module OmfCommon
     # Iterate each property element
     #
     def each_property(&block)
-      read_element("//property").each { |v| block.call(v) }
+      read_element("property").each { |v| block.call(v) }
     end
 
     # Pretty print for application event message
@@ -270,8 +270,11 @@ module OmfCommon
 
     def ruby_type_2_prop_type(ruby_class_type)
       v_type = ruby_class_type.to_s.downcase
-      if %w(trueclass falseclass).include?(v_type)
+      case v_type
+      when *%w(trueclass falseclass)
         'boolean'
+      when *%w(fixnum bignum)
+        'integer'
       else
         v_type
       end

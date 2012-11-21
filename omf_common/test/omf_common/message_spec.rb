@@ -9,6 +9,7 @@ describe OmfCommon::Message do
     it "must return a create or configure XML element without failing" do
       %w(create configure).each do |msg_name|
         message = Message.__send__(msg_name) do |m|
+
           PROP_ELEMENTS.each_with_index do |prop_element, index|
             if index == 0
               m.property(prop_element, rand(100))
@@ -17,7 +18,14 @@ describe OmfCommon::Message do
                 p.element('unit', 'test')
                 p.element('precision', 'test')
               end
+
             end
+          end
+
+          # Guard element optional
+          m.element(:guard) do |g|
+            g.property('p1', 1)
+            g.property('p2', 2)
           end
         end
         message.valid?.must_equal true
@@ -95,9 +103,9 @@ describe OmfCommon::Message do
 
       message.must_be_kind_of Message
       message.operation.must_equal :create
-      message.read_element("//property").size.must_equal 7
-      message.read_content("unit").must_equal 'mb'
-      message.read_element("/create/property").size.must_equal 7
+      message.read_element("property").size.must_equal 7
+      message.read_content("property[@key='memory']/unit").must_equal 'mb'
+      message.read_element("property").size.must_equal 7
       message.read_property("type").must_equal 'vm'
       message.read_property(:type).must_equal 'vm'
 
