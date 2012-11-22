@@ -7,21 +7,18 @@ defProperty('res1', "unconfigured-node-1", "ID of a node")
 defProperty('res2', "unconfigured-node-2", "ID of a node")
 
 defGroup('Actor', property.res1, property.res2)
-
-defEvent(:ALL_UP) do |state|
-  state.size >= 2
-end
+defGroup('Bob', property.res1, property.res2)
 
 onEvent(:ALL_UP) do |event|
   wait 3
   info "TEST - allGroups"
-  group("Actor").exec("/bin/date")
+  allGroups.exec("/bin/date")
 
-  wait 3.seconds
+  wait 3
   info "TEST - group"
   group("Actor").exec("/bin/hostname")
 
-  wait 3.seconds
+  wait 6.seconds
   group("Actor") do |g|
     g.resources[type: 'application'].release
   end
@@ -30,3 +27,4 @@ onEvent(:ALL_UP) do |event|
     Experiment.done
   end
 end
+

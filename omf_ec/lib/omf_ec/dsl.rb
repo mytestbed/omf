@@ -109,7 +109,6 @@ module OmfEc
       end
     end
 
-
     include OmfEc::Backward::DSL
   end
 end

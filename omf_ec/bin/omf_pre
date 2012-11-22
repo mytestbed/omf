@@ -110,6 +110,7 @@ command :exec do |c|
         logger.info "Connected: #{OmfEc.comm.jid.inspect}"
         logger.info "Start experiment: #{OmfEc.exp.id}"
         begin
+          include OmfEc::Backward::DefaultEvents
           load args[0]
         rescue => e
           logger.error e.message

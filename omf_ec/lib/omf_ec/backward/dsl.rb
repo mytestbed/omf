@@ -27,6 +27,7 @@ module OmfEc
       end
 
       def defGroup(name, *members, &block)
+        OmfEc.exp.plan[name] = members
         OmfEc.comm.subscribe(name, create_if_non_existent: true) do |m|
           unless m.error?
             group = OmfEc::Group.new(name)
