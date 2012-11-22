@@ -86,9 +86,9 @@ class OmfRc::ResourceProxy::AbstractResource
   # If method missing, try the property mash
   def method_missing(method_name, *args)
     if (method_name =~ /request_(.+)/)
-      property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError, method_name)
+      property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
     elsif (method_name =~ /configure_(.+)/)
-      property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError, method_name)
+      property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
     else
       super
     end
