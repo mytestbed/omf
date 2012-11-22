@@ -69,5 +69,6 @@ else
 	echo "telnet daemon not found"
 fi
 cat /.omf_imageid
+while [ ! -e /etc/hostname ]; do sleep 1; done
 # Start nodeagent
 /etc/init.d/omf-resctl-$VERSION start
