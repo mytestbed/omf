@@ -139,14 +139,14 @@ class OmfXMPPServices < MObject
   # - port = [Fixnum] optional port number of the home XMPP server
   # - useDnsSrv = [Bool] optional flag to enable DNS SRV record resolution
   #
-  def initialize(user, password, host, port = nil, useDnsSrv = nil, max_retries = nil)
+  def initialize(user, password, host, port = 5222, useDnsSrv = false, max_retries = 5)
 
     # Set internal attributes
     @userJID = "#{user}@#{host}"
     @password = password
     @homeServer = host
-    @port = port || 5222
-    @useDnsSrv = useDnsSrv || false
+    @port = port
+    @useDnsSrv = useDnsSrv
     @max_retries = max_retries
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
@@ -167,7 +167,6 @@ class OmfXMPPServices < MObject
       @connecting = true
     }
     @connection_attempts = 1
-    debug "Try to connect to Pubsub Gateway '#{@homeServer}'..."
     # In case "connect" was called even though we are already connected
     # try close the connection first.
     # Ignore any exception in doing so (e.g. if there is no previous connection)
@@ -177,7 +176,7 @@ class OmfXMPPServices < MObject
       debug "Cannot close a previous (if any) connection to PubSub Gateway '#{@homeServer}'"
     end
     @connection_attempts = 0
-    debug "Try to connect to Pubsub Gateway '#{@homeServer}:#{@port}'..."
+    debug "Trying to connect to Pubsub Gateway '#{@homeServer}:#{@port}'..."
     begin
       success = call_with_timeout("Timing out while connecting to "+
                                   "PubSub Gateway '#{@homeServer}'") { 

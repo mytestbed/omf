@@ -38,6 +38,8 @@
       # set this to "true" if you have a DNS SRV record pointing to the
       # real pubsub server hostname
       :pubsub_use_dnssrv: false
+      # how many (re-)connection attempts before giving up
+      :pubsub_max_retries: 5
 
   # Agent settings
   :agent:

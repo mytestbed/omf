@@ -64,7 +64,7 @@ fi
 
 # You don't need this if you have serial access ;)
 if [ -f /usr/sbin/telnetd ]; then
-	/usr/sbin/telnetd -l /bin/sh
+	/usr/sbin/telnetd -l /bin/bash
 else
 	echo "telnet daemon not found"
 fi
