@@ -139,15 +139,15 @@ class OmfXMPPServices < MObject
   # - port = [Fixnum] optional port number of the home XMPP server
   # - useDnsSrv = [Bool] optional flag to enable DNS SRV record resolution
   #
-  def initialize(user, password, host, port = 5222, useDnsSrv = false, max_retries = 5)
+  def initialize(user, password, host, port = nil, useDnsSrv = nil, max_retries = nil)
 
     # Set internal attributes
     @userJID = "#{user}@#{host}"
     @password = password
     @homeServer = host
-    @port = port
-    @useDnsSrv = useDnsSrv
-    @max_retries = max_retries
+    @port = port || 5222
+    @useDnsSrv = useDnsSrv || false
+    @max_retries = max_retries || 5
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
     @keepAliveThread = nil

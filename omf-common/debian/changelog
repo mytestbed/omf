@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4.2-ubuntu5) precise; urgency=low
+
+  * fixed exception in XMPP connect when no max_retries were given
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 22 Nov 2012 18:28:35 +1100
+
 omf-common-5.4 (5.4.2-ubuntu4) precise; urgency=low
 
   * Fix bug #903, message signature now done using WSS4R instead of xmlcanonicalizer library 
