@@ -323,7 +323,7 @@ module OmfRc::ResourceProxyDSL
       opts = Hashie::Mash.new(opts)
 
       define_method("def_property_#{name}") do |*args, &block|
-        self.property[name] = opts[:default]
+        self.property[name] ||= opts[:default]
       end
     end
   end
