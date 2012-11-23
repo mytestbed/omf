@@ -38,8 +38,13 @@ defGroup(OmfEc.exp.id, *garages) do |g|
   end
 
   onEvent :all_off do
-    info "All done!"
+    warn "All done!"
     Experiment.done
+  end
+
+  # Define multiple callbacks to same event (last in, first serve)
+  onEvent :all_off do
+    info "All done!"
   end
 
   onEvent :rpm_reached do

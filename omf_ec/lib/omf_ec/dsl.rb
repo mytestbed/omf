@@ -104,7 +104,8 @@ module OmfEc
       if event.nil?
         raise RuntimeError, "Event '#{name}' not defined"
       else
-        event[:callback] = callback
+        event[:callbacks] ||= []
+        event[:callbacks] << callback
         event[:consume_event] = consume_event
       end
     end

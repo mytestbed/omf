@@ -22,10 +22,14 @@ module OmfEc
     end
 
     def process_events
-      self.events.find_all { |v| v[:callback] }.each do |event|
+      self.events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
         if event[:trigger].call(self.state, self.plan)
           self.events.delete(event) if event[:consume_event]
-          event[:callback].call
+
+          # Last in first serve callbacks
+          event[:callbacks].reverse.each do |callback|
+            callback.call
+          end
         end
       end
     end
