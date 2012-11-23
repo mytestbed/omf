@@ -33,14 +33,14 @@ Commands:
 	phy <phyname> interface add <name> type <type> [mesh_id <meshid>] [4addr on|off] [flags <flag>*]
 		Add a new virtual interface with the given configuration.
 		Valid interface types are: managed, ibss, monitor, mesh, wds.
-		
+
 		The flags are only used for monitor interfaces, valid flags are:
 		none:     no special flags
 		fcsfail:  show frames with FCS errors
 		control:  show control frames
 		otherbss: show frames from other BSSes
 		cook:     use cooked mode
-		
+
 		The mesh_id is used only for mesh mode.
 
 	dev <devname> ibss join <SSID> <freq in MHz> [HT20|HT40+|HT40-|NOHT] [fixed-freq] [<fixed bssid>] [beacon-interval <TU>] [basic-rates <rate in Mbps,rate2,...>] [mcast-rate <rate in Mbps>] [key d:0:abcde]
@@ -128,12 +128,12 @@ Commands:
 
 	dev <devname> cqm rssi <threshold|off> [<hysteresis>]
 		Set connection quality monitor RSSI threshold.
-		
 
-	phy <phyname> wowlan show 
+
+	phy <phyname> wowlan show
 		Show WoWLAN status.
 
-	phy <phyname> wowlan disable 
+	phy <phyname> wowlan disable
 		Disable WoWLAN.
 
 	phy <phyname> wowlan enable [any] [disconnect] [magic-packet] [gtk-rekey-failure] [eap-identity-request] [4way-handshake] [rfkill-release] [patterns <pattern>*]
@@ -143,7 +143,7 @@ Commands:
 		00:11:22:33:ff:44 etc.
 
 	dev <devname> roc start <freq> <time>
-		
+
 
 	phy <phyname> set antenna <bitmap> | all | <tx bitmap> <rx bitmap>
 		Set a bitmap of allowed antennas to use for TX and RX.

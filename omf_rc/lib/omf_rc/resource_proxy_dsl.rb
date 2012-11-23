@@ -31,6 +31,7 @@ module OmfRc::ResourceProxyDSL
     #
     def register_proxy(name, opts = {})
       name = name.to_sym
+      opts = Hashie::Mash.new(opts)
       if opts[:create_by] && !opts[:create_by].kind_of?(Array)
         opts[:create_by] = [opts[:create_by]]
       end
@@ -317,5 +318,13 @@ module OmfRc::ResourceProxyDSL
       alias_method "orig_request_#{request_name}", "request_#{request_name}"
     end
 
+    # Define internal property
+    def property(name, opts = {})
+      opts = Hashie::Mash.new(opts)
+
+      define_method("def_property_#{name}") do |*args, &block|
+        self.property[name] = opts[:default]
+      end
+    end
   end
 end

@@ -26,4 +26,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "blather", "~> 0.8.0"
   s.add_runtime_dependency "logging", "~> 1.7.1"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
+  s.add_runtime_dependency "oml4r", "~> 2.8.0"
 end

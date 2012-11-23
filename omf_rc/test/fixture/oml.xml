@@ -1,0 +1,17 @@
+<omlc experiment='my_foo_experiment' id='my_bar_application'>
+  <collect url='tcp://10.0.0.200:3003'>
+    <stream mp='radiotap' interval='2'>
+      <filter field='sig_strength_dBm' operation='avg' />
+      <filter field='noise_strength_dBm' operation='avg' />
+      <filter field='power' operation='avg' rename='energy' />
+    </stream>
+    <stream mp='udp' samples='10'>
+      <filter field='pkt_len' operation='stddev' />
+    </stream>
+  </collect>
+  <collect url='tcp://srv.mytestbed.net:3003'>
+    <stream mp='tcp' interval='5'>
+      <filter field='throughput' operation='avg' />
+    </stream>
+  </collect>
+</omlc>

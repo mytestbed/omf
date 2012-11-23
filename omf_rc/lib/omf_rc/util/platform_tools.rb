@@ -28,7 +28,7 @@ module OmfRc::Util::PlatformTools
   include OmfRc::ResourceProxyDSL
 
   utility :common_tools
-  
+
   # This utility block logs attempts to detect the OS platform on which it is
   # currently running. Right now it can recognise the following platform:
   # - Ubuntu (by looking for an Ubuntu string in /etc/*release files)
@@ -38,22 +38,22 @@ module OmfRc::Util::PlatformTools
   #
   # [Symbol] either :unknown | :ubuntu | :fedora
   #
-  work('detect_platform') do 
+  work('detect_platform') do
     r = `cat /etc/*release`.upcase
     platform = :unknown
     platform = :ubuntu if r.include?('UBUNTU')
     platform = :fedora if r.include?('FEDORA')
-    platform 
+    platform
   end
- 
+
   # This utility block logs attempts to validate if a given package name is
-  # a valid one or not. Right now it checks the following: 
+  # a valid one or not. Right now it checks the following:
   # - if the given pkg name is not nil
   # - if the given pkg name has a size > 0
   #
-  # Further checks may be implemented later 
+  # Further checks may be implemented later
   # (e.g. is the pkg provided by any known repository, etc...)
-  # 
+  #
   # @yieldparam [String] pkg_name the package name to check
   #
   # [Boolean] true or fals
@@ -70,7 +70,7 @@ module OmfRc::Util::PlatformTools
 
   # This utility block install a package on an Ubuntu platform using
   # the underlying apt-get tool
-  # 
+  #
   # @yieldparam [String] pkg_name the package name to install
   #
   work('install_ubuntu') do |res, pkg_name|
@@ -85,7 +85,7 @@ module OmfRc::Util::PlatformTools
 
   # This utility block install a package on an Fedora platform using
   # the underlying yum tool
-  # 
+  #
   # @yieldparam [String] pkg_name the package name to install
   #
   work('install_fedora') do |res, pkg_name|
@@ -95,13 +95,13 @@ module OmfRc::Util::PlatformTools
                 "/usr/bin/yum -y install #{pkg_name}")
   end
 
-  # This utility block install a software from a tarball archive. It first 
-  # tries to download the tarball at a given URI (if it has not been 
+  # This utility block install a software from a tarball archive. It first
+  # tries to download the tarball at a given URI (if it has not been
   # downloaded earlier), then it unarchives it at the given install_path
   #
   # @yieldparam [String] pkg_name the package name to install
   # @yieldparam [String] install_path the path where to install this package
-  # 
+  #
   work('install_tarball') do |res, pkg_name, install_path|
     next false unless res.valid_pkg_name(pkg_name)
     require 'net/http'
@@ -132,7 +132,7 @@ module OmfRc::Util::PlatformTools
       next false
     end
 
-    # if we have the file and its ETag locally, 
+    # if we have the file and its ETag locally,
     # compare it to the ETag of the remote file
     if File.exists?(file) && File.exists?(eTagFile)
        f=File.open(eTagFile,'r')

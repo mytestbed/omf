@@ -1,35 +1,33 @@
 require 'test_helper'
-require 'omf_rc/resource_proxy/generic_application'
+require 'omf_rc/resource_proxy/application'
 
-
-
-describe OmfRc::ResourceProxy::GenericApplication do
+describe OmfRc::ResourceProxy::Application do
 
   before do
-    @app_test = OmfRc::ResourceFactory.new(:generic_application, { hrn: 'an_application' })
+    @app_test = OmfRc::ResourceFactory.new(:application, { hrn: 'an_application' })
     @app_test.comm = MiniTest::Mock.new
     @app_test.comm.expect :publish, nil, [String,OmfCommon::Message]
   end
 
   describe "when initialised" do
     it "must respond to an 'on_app_event' call back" do
-      #OmfRc::ResourceProxy::GenericApplication.method_defined?(:on_app_event).must_equal true
+      #OmfRc::ResourceProxy::Application.method_defined?(:on_app_event).must_equal true
       @app_test.must_respond_to :on_app_event
     end
 
     it "must have its properties set to sensible initial values" do
       @app_test.request_state.to_sym.must_equal :stop
       @app_test.request_tarball_install_path.must_equal '/'
-      @app_test.request_force_tarball_install.must_equal 'false'
-      @app_test.request_installed.must_equal 'false'
-      @app_test.request_map_err_to_out.must_equal 'false'
+      @app_test.request_force_tarball_install.must_equal false
+      @app_test.request_installed.must_equal false
+      @app_test.request_map_err_to_out.must_equal false
     end
 
     it "must be able to configure/request its basic properties" do
       basic_prop = %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install map_err_to_out tarball_install_path)
       basic_prop.each do |p|
-        @app_test.method("configure_#{p}".to_sym).call('foo')
-        @app_test.method("request_#{p}".to_sym).call.must_equal 'foo'
+        @app_test.send("configure_#{p}".to_sym, 'foo')
+        @app_test.send("request_#{p}".to_sym).must_equal 'foo'
       end
     end
 
@@ -46,6 +44,16 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.environments.must_be_kind_of Hash
       @app_test.property.environments['foo'].must_equal 123
       @app_test.property.environments['bar_bar'].must_equal 'bar_123'
+    end
+
+    it "must be able to configure its available OML measurement points" do
+      test_oml_spec = eval(fixture('oml.spec'))
+      @app_test.method(:configure_oml).call(test_oml_spec)
+      @app_test.property.oml.must_be_kind_of Hash
+      @app_test.property.oml.has_key?(:available_mps).must_equal true
+      @app_test.property.oml[:available_mps].length.must_be :> , 0
+      @app_test.property.oml[:available_mps][0].must_be_kind_of Hash
+      @app_test.property.oml[:available_mps][0].has_key?(:mp).must_equal true
     end
   end
 
@@ -78,28 +86,12 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.parameters[:p2][:default].must_equal 'bar_bar'
     end
 
-    it "must be able to sanitize its parameters property" do
-      test_params = { :p1 => { :mandatory => 'true', :dynamic => false},
-                      :p2 => { :mandatory => true, :dynamic => 'false'},
-                      :p3 => { :type => 'Boolean', :default => true, :value => 'false'},
-                      :p4 => { :type => 'Boolean', :default => 'true', :value => false} }
-      @app_test.method(:configure_parameters).call(test_params)
-      @app_test.property.parameters[:p1][:mandatory].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p1][:dynamic].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p2][:mandatory].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p2][:dynamic].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p3][:value].must_be_kind_of FalseClass
-      @app_test.property.parameters[:p4][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p4][:value].must_be_kind_of FalseClass
-    end
-
     it "must be able to validate the correct type of a defined parameter" do
       test_params = { :p1 => { :type => 'String', :default => 'foo', :value => 'bar'},
                       :p2 => { :type => 'Numeric', :default => 123, :value => 456},
-                      :p3 => { :type => 'Boolean', :default => true, :value => true},
+                      :p3 => { :type => 'Boolean', :default => true, :value => false},
                       :p4 => { :type => 'Boolean'},
-                      :p5 => { :type => 'Boolean', :default => true},
+                      :p5 => { :type => 'Boolean', :default => false},
                       :p6 => { :type => 'Boolean', :value => true},
                       :p7 => { :type => 'Numeric'},
                       :p8 => { :type => 'Numeric', :default => 123},
@@ -110,10 +102,10 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.property.parameters[:p2][:default].must_be_kind_of Numeric
       @app_test.property.parameters[:p2][:value].must_be_kind_of Numeric
       @app_test.property.parameters[:p3][:default].must_be_kind_of TrueClass
-      @app_test.property.parameters[:p3][:value].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p3][:value].must_be_kind_of FalseClass
       @app_test.property.parameters[:p4][:default].must_be_nil
       @app_test.property.parameters[:p4][:value].must_be_nil
-      @app_test.property.parameters[:p5][:default].must_be_kind_of TrueClass
+      @app_test.property.parameters[:p5][:default].must_be_kind_of FalseClass
       @app_test.property.parameters[:p6][:value].must_be_kind_of TrueClass
       @app_test.property.parameters[:p7][:default].must_be_nil
       @app_test.property.parameters[:p7][:value].must_be_nil
@@ -141,10 +133,11 @@ describe OmfRc::ResourceProxy::GenericApplication do
 
     it "must update any valid dynamic parameter with the given value" do
       # set the parameter as dynamic
-      params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true} }
+      params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true},
+                  :p2 => { :cmd => '--notcalled', :dynamic => false} }
       @app_test.method(:configure_parameters).call(params1)
       # then update it
-      params2 = { :p1 => { :value => 'bar'} }
+      params2 = { :p1 => { :value => 'bar'} , :p2 => { :value => 'abc'}  }
       @app_test.property.state = :run
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map); end
@@ -176,7 +169,7 @@ describe OmfRc::ResourceProxy::GenericApplication do
     it "must set installed property to true if the event is 'DONE.OK' and the app_id's suffix is '_INSTALL'" do
       @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
       @app_test.request_state.to_sym.must_equal :stop
-      @app_test.request_installed.must_equal "true"
+      @app_test.request_installed.must_equal true
     end
   end
 
@@ -297,6 +290,52 @@ describe OmfRc::ResourceProxy::GenericApplication do
       @app_test.method(:configure_state).call(:run)
       @app_test.property.state.must_equal :run
     end
+
+    it "must start an app with OML command line options when use_oml parameter is set" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          cmd_line.must_equal "env -i my_cmd --oml-config /tmp/bar.xml --oml-log-level 1 --oml-log-file foo "
+        end
+      end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      @app_test.property.use_oml = true
+      @app_test.property.oml_loglevel = 1
+      @app_test.property.oml_logfile = "foo"
+      @app_test.property.oml_configfile = "/tmp/bar.xml"
+      File.stub(:exist?, true) { @app_test.method(:configure_state).call(:run) }
+      @app_test.property.state.must_equal :run
+    end
+
+    it "must start an app using its own built OML config when use_oml and oml parameters are set" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          xml_file = cmd_line.split('env -i my_cmd --oml-config ')[1]
+          File.open(xml_file, 'r').read.must_equal fixture('oml.xml')
+          File.delete(xml_file)
+        end
+      end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      @app_test.property.use_oml = true
+      @app_test.property.oml = eval(fixture('oml.hash'))
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
+
+    it "must not use any oml options if use_oml is set but both oml or oml_config are not set" do
+      class ExecApp
+        def initialize(app_id, res, cmd_line, err_out_map)
+          cmd_line.must_equal "env -i my_cmd "
+        end
+      end
+      @app_test.property.state = :stop
+      @app_test.property.binary_path = "my_cmd"
+      @app_test.property.use_oml = true
+      @app_test.method(:configure_state).call(:run)
+      @app_test.property.state.must_equal :run
+    end
+
   end
 
   describe "when configuring its state property to :pause" do

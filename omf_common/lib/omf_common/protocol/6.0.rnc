@@ -1,61 +1,48 @@
-default namespace = "http://schema.mytestbed.net/6.0/protocol"
+default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
 start = (create | configure | request | release | inform)
 
+common_elements = attribute msg_id { text }, attribute timestamp { text }, attribute digest { text }, attribute signature { text }?
+
 anything = ( text | element * { (attribute type { text })?, (text | anything) * })
 
+prop_content = attribute key { text }, (attribute type { text })?, anything *
+
 create = element create {
-  attribute msg_id { text },
-  element context_id { text },
-  element property {
-    attribute key { text },
-    (attribute type { text })?,
-    anything *
-  } *
+  common_elements
+  & element publish_to { text }?
+  & element guard { element property { prop_content } * }?
+  & element property { prop_content } *
 }
 
 configure = element configure {
-  attribute msg_id { text },
-  element context_id { text },
-  element property {
-    attribute key { text },
-    (attribute type { text })?,
-    anything *
-  } *
+  common_elements
+  & element publish_to { text }?
+  & element guard { element property { prop_content } * }?
+  & element property { prop_content } *
 }
 
 request = element request {
-  attribute msg_id { text },
-  element context_id { text },
-  element publish_to { text }?,
-  element property {
-    (attribute key { text }),
-    (attribute type { text })?,
-    anything *
-  }*
+  common_elements
+  & element publish_to { text }?
+  & element guard { element property { prop_content } * }?
+  & element property { prop_content } *
 }
 
 release = element release {
-  attribute msg_id { text },
-  element context_id { text },
-  element resource_id { text },
-  element property {
-    (attribute key { text }),
-    (attribute type { text })?,
-    anything *
-  }*
+  common_elements
+  & element publish_to { text }?
+  & element resource_id { text }
+  & element guard { element property { prop_content } * }?
+  & element property { prop_content } *
 }
 
 inform = element inform {
-  attribute msg_id { text },
-  element context_id { text },
-  element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN"},
-  element resource_id { text }?,
-  element resource_address { text }?,
-  element reason { text }?,
-  element property {
-    attribute key { text },
-    (attribute type { text })?,
-    anything *
-  } *
+  common_elements
+  & element context_id { text }?
+  & element inform_type { "CREATED" | "FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN"}
+  & element resource_id { text }?
+  & element resource_address { text }?
+  & element reason { text }?
+  & element property { prop_content } *
 }

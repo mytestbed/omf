@@ -1,0 +1,80 @@
+# INSTALLATION
+
+This detailed installation guide will provide you more information related to your specific OS environment. You are welcome to expand the list if you OS has not been covered here.
+
+## Generic
+
+No matter which OS you are using, Ruby 1.9 is probably always going to be required.
+
+RVM is recommended if you do not have Ruby available via the official distribution channel, or the version available is too old, or you will have multiple versions installed and potentially cause confusion and trouble.
+
+[RVM official site](https://rvm.io) should provide you all the information to install it, but in short, it will be a simple command:
+
+    curl -L https://get.rvm.io | bash -s stable --ruby
+
+Then if you run:
+
+    rvm requirements
+
+Then you will see the what is required to install Ruby in your OS environment.
+
+You could probably find your OS already have Ruby 1.9 available in the package management system or via binary installer (windows); and it should be all right to use that. There are might be additional dependent packages needed to build gems that requires native extension, please refer to those gems' official installation guide to get more details.
+
+## Fedora
+
+Type following in your console:
+
+    sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml
+    sudo yum groupinstall development-tools development-libs
+
+    curl -L https://get.rvm.io | bash -s stable --ruby
+
+    rvm install 1.9.3
+    rvm use 1.9.3
+    rvm gemset create omf
+    rvm use 1.9.3@omf --default
+
+Then finally:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_ec --pre --no-ri --no-rdoc
+
+## Debian
+
+Issue the following commands:
+
+    sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
+
+    curl -L https://get.rvm.io | bash -s stable --ruby
+
+    rvm install 1.9.3
+    rvm use 1.9.3
+    rvm gemset create omf
+    rvm use 1.9.3@omf --default
+
+Then finally:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_ec --pre --no-ri --no-rdoc
+
+## Mac OS X
+
+Please use homebrew to get Ruby 1.9.3 installed using RVM.
+
+    ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
+
+RVM requires Xcode version 3.2.1 or later, however Xcode 4.2 will break gems with native extensions.
+
+    brew install libksba
+
+    curl -L https://get.rvm.io | bash -s stable --ruby
+
+    rvm install 1.9.3
+    rvm use 1.9.3
+    rvm gemset create omf
+    rvm use 1.9.3@omf --default
+
+Then finally:
+
+    gem install omf_rc --pre --no-ri --no-rdoc
+    gem install omf_ec --pre --no-ri --no-rdoc

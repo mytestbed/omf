@@ -1,4 +1,4 @@
-# How to use the Generic Application Proxy
+# How to use the Application Proxy
 
 ## Before we could start
 
@@ -6,9 +6,9 @@ Read the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}, and set up a te
 
 ## Objectives
 
-OMF6 comes with some bundled Resource Proxies, one of them is the Generic Application Proxy. This proxy allows you to interact with an application X which you have specifically defined. For example, through this proxy you can declare the parameters that the application X supports, you can configure the values of this parameters, you can start/pause/stop application X, you can request its installation, etc...
+OMF6 comes with some bundled Resource Proxies, one of them is the Application Proxy. This proxy allows you to interact with an application X which you have specifically defined. For example, through this proxy you can declare the parameters that the application X supports, you can configure the values of this parameters, you can start/pause/stop application X, you can request its installation, etc...
 
-This tutorial provides a simple example on how to use this Generic Application Proxy to interact with the ping application, and further describes all the different properties that you can configure for such a Generic Application.
+This tutorial provides a simple example on how to use this Application Proxy to interact with the ping application, and further describes all the different properties that you can configure for such an Application.
 
 ### Files
 
@@ -21,7 +21,7 @@ These are the two files used for this example:
 
 ### Resource controller
 
-Firstly, we need a resource controller which will create an instance of a generic application proxy. In a typical use case, this resource controller may run on a remote machine where you would like to configure and run your application.
+Firstly, we need a resource controller which will create an instance of an application proxy. In a typical use case, this resource controller may run on a remote machine where you would like to configure and run your application.
 
 This resource controller is essentially similar to the one used in the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}. It has the following code, which you may save as application\_controller.rb
 
@@ -29,7 +29,7 @@ This resource controller is essentially similar to the one used in the {file:doc
 
     require 'omf_rc'
     require 'omf_rc/resource_factory'
-    require 'omf_rc/resource_proxy/generic_application.rb'
+    require 'omf_rc/resource_proxy/application.rb'
     $stdout.sync = true
 
     options = {
@@ -41,7 +41,7 @@ This resource controller is essentially similar to the one used in the {file:doc
 
     EM.run do
       # Use resource factory method to initialise a new instance of the resource
-      my_application = OmfRc::ResourceFactory.new(:generic_application, options)
+      my_application = OmfRc::ResourceFactory.new(:application, options)
       # Make the resource connect to the Pubsub server
       my_application.connect
 
@@ -54,11 +54,11 @@ Once you run the above controller code, you should see something similar to:
     [2012-09-01 16:04:48] INFO  CONNECTED: app_proxy_test@localhost/e5c4d731
 
 
-### Interacting with the Generic Application Proxy
+### Interacting with the Application Proxy
 
 In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}.
 
-In the following simple tester script, we set the Generic Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, we update the values of some parameters, and finally ask the proxy to re-start the application.
+In the following simple tester script, we set the Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, we update the values of some parameters, and finally ask the proxy to re-start the application.
 
 You may save the following tester code as application\_tester.rb.
 
@@ -80,7 +80,7 @@ You may save the following tester code as application\_tester.rb.
 
     comm = Comm.new(:xmpp)
 
-    # Ask our communicator to give us the topic to which the Generic Application
+    # Ask our communicator to give us the topic to which the Application
     # Proxy is subscribed
     app_topic = comm.get_topic(app_id)
 
@@ -139,7 +139,7 @@ You may save the following tester code as application\_tester.rb.
     comm.when_ready do
       logger.info "CONNECTED: #{comm.jid.inspect}"
 
-      # We assume that a application resource proxy instance is up already,
+      # We assume that an application resource proxy instance is up already,
       # so we subscribe to its pubsub topic
       app_topic.subscribe do
         # If subscribed, we start publishing messages some messages
@@ -191,9 +191,9 @@ Once you run the above controller code, you should see something similar to:
     [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg: --- nicta.com.au ping statistics ---
     [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: 3 packets transmitted, 3 received, 0% packet loss, time 1999ms
     [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: rtt min/avg/max/mdev = 0.149/0.151/0.154/0.002 ms
-## Generic Application Proxy - References
+## Application Proxy - References
 
-In addition to the binary\_path, parameters, state properties which we configured in the previous simple example, the Generic Application proxy as more properties which you can set/query, and which are described below.
+In addition to the binary\_path, parameters, state properties which we configured in the previous simple example, the Application proxy as more properties which you can set/query, and which are described below.
 
 ### General Properties
 
@@ -222,7 +222,7 @@ When entering the 'run' state, the proxy will launch the defined application wit
 
 When entering the 'stop' state, and if the application is running, the proxy will attempt to cleanly shut down the application. First, it will write the string 'EXIT' to the application's standard-input. If the application is still running 4s after this, the proxy will send the SIGTERM signal to it. Finally, if the application is still running 4s later, the proxy will send the SIGKILL signal to it.
 
-When entering the 'pause' state, the generic proxy will do nothing. It is up to other specific proxy to implement some tasks to perform there.
+When entering the 'pause' state, the proxy will do nothing. It is up to other specific proxy to implement some tasks to perform there.
 
 When entering the 'install' state, and if the property 'installed' is false, the proxy will attempt to install the application using the following steps. Once these steps are completed, the proxy will enter the 'stop' state.
 
@@ -237,13 +237,14 @@ When entering the 'install' state, and if the property 'installed' is false, the
 - parameters (Hash) the command line parameters available for this app.
 
 This hash is of the form: { :param1 => attribut1, ... } with param1 being the id of this parameter for this Proxy and with attribut1 being another Hash with the following possible keys and values (all are optional):
-     :cmd (String) the command line for this parameter
-     :order (Fixnum) the appearance order on the command line, default FIFO
-     :dynamic (Boolean) parameter can be dynammically changed, default false
-     :type (Numeric|String|Boolean) this parameter's type
-     :default value given by default to this parameter
-     :value value to set for this parameter
-     :mandatory (Boolean) this parameter is mandatory, default false
+
+- :cmd (String) the command line for this parameter
+- :order (Fixnum) the appearance order on the command line, default FIFO
+- :dynamic (Boolean) parameter can be dynammically changed, default false
+- :type (Numeric|String|Boolean) this parameter's type
+- :default value given by default to this parameter
+- :value value to set for this parameter
+- :mandatory (Boolean) this parameter is mandatory, default false
 
 Two examples of valid parameters definition are:
 
@@ -273,3 +274,81 @@ will result in following environment variables being set before the application 
 
     FOO="Hello"
     BAR_BAR=123
+
+### OML Properties
+
+The OML properties are based on the [libOML man page](http://omf.mytestbed.net/doc/oml/latest/liboml2.html) and its [configuration file man page](http://omf.mytestbed.net/doc/oml/latest/liboml2.conf.html)
+
+- oml\_loglevel (Integer) set a specific OML log level (default unset)
+- oml\_logfile (String) set a specific path for OML log file (default unset)
+- oml\_configfile (String) path of the OML XML config file (optional)
+- oml (Hash) OML specific properties (optional), this Hash contains the 
+    following keys:
+      - :available_mps (Hash) list of available OML Measurement Points 
+      - :collection (Hash) list of required OML Measurement Stream to collect
+          when this application is running, as defined at
+          http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
+      - :experiment (String) name of the experiment in which this application
+          is running
+      - :id (String) OML id to use for this application when it is running
+
+Note that if both oml/_configfile and oml.collection properties are set, the application will use the OML config file given by the oml/_configfile property and will discard the configuration information contained in oml.collection, oml.experiment, and oml.id
+
+Here is an example of valid configuration for the oml property:
+
+    one_message = comm.configure_message([oml: {
+      :available_mps => [
+        { :mp => 'radiotap', 
+          :fields => [
+            {:field => 'sig_strength_dBm', :unit => 'dBm', :type => 'Fixnum'},
+            {:field => 'noise_strength_dBm', :unit => 'dBm', :type => 'Fixnum'},
+            {:field => 'power', :unit => 'mW', :type => 'Fixnum'}
+          ]
+        },
+        { :mp => 'udp', 
+          :fields => [
+            {:field => 'pkt_len', :unit => 'Byte', :type => 'Fixnum'},
+            {:field => 'source', :type => 'String'},
+            {:field => 'target', :type => 'String'}
+          ]
+        },
+        { :mp => 'tcp', 
+          :fields => [
+            {:field => 'throughput', :unit => 'Byte/sec', :type => 'Fixnum'},
+            {:field => 'rtt', :unit => 'ms', :type => 'Fixnum'},
+            {:field => 'source', :type => 'String'},
+            {:field => 'target', :type => 'String'}        ]
+        },
+      ]
+    }])
+
+    another_message = comm.configure_message([oml: {
+      :experiment => 'my_foo_experiment',
+      :id => 'my_bar_application',
+      :collection => [
+        { :url => 'tcp://10.0.0.200:3003',
+          :streams => [
+            { :mp => 'radiotap', 
+              :interval => 2,
+              :filters => [
+                {:field => 'sig_strength_dBm', :operation => 'avg'},
+                {:field => 'noise_strength_dBm', :operation => 'avg'},
+                {:field => 'power', :operation => 'avg', :rename => 'energy'}
+              ]
+            },
+            { :mp => 'udp',
+              :samples => 10,
+              :filters => [{:field => 'pkt_len', :operation => 'stddev'}]
+            }
+          ]
+        },
+        { :url => 'tcp://srv.mytestbed.net:3003',
+          :streams => [
+            { :mp => 'tcp',
+              :interval => 5,
+              :filters => [{:field => 'throughput', :operation => 'avg'}]
+            }
+          ]
+        }
+      ]
+    }])

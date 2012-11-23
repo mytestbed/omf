@@ -2,7 +2,7 @@
 
 require 'omf_rc'
 require 'omf_rc/resource_factory'
-require 'omf_rc/resource_proxy/generic_application.rb'
+require 'omf_rc/resource_proxy/application.rb'
 $stdout.sync = true
 
 options = {
@@ -14,7 +14,7 @@ options = {
 
 EM.run do
   # Use resource factory method to initialise a new instance of the resource
-  my_application = OmfRc::ResourceFactory.new(:generic_application, options)
+  my_application = OmfRc::ResourceFactory.new(:application, options)
   # Let the resource to XMPP server
   my_application.connect
 

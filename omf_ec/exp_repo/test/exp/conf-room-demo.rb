@@ -55,7 +55,7 @@ groupNumber = res.size >= property.groupSize ? (res.size.to_f / property.groupSi
 (1..groupNumber).each do |i|
   list = []
   (1..property.groupSize).each do |j| popped = res.pop ; list << popped if !popped.nil?  end
-  senderNames = list.collect do |id| "#{property.hrnPrefix}#{id}" end 
+  senderNames = list.collect do |id| "#{property.hrnPrefix}#{id}" end
   senders = senderNames.join(',')
 
   info "Group Sender #{i}: '#{senders}'"
@@ -74,7 +74,7 @@ groupNumber = res.size >= property.groupSize ? (res.size.to_f / property.groupSi
     node.net.w0.channel = property.channel
     node.net.w0.essid = property.netid
     node.net.w0.ip = "192.168.0.%index%"
-  end 
+  end
 end
 
 onEvent(:ALL_UP_AND_INSTALLED) do |event|
@@ -104,14 +104,14 @@ addTab(:graph2) do |tab|
     mpIn = ms('udp_in')
     mpIn.project(:oml_ts_server, :src_host, :seq_no).each do |sample|
       time, src, seq = sample.tuple
-      if data[src].nil? 
-        data[src] = [index,[]] 
+      if data[src].nil?
+        data[src] = [index,[]]
         index += 1
       end
-      data[src][1] << [time, data[src][0]] 
+      data[src][1] << [time, data[src][0]]
     end
     data.each do |src,value|
-      g.addLine(value[1], :label => "Node #{value[0]}") 
+      g.addLine(value[1], :label => "Node #{value[0]}")
     end
   end
 end

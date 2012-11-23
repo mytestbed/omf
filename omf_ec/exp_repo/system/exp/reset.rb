@@ -1,6 +1,6 @@
 #
 # This experiment sends a reset to all the resources which are associated to it
-# Typically, one would run this experiment with a specific Experiment ID, with 
+# Typically, one would run this experiment with a specific Experiment ID, with
 # the following command:
 #   omf-5.4 exec -e your_experiment_id system:exp:reset
 #

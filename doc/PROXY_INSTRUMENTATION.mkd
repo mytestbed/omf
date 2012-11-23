@@ -1,0 +1,148 @@
+# Notes about the instrumentation of a Resource Proxy
+
+## Before we could start
+
+Read the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}, and set up a testing environment as explained in the first section of that previous tutorial.
+
+## Objectives
+
+With OMF6, you can instrument any Resource Proxy so that during its runtime it will capture some measurements about itself and stream them to some collection end-points. 
+
+This instrumentation feature is realised through the [OML/Mehua framework](http://oml.mytestbed.net/) and its Ruby library [OML4R](https://rubygems.org/gems/oml4r). In a nutshell, in the source code of your Resource Proxy, you define some *Measurement Points* (MP), then later in that code you capture the measurement to make and inject them to the OML4R library, which will take care of streaming them to an end-point for you. This requires that you earlier initialised the OML4R library (for example in the application which launch your proxy), basically telling it which end-point you would like to send the stream to. Most of the time, this end-point would be either a local file, or a remote OML server which will store these measurements in a database.
+
+The current Abstract Resource Proxy (included by default in OMF6) is instrumented using that method. Here we will use it as an example to understand how to instrument any Resource Proxy.
+
+Note: the OML framework also support C and Python. If your Resource Proxy is in either in C or Python, the steps and concepts in this example should still apply, but the code implementation will of course differ. For that please refer to [OML's C documentation](http://oml.mytestbed.net/projects/oml/wiki) and [OML's Python docummentation](http://pypi.python.org/pypi/oml4py/).
+
+### Files
+
+These are the files used in this example:
+
+* [omf_rc](https://github.com/mytestbed/omf/blob/master/omf_rc/bin/omf_rc) - where the OML4R library is initialised
+* [abstract_resource.rb](https://github.com/mytestbed/omf/blob/master/omf_rc/lib/omf_rc/resource_proxy/abstract_resource.rb) - where we define some MPs and then later capture measurements and inject them to OML4R.
+
+## Simple Example
+
+### Initialise the OML4R Library
+
+Before collecting measurements, we need to configure the OML4R library with some information on what to do with them.
+
+In the Ruby application that will launch or instantiate your soon-to-be instrumented Resource Proxy, you will need to call OML4R's initialisation method.
+
+    # argv - the array with the command line arguments for your application (e.g. ARGV variable in Ruby)
+    # opts - optional Hash with the OML parameters, i.e. an alternative to using command line arguments
+    # &block - optional block with the own argument definition for your application if it uses Ruby's OptionParser
+    #
+    OML4R::init(argv, opts = {}, &block)
+
+In our example, the *omf_rc.rb* application is using Ruby's OptionParser to process its command line arguments. OML4R also uses this mechanism to get OML parameters from the command line, and conveniently offers within its *init* function to handle also your application's own argument. Here is the related code in [omf_rc.rb](https://github.com/mytestbed/omf/blob/master/omf_rc/bin/omf_rc) with comments:
+
+
+    oml_enabled = OML4R::init(ARGV, :appName => 'my_application') do |opts|
+
+      # Place in this block the OptionParser-compliant definitions of your
+      # own application's command line arguments... such as the example below
+
+      opts.banner = "usage: my_application [options]"
+
+      opts.on("-u USER", "Username") do |user|
+        options[:user] = user
+      end
+      ...
+      opts._tail("-d", "--debug", "Debug mode") do
+        options[:debug] = true
+      end
+    end
+
+    OmfCommon::Measure.enable if oml_enabled
+
+ While OML4R has the *--oml-noop* option to disable any measurement being sent from itself to end-points, this option does not disable the code in your proxy which prepares and passes the measurement to OML4R. In some cases, you might found that this is too much load, and you might want to also disable such a code. For this reason, OMF6 provides the *OmfCommon::Measure* global flag, which you can enable here and later query in all of your code. (Indeed your Resource Proxy may itself create other different proxies, and also uses other OMF6 entities. Of course all of these may be instrumented themselves, hence the global flag).
+
+With the above code in place, your application will respond to the command line argument "--oml-help", which will display the following information about OML4R configuration:
+
+    --oml-file file              Writes measurements to 'file'
+    --oml-id id                  Name to identify this app instance [undefined]
+    --oml-exp-id expId           Name to experiment DB [undefined]
+    --oml-server uri             URI of server to send measurements to (tcp:host:port)
+    --oml-noop                   Do not collect measurements
+    --oml-help                   Show this message
+
+You can also have a look at [some other examples provided by OML4R](http://git.mytestbed.net/?p=oml.git;a=tree;f=ruby/oml4r/lib/oml4r).
+
+Alternatively, if you want to configure the OML4R library through the optional Hash *opts* rather than the command line, instead of the above code you should add the following one to your application (more details on this are given in [the OML4R Readme document](http://git.mytestbed.net/?p=oml.git;a=blob;f=ruby/oml4r/README.md)).
+
+    OML4R::init(ARGV, {
+      :appName => 'my_application',
+      :expID => 'foo',
+      :nodeId => 'node1',
+      :omlServer => 'tcp:my.oml.server.com:3003'}
+    )
+
+### Define Some Measurement Points
+
+The next step is to define the Measurement Points. From the OML documentation:
+
+> A Measurement Point (MP) is an application-defined input port for recording measurements. An application "injects" measurements into the MP, the OML4R library registers them and then sends them to an output stream towards an OML end-point (either a file or a network destination).
+
+> An MP accepts n-tuples as inputs. That is, each measurement is not just one number, but can be a group of related measurement items. For instance, a measurement might represent all the available information about a received packet, such as its source and destination, its length, and what protocol it carries. Integers, floating point numbers, and short strings can be represented
+
+In the [abstract_resource.rb](https://github.com/mytestbed/omf/blob/master/omf_rc/lib/omf_rc/resource_proxy/abstract_resource.rb) for this example, we will define 2 MPs:
+
+* *MPPublished* - which will be used for measurements about messages published by the Resource Proxy
+* *MPReceived* - which will be used for measurements about messages received by the Resource Proxy
+
+Thus we add the following code to the Resource Proxy's source code (see [abstract_resource.rb](https://github.com/mytestbed/omf/blob/master/omf_rc/lib/omf_rc/resource_proxy/abstract_resource.rb)):
+
+    class OmfRc::ResourceProxy::MPPublished < OML4R::MPBase
+      name :proxy_published
+      param :time, :type => :double # Time (s) when this message was published 
+      param :uid, :type => :string # UID for this Resource Proxy
+      param :topic, :type => :string # Pubsub topic to publish this message to
+      param :msg_id, :type => :string # Unique ID this message
+    end
+
+    class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
+      name :proxy_received
+      param :time, :type => :double # Time (s) when this message was received 
+      param :uid, :type => :string # UID for this Resource Proxy
+      param :topic, :type => :string # Pubsub topic where this message came from
+      param :msg_id, :type => :string # Unique ID this message
+    end
+
+(Note: here it is enough to record only the message ID, as the message factory in OMF6 is also instrumented and thus send measurements about each created message, also identified by the same unique message ID)
+
+
+### Capture Some Measurement and Inject to OML4R
+
+The final step is to capture and prepare some measurements, and then finally inject them to the defined MP so that they can be handled by the OML4R library. This capture/inject can happen anywhere in the source code of your Resource Proxy, and it is up to you decide where to measure what and when.
+
+In this example for the Abstract Resource Proxy, we capture, prepare and inject measurements at 2 different places, one just after a publish action done by the resource proxy, and the other just after a new incoming message is passed to the resource proxy. Below are the relevant commented code lines (see [abstract_resource.rb](https://github.com/mytestbed/omf/blob/master/omf_rc/lib/omf_rc/resource_proxy/abstract_resource.rb)):
+
+    # ...an inform message was previously constructed...
+    @comm.publish(inform_to, inform_message)
+    if OmfCommon::Measure.enabled?
+      # You may want to do more things here to prepare your measurement, in
+      # this simple example there is nothing more to do, so we just pass it 
+      # on to the MP
+      OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f, self.uid, inform_to, inform_message.msg_id)
+    end
+
+and
+
+    # ...an incoming message was previously passed to us by the underlying communication stack...
+    if OmfCommon::Measure.enabled?
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.msg_id) 
+    end
+    # now go on and process that message...
+    execute_omf_operation(message, obj)
+
+Note in the above examples, we checked the global *OmfCommon::Measure.enabled?* flag before preparing and injecting our measuremnt. As stated earlier, even though the use of the OML4R's *--oml-noop* option during its initial configuration will prevent it from sending any measurements to end-points, the section of your code preparing these measurements will not be disabled. However, you may want to do so in that case of *--oml-noop* being used, hence the check on *OmfCommon::Measure.enabled?*.
+
+### Accessing/Using your Measurements
+
+At this stage, all of your collected measurements should have been stored either in a file or a database depending on your choice of OML end-point in the initial OML4R configuration. Please refer to the [OML documentation]() for detailed information about how to access your measurements depending on the selected end-point.
+
+As an example, here we provide a sample database dump from a run of a Resource Proxy collecting the measurements defined above. The selected end-point for this example was an OML2 Server using a SQLite3 database backend:
+
+* [proxy\_instrumentation\_dump.txt](https://github.com/mytestbed/omf/blob/master/doc/proxy_instrumentation_dump.txt)
+

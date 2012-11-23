@@ -17,25 +17,41 @@ describe OmfRc::ResourceProxy::Node do
         { name: 'phy0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' }
       ]
 
-      Dir.stub :chdir, proc { |*args, &block| block.call } do
-        glob_proc = proc do |pattern|
-          sys_dir = "#{File.dirname(__FILE__)}/../../fixture/sys/class"
-          case pattern
-          when "net"
-            ["#{sys_dir}/net"]
-          when "ieee80211"
-            ["#{sys_dir}/ieee80211"]
-          when "ieee80211/*"
-            ["#{sys_dir}/ieee80211/phy0"]
-          when "net/eth*"
-            ["#{sys_dir}/net/eth0"]
-          end
-        end
-        Dir.stub :glob, glob_proc do
-          @node.request_devices.must_be_kind_of Array
-          @node.request_devices.must_equal devices
+      glob_proc = proc do |pattern|
+        sys_dir = "#{File.dirname(__FILE__)}/../../fixture/sys/class"
+        case pattern
+        when "/sys/class/net"
+          ["#{sys_dir}/net"]
+        when "/sys/class/ieee80211"
+          ["#{sys_dir}/ieee80211"]
+        when "/sys/class/ieee80211/*"
+          ["#{sys_dir}/ieee80211/phy0"]
+        when "/sys/class/net/eth*"
+          ["#{sys_dir}/net/eth0"]
         end
       end
+      Dir.stub :glob, glob_proc do
+        @node.request_devices.must_be_kind_of Array
+        @node.request_devices.must_equal devices
+      end
+    end
+
+    it "must provide a list of created applications" do
+      @node.create(:application, { :uid => 'app_test', :hrn => 'app_test' })
+
+      @node.request_applications.must_equal [
+        { name: 'app_test', type: 'application', uid: 'app_test' }
+      ]
+    end
+
+    it "must provide a list of created interfaces" do
+      @node.create(:wlan, { :uid => 'wlan0', :hrn => 'wlan0' })
+      @node.create(:net, { :uid => 'eth0', :hrn => 'eth0' })
+
+      @node.request_interfaces.must_equal [
+        { name: 'eth0', type: 'net', uid: 'eth0' },
+        { name: 'wlan0', type: 'wlan', uid: 'wlan0' }
+      ]
     end
   end
 end

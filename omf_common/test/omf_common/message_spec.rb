@@ -9,6 +9,7 @@ describe OmfCommon::Message do
     it "must return a create or configure XML element without failing" do
       %w(create configure).each do |msg_name|
         message = Message.__send__(msg_name) do |m|
+
           PROP_ELEMENTS.each_with_index do |prop_element, index|
             if index == 0
               m.property(prop_element, rand(100))
@@ -17,7 +18,14 @@ describe OmfCommon::Message do
                 p.element('unit', 'test')
                 p.element('precision', 'test')
               end
+
             end
+          end
+
+          # Guard element optional
+          m.element(:guard) do |g|
+            g.property('p1', 1)
+            g.property('p2', 2)
           end
         end
         message.valid?.must_equal true
@@ -57,6 +65,17 @@ describe OmfCommon::Message do
       m.context_id.must_equal '9012c3bc-68de-459a-ac9f-530cc7168e22'
     end
 
+    it "must escape erb code in property" do
+      m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
+        m.property('bob', "hello <%= world %>")
+        m.property('alice', "hello <%= 1 % 2 %>")
+      end
+      m.read_property('bob').must_equal "hello <%= world %>"
+      world = 'world'
+      m.read_property('bob', binding).must_equal "hello world"
+      m.read_property('alice', binding).must_equal "hello 1"
+    end
+
     it "must be able to pretty print an app_event message" do
       Message.inform('STATUS') do |m|
         m.property('status_type', 'APP_EVENT')
@@ -75,15 +94,18 @@ describe OmfCommon::Message do
         m.property('os', 'debian')
         m.property('memory', { value: 1024, unit: 'mb', precision: 0 })
         m.property('devices', [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ])
+        m.property('true', true)
+        m.property('false', false)
+        m.property('boolean_array', [false, true])
       end.canonicalize
 
       message = Message.parse(xml)
 
       message.must_be_kind_of Message
       message.operation.must_equal :create
-      message.read_element("//property").size.must_equal 4
-      message.read_content("unit").must_equal 'mb'
-      message.read_element("/create/property").size.must_equal 4
+      message.read_element("property").size.must_equal 7
+      message.read_content("property[@key='memory']/unit").must_equal 'mb'
+      message.read_element("property").size.must_equal 7
       message.read_property("type").must_equal 'vm'
       message.read_property(:type).must_equal 'vm'
 
@@ -94,13 +116,17 @@ describe OmfCommon::Message do
       memory.precision.must_equal 0
 
       devices = message.read_property(:devices)
-      devices.items.must_be_kind_of Array
-      devices.items.size.must_equal 2
-      devices.items.find { |v| v.name == 'w1'}.driver.items.size.must_equal 2
+      devices.must_be_kind_of Array
+      devices.size.must_equal 2
+      devices.find { |v| v.name == 'w1'}.driver.size.must_equal 2
       # Each property iterator
       message.each_property do |v|
-        %w(type os memory devices).must_include v.attr('key')
+        %w(type os memory devices true false boolean_array).must_include v.attr('key')
       end
+
+      message.read_property(:true).must_equal true
+      message.read_property(:false).must_equal false
+      message.read_property('boolean_array').must_equal [false, true]
     end
 
     it "must fail if parse an empty xml" do

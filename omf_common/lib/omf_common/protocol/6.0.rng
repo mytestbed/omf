@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<grammar ns="http://schema.mytestbed.net/6.0/protocol" xmlns="http://relaxng.org/ns/structure/1.0">
+<grammar ns="http://schema.mytestbed.net/omf/6.0/protocol" xmlns="http://relaxng.org/ns/structure/1.0">
   <start>
     <choice>
       <ref name="create"/>
@@ -9,6 +9,14 @@
       <ref name="inform"/>
     </choice>
   </start>
+  <define name="common_elements">
+    <attribute name="msg_id"/>
+    <attribute name="timestamp"/>
+    <attribute name="digest"/>
+    <optional>
+      <attribute name="signature"/>
+    </optional>
+  </define>
   <define name="anything">
     <choice>
       <text/>
@@ -26,132 +34,162 @@
       </element>
     </choice>
   </define>
+  <define name="prop_content">
+    <attribute name="key"/>
+    <optional>
+      <attribute name="type"/>
+    </optional>
+    <zeroOrMore>
+      <ref name="anything"/>
+    </zeroOrMore>
+  </define>
   <define name="create">
     <element name="create">
-      <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
-      <zeroOrMore>
-        <element name="property">
-          <attribute name="key"/>
-          <optional>
-            <attribute name="type"/>
-          </optional>
-          <zeroOrMore>
-            <ref name="anything"/>
-          </zeroOrMore>
-        </element>
-      </zeroOrMore>
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="publish_to">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="guard">
+            <zeroOrMore>
+              <element name="property">
+                <ref name="prop_content"/>
+              </element>
+            </zeroOrMore>
+          </element>
+        </optional>
+        <zeroOrMore>
+          <element name="property">
+            <ref name="prop_content"/>
+          </element>
+        </zeroOrMore>
+      </interleave>
     </element>
   </define>
   <define name="configure">
     <element name="configure">
-      <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
-      <zeroOrMore>
-        <element name="property">
-          <attribute name="key"/>
-          <optional>
-            <attribute name="type"/>
-          </optional>
-          <zeroOrMore>
-            <ref name="anything"/>
-          </zeroOrMore>
-        </element>
-      </zeroOrMore>
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="publish_to">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="guard">
+            <zeroOrMore>
+              <element name="property">
+                <ref name="prop_content"/>
+              </element>
+            </zeroOrMore>
+          </element>
+        </optional>
+        <zeroOrMore>
+          <element name="property">
+            <ref name="prop_content"/>
+          </element>
+        </zeroOrMore>
+      </interleave>
     </element>
   </define>
   <define name="request">
     <element name="request">
-      <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
-      <optional>
-        <element name="publish_to">
-          <text/>
-        </element>
-      </optional>
-      <zeroOrMore>
-        <element name="property">
-          <attribute name="key"/>
-          <optional>
-            <attribute name="type"/>
-          </optional>
-          <zeroOrMore>
-            <ref name="anything"/>
-          </zeroOrMore>
-        </element>
-      </zeroOrMore>
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="publish_to">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="guard">
+            <zeroOrMore>
+              <element name="property">
+                <ref name="prop_content"/>
+              </element>
+            </zeroOrMore>
+          </element>
+        </optional>
+        <zeroOrMore>
+          <element name="property">
+            <ref name="prop_content"/>
+          </element>
+        </zeroOrMore>
+      </interleave>
     </element>
   </define>
   <define name="release">
     <element name="release">
-      <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
-      <element name="resource_id">
-        <text/>
-      </element>
-      <zeroOrMore>
-        <element name="property">
-          <attribute name="key"/>
-          <optional>
-            <attribute name="type"/>
-          </optional>
-          <zeroOrMore>
-            <ref name="anything"/>
-          </zeroOrMore>
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="publish_to">
+            <text/>
+          </element>
+        </optional>
+        <element name="resource_id">
+          <text/>
         </element>
-      </zeroOrMore>
+        <optional>
+          <element name="guard">
+            <zeroOrMore>
+              <element name="property">
+                <ref name="prop_content"/>
+              </element>
+            </zeroOrMore>
+          </element>
+        </optional>
+        <zeroOrMore>
+          <element name="property">
+            <ref name="prop_content"/>
+          </element>
+        </zeroOrMore>
+      </interleave>
     </element>
   </define>
   <define name="inform">
     <element name="inform">
-      <attribute name="msg_id"/>
-      <element name="context_id">
-        <text/>
-      </element>
-      <element name="inform_type">
-        <choice>
-          <value>CREATED</value>
-          <value>FAILED</value>
-          <value>STATUS</value>
-          <value>RELEASED</value>
-          <value>ERROR</value>
-          <value>WARN</value>
-        </choice>
-      </element>
-      <optional>
-        <element name="resource_id">
-          <text/>
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="context_id">
+            <text/>
+          </element>
+        </optional>
+        <element name="inform_type">
+          <choice>
+            <value>CREATED</value>
+            <value>FAILED</value>
+            <value>STATUS</value>
+            <value>RELEASED</value>
+            <value>ERROR</value>
+            <value>WARN</value>
+          </choice>
         </element>
-      </optional>
-      <optional>
-        <element name="resource_address">
-          <text/>
-        </element>
-      </optional>
-      <optional>
-        <element name="reason">
-          <text/>
-        </element>
-      </optional>
-      <zeroOrMore>
-        <element name="property">
-          <attribute name="key"/>
-          <optional>
-            <attribute name="type"/>
-          </optional>
-          <zeroOrMore>
-            <ref name="anything"/>
-          </zeroOrMore>
-        </element>
-      </zeroOrMore>
+        <optional>
+          <element name="resource_id">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="resource_address">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="reason">
+            <text/>
+          </element>
+        </optional>
+        <zeroOrMore>
+          <element name="property">
+            <ref name="prop_content"/>
+          </element>
+        </zeroOrMore>
+      </interleave>
     </element>
   </define>
 </grammar>

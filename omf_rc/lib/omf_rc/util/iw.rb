@@ -12,13 +12,17 @@ module OmfRc::Util::Iw
 
   # Parse iw help page and set up all configure methods available for iw command
   #
-  CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
-    configure p do |device, value|
-      CommandLine.new("iw", "dev :dev set :property :value",
-                      :dev => device.hrn,
-                      :property => p,
-                      :value => value).run
+  begin
+    CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
+      configure p do |device, value|
+        CommandLine.new("iw", "dev :dev set :property :value",
+                        :dev => device.hrn,
+                        :property => p,
+                        :value => value).run
+      end
     end
+  rescue Cocaine::CommandNotFoundError
+    logger.warn "Command iw not found"
   end
 
   # Parse iw link command output and return as a mash

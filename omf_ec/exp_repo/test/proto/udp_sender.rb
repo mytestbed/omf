@@ -32,7 +32,7 @@ defPrototype("test:proto:udp_sender") do |p|
   p.name = "UDP_Sender"
   p.description = "A node which transmit unicast CBR UDP packets"
 
-  # Define the properties (and their default values) that can be configured 
+  # Define the properties (and their default values) that can be configured
   # for this prototype
   #
   p.defProperty('destinationHost', 'Host to send packets to')
@@ -49,7 +49,7 @@ defPrototype("test:proto:udp_sender") do |p|
   # for each application.
   #
   p.addApplication("test:app:otg2") do |otg|
-    otg.bindProperty('udp:broadcast', 'broadcast')	
+    otg.bindProperty('udp:broadcast', 'broadcast')
     otg.bindProperty('udp:dst_host', 'destinationHost')
     otg.bindProperty('udp:dst_port', 'destinationPort')
     otg.bindProperty('udp:local_host', 'localHost')

@@ -1,0 +1,137 @@
+#!/usr/bin/env ruby
+#
+require 'gli'
+require 'omf_ec'
+$stdout.sync = true
+
+include GLI::App
+include OmfEc
+
+program_desc "Run a command on the testbed(s)"
+version OmfEc::VERSION
+
+desc "Debug mode (printing debug logging messages)"
+switch [:d, :debug]
+
+desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
+switch [:x, :xmpp]
+
+desc "XMPP user name"
+arg_name "user"
+flag [:u, :user]
+
+desc "XMPP user password"
+arg_name "password"
+flag [:p, :password]
+
+desc "XMPP server domain"
+arg_name "domain"
+default_value "localhost"
+flag [:s, :server]
+
+desc "Private key file"
+arg_name "key", :optional
+flag [:private_key]
+
+desc "Log file directory"
+arg_name "directory"
+default_value "/tmp"
+flag [:log_file_dir]
+
+config_file(".config/omf_ec.yml")
+
+desc "Execute an experiment script"
+arg_name "path_to_script_file [-- --experiment_property value]"
+command :exec do |c|
+  c.desc "Experiment name"
+  c.arg_name "experiment_name"
+  c.flag [:e, :experiment]
+
+  c.desc "Check script version (you need to define OMF_VERSIONS in your script"
+  c.switch "version_check"
+
+  c.action do |global_options, options, args|
+    unless global_options[:user] && global_options[:password] && global_options[:server]
+      help_now! "Incomplete options"
+    end
+
+    help_now! "Missing experiment script" if args[0].nil?
+    help_now! "Experiment script not found" unless File.exist?(args[0])
+
+    if global_options[:xmpp]
+      Blather.logger = logger
+    end
+
+    if global_options[:debug]
+      Logging.logger.root.level = :debug
+    end
+
+    # Import private key
+    if global_options[:private_key]
+      OmfCommon::Key.instance.import(global_options[:private_key])
+    end
+
+    # Check version
+    if options[:check]
+      File.open(args[0], 'r') do |f|
+        f.read.chomp.match(/OMF_VERSIONS\W*=\W*(.*)/)
+        versions = $1
+        unless versions && versions.split(',').include?(OmfCommon::PROTOCOL_VERSION)
+          raise StandardError, "Could not find compatibile protocol version number in your script"
+        end
+      end
+    end
+
+    include OmfEc::DSL
+
+    OmfEc.exp.name = options[:experiment] if options[:experiment]
+
+    if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
+      Logging.logger.root.add_appenders(
+        Logging.appenders.file("#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log")
+      )
+    end
+
+    # User provided exp properties
+    if args.size > 1
+      exp_properties = args[1..-1]
+
+      exp_properties.in_groups_of(2) do |p|
+        unless p[0] =~ /^--(.+)/ && !p[1].nil?
+          help_now! "Malformatted properties '#{exp_properties.join(' ')}'"
+        else
+          OmfEc.exp.property[$1.to_sym] = p[1].ducktype
+        end
+      end
+    end
+
+    begin
+      OmfEc.comm.when_ready do
+        logger.info "Connected: #{OmfEc.comm.jid.inspect}"
+        logger.info "Start experiment: #{OmfEc.exp.id}"
+        begin
+          include OmfEc::Backward::DefaultEvents
+          load args[0]
+        rescue => e
+          logger.error e.message
+          logger.error e.backtrace.join("\n")
+        end
+      end
+
+      EM.run do
+        OmfEc.comm.connect(global_options[:user], global_options[:password], global_options[:server])
+        trap(:INT) { Experiment.done }
+        trap(:TERM) { Experiment.done }
+      end
+    rescue => e
+      logger.fatal e.message
+      logger.fatal e.backtrace.join("\n")
+    end
+  end
+end
+
+on_error do |exception|
+  true
+end
+
+exit run(ARGV)

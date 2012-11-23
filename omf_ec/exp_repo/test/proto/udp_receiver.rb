@@ -35,7 +35,7 @@ defPrototype("test:proto:udp_receiver") do |p|
   p.name = "UDP_Receiver"
   p.description = "Nodes which receive UDP packets"
 
-  # Define the properties (and their default values) that can be configured 
+  # Define the properties (and their default values) that can be configured
   # for this prototype
   #
   p.defProperty('localHost', 'Host that generate the packets', 'localhost')

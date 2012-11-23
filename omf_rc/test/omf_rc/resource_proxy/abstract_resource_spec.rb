@@ -58,16 +58,18 @@ describe AbstractResource do
     it "must add the resource to its created resource list" do
       child = @node.create(:wifi, { hrn: 'default_wifi' })
       @node.children.must_include child
-      @node.request_child_resources[child.uid].must_equal 'default_wifi'
+      @node.request_child_resources.find { |v| v.uid == child.uid }.name.must_equal 'default_wifi'
     end
   end
 
   describe "when destroyed" do
     it "must destroy itself together with any resources created by it" do
-      child = @node.create(:wifi, { hrn: 'default_wifi' })
-      @node.children.wont_be_empty
-      @node.release(child.uid)
-      @node.children.must_be_empty
+      @node.comm.stub :delete_topic, nil do
+        child = @node.create(:wifi, { hrn: 'default_wifi' })
+        @node.children.wont_be_empty
+        @node.release(child.uid)
+        @node.children.must_be_empty
+      end
     end
   end
 
@@ -130,7 +132,9 @@ describe AbstractResource do
   describe "when request/configure property not pre-defined in proxy" do
     it "must try property hash" do
       @node.property[:bob] = "bob"
+      @node.property[:false] = false
       @node.request_bob.must_equal "bob"
+      @node.request_false.must_equal false
       @node.configure_bob("not_bob")
       @node.request_bob.must_equal "not_bob"
       proc { @node.request_bobs_cousin }.must_raise OmfRc::UnknownPropertyError

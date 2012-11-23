@@ -27,7 +27,7 @@
 #
 
 defPrototype("test:proto:probelink") { |p|
-  
+
   p.name = "ProbeLink"
   p.description = "Get some characteristics of the wireless interface using the wlanconfig list command"
 
