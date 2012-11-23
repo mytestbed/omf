@@ -96,7 +96,7 @@ module OMF
           end
         else
           debug "Not initializing ReqMan b/c #{@@connection}"
-          debug "--> is/is not connected? #{@@connection.connected?}" unless @@connected.nil?
+          debug "--> is/is not connected? #{@@connection.connected?}"
         end
       end
 
