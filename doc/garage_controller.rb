@@ -104,8 +104,8 @@ module OmfRc::ResourceProxy::Engine
     engine.property.throttle = value.to_f / 100.0
   end
 
-  request :error do |engine|
-    raise "You asked for an error, and you got it"
+  request :failure do |engine|
+    raise "You asked for an failure, and you got it"
   end
 end
 

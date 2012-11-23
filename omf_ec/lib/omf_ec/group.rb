@@ -27,6 +27,9 @@ module OmfEc
                 r[:membership] = i.read_property(:membership)
                 Experiment.instance.process_events
               end
+              c.on_inform_failed do |i|
+                warn "RC reports failure: '#{i.read_content("reason")}'"
+              end
             end
           end
         end
@@ -55,8 +58,12 @@ module OmfEc
             block.call if block
             Experiment.instance.process_events
           end
+          c.on_inform_failed do |i|
+            warn "RC reports failure: '#{i.read_content("reason")}'"
+          end
 
           rg = OmfEc.comm.get_topic(resource_group_name)
+          # Receive  status inform message
           rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
             r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
             unless r.nil?
@@ -69,6 +76,10 @@ module OmfEc
               end
             end
             Experiment.instance.process_events
+          end
+          # Receive failed inform message
+          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
+            warn "RC reports failure: '#{i.read_content("reason")}'"
           end
         end
       end

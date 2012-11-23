@@ -157,7 +157,7 @@ module OmfCommon
             if [:unexpected_request].include? e_stanza.name
               logger.debug e_stanza
             else
-              logger.error e_stanza
+              logger.warn "#{e_stanza} Original: #{e_stanza.original}"
             end
           end
           logger.debug "#{m} SUCCEED" if stanza.respond_to?(:result?) && stanza.result?

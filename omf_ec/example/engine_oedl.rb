@@ -32,6 +32,8 @@ defGroup(OmfEc.exp.id, *garages) do |g|
 
     g.resources[type: 'engine'][name: 'primary_engine'].sn
 
+    g.resources[type: 'engine'][name: 'primary_engine'].failure
+
     after 1 do
       info OmfEc.exp.state
     end
