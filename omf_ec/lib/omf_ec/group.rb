@@ -1,32 +1,41 @@
 module OmfEc
   class Group
-    attr_accessor :name
-    attr_accessor :net_ifs
+    attr_accessor :name, :net_ifs, :members, :apps
 
     def initialize(name)
       self.name = name
+      # Add empty holders for members, network interfaces, and apps
+      self.net_ifs = []
+      self.members = []
+      self.apps = []
     end
 
     def add_resource(*names)
       names.each do |name|
         OmfEc.comm.subscribe(name) do |m|
           unless m.error?
-            # resource with uid: name is available
-            OmfEc.exp.state << { uid: name } unless OmfEc.exp.state.find { |v| v[:uid] == name }
-
-            if OmfEc.exp.groups.include?(name)
+            # resource to add is a group
+            if OmfEc.exp.groups.any? { |v| v.name == name }
+              error name
               group(name).resources.membership = self.name
             else
+              # resource with uid: name is available
+              unless OmfEc.exp.state.any? { |v| v[:uid] == name }
+                OmfEc.exp.state << { uid: name }
+              end
+
               c = OmfEc.comm.configure_message(self.name) do |m|
                 m.property(:membership, self.name)
               end
+
               c.publish name
+
               c.on_inform_status do |i|
-                info "#{name} added to #{self.name}"
                 r = OmfEc.exp.state.find { |v| v[:uid] == name }
                 r[:membership] = i.read_property(:membership)
                 Experiment.instance.process_events
               end
+
               c.on_inform_failed do |i|
                 warn "RC reports failure: '#{i.read_content("reason")}'"
               end
@@ -51,13 +60,16 @@ module OmfEc
               m.property(k, v)
             end
           end
+
           c.publish self.name
+
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
             OmfEc.exp.state << { uid: i.resource_id, type: opts[:type] }
             block.call if block
             Experiment.instance.process_events
           end
+
           c.on_inform_failed do |i|
             warn "RC reports failure: '#{i.read_content("reason")}'"
           end
