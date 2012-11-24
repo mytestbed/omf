@@ -82,6 +82,9 @@
           # set this to "true" if you have a DNS SRV record pointing to the
           # real pubsub server hostname
           :pubsub_use_dnssrv: false
+          # how many (re-)connection attempts before giving up, default is 1
+          # 0 means keep trying forever
+          :pubsub_max_retries: 1
           
       # AM contact details. By default, the AM is contacted through the EC's XMPP
       # connection as specified in the ':communicator:' section above. In this

@@ -39,7 +39,8 @@
       # real pubsub server hostname
       :pubsub_use_dnssrv: false
       # how many (re-)connection attempts before giving up
-      :pubsub_max_retries: 5
+      # default is 0 (keep trying forever)
+      :pubsub_max_retries: 0
 
   # Agent settings
   :agent:

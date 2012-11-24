@@ -147,7 +147,7 @@ class OmfXMPPServices < MObject
     @homeServer = host
     @port = port || 5222
     @useDnsSrv = useDnsSrv || false
-    @max_retries = max_retries || 5
+    @max_retries = max_retries || 0
     @serviceHelpers = Hash.new # Holds the list of service helpers
     @connecting = false
     @keepAliveThread = nil
@@ -178,7 +178,8 @@ class OmfXMPPServices < MObject
     @connection_attempts = 0
     debug "Trying to connect to Pubsub Gateway '#{@homeServer}:#{@port}'..."
     begin
-      success = call_with_timeout("Timing out while connecting to "+
+      @connection_attempts+=1
+      success = call_with_timeout("Timeout while connecting to "+
                                   "PubSub Gateway '#{@homeServer}'") { 
                                     if @useDnsSrv
                                       # passing no hostname here will try to resolve a DNS
@@ -190,8 +191,7 @@ class OmfXMPPServices < MObject
                                     end }
       raise Exception.new if !success
     rescue Exception => ex
-      raise Exception.new("Maximum number of connection attempts reached") if @connection_attempts >= @max_retries
-      @connection_attempts+=1
+      raise Exception.new("Maximum number of connection attempts reached") if @connection_attempts == @max_retries
       debug "Cannot connect to PubSub Gateway '#{@homeServer}'! "+
             "Retry in #{RECONNECT_INTERVAL}s ..."
       sleep RECONNECT_INTERVAL
@@ -212,6 +212,7 @@ class OmfXMPPServices < MObject
     # Now, we authenticate this client to the server
     @clientHelper.auth(@password)
     @clientHelper.send(Jabber::Presence.new)
+    add_service(@homeServer)
     debug "Connected as '#{@userJID}' to XMPP server: '#{@homeServer}'"
     @nodeBrowser = Jabber::PubSub::NodeBrowser.new(@clientHelper)
     @cSemaphore.synchronize {
@@ -245,8 +246,8 @@ class OmfXMPPServices < MObject
             # Kill this ping Thread if too many ping failures
             @pingTries += 1 if !success
             @pingTries = 0 if success
-            if @pingTries > PING_ATTEMPTS 
-              debug "Ping retry threshold reached, will try to reconnect!"
+            if @pingTries >= PING_ATTEMPTS 
+              debug "No reply to XMPP pings was received, attempting to reconnect..."
               break 
             end
           end
@@ -353,7 +354,7 @@ class OmfXMPPServices < MObject
   def publish_to_node(node, domain, item, create_if_not_exist = false)
     begin
       add_service(domain) if !service?(domain)
-      success = call_with_timeout("Timing out while sending PubSub message to "+
+      success = call_with_timeout("Timeout out while sending PubSub message to "+
                         "'#{domain}'") { 
                         service(domain).publish_item_to(node, item) }
       return false if !success
@@ -413,7 +414,7 @@ class OmfXMPPServices < MObject
   def list_all_subscriptions(domain)
     list = []
     begin
-      call_with_timeout("Timing out while getting all subscriptions on '#{domain}'") do
+      call_with_timeout("Timeout out while getting all subscriptions on '#{domain}'") do
         list = service(domain).get_subscriptions_from_all_nodes
       end
     rescue Exception => ex
@@ -439,7 +440,7 @@ class OmfXMPPServices < MObject
       end
     end
     begin
-      call_with_timeout("Timing out while leaving the PubSub node '#{node}'") do
+      call_with_timeout("Timeout out while leaving the PubSub node '#{node}'") do
         service(domain).unsubscribe_from_fixed(node, subid) 
       end
     rescue Exception => ex
@@ -483,7 +484,7 @@ class OmfXMPPServices < MObject
   #
   def purge_node(node, domain)
     begin
-      call_with_timeout("Timing out while purging the PubSub node '#{node}'") {
+      call_with_timeout("Timeout out while purging the PubSub node '#{node}'") {
                         service(domain).purge_items_from(node) }
     rescue Exception => ex
       # if the PubSub node does not exist, we ignore the "not found" exception
@@ -508,7 +509,7 @@ class OmfXMPPServices < MObject
   def remove_node(node, domain)
     purge_node(node, domain)
     begin
-      call_with_timeout("Timing out while removing the PubSub node '#{node}'") {
+      call_with_timeout("Timeout out while removing the PubSub node '#{node}'") {
                         service(domain).delete_node(node) }
     rescue Exception => ex
       # if the PubSub node does not exist, we ignore the "not found" exception
@@ -544,7 +545,7 @@ class OmfXMPPServices < MObject
   #
   def ping(domain)
     begin
-      s = call_with_timeout("Timing out while pinging the PubSub Gateway "+
+      s = call_with_timeout("Timeout while pinging the PubSub Gateway "+
                         "'#{domain}'") { service(domain).ping }
       return s
     rescue Exception => ex
@@ -563,7 +564,7 @@ class OmfXMPPServices < MObject
     debug "Exiting!"
     begin
       @keepAliveThread.kill! if @keepAliveThread
-      call_with_timeout("Timing out closing connection to the PubSub Gateway "+
+      call_with_timeout("Timeout closing connection to the PubSub Gateway "+
                         "'#{@homeServer}}'") { 
                         @clientHelper.remove_registration
                         @clientHelper.close
