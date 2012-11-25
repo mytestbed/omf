@@ -327,10 +327,11 @@ class OmfRc::ResourceProxy::AbstractResource
 
         case message.operation
         when :create
-          new_opts = opts.dup.merge(uid: nil)
+          new_name = message.read_property(:name) || message.read_property(:hrn)
+          new_opts = opts.dup.merge(uid: nil, hrn: new_name)
           new_obj = obj.create(message.read_property(:type), new_opts)
           message.each_property do |p|
-            unless p.attr('key') == 'type'
+            unless %w(type hrn name).include?(p.attr('key'))
               method_name = "configure_#{p.attr('key')}"
               p_value = message.read_property(p.attr('key'), new_obj.get_binding)
               new_obj.__send__(method_name, p_value)
