@@ -191,7 +191,19 @@ class OmfRc::ResourceProxy::AbstractResource
       @membership << n_m unless @membership.include?(n_m)
     end
     @membership.each do |m|
-      @comm.subscribe(m)
+      @comm.subscribe(m) do |stanza|
+        if stanza.error?
+          warn "Group #{m} disappeared"
+          EM.next_tick do
+            @membership.delete(m)
+
+            self.inform(:status, {
+              inform_to: self.uid,
+              status: { uid: self.uid, membership: self.membership }
+            })
+          end
+        end
+      end
     end
     @membership
   end
