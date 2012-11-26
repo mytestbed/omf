@@ -28,6 +28,24 @@ module OmfEc
                 m.property(:membership, self.name)
               end
 
+              r = OmfEc.comm.get_topic(name)
+
+              r.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
+                r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+                unless r.nil?
+                  i.each_property do |p|
+                    key = p.attr('key').to_sym
+                    r[key] = i.read_property(key)
+                  end
+                end
+                Experiment.instance.process_events
+              end
+
+              # Receive failed inform message
+              r.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
+                warn "RC reports failure: '#{i.read_content("reason")}'"
+              end
+
               c.publish name
 
               c.on_inform_status do |i|
