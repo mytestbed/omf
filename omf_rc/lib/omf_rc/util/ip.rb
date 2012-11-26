@@ -15,10 +15,12 @@ module OmfRc::Util::Ip
   end
 
   configure :ip_addr do |resource, value|
-    CommandLine.new("ip",  "addr add :ip_address dev :device",
-                    :ip_address => value,
-                    :device => resource.hrn
-                   ).run
+    if resource.request_ip_addr != value
+      CommandLine.new("ip",  "addr add :ip_address dev :device",
+                      :ip_address => value,
+                      :device => resource.hrn
+                     ).run
+    end
     resource.request_ip_addr
   end
 
