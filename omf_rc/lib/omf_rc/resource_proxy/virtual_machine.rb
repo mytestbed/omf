@@ -22,9 +22,9 @@
 #
 # This module defines a Resource Proxy (RP) for a Virtual Machine Factory
 #
-# Utility dependencies: common_tools
+# Utility dependencies: common_tools, libvirt, vmbuilder
 #
-# This VM Factory Proxy has the following properties:
+# This VM Proxy has the following properties:
 #
 
 module OmfRc::ResourceProxy::VirtualMachine
@@ -63,6 +63,7 @@ module OmfRc::ResourceProxy::VirtualMachine
   property :image_directory, :default => VM_DIR_DEFAULT
   property :image_path, :default => VM_DIR_DEFAULT
   property :vm_definition, :default => ''
+  property :vm_original_clone, :default => ''
   property :vm_os, :default => VM_OS_DEFAULT
   property :omf_opts, :default => OMF_DEFAULT
 
@@ -87,37 +88,25 @@ module OmfRc::ResourceProxy::VirtualMachine
     res.property.image_path = "#{res.property.image_directory}/#{name}"
     res.property.vm_name = name            
   end
+
   configure :image_directory do |res, name|
     res.property.image_path = "#{name}/#{res.property.vm_name}"
     res.property.image_directory = name            
   end
 
+  # build, define, stop, run, delete, attach, clone_from
   configure :action do |res, value|
-    case value.to_s.downcase.to_sym
-    when :build then res.switch_to_build
-    when :define then res.switch_to_define
-    when :stop then res.switch_to_stop
-    when :run then res.switch_to_run
-    when :delete then res.switch_to_delete
-    when :clone then res.switch_to_delete
-    end
+    act = value.to_s.downcase
+    res.send("#{act}_vm")
     res.property.action = value
   end
 
-  work :switch_to_build do |res|    
+  work :build_vm do |res|    
     res.log_inform_warn "Trying to build an already built VM, make sure to "+
       "have the 'overwrite' property set to true!" if res.property.ready
     if res.property.state.to_sym == :stopped
-      cmd = res.send("build_img_with_#{res.property.img_builder}")
-      logger.info "Building VM with: '#{cmd}'"
-      result = `#{cmd} 2>&1`
-      if $?.exitstatus != 0
-        res.log_inform_error "Cannot build VM image: '#{result}'"
-      else
-         res.property.ready = true
-         logger.info "VM image built successfully!"
-         res.inform(:status, Hashie::Mash.new({:status => {:ready => true}}))
-      end
+      res.property.ready = res.send("build_img_with_#{res.property.img_builder}")
+      res.inform(:status, Hashie::Mash.new({:status => {:ready => res.property.ready}}))
     else
       res.log_inform_error "Cannot build VM image: it is not stopped"+
         "(name: '#{res.property.vm_name}' - state: #{res.property.state} "+
@@ -125,23 +114,15 @@ module OmfRc::ResourceProxy::VirtualMachine
     end
   end
 
-  work :switch_to_define do |res|
+  work :define_vm do |res|
     unless File.exist?(res.property.vm_definition)
         res.log_inform_error "Cannot define VM (name: "+
           "'#{res.property.vm_name}'): definition path not set "+
           "or file does not exist (path: '#{res.property.vm_definition}')"
     else
       if res.property.state.to_sym == :stopped
-        cmd = res.send("define_vm_with_#{res.property.virt_mngt}")
-        logger.info "Defining VM with: '#{cmd}'"
-        result = `#{cmd} 2>&1`
-        if $?.exitstatus != 0
-          res.log_inform_error "Cannot define VM: '#{result}'"
-        else
-          res.property.ready = true
-         logger.info "VM defined successfully!"
-         res.inform(:status, Hashie::Mash.new({:status => {:ready => true}}))
-        end
+        res.property.ready = res.send("define_vm_with_#{res.property.virt_mngt}")
+        res.inform(:status, Hashie::Mash.new({:status => {:ready => res.property.ready}}))
       else
         res.log_inform_warn "Cannot define VM: it is not stopped"+
         "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
@@ -149,48 +130,61 @@ module OmfRc::ResourceProxy::VirtualMachine
     end
   end
 
-  work :switch_to_stop do |res|
-    if res.property.state.to_sym == :running
-      cmd = res.send("stop_vm_with_#{res.property.virt_mngt}")
-      logger.info "Stopping VM with: '#{cmd}'"
-      result = `#{cmd} 2>&1`
-      if $?.exitstatus != 0
-        res.log_inform_error "Cannot stop VM: '#{result}'"
+  work :attach_vm do |res|
+    unless !res.property.vm_name.nil? || !res.property.vm_name == ""
+        res.log_inform_error "Cannot attach VM, name not set"+
+          "(name: '#{res.property.vm_name})'"
+    else
+      if res.property.state.to_sym == :stopped
+        res.property.ready = res.send("attach_vm_with_#{res.property.virt_mngt}")
+        res.inform(:status, Hashie::Mash.new({:status => {:ready => res.property.ready}}))
       else
-        res.property.state = :stopped
-      end
+        res.log_inform_warn "Cannot attach VM: it is not stopped"+
+        "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
+      end 
+    end
+  end
+
+  work :clone_from_vm do |res|
+    unless !res.property.vm_name.nil? || !res.property.vm_name == "" ||
+      !res.image_directory.nil? || !res.image_directory == ""
+      res.log_inform_error "Cannot clone VM: name or directory not set "+
+        "(name: '#{res.property.vm_name}' - dir: '#{res.property.image_directory}')"
+    else
+      if res.property.state.to_sym == :stopped
+        res.property.ready = res.send("clone_vm_with_#{res.property.virt_mngt}")
+        res.inform(:status, Hashie::Mash.new({:status => {:ready => res.property.ready}}))
+      else
+        res.log_inform_warn "Cannot clone VM: it is not stopped"+
+        "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
+      end 
+    end
+  end
+
+  work :stop_vm do |res|
+    if res.property.state.to_sym == :running
+      success = res.send("stop_vm_with_#{res.property.virt_mngt}")
+      res.property.state = :stopped if success
     else
       res.log_inform_warn "Cannot stop VM: it is not running "+
         "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
     end
   end
 
-  work :switch_to_run do |res|
+  work :run_vm do |res|
     if res.property.state.to_sym == :stopped && res.property.ready
-      cmd = res.send("run_vm_with_#{res.property.virt_mngt}")
-      logger.info "Running VM with: '#{cmd}'"
-      result = `#{cmd} 2>&1`
-      if $?.exitstatus != 0
-        res.log_inform_error "Cannot run VM: '#{result}'"
-      else
-        res.property.state = :running
-      end
+      success = res.send("run_vm_with_#{res.property.virt_mngt}")
+      res.property.state = :running if success
     else
       res.log_inform_warn "Cannot run VM: it is not stopped or ready yet "+
         "(name: '#{res.property.vm_name}' - state: #{res.property.state})"
     end
   end
 
-  work :switch_to_delete do |res|
+  work :delete_vm do |res|
     if res.property.state.to_sym == :stopped && res.property.ready     
-      cmd = res.send("delete_vm_with_#{res.property.virt_mngt}")
-      logger.info "Deleting VM with: '#{cmd}'"
-      result = `#{cmd} 2>&1`
-      if $?.exitstatus != 0
-        res.log_inform_error "Cannot delete VM: '#{result}'"
-      else
-        res.property.ready = false
-      end
+      success = res.send("delete_vm_with_#{res.property.virt_mngt}")
+      res.property.ready = false if success
     else
       res.log_inform_warn "Cannot delete VM: it is not stopped or ready yet "+
         "(name: '#{res.property.vm_name}' - state: #{res.property.state} "+
