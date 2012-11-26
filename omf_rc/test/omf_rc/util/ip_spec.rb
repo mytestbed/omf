@@ -42,6 +42,7 @@ describe OmfRc::Util::Ip do
       lambda { @wlan00.configure_ip_addr("192.168.1.124/24") }.must_raise Cocaine::ExitStatusError
       Cocaine::CommandLine.stub(:new, @command) do
         @command.expect(:run, "")
+        @command.expect(:run, "")
         @command.expect(:run, fixture("ip/addr_show"))
         @wlan00.configure_ip_addr("192.168.1.124/24")
         @command.verify

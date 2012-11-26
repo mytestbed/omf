@@ -4,4 +4,5 @@ module OmfRc::ResourceProxy::Net
   register_proxy :net
 
   utility :ip
+  utility :sysfs
 end

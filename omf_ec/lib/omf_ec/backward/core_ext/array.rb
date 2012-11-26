@@ -7,7 +7,7 @@ class Array
 
   def stopApplications
     if !self.empty? && self.all? { |v| v.class == OmfEc::Group }
-      self.each { |g| g.startApplications }
+      self.each { |g| g.stopApplications }
     end
   end
 

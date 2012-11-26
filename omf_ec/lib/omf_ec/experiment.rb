@@ -5,7 +5,7 @@ module OmfEc
   class Experiment
     include Singleton
 
-    attr_accessor :property,:state, :comm, :groups, :events, :name, :plan
+    attr_accessor :property,:state, :comm, :groups, :events, :name
 
     def initialize
       @id = Time.now.utc.iso8601
@@ -14,7 +14,6 @@ module OmfEc
       self.state ||= []
       self.groups ||= []
       self.events ||= []
-      self.plan ||= Hashie::Mash.new
     end
 
     def id
@@ -22,13 +21,16 @@ module OmfEc
     end
 
     def process_events
-      self.events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
-        if event[:trigger].call(self.state, self.plan)
-          self.events.delete(event) if event[:consume_event]
+      EM.next_tick do
+        self.events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
+          if event[:trigger].call(self.state)
+            info "Event triggered: '#{event[:name]}'"
+            self.events.delete(event) if event[:consume_event]
 
-          # Last in first serve callbacks
-          event[:callbacks].reverse.each do |callback|
-            callback.call
+            # Last in first serve callbacks
+            event[:callbacks].reverse.each do |callback|
+              callback.call
+            end
           end
         end
       end
