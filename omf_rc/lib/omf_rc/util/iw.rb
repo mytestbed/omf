@@ -136,5 +136,7 @@ module OmfRc::Util::Iw
       device.add_interface(:monitor)
       device.interface_up
     end
+
+    device.configure_ip_addr(device.property.ip_addr) if device.property.ip_addr
   end
 end
