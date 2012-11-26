@@ -6,6 +6,7 @@ module OmfRc::ResourceProxy::Wlan
   utility :ip
   utility :mod
   utility :iw
+  utility :sysfs
 
   hook :before_release do |device|
     case device.property.mode.to_sym
