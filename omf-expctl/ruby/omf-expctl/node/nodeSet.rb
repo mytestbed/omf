@@ -426,16 +426,13 @@ class NodeSet < MObject
     # it would be better if the nodes query the inventory themselves
     # for their default disk
     disks = []
-    ns = nodes.map{|n| n.to_s}.join(",")
-    result = OMF::Services.inventory.getDefaultDisk(:set => ns, :domain => OConfig.domain)
-    result.elements.each("*/detail/NODE") {|e|
+    each { |n|
       begin
-        n = e.attributes['name']
-        disk = e.attributes['disk']
+        disk = OMF::Services.inventory.getDefaultDisk(n.to_s, OConfig.domain).elements[1].text
         raise if disk.nil? || disk.empty?
         disks << disk
       rescue
-        Topology.removeNode(n) if !n.nil? 
+        Topology.removeNode(n)
         error "Could not retrieve default disk of node '#{n.to_s}' from inventory. Removing it from the topology."
       end      
     }
