@@ -8,7 +8,7 @@ Section: science
 Package: omf-common-5.4
 Section: science
 Architecture: all
-Depends: ruby1.8, rubygems1.8
+Depends: ruby1.8, rubygems1.8, ruby1.8-dev, rake
 Description: Common ruby classes for OMF
  Ruby classes commonly required by OMF Experiment Controller, 
  Resource Controller and Aggregate Manager

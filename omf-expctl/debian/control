@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: omf-expctl-5.4
 Architecture: all
-Depends: omf-common-5.4, rake
+Depends: omf-common-5.4
 Description: OMF Experiment Controller
  Controls experiments in the OMF testbed.
 
