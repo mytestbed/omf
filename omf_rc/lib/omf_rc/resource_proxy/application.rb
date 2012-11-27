@@ -20,7 +20,8 @@
 # THE SOFTWARE.
 
 #
-# This module defines a Resource Proxy (RP) for an Application
+# This module defines a Resource Proxy (RP) for an Application.
+# For a detailed usage tutorial see {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}
 #
 # Utility dependencies: platform_toos, common_tools
 #
@@ -31,23 +32,23 @@
 # - pkg_ubuntu (String) the name of the Ubuntu package for this app
 # - pkg_fedora (String) the name of the Fedora package for this app
 # - state (String) the state of this Application RP
-#     (stop, run, pause, install)
+#   (stop, run, pause, install)
 # - installed (Boolean) is this application installed? (default false)
 # - force_tarball_install (Boolean) if true then force the installation
-#     from tarball even if other distribution-specific
-#     installation are available (default false)
+#   from tarball even if other distribution-specific installation are 
+#   available (default false)
 # - map_err_to_out (Boolean) if true then map StdErr to StdOut for this
-#     app (default false)
+#   app (default false)
 # - platform (Symbol) the OS platform where this app is running
 # - environment (Hash) the environment variables to set prior to starting
-#     this app. {k1 => v1, ...} will result in "env -i K1=v1 ... "
-#     (with k1 being either a String or a Symbol)
+#   this app. { k1 => v1, ... } will result in "env -i K1=v1 ... "
+#   (with k1 being either a String or a Symbol)
 # - use_oml (Boolean) if true enable OML for this application (default false)
 # - oml_loglevel (Integer) set a specific OML log level (default unset)
 # - oml_logfile (String) set a specific path for OML log file (default unset)
 # - oml_configfile (String) path of the OML config file (optional)
 # - oml (Hash) OML specific properties (optional), this Hash contains the
-#     following keys:
+#   following keys:
 #       - :available_mps (Hash) list of available OML Measurement Points
 #       - :collection (Hash) list of required OML Measurement Stream to collect
 #           when this application is running, as defined at
@@ -56,10 +57,10 @@
 #           is running
 #       - :id (String) OML id to use for this application when it is running
 # - parameters (Hash) the command line parameters available for this app.
-#     This hash is of the form: { :param1 => attribut1, ... }
-#     with param1 being the id of this parameter for this Proxy and
-#     with attribut1 being another Hash with the following possible
-#     keys and values (all are optional):
+#   This hash is of the form: { :param1 => attribut1, ... }
+#   with param1 being the id of this parameter for this Proxy and
+#   with attribut1 being another Hash with the following possible
+#   keys and values (all are optional):
 #     :cmd (String) the command line for this parameter
 #     :order (Fixnum) the appearance order on the command line, default FIFO
 #     :dynamic (Boolean) parameter can be dynammically changed, default false
@@ -161,7 +162,7 @@ module OmfRc::ResourceProxy::Application
     res.property.platform.to_s
   end
 
-  # Configure the environments property of this Application RP
+  # Configure the environments and oml property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
   %w(environments oml).each do |prop|

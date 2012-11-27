@@ -24,9 +24,9 @@
 #
 # Utility dependencies: common_tools
 #
-# This VM Factory Proxy has the following properties:
+# This VM Factory Proxy is the resource entity that can create VM Proxies.
+# @see OmfRc::ResourceProxy::VirtualMachine
 #
-
 module OmfRc::ResourceProxy::VirtualMachineFactory
   include OmfRc::ResourceProxyDSL 
 
