@@ -158,7 +158,7 @@ module OMF
       end
       # Should somehow combine results
       if results.length > 1
-        fatal "Don't know yet how to combine results from multiple serive endpoints"
+        fatal "Don't know yet how to combine results from multiple service endpoints"
       end
       results[0]
     end

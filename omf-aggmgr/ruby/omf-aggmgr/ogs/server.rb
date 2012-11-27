@@ -156,8 +156,10 @@ class HttpAggmgrServer < AggmgrServer
     super(params)
     http_params = params[:http]
     @port = http_params[:port] || DEF_WEB_PORT
+    @bindaddress = http_params[:address] || DEF_WEB_ADDRESS
     @config_dir = params[:configDir]
-    @server = HTTPServer.new(:Port => @port || DEF_WEB_PORT,
+    @server = HTTPServer.new(:Port => @port,
+                             :BindAddress => @bindaddress,
                              :Logger => Log4r::Logger.new("#{MObject.logger.fullname}::web"))
 
     path = File.dirname(@config_dir) + "/favicon.ico"

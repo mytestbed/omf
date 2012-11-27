@@ -61,11 +61,11 @@ include WEBrick
 OMF_VERSION = OMF::Common::VERSION(__FILE__)
 OMF_MM_VERSION = OMF::Common::MM_VERSION()
 OMF_VERSION_STRING = "OMF Aggregate Manager #{OMF_VERSION}"
-ROOT = "OMF_#{OMF::Common::MM_VERSION()}"
 
 DEF_SEARCH_PATH = [".", "../etc/omf-aggmgr-#{OMF_MM_VERSION}", "/etc/omf-aggmgr-#{OMF_MM_VERSION}"]
 DEF_CONFIG_FILE = 'omf-aggmgr.yaml'
 DEF_WEB_PORT = 5012
+DEF_WEB_ADDRESS = "0.0.0.0"
 
 #---------
 

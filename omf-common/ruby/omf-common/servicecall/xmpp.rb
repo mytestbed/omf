@@ -405,8 +405,11 @@ module OMF
             queue = matcher.add(message)
           end
 
-          # FIXME:  Handle exceptions
-          @domain.publish_to_node(node, message)
+          begin
+            @domain.publish_to_node(node, message)
+          rescue Exception => e
+            raise "Error publishing ServiceCall message #{message.to_s} to node #{node}): #{e.message}"
+          end
 
           # Timeout thread
           Thread.new {
