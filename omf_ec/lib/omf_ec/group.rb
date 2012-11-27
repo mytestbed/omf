@@ -29,13 +29,14 @@ module OmfEc
     # Resources to be added could be a list of resources, groups, or the mixture of both.
     def add_resource(*names)
       names.each do |name|
-        OmfEc.comm.subscribe(name) do |m|
-          unless m.error?
-            # resource to add is a group
-            if OmfEc.exp.groups.any? { |v| v.name == name }
-              error name
-              group(name).resources.membership = self.id
-            else
+        # resource to add is a group
+        if OmfEc.exp.groups.any? { |v| v.name == name }
+          group(name).resources.membership = self.id
+        else
+          OmfEc.comm.subscribe(name) do |m|
+            unless m.error?
+              info OmfEc.exp.groups.map { |v| v.name }
+
               # resource with uid: name is available
               unless OmfEc.exp.state.any? { |v| v[:uid] == name }
                 OmfEc.exp.state << { uid: name }

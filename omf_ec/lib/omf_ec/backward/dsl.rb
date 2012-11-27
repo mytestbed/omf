@@ -47,7 +47,8 @@ module OmfEc
               group.add_resource(m)
             end
 
-            rg = OmfEc.comm.get_topic(name)
+            rg = OmfEc.comm.get_topic(group.id)
+
             rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
               warn "RC reports failure: '#{i.read_content("reason")}'"
             end
