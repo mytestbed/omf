@@ -76,9 +76,6 @@ class BasicNodeSet < NodeSet
   # This method powers ON all the nodes in this NodeSet
   #
   def powerOn()
-    node_ids = [] 
-    nodes.each { |n| node_ids << n.to_s }
-    CMC.nodeSetOn(node_ids) if !NodeHandler.SLAVE && !@noam
     nodes.each { |n|
       n.powerOn()
       if NodeHandler.JUST_PRINT
@@ -96,19 +93,7 @@ class BasicNodeSet < NodeSet
   # - hard = true/false (optional, default=false)
   #
   def powerOff(hard = false)
-   node_ids = [] 
-    nodes.each { |n| node_ids << n.to_s }
-    CMC.nodeSetOff(node_ids,hard) if !NodeHandler.SLAVE && !@noam
-#    nodes.each { |n| n.powerOff(hard) }
-  end
-
-  #
-  # This method powers ON all the nodes in this NodeSet
-  #
-  def powerReset()
-    node_ids = [] 
-    nodes.each { |n| node_ids << n.to_s }
-    CMC.nodeSetReset(node_ids) if !NodeHandler.SLAVE && !@noam
+    nodes.each { |n| n.powerOff(hard) }
   end
 
   # Return a set with only itself in it.
