@@ -15,16 +15,22 @@ module OmfRc::Util::Ip
   end
 
   configure :ip_addr do |resource, value|
-    if resource.request_ip_addr != value
-      CommandLine.new("ip",  "addr add :ip_address dev :device",
-                      :ip_address => value,
-                      :device => resource.hrn
-                     ).run
-    end
+    # Remove all ip addrs associated with the device
+    resource.flush_ip_addrs
+    CommandLine.new("ip",  "addr add :ip_address dev :device",
+                    :ip_address => value,
+                    :device => resource.hrn
+                   ).run
+    resource.interface_up
     resource.request_ip_addr
   end
 
   work :interface_up do |resource|
     CommandLine.new("ip", "link set :dev up", :dev => resource.hrn).run
+  end
+
+  work :flush_ip_addrs do |resource|
+    CommandLine.new("ip",  "addr flush :ip_address dev :device",
+                    :device => resource.hrn).run
   end
 end
