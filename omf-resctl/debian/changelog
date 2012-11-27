@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu9) precise; urgency=low
+
+  * updated config files
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 27 Nov 2012 22:16:40 +1100
+
 omf-resctl-5.4 (5.4.2-ubuntu8) precise; urgency=low
 
   * explicitly use ruby1.8 

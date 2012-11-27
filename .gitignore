@@ -22,3 +22,4 @@ configure-stamp
 */debian/files
 .yardoc/
 omf-web/example/incoming
+*/debian/omf-*

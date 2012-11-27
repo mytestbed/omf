@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4.2-ubuntu6) precise; urgency=low
+
+  * improvements to service call code
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 27 Nov 2012 22:14:19 +1100
+
 omf-common-5.4 (5.4.2-ubuntu5) precise; urgency=low
 
   * fixed exception in XMPP connect when no max_retries were given

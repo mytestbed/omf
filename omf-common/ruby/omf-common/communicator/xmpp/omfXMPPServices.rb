@@ -212,7 +212,6 @@ class OmfXMPPServices < MObject
     # Now, we authenticate this client to the server
     @clientHelper.auth(@password)
     @clientHelper.send(Jabber::Presence.new)
-    add_service(@homeServer)
     debug "Connected as '#{@userJID}' to XMPP server: '#{@homeServer}'"
     @nodeBrowser = Jabber::PubSub::NodeBrowser.new(@clientHelper)
     @cSemaphore.synchronize {
