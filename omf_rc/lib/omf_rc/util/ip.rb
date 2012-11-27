@@ -30,7 +30,7 @@ module OmfRc::Util::Ip
   end
 
   work :flush_ip_addrs do |resource|
-    CommandLine.new("ip",  "addr flush :ip_address dev :device",
+    CommandLine.new("ip",  "addr flush dev :device",
                     :device => resource.hrn).run
   end
 end
