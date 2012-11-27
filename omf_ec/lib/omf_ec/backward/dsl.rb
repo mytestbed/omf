@@ -28,8 +28,8 @@ module OmfEc
 
       def defGroup(name, *members, &block)
         group = OmfEc::Group.new(name)
-
         OmfEc.exp.groups << group
+
         members.each do |m|
           m_group = OmfEc.exp.groups.find { |v| v.name == m }
           if m_group
@@ -41,7 +41,7 @@ module OmfEc
 
         block.call(group) if block
 
-        OmfEc.comm.subscribe(name, create_if_non_existent: true) do |m|
+        OmfEc.comm.subscribe(group.id, create_if_non_existent: true) do |m|
           unless m.error?
             members.each do |m|
               group.add_resource(m)

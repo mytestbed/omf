@@ -2,6 +2,8 @@ require 'hashie'
 require 'singleton'
 
 module OmfEc
+  # Experiment class to hold relevant state information
+  #
   class Experiment
     include Singleton
 
@@ -16,10 +18,12 @@ module OmfEc
       self.events ||= []
     end
 
+    # Unique experiment id
     def id
       @name.nil? ? @id : "#{@name}-#{@id}"
     end
 
+    # Parsing user defined events, checking conditions against internal state, and execute callbacks if triggered
     def process_events
       EM.next_tick do
         self.events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
@@ -38,6 +42,7 @@ module OmfEc
 
     # Purely for backward compatibility
     class << self
+      # Disconnect communicator, try to delete any XMPP affiliations
       def done
         OmfEc.comm.disconnect(delete_affiliations: true)
         info "Exit in 5 seconds..."

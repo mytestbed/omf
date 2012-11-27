@@ -34,7 +34,7 @@ module OmfEc
             # resource to add is a group
             if OmfEc.exp.groups.any? { |v| v.name == name }
               error name
-              group(name).resources.membership = self.name
+              group(name).resources.membership = self.id
             else
               # resource with uid: name is available
               unless OmfEc.exp.state.any? { |v| v[:uid] == name }
@@ -59,8 +59,8 @@ module OmfEc
                 warn "RC reports failure: '#{i.read_content("reason")}'"
               end
 
-              c = OmfEc.comm.configure_message(self.name) do |m|
-                m.property(:membership, self.name)
+              c = OmfEc.comm.configure_message(self.id) do |m|
+                m.property(:membership, self.id)
               end
 
               c.publish name
@@ -89,18 +89,18 @@ module OmfEc
       opts = opts.merge(hrn: name)
 
       # Naming convention of child resource group
-      resource_group_name = "#{self.name}_#{opts[:type]}"
+      resource_group_name = "#{self.id}_#{opts[:type]}"
 
       OmfEc.comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
         unless m.error?
-          c = OmfEc.comm.create_message(self.name) do |m|
+          c = OmfEc.comm.create_message(self.id) do |m|
             m.property(:membership, resource_group_name)
             opts.each_pair do |k, v|
               m.property(k, v)
             end
           end
 
-          c.publish self.name
+          c.publish self.id
 
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
@@ -138,7 +138,7 @@ module OmfEc
 
     # @return [OmfEc::Context::GroupContext]
     def resources
-      OmfEc::Context::GroupContext.new(group: self.name)
+      OmfEc::Context::GroupContext.new(group: self.id)
     end
 
     include OmfEc::Backward::Group

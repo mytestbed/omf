@@ -10,7 +10,7 @@ module OmfEc
               !all_groups.empty? && all_groups.all? do |g|
                 plan = g.members.uniq.sort
                 actual = state.find_all do |v|
-                  v[:membership] && v[:membership].include?(g.name)
+                  v[:membership] && v[:membership].include?(g.id)
                 end.map { |v| v[:uid] }.sort
                 plan == actual
               end
@@ -44,7 +44,7 @@ module OmfEc
                 plan = g.net_ifs.map { |v| v.conf[:hrn] }.uniq.size * g.members.uniq.size
                 actual = state.find_all do |v|
                   v[:membership] &&
-                    (v[:membership].include?("#{g.name}_wlan") || v[:membership].include?("#{g.name}_net"))
+                    (v[:membership].include?("#{g.id}_wlan") || v[:membership].include?("#{g.id}_net"))
                 end.size
                 plan == actual
               end

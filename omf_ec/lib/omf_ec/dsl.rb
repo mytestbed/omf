@@ -1,9 +1,8 @@
 require 'active_support/core_ext'
 require 'eventmachine'
 
-# DSL methods to be used for OEDL scripts
-#
 module OmfEc
+  # DSL methods to be used for OEDL scripts
   module DSL
     # Use EM timer to execute after certain time
     #
@@ -14,15 +13,31 @@ module OmfEc
       OmfEc.comm.add_timer(time, block)
     end
 
+    # Use EM periodic timer to execute after certain time
+    #
+    # @example do something every 2 seconds
+    #
+    #   every 2.seconds { 'do something' }
     def every(time, &block)
       OmfEc.comm.add_periodic_timer(time, block)
     end
 
+    # Define a group, create a pubsub topic for the group
+    #
+    # @param [String] name name of the group
+    #
+    # @example add resource 'a' to group 'bob'
+    #   def_group('bob') do |g|
+    #     g.add_resource('a')
+    #   end
+    #
+    # @see OmfEc::Backward::DSL#defGroup
     def def_group(name, &block)
-      OmfEc.comm.subscribe(name, create_if_non_existent: true) do |m|
+      group = OmfEc::Group.new(name)
+      OmfEc.exp.groups << group
+
+      OmfEc.comm.subscribe(group.id, create_if_non_existent: true) do |m|
         unless m.error?
-          group = OmfEc::Group.new(name)
-          OmfEc.exp.groups << group
           block.call group if block
 
           rg = OmfEc.comm.get_topic(name)
@@ -33,23 +48,27 @@ module OmfEc
       end
     end
 
+    # Get a group instance
+    #
+    # @param [String] name name of the group
     def group(name, &block)
       group = OmfEc.exp.groups.find {|v| v.name == name}
       block.call(group) if block
       group
     end
 
+    # Iterator for all defined groups
     def all_groups(&block)
       OmfEc.exp.groups.each do |g|
         block.call(g) if block
       end
     end
 
-    def all_nodes!(&block)
-      group(OmfEc.exp.id, &block) if block
-    end
+    alias_method :all_nodes!, :all_groups
 
     # Exit the experiment
+    #
+    # @see OmfEc::Experiment.done
     def done!
       OmfEc::Experiment.done
     end
@@ -96,6 +115,7 @@ module OmfEc
       array.any? ? false : array.all? { |v| v.to_s == value.to_s }
     end
 
+    # Define an event
     def def_event(name, &trigger)
       if OmfEc.exp.events.find { |v| v[:name] == name }
         raise RuntimeError, "Event '#{name}' has been defined"
@@ -104,6 +124,7 @@ module OmfEc
       end
     end
 
+    # Define an event callback
     def on_event(name, consume_event = true, &callback)
       event = OmfEc.exp.events.find { |v| v[:name] == name }
       if event.nil?

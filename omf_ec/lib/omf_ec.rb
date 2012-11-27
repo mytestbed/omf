@@ -12,6 +12,8 @@ require "omf_ec/dsl"
 module OmfEc
   class << self
     # Experiment instance
+    #
+    # @return [OmfEc::Experiment]
     def experiment
       Experiment.instance
     end
@@ -19,6 +21,7 @@ module OmfEc
     alias_method :exp, :experiment
 
     # Experiment's communicator instance
+    # @return [OmfCommon::Comm]
     def communicator
       Experiment.instance.comm
     end
