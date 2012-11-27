@@ -1,15 +1,32 @@
-module OmfEc
-  class Group
-    attr_accessor :name, :net_ifs, :members, :apps
+require 'securerandom'
 
-    def initialize(name)
+module OmfEc
+  # Group instance used in experiment script
+  #
+  # @!attribute name [String] name of the resource
+  # @!attribute id [String] pubsub topic id of the resource
+  # @!attribute net_ifs [Array] network interfaces defined to be added to group
+  # @!attribute members [Array] holding members to be added to group
+  # @!attribute apps [Array] holding applications to be added to group
+  class Group
+    attr_accessor :name, :id, :net_ifs, :members, :apps
+
+    # @param [String] name name of the group
+    # @param [Hash] opts
+    # @option opts [Boolean] :unique Should the group be unique or not, default is true
+    def initialize(name, opts = {})
+      @opts = {unique: true}.merge!(opts)
       self.name = name
+      self.id = @opts[:unique] ? SecureRandom.uuid : self.name
       # Add empty holders for members, network interfaces, and apps
       self.net_ifs = []
       self.members = []
       self.apps = []
     end
 
+    # Add existing resources to the group
+    #
+    # Resources to be added could be a list of resources, groups, or the mixture of both.
     def add_resource(*names)
       names.each do |name|
         OmfEc.comm.subscribe(name) do |m|
@@ -22,10 +39,6 @@ module OmfEc
               # resource with uid: name is available
               unless OmfEc.exp.state.any? { |v| v[:uid] == name }
                 OmfEc.exp.state << { uid: name }
-              end
-
-              c = OmfEc.comm.configure_message(self.name) do |m|
-                m.property(:membership, self.name)
               end
 
               r = OmfEc.comm.get_topic(name)
@@ -46,6 +59,10 @@ module OmfEc
                 warn "RC reports failure: '#{i.read_content("reason")}'"
               end
 
+              c = OmfEc.comm.configure_message(self.name) do |m|
+                m.property(:membership, self.name)
+              end
+
               c.publish name
 
               c.on_inform_status do |i|
@@ -63,6 +80,10 @@ module OmfEc
       end
     end
 
+    # Create a set of new resources and add them to the group
+    #
+    # @param [String] name
+    # @param [Hash] opts to be used to create new resources
     def create_resource(name, opts, &block)
       # We create another group topic for new resoruces
       opts = opts.merge(hrn: name)
@@ -115,6 +136,7 @@ module OmfEc
       end
     end
 
+    # @return [OmfEc::Context::GroupContext]
     def resources
       OmfEc::Context::GroupContext.new(group: self.name)
     end
