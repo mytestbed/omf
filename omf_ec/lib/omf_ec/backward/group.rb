@@ -7,8 +7,14 @@ module OmfEc
       #
       def exec(name)
         create_resource(name, type: 'application', binary_path: name)
-        # FIXME should not assume its ready in 1 second
-        after 1.second do
+
+        e_name = "#{self.id}_application_#{name}_created"
+
+        def_event e_name do |state|
+          state.find_all { |v| v[:hrn] == name }.size >= self.members.uniq.size
+        end
+
+        on_event e_name do
           resources[type: 'application', name: name].state = :run
         end
       end

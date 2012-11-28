@@ -103,7 +103,7 @@ module OmfEc
 
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
-            OmfEc.exp.state << { uid: i.resource_id, type: opts[:type], membership: [resource_group_name]}
+            OmfEc.exp.state << { uid: i.resource_id, type: opts[:type], hrn: name, membership: [resource_group_name]}
             block.call if block
             Experiment.instance.process_events
           end
