@@ -31,12 +31,10 @@ module OmfEc
       names.each do |name|
         # resource to add is a group
         if OmfEc.exp.groups.any? { |v| v.name == name }
-          group(name).resources.membership = self.id
+          self.add_resource(*group(name).members.uniq)
         else
           OmfEc.comm.subscribe(name) do |m|
             unless m.error?
-              info OmfEc.exp.groups.map { |v| v.name }
-
               # resource with uid: name is available
               unless OmfEc.exp.state.any? { |v| v[:uid] == name }
                 OmfEc.exp.state << { uid: name }
