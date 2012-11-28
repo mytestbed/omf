@@ -196,15 +196,15 @@ class OmfRc::ResourceProxy::AbstractResource
           warn "Group #{m} disappeared"
           EM.next_tick do
             @membership.delete(m)
-
-            self.inform(:status, {
-              inform_to: self.uid,
-              status: { uid: self.uid, membership: self.membership }
-            })
           end
         end
       end
     end
+    @membership
+  end
+
+  # Query resource's membership
+  def request_membership(*args)
     @membership
   end
 
