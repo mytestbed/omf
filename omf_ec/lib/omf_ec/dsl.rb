@@ -22,6 +22,12 @@ module OmfEc
       OmfEc.comm.add_periodic_timer(time, block)
     end
 
+    def def_application(name,&block)
+      app_def = OmfEc::AppDefinition.new(name)
+      OmfEc.exp.app_definitions[name] = app_def
+      block.call(app_def) if block
+    end
+
     # Define a group, create a pubsub topic for the group
     #
     # @param [String] name name of the group
