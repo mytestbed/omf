@@ -98,26 +98,28 @@ module OmfRc::ResourceProxy::Application
   MAX_PARAMETER_NUMBER = 1000
   DEFAULT_MANDATORY_PARAMETER = false
 
+  property :app_id, :default => nil
+  property :description, :default => ''
+  property :binary_path, :default => nil
+  property :platform, :default => nil
+  property :pkg_tarball, :default => nil
+  property :tarball_install_path, :default => '/'
+  property :force_tarball_install, :default => false
+  property :pkg_ubuntu, :default => nil
+  property :pkg_fedora, :default => nil
+  property :state, :default => :stop
+  property :installed, :default => false
+  property :map_err_to_out, :default => false
+  property :event_sequence, :default => 0
+  property :parameters, :default => Hash.new
+  property :environments, :default => Hash.new
+  property :use_oml, :default => false
+  property :oml_configfile, :default => nil
+  property :oml, :default => Hash.new
+  property :oml_logfile, :default => nil
+  property :oml_loglevel, :default => nil
+
   hook :before_ready do |res|
-    res.property.app_id ||= nil
-    res.property.binary_path ||= nil
-    res.property.platform ||= nil
-    res.property.pkg_tarball ||= nil
-    res.property.tarball_install_path ||= '/'
-    res.property.force_tarball_install ||= false
-    res.property.pkg_ubuntu ||= nil
-    res.property.pkg_fedora ||= nil
-    res.property.state ||= :stop
-    res.property.installed ||= false
-    res.property.map_err_to_out ||= false
-    res.property.event_sequence ||= 0
-    res.property.parameters ||= Hash.new
-    res.property.environments ||= Hash.new
-    res.property.use_oml ||= false
-    res.property.oml_configfile ||= nil
-    res.property.oml ||= Hash.new
-    res.property.oml_logfile ||= nil
-    res.property.oml_loglevel ||= nil
     define_method("on_app_event") { |*args| process_event(self, *args) }
   end
 
