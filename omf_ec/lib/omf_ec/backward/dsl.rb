@@ -22,8 +22,10 @@ module OmfEc
         end
       end
 
-      # Place holder for defApplication magic
-      def defApplication
+      def defApplication(uri,name,&block)
+        # URI parameter was used by previous OMF5 EC, for now we
+        # do nothing with it in OMF6
+        def_application(name,&block)
       end
 
       def defGroup(name, *members, &block)
