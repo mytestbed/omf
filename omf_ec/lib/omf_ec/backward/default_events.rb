@@ -50,7 +50,14 @@ module OmfEc
               end
             end
 
-            def_event :ALL_UP_AND_INSTALLED do
+            def_event :ALL_UP_AND_INSTALLED do |state|
+              !all_groups.empty? && all_groups.all? do |g|
+                plan = g.apps.size * g.members.uniq.size
+                actual = state.find_all do |v|
+                  v[:membership] && v[:membership].include?("#{g.id}_application") 
+                end.size
+                plan == actual
+              end
             end
 
           end
