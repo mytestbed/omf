@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module OmfEc
   module Backward
     module Group
@@ -8,7 +10,9 @@ module OmfEc
       def exec(name)
         create_resource(name, type: 'application', binary_path: name)
 
-        e_name = "#{self.id}_application_#{name}_created"
+        e_uid = SecureRandom.uuid
+
+        e_name = "#{self.name}_application_#{name}_created_#{e_uid}"
 
         def_event e_name do |state|
           state.find_all { |v| v[:hrn] == name }.size >= self.members.uniq.size
