@@ -64,6 +64,8 @@ command :exec do |c|
 
     if global_options[:debug]
       Logging.logger.root.level = :debug
+    else
+      Logging.consolidate 'OmfCommon', 'OmfEc', 'OmfRc'
     end
 
     # Import private key
