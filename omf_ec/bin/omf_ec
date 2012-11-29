@@ -88,8 +88,10 @@ command :exec do |c|
 
     if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
       Logging.logger.root.add_appenders(
-        Logging.appenders.file("#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log")
-      )
+        Logging.appenders.file(
+          "#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log",
+          :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
+                                             :pattern => '[%d] %-5l %c: %m\n')))
     end
 
     # User provided exp properties

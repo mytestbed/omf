@@ -26,6 +26,12 @@ http://mytestbed.net/doc/omf/
 
 For full documentation regarding the design of OMF version 6, please visit our [design documentation](http://omf.mytestbed.net/projects/omf/wiki/Architectural_Foundation)
 
+## Release notes
+
+[6 Beta](http://mytestbed.net/projects/omf/wiki/OMF6Beta)
+
+[6 Alpha](http://mytestbed.net/projects/omf/wiki/OMF6Alpha)
+
 ## Installation
 
 _If you have Eventmachine 1.0.0 installed on your system and you noticed some delay behaviour, please uninstall it and use version 0.12.x instead._
@@ -97,6 +103,11 @@ When a new instance of resource proxy is being created, such mixin modules can b
 This little tutorial will give a brief example on how to implement the resource proxy definitions.
 
 ### {file:doc/RESOURCE\_PROXY.mkd Example: implement your own resource proxy files}
+
+## More RC tutorials
+
+### {file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}
+### {file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}
 
 ## License & Copyright
 

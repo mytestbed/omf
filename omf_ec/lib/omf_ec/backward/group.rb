@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module OmfEc
   module Backward
     module Group
@@ -7,8 +9,16 @@ module OmfEc
       #
       def exec(name)
         create_resource(name, type: 'application', binary_path: name)
-        # FIXME should not assume its ready in 1 second
-        after 1.second do
+
+        e_uid = SecureRandom.uuid
+
+        e_name = "#{self.name}_application_#{name}_created_#{e_uid}"
+
+        def_event e_name do |state|
+          state.find_all { |v| v[:hrn] == name }.size >= self.members.uniq.size
+        end
+
+        on_event e_name do
           resources[type: 'application', name: name].state = :run
         end
       end
@@ -22,11 +32,10 @@ module OmfEc
       end
 
       def addApplication(name, &block)
-        app = OmfEc::Context::AppContext.new(binary_path: name, type: 'application')
-        block.call app
-
-        # Then should just create the resource with app.conf
-        # create_resource(name, app.conf)
+        app_cxt = OmfEc::Context::AppContext.new(name)
+        block.call(app_cxt) if block
+        #puts "TDB addApplication - #{app_cxt.inspect}"                 
+        self.apps << app_cxt
       end
 
       # @example

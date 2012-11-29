@@ -31,12 +31,10 @@ module OmfEc
       names.each do |name|
         # resource to add is a group
         if OmfEc.exp.groups.any? { |v| v.name == name }
-          group(name).resources.membership = self.id
+          self.add_resource(*group(name).members.uniq)
         else
           OmfEc.comm.subscribe(name) do |m|
             unless m.error?
-              info OmfEc.exp.groups.map { |v| v.name }
-
               # resource with uid: name is available
               unless OmfEc.exp.state.any? { |v| v[:uid] == name }
                 OmfEc.exp.state << { uid: name }
@@ -91,8 +89,9 @@ module OmfEc
 
       # Naming convention of child resource group
       resource_group_name = "#{self.id}_#{opts[:type]}"
-
+      #puts "TDB A - create_resource #{name} - #{opts.inspect}"
       OmfEc.comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
+        #puts "TDB B - create_resource #{name} - #{opts.inspect}"
         unless m.error?
           c = OmfEc.comm.create_message(self.id) do |m|
             m.property(:membership, resource_group_name)
@@ -105,7 +104,7 @@ module OmfEc
 
           c.on_inform_created do |i|
             info "#{opts[:type]} #{i.resource_id} created"
-            OmfEc.exp.state << { uid: i.resource_id, type: opts[:type], membership: [resource_group_name]}
+            OmfEc.exp.state << { uid: i.resource_id, type: opts[:type], hrn: name, membership: [resource_group_name]}
             block.call if block
             Experiment.instance.process_events
           end

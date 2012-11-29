@@ -22,8 +22,10 @@ module OmfEc
         end
       end
 
-      # Place holder for defApplication magic
-      def defApplication
+      def defApplication(uri,name,&block)
+        # URI parameter was used by previous OMF5 EC, for now we
+        # do nothing with it in OMF6
+        def_application(name,&block)
       end
 
       def defGroup(name, *members, &block)
@@ -51,6 +53,17 @@ module OmfEc
 
             rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
               warn "RC reports failure: '#{i.read_content("reason")}'"
+            end
+
+            rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
+              r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+              unless r.nil?
+                i.each_property do |p|
+                  key = p.attr('key').to_sym
+                  r[key] = i.read_property(key)
+                end
+              end
+              Experiment.instance.process_events
             end
           end
         end
