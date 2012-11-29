@@ -28,8 +28,9 @@ For full documentation regarding the design of OMF version 6, please visit our [
 
 ## Release notes
 
-http://mytestbed.net/projects/omf/wiki/OMF6Beta
-http://mytestbed.net/projects/omf/wiki/OMF6Alpha
+[6 Beta](http://mytestbed.net/projects/omf/wiki/OMF6Beta)
+
+[6 Alpha](http://mytestbed.net/projects/omf/wiki/OMF6Alpha)
 
 ## Installation
 
@@ -105,8 +106,8 @@ This little tutorial will give a brief example on how to implement the resource 
 
 ## More RC tutorials
 
-### {file:doc/APPLICATION\_PROXY.mkd Example: How to use the Application Proxy}
-### {file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy
+### {file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}
+### {file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}
 
 ## License & Copyright
 
