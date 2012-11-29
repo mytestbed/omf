@@ -32,15 +32,10 @@ module OmfEc
       end
 
       def addApplication(name, &block)
-        # app_cxt = OmfEc::Context::AppContext.new(name)
-        # block.call(app_cxt) if block
-        # puts "TDB A"
-        # puts app_cxt.inspect
-        # puts "TDB B"
-        # create_resource(name, :type => 'application', binary_path: name)
-        # puts "TDB C"
-        # # Then should just create the resource with app.conf
-        # # create_resource(name, app.conf)
+        app_cxt = OmfEc::Context::AppContext.new(name)
+        block.call(app_cxt) if block
+        #puts "TDB addApplication - #{app_cxt.inspect}"                 
+        self.apps << app_cxt
       end
 
       # @example

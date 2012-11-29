@@ -89,8 +89,9 @@ module OmfEc
 
       # Naming convention of child resource group
       resource_group_name = "#{self.id}_#{opts[:type]}"
-
+      #puts "TDB A - create_resource #{name} - #{opts.inspect}"
       OmfEc.comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
+        #puts "TDB B - create_resource #{name} - #{opts.inspect}"
         unless m.error?
           c = OmfEc.comm.create_message(self.id) do |m|
             m.property(:membership, resource_group_name)

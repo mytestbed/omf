@@ -36,6 +36,9 @@ module OmfEc
 
                   group.create_resource(r_hrn, conf_to_send)
                 end
+                # Create proxies for each apps that were added to this group
+                group.apps.each { |a| group.create_resource(a.name, a.properties) }
+                #group.apps.each { |a| puts "TDB ALL_UP - #{a.name} - #{a.properties}" }
               end
             end
 
