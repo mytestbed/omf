@@ -130,6 +130,124 @@ command :exec do |c|
   end
 end
 
+desc "Load an image onto the nodes"
+command :load do |c|
+  c.desc "use this testbed configuration in OMF 5 EC config file"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config], :default_value => "default"
+    
+  c.desc "comma-separated list of nodes to image"
+  c.arg_name "TOPOLOGY"
+  c.flag [:t, :topology], :default_value => "system:topo:all"
+  
+  c.desc "disk image to load"
+  c.arg_name "IMAGE"
+  c.flag [:i, :image], :default_value => "baseline.ndz"
+
+  c.desc "seconds to wait for the imaging process to complete"
+  c.arg_name "TIMEOUT"
+  c.flag [:o, :timeout], :default_value => "800"
+  
+  c.desc "resize the first partition to SIZE GB or to maximum size if SIZE=0 "+ 
+    "or leave x percent of free space if SIZE=x%"
+  c.arg_name "SIZE"
+  c.flag [:r, :resize]
+  
+  c.desc "Path where the resulting Topologies should be saved"
+  c.arg_name "PATH"
+  c.flag [:outpath], :default_value => "/tmp"
+  
+  c.desc "Prefix to use for naming the resulting Topologies (default is your experiment ID)"
+  c.arg_name "PREFIX"
+  c.flag [:outprefix]
+
+  c.action do |global_options, options, args|
+    unless global_options[:user] && global_options[:password] && global_options[:server]
+      help_now! "Incomplete options"
+    end
+
+    logger.info "Not implemented yet. Please use OMF 5 for now."
+    
+  end
+end
+
+desc "Save an image of a node"
+command :save do |c|
+  c.desc "use this testbed configuration in OMF 5 EC config file"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config], :default_value => "default"
+    
+  c.desc "node to save from"
+  c.arg_name "NODE"
+  c.flag [:n, :node]
+  
+  c.desc "resize the first partition to SIZE GB or to maximum size if SIZE=0 "+ 
+    "or leave x percent of free space if SIZE=x%"
+  c.arg_name "SIZE"
+  c.flag [:r, :resize]
+
+  c.action do |global_options, options, args|
+    unless global_options[:user] && global_options[:password] && global_options[:server]
+      help_now! "Incomplete options"
+    end
+
+    logger.info "Not implemented yet. Please use OMF 5 for now."
+    
+  end
+end
+
+desc "Return the status of the nodes"
+command :stat do |c|
+  c.desc "use this testbed configuration in OMF 5 EC config file"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config], :default_value => "default"
+  
+  c.desc "comma-separated list of nodes to image"
+  c.arg_name "TOPOLOGY"
+  c.flag [:t, :topology], :default_value => "system:topo:all"  
+    
+  c.desc "print a summary of the node status for the testbed"
+  c.switch [:s, :summary]
+
+  c.action do |global_options, options, args|
+    unless global_options[:user] && global_options[:password] && global_options[:server]
+      help_now! "Incomplete options"
+    end
+
+    logger.info "Not implemented yet. Please use OMF 5 for now."
+    
+  end
+end
+
+desc "Power on/off, reset or reboot the nodes"
+command :tell do |c|
+  c.desc "use this testbed configuration in OMF 5 EC config file"
+  c.arg_name "AGGREGATE"
+  c.flag [:c, :config], :default_value => "default"
+  
+  c.desc "comma-separated list of nodes to image"
+  c.arg_name "TOPOLOGY"
+  c.flag [:t, :topology], :default_value => "system:topo:all"  
+    
+  c.desc "
+      'on'              turn node(s) ON - 
+      'offs'            turn node(s) OFF (soft) -
+      'offh'            turn node(s) OFF (hard) -
+      'reboot'          reboots node(s) (soft) -
+      'reset'           resets node(s) (hard)"
+  c.arg_name "ACTION"
+  c.flag [:a, :action] 
+
+  c.action do |global_options, options, args|
+    unless global_options[:user] && global_options[:password] && global_options[:server]
+      help_now! "Incomplete options"
+    end
+
+    logger.info "Not implemented yet. Please use OMF 5 for now."
+    
+  end
+end
+
 on_error do |exception|
   true
 end
