@@ -66,7 +66,12 @@ class OmfRc::ResourceProxy::AbstractResource
       @comm.create_topic(uid) do |s|
         # Creating topic failed, no point to continue; clean up and disconnect
         # Otherwise go subscribe to this pubsub topic
-        s.error? ? disconnect : @comm.subscribe(uid)
+        if s.error?
+          warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
+          disconnect
+        else
+          @comm.subscribe(uid)
+        end
       end
     end
 
