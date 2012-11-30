@@ -47,6 +47,10 @@ command :exec do |c|
   c.arg_name "experiment_name"
   c.flag [:e, :experiment]
 
+  c.desc "Default OML URI to use for collecting measurements"
+  c.arg_name "uri"
+  c.flag [:oml_uri]  
+
   c.desc "Check script version (you need to define OMF_VERSIONS in your script"
   c.switch "version_check"
 
@@ -87,6 +91,7 @@ command :exec do |c|
     include OmfEc::DSL
 
     OmfEc.exp.name = options[:experiment] if options[:experiment]
+    OmfEc.exp.oml_uri = options[:oml_uri] if options[:oml_uri]
 
     if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
       Logging.logger.root.add_appenders(

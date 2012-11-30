@@ -17,6 +17,19 @@ module OmfEc
         define_parameter(Hash[name,opts])
       end
 
+      def defMetric(name,type)
+        @fields << {:field => name, :type => type}
+      end
+
+      def defMeasurement(name,&block)
+        mp = {:mp => name, :fields => []}
+        @fields = []
+        # call the block with ourserlves to process its 'defMetric' statements
+        block.call(self) if block 
+        @fields.each { |f| mp[:fields] << f }
+        define_measurement_point(mp)
+      end
+
     end
   end
 end
