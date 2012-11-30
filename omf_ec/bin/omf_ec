@@ -168,7 +168,12 @@ command :load do |c|
       help_now! "Incomplete options"
     end
 
+    cmd = "omf-5.4 load -c #{options[:c]} -t #{options[:t]} -i #{options[:i]} "
+    cmd += "-o #{options[:o]} --outpath #{options[:outpath]} "
+    cmd += "-r #{options[:r]} " if options[:r]
+    cmd += "--outprefix #{options[:outprefix]} " if options[:outprefix]    
     logger.info "Not implemented yet. Please use OMF 5 for now."
+    logger.info "Command: #{cmd}"
     
   end
 end
@@ -193,7 +198,11 @@ command :save do |c|
       help_now! "Incomplete options"
     end
 
+    cmd = "omf-5.4 save -c #{options[:c]} "
+    cmd += "-n #{options[:n]} " if options[:n]   
+    cmd += "-r #{options[:r]} " if options[:r]
     logger.info "Not implemented yet. Please use OMF 5 for now."
+    logger.info "Command: #{cmd}"
     
   end
 end
@@ -216,7 +225,10 @@ command :stat do |c|
       help_now! "Incomplete options"
     end
 
+    cmd = "omf-5.4 stat -c #{options[:c]} -t #{options[:t]} "
+    cmd += "-s" if options[:s]
     logger.info "Not implemented yet. Please use OMF 5 for now."
+    logger.info "Command: #{cmd}"
     
   end
 end
@@ -245,7 +257,10 @@ command :tell do |c|
       help_now! "Incomplete options"
     end
 
+    cmd = "omf-5.4 tell -c #{options[:c]} -t #{options[:t]} "
+    cmd += "-a #{options[:a]} " if options[:a]
     logger.info "Not implemented yet. Please use OMF 5 for now."
+    logger.info "Command: #{cmd}"
     
   end
 end
