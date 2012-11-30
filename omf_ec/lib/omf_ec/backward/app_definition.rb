@@ -3,7 +3,6 @@ module OmfEc
     module AppDefinition
       # The following are ODEL 5 methods
 
-
       # Add a new parameter to this Application Definition
       # This method is for backward compatibility with previous OEDL 5
       #

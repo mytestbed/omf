@@ -9,7 +9,7 @@ module OmfEc
   # @!attribute members [Array] holding members to be added to group
   # @!attribute apps [Array] holding applications to be added to group
   class Group
-    attr_accessor :name, :id, :net_ifs, :members, :apps
+    attr_accessor :name, :id, :net_ifs, :members, :app_contexts
 
     # @param [String] name name of the group
     # @param [Hash] opts
@@ -21,7 +21,7 @@ module OmfEc
       # Add empty holders for members, network interfaces, and apps
       self.net_ifs = []
       self.members = []
-      self.apps = []
+      self.app_contexts = []
     end
 
     # Add existing resources to the group
@@ -84,14 +84,19 @@ module OmfEc
     # @param [String] name
     # @param [Hash] opts to be used to create new resources
     def create_resource(name, opts, &block)
-      # We create another group topic for new resoruces
-      opts = opts.merge(hrn: name)
+      
+      # Make a deep copy of opts in case it contains structures of structures
+      begin
+        opts = Marshal.load ( Marshal.dump(opts.merge(hrn: name)))
+      rescue Exception => e
+        raise "#{e.message} - Could not deep copy opts: '#{opts.inspect}'"
+      end
 
       # Naming convention of child resource group
       resource_group_name = "#{self.id}_#{opts[:type]}"
-      #puts "TDB A - create_resource #{name} - #{opts.inspect}"
+
+      # We create another group topic for new resouce
       OmfEc.comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
-        #puts "TDB B - create_resource #{name} - #{opts.inspect}"
         unless m.error?
           c = OmfEc.comm.create_message(self.id) do |m|
             m.property(:membership, resource_group_name)

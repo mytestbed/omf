@@ -31,14 +31,10 @@ module OmfEc::Context
     end
 
     def properties
-      prop = {:type => 'application'}
-      prop.merge!(app_def.properties)
-      param = app_def.parameters.dup
-      @param_values.each do |k,v|
-        param[k][:value] = v if param.key?(k)
-      end
-      prop[:parameters] = param
-      prop
-    end
+      original = app_def.properties.dup   
+      p = original.merge({:type => 'application'})
+      @param_values.each { |k,v| p[:parameters][k][:value] = v if p[:parameters].key?(k) }
+      p
+    end    
   end
 end

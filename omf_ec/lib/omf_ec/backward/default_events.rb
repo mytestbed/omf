@@ -37,8 +37,7 @@ module OmfEc
                   group.create_resource(r_hrn, conf_to_send)
                 end
                 # Create proxies for each apps that were added to this group
-                group.apps.each { |a| group.create_resource(a.name, a.properties) }
-                #group.apps.each { |a| puts "TDB ALL_UP - #{a.name} - #{a.properties}" }
+                group.app_contexts.each { |a| group.create_resource(a.name, a.properties) }
               end
             end
 
@@ -55,7 +54,7 @@ module OmfEc
 
             def_event :ALL_UP_AND_INSTALLED do |state|
               !all_groups.empty? && all_groups.all? do |g|
-                plan = g.apps.size * g.members.uniq.size
+                plan = g.app_contexts.size * g.members.uniq.size
                 actual = state.find_all do |v|
                   v[:membership] && v[:membership].include?("#{g.id}_application") 
                 end.size

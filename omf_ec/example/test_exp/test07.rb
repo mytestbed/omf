@@ -34,12 +34,13 @@ defGroup('Actor', property.res1) do |g|
     app.setProperty('count', 2)
     #app.measure('udp_out', :interval => 3)
   end
+
 end
 
 onEvent(:ALL_UP_AND_INSTALLED) do |event|
   info "TEST - group"
   group("Actor").startApplications
-  after 20.seconds do
+  after 10.seconds do
     Experiment.done
   end
 end

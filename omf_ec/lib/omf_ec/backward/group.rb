@@ -34,8 +34,7 @@ module OmfEc
       def addApplication(name, &block)
         app_cxt = OmfEc::Context::AppContext.new(name)
         block.call(app_cxt) if block
-        #puts "TDB addApplication - #{app_cxt.inspect}"                 
-        self.apps << app_cxt
+        self.app_contexts << app_cxt
       end
 
       # @example
