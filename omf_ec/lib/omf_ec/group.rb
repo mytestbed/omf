@@ -84,7 +84,7 @@ module OmfEc
     # @param [String] name
     # @param [Hash] opts to be used to create new resources
     def create_resource(name, opts, &block)
-      
+
       # Make a deep copy of opts in case it contains structures of structures
       begin
         opts = Marshal.load ( Marshal.dump(opts.merge(hrn: name)))
@@ -95,9 +95,36 @@ module OmfEc
       # Naming convention of child resource group
       resource_group_name = "#{self.id}_#{opts[:type]}"
 
+
+      unless OmfEc.exp.sub_groups.include?(resource_group_name)
+        OmfEc.exp.sub_groups << resource_group_name
+
+        rg = OmfEc.comm.get_topic(resource_group_name)
+        # Receive  status inform message
+        rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
+          r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+          unless r.nil?
+            if i.read_property("status_type") == 'APP_EVENT'
+              info "APP_EVENT #{i.read_property('event')} "+
+                "from app #{i.read_property("app")} - msg: #{i.read_property("msg")}"
+            end
+            i.each_property do |p|
+              r[p.attr('key').to_sym] = p.content.ducktype
+            end
+          end
+          Experiment.instance.process_events
+        end
+
+        # Receive failed inform message
+        rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
+          warn "RC reports failure: '#{i.read_content("reason")}'"
+        end
+      end
+
       # We create another group topic for new resouce
       OmfEc.comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
         unless m.error?
+
           c = OmfEc.comm.create_message(self.id) do |m|
             m.property(:membership, resource_group_name)
             opts.each_pair do |k, v|
@@ -115,26 +142,6 @@ module OmfEc
           end
 
           c.on_inform_failed do |i|
-            warn "RC reports failure: '#{i.read_content("reason")}'"
-          end
-
-          rg = OmfEc.comm.get_topic(resource_group_name)
-          # Receive  status inform message
-          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
-            r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
-            unless r.nil?
-              if i.read_property("status_type") == 'APP_EVENT'
-                info "APP_EVENT #{i.read_property('event')} "+
-                  "from app #{i.read_property("app")} - msg: #{i.read_property("msg")}"
-              end
-              i.each_property do |p|
-                r[p.attr('key').to_sym] = p.content.ducktype
-              end
-            end
-            Experiment.instance.process_events
-          end
-          # Receive failed inform message
-          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
             warn "RC reports failure: '#{i.read_content("reason")}'"
           end
         end

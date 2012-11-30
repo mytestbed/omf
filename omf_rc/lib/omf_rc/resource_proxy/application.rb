@@ -49,9 +49,9 @@
 # - oml_configfile (String) path of the OML config file (optional)
 # - oml (Hash) OML specific properties (optional), this Hash contains the
 #   following keys:
-#       - :available_mps (Hash) list of available OML Measurement Points
+#       - :available_mps (Array) list of available OML Measurement Points (Hash)
 #       - :collection (Hash) list of required OML Measurement Stream to collect
-#           when this application is running, as defined at
+#           when this application is running (defined in liboml2.conf manpage)
 #           http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
 #       - :experiment (String) name of the experiment in which this application
 #           is running
@@ -463,8 +463,19 @@ module OmfRc::ResourceProxy::Application
   #   then we write turn it into OML's XML configuration representation, write
   #   it to a temporary file, and add the parameter "--oml-config tmpfile" to
   #   this application's command line. The OML configuration hash is based
-  #   on the liboml2.conf man page here:
-  #   http://omf.mytestbed.net/doc/oml/latest/liboml2.conf.html
+  #   on the liboml2.conf man page, an example of which is:
+  #       <omlc domain="my_experiment" id="my_source_id">
+  #         <collect url="tcp://10.0.0.200">
+  #           <stream mp="radiotap" interval="2">
+  #             <filter field="sig_strength_dBm" />
+  #             <filter field="noise_strength_dBm" />
+  #             <filter field="power" />
+  #           </stream>
+  #           <stream mp="udp" samples="10">
+  #             <filter field="udp_len" />
+  #           </stream>
+  #         </collect>
+  #       </omlc>
   #
   # The 'oml_configfile' case takes precedence over the 'oml' case above.
   #
@@ -498,12 +509,14 @@ module OmfRc::ResourceProxy::Application
           s = "interval='#{m.interval}'" if m.interval
           s = "samples='#{m.samples}'" if m.samples
           of << "    <stream mp='#{m.mp}' #{s}>\n"
-          m.filters.each do |f|
-            line = "      <filter field='#{f.field}' "
-            line += "operation='#{f.operation}' " unless f.operation.nil?
-            line += "rename='#{f.rename}' " unless f.rename.nil?
-            line += "/>\n"
-            of << line
+          unless m.filters.nil?
+            m.filters.each do |f|
+              line = "      <filter field='#{f.field}' "
+              line += "operation='#{f.operation}' " unless f.operation.nil?
+              line += "rename='#{f.rename}' " unless f.rename.nil?
+              line += "/>\n"
+              of << line
+            end
           end
           of << "    </stream>\n"
         end

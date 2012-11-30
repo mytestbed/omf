@@ -2,20 +2,11 @@
 
 ## Before we could start
 
-Install a XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
-
-Enable in-band registration support (XEP-0077) on the XMPP server if you want to automatically create the users by the time of connection.
-
-If your XMPP server has anonymous authentication enabled, you might not have permissions to create pubsub topics when connected anonymously, to avoid the trouble, please turn off the anonymous authentication mode.
-
-Now we need to install omf\_rc omf\_ec pre-release gems
-
-    gem install omf_rc --pre
-    gem install omf_ec --pre
+Follow the instructions on {file:README.md README} file regarding installation and XMPP server setup.
 
 ## Scenario
 
-Suppose we are managing a formula 1 team's garage, and we want to test the engines' we have, simply by adjusting the throttle and observing the engines' RPM. Unless you had the opportunity to connect your laptop to a real formula 1 engine, we can assume that all we need here is a mock up engine written in ruby.
+Suppose we are managing some formula 1 team's garages, and we want to test the engines' we have, simply by adjusting the throttle and observing the engines' RPM. Unless you had the opportunity to connect your laptop to a real formula 1 engine, we can assume that all we need here is a mock up engine written in Ruby.
 
 We will build a garage controller (resource controller) acts as the proxy to the garage and engines, and an engine test controller, which asks garage controller to provide an engine and perform some throttle adjustments, while monitoring engines' RPM.
 
@@ -25,12 +16,14 @@ If you want to dive into the code right now, these are the two annotated files u
 
 * [Garage controller](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
 * [Engine test script](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb)
+* [Engine test script OEDL style](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_oedl.rb)
+
 
 ### Resource controller script skeleton
 
-Firstly, we need a resource controller script runs on the server side, which contains an instance of resource proxy represents 'garage', we can then use resource factory method to create such
+Firstly, we need a resource controller script running, which contains some instances of resource proxy represents 'garage', we can then use resource factory method to create such
 
-    OmfRc::ResourceFactory.new(:garage, options)
+    OmfRc::ResourceFactory.new(:garage, {uid: 'garage_1', server: 'localhost', user: 'alpha', password: 'pw')
 
 This does following behind the scene
 
@@ -77,17 +70,24 @@ For more information regarding these DSL methods, go to the section [Full DSL me
 
 Refer to the [Garage controller](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb) script to see the actual implementation.
 
-### Engine test script
+### Engine test scripts
 
-Refer to the [Engine test script](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb) to see an example of how to interact with the garage and engine resources remotely using XMPP publish-suscribe communication.
+Refer to
+
+* [Test script](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb)
+* [Test script OEDL](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_oedl.rb)
+
+to find out how to interact with the garage and engine resources remotely using XMPP publish-suscribe communication.
 
 To run this test script, make sure you start the garage\_controller first. (You could modify the XMPP pubsub setup in the script if necessary)
 
-Then simply download the test script file, and use the EC (Experiment Controller) script loader to run it.
+Then simply download the test script files, and use the EC (Experiment Controller) script loader to run it.
 
-    omf_pre exec -u charlie -s localhost -p password engine_test.rb
+    omf_ec -u charlie -s localhost -p password exec engine_test.rb
+or
+    omf_ec -u charlie -s localhost -p password exec engine_oedl.rb -- --num_of_garage 3
 
-Type omf\_pre to see all the options.
+Type omf\_ec or omf\_ec exec to see all the options.
 
 ## Organise resource proxy modules
 
@@ -113,7 +113,7 @@ You could also package your proxy definition files into separate gems, if you fe
 
 This process is rather simple, we even prepare a gem skeleton for you.
 
-https://github.com/jackhong/omf_rc_foo
+https://github.com/jackhong/omf\_rc\_foo
 
 ### Refactor common features into resource utilities
 

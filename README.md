@@ -75,6 +75,27 @@ _Some components are linked in omf main repository as git submodules, if you wan
     git submodule init
     git submodule update
 
+## XMPP server installation and configuration
+
+We recommend Openfire XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
+
+### In-band registration
+
+Enable in-band registration support (XEP-0077) on the XMPP server if you want to automatically create the users by the time of connection.
+
+### Anonymous authentication
+
+If your XMPP server has anonymous authentication enabled, you might not have permissions to create pub-sub topics when connected anonymously, to avoid the trouble, please turn off the anonymous authentication mode.
+
+### Multiple subscriptions
+
+To avoid duplicated subscription to the same topic, thus reduce the volume of messages, we recommend turn multiple subscriptions feature off.
+
+Inside Openfire system properties panel, add
+
+    Property Name: xmpp.pubsub.multiple-subscriptions
+    Property Value: false
+
 ## New messaging protocol
 
 [OMF messaging protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions)

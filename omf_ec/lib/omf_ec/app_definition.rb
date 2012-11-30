@@ -6,10 +6,9 @@ module OmfEc
   # @!attribute name [String] name of the resource
   class AppDefinition
 
-    # TODO: eventually this calls would mirror all the properties of the App Proxy
+    # TODO: eventually this call would mirror all the properties of the App Proxy
     # right now we just have name, binary_path, parameters
     attr_accessor :name, :properties 
-    #:binary_path, :parameters
 
     # @param [String] name name of the application to define
     def initialize(name)
@@ -29,6 +28,17 @@ module OmfEc
         error "Cannot define parameter for app '#{self.name}'! Parameter "+
           "not passed as a Hash ('#{params.inspect}')"
       end 
+    end
+
+    def define_measurement_point(mp)
+      @properties[:oml] = Hash.new unless @properties.key?(:oml)
+      if mp.kind_of? Hash
+        @properties[:oml][:available_mps] = Array.new unless @properties[:oml].key?(:available_mps) 
+        @properties[:oml][:available_mps] << mp
+      else
+        error "Cannot define Measurement Point for app '#{self.name}'! MP "+
+          "not passed as a Hash ('#{mp.inspect}')"
+      end
     end
 
     def method_missing(method_name, *args)
