@@ -5,7 +5,7 @@ testbed_topic = comm.get_topic('testbed')
 msgs = {
   create: comm.create_message([type: 'application']),
   req_platform: comm.request_message([:platform]),
-  conf_path: comm.configure_message([binary_path: "omf-5.4 help load"]),
+  conf_path: comm.configure_message([binary_path: @cmd]),
   run_application: comm.configure_message([state: :run])
 }
 
@@ -24,7 +24,7 @@ msgs[:create].on_inform_created do |message|
       case m.read_content("inform_type")
       when 'STATUS'
         if m.read_property("status_type") == 'APP_EVENT'
-          after (2) { comm.disconnect } if m.read_property("event") == 'DONE.OK'
+          after (2) { comm.disconnect } if m.read_property("event") =~ /DONE.(OK|ERROR)/
           puts m.read_property("msg")
         end
       when 'ERROR'

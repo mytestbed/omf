@@ -78,9 +78,9 @@ end
 
 desc "Load an image onto the nodes"
 command :load do |c|
-  c.desc "use this testbed configuration in OMF 5 EC config file"
-  c.arg_name "AGGREGATE"
-  c.flag [:c, :config], :default_value => "default"
+  #c.desc "use this testbed configuration in OMF 5 EC config file"
+  #c.arg_name "AGGREGATE"
+  #c.flag [:c, :config], :default_value => "default"
 
   c.desc "comma-separated list of nodes to image"
   c.arg_name "TOPOLOGY"
@@ -108,21 +108,19 @@ command :load do |c|
   c.flag [:outprefix]
 
   c.action do |global_options, options, args|
-    cmd = "omf-5.4 load -c #{options[:c]} -t #{options[:t]} -i #{options[:i]} "
-    cmd += "-o #{options[:o]} --outpath #{options[:outpath]} "
-    cmd += "-r #{options[:r]} " if options[:r]
-    cmd += "--outprefix #{options[:outprefix]} " if options[:outprefix]
-    logger.info "Not implemented yet. Please use OMF 5 for now."
-    logger.info "Command: #{cmd}"
-    load_exp(testbed_exp_path, global_options, options)
+    @cmd = "omf-5.4 load -t #{options[:t]} -i #{options[:i]} "
+    @cmd += "-o #{options[:o]} --outpath #{options[:outpath]} "
+    @cmd += "-r #{options[:r]} " if options[:r]
+    @cmd += "--outprefix #{options[:outprefix]} " if options[:outprefix]
+    load_exp(@testbed_exp_path, global_options, options)
   end
 end
 
 desc "Save an image of a node"
 command :save do |c|
-  c.desc "use this testbed configuration in OMF 5 EC config file"
-  c.arg_name "AGGREGATE"
-  c.flag [:c, :config], :default_value => "default"
+  #c.desc "use this testbed configuration in OMF 5 EC config file"
+  #c.arg_name "AGGREGATE"
+  #c.flag [:c, :config], :default_value => "default"
 
   c.desc "node to save from"
   c.arg_name "NODE"
@@ -134,12 +132,10 @@ command :save do |c|
   c.flag [:r, :resize]
 
   c.action do |global_options, options, args|
-    cmd = "omf-5.4 save -c #{options[:c]} "
-    cmd += "-n #{options[:n]} " if options[:n]
-    cmd += "-r #{options[:r]} " if options[:r]
-    logger.info "Not implemented yet. Please use OMF 5 for now."
-    logger.info "Command: #{cmd}"
-    load_exp(testbed_exp_path, global_options, options)
+    @cmd = "omf-5.4 save "
+    @cmd += "-n #{options[:n]} " if options[:n]
+    @cmd += "-r #{options[:r]} " if options[:r]
+    load_exp(@testbed_exp_path, global_options, options)
   end
 end
 
@@ -157,11 +153,9 @@ command :stat do |c|
   c.switch [:s, :summary]
 
   c.action do |global_options, options, args|
-    cmd = "omf-5.4 stat -c #{options[:c]} -t #{options[:t]} "
-    cmd += "-s" if options[:s]
-    logger.info "Not implemented yet. Please use OMF 5 for now."
-    logger.info "Command: #{cmd}"
-    load_exp(testbed_exp_path, global_options, options)
+    @cmd = "omf-5.4 stat -c #{options[:c]} -t #{options[:t]} "
+    @cmd += "-s" if options[:s]
+    load_exp(@testbed_exp_path, global_options, options)
   end
 end
 
@@ -185,11 +179,9 @@ command :tell do |c|
   c.flag [:a, :action]
 
   c.action do |global_options, options, args|
-    cmd = "omf-5.4 tell -c #{options[:c]} -t #{options[:t]} "
-    cmd += "-a #{options[:a]} " if options[:a]
-    logger.info "Not implemented yet. Please use OMF 5 for now."
-    logger.info "Command: #{cmd}"
-    load_exp(testbed_exp_path, global_options, options)
+    @cmd = "omf-5.4 tell -c #{options[:c]} -t #{options[:t]} "
+    @cmd += "-a #{options[:a]} " if options[:a]
+    load_exp(@testbed_exp_path, global_options, options)
   end
 end
 
@@ -241,7 +233,7 @@ pre do |global_options, command, options, args|
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
 
-  testbed_exp_path = File.join(OmfEc.lib_root, "omf_ec/backward/exp/testbed.rb")
+  @testbed_exp_path = File.join(OmfEc.lib_root, "omf_ec/backward/exp/testbed.rb")
 end
 
 def load_exp(exp_path, global_options = {} , options = {})

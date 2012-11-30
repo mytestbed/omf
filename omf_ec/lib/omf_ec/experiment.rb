@@ -46,7 +46,7 @@ module OmfEc
     class << self
       # Disconnect communicator, try to delete any XMPP affiliations
       def done
-        info "Exit in 20 seconds..."
+        info "Exit in up to 20 seconds..."
 
         OmfEc.comm.add_timer(10) do
           info "Release applications and network interfaces"
