@@ -49,57 +49,14 @@ command :exec do |c|
 
   c.desc "Default OML URI to use for collecting measurements"
   c.arg_name "uri"
-  c.flag [:oml_uri]  
+  c.flag [:oml_uri]
 
   c.desc "Check script version (you need to define OMF_VERSIONS in your script"
   c.switch "version_check"
 
   c.action do |global_options, options, args|
-    unless global_options[:user] && global_options[:password] && global_options[:server]
-      help_now! "Incomplete options"
-    end
-
     help_now! "Missing experiment script" if args[0].nil?
     help_now! "Experiment script not found" unless File.exist?(args[0])
-
-    if global_options[:xmpp]
-      Blather.logger = logger
-    end
-
-    if global_options[:debug]
-      Logging.logger.root.level = :debug
-    else
-      Logging.consolidate 'OmfCommon', 'OmfEc', 'OmfRc'
-    end
-
-    # Import private key
-    if global_options[:private_key]
-      OmfCommon::Key.instance.import(global_options[:private_key])
-    end
-
-    # Check version
-    if options[:check]
-      File.open(args[0], 'r') do |f|
-        f.read.chomp.match(/OMF_VERSIONS\W*=\W*(.*)/)
-        versions = $1
-        unless versions && versions.split(',').include?(OmfCommon::PROTOCOL_VERSION)
-          raise StandardError, "Could not find compatibile protocol version number in your script"
-        end
-      end
-    end
-
-    include OmfEc::DSL
-
-    OmfEc.exp.name = options[:experiment] if options[:experiment]
-    OmfEc.exp.oml_uri = options[:oml_uri] if options[:oml_uri]
-
-    if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
-      Logging.logger.root.add_appenders(
-        Logging.appenders.file(
-          "#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log",
-          :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
-                                             :pattern => '[%d] %-5l %c: %m\n')))
-    end
 
     # User provided exp properties
     if args.size > 1
@@ -114,28 +71,8 @@ command :exec do |c|
       end
     end
 
-    begin
-      OmfEc.comm.when_ready do
-        logger.info "Connected: #{OmfEc.comm.jid.inspect}"
-        logger.info "Start experiment: #{OmfEc.exp.id}"
-        begin
-          include OmfEc::Backward::DefaultEvents
-          load args[0]
-        rescue => e
-          logger.error e.message
-          logger.error e.backtrace.join("\n")
-        end
-      end
-
-      EM.run do
-        OmfEc.comm.connect(global_options[:user], global_options[:password], global_options[:server])
-        trap(:INT) { Experiment.done }
-        trap(:TERM) { Experiment.done }
-      end
-    rescue => e
-      logger.fatal e.message
-      logger.fatal e.backtrace.join("\n")
-    end
+    # FIXME this loading script is way too simple
+    load_exp(args[0], global_options, options)
   end
 end
 
@@ -144,11 +81,11 @@ command :load do |c|
   c.desc "use this testbed configuration in OMF 5 EC config file"
   c.arg_name "AGGREGATE"
   c.flag [:c, :config], :default_value => "default"
-    
+
   c.desc "comma-separated list of nodes to image"
   c.arg_name "TOPOLOGY"
   c.flag [:t, :topology], :default_value => "system:topo:all"
-  
+
   c.desc "disk image to load"
   c.arg_name "IMAGE"
   c.flag [:i, :image], :default_value => "baseline.ndz"
@@ -156,16 +93,16 @@ command :load do |c|
   c.desc "seconds to wait for the imaging process to complete"
   c.arg_name "TIMEOUT"
   c.flag [:o, :timeout], :default_value => "800"
-  
-  c.desc "resize the first partition to SIZE GB or to maximum size if SIZE=0 "+ 
+
+  c.desc "resize the first partition to SIZE GB or to maximum size if SIZE=0 "+
     "or leave x percent of free space if SIZE=x%"
   c.arg_name "SIZE"
   c.flag [:r, :resize]
-  
+
   c.desc "Path where the resulting Topologies should be saved"
   c.arg_name "PATH"
   c.flag [:outpath], :default_value => "/tmp"
-  
+
   c.desc "Prefix to use for naming the resulting Topologies (default is your experiment ID)"
   c.arg_name "PREFIX"
   c.flag [:outprefix]
@@ -190,12 +127,12 @@ command :save do |c|
   c.desc "use this testbed configuration in OMF 5 EC config file"
   c.arg_name "AGGREGATE"
   c.flag [:c, :config], :default_value => "default"
-    
+
   c.desc "node to save from"
   c.arg_name "NODE"
   c.flag [:n, :node]
-  
-  c.desc "resize the first partition to SIZE GB or to maximum size if SIZE=0 "+ 
+
+  c.desc "resize the first partition to SIZE GB or to maximum size if SIZE=0 "+
     "or leave x percent of free space if SIZE=x%"
   c.arg_name "SIZE"
   c.flag [:r, :resize]
@@ -210,7 +147,7 @@ command :save do |c|
     cmd += "-r #{options[:r]} " if options[:r]
     logger.info "Not implemented yet. Please use OMF 5 for now."
     logger.info "Command: #{cmd}"
-    
+
   end
 end
 
@@ -219,11 +156,11 @@ command :stat do |c|
   c.desc "use this testbed configuration in OMF 5 EC config file"
   c.arg_name "AGGREGATE"
   c.flag [:c, :config], :default_value => "default"
-  
+
   c.desc "comma-separated list of nodes to image"
   c.arg_name "TOPOLOGY"
-  c.flag [:t, :topology], :default_value => "system:topo:all"  
-    
+  c.flag [:t, :topology], :default_value => "system:topo:all"
+
   c.desc "print a summary of the node status for the testbed"
   c.switch [:s, :summary]
 
@@ -245,19 +182,19 @@ command :tell do |c|
   c.desc "use this testbed configuration in OMF 5 EC config file"
   c.arg_name "AGGREGATE"
   c.flag [:c, :config], :default_value => "default"
-  
+
   c.desc "comma-separated list of nodes to image"
   c.arg_name "TOPOLOGY"
-  c.flag [:t, :topology], :default_value => "system:topo:all"  
-    
+  c.flag [:t, :topology], :default_value => "system:topo:all"
+
   c.desc "
-      'on'              turn node(s) ON - 
+      'on'              turn node(s) ON -
       'offs'            turn node(s) OFF (soft) -
       'offh'            turn node(s) OFF (hard) -
       'reboot'          reboots node(s) (soft) -
       'reset'           resets node(s) (hard)"
   c.arg_name "ACTION"
-  c.flag [:a, :action] 
+  c.flag [:a, :action]
 
   c.action do |global_options, options, args|
     unless global_options[:user] && global_options[:password] && global_options[:server]
@@ -274,6 +211,76 @@ end
 
 on_error do |exception|
   true
+end
+
+pre do |global_options, command, options, args|
+  unless global_options[:user] && global_options[:password] && global_options[:server]
+    help_now! "Incomplete options"
+  end
+
+  if global_options[:xmpp]
+    Blather.logger = logger
+  end
+
+  if global_options[:debug]
+    Logging.logger.root.level = :debug
+  else
+    Logging.consolidate 'OmfCommon', 'OmfEc', 'OmfRc'
+  end
+
+  # Import private key
+  if global_options[:private_key]
+    OmfCommon::Key.instance.import(global_options[:private_key])
+  end
+
+  # Check version
+  if options[:check]
+    File.open(args[0], 'r') do |f|
+      f.read.chomp.match(/OMF_VERSIONS\W*=\W*(.*)/)
+      versions = $1
+      unless versions && versions.split(',').include?(OmfCommon::PROTOCOL_VERSION)
+        raise StandardError, "Could not find compatibile protocol version number in your script"
+      end
+    end
+  end
+
+  include OmfEc::DSL
+
+  OmfEc.exp.name = options[:experiment] if options[:experiment]
+  OmfEc.exp.oml_uri = options[:oml_uri] if options[:oml_uri]
+
+  if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
+    Logging.logger.root.add_appenders(
+      Logging.appenders.file(
+        "#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log",
+        :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
+                                           :pattern => '[%d] %-5l %c: %m\n')))
+  end
+end
+
+def load_exp(exp_path, global_options = {} , options = {})
+  begin
+    OmfEc.comm.when_ready do
+      logger.info "Connected: #{OmfEc.comm.jid.inspect}"
+      logger.info "Start experiment: #{OmfEc.exp.id}"
+      begin
+        include OmfEc::Backward::DefaultEvents
+        load exp_path
+      rescue => e
+        logger.error e.message
+        logger.error e.backtrace.join("\n")
+      end
+    end
+
+    EM.run do
+      OmfEc.comm.connect(global_options[:user], global_options[:password], global_options[:server])
+      trap(:INT) { Experiment.done }
+      trap(:TERM) { Experiment.done }
+    end
+  rescue => e
+    logger.fatal e.message
+    logger.fatal e.backtrace.join("\n")
+  end
 end
 
 exit run(ARGV)
