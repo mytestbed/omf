@@ -13,14 +13,14 @@ defProperty('bitrate', 2048, "Bitrate (bit/s) from the sender node")
 defProperty('packetsize', PKTSIZE, "Packet size (byte) from the sender node")
 
 defGroup('Sender', property.res1) {|node|
-  #node.addApplication("test:app:otg2") {|app|
-  #  app.setProperty('udp:local_host', '192.168.0.2')
-  #  app.setProperty('udp:dst_host', '192.168.0.3')
-  #  app.setProperty('udp:dst_port', 3000)
-  #  app.setProperty('cbr:rate', property.bitrate * 2)
-  #  app.setProperty('cbr:size', property.packetsize)
-  #  app.measure('udp_out', :interval => 3)
-  #}
+  node.addApplication("test:app:otg2") {|app|
+    app.setProperty('udp:local_host', '192.168.0.2')
+    app.setProperty('udp:dst_host', '192.168.0.3')
+    app.setProperty('udp:dst_port', 3000)
+    app.setProperty('cbr:rate', property.bitrate * 2)
+    app.setProperty('cbr:size', property.packetsize)
+    app.measure('udp_out', :interval => 3)
+  }
   node.net.w0.mode = "adhoc"
   node.net.w0.type = 'g'
   node.net.w0.channel = '6'
@@ -29,11 +29,11 @@ defGroup('Sender', property.res1) {|node|
 }
 
 defGroup('Receiver', property.res2) {|node|
-  #node.addApplication("test:app:otr2") {|app|
-  #  app.setProperty('udp:local_host', '192.168.0.3')
-  #  app.setProperty('udp:local_port', 3000)
-  #  app.measure('udp_in', :samples => 3)
-  #}
+  node.addApplication("test:app:otr2") {|app|
+    app.setProperty('udp:local_host', '192.168.0.3')
+    app.setProperty('udp:local_port', 3000)
+    app.measure('udp_in', :samples => 3)
+  }
   node.net.w0.mode = "adhoc"
   node.net.w0.type = 'g'
   node.net.w0.channel = '6'
@@ -41,9 +41,9 @@ defGroup('Receiver', property.res2) {|node|
   node.net.w0.ip = "192.168.0.3"
 }
 
-#onEvent(:ALL_UP_AND_INSTALLED) do |event|
+onEvent(:ALL_UP_AND_INSTALLED) do |event|
   wait 10
-  #allGroups.startApplications
+  allGroups.startApplications
   wait 15
   info "------------------------------"
   info "TEST - Dynamic property change"
@@ -51,9 +51,9 @@ defGroup('Receiver', property.res2) {|node|
   property.packetsize = 512
   info "TEST - Value after: #{property.packetsize}"
   wait 15
-  #allGroups.stopApplications
+  allGroups.stopApplications
   Experiment.done
-#end
+end
 
 
 
