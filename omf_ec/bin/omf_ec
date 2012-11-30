@@ -108,17 +108,13 @@ command :load do |c|
   c.flag [:outprefix]
 
   c.action do |global_options, options, args|
-    unless global_options[:user] && global_options[:password] && global_options[:server]
-      help_now! "Incomplete options"
-    end
-
     cmd = "omf-5.4 load -c #{options[:c]} -t #{options[:t]} -i #{options[:i]} "
     cmd += "-o #{options[:o]} --outpath #{options[:outpath]} "
     cmd += "-r #{options[:r]} " if options[:r]
-    cmd += "--outprefix #{options[:outprefix]} " if options[:outprefix]    
+    cmd += "--outprefix #{options[:outprefix]} " if options[:outprefix]
     logger.info "Not implemented yet. Please use OMF 5 for now."
     logger.info "Command: #{cmd}"
-    
+    load_exp(testbed_exp_path, global_options, options)
   end
 end
 
@@ -138,16 +134,12 @@ command :save do |c|
   c.flag [:r, :resize]
 
   c.action do |global_options, options, args|
-    unless global_options[:user] && global_options[:password] && global_options[:server]
-      help_now! "Incomplete options"
-    end
-
     cmd = "omf-5.4 save -c #{options[:c]} "
-    cmd += "-n #{options[:n]} " if options[:n]   
+    cmd += "-n #{options[:n]} " if options[:n]
     cmd += "-r #{options[:r]} " if options[:r]
     logger.info "Not implemented yet. Please use OMF 5 for now."
     logger.info "Command: #{cmd}"
-
+    load_exp(testbed_exp_path, global_options, options)
   end
 end
 
@@ -165,15 +157,11 @@ command :stat do |c|
   c.switch [:s, :summary]
 
   c.action do |global_options, options, args|
-    unless global_options[:user] && global_options[:password] && global_options[:server]
-      help_now! "Incomplete options"
-    end
-
     cmd = "omf-5.4 stat -c #{options[:c]} -t #{options[:t]} "
     cmd += "-s" if options[:s]
     logger.info "Not implemented yet. Please use OMF 5 for now."
     logger.info "Command: #{cmd}"
-    
+    load_exp(testbed_exp_path, global_options, options)
   end
 end
 
@@ -197,15 +185,11 @@ command :tell do |c|
   c.flag [:a, :action]
 
   c.action do |global_options, options, args|
-    unless global_options[:user] && global_options[:password] && global_options[:server]
-      help_now! "Incomplete options"
-    end
-
     cmd = "omf-5.4 tell -c #{options[:c]} -t #{options[:t]} "
     cmd += "-a #{options[:a]} " if options[:a]
     logger.info "Not implemented yet. Please use OMF 5 for now."
     logger.info "Command: #{cmd}"
-    
+    load_exp(testbed_exp_path, global_options, options)
   end
 end
 
@@ -256,6 +240,8 @@ pre do |global_options, command, options, args|
         :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
+
+  testbed_exp_path = File.join(OmfEc.lib_root, "omf_ec/backward/exp/testbed.rb")
 end
 
 def load_exp(exp_path, global_options = {} , options = {})

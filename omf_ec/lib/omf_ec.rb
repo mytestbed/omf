@@ -28,6 +28,11 @@ module OmfEc
       Experiment.instance.comm
     end
 
+    # Full path of lib directory
+    def lib_root
+      File.expand_path("../..", "#{__FILE__}/lib")
+    end
+
     alias_method :comm, :communicator
   end
 end
