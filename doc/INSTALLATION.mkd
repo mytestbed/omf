@@ -1,14 +1,10 @@
-# INSTALLATION
+# RUBY 1.9 INSTALLATION
 
-This detailed installation guide will provide you more information related to your specific OS environment. You are welcome to expand the list if you OS has not been covered here.
-
-No matter which OS you are using, Ruby 1.9 with rubygems is a basic requirement. This guide explains how to get Ruby 1.9 running on your OS so that you can run OMF.
+We recommend two different ways of installing Ruby 1.9: installing binary distribution packages or compiling from source using RVM. The latter is recommended if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple ruby installations with isolated gemsets. For all other occasions, it may be better to use the ruby packages your OS vendor provides.
 
 ## RVM (all Linux/Unix/BSD platforms, including Mac OSX)
 
-RVM is recommended if you do not have Ruby available via the official distribution channel, or the version available is too old, or you will have multiple versions installed and potentially cause confusion and trouble.
-
-[RVM official site](https://rvm.io) should provide you all the information to install it, but here are some short instructions. As a regular user, run:
+[RVM official site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. As a regular user, run:
 
     curl -L https://get.rvm.io | bash -s stable
 
@@ -21,7 +17,6 @@ You will see the what is required to install Ruby through RVM in your OS environ
     rvm install ruby
 
 To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of libxml2 and libxslt. After installing those packages, you are ready to install the OMF gems. See the instructions at the end of this document.
-
 
 ## Ubuntu 12.10 & 12.04
 
@@ -80,7 +75,7 @@ RVM requires Xcode version 3.2.1 or later, however Xcode 4.2 will break gems wit
     rvm gemset create omf
     rvm use 1.9.3@omf --default
 
-## OMF Installation
+# OMF Installation
 
 After you've successfully installed Ruby 1.9, you can now fetch the OMF gems using:
 
