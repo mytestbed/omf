@@ -4,7 +4,7 @@ We recommend two different ways of installing Ruby 1.9: installing binary distri
 
 ## RVM (all Linux/Unix/BSD platforms, including Mac OSX)
 
-[RVM official site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. As a regular user, run:
+The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. As a regular user, run:
 
     curl -L https://get.rvm.io | bash -s stable
 
@@ -38,44 +38,23 @@ Type following in your console:
     sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml
     sudo yum groupinstall development-tools development-libs
 
-    curl -L https://get.rvm.io | bash -s stable
-
-    rvm install 1.9.3
-    rvm use 1.9.3
-    rvm gemset create omf
-    rvm use 1.9.3@omf --default
+Then follow the RVM install instructions above
 
 ## Debian
 
-Issue the following commands:
+Type following in your console:
 
     sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
 
-    curl -L https://get.rvm.io | bash -s stable
-
-    rvm install 1.9.3
-    rvm use 1.9.3
-    rvm gemset create omf
-    rvm use 1.9.3@omf --default
+Then follow the RVM install instructions above
 
 ## Mac OS X
 
-Please use homebrew to get Ruby 1.9.3 installed using RVM.
+Use RVM. It will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
 
-    ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
+First install the latest XCode from the Mac App Store. Start XCode, open the preferences menu and install the "Command Line Tools" in the Downloads tab. After the installation is complete, open a Terminal and follow the RVM instructions above.
 
-RVM requires Xcode version 3.2.1 or later, however Xcode 4.2 will break gems with native extensions.
-
-    brew install libksba
-
-    curl -L https://get.rvm.io | bash -s stable
-
-    rvm install 1.9.3
-    rvm use 1.9.3
-    rvm gemset create omf
-    rvm use 1.9.3@omf --default
-
-# OMF Installation
+# OMF INSTALLATION
 
 After you've successfully installed Ruby 1.9, you can now fetch the OMF gems using:
 
