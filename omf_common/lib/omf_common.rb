@@ -14,4 +14,30 @@ require 'omf_common/core_ext/object'
 include OmfCommon::DefaultLogging
 
 module OmfCommon
+  #
+  # Initialize the OMF runtime.
+  # Options are:
+  #    :communication
+  #      :type 
+  #      ... specific opts
+  #
+  # @param [Hash] opts
+  #
+  def self.init(opts = {})
+    unless copts = opts[:communication]
+      raise "Missing :communication description"
+    end
+    EM.run do
+      Comm.init(copts)
+      trap(:INT) { comm.disconnect }
+      trap(:TERM) { comm.disconnect }
+    end    
+    
+  end
+  
+  # Return the communication driver instance
+  #
+  def self.comm()
+    Comm.instance
+  end
 end

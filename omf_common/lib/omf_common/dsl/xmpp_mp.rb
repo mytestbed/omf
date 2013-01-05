@@ -1,3 +1,5 @@
+require 'oml4r'
+
 module OmfCommon
   module DSL
     module Xmpp

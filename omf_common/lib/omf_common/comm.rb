@@ -5,11 +5,55 @@ require 'omf_common/dsl/xmpp_mp'
 module OmfCommon
   # PubSub communication class, can be extended with different implementations
   class Comm
+    
+    @@drivers = {
+      xmpp: {
+        require: 'omf_common/dsl/xmpp',
+        constructor: 'OmfCommon::DSL::Xmpp'
+      }
+    }
+    @@instance = nil
+    
+    #
+    # opts:
+    #   :type - pre installed comms driver
+    #   :driver - custom driver (opts)
+    #     :require - gem to load first (opts)
+    #     :constructor - Class implementing driver
+    #
+    def self.init(opts)
+      if @@instance
+        raise "Comms layer already iniitalised"
+      end
+      unless driver = opts[:driver]
+        driver = @@drivers[opts[:type]]
+      end
+      unless driver
+        raise "Missing Comm driver declaration. Either define 'type' or 'driver'"
+      end
+      require driver[:requires] if driver[:requires]
+      unless class_name = driver[:constructor]
+        raise "Missing driver constuctor class (:constructor)"
+      end
+      driver_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+      inst = self.new(nil, class_name)
+      inst.init(opts)
+      @@instance = inst
+    end
+    
+    def self.instance
+      @@instance
+    end
+    
     attr_accessor :published_messages
 
-    def initialize(pubsub_implementation)
+    def initialize(pubsub_implementation, driver_class_name = nil)
       @published_messages = []
-      self.extend("OmfCommon::DSL::#{pubsub_implementation.to_s.camelize}".constantize)
+      if driver_class_name
+        self.extend(driver_class_name.constantize)
+      else
+        self.extend("OmfCommon::DSL::#{pubsub_implementation.to_s.camelize}".constantize)
+      end
     end
 
     # Generate OMF related message

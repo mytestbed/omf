@@ -19,6 +19,15 @@ module OmfCommon
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
+      def init(opts = {})
+        username = opts[:username]
+        password = opts[:password]
+        server = opts[:server]
+        connect(username, password, server)
+      end
+
+      # Set up XMPP options and start the Eventmachine, connect to XMPP server
+      #
       def connect(username, password, server)
         jid = "#{username}@#{server}"
         client.setup(jid, password)
