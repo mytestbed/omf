@@ -38,7 +38,10 @@ class OmfRc::ResourceFactory
       resource.before_ready if resource.respond_to? :before_ready
       resource
     end
-
+    
+    # 'new' is a strange method for creating something different than the receiving class itself
+    alias :create :new
+    
     # Return the proxy list
     def proxy_list
       @@proxy_list

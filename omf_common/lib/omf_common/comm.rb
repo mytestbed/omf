@@ -1,5 +1,5 @@
-require 'omf_common/dsl/xmpp'
-require 'omf_common/dsl/xmpp_mp'
+# require 'omf_common/dsl/xmpp'
+# require 'omf_common/dsl/xmpp_mp'
 
 
 module OmfCommon
@@ -9,7 +9,11 @@ module OmfCommon
     @@drivers = {
       xmpp: {
         require: 'omf_common/dsl/xmpp',
-        constructor: 'OmfCommon::DSL::Xmpp'
+        extend: 'OmfCommon::DSL::Xmpp'
+      },
+      mock: {
+        require: 'omf_common/comm_driver/mock/communicator',
+        constructor: 'OmfCommon::CommDriver::Mock::Communicator'
       }
     }
     @@instance = nil
@@ -31,12 +35,17 @@ module OmfCommon
       unless driver
         raise "Missing Comm driver declaration. Either define 'type' or 'driver'"
       end
-      require driver[:requires] if driver[:requires]
-      unless class_name = driver[:constructor]
-        raise "Missing driver constuctor class (:constructor)"
+
+      require driver[:require] if driver[:require]
+
+      if class_name = driver[:extend]
+        inst = self.new(nil, driver_class)
+      elsif class_name = driver[:constructor]
+        driver_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+        inst = driver_class.new(opts)
+      else
+        raise "Missing driver creation info - :extend or :constructor"
       end
-      driver_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
-      inst = self.new(nil, class_name)
       inst.init(opts)
       @@instance = inst
     end
