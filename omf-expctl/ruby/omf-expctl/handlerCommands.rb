@@ -618,25 +618,17 @@ module OMF::EC
     def info(*msg)
       MObject.info('exp', *msg)
     end
-
-    #
-    # Debugging support:
-    # print an warning message to the 'stdout' & the logfile of EC
-    #
-    # - *msg = message to print
-    #
+    
+    def error(*msg)
+      MObject.error('exp', *msg)
+    end
+    
     def warn(*msg)
       MObject.warn('exp', *msg)
     end
-
-    #
-    # Debugging support:
-    # print an error message to the 'stdout' & the logfile of EC
-    #
-    # - *msg = message to print
-    #
-    def error(*msg)
-      MObject.error('exp', *msg)
+    
+    def debug(*msg)
+      MObject.debug('exp', *msg)
     end
 
     #
