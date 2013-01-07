@@ -12,35 +12,36 @@ then log out, log back in and run:
 
     rvm requirements
 
-You will see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed.  Now you can install ruby:
+You will see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed.  Now you can install and select ruby:
     
     rvm install ruby
+    rvm use ruby
 
-To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of libxml2 and libxslt. After installing those packages, you are ready to install the OMF gems. See the instructions at the end of this document.
+To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of **libxml2** and **libxslt**. After installing those packages, you are ready to install the OMF gems. See the instructions at the end of this document.
 
-## Ubuntu 12.10 & 12.04
+## Ubuntu 12.10 & 12.04 (not using RVM)
 
 Type following in your console:
 
     sudo apt-get install ruby1.9.3 build-essential libxml2-dev libxslt-dev
     sudo gem install eventmachine -v 0.12.10 -- --with-cflags=\"-O2 -pipe -march=native -w\"
 
-## Fedora 17
+## Fedora 17 (not using RVM)
 
 Type following in your console:
 
     sudo yum install ruby-devel libxml2-devel libxslt-devel make gcc gcc-c++
 
-## Older Fedora
+## Older Fedora (using RVM)
 
-Type following in your console:
+Use RVM. Type following in your console:
 
     sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml
     sudo yum groupinstall development-tools development-libs
 
 Then follow the RVM install instructions above
 
-## Debian
+## Debian (using RVM)
 
 Type following in your console:
 
@@ -48,7 +49,7 @@ Type following in your console:
 
 Then follow the RVM install instructions above
 
-## Mac OS X
+## Mac OS X (using RVM)
 
 Use RVM. It will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
 
