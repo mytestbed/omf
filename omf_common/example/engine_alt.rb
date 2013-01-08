@@ -36,10 +36,9 @@ Logging.logger.root.level = :debug if opts[:debug]
 # Should be
 def create_engine(garage)
   garage.create('mp4', type: :engine) do |msg|
-    puts "EEE: #{msg.inspect}"
     if msg.success?
       engine = msg.resource
-      on_engine_created(engine)
+      on_engine_created(engine, garage)
     else
       logger.error "Resource creation failed ---"
       logger.error msg.read_content("reason")
@@ -55,7 +54,7 @@ end
 def create_engine2
   msg = garage.create_message('mp4')
   msg.on_created do |engine, emsg|
-    on_engine_created(engine)
+    on_engine_created(engine, garage)
   end
   msg.on_created_failed do |fmsg|
     logger.error "Resource creation failed ---"
@@ -68,7 +67,7 @@ end
 #
 # @param [Topic] engine Topic representing the created engine
 # 
-def on_engine_created(engine)
+def on_engine_created(engine, garage)
   # Monitor all status information from teh engine
   engine.on_inform_status do |msg|
     msg.each_property do |name, value|
@@ -107,7 +106,9 @@ def on_engine_created(engine)
   # 10 seconds later, we will 'release' this engine, i.e. shut it down
   engine.after(10) do
     logger.info "Time to release engine #{engine}"
-    engine.release  # Could also be 'garage.release(engine)'
+    garage.release engine do |rmsg|
+      puts "===> ENGINE RELEASED: #{rmsg}"
+    end
   end
 end
 

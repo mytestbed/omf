@@ -17,6 +17,7 @@ module OmfRc
       # @option opts [Hash] :instrument A hash for keeping instrumentation-related state
       # 
       def initialize(type, opts = nil, comm = nil)
+        #puts "IIIII => #{opts.inspect}"
         @opts = Hashie::Mash.new(opts)
         @type = type
         @uid = @opts.uid || SecureRandom.uuid
@@ -26,22 +27,23 @@ module OmfRc
           @hrn = @hrn.to_s
           @membership << @hrn
         end
-        @topic = nil # fill in below
+        @topics = [] # fill in below
         
-        @property = @opts.property || Hashie::Mash.new
+        # Really not sure what I'm doing here!
+        @property = @opts 
         OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
           if t.id.to_s == @uid
-            @topic = t 
+            @topics << t 
           end
           if t.error?
               warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
               OmfCommon.comm.disconnect()
           else
-            t.inform(:created, {resource_id: @uid, hrn: @hrn})
+            t.inform(:created, {resource_id: @uid, resource_address: t.address, hrn: @hrn})
 
-            t.on_message do |msg|
-              #puts ">>>> #{t.id}: #{msg}"
-              process_omf_message(msg, t)
+            t.on_message do |imsg|
+              #puts ">>>> #{t.id}: #{imsg}"
+              process_omf_message(imsg, t)
             end
           end
         end
@@ -49,15 +51,14 @@ module OmfRc
       
       # Parse omf message and execute as instructed by the message
       #
-      def process_omf_message(props, topic)
-        if props.is_a? OmfCommon::CommDriver::Mock::Message
-          message = props
-        else
-          message = OmfCommon::CommDriver::Mock::Message.new(props.dup)
+      def process_omf_message(message, topic)
+        unless message.is_a? OmfCommon::CommDriver::Mock::Message
+          raise "Expected Message, but got '#{props.class}'"
+          #message = OmfCommon::CommDriver::Mock::Message.new(props.dup)
         end
     #puts "PPP(#{topic.id}|#{uid})-> #{message}"
         objects_by_topic(topic.id.to_s).each do |obj|
-    #puts "TTT-> #{message}"
+    #puts "TTT(#{self})-> #{obj}"
           if OmfCommon::Measure.enabled?
             OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.msg_id) 
           end
@@ -67,13 +68,13 @@ module OmfRc
       
       def execute_omf_operation(message, obj, topic)
         response_h = handle_message(message, obj)
-        response = Hashie::Mash.new(response_h)
-        case response.operation
+        #response = Hashie::Mash.new(response_h)
+        case message.operation
         when :create
           #puts "CCCC(#{topic.id})==> #{response_h.inspect}"
           #topic.inform('CREATION_OK', response_h)
           inform(:created, response_h, topic)
-          new_uid = response.resource_id
+          #new_uid = response_h.resource_id
           # @comm.create_topic(new_uid) do
             # @comm.subscribe(new_uid) do
               # inform(:created, response)
@@ -89,21 +90,24 @@ module OmfRc
       end
       
       def handle_message(message, obj)
-        default_response = {
-          operation: message.operation,
-          context_id: message.msg_id,
-          inform_to: inform_to_address(obj, message.publish_to)
-        }
+        response = message.create_inform_message()
+        response.inform_to inform_to_address(obj, message.publish_to)
+          # operation: message.operation,
+          # context_id: message.msg_id,
+          # inform_to: inform_to_address(obj, message.publish_to)
+        # }
     
         case message.operation
         when :create
-          handle_create_message(message, obj, default_response)
+          handle_create_message(message, obj, response)
         when :request, :configure
-          handle_request_or_configure_message(message, obj, default_response)        
+          handle_request_or_configure_message(message, obj, response)        
         when :release
           resource_id = message.resource_id
           released_obj = obj.release(resource_id)
-          released_obj ? default_response.merge(resource_id: released_obj.uid) : nil
+          # TODO: Under what circumstances would 'realease_obj' be NIL
+          response[:resource_id] = released_obj ? released_obj.uid : resource_id
+          response[:resource_address] = OmfCommon::CommDriver::Mock::Topic.address_for(response[:resource_id])
         when :inform
           nil # We really don't care about inform messages which created from here
         else
@@ -112,12 +116,13 @@ module OmfRc
             Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
           ERROR
         end
+        response
       end
       
-      def handle_create_message(message, obj, default_response)
-        new_name = message.read_property(:name) || message.read_property(:hrn)
-        new_opts = opts.dup.merge(uid: nil, hrn: new_name)
-        new_obj = obj.create(message.read_property(:type), new_opts)
+      def handle_create_message(message, obj, response)
+        new_name = message[:name] || message[:hrn]
+        new_opts = {hrn: new_name}
+        new_obj = obj.create(message[:type], new_opts)
         exclude = [:type, :hrn, :name]
         message.each_property do |key, value|
           unless exclude.include?(key)
@@ -126,78 +131,134 @@ module OmfRc
           end
         end
         new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-        default_response.merge(resource_id: new_obj.uid)
+        response[:resource_id] = new_obj.uid
+        response[:resource_address] = OmfCommon::CommDriver::Mock::Topic.address_for(new_obj.uid)
       end   
       
-      def handle_request_or_configure_message(message, obj, default_response)
-        result = Hashie::Mash.new.tap do |mash|
+      def handle_request_or_configure_message(message, obj, response)
+        #result = Hashie::Mash.new.tap do |mash|
           if message.operation == :request && message.has_properties?
             obj.request_available_properties.request.each do |r_p|
               method_name = "request_#{r_p.to_s}"
-              mash[r_p] ||= obj.__send__(method_name)
+              response[r_p] ||= obj.__send__(method_name)
             end
           else
             message.each_property do |key, value|
               method_name =  "#{message.operation.to_s}_#{key}"
               p_value = message.read_property(key)
-              mash[key] ||= obj.__send__(method_name, p_value)
+              response[key] ||= obj.__send__(method_name, p_value)
             end
           end
-        end
-        # Always return uid
-        result.uid = obj.uid
-        default_response.merge(status: result)
+        #end
+        # Always return uid ?????
+        #result.uid = obj.uid
+        
+        #response.status = result
       end  
       
       # Publish an inform message
       # @param [Symbol] inform_type the type of inform message
       # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
       def inform(inform_type, inform_data, topic = nil)
-        topic ||= @topic
+        topic ||= @topics.first
+        if inform_data.is_a? OmfCommon::CommDriver::Mock::Message
+          message = inform_data
+        elsif inform_data.is_a? Hash
+          message = OmfCommon::CommDriver::Mock::Message.create_inform_message(inform_type, inform_data.dup)
+        else
+          raise "Expected message, but got '#{inform_data.class}:#{inform_data.inspect}'"
+        end
         inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
+        
         case inform_type
         when :failed
           unless inform_data.kind_of? Exception
             raise ArgumentError, "FAILED message requires an Exception (or MessageProcessError)"
           end
         when :created, :released
-          unless inform_data.respond_to?(:resource_id) && !inform_data.resource_id.nil?
-            raise ArgumentError, "CREATED or RELEASED message requires inform_data object respond to resource_id"
+          unless message[:resource_id] && message[:resource_address]
+            raise ArgumentError, "CREATED or RELEASED message require property 'resource_id' and 'resource_address'"
           end
         when :status
-          unless inform_data.respond_to?(:status) && inform_data.status.kind_of?(Hash)
-            raise ArgumentError, "STATUS message requires a hash represents properties"
-          end
+          # unless (message.inform_type ||= :status) == :status 
+            # raise ArgumentError, "STATUS message requires a hash represents properties"
+          # end
         end
 
         context_id = inform_data.context_id if inform_data.respond_to? :context_id
         inform_to = inform_data.inform_to if inform_data.respond_to? :inform_to
         inform_to ||= self.uid
     
-        params = {}
-        params[:context_id] = context_id if context_id
-        case inform_type
-        when :created
-          params[:resource_id] = inform_data.resource_id
-          params[:resource_address] = inform_data.resource_id
-        when :status
-          inform_data.status.each_pair { |k, v| params[k] = v }
-        when :released
-          params[:resource_id] = inform_data.resource_id
-        when :error, :warn
-          params[:reason] = (inform_data.message rescue inform_data)
-          logger.__send__(inform_type, (inform_data.message rescue inform_data))
-        when :failed
-          params[:reason] = inform_data.message
-        end
-
-        #unless topic.id.to_s == inform_to
-          topic.inform inform_type.to_s.upcase, params
-        # else
-          # warn "Didn't send inform as topic (#{topic.id} != #{inform_to})"
+        # params = {}
+        # params[:context_id] = context_id if context_id
+        # case inform_type
+        # when :created
+          # message[:resource_id] = inform_data.resource_id
+          # message[:resource_address] = inform_data.resource_id
+        # when :status
+          # inform_data.status.each_pair { |k, v| params[k] = v }
+        # when :released
+          # params[:resource_id] = inform_data.resource_id
+        # when :error, :warn
+          # params[:reason] = (inform_data.message rescue inform_data)
+          # logger.__send__(inform_type, (inform_data.message rescue inform_data))
+        # when :failed
+          # params[:reason] = inform_data.message
         # end
+
+        message.inform_type = inform_type
+        topic.publish message #params
+
         OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
           self.uid, inform_to, "should be message_id") if OmfCommon::Measure.enabled?
+      end
+      
+      # Release a child resource
+      #
+      # @return [AbstractResource] Relsead child or nil if error
+      #
+      def release(resource_id)
+        if (child = children.find { |v| v.uid.to_s == resource_id.to_s })
+          if child.release_self()
+            children.delete(child)
+            child
+          else
+            child = nil
+          end
+        else
+          warn "#{resource_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
+        end
+        child
+      end
+      
+      # Release this resource. Should ONLY be called by parent resource.
+      #
+      # Return true if successful
+      #
+      def release_self
+        # Release children resource recursively
+        children.dup.each do |c|
+          if c.release_self
+            children.delete(c)
+          end
+        end
+        return false unless children.empty?
+        info "Releasing hrn: #{hrn}, uid: #{uid}"
+        self.before_release if self.respond_to? :before_release
+        props = { 
+          resource_id: uid, 
+          resource_address: OmfCommon::CommDriver::Mock::Topic.address_for(uid)
+        }
+        props[:hrn] = hrn if hrn
+        inform :released, props
+
+         
+        # clean up topics  
+        @topics.each do |t| 
+          t.unsubscribe
+        end
+          
+        true        
       end
       
       
