@@ -1,5 +1,6 @@
 require 'hashie'
 require 'cocaine'
+require 'tempfile'
 
 module OmfRc::Util::Wpa
   include OmfRc::ResourceProxyDSL
@@ -8,8 +9,8 @@ module OmfRc::Util::Wpa
   # Initialise wpa related conf and pid location
   #
   work :init_wpa_conf_pid do |device|
-    device.property.wpa_conf = "/tmp/wpa.#{device.hrn}.conf"
-    device.property.wpa_pid = "/tmp/wpa.#{device.hrn}.pid"
+    device.property.wpa_conf = Tempfile.new(["wpa.#{device.hrn}", ".conf"]).path
+    device.property.wpa_pid = Tempfile.new(["wpa.#{device.hrn}", ".pid"]).path
   end
 
   work :wpasup do |device|

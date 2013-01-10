@@ -1,5 +1,6 @@
 require 'hashie'
 require 'cocaine'
+require 'tempfile'
 
 module OmfRc::Util::Hostapd
   include OmfRc::ResourceProxyDSL
@@ -8,8 +9,8 @@ module OmfRc::Util::Hostapd
   # Initialise access point conf and pid location
   #
   work :init_ap_conf_pid do |device|
-    device.property.ap_conf = "/tmp/hostapd.#{device.hrn}.conf"
-    device.property.ap_pid = "/tmp/hostapd.#{device.hrn}.pid"
+    device.property.ap_conf = Tempfile.new(["hostapd.#{device.hrn}", ".conf"]).path
+    device.property.ap_pid = Tempfile.new(["hostapd.#{device.hrn}", ".pid"]).path
   end
   # Set up and run a hostapd instance
   #

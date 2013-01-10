@@ -54,14 +54,14 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must could initialise wpa config/pid file path" do
         @wlan00.init_ap_conf_pid
-        @wlan00.request_ap_conf.must_equal "/tmp/hostapd.wlan00.conf"
-        @wlan00.request_ap_pid.must_equal "/tmp/hostapd.wlan00.pid"
+        @wlan00.request_ap_conf.must_match /tmp\/hostapd\.wlan00.+\.conf/
+        @wlan00.request_ap_pid.must_match /tmp\/hostapd\.wlan00.+\.pid/
       end
 
       it "must could initialise wpa config/pid file path" do
         @wlan00.init_wpa_conf_pid
-        @wlan00.request_wpa_conf.must_equal "/tmp/wpa.wlan00.conf"
-        @wlan00.request_wpa_pid.must_equal "/tmp/wpa.wlan00.pid"
+        @wlan00.request_wpa_conf.must_match /tmp\/wpa\.wlan00.+\.conf/
+        @wlan00.request_wpa_pid.must_match /tmp\/wpa\.wlan00.+\.pid/
       end
 
       it "could delete current interface" do
@@ -92,21 +92,21 @@ Cocaine::CommandLine.stub(:new, @command) do
           3.times { @command.expect(:run, true) }
 
           @wlan00.configure_mode(mode: 'master', channel: 1, essid: 'bob', hw_mode: 'b')
-          File.open("/tmp/hostapd.wlan00.conf") do |f|
+          File.open(@wlan00.property.ap_conf) do |f|
             f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=1\nhw_mode=b\n"
           end
 
           3.times { @command.expect(:run, true) }
 
           @wlan00.configure_mode(mode: 'master', channel: 1, essid: 'bob', hw_mode: 'n')
-          File.open("/tmp/hostapd.wlan00.conf") do |f|
+          File.open(@wlan00.property.ap_conf) do |f|
             f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=1\nhw_mode=g\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
           end
 
           3.times { @command.expect(:run, true) }
 
           @wlan00.configure_mode(mode: 'master', channel: 16, essid: 'bob', hw_mode: 'n')
-          File.open("/tmp/hostapd.wlan00.conf") do |f|
+          File.open(@wlan00.property.ap_conf) do |f|
             f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=16\nhw_mode=a\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
           end
 
@@ -119,7 +119,7 @@ Cocaine::CommandLine.stub(:new, @command) do
           3.times { @command.expect(:run, true) }
 
           @wlan00.configure_mode(mode: 'managed', essid: 'bob')
-          File.open("/tmp/wpa.wlan00.conf") do |f|
+          File.open(@wlan00.property.wpa_conf) do |f|
             f.read.must_match "network={\n  ssid=\"bob\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
           end
 
