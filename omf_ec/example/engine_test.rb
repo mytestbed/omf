@@ -7,7 +7,7 @@
 garage_id = "garage_1"
 garage_topic = @comm.get_topic(garage_id)
 
-garage_topic.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' } do |message|
+garage_topic.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'CREATION_FAILED' } do |message|
   logger.error message
 end
 
@@ -20,11 +20,11 @@ msgs = {
   test_error_handling: @comm.request_message([:error]),
 }
 
-msgs[:test_error_handling].on_inform_failed do |message|
+msgs[:test_error_handling].on_inform_creation_failed do |message|
   logger.error message.read_content("reason")
 end
 
-msgs[:create].on_inform_failed do |message|
+msgs[:create].on_inform_creation_failed do |message|
   logger.error "Resource creation failed ---"
   logger.error message.read_content("reason")
 end
@@ -35,7 +35,7 @@ msgs[:request].on_inform_status do |message|
   end
 end
 
-msgs[:request].on_inform_failed do |message|
+msgs[:request].on_inform_creation_failed do |message|
   logger.error message.read_content("reason")
 end
 
@@ -46,7 +46,7 @@ msgs[:request_rpm].on_inform_status do |message|
 end
 
 # Triggered when new messages published to the topics I subscribed to
-msgs[:create].on_inform_created do |message|
+msgs[:create].on_inform_creation_ok do |message|
   engine_topic = @comm.get_topic(message.resource_id)
   engine_id = engine_topic.id
 

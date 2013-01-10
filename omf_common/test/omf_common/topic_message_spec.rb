@@ -53,7 +53,7 @@ describe OmfCommon::Topic do
         omf_create.body.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_created = Blather::XMPPNode.parse(omf_created_xml)
           @client.receive_data omf_created
-          omf_create.on_inform_created do |n|
+          omf_create.on_inform_creation_ok do |n|
             n.context_id.must_equal "bf840fe9-c176-4fae-b7de-6fc27f183f76"
             n.must_equal Message.parse(omf_created.items.first.payload)
             done!
@@ -101,7 +101,7 @@ describe OmfCommon::Topic do
         omf_create.body.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
           @client.receive_data omf_failed
-          omf_create.on_inform_failed do |n|
+          omf_create.on_inform_creation_failed do |n|
             n.context_id.must_equal "bf840fe9-c176-4fae-b7de-6fc27f183f76"
             n.must_equal Message.parse(omf_failed.items.first.payload)
             done!

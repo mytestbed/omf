@@ -226,13 +226,13 @@ class OmfRc::ResourceProxy::AbstractResource
     inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
 
     case inform_type
-    when :failed
+    when :creation_failed
       unless inform_data.kind_of? Exception
-        raise ArgumentError, "FAILED message requires an Exception (or MessageProcessError)"
+        raise ArgumentError, "CREATION_FAILED message requires an Exception (or MessageProcessError)"
       end
-    when :created, :released
+    when :creation_ok, :released
       unless inform_data.respond_to?(:resource_id) && !inform_data.resource_id.nil?
-        raise ArgumentError, "CREATED or RELEASED message requires inform_data object respond to resource_id"
+        raise ArgumentError, "CREATION_OK or RELEASED message requires inform_data object respond to resource_id"
       end
     when :status
       unless inform_data.respond_to?(:status) && inform_data.status.kind_of?(Hash)
@@ -246,7 +246,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
     inform_message = OmfCommon::Message.inform(inform_type.to_s.upcase, context_id) do |i|
       case inform_type
-      when :created
+      when :creation_ok
         i.element('resource_id', inform_data.resource_id)
         i.element('resource_address', inform_data.resource_id)
       when :status
@@ -256,7 +256,7 @@ class OmfRc::ResourceProxy::AbstractResource
       when :error, :warn
         i.element("reason", (inform_data.message rescue inform_data))
         logger.__send__(inform_type, (inform_data.message rescue inform_data))
-      when :failed
+      when :creation_failed
         i.element("reason", inform_data.message)
       end
     end
@@ -307,7 +307,7 @@ class OmfRc::ResourceProxy::AbstractResource
         new_uid = response.resource_id
         @comm.create_topic(new_uid) do
           @comm.subscribe(new_uid) do
-            inform(:created, response)
+            inform(:creation_ok, response)
           end
         end
       when :request, :configure
@@ -321,7 +321,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
     # When failed
     dp.errback do |e|
-      inform(:failed, e)
+      inform(:creation_failed, e)
     end
 
     # Fire the process

@@ -47,7 +47,7 @@ describe OmfCommon::Message do
     end
 
     it "must return a inform XML element without failing" do
-      inform = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
+      inform = Message.inform('CREATION_OK', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
         m.element('resource_id', 'test')
         m.element('resource_address', 'test')
         PROP_ELEMENTS.each do |prop_element|
@@ -58,7 +58,7 @@ describe OmfCommon::Message do
     end
 
     it "context_id & resource_id shortcut must work too" do
-      m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
+      m = Message.inform('CREATION_OK', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
         m.element('resource_id', 'test')
       end
       m.resource_id.must_equal 'test'
@@ -66,7 +66,7 @@ describe OmfCommon::Message do
     end
 
     it "must escape erb code in property" do
-      m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
+      m = Message.inform('CREATION_OK', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
         m.property('bob', "hello <%= world %>")
         m.property('alice', "hello <%= 1 % 2 %>")
       end

@@ -182,15 +182,15 @@ describe OmfCommon::DSL::Xmpp do
     end
 
     it "must generate omf inform xml fragment" do
-      m1 = @xmpp.inform_message([inform_type: 'CREATED'])
+      m1 = @xmpp.inform_message([inform_type: 'CREATION_OK'])
       m2 = @xmpp.inform_message do |v|
-        v.property('inform_type', 'CREATED')
+        v.property('inform_type', 'CREATION_OK')
       end
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'inform'
-      m1.body.to_xml.must_match /<property key="inform_type" type="string">CREATED<\/property>/
-      m2.body.to_xml.must_match /<property key="inform_type" type="string">CREATED<\/property>/
+      m1.body.to_xml.must_match /<property key="inform_type" type="string">CREATION_OK<\/property>/
+      m2.body.to_xml.must_match /<property key="inform_type" type="string">CREATION_OK<\/property>/
     end
 
     it "must generate omf release xml fragment" do
@@ -233,7 +233,7 @@ describe OmfCommon::DSL::Xmpp do
         omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_created = Blather::XMPPNode.parse(omf_created_xml)
           @client.receive_data omf_created
-          @xmpp.on_created_message(omf_create) do |n|
+          @xmpp.on_creation_ok_message(omf_create) do |n|
             n.must_equal Message.parse(omf_created.items.first.payload)
             done!
           end
@@ -278,7 +278,7 @@ describe OmfCommon::DSL::Xmpp do
         omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
           omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
           @client.receive_data omf_failed
-          @xmpp.on_failed_message(omf_create) do |n|
+          @xmpp.on_creation_failed_message(omf_create) do |n|
             n.must_equal Message.parse(omf_failed.items.first.payload)
             done!
           end

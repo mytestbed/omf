@@ -9,7 +9,7 @@ msgs = {
   run_application: comm.configure_message([state: :run])
 }
 
-msgs[:create].on_inform_created do |message|
+msgs[:create].on_inform_creation_ok do |message|
   app_topic = comm.get_topic(message.resource_id)
   app_topic.subscribe do
     msgs[:req_platform].publish app_topic.id

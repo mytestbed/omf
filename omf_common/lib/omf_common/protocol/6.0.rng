@@ -161,8 +161,8 @@
         </optional>
         <element name="inform_type">
           <choice>
-            <value>CREATED</value>
-            <value>FAILED</value>
+            <value>CREATION_OK</value>
+            <value>CREATION_FAILED</value>
             <value>STATUS</value>
             <value>RELEASED</value>
             <value>ERROR</value>

@@ -80,7 +80,7 @@ module OmfEc::Context
         Experiment.instance.process_events
       end
 
-      o_m.on_inform_failed do |i|
+      o_m.on_inform_creation_failed do |i|
         warn "RC reports failure: '#{i.read_content("reason")}'"
       end
     end

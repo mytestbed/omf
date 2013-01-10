@@ -48,7 +48,7 @@ module OmfEc
 
           rg = OmfEc.comm.get_topic(group.id)
 
-          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
+          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'CREATION_FAILED' && m.context_id.nil? } do |i|
             warn "RC reports failure: '#{i.read_content("reason")}'"
           end
 

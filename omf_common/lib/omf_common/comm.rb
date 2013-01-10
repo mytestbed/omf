@@ -38,7 +38,7 @@ module OmfCommon
       end
     end
 
-    %w(created status released failed).each do |inform_type|
+    %w(creation_ok creation_failed status released).each do |inform_type|
       define_method("on_#{inform_type}_message") do |*args, &message_block|
         msg_id = args[0].msg_id if args[0]
         event_block = proc do |event|

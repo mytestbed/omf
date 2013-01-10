@@ -174,7 +174,7 @@ def omf_created_xml
       <item id="4JMgcKzxFDLsP74">
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
-          <inform_type>CREATED</inform_type>
+          <inform_type>CREATION_OK</inform_type>
           <resource_id>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_id>
           <resource_address>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_address>
         </inform>
@@ -217,7 +217,7 @@ def omf_failed_xml
       <item id="4JMgcKzxFDLsP74">
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
-          <inform_type>FAILED</inform_type>
+          <inform_type>CREATION_FAILED</inform_type>
           <reason>No idea</reason>
         </inform>
       </item>

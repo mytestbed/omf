@@ -54,7 +54,7 @@ module OmfEc
               end
 
               # Receive failed inform message
-              r.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
+              r.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'CREATION_CREATION_FAILED' && m.context_id.nil? } do |i|
                 warn "RC reports failure: '#{i.read_content("reason")}'"
               end
 
@@ -70,7 +70,7 @@ module OmfEc
                 Experiment.instance.process_events
               end
 
-              c.on_inform_failed do |i|
+              c.on_inform_creation_failed do |i|
                 warn "RC reports failure: '#{i.read_content("reason")}'"
               end
             end
@@ -116,7 +116,7 @@ module OmfEc
         end
 
         # Receive failed inform message
-        rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'FAILED' && m.context_id.nil? } do |i|
+        rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'CREATION_CREATION_FAILED' && m.context_id.nil? } do |i|
           warn "RC reports failure: '#{i.read_content("reason")}'"
         end
       end
@@ -134,14 +134,14 @@ module OmfEc
 
           c.publish self.id
 
-          c.on_inform_created do |i|
+          c.on_inform_creation_ok do |i|
             info "#{opts[:type]} #{i.resource_id} created"
             OmfEc.exp.state << { uid: i.resource_id, type: opts[:type], hrn: name, membership: [resource_group_name]}
             block.call if block
             Experiment.instance.process_events
           end
 
-          c.on_inform_failed do |i|
+          c.on_inform_creation_failed do |i|
             warn "RC reports failure: '#{i.read_content("reason")}'"
           end
         end

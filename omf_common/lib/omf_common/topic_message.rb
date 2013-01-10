@@ -11,7 +11,7 @@ module OmfCommon
       comm.publish(topic_id, body.dup, &block)
     end
 
-    %w(created status failed released).each do |inform_type|
+    %w(creation_ok creation_failed status released).each do |inform_type|
       define_method("on_inform_#{inform_type}") do |*args, &message_block|
         comm.send("on_#{inform_type}_message", body, &message_block)
       end
