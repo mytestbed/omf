@@ -6,7 +6,7 @@ module OmfCommon
     module Local
       class Communicator
         
-        def initialize(pubsub_implementation, driver_class_name = nil)
+        def initialize(opts = {})
           # ignore arguments
         end
 
@@ -23,8 +23,11 @@ module OmfCommon
         #
         # @param [String] topic Pubsub topic name
         def create_topic(topic, &block)
-          warn "Why use 'create_topic'"
-          Topic.create(topic)
+          t = OmfCommon::CommProvider::Local::Topic.create(topic)
+          if block
+            block.call(t)
+          end
+          t
         end
   
         # Delete a pubsub topic
@@ -47,11 +50,7 @@ module OmfCommon
         def subscribe(topic_name, opts = {}, &block)
           tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
           ta = tna.collect do |tn|
-            t = OmfCommon::CommProvider::Local::Topic.create(tn)
-            if block
-              block.call(t)
-            end
-            t
+            create_topic(tn, &block)
           end
           ta[0]
         end
@@ -61,6 +60,13 @@ module OmfCommon
           info "unsubscribe to ALL"          
         end
   
+        def on_connected(&block)
+          return unless block
+          
+          OmfCommon.eventloop.after(0) do
+            block.arity == 1 ? block.call(self) : block.call
+          end
+        end
   
         # Publish to a pubsub topic
         #

@@ -4,11 +4,12 @@ require 'omf_common'
 opts = {
   debug: true,
   communication: {
-    type: :amqp,
+    #type: :amqp,
+    type: :local,
     server: 'localhost'
   },
-  #runtime: { type: :local}
-  runtime: { type: :em}
+  runtime: { type: :local}
+  #runtime: { type: :em}
 }
 
 $stdout.sync = true

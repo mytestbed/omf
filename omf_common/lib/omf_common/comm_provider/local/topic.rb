@@ -7,12 +7,16 @@ module OmfCommon
     module Local
       class Topic < OmfCommon::CommProvider::Topic
 
-        def self.address_for(name)
-          "#{name}@local"
-        end
+        # def self.address_for(name)
+          # "#{name}@local"
+        # end
         
         def to_s
           "Mock::Topic<#{id}>"
+        end
+        
+        def address
+          "local:/#{id}"
         end
         
         private
