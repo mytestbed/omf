@@ -1,10 +1,9 @@
-
-require 'omf_common/comm_driver/mock/topic'
-require 'omf_common/comm_driver/mock/monkey_patches'
+require 'omf_common/comm_provider/local/topic'
+require 'omf_common/comm_provider/monkey_patches'
 
 module OmfCommon
-  module CommDriver
-    module Mock
+  module CommProvider
+    module Local
       class Communicator
         
         def initialize(pubsub_implementation, driver_class_name = nil)
@@ -25,14 +24,14 @@ module OmfCommon
         # @param [String] topic Pubsub topic name
         def create_topic(topic, &block)
           warn "Why use 'create_topic'"
-          CommDriver::Mock::Topic.create(topic)
+          Topic.create(topic)
         end
   
         # Delete a pubsub topic
         #
         # @param [String] topic Pubsub topic name
         def delete_topic(topic, &block)
-          if t = CommDriver::Mock::Topic.find(topic)
+          if t = OmfCommon::CommProvider::Local::Topic.find(topic)
             t.release
           else
             warn "Attempt to delete unknown topic '#{topic}"
@@ -48,7 +47,7 @@ module OmfCommon
         def subscribe(topic_name, opts = {}, &block)
           tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
           ta = tna.collect do |tn|
-            t = CommDriver::Mock::Topic.create(tn)
+            t = OmfCommon::CommProvider::Local::Topic.create(tn)
             if block
               block.call(t)
             end
@@ -58,7 +57,7 @@ module OmfCommon
         end
   
         # Un-subscribe all existing subscriptions from all pubsub topics.
-        def unsubscribe
+        def unsubscribe_all
           info "unsubscribe to ALL"          
         end
   
@@ -67,10 +66,10 @@ module OmfCommon
         #
         # @param [String] topic Pubsub topic name
         # @param [String] message Any XML fragment to be sent as payload
-        def publish(topic, message, &block)
-          raise StandardError, "Invalid message" unless message.valid?
-  
-        end
+        # def publish(topic, message, &block)
+          # raise StandardError, "Invalid message" unless message.valid?
+#   
+        # end
   
       end
     end

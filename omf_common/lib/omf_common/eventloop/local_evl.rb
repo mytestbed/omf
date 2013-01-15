@@ -6,9 +6,10 @@ module OmfCommon
     #
     class LocalEventloop < OmfCommon::Eventloop
       
-      def initialize(opts = {})
-        @running = true
-        @tasks = []
+      def initialize(opts = {}, &block)
+        super
+        @tasks =  []
+        after(0, &block) if block
       end
       
       # Execute block after some time
@@ -29,9 +30,14 @@ module OmfCommon
         @tasks << [Time.now + interval_sec, block, :periodic => interval_sec]
       end
       
+      def stop 
+        @running = false
+      end
       
-      # Block calling thread until eventloop exits
-      def join()
+      def run(&block)
+        @running = true
+        after(0, &block) if block
+              
         while @running do
           now = Time.now
           @tasks = @tasks.sort
@@ -39,7 +45,8 @@ module OmfCommon
             # execute
             t = @tasks.shift
             debug "Executing Task #{t}"
-            t[1].call
+            block = t[1]
+            block.arity == 0 ? block.call : block.call(self)
             now = Time.now
             # Check if periodic
             if interval = ((t[2] || {})[:periodic])

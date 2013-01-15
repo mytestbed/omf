@@ -5,8 +5,8 @@ require 'omf_common/measure'
 require 'omf_common/message'
 require 'omf_common/comm'
 require 'omf_common/command'
-require 'omf_common/topic'
-require 'omf_common/topic_message'
+# require 'omf_common/topic'
+# require 'omf_common/topic_message'
 require 'omf_common/key'
 require 'omf_common/core_ext/string'
 require 'omf_common/core_ext/object'
@@ -35,22 +35,8 @@ module OmfCommon
     ropts = (opts[:runtime] || DEF_RUNTIME_OPTS)
     Eventloop.init(ropts) do
       Comm.init(copts)
-      block.call
-    end
-    # if rt = ropts[:type]
-      # case rt
-      # when :em
-        # EM.run do
-          # Comm.init(copts)
-          # trap(:INT) { comm.disconnect }
-          # trap(:TERM) { comm.disconnect }
-        # end    
-      # when :local
-      # else
-        # raise "Unknown runtime type '#{rt}"
-      # end 
-    # end
-    
+      block.call if block
+    end    
   end
   
   # Return the communication driver instance

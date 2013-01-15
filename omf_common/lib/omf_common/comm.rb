@@ -1,53 +1,70 @@
 # require 'omf_common/dsl/xmpp'
 # require 'omf_common/dsl/xmpp_mp'
+require 'omf_common/comm_provider/topic'
 
 
 module OmfCommon
   # PubSub communication class, can be extended with different implementations
   class Comm
     
-    @@drivers = {
+    @@providers = {
       xmpp: {
         require: 'omf_common/dsl/xmpp',
-        extend: 'OmfCommon::DSL::Xmpp'
+        extend: 'OmfCommon::DSL::Xmpp',
+        message_provider: {
+          type: :xml
+        }
       },
-      mock: {
-        require: 'omf_common/comm_driver/mock/communicator',
-        constructor: 'OmfCommon::CommDriver::Mock::Communicator'
+      amqp: {
+        require: 'omf_common/comm_provider/amqp/amqp_communicator',
+        constructor: 'OmfCommon::CommProvider::AMQP::Communicator',
+        message_provider: {
+          type: :json
+        }
+      },
+      local: {
+        require: 'omf_common/comm_provider/local/communicator',
+        constructor: 'OmfCommon::CommProvider::Local::Communicator',
+        message_provider: {
+          type: :json
+        }
       }
     }
     @@instance = nil
     
     #
     # opts:
-    #   :type - pre installed comms driver
-    #   :driver - custom driver (opts)
+    #   :type - pre installed comms provider
+    #   :provider - custom provider (opts)
     #     :require - gem to load first (opts)
-    #     :constructor - Class implementing driver
+    #     :constructor - Class implementing provider
     #
     def self.init(opts)
+      puts "@@@ #{opts.inspect}"
       if @@instance
         raise "Comms layer already iniitalised"
       end
-      unless driver = opts[:driver]
-        driver = @@drivers[opts[:type]]
+      unless provider = opts[:provider]
+        provider = @@providers[opts[:type]]
       end
-      unless driver
-        raise "Missing Comm driver declaration. Either define 'type' or 'driver'"
+      unless provider
+        raise "Missing Comm provider declaration. Either define 'type' or 'provider'"
       end
 
-      require driver[:require] if driver[:require]
+      require provider[:require] if provider[:require]
 
-      if class_name = driver[:extend]
-        inst = self.new(nil, driver_class)
-      elsif class_name = driver[:constructor]
-        driver_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
-        inst = driver_class.new(opts)
+      if class_name = provider[:extend]
+        inst = self.new(nil, provider_class)
+      elsif class_name = provider[:constructor]
+        provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+        inst = provider_class.new(opts)
       else
-        raise "Missing driver creation info - :extend or :constructor"
+        raise "Missing provider creation info - :extend or :constructor"
       end
-      inst.init(opts)
+      puts "IIIII #{inst}"
       @@instance = inst
+      Message.init(provider[:message_provider])
+      inst.init(opts)
     end
     
     def self.instance
@@ -56,10 +73,10 @@ module OmfCommon
     
     attr_accessor :published_messages
 
-    def initialize(pubsub_implementation, driver_class_name = nil)
+    def initialize(pubsub_implementation, provider_class_name = nil)
       @published_messages = []
-      if driver_class_name
-        self.extend(driver_class_name.constantize)
+      if provider_class_name
+        self.extend(provider_class_name.constantize)
       else
         self.extend("OmfCommon::DSL::#{pubsub_implementation.to_s.camelize}".constantize)
       end

@@ -5,7 +5,7 @@ module OmfCommon
     @@providers = {
       em: {
         require: 'omf_common/eventloop/em',
-        constructor: 'OmfCommon::EventloopProvider::EM'
+        constructor: 'OmfCommon::EventloopProvider::EventMachine'
       },
       local: {
         require: 'omf_common/eventloop/local_evl',
@@ -36,14 +36,11 @@ module OmfCommon
 
       if class_name = provider[:constructor]
         provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
-        inst = provider_class.new(opts)
+        inst = provider_class.new(opts, &block)
       else
         raise "Missing provider creation info - :constructor"
       end
       @@instance = inst
-      if block
-        block.call
-      end
       inst
     end
     
@@ -73,5 +70,25 @@ module OmfCommon
     def join()
       raise "Missing implementation"
     end
+    
+    def run()
+      raise "Missing implementation"      
+    end
+    
+    def stop()
+      raise "Missing implementation"      
+    end      
+    
+    # Calling 'block' before stopping eventloop
+    #
+    def on_stop(&block)
+      warn "Not implemented yet"
+    end
+
+    private
+    def initialize(opts = {}, &block)
+      #run(&block) if block
+    end
+    
   end
 end

@@ -4,9 +4,11 @@ require 'omf_common'
 opts = {
   debug: true,
   communication: {
-    type: :mock
+    type: :amqp,
+    server: 'localhost'
   },
-  runtime: { type: :local}
+  #runtime: { type: :local}
+  runtime: { type: :em}
 }
 
 $stdout.sync = true
@@ -18,6 +20,8 @@ Logging.appenders.stdout(
 Logging.logger.root.appenders = 'my_format'
 Logging.logger.root.level = :debug if opts[:debug]
 
+# Environment setup
+OmfCommon.init(opts) 
 
 
 # Request the garage to create a new engine
@@ -112,23 +116,30 @@ def on_engine_created(engine, garage)
   end
 end
 
-# Environment setup
-OmfCommon.init(opts) do 
 
-  # Create garage proxy
-  load File.join(File.dirname(__FILE__), '..', '..', 'omf_rc', 'example', 'garage_controller.rb')
-  garage_inst = OmfRc::ResourceFactory.create(:garage, hrn: :garage_1)
-  
-  # Get handle on existing entity
-  OmfCommon.comm.subscribe('garage_1') do |garage|
-  
-    garage.on_inform_failed do |msg|
-      logger.error msg
+OmfCommon.eventloop.run do |el|
+  OmfCommon.comm.on_connected do |comm|
+    
+    # Create garage proxy
+    load File.join(File.dirname(__FILE__), '..', '..', 'omf_rc', 'example', 'garage_controller.rb')
+    garage_inst = OmfRc::ResourceFactory.create(:garage, hrn: :garage_1)
+    
+    # Get handle on existing entity
+    comm.subscribe('garage_1') do |garage|
+    
+      garage.on_inform_failed do |msg|
+        logger.error msg
+      end
+      # wait a bit before garage is known
+      el.after(2) do
+        create_engine(garage)
+      end
     end
-    create_engine(garage)
+    
+    el.after(20) { el.stop }
   end
 end
 
-OmfCommon.eventloop.join
+
 puts "DONE"
 

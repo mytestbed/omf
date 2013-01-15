@@ -1,5 +1,5 @@
 
-require 'omf_common/comm_driver/mock/message'
+require 'omf_common/message_provider/json/json_message'
 
 module OmfRc
   module ResourceProxy
@@ -49,13 +49,19 @@ module OmfRc
         end
       end
       
+      # Return the publicable 'routable'  address for this resource
+      #
+      def resource_address()
+        @topics[0].address
+      end
+      
       # Parse omf message and execute as instructed by the message
       #
       def process_omf_message(message, topic)
-        unless message.is_a? OmfCommon::CommDriver::Mock::Message
-          raise "Expected Message, but got '#{props.class}'"
-          #message = OmfCommon::CommDriver::Mock::Message.new(props.dup)
-        end
+        # unless message.is_a? OmfCommon::Message
+          # raise "Expected Message, but got '#{message.class}'"
+          # #message = OmfCommon::Message.new(props.dup)
+        # end
     #puts "PPP(#{topic.id}|#{uid})-> #{message}"
         objects_by_topic(topic.id.to_s).each do |obj|
     #puts "TTT(#{self})-> #{obj}"
@@ -107,12 +113,13 @@ module OmfRc
           released_obj = obj.release(resource_id)
           # TODO: Under what circumstances would 'realease_obj' be NIL
           response[:resource_id] = released_obj ? released_obj.uid : resource_id
-          response[:resource_address] = OmfCommon::CommDriver::Mock::Topic.address_for(response[:resource_id])
+          #response[:resource_address] = OmfCommon::CommProvider::Local::Topic.address_for(response[:resource_id])
+          response[:resource_address] = released_obj ? released_obj.resource_address() : resource_address()
         when :inform
           nil # We really don't care about inform messages which created from here
         else
           raise StandardError, <<-ERROR
-            Invalid message received (Unknown OMF operation #{message.operation}): #{pubsub_item_payload}.
+            Invalid message received (Unknown OMF operation #{message.operation}): #{message}.
             Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
           ERROR
         end
@@ -132,7 +139,8 @@ module OmfRc
         end
         new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
         response[:resource_id] = new_obj.uid
-        response[:resource_address] = OmfCommon::CommDriver::Mock::Topic.address_for(new_obj.uid)
+        #response[:resource_address] = OmfCommon::CommProvider::Local::Topic.address_for(new_obj.uid)
+        response[:resource_address] = new_obj.resource_address()
       end   
       
       def handle_request_or_configure_message(message, obj, response)
@@ -161,12 +169,10 @@ module OmfRc
       # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
       def inform(inform_type, inform_data, topic = nil)
         topic ||= @topics.first
-        if inform_data.is_a? OmfCommon::CommDriver::Mock::Message
-          message = inform_data
-        elsif inform_data.is_a? Hash
-          message = OmfCommon::CommDriver::Mock::Message.create_inform_message(inform_type, inform_data.dup)
+        if inform_data.is_a? Hash
+          message = OmfCommon::Message.create_inform_message(inform_type, inform_data.dup)
         else
-          raise "Expected message, but got '#{inform_data.class}:#{inform_data.inspect}'"
+          message = inform_data
         end
         inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
         
@@ -247,7 +253,7 @@ module OmfRc
         self.before_release if self.respond_to? :before_release
         props = { 
           resource_id: uid, 
-          resource_address: OmfCommon::CommDriver::Mock::Topic.address_for(uid)
+          resource_address: resource_address #OmfCommon::CommProvider::Local::Topic.address_for(uid)
         }
         props[:hrn] = hrn if hrn
         inform :released, props

@@ -1,7 +1,9 @@
 
+require 'json'
+
 module OmfCommon
-  module CommDriver
-    module Mock
+  module MessageProvider
+    module Json
       class Message
         
         INTERNAL_PROPS = [:operation, :uid, :msg_id, :publish_to, :context_id, :inform_type]
@@ -20,6 +22,15 @@ module OmfCommon
           body[:inform_type] = inform_type if inform_type
           create(:inform, properties, body)
         end
+        
+        # Create and return a message by parsing 'str'
+        #
+        def self.parse(str)
+          content = JSON.parse(str, :symbolize_names => true)
+          #puts content
+          new(content)
+        end
+        
 
         
         [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
@@ -79,7 +90,7 @@ module OmfCommon
         def resource
           #name = @content[:hrn] || @content[:resource_id]
           name = @properties[:resource_id]
-          Topic.create(name)
+          OmfCommon.comm.create_topic(name)
         end
         
         def success?
@@ -96,13 +107,21 @@ module OmfCommon
         end
         
         def to_s
-          "Mock::Message: #{@content.inspect}"
+          "JsonMessage: #{@content.inspect}"
+        end
+        
+        def marshall
+          @content.to_json
         end
         
         private 
         def initialize(content)
           debug "Create message: #{content.inspect}"
           @content = content
+          unless op = content[:operation]
+            raise "Missing message type (:operation)"
+          end
+          content[:operation] = op.to_sym # needs to be symbol
           @properties = content[:properties] || []
           #@properties = Hashie::Mash.new(content[:properties])
         end
