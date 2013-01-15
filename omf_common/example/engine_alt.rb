@@ -4,12 +4,12 @@ require 'omf_common'
 opts = {
   debug: true,
   communication: {
-    #type: :amqp,
-    type: :local,
+    type: :amqp,
+    #type: :local,
     server: 'localhost'
   },
-  runtime: { type: :local}
-  #runtime: { type: :em}
+  #runtime: { type: :local}
+  runtime: { type: :em}
 }
 
 $stdout.sync = true
@@ -131,8 +131,8 @@ OmfCommon.eventloop.run do |el|
       garage.on_inform_failed do |msg|
         logger.error msg
       end
-      # wait a bit before garage is known
-      el.after(2) do
+      # wait until garage topic is ready to receive
+      garage.on_subscribed do
         create_engine(garage)
       end
     end

@@ -18,8 +18,8 @@ module OmfCommon
         extend: 'OmfCommon::MessageProvider::XML::Message'
       },
       json: {
-        require: 'omf_common/message_provider/json/json_message',
-        constructor: 'OmfCommon::MessageProvider::Json::Message'
+        require: 'omf_common/message/json/json_message',
+        constructor: 'OmfCommon::Message::Json::JsonMessage'
       }
     }
     @@message_class = nil
@@ -58,6 +58,85 @@ module OmfCommon
         raise "Missing provider class info - :constructor"
       end
     end
+    
+    class AbstractMessage
+      
+      INTERNAL_PROPS = [:operation, :uid, :msg_id, :publish_to, :context_id, :inform_type]
+
+      [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
+        define_method(pname.to_s) do |*args|
+          _get_core(pname)
+        end
+      end
+      
+      def type
+        _get_core(:operation)
+      end
+      
+      #[:publish_to, :inform_to, :resource_id].each do |pname|
+      [:publish_to, :resource_id, :inform_type].each do |pname|
+        define_method("#{pname}=") do |val|
+          _set_core(pname.to_sym, val)
+        end
+      end        
+      
+      def property
+        Hashie::Mash.new @properties
+      end
+
+      def properties
+        @properties
+      end
+
+      # def read_property(name)
+        # @properties[name.to_sym]
+      # end
+      
+      def [](name)
+        _get_property(name.to_sym)
+      end
+      
+      def []=(name, value)
+        raise if name.to_sym == :inform_type
+        _set_property(name.to_sym, value)
+      end
+      
+      def each_property(&block)
+        raise "Not implemented"
+      end
+      
+      def has_properties?
+        raise "Not implemented"
+      end
+      
+      def resource
+        #name = @content[:hrn] || @content[:resource_id]
+        name = _get_property(:resource_id)
+        OmfCommon.comm.create_topic(name)
+      end
+      
+      def success?
+        true
+      end
+      
+      def error?
+        false
+      end
+      
+      def create_inform_message(inform_type = nil, properties = {}, body = {})
+        body[:context_id] = self.msg_id
+        self.class.create_inform_message(inform_type, properties, body)
+      end
+      
+      def to_s
+        "JsonMessage: #{@content.inspect}"
+      end
+      
+      def marshall
+        @content.to_json
+      end
+      
+    end # class    
   end
 
 end

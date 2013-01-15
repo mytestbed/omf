@@ -98,6 +98,10 @@ module OmfCommon
         
       end
       
+      def on_subscribed(&block)
+        raise "Not implemented"
+      end
+
       def error?
         false
       end
@@ -107,7 +111,10 @@ module OmfCommon
       end
       
       def after(delay_sec, &block)
-        OmfCommon.eventloop.after(delay_sec, &block)
+        return unless block
+        OmfCommon.eventloop.after(delay_sec) do 
+          block.arity == 1 ? block.call(self) : block.call
+        end
       end
       
       private

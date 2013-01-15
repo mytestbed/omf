@@ -19,6 +19,14 @@ module OmfCommon
           "local:/#{id}"
         end
         
+        def on_subscribed(&block)
+          return unless block
+          
+          OmfCommon.eventloop.after(0) do
+            block.arity == 1 ? block.call(self) : block.call
+          end
+        end  
+              
         private
         
         def _send_message(msg, block = nil)

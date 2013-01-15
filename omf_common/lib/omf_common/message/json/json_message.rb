@@ -2,11 +2,10 @@
 require 'json'
 
 module OmfCommon
-  module MessageProvider
+  module Message
     module Json
-      class Message
+      class JsonMessage < OmfCommon::Message::AbstractMessage
         
-        INTERNAL_PROPS = [:operation, :uid, :msg_id, :publish_to, :context_id, :inform_type]
 
         def self.create(type, properties, body = {})
           raise "Expected hash, but got #{properties.class}" unless properties.kind_of?(Hash)
@@ -33,43 +32,43 @@ module OmfCommon
         
 
         
-        [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
-          define_method(pname.to_s) do |*args|
-            @content[pname]
-          end
-        end
-        
-        def type
-          @content[:operation]
-        end
-        
-        #[:publish_to, :inform_to, :resource_id].each do |pname|
-        [:publish_to, :resource_id, :inform_type].each do |pname|
-          define_method("#{pname}=") do |val|
-            @content[pname.to_sym] = val
-          end
-        end        
-        
-        def property
-          Hashie::Mash.new @properties
-        end
-
-        def properties
-          @properties
-        end
-
-        def read_property(name)
-          @properties[name.to_sym]
-        end
-        
-        def [](name)
-          @properties[name.to_sym]
-        end
-        
-        def []=(name, value)
-          raise if name.to_sym == :inform_type
-          @properties[name.to_sym] = value
-        end
+        # [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
+          # define_method(pname.to_s) do |*args|
+            # @content[pname]
+          # end
+        # end
+#         
+        # def type
+          # @content[:operation]
+        # end
+#         
+        # #[:publish_to, :inform_to, :resource_id].each do |pname|
+        # [:publish_to, :resource_id, :inform_type].each do |pname|
+          # define_method("#{pname}=") do |val|
+            # @content[pname.to_sym] = val
+          # end
+        # end        
+#         
+        # def property
+          # Hashie::Mash.new @properties
+        # end
+# 
+        # def properties
+          # @properties
+        # end
+# 
+        # def read_property(name)
+          # @properties[name.to_sym]
+        # end
+#         
+        # def [](name)
+          # @properties[name.to_sym]
+        # end
+#         
+        # def []=(name, value)
+          # raise if name.to_sym == :inform_type
+          # @properties[name.to_sym] = value
+        # end
         
         def each_property(&block)
           @properties.each do |k, v|
@@ -81,31 +80,8 @@ module OmfCommon
         
         def has_properties?
           not @properties.empty?
-          # f = @content.find do |k, v|
-            # !INTERNAL_PROPS.include?(k.to_sym)
-          # end
-          # !nil
         end
-        
-        def resource
-          #name = @content[:hrn] || @content[:resource_id]
-          name = @properties[:resource_id]
-          OmfCommon.comm.create_topic(name)
-        end
-        
-        def success?
-          true
-        end
-        
-        def error?
-          false
-        end
-        
-        def create_inform_message(inform_type = nil, properties = {}, body = {})
-          body[:context_id] = self.msg_id
-          self.class.create_inform_message(inform_type, properties, body)
-        end
-        
+                
         def to_s
           "JsonMessage: #{@content.inspect}"
         end
@@ -126,6 +102,21 @@ module OmfCommon
           #@properties = Hashie::Mash.new(content[:properties])
         end
         
+        def _set_core(key, value)
+          @content[key] = value
+        end
+
+        def _get_core(key)
+          @content[key]
+        end
+        
+        def _set_property(key, value)
+          @properties[key] = value
+        end
+
+        def _get_property(key)
+          @properties[key]
+        end
         
       end # class
     end

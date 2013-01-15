@@ -1,5 +1,5 @@
 
-require 'omf_common/message_provider/json/json_message'
+#require 'omf_common/message_provider/json/json_message'
 
 module OmfRc
   module ResourceProxy
@@ -153,7 +153,7 @@ module OmfRc
           else
             message.each_property do |key, value|
               method_name =  "#{message.operation.to_s}_#{key}"
-              p_value = message.read_property(key)
+              p_value = message[key]
               response[key] ||= obj.__send__(method_name, p_value)
             end
           end
