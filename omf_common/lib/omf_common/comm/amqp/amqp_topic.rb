@@ -1,9 +1,9 @@
 
 
 module OmfCommon
-  module CommProvider
-    module AMQP
-      class Topic < OmfCommon::CommProvider::Topic
+  class Comm
+    class AMQP
+      class Topic < OmfCommon::Comm::Topic
 
         # def self.address_for(name)
           # "#{name}@local"

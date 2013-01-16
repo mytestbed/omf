@@ -1,12 +1,11 @@
 require 'active_support/core_ext'
+
 require 'omf_common/default_logging'
 require 'omf_common/version'
 require 'omf_common/measure'
 require 'omf_common/message'
 require 'omf_common/comm'
 require 'omf_common/command'
-# require 'omf_common/topic'
-# require 'omf_common/topic_message'
 require 'omf_common/key'
 require 'omf_common/core_ext/string'
 require 'omf_common/core_ext/object'
@@ -15,7 +14,7 @@ require 'omf_common/eventloop'
 include OmfCommon::DefaultLogging
 
 module OmfCommon
-  DEF_RUNTIME_OPTS = {type: :em}
+  DEF_EVENTLOOP_OPTS = {type: :em}
   
   #
   # Initialize the OMF runtime.
@@ -32,8 +31,8 @@ module OmfCommon
     unless copts = opts[:communication]
       raise "Missing :communication description"
     end
-    ropts = (opts[:runtime] || DEF_RUNTIME_OPTS)
-    Eventloop.init(ropts) do
+    eopts = (opts[:eventloop] || DEF_EVENTLOOP_OPTS)
+    Eventloop.init(eopts) do
       Comm.init(copts)
       block.call if block
     end    

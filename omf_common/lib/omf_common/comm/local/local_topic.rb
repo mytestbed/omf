@@ -1,11 +1,9 @@
 
-require 'monitor'
-require 'securerandom'
 
 module OmfCommon
-  module CommProvider
-    module Local
-      class Topic < OmfCommon::CommProvider::Topic
+  class Comm
+    class Local
+      class Topic < OmfCommon::Comm::Topic
 
         # def self.address_for(name)
           # "#{name}@local"

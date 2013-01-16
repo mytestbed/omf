@@ -1,11 +1,11 @@
 require 'amqp'
-require 'omf_common/comm_provider/amqp/amqp_topic'
-require 'omf_common/comm_provider/monkey_patches'
+require 'omf_common/comm/amqp/amqp_topic'
+require 'omf_common/comm/monkey_patches'
 
 module OmfCommon
-  module CommProvider
-    module AMQP
-      class Communicator
+  class Comm
+    class AMQP
+      class Communicator < OmfCommon::Comm
         
         DEF_PORT = 5672
         
@@ -27,13 +27,6 @@ module OmfCommon
               @on_connected_proc.arity == 1 ? @on_connected_proc.call(self) : @on_connected_proc.call
             end
                       
-            # # topic exchange name can be any string
-            # exchange = channel.topic("weathr", :auto_delete => true)
-#         
-            # # Publisher
-            # #exchange.publish("San Diego update", :routing_key => "americas.north.us.ca.sandiego")
-            # exchange.publish("San Diego update")
-        
             OmfCommon.eventloop.on_stop do
               connection.close
             end
@@ -55,7 +48,7 @@ module OmfCommon
           opts = opts.dup
           opts[:channel] = @channel
           opts[:address] = @address_prefix + topic
-          OmfCommon::CommProvider::AMQP::Topic.create(topic, opts)
+          OmfCommon::Comm::AMQP::Topic.create(topic, opts)
         end
   
         # Delete a pubsub topic
@@ -69,29 +62,6 @@ module OmfCommon
           end        
         end
   
-        # Subscribe to a pubsub topic
-        #
-        # @param [String, Array] topic_name Pubsub topic name
-        # @param [Hash] opts
-        # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
-        #
-        def subscribe(topic_name, opts = {}, &block)
-          tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
-          ta = tna.collect do |tn|
-            t = create_topic(tn)
-            if block
-              block.call(t)
-            end
-            t
-          end
-          ta[0]
-        end
-  
-        # Un-subscribe all existing subscriptions from all pubsub topics.
-        def unsubscribe_all
-          info "unsubscribe to ALL"          
-        end
-
       end
     end
   end

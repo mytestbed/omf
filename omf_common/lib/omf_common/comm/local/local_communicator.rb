@@ -1,11 +1,11 @@
-require 'omf_common/comm_provider/local/topic'
-require 'omf_common/comm_provider/monkey_patches'
+require 'omf_common/comm/local/local_topic'
+require 'omf_common/comm/monkey_patches'
 
 module OmfCommon
-  module CommProvider
-    module Local
-      class Communicator
-        
+  class Comm
+    class Local
+      class Communicator  < OmfCommon::Comm
+               
         def initialize(opts = {})
           # ignore arguments
         end
@@ -23,7 +23,7 @@ module OmfCommon
         #
         # @param [String] topic Pubsub topic name
         def create_topic(topic, &block)
-          t = OmfCommon::CommProvider::Local::Topic.create(topic)
+          t = OmfCommon::Comm::Local::Topic.create(topic)
           if block
             block.call(t)
           end
@@ -39,25 +39,6 @@ module OmfCommon
           else
             warn "Attempt to delete unknown topic '#{topic}"
           end        
-        end
-  
-        # Subscribe to a pubsub topic
-        #
-        # @param [String, Array] topic_name Pubsub topic name
-        # @param [Hash] opts
-        # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
-        #
-        def subscribe(topic_name, opts = {}, &block)
-          tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
-          ta = tna.collect do |tn|
-            create_topic(tn, &block)
-          end
-          ta[0]
-        end
-  
-        # Un-subscribe all existing subscriptions from all pubsub topics.
-        def unsubscribe_all
-          info "unsubscribe to ALL"          
         end
   
         def on_connected(&block)

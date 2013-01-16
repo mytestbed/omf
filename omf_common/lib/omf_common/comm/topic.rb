@@ -2,7 +2,7 @@ require 'monitor'
 require 'securerandom'
 
 module OmfCommon
-  module CommProvider
+  class Comm
     class Topic
   
       @@name2inst = {}

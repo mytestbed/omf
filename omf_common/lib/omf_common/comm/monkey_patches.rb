@@ -58,10 +58,10 @@ module OmfRc
       # Parse omf message and execute as instructed by the message
       #
       def process_omf_message(message, topic)
-        # unless message.is_a? OmfCommon::Message
-          # raise "Expected Message, but got '#{message.class}'"
-          # #message = OmfCommon::Message.new(props.dup)
-        # end
+        unless message.is_a? OmfCommon::Message
+          raise "Expected Message, but got '#{message.class}'"
+          #message = OmfCommon::Message.new(props.dup)
+        end
     #puts "PPP(#{topic.id}|#{uid})-> #{message}"
         objects_by_topic(topic.id.to_s).each do |obj|
     #puts "TTT(#{self})-> #{obj}"
@@ -74,18 +74,9 @@ module OmfRc
       
       def execute_omf_operation(message, obj, topic)
         response_h = handle_message(message, obj)
-        #response = Hashie::Mash.new(response_h)
         case message.operation
         when :create
-          #puts "CCCC(#{topic.id})==> #{response_h.inspect}"
-          #topic.inform('CREATION_OK', response_h)
           inform(:created, response_h, topic)
-          #new_uid = response_h.resource_id
-          # @comm.create_topic(new_uid) do
-            # @comm.subscribe(new_uid) do
-              # inform(:created, response)
-            # end
-          # end
         when :request, :configure
           inform(:status, response_h, topic)
         when :release
@@ -96,12 +87,8 @@ module OmfRc
       end
       
       def handle_message(message, obj)
-        response = message.create_inform_message()
+        response = message.create_inform_reply_message()
         response.inform_to inform_to_address(obj, message.publish_to)
-          # operation: message.operation,
-          # context_id: message.msg_id,
-          # inform_to: inform_to_address(obj, message.publish_to)
-        # }
     
         case message.operation
         when :create

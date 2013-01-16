@@ -2,10 +2,10 @@
 require 'eventmachine'
 
 module OmfCommon
-  module EventloopProvider
+  class Eventloop
     # Implements a simple eventloop which only deals with timer events
     #
-    class EventMachine < OmfCommon::Eventloop
+    class EventMachine < Eventloop
       
       def initialize(opts = {}, &block)
         super

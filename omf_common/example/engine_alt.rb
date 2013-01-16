@@ -8,8 +8,8 @@ opts = {
     #type: :local,
     server: 'localhost'
   },
-  #runtime: { type: :local}
-  runtime: { type: :em}
+  #eventloop: { type: :local}
+  eventloop: { type: :em}
 }
 
 $stdout.sync = true
@@ -25,28 +25,14 @@ Logging.logger.root.level = :debug if opts[:debug]
 OmfCommon.init(opts) 
 
 
-# Request the garage to create a new engine
-#
-# def create_engine(garage)
-  # garage.create('mp4', type: :engine).on_create_succeeded do |emsg|
-    # puts "EEE: #{emsg.inspect}"
-    # engine = emsg.resource
-    # on_engine_created(engine)
-  # end.on_create_failed do |fmsg|
-    # logger.error "Resource creation failed ---"
-    # logger.error fmsg.read_content("reason")
-  # end
-# end
 
-# Should be
 def create_engine(garage)
   garage.create('mp4', type: :engine) do |msg|
     if msg.success?
       engine = msg.resource
       on_engine_created(engine, garage)
     else
-      logger.error "Resource creation failed ---"
-      logger.error msg.read_content("reason")
+      logger.error "Resource creation failed - #{msg[:reason]}"
     end
   end
 end
@@ -56,14 +42,15 @@ end
 # We create teh message first without sending it, then attach various
 # response handlers and finally publish it.
 #
+# TODO: This is most likely NOT working yet
+#
 def create_engine2
   msg = garage.create_message('mp4')
   msg.on_created do |engine, emsg|
     on_engine_created(engine, garage)
   end
   msg.on_created_failed do |fmsg|
-    logger.error "Resource creation failed ---"
-    logger.error fmsg.read_content("reason")
+      logger.error "Resource creation failed - #{msg[:reason]}"
   end
   msg.publish
 end
@@ -78,10 +65,6 @@ def on_engine_created(engine, garage)
     msg.each_property do |name, value|
       logger.info "#{name} => #{value}"
     end
-    # The above is rather cryptic, why couldn't it be like:
-    # msg.each_property do |key, value|
-    #   logger.info "#{key} => #{value}"
-    # end
   end
 
   engine.on_inform_failed do |msg|

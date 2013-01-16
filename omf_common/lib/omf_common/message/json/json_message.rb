@@ -2,9 +2,9 @@
 require 'json'
 
 module OmfCommon
-  module Message
-    module Json
-      class JsonMessage < OmfCommon::Message::AbstractMessage
+  class Message
+    class Json
+      class Message < OmfCommon::Message
         
 
         def self.create(type, properties, body = {})

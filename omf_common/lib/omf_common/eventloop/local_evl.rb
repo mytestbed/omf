@@ -1,10 +1,10 @@
 
 
 module OmfCommon
-  module EventloopProvider
+  class Eventloop
     # Implements a simple eventloop which only deals with timer events
     #
-    class LocalEventloop < OmfCommon::Eventloop
+    class Local < Eventloop
       
       def initialize(opts = {}, &block)
         super

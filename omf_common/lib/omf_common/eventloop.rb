@@ -5,11 +5,11 @@ module OmfCommon
     @@providers = {
       em: {
         require: 'omf_common/eventloop/em',
-        constructor: 'OmfCommon::EventloopProvider::EventMachine'
+        constructor: 'OmfCommon::Eventloop::EventMachine'
       },
       local: {
         require: 'omf_common/eventloop/local_evl',
-        constructor: 'OmfCommon::EventloopProvider::LocalEventloop'
+        constructor: 'OmfCommon::Eventloop::Local'
       }
     }
     @@instance = nil
