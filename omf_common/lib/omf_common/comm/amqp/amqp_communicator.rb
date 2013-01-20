@@ -9,9 +9,9 @@ module OmfCommon
         
         DEF_PORT = 5672
         
-        def initialize(opts = {})
-          # ignore arguments
-        end
+        # def initialize(opts = {})
+          # # ignore arguments
+        # end
 
         # Initialize comms layer
         #

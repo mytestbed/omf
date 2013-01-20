@@ -27,7 +27,7 @@ OmfCommon.init(opts)
 
 
 def create_engine(garage)
-  garage.create('mp4', type: :engine) do |msg|
+  garage.create(:engine, name: 'mp4') do |msg|
     if msg.success?
       engine = msg.resource
       on_engine_created(engine, garage)

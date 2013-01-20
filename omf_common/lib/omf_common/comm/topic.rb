@@ -27,11 +27,12 @@ module OmfCommon
       
       # Request the creation of a new resource. Returns itself    
       #
-      def create(res_name, config_props = {}, &block)
+      def create(res_type, config_props = {}, &block)
         # new_res = nil
-        res_name = res_name.to_sym
-        config_props[:name] ||= res_name
-        debug "Create resource '#{res_name}'"
+        #res_name = res_name.to_sym
+        #config_props[:name] ||= res_name
+        config_props[:type] ||= res_type
+        debug "Create resource of type '#{res_type}'"
         create_message_and_publish(:create, config_props, block)
         self
       end

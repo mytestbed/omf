@@ -6,9 +6,9 @@ module OmfCommon
     class Local
       class Communicator  < OmfCommon::Comm
                
-        def initialize(opts = {})
-          # ignore arguments
-        end
+        # def initialize(opts = {})
+          # # ignore arguments
+        # end
 
         # Initialize comms layer
         #

@@ -9,6 +9,7 @@ module OmfCommon
       def initialize(opts = {}, &block)
         super
         @tasks =  []
+        @running = false
         after(0, &block) if block
       end
       
@@ -35,8 +36,9 @@ module OmfCommon
       end
       
       def run(&block)
-        @running = true
         after(0, &block) if block
+        return if @running
+        @running = true
               
         while @running do
           now = Time.now

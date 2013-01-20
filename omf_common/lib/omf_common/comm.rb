@@ -113,6 +113,18 @@ module OmfCommon
       end
       ta[0]
     end
+    
+    # Return the options used to initiate this 
+    # communicator.
+    #
+    def options()
+      @opts
+    end
+    
+    private
+    def initialize(opts = {})
+      @opts = opts
+    end
 
   end
 end

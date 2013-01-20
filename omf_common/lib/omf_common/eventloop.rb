@@ -54,7 +54,7 @@ module OmfCommon
     # @param [block] block to execute
     #
     def after(delay_sec, &block)
-      raise "Missing implementation"
+      raise "Missing implementation 'after'"
     end
     
     # Periodically call block every interval_sec
@@ -63,26 +63,26 @@ module OmfCommon
     # @param [block] block to execute
     #
     def every(interval_sec, &block)
-      raise "Missing implementation"
+      raise "Missing implementation 'every'"
     end
     
     # Block calling thread until eventloop exits
     def join()
-      raise "Missing implementation"
+      raise "Missing implementation 'join'"
     end
     
     def run()
-      raise "Missing implementation"      
+      raise "Missing implementation 'run'"      
     end
     
     def stop()
-      raise "Missing implementation"      
+      raise "Missing implementation 'stop'"      
     end      
     
     # Calling 'block' before stopping eventloop
     #
     def on_stop(&block)
-      warn "Not implemented yet"
+      warn "Missing implementation 'on_stop'" 
     end
 
     private
