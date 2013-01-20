@@ -35,6 +35,7 @@ module OmfRc::ResourceProxyDSL
       if opts[:create_by] && !opts[:create_by].kind_of?(Array)
         opts[:create_by] = [opts[:create_by]]
       end
+      opts[:proxy_module] = self
       OmfRc::ResourceFactory.register_proxy(name => opts)
     end
 
