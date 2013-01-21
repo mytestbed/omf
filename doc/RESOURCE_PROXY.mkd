@@ -84,7 +84,9 @@ To run this test script, make sure you start the garage\_controller first. (You 
 Then simply download the test script files, and use the EC (Experiment Controller) script loader to run it.
 
     omf_ec -u charlie -s localhost -p password exec engine_test.rb
+
 or
+
     omf_ec -u charlie -s localhost -p password exec engine_oedl.rb -- --num_of_garage 3
 
 Type omf\_ec or omf\_ec exec to see all the options.
