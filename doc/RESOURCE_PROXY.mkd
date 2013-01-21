@@ -23,11 +23,11 @@ If you want to dive into the code right now, these are the two annotated files u
 
 Firstly, we need a resource controller script running, which contains some instances of resource proxy represents 'garage', we can then use resource factory method to create such
 
-    OmfRc::ResourceFactory.new(:garage, {uid: 'garage_1', server: 'localhost', user: 'alpha', password: 'pw')
+    OmfRc::ResourceFactory.new(:garage, {uid: 'garage_1', server: 'localhost', user: 'alpha', password: 'pw'})
 
 This does following behind the scene
 
-* Extend the instance with resource proxy module named 'garage' (_should be defined first_).
+* Extend the instance with resource proxy module named 'garage' (should be defined first).
 * If additional options provided for pubsub communicator, a communicator instance will be created and attached to this resource proxy instance.
 * If before\_ready hook provided in the module, they will be executed.
 
@@ -111,9 +111,9 @@ Commit your definition files into the git repository and simply send us a pull r
 
 You could also package your proxy definition files into separate gems, if you feel they should not go into the default RC package.
 
-This process is rather simple, we even prepare a gem skeleton for you.
+This process is rather simple, take a look at this third party rc gem of openflow integration.
 
-https://github.com/jackhong/omf\_rc\_foo
+https://github.com/kohoumas/omf_rc_openflow
 
 ### Refactor common features into resource utilities
 
