@@ -17,7 +17,7 @@ module OmfCommon
   DEFAULTS = {
     development: {
       eventloop: {
-        type: :local
+        type: 'em'
       },
       logging: {
         level: 'debug',
@@ -142,6 +142,43 @@ module OmfCommon
     Eventloop.instance
   end
   
+  # Load a YAML file and return it as hash.
+  #
+  # options:
+  #   :symbolize_keys FLAG: Symbolize keys if set 
+  #   :path: 
+  #      :same - Look in the same directory as '$0'
+  #   :remove_root ROOT_NAME: Remove the root node. Throw exception if not ROOT_NAME
+  #   :wait_for_readable SECS: Wait until the yaml file becomes readable. Check every SECS
+  #
+  def self.load_yaml(file_name, opts = {})
+    if path_opt = opts[:path]
+      case path_opt
+      when :same
+        file_name = File.join(File.dirname($0), file_name)
+      else
+        raise "Unknown value '#{path_opt}' for 'path' option"
+      end
+    end
+    if readable_check = opts[:wait_for_readable]
+      while not File.readable?(file_name)
+        puts "WAIT #{file_name}"
+        sleep readable_check # wait until file shows up
+      end      
+    end
+    yh = YAML.load_file(file_name)
+    if opts[:symbolize_keys]
+      yh = _rec_sym_keys(yh)
+    end
+    if root = opts[:remove_root]
+      if yh.length != 1 && yh.key?(root)
+        raise "Expected root '#{root}', but found '#{yh.keys.inspect}"
+      end
+      yh = yh.delete(root)
+    end
+    yh
+  end
+  
   # DO NOT CALL DIRECTLY
   #
   def self._init_logging(opts = {})
@@ -181,5 +218,20 @@ module OmfCommon
       r[key] = oldval.is_a?(Hash) ? _rec_merge(oldval, newval) : newval
     end
   end
-
+  
+  # Recusively Symbolize keys of hash
+  #
+  def self._rec_sym_keys(hash)
+    h = {}
+    hash.each do |k, v|
+      if v.is_a? Hash
+        v = _rec_sym_keys(v)
+      elsif v.is_a? Array
+        v = v.map {|e| e.is_a?(Hash) ? _rec_sym_keys(e) : e }
+      end
+      h[k.to_sym] = v
+    end
+    h
+  end
+  
 end

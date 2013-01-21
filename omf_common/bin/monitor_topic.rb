@@ -10,8 +10,7 @@ OP_MODE = :development
 
 opts = {
   communication: {
-    type: :amqp,
-    server: 'srv.mytestbed.net'
+    url: 'amqp://srv.mytestbed.net'
   },
   eventloop: { type: :em},
   logging: {
@@ -19,7 +18,25 @@ opts = {
   }  
 }
 
-observed_topic = 'cloud_1'
+observed_topic = nil
+$follow_children = true
+
+op = OptionParser.new
+op.banner = "Usage: #{op.program_name} [options] topic1 topic2 ..."
+op.on '-c', '--comms-url URL', "URL to communication layer [#{opts[:communication][:url]}]" do |url|
+  opts[:communication][:url] = url
+end
+op.on '-f', "--[no-]follow-children", "Follow all newly created resources [#{$follow_children}]" do |flag|
+  $follow_children = flag
+end
+op.on_tail('-h', "--help", "Show this message") { $stderr.puts op; exit }
+observed_topics = op.parse(ARGV)
+
+unless observed_topics
+  $stderr.puts 'Missing declaration of topics to follow'
+  $stderr.puts op
+  exit(-1)
+end
 
 def observe(tname, comm)
   comm.subscribe(tname) do |topic|
@@ -30,7 +47,7 @@ def observe(tname, comm)
       end
       puts "------"
       
-      if msg.inform_type == 'created'
+      if $follow_children && msg.inform_type == 'created'
         #puts ">>>>>> #{msg}"
         observe(msg[:resource_id], comm)
       end
@@ -40,6 +57,8 @@ end
 
 OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
-    observe(observed_topic, comm)
+    observed_topics.each do |topic|
+      observe(topic, comm)
+    end
   end
 end

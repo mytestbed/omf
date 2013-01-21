@@ -7,8 +7,6 @@ module OmfCommon
     class AMQP
       class Communicator < OmfCommon::Comm
         
-        DEF_PORT = 5672
-        
         # def initialize(opts = {})
           # # ignore arguments
         # end
@@ -16,11 +14,11 @@ module OmfCommon
         # Initialize comms layer
         #
         def init(opts = {})
-          @server = opts[:server]
-          @port = opts[:port] || DEF_PORT
-          @address_prefix = "amqp:#{@server}:#{@port}/"
-          
-          ::AMQP.connect do |connection|
+          unless (@url = opts[:url])
+            raise "Missing 'url' option for AQMP layer"
+          end
+          @address_prefix = @url + '/'
+          ::AMQP.connect(@url) do |connection|
             @channel  = ::AMQP::Channel.new(connection)
             
             if @on_connected_proc

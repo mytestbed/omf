@@ -26,7 +26,7 @@ module OmfCommon
         raise "Eventloop provider already iniitalised"
       end
       unless provider = opts[:provider]
-        provider = @@providers[opts[:type]]
+        provider = @@providers[opts[:type].to_sym]
       end
       unless provider
         raise "Missing Eventloop provider declaration. Either define 'type' or 'provider'"

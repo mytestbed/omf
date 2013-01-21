@@ -44,10 +44,15 @@ module OmfCommon
         raise "Comms layer already initialised"
       end
       unless provider = opts[:provider]
-        provider = @@providers[opts[:type]]
+        unless type = opts[:type]
+          if url = opts[:url]
+            type = url.split(':')[0].to_sym
+          end
+        end
+        provider = @@providers[type]
       end
       unless provider
-        raise "Missing Comm provider declaration. Either define 'type' or 'provider'"
+        raise "Missing Comm provider declaration. Either define 'type', 'provider', or 'url'"
       end
 
       require provider[:require] if provider[:require]
