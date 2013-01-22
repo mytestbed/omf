@@ -2,6 +2,8 @@
 
 We recommend two different ways of installing Ruby 1.9: installing binary distribution packages or compiling from source using RVM. The latter is recommended if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple ruby installations with isolated gemsets. For all other occasions, it may be better to use the ruby packages your OS vendor provides.
 
+__If you experienced problems using latest Ruby 1.9 version ruby-1.9.3-p362, try install and use a previous version. OMF has been tested again ruby-1.9.3-p286__
+
 ## RVM (all Linux/Unix/BSD platforms, including Mac OSX)
 
 The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. As a regular user, run:
@@ -13,7 +15,7 @@ then log out, log back in and run:
     rvm requirements
 
 You will see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed.  Now you can install and select ruby:
-    
+
     rvm install ruby
     rvm use ruby
 
