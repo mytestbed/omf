@@ -4,7 +4,7 @@ module OmfCommon
   class RelaxNGSchema
     include Singleton
 
-    SCHEMA_FILE = "#{File.dirname(__FILE__)}/protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
+    SCHEMA_FILE = "#{File.dirname(__FILE__)}/../../protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
 
     attr_accessor :schema
 

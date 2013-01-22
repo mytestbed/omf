@@ -4,148 +4,61 @@ include OmfCommon
 
 PROP_ELEMENTS = %w(p1 p2 p3)
 
+INTERNAL_ATTR = %w(type operation guard msg_id timestamp inform_to publish_to context_id resource_id publish_to inform_type)
+
+Message.init(type: :xml)
+
 describe OmfCommon::Message do
-  describe "when constructing valid messages" do
-    it "must return a create or configure XML element without failing" do
-      %w(create configure).each do |msg_name|
-        message = Message.__send__(msg_name) do |m|
+  describe "when initialised" do
+    before do
+      @message = Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
+    end
 
-          PROP_ELEMENTS.each_with_index do |prop_element, index|
-            if index == 0
-              m.property(prop_element, rand(100))
-            else
-              m.property(prop_element, rand(100)) do |p|
-                p.element('unit', 'test')
-                p.element('precision', 'test')
-              end
+    it "must be able to query internal properties" do
+      @message.type.must_equal :create
+      @message.operation.must_equal :create
+      @message.msg_id.wont_be_nil
+      @message.timestamp.wont_be_nil
+    end
 
-            end
-          end
+    it "must be able to get property value"  do
+      @message[:p1].must_equal 'p1_value'
+      @message.read_property(:p1).must_equal 'p1_value'
+    end
 
-          # Guard element optional
-          m.element(:guard) do |g|
-            g.property('p1', 1)
-            g.property('p2', 2)
-          end
-        end
-        message.valid?.must_equal true
+    it "must be able to set property value" do
+      @message[:p1] = 'new_value'
+      @message[:p1].must_equal 'new_value'
+      @message.write_property(:p2, 'new_value')
+      @message[:p2].must_equal 'new_value'
+    end
+
+    it "must be able to set and query internal message properties" do
+      INTERNAL_ATTR.each do |name|
+        @message.must_respond_to name
+        @message.must_respond_to "#{name}="
       end
     end
 
-    it "must return a request XML element without failing" do
-      request = Message.request('foo@bar') do |m|
-        PROP_ELEMENTS.each do |prop_element|
-          m.property(prop_element, {min_value: 'test', max_value: 'test'})
-        end
-      end
-      request.valid?.must_equal true
-    end
-
-    it "must return a release XML element without failing" do
-      release = Message.release { |v| v.element('resource_id', 'test') }
-      release.valid?.must_equal true
-    end
-
-    it "must return a inform XML element without failing" do
-      inform = Message.inform('CREATION_OK', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
-        m.element('resource_id', 'test')
-        m.element('resource_address', 'test')
-        PROP_ELEMENTS.each do |prop_element|
-          m.property(prop_element, { current: 'test', target: 'test'})
-        end
-      end
-      inform.valid?.must_equal true
-    end
-
-    it "context_id & resource_id shortcut must work too" do
-      m = Message.inform('CREATION_OK', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
-        m.element('resource_id', 'test')
-      end
-      m.resource_id.must_equal 'test'
-      m.context_id.must_equal '9012c3bc-68de-459a-ac9f-530cc7168e22'
-    end
-
-    it "must escape erb code in property" do
-      m = Message.inform('CREATION_OK', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
-        m.property('bob', "hello <%= world %>")
-        m.property('alice', "hello <%= 1 % 2 %>")
-      end
-      m.read_property('bob').must_equal "hello <%= world %>"
-      world = 'world'
-      m.read_property('bob', binding).must_equal "hello world"
-      m.read_property('alice', binding).must_equal "hello 1"
+    it "must evaluate erb code when read property with evaluate option is true" do
+      @message[:p3] = "1 + 1 = <%= 1 + 1 %>"
+      @message[:p4] = "1 + 1 = <%= two %>"
+      @message.read_property(:p3, binding).must_equal "1 + 1 = 2"
+      @message[:p3].must_equal "1 + 1 = <%= 1 + 1 %>"
+      two = 2
+      @message[:p4, binding].must_equal "1 + 1 = 2"
+      @message[:p4].must_equal "1 + 1 = <%= two %>"
     end
 
     it "must be able to pretty print an app_event message" do
-      Message.inform('STATUS') do |m|
-        m.property('status_type', 'APP_EVENT')
-        m.property('event', 'DONE.OK')
-        m.property('app', 'app100')
-        m.property('msg', 'Everything will be OK')
-        m.property('seq', 1)
-      end.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
-    end
-  end
-
-  describe "when asked to parse a XML element into Message object" do
-    it "must create the message object correctly " do
-      xml = Message.create do |m|
-        m.property('type', 'vm')
-        m.property('os', 'debian')
-        m.property('memory', { value: 1024, unit: 'mb', precision: 0 })
-        m.property('devices', [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ])
-        m.property('true', true)
-        m.property('false', false)
-        m.property('boolean_array', [false, true])
-      end.canonicalize
-
-      message = Message.parse(xml)
-
-      message.must_be_kind_of Message
-      message.operation.must_equal :create
-      message.read_element("property").size.must_equal 7
-      message.read_content("property[@key='memory']/unit").must_equal 'mb'
-      message.read_element("property").size.must_equal 7
-      message.read_property("type").must_equal 'vm'
-      message.read_property(:type).must_equal 'vm'
-
-      memory = message.read_property(:memory)
-      memory.must_be_kind_of Hashie::Mash
-      memory.value.must_equal 1024
-      memory.unit.must_equal 'mb'
-      memory.precision.must_equal 0
-
-      devices = message.read_property(:devices)
-      devices.must_be_kind_of Array
-      devices.size.must_equal 2
-      devices.find { |v| v.name == 'w1'}.driver.size.must_equal 2
-      # Each property iterator
-      message.each_property do |v|
-        %w(type os memory devices true false boolean_array).must_include v.attr('key')
-      end
-
-      message.read_property(:true).must_equal true
-      message.read_property(:false).must_equal false
-      message.read_property('boolean_array').must_equal [false, true]
-    end
-
-    it "must fail if parse an empty xml" do
-      lambda { Message.parse("") }.must_raise ArgumentError
-      lambda { Message.parse(nil) }.must_raise ArgumentError
-    end
-  end
-
-  describe "when query the message object" do
-    it "must return nil if content of a property is empty string" do
-      xml = Message.request do |m|
-        m.property('type', 'vm')
-        m.property('empty')
-        m.element('empty')
-      end
-
-      xml.read_property('type').must_equal 'vm'
-      xml.read_property('empty').must_equal nil
-      xml.read_content('empty').must_equal nil
+      @message = Message.create(:inform,
+                     { status_type: 'APP_EVENT',
+                       event: 'DONE.OK',
+                       app: 'app100',
+                       msg: 'Everything will be OK',
+                       seq: 1 },
+                     { inform_type: 'STATUS' })
+      @message.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
     end
   end
 end

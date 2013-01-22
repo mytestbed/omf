@@ -3,67 +3,107 @@ require 'hashie'
 require 'securerandom'
 require 'openssl'
 require 'cgi'
+
 require 'omf_common/message/xml/relaxng_schema'
 
 module OmfCommon
+class Message
+class XML
 
-  class MPMessage < OML4R::MPBase
-    name :message
-    param :time, :type => :double
-    param :operation, :type => :string
-    param :msg_id, :type => :string
-    param :context_id, :type => :string
-    param :content, :type => :string
-  end
+  # @example To create a valid omf message, e.g. a 'create' message:
+  #
+  #   Message.create(:create,
+  #                  { p1: 'p1_value', p2: { unit: 'u', precision: 2 } },
+  #                  { guard: { p1: 'p1_value' } })
+  class Message < OmfCommon::Message
 
-  # Refer to resource life cycle, instance methods are basically construct & parse XML fragment
-  #
-  # @example To create a valid omf message, e.g. a 'configure' message:
-  #
-  #   Message.request do |message|
-  #     message.property('os', 'debian')
-  #     message.property('memory', { value: 2, unit: 'gb' })
-  #   end
-  #
-  class Message < Niceogiri::XML::Node
     OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    OPERATION = %w(create configure request release inform)
-    # When OML instrumentation is enabled, we do not want to send a the same
-    # measurement twice, once when a message is created for publishing to T,
-    # and once when this message comes back (as we are also a subscriber of T)
-    # Thus we keep track of message IDs here (again only when OML is enabled)
-    @@msg_id_list = []
+
+    attr_accessor :xml
 
     class << self
-      OPERATION.each do |operation|
-        define_method(operation) do |*args, &block|
-          xml = new(operation, nil, OMF_NAMESPACE)
-          if operation == 'inform'
-            xml.element('context_id', args[1]) if args[1]
-            xml.element('inform_type', args[0])
-          else
-            xml.element('publish_to', args[0]) if args[0]
-          end
-          block.call(xml) if block
-          xml.sign
-        end
+      def create(operation_type, properties = {}, additional_content = {})
+        new(additional_content.merge({
+          operation: operation_type,
+          type: operation_type,
+          properties: properties
+        }))
       end
 
       def parse(xml)
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
-        xml_root = Nokogiri::XML(xml).root
-        result = new(xml_root.element_name, nil, xml_root.namespace.href).inherit(xml_root)
-        if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(result.msg_id)
-          MPMessage.inject(Time.now.to_f, result.operation.to_s, result.msg_id, result.context_id, result.to_s.gsub("\n",''))
+
+        xml_node = Nokogiri::XML(xml).root
+
+        self.create(xml_node.name.to_sym).tap do |message|
+          message.xml = xml_node
+          message.msg_id = message.read_element('msg_id')
+
+          message.xml.elements.each do |el|
+            unless %w(property digest).include? el.name
+              message.send("#{el.name}=", message.read_element(el.name))
+            end
+
+            if el.name == 'property'
+              message.read_element('property').each do |prop_node|
+                message.send(:[]=,
+                             prop_node.attr('key'),
+                             message.reconstruct_data(prop_node))
+              end
+            end
+          end
+
+          if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(message.msg_id)
+            MPMessage.inject(Time.now.to_f, message.operation.to_s, message.msg_id, message.context_id, message.to_s.gsub("\n",''))
+          end
         end
-        result
       end
+    end
+
+    %w(type operation guard msg_id timestamp inform_to context_id).each do |name|
+      define_method(name) do |*args|
+        @content[name]
+      end
+
+      define_method("#{name}=") do |value|
+        @content[name] = value
+      end
+    end
+
+    def to_s
+      "XML Message: #{@content.inspect}"
+    end
+
+    def marshall
+      build_xml
+      @xml.to_xml
+    end
+
+    alias_method :to_xml, :marshall
+
+    def build_xml
+      @xml ||= Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
+
+      (INTERNAL_ATTR - %w(type operation)).each do |attr|
+        attr_value = self.send(attr)
+
+        next unless attr_value
+
+        add_element(attr, attr_value) if attr != 'guard'
+      end
+
+      self.properties.each { |k, v| add_property(k, v) }
+
+      digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
+
+      add_element(:digest, digest)
+      @xml
     end
 
     # Construct a property xml node
     #
-    def property(key, value = nil)
-      key_node = Message.new('property')
+    def add_property(key, value = nil)
+      key_node = Niceogiri::XML::Node.new('property')
       key_node.write_attr('key', key)
 
       unless value.nil?
@@ -76,7 +116,7 @@ module OmfCommon
           key_node.add_child(c_node)
         end
       end
-      add_child(key_node)
+      @xml.add_child(key_node)
       key_node
     end
 
@@ -85,7 +125,7 @@ module OmfCommon
       when Hash
         [].tap do |array|
           value.each_pair do |k, v|
-            n = Message.new(k)
+            n = Niceogiri::XML::Node.new(k)
             n.write_attr('type', ruby_type_2_prop_type(v.class))
 
             c_node = value_node_set(v, k)
@@ -99,7 +139,7 @@ module OmfCommon
         end
       when Array
         value.map do |v|
-          n = Message.new('item')
+          n = Niceogiri::XML::Node.new('item')
           n.write_attr('type', ruby_type_2_prop_type(v.class))
 
           c_node = value_node_set(v, 'item')
@@ -114,7 +154,7 @@ module OmfCommon
         if key.nil?
           string_value(value)
         else
-          n = Message.new(key)
+          n = Niceogiri::XML::Node.new(key)
           n.add_child(string_value(value))
         end
       end
@@ -141,47 +181,37 @@ module OmfCommon
       self
     end
 
-    # param :time, :type => :int32
-    # param :operation, :type => :string
-    # param :msg_id, :type => :string
-    # param :context_id, :type => :string
-    # param :content, :type => :string
-
-
     # Validate against relaxng schema
     #
     def valid?
-      validation = RelaxNGSchema.instance.schema.validate(self.document)
+      build_xml
+
+      validation = RelaxNGSchema.instance.schema.validate(@xml.document)
       if validation.empty?
         true
       else
         logger.error validation.map(&:message).join("\n")
-        logger.debug self.to_s
+        logger.debug @xml.to_s
         false
       end
     end
 
     # Short cut for adding xml node
     #
-    def element(key, value = nil, &block)
-      key_node = Message.new(key)
-      add_child(key_node)
+    def add_element(key, value = nil, &block)
+      key_node = Niceogiri::XML::Node.new(key)
+      @xml.add_child(key_node)
       if block
         block.call(key_node)
       else
         key_node.content = value if value
       end
-    end
-
-    # The root element_name represents operation
-    #
-    def operation
-      element_name.to_sym
+      key_node
     end
 
     # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
-      xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
+      @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
     end
 
     # In case you think method :element_by_xpath_with_default_namespace is too long
@@ -199,35 +229,10 @@ module OmfCommon
       end
     end
 
-    # Context ID will be requested quite often
-    def context_id
-      read_property(:context_id) || read_content(:context_id)
-    end
-
-    # Resource ID is another frequent requested property
-    def resource_id
-      read_property(:resource_id) || read_content(:resource_id)
-    end
-
-    def publish_to
-      read_property(:publish_to) || read_content(:publish_to)
-    end
-
-    def msg_id
-      read_attr('msg_id')
-    end
-
-    # Get a property by key
+    # Reconstruct xml node into Ruby object
     #
-    # @param [String] key name of the property element
+    # @param [Niceogiri::XML::Node] property xml node
     # @return [Object] the content of the property, as string, integer, float, or mash(hash with indifferent access)
-    #
-    def read_property(key, data_binding = nil)
-      key = key.to_s
-      e = read_element("property[@key='#{key}']").first
-      reconstruct_data(e, data_binding) if e
-    end
-
     def reconstruct_data(node, data_binding = nil)
       node_type =  node.attr('type')
       case node_type
@@ -254,10 +259,20 @@ module OmfCommon
       end
     end
 
-    # Iterate each property element
-    #
-    def each_property(&block)
-      read_element("property").each { |v| block.call(v) }
+    def <=>(another)
+      @content <=> another.content
+    end
+
+    def properties
+      @content.properties
+    end
+
+    def has_properties?
+      @content.properties.empty?
+    end
+
+    def guard?
+      @content.guard.empty?
     end
 
     # Pretty print for application event message
@@ -266,7 +281,49 @@ module OmfCommon
       "APP_EVENT (#{read_property(:app)}, ##{read_property(:seq)}, #{read_property(:event)}): #{read_property(:msg)}"
     end
 
+    # Iterate each property key value pair
+    #
+    def each_property(&block)
+      properties.each { |k, v| block.call(k, v) }
+    end
+
+    def [](name, evaluate = false)
+      value = properties[name]
+
+      if evaluate && value.kind_of?(String)
+        ERB.new(value).result(evaluate)
+      else
+        value
+      end
+    end
+
+    alias_method :read_property, :[]
+
+    alias_method :write_property, :[]=
+
     private
+
+    def initialize(content = {})
+      @content = Hashie::Mash.new(content)
+      @content.msg_id = SecureRandom.uuid
+      @content.timestamp = Time.now.utc.iso8601
+    end
+
+    def _set_core(key, value)
+      @content[key] = value
+    end
+
+    def _get_core(key)
+      @content[key]
+    end
+
+    def _set_property(key, value)
+      @content.properties[key] = value
+    end
+
+    def _get_property(key)
+      @content.properties[key]
+    end
 
     def ruby_type_2_prop_type(ruby_class_type)
       v_type = ruby_class_type.to_s.downcase
@@ -291,3 +348,6 @@ module OmfCommon
     end
   end
 end
+end
+end
+

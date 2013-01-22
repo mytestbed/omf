@@ -1,4 +1,3 @@
-
 module OmfCommon
 
   class MPMessage < OML4R::MPBase
@@ -88,11 +87,11 @@ module OmfCommon
     end
 
     def each_property(&block)
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     def has_properties?
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     def resource
@@ -114,11 +113,11 @@ module OmfCommon
     end
 
     def to_s
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     def marshall
-      raise "Not implemented"
+      raise NotImplementedError
     end
   end
 
