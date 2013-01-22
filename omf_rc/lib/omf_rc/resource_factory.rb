@@ -29,7 +29,8 @@ class OmfRc::ResourceFactory
       # Create a new instance of abstract resource
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm)
       # Then extend this instance with relevant module identified by type
-      resource.extend("OmfRc::ResourceProxy::#{type.camelize}".constantize)
+      emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize 
+      resource.extend(emodule)
       # Initiate property hash
       resource.methods.each do |m|
         resource.__send__(m) if m =~ /def_property_(.+)/
@@ -38,7 +39,10 @@ class OmfRc::ResourceFactory
       resource.before_ready if resource.respond_to? :before_ready
       resource
     end
-
+    
+    # 'new' is a strange method for creating something different than the receiving class itself
+    alias :create :new
+    
     # Return the proxy list
     def proxy_list
       @@proxy_list

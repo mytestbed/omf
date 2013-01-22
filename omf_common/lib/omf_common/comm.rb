@@ -1,65 +1,135 @@
-require 'omf_common/dsl/xmpp'
-require 'omf_common/dsl/xmpp_mp'
+# require 'omf_common/dsl/xmpp'
+# require 'omf_common/dsl/xmpp_mp'
+require 'omf_common/comm/topic'
 
 
 module OmfCommon
   # PubSub communication class, can be extended with different implementations
   class Comm
-    attr_accessor :published_messages
-
-    def initialize(pubsub_implementation)
-      @published_messages = []
-      self.extend("OmfCommon::DSL::#{pubsub_implementation.to_s.camelize}".constantize)
-    end
-
-    # Generate OMF related message
-    %w(create configure request inform release).each do |m_name|
-      define_method("#{m_name}_message") do |*args, &block|
-        message =
-          if block
-            Message.send(m_name, *args, &block)
-          elsif args[0].kind_of? Array
-            Message.send(m_name) do |v|
-              args[0].each do |opt|
-                if opt.kind_of? Hash
-                  opt.each_pair do |key, value|
-                    v.property(key, value)
-                  end
-                else
-                  v.property(opt)
-                end
-              end
-            end
-          else
-            Message.send(m_name)
-          end
-
-        OmfCommon::TopicMessage.new(message, self)
-      end
-    end
-
-    %w(creation_ok creation_failed status released).each do |inform_type|
-      define_method("on_#{inform_type}_message") do |*args, &message_block|
-        msg_id = args[0].msg_id if args[0]
-        event_block = proc do |event|
-          message_block.call(Message.parse(event.items.first.payload))
-        end
-        guard_block = proc do |event|
-          (event.items?) && (!event.delayed?) &&
-            event.items.first.payload &&
-            (omf_message = Message.parse(event.items.first.payload)) &&
-            omf_message.operation == :inform &&
-            omf_message.read_content(:inform_type) == inform_type.upcase &&
-            (msg_id ? (omf_message.context_id == msg_id) : true)
-        end
-        topic_event(guard_block, &callback_logging(__method__, &event_block))
-      end
-    end
-
-    # Return a topic object represents pubsub topic
+    
+    @@providers = {
+      xmpp: {
+        require: 'omf_common/comm/xmpp/xmpp_communicator',
+        constructor: 'OmfCommon::Comm::XMPP::Communicator',
+        message_provider: {
+          type: :xml
+        }
+      },
+      amqp: {
+        require: 'omf_common/comm/amqp/amqp_communicator',
+        constructor: 'OmfCommon::Comm::AMQP::Communicator',
+        message_provider: {
+          type: :json
+        }
+      },
+      local: {
+        require: 'omf_common/comm/local/local_communicator',
+        constructor: 'OmfCommon::Comm::Local::Communicator',
+        message_provider: {
+          type: :json
+        }
+      }
+    }
+    @@instance = nil
+    
     #
-    def get_topic(topic_id)
-      OmfCommon::Topic.new(topic_id, self)
+    # opts:
+    #   :type - pre installed comms provider
+    #   :provider - custom provider (opts)
+    #     :require - gem to load first (opts)
+    #     :constructor - Class implementing provider
+    #
+    def self.init(opts)
+      if @@instance
+        raise "Comms layer already initialised"
+      end
+      unless provider = opts[:provider]
+        unless type = opts[:type]
+          if url = opts[:url]
+            type = url.split(':')[0].to_sym
+          end
+        end
+        provider = @@providers[type]
+      end
+      unless provider
+        raise "Missing Comm provider declaration. Either define 'type', 'provider', or 'url'"
+      end
+
+      require provider[:require] if provider[:require]
+
+      if class_name = provider[:constructor]
+        provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+        inst = provider_class.new(opts)
+      else
+        raise "Missing communicator creation info - :constructor"
+      end
+      @@instance = inst
+      Message.init(provider[:message_provider])
+      inst.init(opts)
     end
+    
+    def self.instance
+      @@instance
+    end
+    
+    # Initialize comms layer
+    #
+    def init(opts = {})
+      raise "Not implemented"
+    end
+
+    # Shut down comms layer
+    def disconnect(opts = {})
+      raise "Not implemented"
+    end
+    
+    def on_connected(&block)
+      raise "Not implemented"
+    end
+
+    # Create a new pubsub topic with additional configuration
+    #
+    # @param [String] topic Pubsub topic name
+    def create_topic(topic, opts = {})
+      raise "Not implemented"
+    end
+
+    # Delete a pubsub topic
+    #
+    # @param [String] topic Pubsub topic name
+    def delete_topic(topic, &block)
+      raise "Not implemented"
+    end
+
+    # Subscribe to a pubsub topic
+    #
+    # @param [String, Array] topic_name Pubsub topic name
+    # @param [Hash] opts
+    # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
+    #
+    def subscribe(topic_name, opts = {}, &block)
+      tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
+      ta = tna.collect do |tn|
+        t = create_topic(tn)
+        if block
+          block.call(t)
+        end
+        t
+      end
+      ta[0]
+    end
+    
+    # Return the options used to initiate this 
+    # communicator.
+    #
+    def options()
+      @opts
+    end
+    
+    private
+    def initialize(opts = {})
+      @opts = opts
+    end
+
   end
 end

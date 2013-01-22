@@ -1,4 +1,4 @@
-require 'omf_rc/deferred_process'
+#require 'omf_rc/deferred_process'
 require 'omf_rc/omf_error'
 require 'securerandom'
 require 'hashie'
