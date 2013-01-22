@@ -3,7 +3,7 @@ require 'hashie'
 require 'securerandom'
 require 'openssl'
 require 'cgi'
-require 'omf_common/relaxng_schema'
+require 'omf_common/message/xml/relaxng_schema'
 
 module OmfCommon
 

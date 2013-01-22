@@ -1,8 +1,9 @@
 require 'blather/client/dsl'
 
 module OmfCommon
-  module DSL
-    module Xmpp
+class Comm
+  class XMPP
+    class Communicator < OmfCommon::Comm
       include Blather::DSL
 
       HOST_PREFIX = 'pubsub'
@@ -165,7 +166,7 @@ module OmfCommon
             e_stanza = Blather::StanzaError.import(stanza)
             if [:unexpected_request].include? e_stanza.name
               logger.debug e_stanza
-            elsif e_stanza.name == :conflict 
+            elsif e_stanza.name == :conflict
               logger.debug e_stanza
             else
               logger.warn "#{e_stanza} Original: #{e_stanza.original}"
@@ -181,4 +182,5 @@ module OmfCommon
       end
     end
   end
+end
 end

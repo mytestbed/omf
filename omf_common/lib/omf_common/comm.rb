@@ -6,10 +6,10 @@ require 'omf_common/comm/topic'
 module OmfCommon
   # PubSub communication class, can be extended with different implementations
   class Comm
-    
+
     @@providers = {
       xmpp: {
-        require: 'omf_common/comm/xmpp/xmpp_communicator',
+        require: 'omf_common/comm/xmpp/communicator',
         constructor: 'OmfCommon::Comm::XMPP::Communicator',
         message_provider: {
           type: :xml
@@ -31,7 +31,7 @@ module OmfCommon
       }
     }
     @@instance = nil
-    
+
     #
     # opts:
     #   :type - pre installed comms provider
@@ -67,11 +67,11 @@ module OmfCommon
       Message.init(provider[:message_provider])
       inst.init(opts)
     end
-    
+
     def self.instance
       @@instance
     end
-    
+
     # Initialize comms layer
     #
     def init(opts = {})
@@ -82,7 +82,7 @@ module OmfCommon
     def disconnect(opts = {})
       raise "Not implemented"
     end
-    
+
     def on_connected(&block)
       raise "Not implemented"
     end
@@ -118,14 +118,14 @@ module OmfCommon
       end
       ta[0]
     end
-    
-    # Return the options used to initiate this 
+
+    # Return the options used to initiate this
     # communicator.
     #
     def options()
       @opts
     end
-    
+
     private
     def initialize(opts = {})
       @opts = opts

@@ -11,34 +11,34 @@ module OmfCommon
   end
 
   class Message
-    
+
     @@providers = {
-      # xml: {
-        # require: 'omf_common/message_provider/xml/message',
-        # extend: 'OmfCommon::MessageProvider::XML::Message'
-      # },
+      xml: {
+        require: 'omf_common/message/xml/message',
+        constructor: 'OmfCommon::Message::XML::Message'
+      },
       json: {
         require: 'omf_common/message/json/json_message',
         constructor: 'OmfCommon::Message::Json::Message'
       }
     }
     @@message_class = nil
-    
+
     def self.create(type, properties, body = {})
       @@message_class.create(type, properties, body)
     end
-    
+
     def self.create_inform_message(inform_type = nil, properties = {}, body = {})
       body[:inform_type] = inform_type if inform_type
       create(:inform, properties, body)
     end
-    
+
     # Create and return a message by parsing 'str'
     #
     def self.parse(str)
       @@message_class.parse(str)
     end
-    
+
     def self.init(opts = {})
       if @@message_class
         raise "Message provider already iniitalised"
@@ -58,8 +58,8 @@ module OmfCommon
         raise "Missing provider class info - :constructor"
       end
     end
-    
-      
+
+
     INTERNAL_PROPS = [:operation, :uid, :msg_id, :publish_to, :context_id, :inform_type]
 
     [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
@@ -67,56 +67,56 @@ module OmfCommon
         _get_core(pname)
       end
     end
-    
+
     def type
       _get_core(:operation)
     end
-    
+
     [:publish_to, :resource_id, :inform_type].each do |pname|
       define_method("#{pname}=") do |val|
         _set_core(pname.to_sym, val)
       end
-    end        
-    
+    end
+
     def [](name)
       _get_property(name.to_sym)
     end
-    
+
     def []=(name, value)
       raise if name.to_sym == :inform_type
       _set_property(name.to_sym, value)
     end
-    
+
     def each_property(&block)
       raise "Not implemented"
     end
-    
+
     def has_properties?
       raise "Not implemented"
     end
-    
+
     def resource
       name = _get_property(:resource_id)
       OmfCommon.comm.create_topic(name)
     end
-    
+
     def success?
       true
     end
-    
+
     def error?
       false
     end
-    
+
     def create_inform_reply_message(inform_type = nil, properties = {}, body = {})
       body[:context_id] = self.msg_id
       self.class.create_inform_message(inform_type, properties, body)
     end
-    
+
     def to_s
       raise "Not implemented"
     end
-    
+
     def marshall
       raise "Not implemented"
     end

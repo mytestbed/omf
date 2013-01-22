@@ -2,13 +2,16 @@ require 'test_helper'
 require 'fixture/pubsub'
 require 'em/minitest/spec'
 
-describe OmfCommon::DSL::Xmpp do
+require 'omf_common/comm/xmpp/communicator'
+
+describe OmfCommon::Comm::XMPP::Communicator do
   before do
     @client = Blather::Client.new
     @stream = MiniTest::Mock.new
     @stream.expect(:send, true, [Blather::Stanza])
     @client.post_init @stream, Blather::JID.new('n@d/r')
-    @xmpp = OmfCommon::Comm.new(:xmpp)
+    #@xmpp = OmfCommon::Comm.new(:xmpp)
+    @xmpp = OmfCommon::Comm.init(type: :xmpp)
   end
 
   describe "when communicating to xmpp server (via mocking)" do
