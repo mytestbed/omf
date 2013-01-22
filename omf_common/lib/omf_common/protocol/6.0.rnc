@@ -2,7 +2,7 @@ default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
 start = (create | configure | request | release | inform)
 
-common_elements = attribute msg_id { text }, attribute timestamp { text }, attribute digest { text }, attribute signature { text }?
+common_elements = element msg_id { text } & element timestamp { text } & element digest { text } & element signature { text }?
 
 anything = ( text | element * { (attribute type { text })?, (text | anything) * })
 

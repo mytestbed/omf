@@ -10,12 +10,22 @@
     </choice>
   </start>
   <define name="common_elements">
-    <attribute name="msg_id"/>
-    <attribute name="timestamp"/>
-    <attribute name="digest"/>
-    <optional>
-      <attribute name="signature"/>
-    </optional>
+    <interleave>
+      <element name="msg_id">
+        <text/>
+      </element>
+      <element name="timestamp">
+        <text/>
+      </element>
+      <element name="digest">
+        <text/>
+      </element>
+      <optional>
+        <element name="signature">
+          <text/>
+        </element>
+      </optional>
+    </interleave>
   </define>
   <define name="anything">
     <choice>
