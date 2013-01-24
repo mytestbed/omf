@@ -16,13 +16,26 @@ class XML
   #                  { p1: 'p1_value', p2: { unit: 'u', precision: 2 } },
   #                  { guard: { p1: 'p1_value' } })
   class Message < OmfCommon::Message
+    include Comparable
 
     OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
+    INTERNAL_PROPS = %w(type uid operation guard msg_id timestamp inform_to context_id reason resource_address)
 
     attr_accessor :xml
+    attr_accessor :content
 
     class << self
-      def create(operation_type, properties = {}, additional_content = {})
+      # Create a OMF message
+      def create(operation_type, properties = nil, additional_content = nil)
+        properties ||= {}
+        additional_content ||= {}
+
+        if properties.kind_of? Array
+          properties = Hashie::Mash.new.tap do |mash|
+            properties.each { |p| mash[p] = nil }
+          end
+        end
+
         new(additional_content.merge({
           operation: operation_type,
           type: operation_type,
@@ -37,16 +50,15 @@ class XML
 
         self.create(xml_node.name.to_sym).tap do |message|
           message.xml = xml_node
-          message.msg_id = message.read_element('msg_id')
 
           message.xml.elements.each do |el|
             unless %w(property digest).include? el.name
-              message.send("#{el.name}=", message.read_element(el.name))
+              message.send("#{el.name}=", message.read_content(el.name))
             end
 
             if el.name == 'property'
               message.read_element('property').each do |prop_node|
-                message.send(:[]=,
+                message.send(:_set_property,
                              prop_node.attr('key'),
                              message.reconstruct_data(prop_node))
               end
@@ -60,7 +72,7 @@ class XML
       end
     end
 
-    %w(type operation guard msg_id timestamp inform_to context_id).each do |name|
+    INTERNAL_PROPS.each do |name|
       define_method(name) do |*args|
         @content[name]
       end
@@ -70,33 +82,32 @@ class XML
       end
     end
 
-    def to_s
-      "XML Message: #{@content.inspect}"
-    end
-
     def marshall
       build_xml
       @xml.to_xml
     end
 
     alias_method :to_xml, :marshall
+    alias_method :to_s, :marshall
 
     def build_xml
-      @xml ||= Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
+      if @xml.nil?
+        @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
-      (INTERNAL_ATTR - %w(type operation)).each do |attr|
-        attr_value = self.send(attr)
+        (INTERNAL_PROPS - %w(type operation)).each do |attr|
+          attr_value = self.send(attr)
 
-        next unless attr_value
+          next unless attr_value
 
-        add_element(attr, attr_value) if attr != 'guard'
+          add_element(attr, attr_value) if attr != 'guard'
+        end
+
+        self.properties.each { |k, v| add_property(k, v) }
+
+        digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
+
+        add_element(:digest, digest)
       end
-
-      self.properties.each { |k, v| add_property(k, v) }
-
-      digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
-
-      add_element(:digest, digest)
       @xml
     end
 

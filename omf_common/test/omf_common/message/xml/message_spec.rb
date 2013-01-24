@@ -3,8 +3,6 @@ require 'omf_common/message/xml/message'
 
 include OmfCommon
 
-PROP_ELEMENTS = %w(p1 p2 p3)
-
 describe OmfCommon::Message::XML::Message do
   describe "when initialised" do
     before do
@@ -83,4 +81,11 @@ describe OmfCommon::Message::XML::Message do
     end
   end
 
+  describe "when creating request messages" do
+    it "must accept an array of properties instead of hash" do
+      request_m = Message::XML::Message.create(:request, [:p1, :p2])
+      request_m.valid?.must_equal true
+      request_m[:p1].must_be_nil
+    end
+  end
 end

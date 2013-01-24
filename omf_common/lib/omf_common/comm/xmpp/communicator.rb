@@ -6,6 +6,8 @@ class Comm
     class Communicator < OmfCommon::Comm
       include Blather::DSL
 
+      attr_accessor :published_messages
+
       HOST_PREFIX = 'pubsub'
 
       PUBSUB_CONFIGURE = Blather::Stanza::X.new({
@@ -24,7 +26,7 @@ class Comm
         username = opts[:username]
         password = opts[:password]
         server = opts[:server]
-        connect(username, password, server)
+        #connect(username, password, server)
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
@@ -122,6 +124,8 @@ class Comm
       def publish(topic, message, &block)
         raise StandardError, "Invalid message" unless message.valid?
 
+        message = message.marshall unless message.kind_of? String
+
         new_block = proc do |stanza|
           published_messages << OpenSSL::Digest::SHA1.new(message.to_s)
           block.call(stanza) if block
@@ -132,11 +136,11 @@ class Comm
       end
 
       # Event machine related method delegation
-      %w(add_timer add_periodic_timer).each do |m_name|
-        define_method(m_name) do |*args, &block|
-          EM.send(m_name, *args, &block)
-        end
-      end
+      #%w(add_timer add_periodic_timer).each do |m_name|
+      #  define_method(m_name) do |*args, &block|
+      #    EM.send(m_name, *args, &block)
+      #  end
+      #end
 
       # Event callback for pubsub topic event(item published)
       #
@@ -156,7 +160,29 @@ class Comm
         pubsub_event(guard_block, &callback_logging(__method__, &block))
       end
 
+      %w(creation_ok creation_failed status released).each do |inform_type|
+        define_method("on_#{inform_type}_message") do |*args, &message_block|
+          msg_id = args[0].msg_id if args[0]
+          event_block = proc do |event|
+            message_block.call(OmfCommon::Message.parse(event.items.first.payload))
+          end
+          guard_block = proc do |event|
+            (event.items?) && (!event.delayed?) &&
+              event.items.first.payload &&
+              (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
+              omf_message.operation == :inform &&
+              omf_message.read_content(:inform_type) == inform_type.upcase &&
+              (msg_id ? (omf_message.context_id == msg_id) : true)
+          end
+          topic_event(guard_block, &callback_logging(__method__, &event_block))
+        end
+      end
+
       private
+
+      def initialize
+        self.published_messages = []
+      end
 
       # Provide a new block wrap to automatically log errors
       def callback_logging(*args, &block)

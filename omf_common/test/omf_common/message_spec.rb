@@ -1,17 +1,10 @@
 require 'test_helper'
 
-include OmfCommon
-
-PROP_ELEMENTS = %w(p1 p2 p3)
-
-INTERNAL_ATTR = %w(type operation guard msg_id timestamp inform_to publish_to context_id resource_id publish_to inform_type)
-
-Message.init(type: :xml)
-
 describe OmfCommon::Message do
   describe "when initialised" do
     before do
-      @message = Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
+      @internal_attr = %w(type operation guard msg_id timestamp inform_to publish_to context_id resource_id publish_to inform_type)
+      @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
     end
 
     it "must be able to query internal properties" do
@@ -34,7 +27,7 @@ describe OmfCommon::Message do
     end
 
     it "must be able to set and query internal message properties" do
-      INTERNAL_ATTR.each do |name|
+      @internal_attr.each do |name|
         @message.must_respond_to name
         @message.must_respond_to "#{name}="
       end
@@ -51,7 +44,7 @@ describe OmfCommon::Message do
     end
 
     it "must be able to pretty print an app_event message" do
-      @message = Message.create(:inform,
+      @message = OmfCommon::Message.create(:inform,
                      { status_type: 'APP_EVENT',
                        event: 'DONE.OK',
                        app: 'app100',
