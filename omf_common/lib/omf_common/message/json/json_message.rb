@@ -8,7 +8,14 @@ module OmfCommon
         
 
         def self.create(type, properties, body = {})
-          raise "Expected hash, but got #{properties.class}" unless properties.kind_of?(Hash)
+          if type == :request 
+            unless properties.kind_of?(Array)
+              raise "Expected array, but got #{properties.class} for request message"
+            end
+            properties = {select: properties}
+          elsif not properties.kind_of?(Hash)
+            raise "Expected hash, but got #{properties.class}"
+          end 
           content = body.merge({
             operation: type,
             msg_id: SecureRandom.uuid,
@@ -29,47 +36,7 @@ module OmfCommon
           #puts content
           new(content)
         end
-        
-
-        
-        # [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
-          # define_method(pname.to_s) do |*args|
-            # @content[pname]
-          # end
-        # end
-#         
-        # def type
-          # @content[:operation]
-        # end
-#         
-        # #[:publish_to, :inform_to, :resource_id].each do |pname|
-        # [:publish_to, :resource_id, :inform_type].each do |pname|
-          # define_method("#{pname}=") do |val|
-            # @content[pname.to_sym] = val
-          # end
-        # end        
-#         
-        # def property
-          # Hashie::Mash.new @properties
-        # end
-# 
-        # def properties
-          # @properties
-        # end
-# 
-        # def read_property(name)
-          # @properties[name.to_sym]
-        # end
-#         
-        # def [](name)
-          # @properties[name.to_sym]
-        # end
-#         
-        # def []=(name, value)
-          # raise if name.to_sym == :inform_type
-          # @properties[name.to_sym] = value
-        # end
-        
+                
         def each_property(&block)
           @properties.each do |k, v|
             #unless INTERNAL_PROPS.include?(k.to_sym)
@@ -81,6 +48,39 @@ module OmfCommon
         def has_properties?
           not @properties.empty?
         end
+        
+        # Loop over all the unbound (sent without a value) properties 
+        # of a request message.
+        #
+        def each_unbound_request_property(&block)
+          unless type == :request
+            raise "Can only be used for request messages"
+          end
+          self[:select].each do |el|
+            #puts "UUU: #{el}::#{el.class}"
+            if el.is_a? Symbol
+              block.call(el)
+            end
+          end
+        end    
+    
+        # Loop over all the bound (sent with a value) properties 
+        # of a request message.
+        #
+        def each_bound_request_property(&block)
+          unless type == :request
+            raise "Can only be used for request messages"
+          end
+          self[:select].each do |el|
+            #puts "BBB #{el}::#{el.class}"
+            if el.is_a? Hash
+              el.each do |key, value|
+                block.call(key, value)
+              end
+            end
+          end
+        end    
+        
                 
         def to_s
           "JsonMessage: #{@content.inspect}"
@@ -115,6 +115,7 @@ module OmfCommon
         end
 
         def _get_property(key)
+          puts key
           @properties[key]
         end
         

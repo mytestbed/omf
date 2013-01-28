@@ -43,6 +43,7 @@ module OmfCommon
         #
         # @param [String] topic Pubsub topic name
         def create_topic(topic, opts = {})
+          raise "Topic can't be nil or empty" if topic.nil? || topic.empty?
           opts = opts.dup
           opts[:channel] = @channel
           opts[:address] = @address_prefix + topic
