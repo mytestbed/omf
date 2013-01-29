@@ -19,7 +19,7 @@ class XML
     include Comparable
 
     OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    INTERNAL_PROPS = %w(type uid operation guard msg_id timestamp inform_to context_id reason resource_address)
+    INTERNAL_PROPS = %w(type uid operation guard msg_id timestamp inform_to context_id reason resource_address inform_type)
 
     attr_accessor :xml
     attr_accessor :content

@@ -20,6 +20,8 @@ class Comm
           { :var => "pubsub#publish_model", :value => "open" }]
       })
 
+      alias_method :on_connected, :when_ready
+
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def init(opts = {})
@@ -180,8 +182,9 @@ class Comm
 
       private
 
-      def initialize
+      def initialize(opts = {})
         self.published_messages = []
+        super
       end
 
       # Provide a new block wrap to automatically log errors

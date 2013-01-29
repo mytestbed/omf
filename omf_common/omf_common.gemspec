@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
   s.add_development_dependency "simplecov"
   s.add_runtime_dependency "eventmachine", "~> 0.12.10"
-  s.add_runtime_dependency "blather", "= 0.8.0"
+  s.add_runtime_dependency "blather", "= 0.8.1"
   s.add_runtime_dependency "logging", "~> 1.7.1"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
   s.add_runtime_dependency "oml4r", "~> 2.8.0"
