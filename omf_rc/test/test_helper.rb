@@ -18,3 +18,5 @@ Logging.logger.root.clear_appenders
 def fixture(name)
   File.read("#{FIXTURE_DIR}/#{name.to_s}")
 end
+
+OmfCommon::Comm.init(type: :xmpp)

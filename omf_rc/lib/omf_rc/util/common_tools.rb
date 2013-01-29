@@ -39,9 +39,7 @@ module OmfRc::Util::CommonTools
       logger.send(type, msg)
       res.comm.publish(
         res.uid,
-        OmfCommon::Message.inform(type.upcase) do |message|
-          message.element('reason' , msg)
-        end
+        OmfCommon::Message.create(:inform, nil, { reason: msg, inform_type: type.upcase })
       )
     end
   end

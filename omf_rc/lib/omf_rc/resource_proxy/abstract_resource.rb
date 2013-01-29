@@ -57,9 +57,10 @@ class OmfRc::ResourceProxy::AbstractResource
 
     @property = @opts.property || Hashie::Mash.new
 
-    @comm = comm || OmfCommon::Comm.new(@opts.dsl)
+    #@comm = comm || OmfCommon::Comm.new(@opts.dsl)
+    @comm = OmfCommon.comm
     # Fire when connection to pubsub server established
-    @comm.when_ready do
+    @comm.on_connected do
       logger.info "CONNECTED: #{@comm.jid.inspect}"
 
       # Once connection established, create a pubsub topic, then subscribe to it
@@ -244,22 +245,26 @@ class OmfRc::ResourceProxy::AbstractResource
     inform_to = inform_data.inform_to if inform_data.respond_to? :inform_to
     inform_to ||= self.uid
 
-    inform_message = OmfCommon::Message.inform(inform_type.to_s.upcase, context_id) do |i|
-      case inform_type
-      when :creation_ok
-        i.element('resource_id', inform_data.resource_id)
-        i.element('resource_address', inform_data.resource_id)
-      when :status
-        inform_data.status.each_pair { |k, v| i.property(k, v) }
-      when :released
-        i.element('resource_id', inform_data.resource_id)
-      when :error, :warn
-        i.element("reason", (inform_data.message rescue inform_data))
-        logger.__send__(inform_type, (inform_data.message rescue inform_data))
-      when :creation_failed
-        i.element("reason", inform_data.message)
-      end
+    i_properties, i_cores = {}, {}
+
+    i_cores[:context_id] = context_id
+    i_cores[:inform_type] = inform_type.to_s.upcase
+
+    case inform_type
+    when :creation_ok
+      i_cores[:resource_id] = inform_data.resource_id
+      i_cores[:resource_address] = inform_data.resource_id
+    when :status
+      i_properties = inform_data.status
+    when :released
+      i_cores[:resource_id] = inform_data.resource_id
+    when :error, :warn
+      i_cores[:reason] = (inform_data.message rescue inform_data)
+      logger.__send__(inform_type, (inform_data.message rescue inform_data))
+    when :creation_failed
+      i_cores[:reason] = inform_data.message
     end
+    inform_message = OmfCommon::Message.create(:inform, i_properties, i_cores)
     @comm.publish(inform_to, inform_message)
     OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
       self.uid, inform_to, inform_message.msg_id) if OmfCommon::Measure.enabled?

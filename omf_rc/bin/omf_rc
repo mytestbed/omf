@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
 
-require "optparse"
+require 'optparse'
+require 'blather'
+
 require 'omf_rc'
 require 'omf_rc/resource_factory'
+
 $stdout.sync = true
 
 options = {
@@ -73,6 +76,8 @@ if options[:log_file_dir] && File.exist?(options[:log_file_dir])
 end
 
 OmfRc::ResourceFactory.load_default_resource_proxies
+
+OmfCommon::Comm.init(type: :xmpp)
 
 EM.run do
   node = OmfRc::ResourceFactory.new(:node, options)

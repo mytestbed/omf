@@ -12,7 +12,7 @@ module OmfEc
     def initialize
       @id = Time.now.utc.iso8601
       self.property ||= Hashie::Mash.new
-      self.comm ||= OmfCommon::Comm.new(:xmpp)
+      self.comm ||= OmfCommon.comm
       self.state ||= []
       self.groups ||= []
       self.events ||= []

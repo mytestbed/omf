@@ -7,6 +7,8 @@ $stdout.sync = true
 include GLI::App
 include OmfEc
 
+OmfCommon::Comm.init(type: :xmpp)
+
 program_desc "Run a command on the testbed(s)"
 version OmfEc::VERSION
 
@@ -238,7 +240,7 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {})
   begin
-    OmfEc.comm.when_ready do
+    OmfEc.comm.on_connected do
       logger.info "Connected: #{OmfEc.comm.jid.inspect}"
       logger.info "Start experiment: #{OmfEc.exp.id}"
       begin

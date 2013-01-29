@@ -95,7 +95,7 @@ describe AbstractResource do
       @stream = MiniTest::Mock.new
       @stream.expect(:send, true, [Blather::Stanza])
       @client.post_init @stream, Blather::JID.new('n@d/r')
-      @xmpp = Class.new { include OmfCommon::DSL::Xmpp }.new
+      @xmpp = OmfCommon::Comm::XMPP::Communicator.new
     end
 
     it "must be able to send inform message" do
