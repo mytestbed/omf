@@ -73,7 +73,15 @@ module OmfRc
       end
       
       def execute_omf_operation(message, obj, topic)
-        response_h = handle_message(message, obj)
+        begin
+          response_h = handle_message(message, obj)
+        rescue Exception => ex
+          err_resp = message.create_inform_reply_message()
+          err_resp[:reason] = ex.to_s
+          error "Encountered exception, returning ERROR message"
+          return inform(:error, err_resp, topic)
+        end
+          
         case message.operation
         when :create
           inform(:created, response_h, topic)
@@ -93,8 +101,10 @@ module OmfRc
         case message.operation
         when :create
           handle_create_message(message, obj, response)
-        when :request, :configure
-          handle_request_or_configure_message(message, obj, response)        
+        when :request 
+          response = handle_request_message(message, obj, response)        
+        when :configure
+          handle_configure_message(message, obj, response)        
         when :release
           resource_id = message.resource_id
           released_obj = obj.release(resource_id)
@@ -130,26 +140,47 @@ module OmfRc
         response[:resource_address] = new_obj.resource_address()
       end   
       
-      def handle_request_or_configure_message(message, obj, response)
-        #result = Hashie::Mash.new.tap do |mash|
-          if message.operation == :request && message.has_properties?
-            obj.request_available_properties.request.each do |r_p|
-              method_name = "request_#{r_p.to_s}"
-              response[r_p] ||= obj.__send__(method_name)
-            end
-          else
-            message.each_property do |key, value|
-              method_name =  "#{message.operation.to_s}_#{key}"
-              p_value = message[key]
-              response[key] ||= obj.__send__(method_name, p_value)
-            end
+      def handle_configure_message(message, obj, response)
+        message.each_property do |key, value|
+          method_name =  "#{message.operation.to_s}_#{key}"
+          p_value = message[key]
+          response[key] ||= obj.__send__(method_name, p_value)
+        end
+      end 
+      
+     def handle_request_message(message, obj, response)
+        allowed_properties = obj.request_available_properties.request - [:message]
+        # Checking of the request is for us should happen in the more generic GUARD
+        # message.each_bound_request_property do |name, value|
+          # puts "CHECK: #{name} == #{value}"
+          # unless allowed_properties.include?(name)
+            # raise ArgumentError, "Unknown 'requestable' property '#{name}'"
+          # end
+          # method_name = "request_#{name}"
+          # return nil unless obj.__send__(method_name) == value
+          # response[name] = value # return the constrained value as well
+        # end
+        # OK, looks like the request is for us
+        have_unbound = false
+        message.each_unbound_request_property do |name|
+          puts "NAME>> #{name.inspect}" 
+          
+          unless allowed_properties.include?(name)
+            raise ArgumentError, "Unknown 'requestable' property '#{name}'"
           end
-        #end
-        # Always return uid ?????
-        #result.uid = obj.uid
-        
-        #response.status = result
-      end  
+          method_name = "request_#{name}"
+          response[name] = obj.__send__(method_name)
+          have_unbound = true
+        end
+        unless have_unbound
+          # return ALL properties
+          allowed_properties.each do |name|
+            method_name = "request_#{name}"
+            response[name] = obj.__send__(method_name)
+          end
+        end
+        response
+      end 
       
       # Publish an inform message
       # @param [Symbol] inform_type the type of inform message
@@ -258,15 +289,52 @@ module OmfRc
       # If method missing, try the property mash
       def method_missing(method_name, *args)
         warn "Method missing '#{method_name}'"
-        if (method_name =~ /request_(.+)/)
-          property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
-        elsif (method_name =~ /configure_(.+)/)
-          property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
-        else
+        # if (method_name =~ /request_(.+)/)
+          # property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
+        # elsif (method_name =~ /configure_(.+)/)
+          # property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
+        # else
           super
-        end
+        # end
       end
          
     end
   end
+
+
+  require 'omf_rc/resource_proxy_dsl'
+  module ResourceProxyDSL
+    
+    DEF_ACCESS = [:configure, :request]
+    
+    module ClassMethods    
+      # Define internal property
+      def property(name, opts = {})
+        opts = Hashie::Mash.new(opts)
+        
+        define_method("def_property_#{name}") do |*args, &block|
+          self.property[name] ||= opts[:default]
+        end
+        
+        access = opts.access || DEF_ACCESS
+        access.each do |a|
+          case a
+          when :configure
+            define_method("configure_#{name}") do |val|
+              self.property[name] = val
+            end
+            
+          when :request
+            define_method("request_#{name}") do
+              self.property[name]
+            end
+  
+          else
+            raise "Unnown access type '#{a}'"
+          end
+        end
+      end
+    end
+  end
+  
 end

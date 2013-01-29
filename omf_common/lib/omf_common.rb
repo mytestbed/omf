@@ -66,6 +66,23 @@ module OmfCommon
         
       }
     },
+    local: {
+      communication: {
+        type: :local,
+      },
+      eventloop: { type: :local},
+      logging: {
+        level: 'debug',
+        
+        appenders: {
+          stdout: {
+            date_pattern: '%H:%M:%S',
+            pattern: '%d %5l %c{2}: %m\n',
+            color_scheme: 'none'
+          }
+        }            
+      }
+    },
     test_dev: {
       daemonize: {
         dir_mode: :script,

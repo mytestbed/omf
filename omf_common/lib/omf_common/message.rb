@@ -89,7 +89,21 @@ module OmfCommon
     def each_property(&block)
       raise NotImplementedError
     end
+    
+    # Loop over all the unbound (sent without a value) properties 
+    # of a request message.
+    #
+    def each_unbound_request_property(&block)
+      raise "Not implemented"
+    end    
 
+    # Loop over all the bound (sent with a value) properties 
+    # of a request message.
+    #
+    def each_bound_request_property(&block)
+      raise "Not implemented"
+    end    
+    
     def has_properties?
       raise NotImplementedError
     end
@@ -100,11 +114,11 @@ module OmfCommon
     end
 
     def success?
-      true
+      ! error?
     end
 
     def error?
-      false
+      (inform_type || '').start_with? 'error'
     end
 
     def create_inform_reply_message(inform_type = nil, properties = {}, body = {})

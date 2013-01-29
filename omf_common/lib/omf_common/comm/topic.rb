@@ -42,9 +42,9 @@ module OmfCommon
         self
       end
 
-      def request(props = {}, &block)
+      def request(select = [], &block)
         # TODO: What are the parameters to the request method really?
-        #create_message_and_publish(:request, props)
+        create_message_and_publish(:request, select, block)
         self
       end
 
@@ -154,7 +154,7 @@ module OmfCommon
           end
         end
         
-        debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg[:context_id]})"
+        debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg.context_id})"
         hs = htypes.map do |ht| @handlers[ht] end.compact.flatten
         debug "(#{id}) Distributing message to '#{hs.inspect}'"
         hs.each do |block|

@@ -158,7 +158,7 @@ class OmfRc::ResourceProxy::AbstractResource
   def request_available_properties(*args)
     Hashie::Mash.new(request: [], configure: []).tap do |mash|
       methods.each do |m|
-        mash[$1] << $2.to_sym if m =~ /(request|configure)_(.+)/ && $2 != "available_properties"
+        mash[$1] << $2.to_sym if m =~ /^(request|configure)_(.+)/ && $2 != "available_properties"
       end
     end
   end

@@ -39,6 +39,7 @@ unless observed_topics
 end
 
 def observe(tname, comm)
+  info "Observing '#{tname}'"
   comm.subscribe(tname) do |topic|
     topic.on_message do |msg|
       puts "#{tname}   <#{msg.type}(#{msg.inform_type})>    #{msg.inspect}"

@@ -2,27 +2,23 @@
 require 'omf_common'
 
 opts = {
-  debug: true,
   communication: {
-    type: :amqp,
-    #type: :local,
-    server: 'localhost'
-  },
-  #eventloop: { type: :local}
-  eventloop: { type: :em}
+    url: 'amqp://localhost',
+  }
 }
 
-$stdout.sync = true
-Logging.appenders.stdout(
-  'my_format',
-  :layout => Logging.layouts.pattern(:date_pattern => '%H:%M:%S',
-                                     :pattern => '%d %5l %c{2}: %m\n',
-                                     :color_scheme => 'none'))
-Logging.logger.root.appenders = 'my_format'
-Logging.logger.root.level = :debug if opts[:debug]
+# $stdout.sync = true
+# Logging.appenders.stdout(
+  # 'my_format',
+  # :layout => Logging.layouts.pattern(:date_pattern => '%H:%M:%S',
+                                     # :pattern => '%d %5l %c{2}: %m\n',
+                                     # :color_scheme => 'none'))
+# Logging.logger.root.appenders = 'my_format'
+# Logging.logger.root.level = :debug if opts[:debug]
 
 # Environment setup
-OmfCommon.init(opts) 
+#OmfCommon.init(:developement, opts) 
+OmfCommon.init(:local) 
 
 
 
@@ -72,8 +68,18 @@ def on_engine_created(engine, garage)
   end
 
   # Send a request for specific properties
-  engine.request([:max_rpm, {:provider => {country: 'japan'}}, :max_power])
+  puts ">>> SENDING REQUEST"
+  engine.request([:max_rpm, {:provider => {country: 'japan'}}, :max_power]) do |msg|
+  #engine.request([:max_rpm, :max_power])
+  #engine.request() do |msg|
+    puts ">>> REPLY #{msg.inspect}"
+  end
+            
+              
 
+
+  return 
+  
   # Now we will apply 50% throttle to the engine
   engine.configure(throttle: 50)
 
@@ -92,14 +98,15 @@ def on_engine_created(engine, garage)
   end
 
   # 10 seconds later, we will 'release' this engine, i.e. shut it down
-  engine.after(10) do
-    logger.info "Time to release engine #{engine}"
-    garage.release engine do |rmsg|
-      puts "===> ENGINE RELEASED: #{rmsg}"
-    end
-  end
+  #engine.after(10) { release_engine(engine, garage) }
 end
 
+def release_engine(engine, garage)
+  logger.info "Time to release engine #{engine}"
+  garage.release engine do |rmsg|
+    puts "===> ENGINE RELEASED: #{rmsg}"
+  end
+end
 
 OmfCommon.eventloop.run do |el|
   OmfCommon.comm.on_connected do |comm|
