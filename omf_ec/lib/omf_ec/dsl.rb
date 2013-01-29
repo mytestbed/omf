@@ -10,7 +10,7 @@ module OmfEc
     #
     #   after 2.seconds { 'do something' }
     def after(time, &block)
-      OmfEc.comm.add_timer(time, block)
+      OmfCommon.eventloop.after(time, block)
     end
 
     # Use EM periodic timer to execute after certain time
@@ -19,7 +19,7 @@ module OmfEc
     #
     #   every 2.seconds { 'do something' }
     def every(time, &block)
-      OmfEc.comm.add_periodic_timer(time, block)
+      OmfCommon.eventloop.every(time, block)
     end
 
     def def_application(name,&block)

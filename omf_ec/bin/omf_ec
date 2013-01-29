@@ -8,6 +8,7 @@ include GLI::App
 include OmfEc
 
 OmfCommon::Comm.init(type: :xmpp)
+OmfCommon::Eventloop.init(type: :em)
 
 program_desc "Run a command on the testbed(s)"
 version OmfEc::VERSION
@@ -252,7 +253,7 @@ def load_exp(exp_path, global_options = {} , options = {})
       end
     end
 
-    EM.run do
+    OmfCommon.eventloop.run do
       OmfEc.comm.connect(global_options[:user], global_options[:password], global_options[:server])
       trap(:INT) { Experiment.done }
       trap(:TERM) { Experiment.done }

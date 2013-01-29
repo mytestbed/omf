@@ -1,7 +1,4 @@
-# require 'omf_common/dsl/xmpp'
-# require 'omf_common/dsl/xmpp_mp'
 require 'omf_common/comm/topic'
-
 
 module OmfCommon
   # PubSub communication class, can be extended with different implementations

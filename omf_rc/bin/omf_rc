@@ -78,8 +78,9 @@ end
 OmfRc::ResourceFactory.load_default_resource_proxies
 
 OmfCommon::Comm.init(type: :xmpp)
+OmfCommon::Eventloop.init(type: :em)
 
-EM.run do
+OmfCommon.eventloop.run do
   node = OmfRc::ResourceFactory.new(:node, options)
   node.connect
 

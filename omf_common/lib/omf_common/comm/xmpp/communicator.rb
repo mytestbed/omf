@@ -1,3 +1,4 @@
+require 'omf_common/comm/xmpp/xmpp_mp'
 require 'blather/client/dsl'
 
 module OmfCommon
@@ -56,7 +57,7 @@ class Comm
 
             if owner_topics > 0
               info "Deleting #{owner_topics} pubsub topic(s) in 2 seconds"
-              EM.add_timer(2) do
+              OmfCommon.eventloop.after(2) do
                 a[:owner].each { |topic| delete_topic(topic) }
               end
             end
@@ -136,13 +137,6 @@ class Comm
         pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, &new_block))
         MPPublished.inject(Time.now.to_f, jid, topic, message.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled?
       end
-
-      # Event machine related method delegation
-      #%w(add_timer add_periodic_timer).each do |m_name|
-      #  define_method(m_name) do |*args, &block|
-      #    EM.send(m_name, *args, &block)
-      #  end
-      #end
 
       # Event callback for pubsub topic event(item published)
       #

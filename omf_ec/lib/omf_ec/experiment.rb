@@ -48,7 +48,7 @@ module OmfEc
       def done
         info "Exit in up to 20 seconds..."
 
-        OmfEc.comm.add_timer(10) do
+        OmfCommon.eventloop.after(10) do
           info "Release applications and network interfaces"
 
           allGroups do |g|
@@ -57,11 +57,11 @@ module OmfEc
             g.resources[type: 'wlan'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
           end
 
-          OmfEc.comm.add_timer(5) do
-            OmfEc.comm.disconnect(delete_affiliations: true)
+          OmfCommon.eventloop.after(5) do
+            OmfCommon.comm.disconnect(delete_affiliations: true)
 
-            OmfEc.comm.add_timer(5) do
-              OmfEc.comm.disconnect
+            OmfCommon.eventloop.after(5) do
+              OmfCommon.comm.disconnect
             end
           end
         end
