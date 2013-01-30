@@ -27,6 +27,15 @@ describe OmfCommon::Comm::XMPP::Communicator do
       end
     end
 
+    it "must trigger on_connected callbacks if connected" do
+      skip
+      @xmpp.connect('bob', 'pw', 'example.com')
+
+      @xmpp.on_connected do |communicator|
+        communicator.must_be_kind_of OmfCommon::Comm::XMPP::Communicator
+      end
+    end
+
     it "must be able to disconnect" do
       Blather::Client.stub :new, @client do
         @stream.expect(:close_connection_after_writing, true)
@@ -44,7 +53,11 @@ describe OmfCommon::Comm::XMPP::Communicator do
           @client.receive_data subscription
         end
         @client.stub :write, write_callback do
-          @xmpp.subscribe('xmpp_topic') { |e| e.must_equal subscription; done! }
+          @xmpp.subscribe('xmpp_topic') do |topic|
+            topic.must_be_kind_of OmfCommon::Comm::XMPP::Topic
+            topic.id.must_equal :xmpp_topic
+            done!
+          end
         end
       end
       wait!
@@ -59,7 +72,11 @@ describe OmfCommon::Comm::XMPP::Communicator do
           @client.receive_data created
         end
         @client.stub :write, write_callback do
-          @xmpp.create_topic('xmpp_topic') { |event| event.must_equal created; done! }
+          @xmpp.create_topic('xmpp_topic') do |topic|
+            topic.must_be_kind_of OmfCommon::Comm::XMPP::Topic
+            topic.id.must_equal :xmpp_topic
+            done!
+          end
         end
       end
       wait!
@@ -74,7 +91,11 @@ describe OmfCommon::Comm::XMPP::Communicator do
           @client.receive_data deleted
         end
         @client.stub :write, write_callback do
-          @xmpp.delete_topic('xmpp_topic') { |event| event.must_equal deleted; done! }
+          @xmpp.delete_topic('xmpp_topic') do |topic|
+            topic.must_be_kind_of OmfCommon::Comm::Topic
+            topic.id.must_equal :xmpp_topic
+            done!
+          end
         end
       end
       wait!
@@ -230,70 +251,6 @@ describe OmfCommon::Comm::XMPP::Communicator do
     end
   end
 
-  describe "when informed message received" do
-    include EM::MiniTest::Spec
-
-    it "must react to omf created message" do
-      Blather::Client.stub :new, @client do
-        omf_create = OmfCommon::Message.create(:create, { type: 'engine' })
-        omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
-          omf_created = Blather::XMPPNode.parse(omf_created_xml)
-          @client.receive_data omf_created
-          @xmpp.on_creation_ok_message(omf_create) do |n|
-            n.must_equal OmfCommon::Message.parse(omf_created.items.first.payload)
-            done!
-          end
-        end
-      end
-      wait!
-    end
-
-    it "must react to omf status message" do
-      Blather::Client.stub :new, @client do
-        omf_request = OmfCommon::Message.create(:request, [:bob])
-        omf_request.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
-          omf_status = Blather::XMPPNode.parse(omf_status_xml)
-          @client.receive_data omf_status
-          @xmpp.on_status_message(omf_request) do |n|
-            n.must_equal OmfCommon::Message.parse(omf_status.items.first.payload)
-            done!
-          end
-        end
-      end
-      wait!
-    end
-
-    it "must react to omf release message" do
-      Blather::Client.stub :new, @client do
-        omf_release = OmfCommon::Message.create(:release, nil, { resource_id: '100' })
-        omf_release.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
-          omf_released = Blather::XMPPNode.parse(omf_released_xml)
-          @client.receive_data omf_released
-          @xmpp.on_released_message(omf_release) do |n|
-            n.must_equal OmfCommon::Message.parse(omf_released.items.first.payload)
-            done!
-          end
-        end
-      end
-      wait!
-    end
-
-    it "must react to omf failed message" do
-      Blather::Client.stub :new, @client do
-        omf_create = OmfCommon::Message.create(:create, { type: 'engine' })
-        omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
-          omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
-          @client.receive_data omf_failed
-          @xmpp.on_creation_failed_message(omf_create) do |n|
-            n.must_equal OmfCommon::Message.parse(omf_failed.items.first.payload)
-            done!
-          end
-        end
-      end
-      wait!
-    end
-  end
-
   describe "when use event machine style method" do
     include EM::MiniTest::Spec
 
@@ -302,15 +259,6 @@ describe OmfCommon::Comm::XMPP::Communicator do
       OmfCommon.eventloop.after(0.05) { done! }
       OmfCommon.eventloop.every(0.05) { done! }
       wait!
-    end
-  end
-
-  describe "when asked to get a topic object" do
-    it "must return a topic object (pubsub topic) or nil if not found" do
-      skip
-      topic = @xmpp.get_topic('xmpp_topic')
-      topic.must_be_kind_of OmfCommon::Topic
-      topic.comm.must_equal @xmpp
     end
   end
 end
