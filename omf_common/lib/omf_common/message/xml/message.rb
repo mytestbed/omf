@@ -19,7 +19,7 @@ class XML
     include Comparable
 
     OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    INTERNAL_PROPS = %w(type uid operation guard msg_id timestamp inform_to context_id reason resource_address inform_type)
+    INTERNAL_PROPS = %w(type uid operation guard msg_id timestamp inform_to context_id reason resource_address resource_id inform_type)
 
     attr_accessor :xml
     attr_accessor :content
@@ -82,6 +82,14 @@ class XML
       end
     end
 
+    def resource
+      resource_address.nil? ? nil : OmfCommon::Comm::XMPP::Topic.create(resource_address)
+    end
+
+    def inform_type
+      @content.inform_type.to_s.upcase unless @content.inform_type.nil?
+    end
+
     def marshall
       build_xml
       @xml.to_xml
@@ -91,23 +99,21 @@ class XML
     alias_method :to_s, :marshall
 
     def build_xml
-      if @xml.nil?
-        @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
+      @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
-        (INTERNAL_PROPS - %w(type operation)).each do |attr|
-          attr_value = self.send(attr)
+      (INTERNAL_PROPS - %w(type operation)).each do |attr|
+        attr_value = self.send(attr)
 
-          next unless attr_value
+        next unless attr_value
 
-          add_element(attr, attr_value) if attr != 'guard'
-        end
-
-        self.properties.each { |k, v| add_property(k, v) }
-
-        digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
-
-        add_element(:digest, digest)
+        add_element(attr, attr_value) if attr != 'guard'
       end
+
+      self.properties.each { |k, v| add_property(k, v) }
+
+      digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
+
+      add_element(:digest, digest)
       @xml
     end
 
@@ -296,6 +302,17 @@ class XML
     #
     def each_property(&block)
       properties.each { |k, v| block.call(k, v) }
+    end
+
+
+    def each_unbound_request_property(&block)
+      raise "Can only be used for request messages. Got #{type}." if type != :request
+      properties.each { |k, v| block.call(k, v) if v.nil? }
+    end
+
+    def each_bound_request_property(&block)
+      raise "Can only be used for request messages. Got #{type}." if type != :request
+      properties.each { |k, v| block.call(k, v) unless v.nil? }
     end
 
     def [](name, evaluate = false)
