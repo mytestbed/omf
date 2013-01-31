@@ -188,7 +188,7 @@ module AgentCommands
     arguments = AgentCommands.substitute_values(controller, command.cmdLineArgs)
     path = AgentCommands.substitute_values(controller, command.path)
     cmdLine = cmdLine + "#{path} #{arguments}"
-    MObject.debug "Executing: '#{cmdLine}'"
+    MObject.debug("AgentCommands", "Executing: ", cmdLine)
     ExecApp.new(id, controller, cmdLine)
   end
 
