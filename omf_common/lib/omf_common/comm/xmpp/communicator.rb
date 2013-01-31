@@ -1,5 +1,7 @@
-require 'omf_common/comm/xmpp/xmpp_mp'
 require 'blather/client/dsl'
+
+require 'omf_common/comm/xmpp/xmpp_mp'
+require 'omf_common/comm/xmpp/topic'
 
 module OmfCommon
 class Comm
@@ -29,7 +31,7 @@ class Comm
         username = opts[:username]
         password = opts[:password]
         server = opts[:server]
-        #connect(username, password, server)
+        connect(username, password, server)
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
@@ -74,14 +76,30 @@ class Comm
       #
       # @param [String] topic Pubsub topic name
       def create_topic(topic, &block)
-        pubsub.create(topic, default_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
+        topic_block = proc do |stanza|
+          if stanza.error?
+            block.call(stanza) if block
+          else
+            block.call(OmfCommon::Comm::XMPP::Topic.create(topic)) if block
+          end
+        end
+
+        pubsub.create(topic, default_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &topic_block))
       end
 
       # Delete a pubsub topic
       #
       # @param [String] topic Pubsub topic name
       def delete_topic(topic, &block)
-        pubsub.delete(topic, default_host, &callback_logging(__method__, topic, &block))
+        topic_block = proc do |stanza|
+          if stanza.error?
+            block.call(stanza) if block
+          else
+            block.call(OmfCommon::Comm::XMPP::Topic.create(topic)) if block
+          end
+        end
+
+        pubsub.delete(topic, default_host, &callback_logging(__method__, topic, &topic_block))
       end
 
       # Subscribe to a pubsub topic
@@ -90,18 +108,27 @@ class Comm
       # @param [Hash] opts
       # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
       def subscribe(topic, opts = {}, &block)
+        opts[:create_if_non_existent] = true unless opts[:create_if_non_existent] == false
+        topic_block = proc do |stanza|
+          if stanza.error?
+            block.call(stanza) if block
+          else
+            block.call(OmfCommon::Comm::XMPP::Topic.create(topic)) if block
+          end
+        end
+
         if opts[:create_if_non_existent]
           affiliations do |a|
-            if a[:owner] && a[:owner].include?(topic)
-              pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+            if (a[:owner] && a[:owner].include?(topic)) || (a[:none] && a[:none].include?(topic))
+              pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &topic_block))
             else
               create_topic(topic) do
-                pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+                pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &topic_block))
               end
             end
           end
         else
-          pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+          pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &topic_block))
         end
         MPSubscription.inject(Time.now.to_f, jid, 'join', topic) if OmfCommon::Measure.enabled?
       end
@@ -123,11 +150,11 @@ class Comm
       # Publish to a pubsub topic
       #
       # @param [String] topic Pubsub topic name
-      # @param [String] message Any XML fragment to be sent as payload
+      # @param [OmfCommon::Message] message Any XML fragment to be sent as payload
       def publish(topic, message, &block)
         raise StandardError, "Invalid message" unless message.valid?
 
-        message = message.marshall unless message.kind_of? String
+        message = message.xml unless message.kind_of? String
 
         new_block = proc do |stanza|
           published_messages << OpenSSL::Digest::SHA1.new(message.to_s)
@@ -154,24 +181,6 @@ class Comm
           end
         end
         pubsub_event(guard_block, &callback_logging(__method__, &block))
-      end
-
-      %w(creation_ok creation_failed status released).each do |inform_type|
-        define_method("on_#{inform_type}_message") do |*args, &message_block|
-          msg_id = args[0].msg_id if args[0]
-          event_block = proc do |event|
-            message_block.call(OmfCommon::Message.parse(event.items.first.payload))
-          end
-          guard_block = proc do |event|
-            (event.items?) && (!event.delayed?) &&
-              event.items.first.payload &&
-              (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
-              omf_message.operation == :inform &&
-              omf_message.read_content(:inform_type) == inform_type.upcase &&
-              (msg_id ? (omf_message.context_id == msg_id) : true)
-          end
-          topic_event(guard_block, &callback_logging(__method__, &event_block))
-        end
       end
 
       private

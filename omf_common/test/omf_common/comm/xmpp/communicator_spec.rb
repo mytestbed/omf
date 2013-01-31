@@ -53,7 +53,7 @@ describe OmfCommon::Comm::XMPP::Communicator do
           @client.receive_data subscription
         end
         @client.stub :write, write_callback do
-          @xmpp.subscribe('xmpp_topic') do |topic|
+          @xmpp.subscribe('xmpp_topic', :create_if_non_existent => false) do |topic|
             topic.must_be_kind_of OmfCommon::Comm::XMPP::Topic
             topic.id.must_equal :xmpp_topic
             done!
