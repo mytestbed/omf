@@ -4,10 +4,10 @@ require 'securerandom'
 module OmfCommon
   class Comm
     class Topic
-  
+
       @@name2inst = {}
       @@lock = Monitor.new
-          
+
       def self.create(name, opts = {})
         name = name.to_sym
         @@lock.synchronize do
@@ -18,14 +18,14 @@ module OmfCommon
           t
         end
       end
-      
+
       def self.[](name)
         @@name2inst[name]
       end
-      
+
       attr_reader :id
-      
-      # Request the creation of a new resource. Returns itself    
+
+      # Request the creation of a new resource. Returns itself
       #
       def create(res_type, config_props = {}, &block)
         # new_res = nil
@@ -36,7 +36,7 @@ module OmfCommon
         create_message_and_publish(:create, config_props, block)
         self
       end
-      
+
       def configure(props = {}, &block)
         create_message_and_publish(:configure, props, block)
         self
@@ -54,7 +54,7 @@ module OmfCommon
         publish(msg, &block)
         self
       end
-      
+
       def release(resource, &block)
         unless resource.is_a? self.class
           raise "Expected '#{self.class}', but got '#{resource.class}'"
@@ -63,8 +63,8 @@ module OmfCommon
         publish(msg, &block)
         self
       end
-      
-      
+
+
       def create_message_and_publish(type, props = {}, block = nil)
         debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}"
         msg = OmfCommon::Message.create(type, props)
@@ -73,14 +73,15 @@ module OmfCommon
       end
 
       def publish(msg, &block)
+        # TODO should it be _send_message(msg, &block) ?
         #raise "Expected message but got '#{msg.class}" unless msg.is_a?(OmfCommon::Message)
         _send_message(msg, block)
       end
 
-      [:created, 
-        :create_succeeded, :create_failed, 
-        :inform_status, :inform_failed, 
-        :released, :failed, 
+      [:created,
+        :create_succeeded, :create_failed,
+        :inform_status, :inform_failed,
+        :released, :failed,
         :message
       ].each do |inform_type|
         mname = "on_#{inform_type}"
@@ -92,32 +93,33 @@ module OmfCommon
           self
         end
       end
-      
-      # Unsubscribe from the underlying comms layer 
+
+      # Unsubscribe from the underlying comms layer
       #
       def unsubscribe()
-        
+
       end
-      
+
       def on_subscribed(&block)
         raise "Not implemented"
       end
 
+      # For detecting message publishing error, means if callback indeed yield a Topic object, there is no publishing error, thus always false
       def error?
         false
       end
-      
+
       def address
         raise "Not implemented"
       end
-      
+
       def after(delay_sec, &block)
         return unless block
-        OmfCommon.eventloop.after(delay_sec) do 
+        OmfCommon.eventloop.after(delay_sec) do
           block.arity == 1 ? block.call(self) : block.call
         end
       end
-      
+
       private
 
       def initialize(id, opts = {})
@@ -127,15 +129,15 @@ module OmfCommon
         @lock = Monitor.new
         @context2cbk = {}
       end
-      
-           
+
+
       def _send_message(msg, block = nil)
-        if (block) 
+        if (block)
           # register callback for responses to 'msg_id'
           @context2cbk[msg.msg_id.to_s] = {block: block, created_at: Time.now}
         end
       end
-      
+
       def on_incoming_message(msg)
         type = msg.operation
         debug "(#{id}) Deliver message '#{type}': #{msg.inspect}"
@@ -153,7 +155,7 @@ module OmfCommon
             end
           end
         end
-        
+
         debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg.context_id})"
         hs = htypes.map do |ht| @handlers[ht] end.compact.flatten
         debug "(#{id}) Distributing message to '#{hs.inspect}'"
@@ -169,10 +171,10 @@ module OmfCommon
             # puts "====NOOOO for #{msg.context_id} - #{@context2cbk.keys.inspect}"
           # end
         end
-        
-      end      
-      
-      
+
+      end
+
+
     end
   end
 end

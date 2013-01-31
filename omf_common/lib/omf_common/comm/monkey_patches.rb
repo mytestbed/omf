@@ -4,9 +4,9 @@
 module OmfRc
   module ResourceProxy
     require 'omf_rc/resource_proxy/abstract_resource'
-    
+
     class AbstractResource
-      
+
       # Initialisation
       #
       # @param [Symbol] type resource proxy type
@@ -15,7 +15,7 @@ module OmfRc
       # @option opts [String] :hrn Human readable name
       # @option opts [Hash] :property A hash for keeping internal state
       # @option opts [Hash] :instrument A hash for keeping instrumentation-related state
-      # 
+      #
       def initialize(type, opts = nil, comm = nil)
         #puts "IIIII => #{opts.inspect}"
         @opts = Hashie::Mash.new(opts)
@@ -28,50 +28,51 @@ module OmfRc
           @membership << @hrn
         end
         @topics = [] # fill in below
-        
+
         # Really not sure what I'm doing here!
-        @property = @opts 
-        OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
+        @property = @opts
+        #OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
+        OmfCommon.comm.subscribe(@uid) do |t|
           if t.id.to_s == @uid
-            @topics << t 
+            @topics << t
           end
           if t.error?
               warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
               OmfCommon.comm.disconnect()
           else
-            t.inform(:created, {resource_id: @uid, resource_address: t.address, hrn: @hrn})
+            t.inform(:creation_ok, { hrn: @hrn }, { resource_id: @uid, resource_address: t.address })
 
             t.on_message do |imsg|
-              #puts ">>>> #{t.id}: #{imsg}"
+              info ">>>> #{t.id}: #{imsg}"
               process_omf_message(imsg, t)
             end
           end
         end
       end
-      
+
       # Return the publicable 'routable'  address for this resource
       #
       def resource_address()
         @topics[0].address
       end
-      
+
       # Parse omf message and execute as instructed by the message
       #
       def process_omf_message(message, topic)
         unless message.is_a? OmfCommon::Message
-          raise "Expected Message, but got '#{message.class}'"
+          raise ArgumentError, "Expected Message, but got '#{message.class}'"
           #message = OmfCommon::Message.new(props.dup)
         end
-    #puts "PPP(#{topic.id}|#{uid})-> #{message}"
+        #puts "PPP(#{topic.id}|#{uid})-> #{message}"
         objects_by_topic(topic.id.to_s).each do |obj|
-    #puts "TTT(#{self})-> #{obj}"
+          #puts "TTT(#{self})-> #{obj}"
           if OmfCommon::Measure.enabled?
-            OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.msg_id) 
+            OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.msg_id)
           end
           execute_omf_operation(message, obj, topic)
         end
       end
-      
+
       def execute_omf_operation(message, obj, topic)
         begin
           response_h = handle_message(message, obj)
@@ -79,12 +80,14 @@ module OmfRc
           err_resp = message.create_inform_reply_message()
           err_resp[:reason] = ex.to_s
           error "Encountered exception, returning ERROR message"
+          debug ex.message
+          debug ex.backtrace.join("\n")
           return inform(:error, err_resp, topic)
         end
-          
+
         case message.operation
         when :create
-          inform(:created, response_h, topic)
+          inform(:creation_ok, response_h, topic)
         when :request, :configure
           inform(:status, response_h, topic)
         when :release
@@ -93,18 +96,18 @@ module OmfRc
           end
         end
       end
-      
+
       def handle_message(message, obj)
         response = message.create_inform_reply_message()
         response.inform_to inform_to_address(obj, message.publish_to)
-    
+
         case message.operation
         when :create
           handle_create_message(message, obj, response)
-        when :request 
-          response = handle_request_message(message, obj, response)        
+        when :request
+          response = handle_request_message(message, obj, response)
         when :configure
-          handle_configure_message(message, obj, response)        
+          handle_configure_message(message, obj, response)
         when :release
           resource_id = message.resource_id
           released_obj = obj.release(resource_id)
@@ -122,7 +125,7 @@ module OmfRc
         end
         response
       end
-      
+
       def handle_create_message(message, obj, response)
         new_name = message[:name] || message[:hrn]
         new_opts = {hrn: new_name}
@@ -135,19 +138,18 @@ module OmfRc
           end
         end
         new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-        response[:resource_id] = new_obj.uid
-        #response[:resource_address] = OmfCommon::CommProvider::Local::Topic.address_for(new_obj.uid)
-        response[:resource_address] = new_obj.resource_address()
-      end   
-      
+        response.resource_id = new_obj.uid
+        response.resource_address = new_obj.resource_address
+      end
+
       def handle_configure_message(message, obj, response)
         message.each_property do |key, value|
           method_name =  "#{message.operation.to_s}_#{key}"
           p_value = message[key]
           response[key] ||= obj.__send__(method_name, p_value)
         end
-      end 
-      
+      end
+
      def handle_request_message(message, obj, response)
         allowed_properties = obj.request_available_properties.request - [:message]
         # Checking of the request is for us should happen in the more generic GUARD
@@ -163,10 +165,10 @@ module OmfRc
         # OK, looks like the request is for us
         have_unbound = false
         message.each_unbound_request_property do |name|
-          puts "NAME>> #{name.inspect}" 
-          
-          unless allowed_properties.include?(name)
-            raise ArgumentError, "Unknown 'requestable' property '#{name}'"
+          puts "NAME>> #{name.inspect}"
+
+          unless allowed_properties.include?(name.to_sym)
+            raise ArgumentError, "Unknown 'requestable' property '#{name}'. Allowed properties are: #{allowed_properties.join(', ')}"
           end
           method_name = "request_#{name}"
           response[name] = obj.__send__(method_name)
@@ -180,31 +182,31 @@ module OmfRc
           end
         end
         response
-      end 
-      
+      end
+
       # Publish an inform message
       # @param [Symbol] inform_type the type of inform message
       # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
       def inform(inform_type, inform_data, topic = nil)
         topic ||= @topics.first
         if inform_data.is_a? Hash
-          message = OmfCommon::Message.create_inform_message(inform_type, inform_data.dup)
+          message = OmfCommon::Message.create_inform_message(inform_type.to_s.upcase, inform_data.dup)
         else
           message = inform_data
         end
         inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
-        
+
         case inform_type
-        when :failed
+        when :creation_failed, :error
           unless inform_data.kind_of? Exception
             raise ArgumentError, "FAILED message requires an Exception (or MessageProcessError)"
           end
-        when :created, :released
-          unless message[:resource_id] && message[:resource_address]
-            raise ArgumentError, "CREATED or RELEASED message require property 'resource_id' and 'resource_address'"
+        when :creation_ok, :released
+          unless message.resource_id && message.resource_address
+            raise ArgumentError, "CREATED or RELEASED message require core element 'resource_id' and 'resource_address'"
           end
         when :status
-          # unless (message.inform_type ||= :status) == :status 
+          # unless (message.inform_type ||= :status) == :status
             # raise ArgumentError, "STATUS message requires a hash represents properties"
           # end
         end
@@ -212,7 +214,7 @@ module OmfRc
         context_id = inform_data.context_id if inform_data.respond_to? :context_id
         inform_to = inform_data.inform_to if inform_data.respond_to? :inform_to
         inform_to ||= self.uid
-    
+
         # params = {}
         # params[:context_id] = context_id if context_id
         # case inform_type
@@ -231,12 +233,13 @@ module OmfRc
         # end
 
         message.inform_type = inform_type
-        topic.publish message #params
+
+        topic.publish(message)
 
         OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
           self.uid, inform_to, "should be message_id") if OmfCommon::Measure.enabled?
       end
-      
+
       # Release a child resource
       #
       # @return [AbstractResource] Relsead child or nil if error
@@ -254,7 +257,7 @@ module OmfRc
         end
         child
       end
-      
+
       # Release this resource. Should ONLY be called by parent resource.
       #
       # Return true if successful
@@ -269,23 +272,23 @@ module OmfRc
         return false unless children.empty?
         info "Releasing hrn: #{hrn}, uid: #{uid}"
         self.before_release if self.respond_to? :before_release
-        props = { 
-          resource_id: uid, 
+        props = {
+          resource_id: uid,
           resource_address: resource_address #OmfCommon::CommProvider::Local::Topic.address_for(uid)
         }
         props[:hrn] = hrn if hrn
         inform :released, props
 
-         
-        # clean up topics  
-        @topics.each do |t| 
+
+        # clean up topics
+        @topics.each do |t|
           t.unsubscribe
         end
-          
-        true        
+
+        true
       end
-      
-      
+
+
       # If method missing, try the property mash
       def method_missing(method_name, *args)
         warn "Method missing '#{method_name}'"
@@ -297,25 +300,25 @@ module OmfRc
           super
         # end
       end
-         
+
     end
   end
 
 
   require 'omf_rc/resource_proxy_dsl'
   module ResourceProxyDSL
-    
+
     DEF_ACCESS = [:configure, :request]
-    
-    module ClassMethods    
+
+    module ClassMethods
       # Define internal property
       def property(name, opts = {})
         opts = Hashie::Mash.new(opts)
-        
+
         define_method("def_property_#{name}") do |*args, &block|
           self.property[name] ||= opts[:default]
         end
-        
+
         access = opts.access || DEF_ACCESS
         access.each do |a|
           case a
@@ -323,12 +326,12 @@ module OmfRc
             define_method("configure_#{name}") do |val|
               self.property[name] = val
             end
-            
+
           when :request
             define_method("request_#{name}") do
               self.property[name]
             end
-  
+
           else
             raise "Unnown access type '#{a}'"
           end
@@ -336,5 +339,5 @@ module OmfRc
       end
     end
   end
-  
+
 end

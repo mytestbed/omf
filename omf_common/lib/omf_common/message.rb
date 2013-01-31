@@ -82,28 +82,29 @@ module OmfCommon
     end
 
     def []=(name, value)
-      raise if name.to_sym == :inform_type
+      # TODO why inform_type cannot be set?
+      #raise if name.to_sym == :inform_type
       _set_property(name.to_sym, value)
     end
 
     def each_property(&block)
       raise NotImplementedError
     end
-    
-    # Loop over all the unbound (sent without a value) properties 
+
+    # Loop over all the unbound (sent without a value) properties
     # of a request message.
     #
     def each_unbound_request_property(&block)
-      raise "Not implemented"
-    end    
+      raise NotImplementedError
+    end
 
-    # Loop over all the bound (sent with a value) properties 
+    # Loop over all the bound (sent with a value) properties
     # of a request message.
     #
     def each_bound_request_property(&block)
-      raise "Not implemented"
-    end    
-    
+      raise NotImplementedError
+    end
+
     def has_properties?
       raise NotImplementedError
     end
