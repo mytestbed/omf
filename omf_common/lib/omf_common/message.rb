@@ -134,6 +134,10 @@ module OmfCommon
     def marshall
       raise NotImplementedError
     end
+
+    def valid?
+      raise NotImplementedError
+    end
   end
 
 end
