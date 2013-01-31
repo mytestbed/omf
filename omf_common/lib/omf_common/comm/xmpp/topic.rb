@@ -2,7 +2,7 @@ module OmfCommon
 class Comm
 class XMPP
   class Topic < OmfCommon::Comm::Topic
-    %w(creation_ok creation_failed status released).each do |inform_type|
+    %w(creation_ok creation_failed status released error warn).each do |inform_type|
       define_method("on_#{inform_type}") do |*args, &message_block|
         msg_id = args[0].msg_id if args[0]
 
@@ -23,17 +23,44 @@ class XMPP
       end
     end
 
+
+    def on_message(message_guard_proc = nil, &message_block)
+      event_block = proc do |event|
+        message_block.call(OmfCommon::Message.parse(event.items.first.payload))
+      end
+
+      guard_block = proc do |event|
+        (event.items?) && (!event.delayed?) &&
+          event.items.first.payload &&
+          (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
+          event.node == address &&
+          (valid_guard?(message_guard_proc) ? message_guard_proc.call(omf_message) : true)
+      end
+      OmfCommon.comm.topic_event(guard_block, &event_block)
+    end
+
+    def inform(type, props = {}, core_props = {}, &block)
+      msg = OmfCommon::Message.create(:inform, props, core_props.merge(inform_type: type))
+      publish(msg, &block)
+      self
+    end
+
     def publish(msg, &block)
       _send_message(msg, &block)
+    end
+
+    def address
+      id.to_s
     end
 
     private
 
     def _send_message(msg, &block)
       # while sending a message, need to setup handler for replying messages
-
       OmfCommon.comm.publish(self.id, msg) do |stanza|
         if !stanza.error?
+          on_error(msg, &block)
+          on_warn(msg, &block)
           case msg.operation
           when :create
             on_creation_ok(msg, &block)
@@ -45,6 +72,10 @@ class XMPP
           end
         end
       end
+    end
+
+    def valid_guard?(guard_proc)
+      guard_proc && guard_proc.class == Proc
     end
 
   end
