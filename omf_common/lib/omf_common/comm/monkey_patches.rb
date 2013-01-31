@@ -31,8 +31,7 @@ module OmfRc
 
         # Really not sure what I'm doing here!
         @property = @opts
-        #OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
-        OmfCommon.comm.subscribe(@uid) do |t|
+        OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
           if t.id.to_s == @uid
             @topics << t
           end
@@ -139,7 +138,8 @@ module OmfRc
         end
         new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
         response.resource_id = new_obj.uid
-        response.resource_address = new_obj.resource_address
+        # FIXME At this point topic for new instance has not been created.
+        response.resource_address = new_obj.resource_address rescue new_obj.uid
       end
 
       def handle_configure_message(message, obj, response)

@@ -108,6 +108,8 @@ class Comm
       # @param [Hash] opts
       # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
       def subscribe(topic, opts = {}, &block)
+        topic = topic.first if topic.is_a? Array
+
         opts[:create_if_non_existent] = true unless opts[:create_if_non_existent] == false
         topic_block = proc do |stanza|
           if stanza.error?

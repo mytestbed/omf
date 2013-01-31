@@ -4,6 +4,8 @@ module OmfRc::ResourceProxyDSL
   PROXY_DIR = "omf_rc/resource_proxy"
   UTIL_DIR = "omf_rc/util"
 
+  DEF_ACCESS = [:configure, :request]
+
   def self.included(base)
     base.extend(ClassMethods)
   end
@@ -325,6 +327,24 @@ module OmfRc::ResourceProxyDSL
 
       define_method("def_property_#{name}") do |*args, &block|
         self.property[name] ||= opts[:default]
+      end
+
+      access = opts.access || DEF_ACCESS
+      access.each do |a|
+        case a
+        when :configure
+          define_method("configure_#{name}") do |val|
+            self.property[name] = val
+          end
+
+        when :request
+          define_method("request_#{name}") do
+            self.property[name]
+          end
+
+        else
+          raise "Unnown access type '#{a}'"
+        end
       end
     end
   end
