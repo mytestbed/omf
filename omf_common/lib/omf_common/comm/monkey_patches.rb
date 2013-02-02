@@ -79,6 +79,7 @@ module OmfRc
           err_resp = message.create_inform_reply_message()
           err_resp[:reason] = ex.to_s
           error "Encountered exception, returning ERROR message"
+          debug ex.backtrace.join("\n")
           return inform(:error, err_resp, topic)
         end
           
