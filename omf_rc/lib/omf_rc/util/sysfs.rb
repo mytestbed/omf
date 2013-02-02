@@ -15,6 +15,9 @@ module OmfRc::Util::Sysfs
           device = { name: File.basename(v), driver: driver, category: category }
           device[:subcategory] = subcategory if subcategory
           device[:proxy] = proxy if OmfRc::ResourceFactory.proxy_list.include?(proxy.to_sym)
+          File.exist?("#{v}/operstate") && File.open("#{v}/operstate") do |fo|
+            device[:op_state] = fo.read
+          end
           devices << device
         end
       end

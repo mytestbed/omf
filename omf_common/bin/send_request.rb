@@ -47,7 +47,7 @@ OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
     comm.subscribe(resource) do |topic|
       topic.request(req_properties) do |msg|
-        puts "#{tname}   <#{msg.type}(#{msg.inform_type})>    #{msg.inspect}"
+        puts "#{resource}   <#{msg.type}(#{msg.inform_type})>    #{msg.inspect}"
         msg.each_property do |name, value|
           puts "    #{name}: #{value}"
         end
