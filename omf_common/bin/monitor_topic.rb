@@ -1,9 +1,13 @@
-
-
-# Monitor a specific topic and print all observed messages
 #
+DESCR = %{
+Monitor a set of resources (topics) and print all observed messages.
 
-# OMF_VERSIONS = 6.0
+If the 'follow-children' flag is set, automatically add all resources
+created by the monitored resources to the monitor set. Please note
+that there will be a delay until the new monitors are in place which
+can result in missed messages.
+}
+
 require 'omf_common'
 
 OP_MODE = :development
@@ -22,12 +26,15 @@ observed_topic = nil
 $follow_children = true
 
 op = OptionParser.new
-op.banner = "Usage: #{op.program_name} [options] topic1 topic2 ..."
+op.banner = "Usage: #{op.program_name} [options] topic1 topic2 ...\n#{DESCR}\n"
 op.on '-c', '--comms-url URL', "URL to communication layer [#{opts[:communication][:url]}]" do |url|
   opts[:communication][:url] = url
 end
 op.on '-f', "--[no-]follow-children", "Follow all newly created resources [#{$follow_children}]" do |flag|
   $follow_children = flag
+end
+op.on '-d', '--debug', "Set logging to DEBUG level" do
+  opts[:logging][:level] = 'debug'
 end
 op.on_tail('-h', "--help", "Show this message") { $stderr.puts op; exit }
 observed_topics = op.parse(ARGV)
@@ -38,8 +45,13 @@ unless observed_topics
   exit(-1)
 end
 
+$observed_topics = {}
+
 def observe(tname, comm)
+  return if $observed_topics.key? tname
+  
   info "Observing '#{tname}'"
+  $observed_topics[tname] = true
   comm.subscribe(tname) do |topic|
     topic.on_message do |msg|
       puts "#{tname}   <#{msg.type}(#{msg.inform_type})>    #{msg.inspect}"
