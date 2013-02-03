@@ -2,20 +2,19 @@
 
 require 'omf_rc'
 require 'omf_rc/resource_factory'
+
 $stdout.sync = true
-
-NUM_OF_GARAGES = 3
-
-Blather.logger = logger
 
 opts = {
   # XMPP server domain
   server: 'localhost',
   # Debug mode of not
-  debug: false
+  debug: true
 }
 
 Logging.logger.root.level = :debug if opts[:debug]
+
+OmfCommon::Eventloop.init(type: :em)
 
 module OmfRc::ResourceProxy::Garage
   include OmfRc::ResourceProxyDSL
@@ -23,6 +22,7 @@ module OmfRc::ResourceProxy::Garage
   register_proxy :garage
 
   hook :before_create do |garage, new_resource_type, new_resource_opts|
+    new_resource_opts = Hashie::Mash.new(new_resource_opts)
     new_resource_opts.property ||= Hashie::Mash.new
     new_resource_opts.property.provider = ">> #{garage.uid}"
   end
@@ -56,17 +56,14 @@ module OmfRc::ResourceProxy::Engine
     # * Engine will reduce RPM by 250 per second when no throttle applied
     # * If RPM exceed engine's maximum RPM, the engine will blow.
     #
-    EM.add_periodic_timer(1) do
+    OmfCommon.eventloop.every(1) do
       unless engine.property.rpm == 0
         raise 'Engine blown up' if engine.property.rpm > engine.property.max_rpm
         engine.property.rpm += (engine.property.throttle * 5000 - 250)
         engine.property.rpm = 1000 if engine.property.rpm < 1000
         if engine.property.rpm > 4000
           engine.membership.each do |m|
-            engine.inform(:status, {
-              inform_to: m,
-              status: { uid: engine.uid, rpm: engine.property.rpm.to_i }
-            })
+            engine.inform(:status, { uid: engine.uid, rpm: engine.property.rpm.to_i })
           end
         end
       end
@@ -130,21 +127,15 @@ module OmfRc::ResourceProxy::Mp4
   end
 end
 
-EM.run do
-  #garages = opts.delete(:garages)
-  # Use resource factory method to initialise a new instance of garage
-  garages = (1..NUM_OF_GARAGES).map do |g|
-    g = "garage_#{g}"
-    info "Starting #{g}"
-    garage = OmfRc::ResourceFactory.new(
-      :garage,
-      opts.merge(user: g, password: 'pw', uid: g)
-    )
-    garage.connect
-    garage
-  end
+OmfCommon::eventloop.run do
+  OmfCommon::Comm.init(type: :xmpp, username: 'garage', password: 'pw', server: 'localhost')
 
-  # Disconnect garage from XMPP server, when these two signals received
-  trap(:INT) { garages.each(&:disconnect) }
-  trap(:TERM) { garages.each(&:disconnect) }
+  OmfCommon.comm.on_connected do
+    info ">>> Starting garage"
+    garage = OmfRc::ResourceFactory.new(:garage, opts.merge(uid: 'garage'))
+
+    # Disconnect garage from XMPP server, when these two signals received
+    trap(:INT) { garage.disconnect }
+    trap(:TERM) { garage.disconnect }
+  end
 end
