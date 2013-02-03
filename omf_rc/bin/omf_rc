@@ -77,13 +77,15 @@ end
 
 OmfRc::ResourceFactory.load_default_resource_proxies
 
-OmfCommon::Comm.init(type: :xmpp)
 OmfCommon::Eventloop.init(type: :em)
 
 OmfCommon.eventloop.run do
-  node = OmfRc::ResourceFactory.new(:node, options)
-  node.connect
+  OmfCommon::Comm.init(type: :xmpp, username: options[:user], password: options[:password], server: options[:server])
 
-  trap(:INT) { node.disconnect }
-  trap(:TERM) { node.disconnect }
+  OmfCommon.comm.on_connected do
+    node = OmfRc::ResourceFactory.new(:node, options)
+
+    trap(:INT) { node.disconnect }
+    trap(:TERM) { node.disconnect }
+  end
 end
