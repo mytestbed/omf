@@ -37,7 +37,7 @@ module OmfRc::Util::CommonTools
   %w(error warn).each do |type|
     work("log_inform_#{type}") do |res, msg|
       logger.send(type, msg)
-      res.comm.publish(
+      OmfCommon.comm.publish(
         res.uid,
         OmfCommon::Message.create(:inform, nil, { reason: msg, inform_type: type.upcase })
       )
