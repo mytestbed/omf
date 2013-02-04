@@ -19,7 +19,12 @@ Cocaine::CommandLine.stub(:new, @command) do
           utility :iw
         end
 
-        @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00' })
+        @xmpp = MiniTest::Mock.new
+        @xmpp.expect(:subscribe, true, [Array])
+
+        OmfCommon.stub :comm, @xmpp do
+          @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00' })
+        end
       end
 
       it "must provide features defined in proxy" do

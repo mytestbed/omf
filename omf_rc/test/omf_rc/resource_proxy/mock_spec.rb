@@ -3,7 +3,12 @@ require 'omf_rc/resource_proxy/mock'
 
 describe OmfRc::ResourceProxy::Mock do
   before do
-    @mock = OmfRc::ResourceFactory.new(:mock, hrn: 'mock_test')
+    @xmpp = MiniTest::Mock.new
+    @xmpp.expect(:subscribe, true, [Array])
+
+    OmfCommon.stub :comm, @xmpp do
+      @mock = OmfRc::ResourceFactory.new(:mock, hrn: 'mock_test')
+    end
   end
 
   describe "when included in the resource instance" do

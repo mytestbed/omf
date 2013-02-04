@@ -4,9 +4,13 @@ require 'omf_rc/resource_proxy/application'
 describe OmfRc::ResourceProxy::Application do
 
   before do
-    @app_test = OmfRc::ResourceFactory.new(:application, { hrn: 'an_application' })
-    @app_test.comm = MiniTest::Mock.new
-    @app_test.comm.expect :publish, nil, [String,OmfCommon::Message]
+    @xmpp = MiniTest::Mock.new
+    @xmpp.expect(:subscribe, true, [Array])
+    @xmpp.expect(:publish, true, [String, OmfCommon::Message])
+
+    OmfCommon.stub :comm, @xmpp do
+      @app_test = OmfRc::ResourceFactory.new(:application, { hrn: 'an_application' })
+    end
   end
 
   describe "when initialised" do
@@ -36,14 +40,16 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to configure its environments property" do
-      # First give it a valid environment property
-      test_environments = { 'foo' => 123, 'bar_bar' => 'bar_123' }
-      @app_test.method(:configure_environments).call(test_environments)
-      # Then give it an invalid one, which it should ignore
-      @app_test.method(:configure_environments).call(nil)
-      @app_test.property.environments.must_be_kind_of Hash
-      @app_test.property.environments['foo'].must_equal 123
-      @app_test.property.environments['bar_bar'].must_equal 'bar_123'
+      OmfCommon.stub :comm, @xmpp do
+        # First give it a valid environment property
+        test_environments = { 'foo' => 123, 'bar_bar' => 'bar_123' }
+        @app_test.method(:configure_environments).call(test_environments)
+        # Then give it an invalid one, which it should ignore
+        @app_test.method(:configure_environments).call(nil)
+        @app_test.property.environments.must_be_kind_of Hash
+        @app_test.property.environments['foo'].must_equal 123
+        @app_test.property.environments['bar_bar'].must_equal 'bar_123'
+      end
     end
 
     it "must be able to configure its available OML measurement points" do
@@ -65,8 +71,8 @@ describe OmfRc::ResourceProxy::Application do
       # Then give it a couple of invalid ones, which it should ignore
       @app_test.stub :log_inform_error, nil do
         @app_test.method(:configure_parameters).call(nil)
-       @app_test.method(:configure_parameters).call( { :p1 => nil } )
-     end
+        @app_test.method(:configure_parameters).call( { :p1 => nil } )
+      end
       @app_test.property.parameters.must_be_kind_of Hash
       @app_test.property.parameters[:p1].must_be_kind_of Hash
       @app_test.property.parameters[:p1][:cmd].must_equal '--foo'
@@ -77,7 +83,7 @@ describe OmfRc::ResourceProxy::Application do
       old_params = { :p1 => { :cmd => '--foo', :default => 'old_foo'} }
       @app_test.property.parameters = old_params
       new_params = { :p1 => { :default => 'new_foo', :value => 'val_foo'},
-                     :p2 => { :cmd => 'bar', :default => 'bar_bar'} }
+        :p2 => { :cmd => 'bar', :default => 'bar_bar'} }
       @app_test.method(:configure_parameters).call(new_params)
       @app_test.property.parameters[:p1][:cmd].must_equal '--foo'
       @app_test.property.parameters[:p1][:default].must_equal 'new_foo'
@@ -88,14 +94,14 @@ describe OmfRc::ResourceProxy::Application do
 
     it "must be able to validate the correct type of a defined parameter" do
       test_params = { :p1 => { :type => 'String', :default => 'foo', :value => 'bar'},
-                      :p2 => { :type => 'Numeric', :default => 123, :value => 456},
-                      :p3 => { :type => 'Boolean', :default => true, :value => false},
-                      :p4 => { :type => 'Boolean'},
-                      :p5 => { :type => 'Boolean', :default => false},
-                      :p6 => { :type => 'Boolean', :value => true},
-                      :p7 => { :type => 'Numeric'},
-                      :p8 => { :type => 'Numeric', :default => 123},
-                      :p9 => { :type => 'Numeric', :value => 123} }
+        :p2 => { :type => 'Numeric', :default => 123, :value => 456},
+        :p3 => { :type => 'Boolean', :default => true, :value => false},
+        :p4 => { :type => 'Boolean'},
+        :p5 => { :type => 'Boolean', :default => false},
+        :p6 => { :type => 'Boolean', :value => true},
+        :p7 => { :type => 'Numeric'},
+        :p8 => { :type => 'Numeric', :default => 123},
+        :p9 => { :type => 'Numeric', :value => 123} }
       @app_test.method(:configure_parameters).call(test_params)
       @app_test.property.parameters[:p1][:default].must_be_kind_of String
       @app_test.property.parameters[:p1][:value].must_be_kind_of String
@@ -115,12 +121,12 @@ describe OmfRc::ResourceProxy::Application do
 
     it "must be able to detect incorrect type setting for a defined parameter, and DO NOT update the parameter in that case" do
       old_params = { :p1 => { :type => 'String', :value => 'foo'},
-                     :p2 => { :type => 'Numeric', :default => 123, :value => 456 },
-                     :p3 => { :type => 'Boolean', :default => true, :value => true} }
+        :p2 => { :type => 'Numeric', :default => 123, :value => 456 },
+        :p3 => { :type => 'Boolean', :default => true, :value => true} }
       @app_test.property.parameters = old_params
       new_params = { :p1 => { :type => 'String', :value => true},
-                     :p2 => { :type => 'Numeric', :default => 456, :value => '456' },
-                     :p3 => { :type => 'Boolean', :default => 123, :value => false} }
+        :p2 => { :type => 'Numeric', :default => 456, :value => '456' },
+        :p3 => { :type => 'Boolean', :default => 123, :value => false} }
       @app_test.stub :log_inform_error, nil do
         @app_test.method(:configure_parameters).call(new_params)
       end
@@ -134,7 +140,7 @@ describe OmfRc::ResourceProxy::Application do
     it "must update any valid dynamic parameter with the given value" do
       # set the parameter as dynamic
       params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true},
-                  :p2 => { :cmd => '--notcalled', :dynamic => false} }
+        :p2 => { :cmd => '--notcalled', :dynamic => false} }
       @app_test.method(:configure_parameters).call(params1)
       # then update it
       params2 = { :p1 => { :value => 'bar'} , :p2 => { :value => 'abc'}  }
@@ -151,40 +157,57 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when receiving an event from a running application instance" do
     it "must publish an INFORM message to relay that event" do
-      @app_test.on_app_event('STDOUT', 'app_instance_id', 'Some text here').must_be_nil
-      assert @app_test.comm.verify
+      @app_test.stub :inform, true do
+        @app_test.on_app_event('STDOUT', 'app_instance_id', 'Some text here').must_be_nil
+      end
     end
 
     it "must increments its event_sequence after publishig that INFORM message" do
-      i = @app_test.property.event_sequence
-      @app_test.on_app_event('STDOUT', 'app_instance_id', 'Some text here')
-      @app_test.property.event_sequence.must_equal i+1
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.stub :inform, true do
+          i = @app_test.property.event_sequence
+          @app_test.on_app_event('STDOUT', 'app_instance_id', 'Some text here')
+          @app_test.property.event_sequence.must_equal i+1
+        end
+      end
     end
 
     it "must switch its state to 'stop' if the event is of a type 'DONE'" do
-      @app_test.on_app_event('DONE.OK', 'app_instance_id', 'Some text here')
-      @app_test.request_state.to_sym.must_equal :stop
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.stub :inform, true do
+          @app_test.on_app_event('DONE.OK', 'app_instance_id', 'Some text here')
+          @app_test.request_state.to_sym.must_equal :stop
+        end
+      end
     end
 
     it "must set installed property to true if the event is 'DONE.OK' and the app_id's suffix is '_INSTALL'" do
-      @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
-      @app_test.request_state.to_sym.must_equal :stop
-      @app_test.request_installed.must_equal true
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.stub :inform, true do
+          @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
+          @app_test.request_state.to_sym.must_equal :stop
+          @app_test.request_installed.must_equal true
+        end
+      end
     end
   end
 
   describe "when configuring its state property to :install" do
     it "must do nothing if its original state is not :stop" do
-      @app_test.property.state = :run
-      @app_test.method(:configure_state).call(:install)
-      @app_test.property.state.must_equal :run
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.property.state = :run
+        @app_test.method(:configure_state).call(:install)
+        @app_test.property.state.must_equal :run
+      end
     end
 
     it "must do nothing if its original state is :stop and it is already installed" do
-      @app_test.property.state = :stop
-      @app_test.property.installed = true
-      @app_test.method(:configure_state).call(:install)
-      @app_test.property.state.must_equal :stop
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.property.state = :stop
+        @app_test.property.installed = true
+        @app_test.method(:configure_state).call(:install)
+        @app_test.property.state.must_equal :stop
+      end
     end
 
     it "must use the tarball install method if it does not know its OS platform or if force_tarball_install is set" do
@@ -251,21 +274,27 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when configuring its state property to :run" do
     it "must do nothing if its original state is :install" do
-      @app_test.property.state = :install
-      @app_test.method(:configure_state).call(:run)
-      @app_test.property.state.must_equal :install
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.property.state = :install
+        @app_test.method(:configure_state).call(:run)
+        @app_test.property.state.must_equal :install
+      end
     end
 
     it "must get back to the :run state if its original state is :pause" do
-      @app_test.property.state = :pause
-      @app_test.method(:configure_state).call(:run)
-      @app_test.property.state.must_equal :run
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.property.state = :pause
+        @app_test.method(:configure_state).call(:run)
+        @app_test.property.state.must_equal :run
+      end
     end
 
     it "must do nothing if its binary path is not set" do
-      @app_test.property.state = :stop
-      @app_test.method(:configure_state).call(:run)
-      @app_test.property.state.must_equal :stop
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.property.state = :stop
+        @app_test.method(:configure_state).call(:run)
+        @app_test.property.state.must_equal :stop
+      end
     end
 
     it "must start an app using ExecApp and a correct command line if its original state is :stop" do
@@ -281,10 +310,10 @@ describe OmfRc::ResourceProxy::Application do
       @app_test.property.binary_path = "my_cmd"
       test_env = { 'foo' => 123, 'bar_bar' => 'bar_123' }
       test_params = { :p1 => { :type => 'String', :mandatory => true, :cmd => '-param1', :default => 'foo', :value => 'bar', :order => 2},
-                      :p2 => { :type => 'Numeric', :mandatory => true, :default => 123, :order => 1 },
-                      :p3 => { :type => 'Boolean', :cmd => 'p3', :default => false, :value => true},
-                      :p4 => { :type => 'String', :default => 'hi', :value => 'hello'},
-                      :p5 => { :type => 'Numeric', :default => 456}, }
+        :p2 => { :type => 'Numeric', :mandatory => true, :default => 123, :order => 1 },
+        :p3 => { :type => 'Boolean', :cmd => 'p3', :default => false, :value => true},
+        :p4 => { :type => 'String', :default => 'hi', :value => 'hello'},
+        :p5 => { :type => 'Numeric', :default => 456}, }
       @app_test.method(:configure_environments).call(test_env)
       @app_test.method(:configure_parameters).call(test_params)
       @app_test.method(:configure_state).call(:run)
@@ -324,16 +353,18 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must not use any oml options if use_oml is set but both oml or oml_config are not set" do
-      class ExecApp
-        def initialize(app_id, res, cmd_line, err_out_map)
-          cmd_line.must_equal "env -i my_cmd "
+      OmfCommon.stub :comm, @xmpp do
+        class ExecApp
+          def initialize(app_id, res, cmd_line, err_out_map)
+            cmd_line.must_equal "env -i my_cmd "
+          end
         end
+        @app_test.property.state = :stop
+        @app_test.property.binary_path = "my_cmd"
+        @app_test.property.use_oml = true
+        @app_test.method(:configure_state).call(:run)
+        @app_test.property.state.must_equal :run
       end
-      @app_test.property.state = :stop
-      @app_test.property.binary_path = "my_cmd"
-      @app_test.property.use_oml = true
-      @app_test.method(:configure_state).call(:run)
-      @app_test.property.state.must_equal :run
     end
 
   end

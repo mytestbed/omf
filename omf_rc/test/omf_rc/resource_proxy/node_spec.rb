@@ -3,7 +3,12 @@ require 'omf_rc/resource_proxy/node'
 
 describe OmfRc::ResourceProxy::Node do
   before do
-    @node = OmfRc::ResourceFactory.new(:node, hrn: 'node_test')
+    @xmpp = MiniTest::Mock.new
+    @xmpp.expect(:subscribe, true, [Array])
+
+    OmfCommon.stub :comm, @xmpp do
+      @node = OmfRc::ResourceFactory.new(:node, hrn: 'node_test')
+    end
   end
 
   describe "when included in the resource instance" do
@@ -37,21 +42,27 @@ describe OmfRc::ResourceProxy::Node do
     end
 
     it "must provide a list of created applications" do
-      @node.create(:application, { :uid => 'app_test', :hrn => 'app_test' })
+      OmfCommon.stub :comm, @xmpp do
+        @xmpp.expect(:subscribe, true, [Array])
+        @node.create(:application, { :uid => 'app_test', :hrn => 'app_test' })
 
-      @node.request_applications.must_equal [
-        { name: 'app_test', type: 'application', uid: 'app_test' }
-      ]
+        @node.request_applications.must_equal [
+          { name: 'app_test', type: 'application', uid: 'app_test' }
+        ]
+      end
     end
 
     it "must provide a list of created interfaces" do
-      @node.create(:wlan, { :uid => 'wlan0', :hrn => 'wlan0' })
-      @node.create(:net, { :uid => 'eth0', :hrn => 'eth0' })
+      OmfCommon.stub :comm, @xmpp do
+        2.times { @xmpp.expect(:subscribe, true, [Array]) }
+        @node.create(:wlan, { :uid => 'wlan0', :hrn => 'wlan0' })
+        @node.create(:net, { :uid => 'eth0', :hrn => 'eth0' })
 
-      @node.request_interfaces.must_equal [
-        { name: 'eth0', type: 'net', uid: 'eth0' },
-        { name: 'wlan0', type: 'wlan', uid: 'wlan0' }
-      ]
+        @node.request_interfaces.must_equal [
+          { name: 'eth0', type: 'net', uid: 'eth0' },
+          { name: 'wlan0', type: 'wlan', uid: 'wlan0' }
+        ]
+      end
     end
   end
 end

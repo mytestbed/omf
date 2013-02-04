@@ -12,8 +12,14 @@ describe OmfRc::Util::Ip do
         utility :ip
       end
 
-      @wlan00 = OmfRc::ResourceFactory.new(:ip_test, hrn: 'wlan00')
+      @xmpp = MiniTest::Mock.new
+      @xmpp.expect(:subscribe, true, [Array])
+
       @command = MiniTest::Mock.new
+
+      OmfCommon.stub :comm, @xmpp do
+        @wlan00 = OmfRc::ResourceFactory.new(:ip_test, hrn: 'wlan00')
+      end
     end
 
     it "must provide features defined in proxy" do
