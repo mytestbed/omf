@@ -37,7 +37,10 @@ describe OmfRc::ResourceProxy::Node do
       end
       Dir.stub :glob, glob_proc do
         @node.request_devices.must_be_kind_of Array
-        @node.request_devices.must_equal devices
+        node_devices = @node.request_devices
+        node_devices.size.must_equal 2
+        node_devices[0].name.must_equal 'eth0'
+        node_devices[1].name.must_equal 'phy0'
       end
     end
 
