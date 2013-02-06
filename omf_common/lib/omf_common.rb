@@ -138,12 +138,14 @@ module OmfCommon
       raise "Missing :communication description"
     end
     eopts = opts[:eventloop]
-    Eventloop.init(eopts) do
-      Comm.init(copts)
-    end
-    # start eventloop immediately if we received a run block
-    eventloop.run(&block) if block
 
+    # Initialise event loop
+    Eventloop.init(eopts)
+    # start eventloop immediately if we received a run block
+    eventloop.run do
+      Comm.init(copts)
+      block.call(eventloop) if block
+    end
   end
 
   # Return the communication driver instance
