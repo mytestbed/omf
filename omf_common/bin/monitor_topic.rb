@@ -1,4 +1,5 @@
-#
+require 'optparser'
+
 DESCR = %{
 Monitor a set of resources (topics) and print all observed messages.
 
@@ -19,7 +20,7 @@ opts = {
   eventloop: { type: :em},
   logging: {
     level: 'info'
-  }  
+  }
 }
 
 observed_topic = nil
@@ -49,7 +50,7 @@ $observed_topics = {}
 
 def observe(tname, comm)
   return if $observed_topics.key? tname
-  
+
   info "Observing '#{tname}'"
   $observed_topics[tname] = true
   comm.subscribe(tname) do |topic|
@@ -59,7 +60,7 @@ def observe(tname, comm)
         puts "    #{name}: #{value}"
       end
       puts "------"
-      
+
       if $follow_children && msg.inform_type == 'created'
         #puts ">>>>>> #{msg}"
         observe(msg[:resource_id], comm)
