@@ -53,7 +53,28 @@ class XMPP
       id.to_s
     end
 
+    def on_subscribed(&block)
+      return unless block
+
+      @lock.synchronize do
+        @on_subscrided_handlers << block
+      end
+    end
+
     private
+
+    def initialize(id, opts = {})
+      super
+      @on_subscrided_handlers = []
+
+      OmfCommon.comm.subscribe(id, create_if_non_existent: false) do
+        @lock.synchronize do
+          @on_subscrided_handlers.each do |handler|
+            handler.call
+          end
+        end
+      end
+    end
 
     def _send_message(msg, &block)
       # while sending a message, need to setup handler for replying messages

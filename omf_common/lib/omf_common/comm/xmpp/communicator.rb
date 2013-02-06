@@ -2,6 +2,7 @@ require 'blather/client/dsl'
 
 require 'omf_common/comm/xmpp/xmpp_mp'
 require 'omf_common/comm/xmpp/topic'
+require 'uri'
 
 module OmfCommon
 class Comm
@@ -23,14 +24,26 @@ class Comm
           { :var => "pubsub#publish_model", :value => "open" }]
       })
 
-      alias_method :on_connected, :when_ready
+      def on_connected(&block)
+        when_ready do
+          block.call(self)
+        end
+      end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def init(opts = {})
-        username = opts[:username]
-        password = opts[:password]
-        server = opts[:server]
+        if opts[:url]
+          url = URI(opts[:url])
+          username, password, server = url.user, url.password, url.host
+        else
+          username, password, server = opts[:username], opts[:password], opts[:server]
+        end
+
+        raise ArgumentError, "Username cannot be nil when connect to XMPP" if username.nil?
+        raise ArgumentError, "Password cannot be nil when connect to XMPP" if password.nil?
+        raise ArgumentError, "Server cannot be nil when connect to XMPP" if server.nil?
+
         connect(username, password, server)
       end
 

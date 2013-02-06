@@ -83,7 +83,8 @@ class XML
     end
 
     def resource
-      resource_address.nil? ? nil : OmfCommon::Comm::XMPP::Topic.create(resource_address)
+      r_id = _get_core(:resource_id)
+      OmfCommon::Comm::XMPP::Topic.create(r_id)
     end
 
     def inform_type
