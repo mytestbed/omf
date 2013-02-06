@@ -5,16 +5,15 @@ require 'omf_rc/resource_factory'
 
 $stdout.sync = true
 
+op_mode = :development
+
 opts = {
-  # XMPP server domain
-  server: 'localhost',
-  # Debug mode of not
-  debug: true
+  communication: { url: 'xmpp://garage:pw@localhost' },
+  eventloop: { type: :em },
+  logging: { level: 'info' }
 }
 
-Logging.logger.root.level = :debug if opts[:debug]
-
-OmfCommon::Eventloop.init(type: :em)
+#OmfCommon::Eventloop.init(type: :em)
 
 module OmfRc::ResourceProxy::Garage
   include OmfRc::ResourceProxyDSL
@@ -123,10 +122,8 @@ module OmfRc::ResourceProxy::Mp4
   end
 end
 
-OmfCommon::eventloop.run do
-  OmfCommon::Comm.init(type: :xmpp, username: 'garage', password: 'pw', server: 'localhost')
-
-  OmfCommon.comm.on_connected do
+OmfCommon.init(op_mode, opts) do |el|
+  OmfCommon.comm.on_connected do |comm|
     info ">>> Starting garage"
     garage = OmfRc::ResourceFactory.new(:garage, opts.merge(uid: 'garage'))
 
