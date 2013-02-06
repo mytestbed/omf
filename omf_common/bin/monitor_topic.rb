@@ -1,4 +1,4 @@
-require 'optparser'
+require 'optparse'
 
 DESCR = %{
 Monitor a set of resources (topics) and print all observed messages.
