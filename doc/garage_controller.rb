@@ -92,10 +92,6 @@ module OmfRc::ResourceProxy::Engine
     end
   end
 
-  request :provider do |engine, args|
-    "#{engine.property.provider} - #{args.country}"
-  end
-
   # We want throttle to be availabe for configuring (i.e. changing throttle)
   configure :throttle do |engine, value|
     engine.property.throttle = value.to_f / 100.0
