@@ -53,13 +53,24 @@ class FrisbeeService < GridService
   s_description 'Check if a given disk image file exists'
   s_param :domain, '[domain]', 'domain for request.'
   s_param :img, '[img]', 'filename of image to check.'
-  service 'checkImage' do |domain, img|
-    tb = getTestbedConfig(domain, @@config)
-    imagePath = "#{tb['imageDir']}/#{img}"
-    if File.readable?(imagePath)
-      return_ok("Image found")
+  s_param :user, '[user]', 'UNIX user name to check image file ownership.'
+  service 'checkImage' do |domain, img, user|
+    if user.nil?
+      return_error("frisbee getAddress: missing 'user' parameter in service call.")
+    elsif !safeString?(img)
+      return_error("Found unsafe characters in parameter '#{img}'")
+    elsif !safeString?(user)
+      return_error("Found unsafe characters in parameter '#{user}'")
     else
-      return_error("Image file '#{imagePath}' not found")
+      tb = getTestbedConfig(domain, @@config)
+      img ||= tb['defaultImage']
+      imagePath = "#{tb['imageDir']}/#{img}"
+
+      if system("su #{user} -c '[ -f #{imagePath} ] && [ -r #{imagePath} ]'")
+        return_ok("Image found and readable")
+      else
+        return_error("Image file '#{imagePath}' not found or not readable by user '#{user}'")
+      end
     end
   end
 
@@ -69,12 +80,28 @@ class FrisbeeService < GridService
   s_description 'Get the port number of a frisbee server serving a specified image (start a new server if none exists)'
   s_param :domain, '[domain]', 'domain for request.'
   s_param :img, '[img]', 'name of image to serve [defaultImage].'
-  service 'getAddress' do |domain, img|
-    d = FrisbeeDaemon.start(:img => "#{img}", :domain => "#{domain}")
-    if d.nil?
-      return_error("Error serving '#{img}'")
-    else
-      return_ok(d.getAddress())
+  s_param :user, '[user]', 'UNIX user name to check image file ownership.'
+  service 'getAddress' do |domain, img, user|
+    if user.nil?
+      return_error("frisbee getAddress: missing 'user' parameter in service call.")
+    elsif !safeString?(img)
+      return_error("Found unsafe characters in parameter '#{img}'")
+    elsif !safeString?(user)
+      return_error("Found unsafe characters in parameter '#{user}'")
+    else      
+      tb = getTestbedConfig(domain, @@config)
+      img ||= tb['defaultImage']
+      imagePath = "#{tb['imageDir']}/#{img}"
+      d = FrisbeeDaemon.start(:img => "#{img}", :domain => "#{domain}", :user => "#{user}")
+      if d.nil?
+        return_error("Error serving '#{imagePath}'")
+      else
+        if d.imageAccessible?(imagePath, user)
+          return_ok(d.getAddress())
+        else
+          return_error("Image file '#{imagePath}' not found or not readable by user '#{user}'")
+        end
+      end
     end
   end
 

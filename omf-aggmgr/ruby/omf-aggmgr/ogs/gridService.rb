@@ -304,3 +304,10 @@ class HTTPResponse
     @header['content-type'] = "text/plain"
   end
 end
+
+#
+# checks whether a string is safe to be passed to system()
+#
+def safeString?(str)
+  (str =~ /[^0-9A-Za-z.\-_]/).nil?
+end

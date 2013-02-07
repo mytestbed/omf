@@ -74,7 +74,7 @@ MESSAGES = {:checkinfailed => MSG_CHECKINFAILED, :imagefailed => MSG_IMAGEFAILED
 #
 #url = "#{OConfig[:ec_config][:frisbee][:url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
 #response = NodeHandler.service_call(url, "Image does not exist")
-response = OMF::Services.frisbee.checkImage(:img => "#{prop.image.value}", :domain => "#{prop.domain.value}")
+response = OMF::Services.frisbee.checkImage(:img => "#{prop.image.value}", :domain => "#{prop.domain.value}", :user => "#{ENV['USER']}")
 if response.elements[1].name != "OK"
   Experiment.failed("Frisbee service reported: #{response.root.text}")
 end

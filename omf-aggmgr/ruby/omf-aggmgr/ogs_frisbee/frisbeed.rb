@@ -43,7 +43,7 @@ class FrisbeeDaemon < AbstractDaemon
   # 
   # Set the name of this FrisbeeDaemon instance. The name is derived from the
   # HTTP request starting this daemon, and is formed of: 
-  # 'domainName' + ( 'imageNme' || '')
+  # 'domain' + ( 'img' || '')
   #
   # - req = the HTTP Request used to request the dameon creation
   #
@@ -82,6 +82,7 @@ class FrisbeeDaemon < AbstractDaemon
   def initialize(req)
     @clientCount = 0
     @img = self.class.getDaemonParamDef(req, :img, nil)
+    @user = self.class.getDaemonParamDef(req, :user, nil)
     super(req)
     @@bw = @config['bandwidth']
     @@mcAddr = @config['mcAddress']
@@ -110,6 +111,13 @@ class FrisbeeDaemon < AbstractDaemon
   def getAddress()
     "#{@mcAddress}:#{@port}"
   end
+  
+  #
+  # Check if an image exists and is readable by the user who requests it
+  #
+  def imageAccessible?(imagePath, user)
+    system("su #{user} -c '[ -f #{imagePath} ] && [ -r #{imagePath} ]'")
+  end
 
   #
   # Return the actual command line that will be used to start the frisbee daemon
@@ -119,9 +127,9 @@ class FrisbeeDaemon < AbstractDaemon
   #
   def getCommand()
     @img ||= @config['defaultImage']
-    imgPath = "#{@config['imageDir']}/#{@img}"
-    if ! File.readable?(imgPath)
-      raise HTTPStatus::BadRequest, "Image file '#{imgPath}' not found"
+    imagePath = "#{@config['imageDir']}/#{@img}"
+    if !imageAccessible?(imagePath, @user)
+      raise HTTPStatus::BadRequest, "Image file '#{imagePath}' not found or not readable by user '#{@user}'"
     end
 
     addr = @config['multicastIF']
@@ -129,7 +137,7 @@ class FrisbeeDaemon < AbstractDaemon
     @mcAddress = @config['mcAddress']
     bw = @config['bandwidth']
     debug("Starting frisbeed ('#{frisbeed}') for '#{img}' on '#{port}' interface '#{addr}'")
-    cmd = "#{frisbeed} -i #{addr} -m #{@mcAddress} -p #{port} -W #{bw} #{imgPath}"
+    cmd = "#{frisbeed} -i #{addr} -m #{@mcAddress} -p #{port} -W #{bw} #{imagePath}"
   end
 
   #

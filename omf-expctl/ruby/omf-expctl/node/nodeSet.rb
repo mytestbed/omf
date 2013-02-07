@@ -452,7 +452,7 @@ class NodeSet < MObject
       mcAddress = "Some_MC_address"
       mcPort = "Some_MC_port"
     else
-      response = OMF::Services.frisbee.getAddress(:domain => "#{domain}", :img => "#{image}")
+      response = OMF::Services.frisbee.getAddress(:domain => "#{domain}", :img => "#{image}", :user => "#{ENV['USER']}")
       raise "Can't get frisbee address" if response.elements[1].name != "OK"
       mcAddress, mcPort = response.elements[1].text.split(':')
     end

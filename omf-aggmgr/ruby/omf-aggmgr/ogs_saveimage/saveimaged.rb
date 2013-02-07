@@ -130,9 +130,9 @@ class SaveimageDaemon < AbstractDaemon
       end
     end
     
-    # check for user write permission
-    if !system("su #{@user} -c 'touch #{imgPath}'")
-      raise HTTPStatus::BadRequest, "User '#{@user}' cannot create file '#{imgPath}'"
+    # check for user write permission & set image file permissions to -rw-------
+    if !system("su #{@user} -c 'umask 077; touch #{imgPath}'")
+      raise HTTPStatus::BadRequest, "User '#{@user}' cannot create file '#{imgPath}' with permissions -rw-------"
     end
 
     # all good, return the netcat command line

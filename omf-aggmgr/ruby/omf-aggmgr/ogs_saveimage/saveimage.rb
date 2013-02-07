@@ -54,11 +54,19 @@ class SaveimageService < GridService
   s_param :img, 'imgName', 'name of image to save.'
   s_param :user, 'user', 'UNIX user name to set image file ownership.'
   service 'getAddress' do |domain, img, user|
-    d = SaveimageDaemon.start(:img => "#{img}", :domain => "#{domain}", :user => "#{user}")
-    if d.nil?
-      return_error("Error starting netcat listener to save to '#{img}'")
-    else
-      return_ok(d.getAddress())
+    if user.nil?
+      return_error("frisbee getAddress: missing 'user' parameter in service call.")
+    elsif !safeString?(img)
+      return_error("Found unsafe characters in parameter '#{img}'")
+    elsif !safeString?(user)
+      return_error("Found unsafe characters in parameter '#{user}'")
+    else  
+      d = SaveimageDaemon.start(:img => "#{img}", :domain => "#{domain}", :user => "#{user}")
+      if d.nil?
+        return_error("Error starting netcat listener to save to '#{img}'")
+      else
+        return_ok(d.getAddress())
+      end
     end
   end
 
