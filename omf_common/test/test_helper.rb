@@ -4,6 +4,8 @@ SimpleCov.start { add_filter "/test" }
 gem 'minitest'
 require 'minitest/autorun'
 require 'minitest/pride'
+require 'minitest/spec'
+require 'minitest/mock'
 
 require 'omf_common'
 

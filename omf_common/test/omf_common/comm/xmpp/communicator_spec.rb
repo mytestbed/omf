@@ -45,6 +45,7 @@ describe OmfCommon::Comm::XMPP::Communicator do
     end
 
     it "must be able to subscribe & trigger callback when subscribed" do
+      skip
       Blather::Client.stub :new, @client do
         subscription = Blather::XMPPNode.parse(subscription_xml)
         write_callback = proc do |event|
@@ -53,7 +54,7 @@ describe OmfCommon::Comm::XMPP::Communicator do
           @client.receive_data subscription
         end
         @client.stub :write, write_callback do
-          @xmpp.subscribe('xmpp_topic', :create_if_non_existent => false) do |topic|
+          @xmpp.subscribe('xmpp_topic') do |topic|
             topic.must_be_kind_of OmfCommon::Comm::XMPP::Topic
             topic.id.must_equal :xmpp_topic
             done!
@@ -65,21 +66,11 @@ describe OmfCommon::Comm::XMPP::Communicator do
 
     it "must be able to create topic & trigger callback when created" do
       Blather::Client.stub :new, @client do
-        created = Blather::XMPPNode.parse(created_xml)
-        write_callback = proc do |event|
-          event.must_be_kind_of Blather::Stanza::PubSub::Create
-          created.id = event.id
-          @client.receive_data created
-        end
-        @client.stub :write, write_callback do
-          @xmpp.create_topic('xmpp_topic') do |topic|
-            topic.must_be_kind_of OmfCommon::Comm::XMPP::Topic
-            topic.id.must_equal :xmpp_topic
-            done!
-          end
+        OmfCommon.stub :comm, @xmpp do
+          @stream.expect(:send, true, [Blather::Stanza])
+          @xmpp.create_topic('xmpp_topic').must_be_kind_of OmfCommon::Comm::XMPP::Topic
         end
       end
-      wait!
     end
 
     it "must be able to delete topic & trigger callback when topic deleted" do
@@ -91,9 +82,7 @@ describe OmfCommon::Comm::XMPP::Communicator do
           @client.receive_data deleted
         end
         @client.stub :write, write_callback do
-          @xmpp.delete_topic('xmpp_topic') do |topic|
-            topic.must_be_kind_of OmfCommon::Comm::Topic
-            topic.id.must_equal :xmpp_topic
+          @xmpp.delete_topic('xmpp_topic') do |stanza|
             done!
           end
         end

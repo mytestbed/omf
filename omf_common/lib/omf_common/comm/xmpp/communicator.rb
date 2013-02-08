@@ -24,6 +24,14 @@ class Comm
           { :var => "pubsub#publish_model", :value => "open" }]
       })
 
+      # Capture system :INT & :TERM signal
+      def on_interrupted(&block)
+        if block
+          trap(:INT) { block.call(self) }
+          trap(:TERM) { block.call(self) }
+        end
+      end
+
       def on_connected(&block)
         when_ready do
           block.call(self)
@@ -58,61 +66,24 @@ class Comm
 
       # Shut down XMPP connection
       def disconnect(opts = {})
-        if opts[:delete_affiliations]
-          affiliations do |a|
-            # owner means topics created, owned
-            owner_topics = a[:owner] ? a[:owner].size : 0
-            # none means... topics subscribed to
-            none_topics = a[:none] ? a[:none].size : 0
-
-            if none_topics > 0
-              info "Unsubscribing #{none_topics} pubsub topic(s)"
-              unsubscribe
-            end
-
-            if owner_topics > 0
-              info "Deleting #{owner_topics} pubsub topic(s) in 2 seconds"
-              OmfCommon.eventloop.after(2) do
-                a[:owner].each { |topic| delete_topic(topic) }
-              end
-            end
-
-            shutdown if none_topics == 0 && owner_topics == 0
-          end
-        else
-          shutdown
-        end
+        # NOTE Do not clean up
+        info "Disconnecting ..."
+        shutdown
         OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_f, jid, 'disconnect') if OmfCommon::Measure.enabled?
       end
 
       # Create a new pubsub topic with additional configuration
       #
       # @param [String] topic Pubsub topic name
-      def create_topic(topic, &block)
-        topic_block = proc do |stanza|
-          if stanza.error?
-            block.call(stanza) if block
-          else
-            block.call(OmfCommon::Comm::XMPP::Topic.create(topic)) if block
-          end
-        end
-
-        pubsub.create(topic, default_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &topic_block))
+      def create_topic(topic, opts = {})
+        OmfCommon::Comm::XMPP::Topic.create(topic)
       end
 
       # Delete a pubsub topic
       #
       # @param [String] topic Pubsub topic name
       def delete_topic(topic, &block)
-        topic_block = proc do |stanza|
-          if stanza.error?
-            block.call(stanza) if block
-          else
-            block.call(OmfCommon::Comm::XMPP::Topic.create(topic)) if block
-          end
-        end
-
-        pubsub.delete(topic, default_host, &callback_logging(__method__, topic, &topic_block))
+        pubsub.delete(topic, default_host, &callback_logging(__method__, topic, &block))
       end
 
       # Subscribe to a pubsub topic
@@ -122,30 +93,16 @@ class Comm
       # @option opts [Boolean] :create_if_non_existent create the topic if non-existent, use this option with caution
       def subscribe(topic, opts = {}, &block)
         topic = topic.first if topic.is_a? Array
-
-        opts[:create_if_non_existent] = true unless opts[:create_if_non_existent] == false
-        topic_block = proc do |stanza|
-          if stanza.error?
-            block.call(stanza) if block
-          else
-            block.call(OmfCommon::Comm::XMPP::Topic.create(topic)) if block
-          end
-        end
-
-        if opts[:create_if_non_existent]
-          affiliations do |a|
-            if (a[:owner] && a[:owner].include?(topic)) || (a[:none] && a[:none].include?(topic))
-              pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &topic_block))
-            else
-              create_topic(topic) do
-                pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &topic_block))
-              end
-            end
-          end
-        else
-          pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &topic_block))
-        end
+        OmfCommon::Comm::XMPP::Topic.create(topic, &block)
         MPSubscription.inject(Time.now.to_f, jid, 'join', topic) if OmfCommon::Measure.enabled?
+      end
+
+      def _subscribe(topic, &block)
+        pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+      end
+
+      def _create(topic, &block)
+        pubsub.create(topic, default_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
       end
 
       # Un-subscribe all existing subscriptions from all pubsub topics.

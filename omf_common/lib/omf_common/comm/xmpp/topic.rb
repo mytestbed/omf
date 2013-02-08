@@ -6,6 +6,8 @@ class XMPP
       define_method("on_#{inform_type}") do |*args, &message_block|
         msg_id = args[0].msg_id if args[0]
 
+        raise ArgumentError, 'Missing callback' if message_block.nil?
+
         event_block = proc do |event|
           message_block.call(OmfCommon::Message.parse(event.items.first.payload))
         end
@@ -63,14 +65,38 @@ class XMPP
 
     private
 
-    def initialize(id, opts = {})
+    def initialize(id, opts = {}, &block)
       super
       @on_subscrided_handlers = []
 
-      OmfCommon.comm.subscribe(id, create_if_non_existent: false) do
-        @lock.synchronize do
-          @on_subscrided_handlers.each do |handler|
-            handler.call
+      topic_block = proc do |stanza|
+        if stanza.error?
+          block.call(stanza) if block
+        else
+          block.call(self) if block
+
+          @lock.synchronize do
+            @on_subscrided_handlers.each do |handler|
+              handler.call
+            end
+          end
+        end
+      end
+
+      OmfCommon.comm.affiliations do |a|
+        if (a[:owner] && a[:owner].include?(address))
+          # Owner, not subscribed yet
+          OmfCommon.comm._subscribe(address, &topic_block)
+        elsif (a[:none] && a[:none].include?(topic))
+          # Already subscribed
+          block.call(self) if block
+        else
+          OmfCommon.comm._create(address) do |stanza|
+            if stanza.error?
+              block.call(stanza) if block
+            else
+              OmfCommon.comm._subscribe(address, &topic_block)
+            end
           end
         end
       end
@@ -79,7 +105,7 @@ class XMPP
     def _send_message(msg, &block)
       # while sending a message, need to setup handler for replying messages
       OmfCommon.comm.publish(self.id, msg) do |stanza|
-        if !stanza.error?
+        if !stanza.error? && !block.nil?
           on_error(msg, &block)
           on_warn(msg, &block)
           case msg.operation

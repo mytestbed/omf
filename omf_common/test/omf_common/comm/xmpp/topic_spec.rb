@@ -9,13 +9,18 @@ describe OmfCommon::Comm::XMPP::Topic do
     @stream = MiniTest::Mock.new
     @stream.expect(:send, true, [Blather::Stanza])
     @client.post_init @stream, Blather::JID.new('n@d/r')
-    @topic = OmfCommon::Comm::XMPP::Topic.create(:test_topic)
     @xmpp = OmfCommon::Comm::XMPP::Communicator.new
+
+    OmfCommon.stub :comm, @xmpp do
+      Blather::Client.stub :new, @client do
+        @stream.expect(:send, true, [Blather::Stanza::PubSub::Affiliations])
+        @topic = OmfCommon::Comm::XMPP::Topic.create(:test_topic)
+      end
+    end
   end
 
   describe "when calling operation method" do
     it "must send create message" do
-      skip
       OmfCommon.stub :comm, @xmpp do
         Blather::Client.stub :new, @client do
           published = Blather::XMPPNode.parse(published_xml)
