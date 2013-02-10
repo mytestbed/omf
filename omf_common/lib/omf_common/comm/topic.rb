@@ -48,12 +48,18 @@ module OmfCommon
         self
       end
 
-      def inform(type, props = {}, &block)
-        msg = OmfCommon::Message.create(:inform, props)
-        msg.inform_type = type
+      def inform(type, props = {}, core_props = {}, &block)
+        msg = OmfCommon::Message.create(:inform, props, core_props.merge(inform_type: type))
         publish(msg, &block)
         self
       end
+
+      # def inform(type, props = {}, &block)
+        # msg = OmfCommon::Message.create(:inform, props)
+        # msg.inform_type = type
+        # publish(msg, &block)
+        # self
+      # end
 
       def release(resource, &block)
         unless resource.is_a? self.class

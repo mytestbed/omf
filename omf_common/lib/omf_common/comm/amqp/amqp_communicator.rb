@@ -1,6 +1,6 @@
 require 'amqp'
 require 'omf_common/comm/amqp/amqp_topic'
-require 'omf_common/comm/monkey_patches'
+#require 'omf_common/comm/monkey_patches'
 
 module OmfCommon
   class Comm
@@ -46,7 +46,16 @@ module OmfCommon
           raise "Topic can't be nil or empty" if topic.nil? || topic.empty?
           opts = opts.dup
           opts[:channel] = @channel
-          opts[:address] = @address_prefix + topic
+          if topic.start_with? 'amqp:'
+            # absolute address
+            unless topic.start_with? @address_prefix 
+              raise "Cannot subscribe to a topic from different domain (#{topic})"
+            end
+            opts[:address] = topic
+            topic = topic.split(@address_prefix).last
+          else
+            opts[:address] = @address_prefix + topic
+          end
           OmfCommon::Comm::AMQP::Topic.create(topic, opts)
         end
   

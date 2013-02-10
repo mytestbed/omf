@@ -59,9 +59,9 @@ module OmfCommon
     end
 
 
-    INTERNAL_PROPS = [:operation, :uid, :msg_id, :publish_to, :context_id, :inform_type]
+    #INTERNAL_PROPS = [:operation, :uid, :msg_id, :publish_to, :context_id, :inform_type]
 
-    [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :context_id, :inform_type].each do |pname|
+    [:operation, :msg_id, :publish_to, :inform_to, :resource_id, :resource_address, :context_id, :inform_type].each do |pname|
       define_method(pname.to_s) do |*args|
         _get_core(pname)
       end
@@ -71,7 +71,7 @@ module OmfCommon
       _get_core(:operation)
     end
 
-    [:publish_to, :resource_id, :inform_type].each do |pname|
+    [:publish_to, :resource_id, :resource_address, :inform_type].each do |pname|
       define_method("#{pname}=") do |val|
         _set_core(pname.to_sym, val)
       end
