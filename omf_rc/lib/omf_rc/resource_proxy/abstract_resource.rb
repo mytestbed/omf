@@ -70,10 +70,11 @@ class OmfRc::ResourceProxy::AbstractResource
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
         OmfCommon.comm.disconnect()
       else
-        t.inform(:creation_ok, { hrn: @hrn }, { resource_id: @uid, resource_address: t.address })
+        copts = { resource_id: @uid, resource_address: t.address }
+        t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
 
         t.on_message do |imsg|
-          debug ">>>> #{t.id}: #{imsg}"
+          #debug ">>>> #{t.id}: #{imsg}"
           process_omf_message(imsg, t)
         end
       end
@@ -334,9 +335,14 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-    response.resource_id = new_obj.uid
+    response.resource_id = @uid
     # FIXME At this point topic for new instance has not been created.
-    response.resource_address = new_obj.resource_address rescue new_obj.uid
+    #response.resource_address = new_obj.resource_address rescue new_obj.uid
+        
+    response[:resource_id] = new_obj.uid
+    # FIXME At this point topic for new instance has not been created.
+    response[:resource_address] = new_obj.resource_address rescue new_obj.uid
+
   end
 
   def handle_configure_message(message, obj, response)
@@ -391,13 +397,13 @@ class OmfRc::ResourceProxy::AbstractResource
     case inform_type
     # FIXME should really just be error or creation_failed
     when :creation_failed, :failed, :error
-      unless inform_data.kind_of? Exception
-        raise ArgumentError, "CREATION_FAILED or ERROR message requires an Exception (or MessageProcessError)"
-      end
+      # unless inform_data.kind_of? Exception
+        # raise ArgumentError, "CREATION_FAILED or ERROR message requires an Exception (or MessageProcessError)"
+      # end
     when :creation_ok, :released
-      unless message.resource_id && message.resource_address
-        raise ArgumentError, "CREATION_OK or RELEASED message requires inform_data object respond to resource_id"
-      end
+      # unless message.resource_id && message.resource_address
+        # raise ArgumentError, "CREATION_OK or RELEASED message requires inform_data object respond to resource_id"
+      # end
     when :status
       # FIXME what should we check here?
       #if inform_data.property.

@@ -49,6 +49,10 @@ module OmfCommon
           not @properties.empty?
         end
         
+        def valid?
+          true # don't do schema verification , yet
+        end
+        
         # Loop over all the unbound (sent without a value) properties 
         # of a request message.
         #
@@ -115,7 +119,7 @@ module OmfCommon
         end
 
         def _get_property(key)
-          puts key
+          #puts key
           @properties[key]
         end
         
