@@ -8,12 +8,12 @@ module OmfCommon
       @@name2inst = {}
       @@lock = Monitor.new
 
-      def self.create(name, opts = {})
+      def self.create(name, opts = {}, &block)
         name = name.to_sym
         @@lock.synchronize do
           unless t = @@name2inst[name]
             #opts[:address] ||= address_for(name)
-            t = @@name2inst[name] = self.new(name, opts)
+            t = @@name2inst[name] = self.new(name, opts, &block)
           end
           t
         end

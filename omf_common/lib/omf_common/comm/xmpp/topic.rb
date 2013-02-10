@@ -83,13 +83,9 @@ class XMPP
         end
       end
 
-      OmfCommon.comm.affiliations do |a|
-        if (a[:owner] && a[:owner].include?(address))
-          # Owner, not subscribed yet
+      OmfCommon.comm.discover('items', "pubsub.#{OmfCommon.comm.jid.domain}", '') do |items_stanza|
+        if items_stanza.items.map { |i| info i.node }.include?(address)
           OmfCommon.comm._subscribe(address, &topic_block)
-        elsif (a[:none] && a[:none].include?(topic))
-          # Already subscribed
-          block.call(self) if block
         else
           OmfCommon.comm._create(address) do |stanza|
             if stanza.error?
