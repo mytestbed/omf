@@ -10,7 +10,7 @@ module OmfEc
     #
     #   after 2.seconds { 'do something' }
     def after(time, &block)
-      OmfCommon.eventloop.after(time, block)
+      OmfCommon.eventloop.after(time, &block)
     end
 
     # Use EM periodic timer to execute after certain time
@@ -19,7 +19,7 @@ module OmfEc
     #
     #   every 2.seconds { 'do something' }
     def every(time, &block)
-      OmfCommon.eventloop.every(time, block)
+      OmfCommon.eventloop.every(time, &block)
     end
 
     def def_application(name,&block)
@@ -42,23 +42,20 @@ module OmfEc
       group = OmfEc::Group.new(name)
       OmfEc.exp.groups << group
 
-      OmfEc.comm.subscribe(group.id, create_if_non_existent: true) do |m|
-        unless m.error?
+      OmfCommon.comm.subscribe(group.id, create_if_non_existent: true) do |rg|
+        warn rg
+        unless rg.error?
+          warn rg
           block.call group if block
 
-          rg = OmfEc.comm.get_topic(group.id)
-
-          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'CREATION_FAILED' && m.context_id.nil? } do |i|
+          rg.on_message lambda {|m| m.operation == :inform && m.inform_type == 'CREATION_FAILED' && m.context_id.nil? } do |i|
             warn "RC reports failure: '#{i.read_content("reason")}'"
           end
 
-          rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
-            r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+          rg.on_message lambda {|m| m.operation == :inform && m.inform_type == 'STATUS' && m.context_id.nil? } do |i|
+            r = OmfEc.exp.state.find { |v| v[:uid] == i[:uid] }
             unless r.nil?
-              i.each_property do |p|
-                key = p.attr('key').to_sym
-                r[key] = i.read_property(key)
-              end
+              i.each_property { |p_k, p_v| r[p_k] = p_v }
             end
             Experiment.instance.process_events
           end

@@ -56,7 +56,7 @@ module OmfEc
               !all_groups.empty? && all_groups.all? do |g|
                 plan = g.app_contexts.size * g.members.uniq.size
                 actual = state.find_all do |v|
-                  v[:membership] && v[:membership].include?("#{g.id}_application") 
+                  v[:membership] && v[:membership].include?("#{g.id}_application")
                 end.size
                 plan == actual
               end

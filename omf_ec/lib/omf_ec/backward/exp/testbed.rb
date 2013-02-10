@@ -1,4 +1,4 @@
-comm = OmfEc.comm
+comm = OmfCommon.comm
 
 testbed_topic = comm.get_topic('testbed')
 

@@ -33,22 +33,17 @@ module OmfEc
         if OmfEc.exp.groups.any? { |v| v.name == name }
           self.add_resource(*group(name).members.uniq)
         else
-          OmfEc.comm.subscribe(name) do |m|
-            unless m.error?
+          OmfCommon.comm.subscribe(name, create_if_non_existent: false) do |r|
+            unless r.error?
               # resource with uid: name is available
               unless OmfEc.exp.state.any? { |v| v[:uid] == name }
                 OmfEc.exp.state << { uid: name }
               end
 
-              r = OmfEc.comm.get_topic(name)
-
-              r.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
-                r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+              r.on_message lambda {|m| m.operation == :inform && m.inform_type == 'STATUS' && m.context_id.nil? } do |i|
+                r = OmfEc.exp.state.find { |v| v[:uid] == i[:uid] }
                 unless r.nil?
-                  i.each_property do |p|
-                    key = p.attr('key').to_sym
-                    r[key] = i.read_property(key)
-                  end
+                  i.each_property { |p_k, p_v| r[p_k] = p_v }
                 end
                 Experiment.instance.process_events
               end
@@ -58,21 +53,7 @@ module OmfEc
                 warn "RC reports failure: '#{i.read_content("reason")}'"
               end
 
-              c = OmfEc.comm.configure_message(self.id) do |m|
-                m.property(:membership, self.id)
-              end
-
-              c.publish name
-
-              c.on_inform_status do |i|
-                r = OmfEc.exp.state.find { |v| v[:uid] == name }
-                r[:membership] = i.read_property(:membership)
-                Experiment.instance.process_events
-              end
-
-              c.on_inform_creation_failed do |i|
-                warn "RC reports failure: '#{i.read_content("reason")}'"
-              end
+              r.configure(membership: self.id)
             end
           end
         end
@@ -95,11 +76,10 @@ module OmfEc
       # Naming convention of child resource group
       resource_group_name = "#{self.id}_#{opts[:type]}"
 
-
       unless OmfEc.exp.sub_groups.include?(resource_group_name)
         OmfEc.exp.sub_groups << resource_group_name
 
-        rg = OmfEc.comm.get_topic(resource_group_name)
+        rg = OmfCommon.comm.get_topic(resource_group_name)
         # Receive  status inform message
         rg.on_message lambda {|m| m.operation == :inform && m.read_content('inform_type') == 'STATUS' && m.context_id.nil? } do |i|
           r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
@@ -122,27 +102,18 @@ module OmfEc
       end
 
       # We create another group topic for new resouce
-      OmfEc.comm.subscribe(resource_group_name, create_if_non_existent: true) do |m|
-        unless m.error?
-
-          c = OmfEc.comm.create_message(self.id) do |m|
-            m.property(:membership, resource_group_name)
-            opts.each_pair do |k, v|
-              m.property(k, v)
+      OmfCommon.comm.subscribe(resource_group_name, create_if_non_existent: true) do |rg|
+        unless rg.error?
+          # Send create message to resource group
+          rg.create(opts.merge(membership: resource_group_name)) do |reply_msg|
+            if reply_msg.error?
+              warn "RC reports failure: '#{i.reason}'"
+            else
+              info "#{opts[:type]} #{reply_msg.resource_id} created"
+              OmfEc.exp.state << { uid: reply_msg.resource_id, type: opts[:type], hrn: name, membership: [resource_group_name]}
+              block.call if block
+              Experiment.instance.process_events
             end
-          end
-
-          c.publish self.id
-
-          c.on_inform_creation_ok do |i|
-            info "#{opts[:type]} #{i.resource_id} created"
-            OmfEc.exp.state << { uid: i.resource_id, type: opts[:type], hrn: name, membership: [resource_group_name]}
-            block.call if block
-            Experiment.instance.process_events
-          end
-
-          c.on_inform_creation_failed do |i|
-            warn "RC reports failure: '#{i.read_content("reason")}'"
           end
         end
       end

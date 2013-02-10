@@ -208,7 +208,6 @@ pre do |global_options, command, options, args|
   OmfEc.exp.name = options[:experiment] if options[:experiment]
   OmfEc.exp.oml_uri = options[:oml_uri] if options[:oml_uri]
 
-
   @testbed_exp_path = File.join(OmfEc.lib_root, "omf_ec/backward/exp/testbed.rb")
 end
 
@@ -237,13 +236,22 @@ def load_exp(exp_path, global_options = {} , options = {})
     opts = {
       communication: { url: global_options[:comms_url] },
       eventloop: { type: :em },
-      logging: { level: global_options[:debug] ? 'debug' : 'info' }
+      logging: {
+        level: global_options[:debug] ? 'debug' : 'info',
+        appenders: {
+          stdout: {
+            date_pattern: '%H:%M:%S',
+            pattern: '%d %-5l %c{2}: %m\n',
+            color_scheme: 'default'
+          }
+        }
+      }
     }
 
     OmfCommon.init(:development, opts) do |el|
       setup_logging(global_options)
 
-      OmfCommon.comm.on_connected do
+      OmfCommon.comm.on_connected do |comm|
         info "Connected"
         info "Start experiment: #{OmfEc.exp.id}"
 
@@ -255,8 +263,8 @@ def load_exp(exp_path, global_options = {} , options = {})
           error e.backtrace.join("\n")
         end
 
-        trap(:INT) { Experiment.done }
-        trap(:TERM) { Experiment.done }
+        #comm.on_interrupted { Experiment.done }
+        comm.on_interrupted { comm.disconnect }
       end
     end
   rescue => e

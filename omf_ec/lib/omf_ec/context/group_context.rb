@@ -28,18 +28,19 @@ module OmfEc::Context
     end
 
     def send_message(name, value = nil, &block)
+      # Find out if send to group or group_resource
       send_to = self.group
       send_to = send_to + "_#{self.guard[:type]}" if self.guard[:type]
 
       # if release, we need to request resource ids first
-      op_name = self.operation == :release ? "request_message" : "#{self.operation}_message"
+      op_name = self.operation == :release ? "request" : self.operation
 
-      o_m = OmfEc.comm.__send__(op_name, send_to) do |m|
-        m.element(:guard) do |g|
-          self.guard.each_pair do |k, v|
-            g.property(k, v)
-          end
-        end
+      o_m = OmfCommon.comm.__send__(op_name, send_to) do |m|
+        #m.element(:guard) do |g|
+        #  self.guard.each_pair do |k, v|
+        #    g.property(k, v)
+        #  end
+        #end
 
         unless self.operation == :release
           m.property(name, value)
@@ -57,7 +58,7 @@ module OmfEc::Context
         if self.operation == :release
           uid = i.read_property(:uid)
           info "Going to release #{uid}"
-          release_m = OmfEc.comm.release_message(self.group) { |m| m.element('resource_id', uid) }
+          release_m = OmfCommon.comm.release_message(self.group) { |m| m.element('resource_id', uid) }
 
           release_m.publish self.group
 

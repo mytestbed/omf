@@ -7,12 +7,11 @@ module OmfEc
   class Experiment
     include Singleton
 
-    attr_accessor :property,:state, :comm, :groups, :events, :name, :app_definitions, :sub_groups, :oml_uri
+    attr_accessor :property,:state, :groups, :events, :name, :app_definitions, :sub_groups, :oml_uri
 
     def initialize
       @id = Time.now.utc.iso8601
       self.property ||= Hashie::Mash.new
-      self.comm ||= OmfCommon.comm
       self.state ||= []
       self.groups ||= []
       self.events ||= []
