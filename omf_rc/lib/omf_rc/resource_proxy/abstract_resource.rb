@@ -93,6 +93,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  # Overwirte methods to add ghost methods
+  def methods
+    super + property.keys.map { |v| ["configure_#{v}".to_sym, "request_#{v}".to_sym] }.flatten
+  end
+
   # Return the public 'routable'  address for this resource
   #
   def resource_address()
@@ -105,11 +110,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
   def disconnect
-    OmfCommon.comm.disconnect(delete_affiliations: true)
-    info "Disconnecting #{hrn}(#{uid}) in #{DISCONNECT_WAIT} seconds"
-    OmfCommon.eventloop.after(DISCONNECT_WAIT) do
-      OmfCommon.comm.disconnect
-    end
+    OmfCommon.comm.disconnect
   end
 
   # Create a new resource in the context of this resource. This resource becomes parent, and newly created resource becomes child
@@ -338,7 +339,7 @@ class OmfRc::ResourceProxy::AbstractResource
     response.resource_id = @uid
     # FIXME At this point topic for new instance has not been created.
     #response.resource_address = new_obj.resource_address rescue new_obj.uid
-        
+
     response[:resource_id] = new_obj.uid
     # FIXME At this point topic for new instance has not been created.
     response[:resource_address] = new_obj.resource_address rescue new_obj.uid
