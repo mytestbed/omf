@@ -19,6 +19,10 @@ begin
   oml_enabled = OML4R::init(ARGV, :appName => executable_name) do |opts|
     opts.banner = "usage: #{executable_name} [options]"
 
+    opts.on("-c CONFIGFILE", "Configuration File") do |file|
+      options[:configfile] = file
+    end
+
     opts.on("-u USER", "Username") do |user|
       options[:user] = user
     end
@@ -55,6 +59,11 @@ rescue => e
     puts e.message
     exit(1)
   end
+end
+
+if !options[:configfile].nil?
+  cfg_options = (YAML.load_file(options[:configfile]))
+  options = cfg_options.merge(options)
 end
 
 OmfCommon::Measure.enable if oml_enabled
