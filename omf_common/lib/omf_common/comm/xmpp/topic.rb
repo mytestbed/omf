@@ -84,7 +84,7 @@ class XMPP
       end
 
       OmfCommon.comm.discover('items', "pubsub.#{OmfCommon.comm.jid.domain}", '') do |items_stanza|
-        if items_stanza.items.map { |i| info i.node }.include?(address)
+        if items_stanza.items.map { |i| i.node }.include?(address)
           OmfCommon.comm._subscribe(address, &topic_block)
         else
           OmfCommon.comm._create(address) do |stanza|
