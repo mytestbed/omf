@@ -70,7 +70,7 @@ class OmfRc::ResourceProxy::AbstractResource
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
         OmfCommon.comm.disconnect()
       else
-        copts = { resource_id: @uid, resource_address: t.address }
+        copts = { resource_id: @uid }
         t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
 
         t.on_message do |imsg|
@@ -162,8 +162,7 @@ class OmfRc::ResourceProxy::AbstractResource
     info "Releasing hrn: #{hrn}, uid: #{uid}"
     self.before_release if self.respond_to? :before_release
     props = {
-      resource_id: uid,
-      resource_address: resource_address #OmfCommon::CommProvider::Local::Topic.address_for(uid)
+      resource_id: resource_address
     }
     props[:hrn] = hrn if hrn
     inform :released, props
@@ -297,7 +296,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # Handling all messages, then delegate them to individual handler
   def handle_message(message, obj)
     response = message.create_inform_reply_message()
-    response.inform_to inform_to_address(obj, message.publish_to)
+    response.inform_to inform_to_address(obj, message.inform_to)
 
     case message.operation
     when :create
@@ -310,9 +309,7 @@ class OmfRc::ResourceProxy::AbstractResource
       resource_id = message.resource_id
       released_obj = obj.release(resource_id)
       # TODO: Under what circumstances would 'realease_obj' be NIL
-      response[:resource_id] = released_obj ? released_obj.uid : resource_id
-      #response[:resource_address] = OmfCommon::CommProvider::Local::Topic.address_for(response[:resource_id])
-      response[:resource_address] = released_obj ? released_obj.resource_address() : resource_address()
+      response[:resource_id] = released_obj.resource_address
     when :inform
       nil # We really don't care about inform messages which created from here
     else
@@ -336,14 +333,9 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-    response.resource_id = @uid
-    # FIXME At this point topic for new instance has not been created.
-    #response.resource_address = new_obj.resource_address rescue new_obj.uid
 
-    response[:resource_id] = new_obj.uid
     # FIXME At this point topic for new instance has not been created.
-    response[:resource_address] = new_obj.resource_address rescue new_obj.uid
-
+    response[:resource_id] = new_obj.resource_address
   end
 
   def handle_configure_message(message, obj, response)
@@ -395,23 +387,6 @@ class OmfRc::ResourceProxy::AbstractResource
 
     message.inform_type = inform_type
 
-    case inform_type
-    # FIXME should really just be error or creation_failed
-    when :creation_failed, :failed, :error
-      # unless inform_data.kind_of? Exception
-        # raise ArgumentError, "CREATION_FAILED or ERROR message requires an Exception (or MessageProcessError)"
-      # end
-    when :creation_ok, :released
-      # unless message.resource_id && message.resource_address
-        # raise ArgumentError, "CREATION_OK or RELEASED message requires inform_data object respond to resource_id"
-      # end
-    when :status
-      # FIXME what should we check here?
-      #if inform_data.property.
-      #  raise ArgumentError, "STATUS message requires properties"
-      #end
-    end
-
     # FIXME !!!
     #context_id = inform_data.context_id if inform_data.respond_to? :context_id
     #inform_to = inform_data.inform_to if inform_data.respond_to? :inform_to
@@ -457,8 +432,8 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
-  def inform_to_address(obj, publish_to = nil)
-    publish_to || obj.uid
+  def inform_to_address(obj, inform_to = nil)
+    inform_to || obj.uid
   end
 
   # FIXME delete this
@@ -496,7 +471,7 @@ class OmfRc::ResourceProxy::AbstractResource
         default_response = {
           operation: message.operation,
           context_id: message.msg_id,
-          inform_to: inform_to_address(obj, message.publish_to)
+          inform_to: inform_to_address(obj, message.inform_to)
         }
 
         guard = message.read_element("guard").first
@@ -558,11 +533,11 @@ class OmfRc::ResourceProxy::AbstractResource
           msg = "Cannot #{message.operation} unknown property '#{e.message}' for resource '#{obj.type}'. Original message fragment: " +
             "'#{message.read_element("property")}'"
           logger.warn msg
-          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), msg)
+          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.inform_to), msg)
         else
           logger.error e.message
           logger.error e.backtrace.join("\n")
-          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.publish_to), e.message)
+          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.inform_to), e.message)
         end
       end
     end

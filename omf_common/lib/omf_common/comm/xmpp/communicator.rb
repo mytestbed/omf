@@ -41,6 +41,7 @@ class Comm
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def init(opts = {})
+        @pubsub_host = opts[:pubsub_domain]
         if opts[:url]
           url = URI(opts[:url])
           username, password, server = url.user, url.password, url.host
@@ -182,7 +183,7 @@ class Comm
       end
 
       def default_host
-        "#{HOST_PREFIX}.#{client.jid.domain}"
+        @pubsub_host || "#{HOST_PREFIX}.#{jid.domain}"
       end
     end
   end

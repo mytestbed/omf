@@ -74,7 +74,6 @@ module OmfCommon
       def create_message_and_publish(type, props = {}, block = nil)
         debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}"
         msg = OmfCommon::Message.create(type, props)
-        msg.publish_to = id # Is that really set in the message?
         publish(msg, &block)
       end
 

@@ -11,18 +11,31 @@
   </start>
   <define name="common_elements">
     <interleave>
-      <element name="msg_id">
-        <text/>
-      </element>
       <element name="timestamp">
         <text/>
       </element>
-      <element name="digest">
-        <text/>
-      </element>
+      <optional>
+        <element name="digest">
+          <text/>
+        </element>
+      </optional>
       <optional>
         <element name="signature">
           <text/>
+        </element>
+      </optional>
+      <zeroOrMore>
+        <element name="property">
+          <ref name="prop_content"/>
+        </element>
+      </zeroOrMore>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <element name="property">
+              <ref name="prop_content"/>
+            </element>
+          </zeroOrMore>
         </element>
       </optional>
     </interleave>
@@ -57,25 +70,14 @@
     <element name="create">
       <interleave>
         <ref name="common_elements"/>
+        <element name="msg_id">
+          <text/>
+        </element>
         <optional>
-          <element name="publish_to">
+          <element name="inform_to">
             <text/>
           </element>
         </optional>
-        <optional>
-          <element name="guard">
-            <zeroOrMore>
-              <element name="property">
-                <ref name="prop_content"/>
-              </element>
-            </zeroOrMore>
-          </element>
-        </optional>
-        <zeroOrMore>
-          <element name="property">
-            <ref name="prop_content"/>
-          </element>
-        </zeroOrMore>
       </interleave>
     </element>
   </define>
@@ -83,25 +85,14 @@
     <element name="configure">
       <interleave>
         <ref name="common_elements"/>
+        <element name="msg_id">
+          <text/>
+        </element>
         <optional>
-          <element name="publish_to">
+          <element name="inform_to">
             <text/>
           </element>
         </optional>
-        <optional>
-          <element name="guard">
-            <zeroOrMore>
-              <element name="property">
-                <ref name="prop_content"/>
-              </element>
-            </zeroOrMore>
-          </element>
-        </optional>
-        <zeroOrMore>
-          <element name="property">
-            <ref name="prop_content"/>
-          </element>
-        </zeroOrMore>
       </interleave>
     </element>
   </define>
@@ -109,25 +100,14 @@
     <element name="request">
       <interleave>
         <ref name="common_elements"/>
+        <element name="msg_id">
+          <text/>
+        </element>
         <optional>
-          <element name="publish_to">
+          <element name="inform_to">
             <text/>
           </element>
         </optional>
-        <optional>
-          <element name="guard">
-            <zeroOrMore>
-              <element name="property">
-                <ref name="prop_content"/>
-              </element>
-            </zeroOrMore>
-          </element>
-        </optional>
-        <zeroOrMore>
-          <element name="property">
-            <ref name="prop_content"/>
-          </element>
-        </zeroOrMore>
       </interleave>
     </element>
   </define>
@@ -135,28 +115,17 @@
     <element name="release">
       <interleave>
         <ref name="common_elements"/>
+        <element name="msg_id">
+          <text/>
+        </element>
         <optional>
-          <element name="publish_to">
+          <element name="inform_to">
             <text/>
           </element>
         </optional>
         <element name="resource_id">
           <text/>
         </element>
-        <optional>
-          <element name="guard">
-            <zeroOrMore>
-              <element name="property">
-                <ref name="prop_content"/>
-              </element>
-            </zeroOrMore>
-          </element>
-        </optional>
-        <zeroOrMore>
-          <element name="property">
-            <ref name="prop_content"/>
-          </element>
-        </zeroOrMore>
       </interleave>
     </element>
   </define>
@@ -179,26 +148,6 @@
             <value>WARN</value>
           </choice>
         </element>
-        <optional>
-          <element name="resource_id">
-            <text/>
-          </element>
-        </optional>
-        <optional>
-          <element name="resource_address">
-            <text/>
-          </element>
-        </optional>
-        <optional>
-          <element name="reason">
-            <text/>
-          </element>
-        </optional>
-        <zeroOrMore>
-          <element name="property">
-            <ref name="prop_content"/>
-          </element>
-        </zeroOrMore>
       </interleave>
     </element>
   </define>

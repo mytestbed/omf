@@ -52,7 +52,7 @@ class XMPP
     end
 
     def address
-      id.to_s
+      "xmpp://#{id.to_s}@#{OmfCommon.comm.jid.domain}"
     end
 
     def on_subscribed(&block)

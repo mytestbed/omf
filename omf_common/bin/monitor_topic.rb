@@ -65,7 +65,7 @@ def observe(tname, comm)
 
       if $follow_children && msg.inform_type == 'creation_ok'
         #puts ">>>>>> #{msg}"
-        observe(msg[:resource_address], comm)
+        observe(msg[:resource_id], comm)
       end
     end
   end

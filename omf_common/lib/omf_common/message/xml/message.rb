@@ -19,7 +19,6 @@ class XML
     include Comparable
 
     OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    INTERNAL_PROPS = %w(type uid operation guard msg_id timestamp inform_to context_id reason resource_address resource_id inform_type)
 
     attr_accessor :xml
     attr_accessor :content
@@ -53,7 +52,7 @@ class XML
 
           message.xml.elements.each do |el|
             unless %w(property digest).include? el.name
-              message.send("#{el.name}=", message.read_content(el.name))
+              message.send(:_set_core, el.name, message.read_content(el.name))
             end
 
             if el.name == 'property'
@@ -69,16 +68,6 @@ class XML
             MPMessage.inject(Time.now.to_f, message.operation.to_s, message.msg_id, message.context_id, message.to_s.gsub("\n",''))
           end
         end
-      end
-    end
-
-    INTERNAL_PROPS.each do |name|
-      define_method(name) do |*args|
-        @content[name]
-      end
-
-      define_method("#{name}=") do |value|
-        @content[name] = value
       end
     end
 
@@ -102,7 +91,7 @@ class XML
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
-      (INTERNAL_PROPS - %w(type operation)).each do |attr|
+      [:timestamp, :msg_id, :inform_to, :context_id, :inform_type].each do |attr|
         attr_value = self.send(attr)
 
         next unless attr_value

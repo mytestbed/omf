@@ -3,7 +3,7 @@ require 'test_helper'
 describe OmfCommon::Message do
   describe "when initialised" do
     before do
-      @internal_attr = %w(type operation guard msg_id timestamp inform_to publish_to context_id resource_id publish_to inform_type)
+      @internal_attr = %w(type operation guard msg_id timestamp inform_to context_id inform_type)
       @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
     end
 
@@ -26,10 +26,9 @@ describe OmfCommon::Message do
       @message[:p2].must_equal 'new_value'
     end
 
-    it "must be able to set and query internal message properties" do
+    it "must be able to query internal message properties" do
       @internal_attr.each do |name|
         @message.must_respond_to name
-        @message.must_respond_to "#{name}="
       end
     end
 

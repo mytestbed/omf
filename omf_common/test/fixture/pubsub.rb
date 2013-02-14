@@ -177,7 +177,6 @@ def omf_created_xml
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
           <inform_type>CREATION_OK</inform_type>
           <resource_id>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_id>
-          <resource_address>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_address>
         </inform>
       </item>
     </items>

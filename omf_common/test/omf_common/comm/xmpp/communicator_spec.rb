@@ -9,30 +9,21 @@ describe OmfCommon::Comm::XMPP::Communicator do
     @client = Blather::Client.new
     @stream = MiniTest::Mock.new
     @stream.expect(:send, true, [Blather::Stanza])
-    @client.post_init @stream, Blather::JID.new('n@d/r')
+    @client.post_init @stream, Blather::JID.new('bob@example.com')
     @xmpp = OmfCommon::Comm::XMPP::Communicator.new
   end
 
   describe "when communicating to xmpp server (via mocking)" do
     include EM::MiniTest::Spec
 
-    it "must be able to connect" do
-      Blather::Stream::Client.stub(:start, @client) do
-        Blather::Client.stub :new, @client do
-          @xmpp.jid.inspect.must_equal "n@d/r"
-          @xmpp.connect('bob', 'pw', 'example.com')
-          @xmpp.jid.inspect.must_equal "bob@example.com"
-          @stream.verify
+    it "must be able to connect and tigger on_connected callbacks" do
+      Blather::Client.stub :new, @client do
+        @xmpp.jid.inspect.must_equal "bob@example.com"
+
+        @xmpp.on_connected do |communicator|
+          communicator.must_be_kind_of OmfCommon::Comm::XMPP::Communicator
         end
-      end
-    end
-
-    it "must trigger on_connected callbacks if connected" do
-      skip
-      @xmpp.connect('bob', 'pw', 'example.com')
-
-      @xmpp.on_connected do |communicator|
-        communicator.must_be_kind_of OmfCommon::Comm::XMPP::Communicator
+        @stream.verify
       end
     end
 
