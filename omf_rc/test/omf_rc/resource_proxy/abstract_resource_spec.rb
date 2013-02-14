@@ -41,7 +41,7 @@ describe AbstractResource do
 
   describe "when intialised" do
     it "must convert configuration hash into instance methods, and assign the values" do
-      @node.type.must_equal 'node'
+      @node.type.must_equal :node
     end
 
     it "must have an unique id generated" do

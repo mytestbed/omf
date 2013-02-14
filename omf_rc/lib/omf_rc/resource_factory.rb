@@ -9,25 +9,18 @@ class OmfRc::ResourceFactory
   # List of registered resource proxies
   @@proxy_list = Hashie::Mash.new
 
-  # By default, we use xmpp dsl, which based on blather
-  DEFAULT_OPTS = {
-    dsl: 'xmpp'
-  }
-
   class << self
     # Factory method to initiate new resource proxy
     #
     # @param (see OmfRc::ResourceProxy::AbstractResource#initialize)
     #
     # @see OmfRc::ResourceProxy::AbstractResource
-    def new(type, opts = nil, comm = nil, &block)
+    def create(type, opts = {}, creation_opts = {})
       unless @@proxy_list.include?(type)
         raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       end
-      type = type.to_s
-      opts = opts ? DEFAULT_OPTS.merge(opts) : DEFAULT_OPTS
       # Create a new instance of abstract resource
-      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm)
+      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts)
       # Then extend this instance with relevant module identified by type
       emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize
       resource.extend(emodule)
@@ -40,8 +33,7 @@ class OmfRc::ResourceFactory
       resource
     end
 
-    # 'new' is a strange method for creating something different than the receiving class itself
-    alias :create :new
+    alias :new :create
 
     # Return the proxy list
     def proxy_list

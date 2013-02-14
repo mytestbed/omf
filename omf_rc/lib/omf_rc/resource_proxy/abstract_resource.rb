@@ -29,6 +29,11 @@ class OmfRc::ResourceProxy::AbstractResource
   # Time to wait before releasing resource, wait for deleting pubsub topics
   RELEASE_WAIT = 5
 
+  DEFAULT_CREATION_OPTS = {
+    suppress_create_message: false,
+    create_children_resources: true
+  }
+
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property
@@ -37,21 +42,25 @@ class OmfRc::ResourceProxy::AbstractResource
   # Initialisation
   #
   # @param [Symbol] type resource proxy type
+  #
   # @param [Hash] opts options to be initialised
   # @option opts [String] :uid Unique identifier
   # @option opts [String] :hrn Human readable name
-  # @option opts [String] :dsl Which pubsub DSL to be used for pubsub communication
-  # @option opts [String] :user pubsub user id
-  # @option opts [String] :password pubsub user password
-  # @option opts [String] :server pubsub server domain
-  # @option opts [String] :property A hash for keeping internal state
-  # @option opts [hash] :instrument A hash for keeping instrumentation-related state
-  # @param [Comm] comm communicator instance, pass this to new resource proxy instance if want to use a common communicator instance.
-  def initialize(type, opts = nil, comm = nil)
+  # @option opts [Hash] :property A hash for keeping internal state
+  # @option opts [Hash] :instrument A hash for keeping instrumentation-related state
+  #
+  # @param [Hash] creation_opts options to control the resource creation process
+  # @option creation_opts [Boolean] :suppress_create_message Don't send an initial CREATION.OK Inform message
+  # @option creation_opts [Boolean] :create_children_resources Immediately create 'known' children resources, such as interfaces on nodes
+  #
+  def initialize(type, opts = {}, creation_opts = {})
     @opts = Hashie::Mash.new(opts)
+    @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
+
     @type = type
     @uid = @opts.uid || SecureRandom.uuid
     @hrn = @opts.hrn && @opts.hrn.to_s
+
     @children ||= []
     @membership ||= []
     @topics = []
@@ -74,7 +83,6 @@ class OmfRc::ResourceProxy::AbstractResource
         t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
 
         t.on_message do |imsg|
-          #debug ">>>> #{t.id}: #{imsg}"
           process_omf_message(imsg, t)
         end
       end
@@ -116,14 +124,14 @@ class OmfRc::ResourceProxy::AbstractResource
   # Create a new resource in the context of this resource. This resource becomes parent, and newly created resource becomes child
   #
   # @param (see #initialize)
-  def create(type, opts = nil)
+  def create(type, opts = {}, creation_opts = {})
     proxy_info = OmfRc::ResourceFactory.proxy_list[type]
     if proxy_info && proxy_info.create_by && !proxy_info.create_by.include?(self.type.to_sym)
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
     end
 
     before_create(type, opts) if respond_to? :before_create
-    new_resource = OmfRc::ResourceFactory.new(type.to_sym, opts, OmfCommon.comm)
+    new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts)
     after_create(new_resource) if respond_to? :after_create
     children << new_resource
     new_resource

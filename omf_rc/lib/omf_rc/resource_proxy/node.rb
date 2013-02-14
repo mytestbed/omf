@@ -11,7 +11,7 @@ module OmfRc::ResourceProxy::Node
   end
 
   request :interfaces do |node|
-    node.children.find_all { |v| v.type == 'net' || v.type == 'wlan' }.map do |v|
+    node.children.find_all { |v| v.type == :net || v.type == :wlan }.map do |v|
       { name: v.hrn, type: v.type, uid: v.uid }
     end.sort { |x, y| x[:name] <=> y[:name] }
   end

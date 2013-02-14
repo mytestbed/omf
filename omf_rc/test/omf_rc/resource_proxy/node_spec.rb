@@ -50,7 +50,7 @@ describe OmfRc::ResourceProxy::Node do
         @node.create(:application, { :uid => 'app_test', :hrn => 'app_test' })
 
         @node.request_applications.must_equal [
-          { name: 'app_test', type: 'application', uid: 'app_test' }
+          { name: 'app_test', type: :application, uid: 'app_test' }
         ]
       end
     end
@@ -62,8 +62,8 @@ describe OmfRc::ResourceProxy::Node do
         @node.create(:net, { :uid => 'eth0', :hrn => 'eth0' })
 
         @node.request_interfaces.must_equal [
-          { name: 'eth0', type: 'net', uid: 'eth0' },
-          { name: 'wlan0', type: 'wlan', uid: 'wlan0' }
+          { name: 'eth0', type: :net, uid: 'eth0' },
+          { name: 'wlan0', type: :wlan, uid: 'wlan0' }
         ]
       end
     end
