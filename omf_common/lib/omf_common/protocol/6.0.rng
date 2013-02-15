@@ -14,6 +14,9 @@
       <element name="timestamp">
         <text/>
       </element>
+      <element name="msg_id">
+        <text/>
+      </element>
       <optional>
         <element name="digest">
           <text/>
@@ -70,9 +73,6 @@
     <element name="create">
       <interleave>
         <ref name="common_elements"/>
-        <element name="msg_id">
-          <text/>
-        </element>
         <optional>
           <element name="inform_to">
             <text/>
@@ -85,9 +85,6 @@
     <element name="configure">
       <interleave>
         <ref name="common_elements"/>
-        <element name="msg_id">
-          <text/>
-        </element>
         <optional>
           <element name="inform_to">
             <text/>
@@ -100,9 +97,6 @@
     <element name="request">
       <interleave>
         <ref name="common_elements"/>
-        <element name="msg_id">
-          <text/>
-        </element>
         <optional>
           <element name="inform_to">
             <text/>
@@ -115,9 +109,6 @@
     <element name="release">
       <interleave>
         <ref name="common_elements"/>
-        <element name="msg_id">
-          <text/>
-        </element>
         <optional>
           <element name="inform_to">
             <text/>

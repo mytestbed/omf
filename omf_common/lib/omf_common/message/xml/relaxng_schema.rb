@@ -6,12 +6,12 @@ module OmfCommon
 
     SCHEMA_FILE = "#{File.dirname(__FILE__)}/../../protocol/#{OmfCommon::PROTOCOL_VERSION}.rng"
 
-    attr_accessor :schema
-
     def initialize
-      File.open(SCHEMA_FILE) do |f|
-        self.schema = Nokogiri::XML::RelaxNG(f.read)
-      end
+      @rng = File.read(SCHEMA_FILE)
+    end
+
+    def validate(document)
+      Nokogiri::XML::RelaxNG(@rng).validate(document)
     end
   end
 end

@@ -193,7 +193,7 @@ class XML
     def valid?
       build_xml
 
-      validation = RelaxNGSchema.instance.schema.validate(@xml.document)
+      validation = RelaxNGSchema.instance.validate(@xml.document)
       if validation.empty?
         true
       else
