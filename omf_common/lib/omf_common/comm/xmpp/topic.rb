@@ -35,7 +35,7 @@ class XMPP
         (event.items?) && (!event.delayed?) &&
           event.items.first.payload &&
           (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
-          event.node == address &&
+          event.node == id.to_s &&
           (valid_guard?(message_guard_proc) ? message_guard_proc.call(omf_message) : true)
       end
       OmfCommon.comm.topic_event(guard_block, &event_block)
@@ -66,7 +66,10 @@ class XMPP
     private
 
     def initialize(id, opts = {}, &block)
+      id = $1 if id =~ /^xmpp:\/\/(.+)@.+$/
+
       super
+
       @on_subscrided_handlers = []
 
       topic_block = proc do |stanza|
@@ -84,14 +87,14 @@ class XMPP
       end
 
       OmfCommon.comm.discover('items', "pubsub.#{OmfCommon.comm.jid.domain}", '') do |items_stanza|
-        if items_stanza.items.map { |i| i.node }.include?(address)
-          OmfCommon.comm._subscribe(address, &topic_block)
+        if items_stanza.items.map { |i| i.node }.include?(id.to_s)
+          OmfCommon.comm._subscribe(id.to_s, &topic_block)
         else
-          OmfCommon.comm._create(address) do |stanza|
+          OmfCommon.comm._create(id.to_s) do |stanza|
             if stanza.error?
               block.call(stanza) if block
             else
-              OmfCommon.comm._subscribe(address, &topic_block)
+              OmfCommon.comm._subscribe(id.to_s, &topic_block)
             end
           end
         end

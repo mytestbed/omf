@@ -15,12 +15,12 @@ class OmfRc::ResourceFactory
     # @param (see OmfRc::ResourceProxy::AbstractResource#initialize)
     #
     # @see OmfRc::ResourceProxy::AbstractResource
-    def create(type, opts = {}, creation_opts = {})
+    def create(type, opts = {}, creation_opts = {}, &creation_callback)
       unless @@proxy_list.include?(type)
         raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       end
       # Create a new instance of abstract resource
-      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts)
+      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts, &creation_callback)
       # Then extend this instance with relevant module identified by type
       emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize
       resource.extend(emodule)

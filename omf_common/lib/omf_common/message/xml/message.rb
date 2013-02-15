@@ -72,7 +72,7 @@ class XML
     end
 
     def resource
-      r_id = _get_core(:resource_id)
+      r_id = _get_property(:resource_id)
       OmfCommon::Comm::XMPP::Topic.create(r_id)
     end
 

@@ -53,7 +53,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option creation_opts [Boolean] :suppress_create_message Don't send an initial CREATION.OK Inform message
   # @option creation_opts [Boolean] :create_children_resources Immediately create 'known' children resources, such as interfaces on nodes
   #
-  def initialize(type, opts = {}, creation_opts = {})
+  def initialize(type, opts = {}, creation_opts = {}, &creation_callback)
     @opts = Hashie::Mash.new(opts)
     @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
 
@@ -79,6 +79,7 @@ class OmfRc::ResourceProxy::AbstractResource
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
         OmfCommon.comm.disconnect()
       else
+        creation_callback.call(self) if creation_callback
         copts = { resource_id: @uid }
         t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
 
@@ -124,14 +125,14 @@ class OmfRc::ResourceProxy::AbstractResource
   # Create a new resource in the context of this resource. This resource becomes parent, and newly created resource becomes child
   #
   # @param (see #initialize)
-  def create(type, opts = {}, creation_opts = {})
+  def create(type, opts = {}, creation_opts = {}, &creation_callback)
     proxy_info = OmfRc::ResourceFactory.proxy_list[type]
     if proxy_info && proxy_info.create_by && !proxy_info.create_by.include?(self.type.to_sym)
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
     end
 
     before_create(type, opts) if respond_to? :before_create
-    new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts)
+    new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
     after_create(new_resource) if respond_to? :after_create
     children << new_resource
     new_resource
@@ -290,8 +291,8 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     case message.operation
-    when :create
-      inform(:creation_ok, response_h, topic)
+    #when :create
+    #  inform(:creation_ok, response_h, topic)
     when :request, :configure
       inform(:status, response_h, topic)
     when :release
@@ -331,8 +332,12 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def handle_create_message(message, obj, response)
     new_name = message[:name] || message[:hrn]
-    new_opts = {hrn: new_name}
-    new_obj = obj.create(message[:type], new_opts)
+    new_opts = { hrn: new_name }
+    new_obj = obj.create(message[:type], new_opts) do |new_obj|
+      response[:resource_id] = new_obj.resource_address
+      new_obj.inform(:creation_ok, response, @topics[0])
+    end
+
     exclude = [:type, :hrn, :name]
     message.each_property do |key, value|
       unless exclude.include?(key)
@@ -343,7 +348,6 @@ class OmfRc::ResourceProxy::AbstractResource
     new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
 
     # FIXME At this point topic for new instance has not been created.
-    response[:resource_id] = new_obj.resource_address
   end
 
   def handle_configure_message(message, obj, response)
@@ -394,34 +398,6 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     message.inform_type = inform_type
-
-    # FIXME !!!
-    #context_id = inform_data.context_id if inform_data.respond_to? :context_id
-    #inform_to = inform_data.inform_to if inform_data.respond_to? :inform_to
-    #inform_to ||= self.uid
-
-    #i_properties, i_cores = {}, {}
-
-    #i_cores[:context_id] = context_id
-    #i_cores[:inform_type] = inform_type.to_s.upcase
-
-    #case inform_type
-    #when :creation_ok
-    #  i_cores[:resource_id] = inform_data.resource_id
-    #  i_cores[:resource_address] = inform_data.resource_id
-    #when :status
-    #  i_properties = inform_data.status
-    #when :released
-    #  i_cores[:resource_id] = inform_data.resource_id
-    #when :error, :warn
-    #  i_cores[:reason] = (inform_data.message rescue inform_data)
-    #  logger.__send__(inform_type, (inform_data.message rescue inform_data))
-    #when :creation_failed
-    #  i_cores[:reason] = inform_data.message
-    #end
-    #inform_message = OmfCommon::Message.create(:inform, i_properties, i_cores)
-
-    # FIXME !!!
 
     topic.publish(message)
 

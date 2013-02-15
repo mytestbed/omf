@@ -3,16 +3,14 @@
 def create_engine(garage)
   garage.create(:engine) do |reply_msg|
     if reply_msg.success?
-      after(3) do
-        engine = reply_msg.resource
+      engine = reply_msg.resource
 
-        engine.on_subscribed do
-          info ">>> Connected to newly created resource #{reply_msg.resource_id}"
-          on_engine_created(engine)
-        end
+      engine.on_subscribed do
+        info ">>> Connected to newly created resource #{reply_msg[:resource_id]}"
+        on_engine_created(engine)
       end
     else
-      error ">>> Resource creation failed - #{reply_msg.reason}"
+      error ">>> Resource creation failed - #{reply_msg[:reason]}"
     end
   end
 end
@@ -52,7 +50,7 @@ def on_engine_created(engine)
   end
 end
 
-OmfCommon.comm.subscribe('garage', create_if_non_existent: false) do |garage|
+OmfCommon.comm.subscribe('garage') do |garage|
   unless garage.error?
     create_engine(garage)
   else
