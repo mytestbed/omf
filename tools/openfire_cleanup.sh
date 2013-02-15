@@ -1,4 +1,9 @@
-mysql -uopenfire -popenfire  << EOF
+if [ $# -lt 2 ]
+then
+	echo -e "Usage: $0 [MYSQL_USER] [MYSQL_PASSWORD]"
+	exit 1
+fi
+mysql -u$1 -p$2 << EOF
 use openfire;
 truncate ofPubsubItem;
 truncate ofPresence;
