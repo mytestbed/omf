@@ -28,7 +28,8 @@ To install OMF, you need to satisfy the dependencies of the gems that OMF uses. 
 
 Type following in your console:
 
-    sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
+    sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
+    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
 
 Then follow the RVM install instructions above
 
@@ -44,10 +45,6 @@ Then follow the RVM install instructions above
 #### Mac OS X (using RVM)
 
 First install the latest XCode from the Mac App Store. Start XCode, open the preferences menu and install the "Command Line Tools" in the Downloads tab. After the installation is complete, open a Terminal and follow the RVM instructions above. RVM will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
-
-You may need to install additional libraries on OSX to satisfy OMF's gem dependencies. One way to do this is by [installing Macports](http://www.macports.org/install.php) and running
-
-	sudo port install libxml2 libxslt
 
 ## System Ruby, not using RVM
 
