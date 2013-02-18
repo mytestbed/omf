@@ -1,2 +1,4 @@
 branches:
-  only:
+  except:
+    - master
+    - release-5.4
