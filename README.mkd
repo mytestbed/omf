@@ -71,7 +71,7 @@ _Some components are linked in OMF main repository as git submodules, if you wan
 
 ## XMPP server installation and configuration
 
-We recommend Openfire XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
+We recommend using the Openfire XMPP server. [Installation notes for Openfire](https://omf.mytestbed.net/projects/omf/wiki/Installation_Guide_54#Configuring-XMPP)
 
 ### In-band registration
 
