@@ -126,4 +126,4 @@ This little tutorial will give a brief example on how to implement the resource 
 
 ## License & Copyright
 
-{file:LICENSE.TXT}
+{file:LICENSE.mkd}
