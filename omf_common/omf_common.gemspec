@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://omf.mytestbed.net"
   s.summary     = %q{Common library of OMF}
   s.description = %q{Common library of OMF, a generic framework for controlling and managing networking testbeds.}
-  s.required_ruby_version = '>= 1.9.2'
+  s.required_ruby_version = '>= 1.9.3'
   s.license = 'MIT'
 
   s.rubyforge_project = "omf_common"
