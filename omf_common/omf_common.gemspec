@@ -7,9 +7,11 @@ Gem::Specification.new do |s|
   s.version     = OmfCommon::VERSION
   s.authors     = ["NICTA"]
   s.email       = ["omf-user@lists.nicta.com.au"]
-  s.homepage    = "https://www.mytestbed.net"
+  s.homepage    = "http://omf.mytestbed.net"
   s.summary     = %q{Common library of OMF}
   s.description = %q{Common library of OMF, a generic framework for controlling and managing networking testbeds.}
+  s.required_ruby_version = '>= 1.9.2'
+  s.license = 'MIT'
 
   s.rubyforge_project = "omf_common"
 

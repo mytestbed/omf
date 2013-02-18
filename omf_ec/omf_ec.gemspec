@@ -7,9 +7,11 @@ Gem::Specification.new do |s|
   s.version     = OmfEc::VERSION
   s.authors     = ["NICTA"]
   s.email       = ["omf-user@lists.nicta.com.au"]
-  s.homepage    = "https://www.mytestbed.net"
+  s.homepage    = "http://omf.mytestbed.net"
   s.summary     = %q{OMF experiment controller}
   s.description = %q{Experiment controller of OMF, a generic framework for controlling and managing networking testbeds.}
+  s.required_ruby_version = '>= 1.9.2'
+  s.license = 'MIT'  
 
   s.rubyforge_project = "omf_ec"
 
