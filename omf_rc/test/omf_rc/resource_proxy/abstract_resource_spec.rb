@@ -35,7 +35,7 @@ describe AbstractResource do
     @xmpp = MiniTest::Mock.new
     @xmpp.expect(:subscribe, true, [Array])
     OmfCommon.stub :comm, @xmpp do
-      @node = OmfRc::ResourceFactory.new(:node, { hrn: 'default_node' })
+      @node = OmfRc::ResourceFactory.new(:node, { hrn: 'default_node' }, { create_children_resources: true })
     end
   end
 
@@ -52,6 +52,10 @@ describe AbstractResource do
     it "could keep state inside 'property' instnace variable" do
       @node.property.bob = "test"
       @node.property.bob.must_equal "test"
+    end
+
+    it "must be able to access creation options" do
+      @node.creation_opts[:create_children_resources].must_equal true
     end
   end
 

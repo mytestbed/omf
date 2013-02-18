@@ -37,7 +37,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property
-  attr_reader :opts, :children, :membership
+  attr_reader :opts, :children, :membership, :creation_opts
 
   # Initialisation
   #
