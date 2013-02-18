@@ -58,7 +58,7 @@ command :exec do |c|
         unless p[0] =~ /^--(.+)/ && !p[1].nil?
           help_now! "Malformatted properties '#{exp_properties.join(' ')}'"
         else
-          OmfEc.exp.property[$1.to_sym] = p[1].ducktype
+          OmfEc.experiment.property[$1.to_sym] = p[1].ducktype
         end
       end
     end
@@ -205,8 +205,8 @@ pre do |global_options, command, options, args|
 
   include OmfEc::DSL
 
-  OmfEc.exp.name = options[:experiment] if options[:experiment]
-  OmfEc.exp.oml_uri = options[:oml_uri] if options[:oml_uri]
+  OmfEc.experiment.name = options[:experiment] if options[:experiment]
+  OmfEc.experiment.oml_uri = options[:oml_uri] if options[:oml_uri]
 
   @testbed_exp_path = File.join(OmfEc.lib_root, "omf_ec/backward/exp/testbed.rb")
 end
@@ -225,7 +225,7 @@ def setup_logging(global_options = {})
   if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
     Logging.logger.root.add_appenders(
       Logging.appenders.file(
-        "#{global_options[:log_file_dir]}/#{OmfEc.exp.id}.log",
+        "#{global_options[:log_file_dir]}/#{OmfEc.experiment.id}.log",
         :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
@@ -253,7 +253,7 @@ def load_exp(exp_path, global_options = {} , options = {})
 
       OmfCommon.comm.on_connected do |comm|
         info "Connected"
-        info "Start experiment: #{OmfEc.exp.id}"
+        info "Start experiment: #{OmfEc.experiment.id}"
 
         begin
           include OmfEc::Backward::DefaultEvents

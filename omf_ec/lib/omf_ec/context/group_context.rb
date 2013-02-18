@@ -64,14 +64,14 @@ module OmfEc::Context
 
           release_m.on_inform_released do |m|
             info "#{m.resource_id} released"
-            r = OmfEc.exp.state.find { |v| v[:uid] == m.resource_id }
+            r = OmfEc.experiment.state.find { |v| v[:uid] == m.resource_id }
             r[:released] = true unless r.nil?
             block.call if block
             Experiment.instance.process_events
           end
         end
 
-        r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
+        r = OmfEc.experiment.state.find { |v| v[:uid] == i.read_property(:uid) }
         unless r.nil?
           i.each_property do |p|
             p_key = p.attr('key').to_sym

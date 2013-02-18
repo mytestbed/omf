@@ -398,6 +398,9 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     message.inform_type = inform_type
+    message[:uid] = self.uid
+    message[:type] = self.type
+    message[:hrn] = self.hrn
 
     topic.publish(message)
 
