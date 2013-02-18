@@ -16,7 +16,7 @@ OMF is a framework for controlling, instrumenting, and managing experimental pla
 
 * Testbed providers use OMF to make their resources discoverable, control access to them, optimise their utilisation through virtualisation, and federation with other testbeds.
 
-Please visit our official website [mytestbed.net](https://www.mytestbed.net) for more information.
+Please visit our official website [omf.mytestbed.net](http://omf.mytestbed.net) for more information.
 
 ## Documentation
 
@@ -32,45 +32,39 @@ For full documentation regarding the design of OMF version 6, please visit our [
 
 [6 Alpha](http://mytestbed.net/projects/omf/wiki/OMF6Alpha)
 
-## Installation
+## Quick Installation
 
 _If you have Eventmachine 1.0.0 installed on your system and you noticed some delay behaviour, please uninstall it and use version 0.12.x instead._
 
 ### I do not have git, ruby, or gem ...
 
-Please check and install these additional dependencies for your environment:
-
-{file:doc/INSTALLATION.mkd Detailed installation guide}
+Please check the {file:doc/INSTALLATION.mkd detailed installation guide}
 
 ### From rubygems
 
-In OMF 6, we switched to the GEM system to release packages.
+_Ruby 1.9.3 is required to run OMF._ We recommend installing it via [RVM (ruby version manager)](https://rvm.io/). Additionally, you need to install the development headers for libxml2 and libxslt.
 
-To install OMF Resource Controller (RC), simple do (--pre indicates pre-release):
+To install the OMF Resource Controller (RC), simply run (--pre indicates pre-release):
 
     gem install omf_rc --pre --no-ri --no-rdoc
 
-For OMF Experiment Controller (EC):
+For the OMF Experiment Controller (EC):
 
     gem install omf_ec --pre --no-ri --no-rdoc
 
-_We are building and testing against Ruby version 1.9.2 and 1.9.3, means we are dropping support for Ruby 1.8._
+### From the source code repository
 
-[RVM (ruby version manageer)](https://rvm.io/) is strongly recommended if your OS release doesn't provide these ruby versions.
+You could also build and install packages using the latest source from our git repository:
 
-### From repository
+    git clone git://git.mytestbed.net/omf.git
 
-You could also build and install packages using the latest source from git repository:
-
-    git clone https://github.com/mytestbed/omf.git
-
-Then inside the repository directory, type:
+Enter the repository directory and type:
 
     rake
 
-This will install all the necessary gems, build omf gems, and run the test files.
+This will install all the necessary gems, build the OMF gems, and run the test files.
 
-_Some components are linked in omf main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:_
+_Some components are linked in OMF main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:_
 
     git submodule init
     git submodule update
@@ -132,14 +126,4 @@ This little tutorial will give a brief example on how to implement the resource 
 
 ## License & Copyright
 
-Copyright (c) 2006-2012 National ICT Australia (NICTA), Australia
-
-Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal
-in the software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sub-license, and/or sell
-copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+{file:LICENSE.TXT}
