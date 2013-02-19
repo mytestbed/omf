@@ -1,0 +1,12 @@
+description     "OMF6 Resource Controller"
+author          "NICTA <omf-user@lists.nicta.com.au>"
+
+start on (filesystem and net-device-up IFACE=lo)
+stop on runlevel [!2345]
+
+env DAEMON=/usr/local/bin/run_omf_rc.sh
+
+respawn
+respawn limit 10 5
+
+exec $DAEMON

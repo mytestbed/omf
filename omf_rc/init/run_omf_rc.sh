@@ -59,4 +59,4 @@ if [[ $? != 0 ]] ; then
 fi
 
 echo "Running OMF6 RC"
-/usr/bin/env ruby$RUBY_BIN_SUFFIX $RC $@
+/usr/bin/env ruby$RUBY_BIN_SUFFIX $RC -c /etc/omf_rc/config.yml $@

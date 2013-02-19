@@ -7,11 +7,7 @@ require 'omf_rc'
 require 'omf_rc/resource_factory'
 
 $stdout.sync = true
-
-options = {
-  uid: `hostname`.chomp
-}
-
+options = {}
 executable_name = File.basename($PROGRAM_NAME)
 oml_enabled = false
 
@@ -64,6 +60,10 @@ end
 if !options[:configfile].nil?
   cfg_options = (YAML.load_file(options[:configfile]))
   options = cfg_options.merge(options)
+end
+
+if options[:uid].nil?
+  options[:uid]=`hostname`.chomp
 end
 
 OmfCommon::Measure.enable if oml_enabled
