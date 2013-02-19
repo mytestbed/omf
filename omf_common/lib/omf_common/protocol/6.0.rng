@@ -11,33 +11,29 @@
   </start>
   <define name="common_elements">
     <interleave>
-      <element name="timestamp">
+      <attribute name="mid"/>
+      <element name="ts">
         <text/>
       </element>
-      <element name="msg_id">
+      <element name="src">
         <text/>
       </element>
       <optional>
-        <element name="digest">
+        <element name="replyto">
           <text/>
         </element>
       </optional>
       <optional>
-        <element name="signature">
-          <text/>
+        <element name="properties">
+          <zeroOrMore>
+            <ref name="propperty"/>
+          </zeroOrMore>
         </element>
       </optional>
-      <zeroOrMore>
-        <element name="property">
-          <ref name="prop_content"/>
-        </element>
-      </zeroOrMore>
       <optional>
         <element name="guard">
           <zeroOrMore>
-            <element name="property">
-              <ref name="prop_content"/>
-            </element>
+            <ref name="property"/>
           </zeroOrMore>
         </element>
       </optional>
@@ -60,49 +56,35 @@
       </element>
     </choice>
   </define>
-  <define name="prop_content">
-    <attribute name="key"/>
-    <optional>
-      <attribute name="type"/>
-    </optional>
-    <zeroOrMore>
-      <ref name="anything"/>
-    </zeroOrMore>
+  <define name="property">
+    <element>
+      <anyName/>
+      <optional>
+        <attribute name="type"/>
+      </optional>
+      <zeroOrMore>
+        <ref name="anything"/>
+      </zeroOrMore>
+    </element>
   </define>
   <define name="create">
     <element name="create">
       <interleave>
         <ref name="common_elements"/>
-        <optional>
-          <element name="inform_to">
-            <text/>
-          </element>
-        </optional>
+        <element name="rtype">
+          <text/>
+        </element>
       </interleave>
     </element>
   </define>
   <define name="configure">
     <element name="configure">
-      <interleave>
-        <ref name="common_elements"/>
-        <optional>
-          <element name="inform_to">
-            <text/>
-          </element>
-        </optional>
-      </interleave>
+      <ref name="common_elements"/>
     </element>
   </define>
   <define name="request">
     <element name="request">
-      <interleave>
-        <ref name="common_elements"/>
-        <optional>
-          <element name="inform_to">
-            <text/>
-          </element>
-        </optional>
-      </interleave>
+      <ref name="common_elements"/>
     </element>
   </define>
   <define name="release">
@@ -110,13 +92,10 @@
       <interleave>
         <ref name="common_elements"/>
         <optional>
-          <element name="inform_to">
+          <element name="res_id">
             <text/>
           </element>
         </optional>
-        <element name="resource_id">
-          <text/>
-        </element>
       </interleave>
     </element>
   </define>
@@ -125,14 +104,14 @@
       <interleave>
         <ref name="common_elements"/>
         <optional>
-          <element name="context_id">
+          <element name="cid">
             <text/>
           </element>
         </optional>
-        <element name="inform_type">
+        <element name="itype">
           <choice>
-            <value>CREATION_OK</value>
-            <value>CREATION_FAILED</value>
+            <value>CREATION.OK</value>
+            <value>CREATION.FAILED</value>
             <value>STATUS</value>
             <value>RELEASED</value>
             <value>ERROR</value>

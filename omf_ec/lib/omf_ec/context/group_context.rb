@@ -57,13 +57,13 @@ module OmfEc::Context
         #if self.operation == :release
         #  uid = i.read_property(:uid)
         #  info "Going to release #{uid}"
-        #  release_m = OmfCommon.comm.release_message(self.group) { |m| m.element('resource_id', uid) }
+        #  release_m = OmfCommon.comm.release_message(self.group) { |m| m.element('res_id', uid) }
 
         #  release_m.publish self.group
 
         #  release_m.on_inform_released do |m|
-        #    info "#{m.resource_id} released"
-        #    r = OmfEc.experiment.state.find { |v| v[:uid] == m.resource_id }
+        #    info "#{m.res_id} released"
+        #    r = OmfEc.experiment.state.find { |v| v[:uid] == m.res_id }
         #    r[:released] = true unless r.nil?
         #    block.call if block
         #    Experiment.instance.process_events

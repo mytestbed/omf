@@ -6,7 +6,7 @@ def create_engine(garage)
       engine = reply_msg.resource
 
       engine.on_subscribed do
-        info ">>> Connected to newly created resource #{reply_msg[:resource_id]}"
+        info ">>> Connected to newly created resource #{reply_msg[:res_id]}"
         on_engine_created(engine)
       end
     else

@@ -56,16 +56,16 @@ def observe(tname, comm)
   comm.subscribe(tname) do |topic|
     topic.on_message do |msg|
       ts = Time.now.strftime('%H:%M:%S')
-      puts "#{ts}  #{msg.type}(#{msg.inform_type})  #{msg.inspect}"
+      puts "#{ts}  #{msg.type}(#{msg.itype})  #{msg.inspect}"
       puts "  #{topic.id}"
       msg.each_property do |name, value|
         puts "    #{name}: #{value}"
       end
       puts "------"
 
-      if $follow_children && msg.inform_type == 'creation_ok'
+      if $follow_children && msg.itype == 'creation_ok'
         #puts ">>>>>> #{msg}"
-        observe(msg[:resource_id], comm)
+        observe(msg[:res_id], comm)
       end
     end
   end

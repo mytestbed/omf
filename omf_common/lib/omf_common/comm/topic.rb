@@ -49,14 +49,14 @@ module OmfCommon
       end
 
       def inform(type, props = {}, core_props = {}, &block)
-        msg = OmfCommon::Message.create(:inform, props, core_props.merge(inform_type: type))
+        msg = OmfCommon::Message.create(:inform, props, core_props.merge(itype: type))
         publish(msg, &block)
         self
       end
 
       # def inform(type, props = {}, &block)
         # msg = OmfCommon::Message.create(:inform, props)
-        # msg.inform_type = type
+        # msg.itype = type
         # publish(msg, &block)
         # self
       # end
@@ -65,7 +65,7 @@ module OmfCommon
         unless resource.is_a? self.class
           raise "Expected '#{self.class}', but got '#{resource.class}'"
         end
-        msg = OmfCommon::Message.create(:release, {}, {resource_id: resource.id})
+        msg = OmfCommon::Message.create(:release, {}, {res_id: resource.id})
         publish(msg, &block)
         self
       end
@@ -88,12 +88,12 @@ module OmfCommon
         :inform_status, :inform_failed,
         :released, :failed,
         :message
-      ].each do |inform_type|
-        mname = "on_#{inform_type}"
+      ].each do |itype|
+        mname = "on_#{itype}"
         define_method(mname) do |*args, &message_block|
           debug "(#{id}) register handler for '#{mname}'"
           @lock.synchronize do
-            (@handlers[inform_type] ||= []) << message_block
+            (@handlers[itype] ||= []) << message_block
           end
           self
         end
@@ -138,8 +138,8 @@ module OmfCommon
 
       def _send_message(msg, block = nil)
         if (block)
-          # register callback for responses to 'msg_id'
-          @context2cbk[msg.msg_id.to_s] = {block: block, created_at: Time.now}
+          # register callback for responses to 'mid'
+          @context2cbk[msg.mid.to_s] = {block: block, created_at: Time.now}
         end
       end
 
@@ -148,7 +148,7 @@ module OmfCommon
         debug "(#{id}) Deliver message '#{type}': #{msg.inspect}"
         htypes = [type, :message]
         if type == :inform
-          if it = msg.inform_type.to_s.downcase
+          if it = msg.itype.to_s.downcase
             #puts "TTT> #{it}"
             case it
             when "creation_ok"
@@ -161,19 +161,19 @@ module OmfCommon
           end
         end
 
-        debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg.context_id})"
+        debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg.cid})"
         hs = htypes.map do |ht| @handlers[ht] end.compact.flatten
         debug "(#{id}) Distributing message to '#{hs.inspect}'"
         hs.each do |block|
           block.call msg
         end
-        if cbk = @context2cbk[msg.context_id.to_s]
+        if cbk = @context2cbk[msg.cid.to_s]
           debug "(#{id}) Distributing message to '#{cbk.inspect}'"
           cbk[:last_used] = Time.now
           cbk[:block].call(msg)
         # else
-          # if msg.context_id
-            # puts "====NOOOO for #{msg.context_id} - #{@context2cbk.keys.inspect}"
+          # if msg.cid
+            # puts "====NOOOO for #{msg.cid} - #{@context2cbk.keys.inspect}"
           # end
         end
 

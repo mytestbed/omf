@@ -141,7 +141,7 @@ module OmfRc::ResourceProxy::Application
 
       (res.membership + [res.uid]).each do |m|
         res.inform(:status, {
-          inform_to: m,
+          replyto: m,
           status: { status_type: 'APP_EVENT',
                     event: event_type.to_s.upcase,
                     app: app_id,

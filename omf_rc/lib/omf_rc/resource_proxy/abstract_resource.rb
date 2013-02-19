@@ -10,7 +10,7 @@ class OmfRc::ResourceProxy::MPPublished < OML4R::MPBase
   param :time, :type => :double # Time (s) when this message was published
   param :uid, :type => :string # UID for this Resource Proxy
   param :topic, :type => :string # Pubsub topic to publish this message to
-  param :msg_id, :type => :string # Unique ID this message
+  param :mid, :type => :string # Unique ID this message
 end
 
 # OML Measurement Point (MP)
@@ -20,7 +20,7 @@ class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   param :time, :type => :double # Time (s) when this message was received
   param :uid, :type => :string # UID for this Resource Proxy
   param :topic, :type => :string # Pubsub topic where this message came from
-  param :msg_id, :type => :string # Unique ID this message
+  param :mid, :type => :string # Unique ID this message
 end
 
 class OmfRc::ResourceProxy::AbstractResource
@@ -81,7 +81,7 @@ class OmfRc::ResourceProxy::AbstractResource
         OmfCommon.comm.disconnect()
       else
         creation_callback.call(self) if creation_callback
-        copts = { resource_id: @uid }
+        copts = { res_id: @uid }
         t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
 
         t.on_message do |imsg|
@@ -143,8 +143,8 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @return [AbstractResource] Relsead child or nil if error
   #
-  def release(resource_id)
-    if (child = children.find { |v| v.uid.to_s == resource_id.to_s })
+  def release(res_id)
+    if (child = children.find { |v| v.uid.to_s == res_id.to_s })
       if child.release_self()
         children.delete(child)
         child
@@ -152,7 +152,7 @@ class OmfRc::ResourceProxy::AbstractResource
         child = nil
       end
     else
-      warn "#{resource_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
+      warn "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
     end
     child
   end
@@ -172,7 +172,7 @@ class OmfRc::ResourceProxy::AbstractResource
     info "Releasing hrn: #{hrn}, uid: #{uid}"
     self.before_release if self.respond_to? :before_release
     props = {
-      resource_id: resource_address
+      res_id: resource_address
     }
     props[:hrn] = hrn if hrn
     inform :released, props
@@ -285,7 +285,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
     objects_by_topic(topic.id.to_s).each do |obj|
       if OmfCommon::Measure.enabled?
-        OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.msg_id)
+        OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.mid)
       end
       execute_omf_operation(message, obj, topic)
     end
@@ -316,7 +316,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # Handling all messages, then delegate them to individual handler
   def handle_message(message, obj)
     response = message.create_inform_reply_message()
-    response.inform_to inform_to_address(obj, message.inform_to)
+    response.replyto replyto_address(obj, message.replyto)
 
     case message.operation
     when :create
@@ -326,10 +326,10 @@ class OmfRc::ResourceProxy::AbstractResource
     when :configure
       handle_configure_message(message, obj, response)
     when :release
-      resource_id = message.resource_id
-      released_obj = obj.release(resource_id)
+      res_id = message.res_id
+      released_obj = obj.release(res_id)
       # TODO: Under what circumstances would 'realease_obj' be NIL
-      response[:resource_id] = released_obj.resource_address
+      response[:res_id] = released_obj.resource_address
     when :inform
       nil # We really don't care about inform messages which created from here
     else
@@ -345,7 +345,7 @@ class OmfRc::ResourceProxy::AbstractResource
     new_name = message[:name] || message[:hrn]
     new_opts = { hrn: new_name }
     new_obj = obj.create(message[:type], new_opts) do |new_obj|
-      response[:resource_id] = new_obj.resource_address
+      response[:res_id] = new_obj.resource_address
       new_obj.inform(:creation_ok, response, @topics[0])
     end
 
@@ -394,19 +394,19 @@ class OmfRc::ResourceProxy::AbstractResource
 
 
   # Publish an inform message
-  # @param [Symbol] inform_type the type of inform message
+  # @param [Symbol] itype the type of inform message
   # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
-  def inform(inform_type, inform_data, topic = nil)
+  def inform(itype, inform_data, topic = nil)
     topic ||= @topics.first
 
     if inform_data.is_a? Hash
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
-      message = OmfCommon::Message.create_inform_message(inform_type.to_s.upcase, inform_data.dup)
+      message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, inform_data.dup)
     else
       message = inform_data
     end
 
-    message.inform_type = inform_type
+    message.itype = itype
     message[:uid] = self.uid
     message[:type] = self.type
     message[:hrn] = self.hrn
@@ -414,7 +414,7 @@ class OmfRc::ResourceProxy::AbstractResource
     topic.publish(message)
 
     OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
-      self.uid, inform_to, inform_message.msg_id) if OmfCommon::Measure.enabled?
+      self.uid, replyto, inform_message.mid) if OmfCommon::Measure.enabled?
   end
 
   private
@@ -428,8 +428,8 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
-  def inform_to_address(obj, inform_to = nil)
-    inform_to || obj.uid
+  def replyto_address(obj, replyto = nil)
+    replyto || obj.uid
   end
 
   # FIXME delete this
@@ -441,7 +441,7 @@ class OmfRc::ResourceProxy::AbstractResource
       response = Hashie::Mash.new(response)
       case response.operation
       when :create
-        new_uid = response.resource_id
+        new_uid = response.res_id
         OmfCommon.comm.create_topic(new_uid) do
           OmfCommon.comm.subscribe(new_uid) do
             inform(:creation_ok, response)
@@ -466,8 +466,8 @@ class OmfRc::ResourceProxy::AbstractResource
       begin
         default_response = {
           operation: message.operation,
-          context_id: message.msg_id,
-          inform_to: inform_to_address(obj, message.inform_to)
+          cid: message.mid,
+          replyto: replyto_address(obj, message.replyto)
         }
 
         guard = message.read_element("guard").first
@@ -492,7 +492,7 @@ class OmfRc::ResourceProxy::AbstractResource
             end
           end
           new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-          default_response.merge(resource_id: new_obj.uid)
+          default_response.merge(res_id: new_obj.uid)
         when :request, :configure
           result = Hashie::Mash.new.tap do |mash|
             properties = message.read_element("property")
@@ -513,9 +513,9 @@ class OmfRc::ResourceProxy::AbstractResource
           result.uid = obj.uid
           default_response.merge(status: result)
         when :release
-          resource_id = message.resource_id
-          released_obj = obj.release(resource_id)
-          released_obj ? default_response.merge(resource_id: released_obj.uid) : nil
+          res_id = message.res_id
+          released_obj = obj.release(res_id)
+          released_obj ? default_response.merge(res_id: released_obj.uid) : nil
         when :inform
           nil # We really don't care about inform messages which created from here
         else
@@ -529,11 +529,11 @@ class OmfRc::ResourceProxy::AbstractResource
           msg = "Cannot #{message.operation} unknown property '#{e.message}' for resource '#{obj.type}'. Original message fragment: " +
             "'#{message.read_element("property")}'"
           logger.warn msg
-          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.inform_to), msg)
+          raise OmfRc::MessageProcessError.new(message.cid, replyto_address(obj, message.replyto), msg)
         else
           logger.error e.message
           logger.error e.backtrace.join("\n")
-          raise OmfRc::MessageProcessError.new(message.context_id, inform_to_address(obj, message.inform_to), e.message)
+          raise OmfRc::MessageProcessError.new(message.cid, replyto_address(obj, message.replyto), e.message)
         end
       end
     end

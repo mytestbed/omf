@@ -3,15 +3,15 @@ require 'test_helper'
 describe OmfCommon::Message do
   describe "when initialised" do
     before do
-      @internal_attr = %w(type operation guard msg_id timestamp inform_to context_id inform_type)
+      @internal_attr = %w(type operation guard mid ts replyto cid itype)
       @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
     end
 
     it "must be able to query internal properties" do
       @message.type.must_equal :create
       @message.operation.must_equal :create
-      @message.msg_id.wont_be_nil
-      @message.timestamp.wont_be_nil
+      @message.mid.wont_be_nil
+      @message.ts.wont_be_nil
     end
 
     it "must be able to get property value"  do
@@ -49,7 +49,7 @@ describe OmfCommon::Message do
                        app: 'app100',
                        msg: 'Everything will be OK',
                        seq: 1 },
-                     { inform_type: 'STATUS' })
+                     { itype: 'STATUS' })
       @message.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
     end
   end

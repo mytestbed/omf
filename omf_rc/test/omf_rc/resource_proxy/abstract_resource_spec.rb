@@ -115,11 +115,11 @@ describe AbstractResource do
     it "must be able to send inform message" do
       skip
       # FIXME
-      @xmpp.stub :publish, proc { |inform_to, message| message.valid?.must_equal true} do
-        @node.inform(:creation_ok, resource_id: 'bob', context_id: 'id', inform_to: 'topic')
-        @node.inform(:released, resource_id: 'bob', context_id: 'id', inform_to: 'topic')
-        @node.inform(:status, status: { key: 'value' }, context_id: 'id', inform_to: 'topic')
-        @node.inform(:creation_ok, resource_id: 'bob', context_id: 'id', inform_to: 'topic')
+      @xmpp.stub :publish, proc { |replyto, message| message.valid?.must_equal true} do
+        @node.inform(:creation_ok, res_id: 'bob', cid: 'id', replyto: 'topic')
+        @node.inform(:released, res_id: 'bob', cid: 'id', replyto: 'topic')
+        @node.inform(:status, status: { key: 'value' }, cid: 'id', replyto: 'topic')
+        @node.inform(:creation_ok, res_id: 'bob', cid: 'id', replyto: 'topic')
         @node.inform(:warn, 'going to fail')
         @node.inform(:error, 'failed')
         @node.inform(:warn, Exception.new('going to fail'))

@@ -98,7 +98,7 @@ Thus we add the following code to the Resource Proxy's source code (see [abstrac
       param :time, :type => :double # Time (s) when this message was published 
       param :uid, :type => :string # UID for this Resource Proxy
       param :topic, :type => :string # Pubsub topic to publish this message to
-      param :msg_id, :type => :string # Unique ID this message
+      param :mid, :type => :string # Unique ID this message
     end
 
     class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
@@ -106,7 +106,7 @@ Thus we add the following code to the Resource Proxy's source code (see [abstrac
       param :time, :type => :double # Time (s) when this message was received 
       param :uid, :type => :string # UID for this Resource Proxy
       param :topic, :type => :string # Pubsub topic where this message came from
-      param :msg_id, :type => :string # Unique ID this message
+      param :mid, :type => :string # Unique ID this message
     end
 
 (Note: here it is enough to record only the message ID, as the message factory in OMF6 is also instrumented and thus send measurements about each created message, also identified by the same unique message ID)
@@ -119,19 +119,19 @@ The final step is to capture and prepare some measurements, and then finally inj
 In this example for the Abstract Resource Proxy, we capture, prepare and inject measurements at 2 different places, one just after a publish action done by the resource proxy, and the other just after a new incoming message is passed to the resource proxy. Below are the relevant commented code lines (see [abstract_resource.rb](https://github.com/mytestbed/omf/blob/master/omf_rc/lib/omf_rc/resource_proxy/abstract_resource.rb)):
 
     # ...an inform message was previously constructed...
-    @comm.publish(inform_to, inform_message)
+    @comm.publish(replyto, inform_message)
     if OmfCommon::Measure.enabled?
       # You may want to do more things here to prepare your measurement, in
       # this simple example there is nothing more to do, so we just pass it 
       # on to the MP
-      OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f, self.uid, inform_to, inform_message.msg_id)
+      OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f, self.uid, replyto, inform_message.mid)
     end
 
 and
 
     # ...an incoming message was previously passed to us by the underlying communication stack...
     if OmfCommon::Measure.enabled?
-      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.msg_id) 
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.mid) 
     end
     # now go on and process that message...
     execute_omf_operation(message, obj)

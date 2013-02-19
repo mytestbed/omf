@@ -93,16 +93,16 @@ describe OmfCommon::Message::XML::Message do
     it "must validate against inform message schema" do
       msg = Message::XML::Message.parse <<-XML
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
-          <timestamp>2013-02-14T07:12:03Z</timestamp>
+          <ts>2013-02-14T07:12:03Z</ts>
           <digest>3acfc5e51cedba31d9c62defba8c54e49624241d7587fe0932c6e9972904faca24ed0f061b944c542d4c964e5dd3e9e62d4d0e4df0889932231d5886ee0f750a</digest>
-          <property key="resource_id" type="string">garage</property>
+          <property key="res_id" type="string">garage</property>
           <property key="hrn"/>
-          <inform_type>CREATION_OK</inform_type>
+          <itype>CREATION.OK</itype>
         </inform>
       XML
 
-      msg.timestamp.must_equal "2013-02-14T07:12:03Z"
-      msg.inform_type.must_equal "CREATION_OK"
+      msg.ts.must_equal "2013-02-14T07:12:03Z"
+      msg.itype.must_equal "CREATION.OK"
 
       msg.valid?.must_equal true
     end

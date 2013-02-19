@@ -4,8 +4,8 @@ module OmfCommon
     name :message
     param :time, :type => :double
     param :operation, :type => :string
-    param :msg_id, :type => :string
-    param :context_id, :type => :string
+    param :mid, :type => :string
+    param :cid, :type => :string
     param :content, :type => :string
   end
 
@@ -27,8 +27,8 @@ module OmfCommon
       @@message_class.create(type, properties, body)
     end
 
-    def self.create_inform_message(inform_type = nil, properties = {}, body = {})
-      body[:inform_type] = inform_type if inform_type
+    def self.create_inform_message(itype = nil, properties = {}, body = {})
+      body[:itype] = itype if itype
       create(:inform, properties, body)
     end
 
@@ -58,7 +58,7 @@ module OmfCommon
       end
     end
 
-    [:operation, :timestamp, :msg_id, :inform_to, :context_id, :inform_type, :guard].each do |pname|
+    [:operation, :ts, :mid, :replyto, :cid, :itype, :guard].each do |pname|
       define_method(pname.to_s) do |*args|
         _get_core(pname)
       end
@@ -68,7 +68,7 @@ module OmfCommon
       _get_core(:operation)
     end
 
-    [:inform_to, :inform_type].each do |pname|
+    [:replyto, :itype].each do |pname|
       define_method("#{pname}=") do |val|
         _set_core(pname.to_sym, val)
       end
@@ -79,8 +79,8 @@ module OmfCommon
     end
 
     def []=(name, value)
-      # TODO why inform_type cannot be set?
-      #raise if name.to_sym == :inform_type
+      # TODO why itype cannot be set?
+      #raise if name.to_sym == :itype
       _set_property(name.to_sym, value)
     end
 
@@ -107,7 +107,7 @@ module OmfCommon
     end
 
     def resource
-      name = _get_property(:resource_id)
+      name = _get_property(:res_id)
       OmfCommon.comm.create_topic(name)
     end
 
@@ -116,12 +116,12 @@ module OmfCommon
     end
 
     def error?
-      (inform_type || '').start_with? 'error'
+      (itype || '').start_with? 'error'
     end
 
-    def create_inform_reply_message(inform_type = nil, properties = {}, body = {})
-      body[:context_id] = self.msg_id
-      self.class.create_inform_message(inform_type, properties, body)
+    def create_inform_reply_message(itype = nil, properties = {}, body = {})
+      body[:cid] = self.mid
+      self.class.create_inform_message(itype, properties, body)
     end
 
     def to_s

@@ -64,20 +64,20 @@ class XML
             end
           end
 
-          if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(message.msg_id)
-            MPMessage.inject(Time.now.to_f, message.operation.to_s, message.msg_id, message.context_id, message.to_s.gsub("\n",''))
+          if OmfCommon::Measure.enabled? && !@@mid_list.include?(message.mid)
+            MPMessage.inject(Time.now.to_f, message.operation.to_s, message.mid, message.cid, message.to_s.gsub("\n",''))
           end
         end
       end
     end
 
     def resource
-      r_id = _get_property(:resource_id)
+      r_id = _get_property(:res_id)
       OmfCommon::Comm::XMPP::Topic.create(r_id)
     end
 
-    def inform_type
-      @content.inform_type.to_s.upcase unless @content.inform_type.nil?
+    def itype
+      @content.itype.to_s.upcase unless @content.itype.nil?
     end
 
     def marshall
@@ -91,7 +91,7 @@ class XML
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
-      [:timestamp, :msg_id, :inform_to, :context_id, :inform_type].each do |attr|
+      [:ts, :mid, :replyto, :cid, :itype].each do |attr|
         attr_value = self.send(attr)
 
         next unless attr_value
@@ -170,8 +170,8 @@ class XML
     # Generate SHA1 of canonicalised xml and write into the ID attribute of the message
     #
     def sign
-      write_attr('msg_id', SecureRandom.uuid)
-      write_attr('timestamp', Time.now.utc.iso8601)
+      write_attr('mid', SecureRandom.uuid)
+      write_attr('ts', Time.now.utc.iso8601)
       canonical_msg = self.canonicalize
 
       priv_key =  OmfCommon::Key.instance.private_key
@@ -182,8 +182,8 @@ class XML
       write_attr('signature', signature) if signature
 
       if OmfCommon::Measure.enabled?
-        MPMessage.inject(Time.now.to_f, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
-        @@msg_id_list << msg_id
+        MPMessage.inject(Time.now.to_f, operation.to_s, mid, cid, self.to_s.gsub("\n",''))
+        @@mid_list << mid
       end
       self
     end
@@ -323,8 +323,8 @@ class XML
 
     def initialize(content = {})
       @content = Hashie::Mash.new(content)
-      @content.msg_id = SecureRandom.uuid
-      @content.timestamp = Time.now.utc.iso8601
+      @content.mid = SecureRandom.uuid
+      @content.ts = Time.now.utc.iso8601
     end
 
     def _set_core(key, value)
