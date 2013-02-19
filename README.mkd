@@ -36,11 +36,11 @@ For full documentation regarding the design of OMF version 6, please visit our [
 
 _If you have Eventmachine 1.0.0 installed on your system and you noticed some delay behaviour, please uninstall it and use version 0.12.x instead._
 
+Ruby 1.9.3 is required to run OMF. We recommend installing it via [RVM (ruby version manager)](https://rvm.io/). Additionally, you need to install the development headers for libxml2 and libxslt.
+
 ### I do not have git, ruby, or gem ...
 
 Please check the {file:doc/INSTALLATION.mkd detailed installation guide}
-
-Ruby 1.9.3 is required to run OMF. We recommend installing it via [RVM (ruby version manager)](https://rvm.io/). Additionally, you need to install the development headers for libxml2 and libxslt.
 
 ### Installing from rubygems
 
