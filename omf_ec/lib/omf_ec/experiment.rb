@@ -26,7 +26,7 @@ module OmfEc
 
     def add_resource(name, opts = {})
       unless resource(name)
-        @state << { uid: name }.merge(opts)
+        @state << Hashie::Mash.new({ uid: name }.merge(opts))
       end
     end
 
@@ -90,7 +90,7 @@ module OmfEc
     class << self
       # Disconnect communicator, try to delete any XMPP affiliations
       def done
-        info "Exit in up to 20 seconds..."
+        info "Exit in up to 15 seconds..."
 
         OmfCommon.eventloop.after(10) do
           info "Release applications and network interfaces"
@@ -102,11 +102,7 @@ module OmfEc
           end
 
           OmfCommon.eventloop.after(5) do
-            OmfCommon.comm.disconnect(delete_affiliations: true)
-
-            OmfCommon.eventloop.after(5) do
-              OmfCommon.comm.disconnect
-            end
+            OmfCommon.comm.disconnect
           end
         end
       end

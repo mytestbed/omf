@@ -10,6 +10,7 @@ module OmfEc
   # @!attribute apps [Array] holding applications to be added to group
   class Group
     attr_accessor :name, :id, :net_ifs, :members, :app_contexts
+    attr_reader :topic
 
     # @param [String] name name of the group
     # @param [Hash] opts
@@ -26,6 +27,19 @@ module OmfEc
       OmfEc.subscribe_and_monitor(id, self, &block)
     end
 
+    def associate_topic(topic)
+      @topic = topic
+    end
+
+    def associate_resource_topic(name, res_topic)
+      @resource_topics ||= {}
+      @resource_topics[name] = res_topic
+    end
+
+    def resource_topic(name)
+      @resource_topics[name]
+    end
+
     # Add existing resources to the group
     #
     # Resources to be added could be a list of resources, groups, or the mixture of both.
@@ -36,7 +50,6 @@ module OmfEc
         if g
           @members += g.members
         else
-          warn name
           @members << name
         end
       end
@@ -71,14 +84,16 @@ module OmfEc
       resource_group_name = "#{self.id}_#{opts[:type].to_s}"
 
       OmfEc.subscribe_and_monitor(resource_group_name) do |res_group|
-        # Send create message to resource group
-        res_group.create(opts.merge(membership: resource_group_name))
+        associate_resource_topic(opts[:type].to_s, res_group)
+        # Send create message to group
+        r_type = opts.delete(:type)
+        @topic.create(r_type, opts.merge(membership: resource_group_name))
       end
     end
 
     # @return [OmfEc::Context::GroupContext]
     def resources
-      OmfEc::Context::GroupContext.new(group: self.id)
+      OmfEc::Context::GroupContext.new(group: self)
     end
 
     include OmfEc::Backward::Group

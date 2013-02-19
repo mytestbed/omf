@@ -5,15 +5,24 @@ require 'omf_rc/resource_factory'
 
 $stdout.sync = true
 
+
 op_mode = :development
 
 opts = {
   communication: { url: 'xmpp://garage:pw@localhost' },
   eventloop: { type: :em },
-  logging: { level: 'info' }
+  logging: {
+    level: 'info'
+  #  level: 'debug',
+  #  appenders: {
+  #    stdout: {
+  #      date_pattern: '%H:%M:%S',
+  #      pattern: '%d %-5l %c{2}: %m\n',
+  #      color_scheme: 'default'
+  #    }
+  #  }
+  }
 }
-
-#OmfCommon::Eventloop.init(type: :em)
 
 module OmfRc::ResourceProxy::Garage
   include OmfRc::ResourceProxyDSL
@@ -62,7 +71,7 @@ module OmfRc::ResourceProxy::Engine
         engine.property.rpm = 1000 if engine.property.rpm < 1000
         if engine.property.rpm > 4000
           engine.membership.each do |m|
-            engine.inform(:status, { uid: engine.uid, rpm: engine.property.rpm.to_i })
+            engine.inform(:status, { uid: engine.uid, rpm: engine.property.rpm.to_i }, engine.membership_topics[m])
           end
         end
       end
@@ -101,34 +110,13 @@ module OmfRc::ResourceProxy::Engine
   end
 end
 
-# We can define a new type of engine, say MP4, which extends some of the original engine methods
-#
-module OmfRc::ResourceProxy::Mp4
-  include OmfRc::ResourceProxy::Engine
-  include OmfRc::ResourceProxyDSL
-
-  register_proxy :mp4
-
-  extend_hook :before_ready
-  extend_request :provider
-
-  hook :before_ready do |engine|
-    engine.orig_before_ready
-    info 'Engine (type MP4) is ready'
-  end
-
-  request :provider do |engine, args|
-    "Extended provider method: " + engine.orig_request_provider(args)
-  end
-end
-
 OmfCommon.init(op_mode, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
     info ">>> Starting garage"
+
     garage = OmfRc::ResourceFactory.new(:garage, opts.merge(uid: 'garage'))
 
-    # Disconnect garage from XMPP server, when these two signals received
-    trap(:INT) { garage.disconnect }
-    trap(:TERM) { garage.disconnect }
+    # Disconnect garage from XMPP server, when INT or TERM signals received
+    comm.on_interrupted { garage.disconnect }
   end
 end

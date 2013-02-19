@@ -37,7 +37,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property
-  attr_reader :opts, :children, :membership
+  attr_reader :opts, :children, :membership, :membership_topics
 
   # Initialisation
   #
@@ -64,6 +64,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @children ||= []
     @membership ||= []
     @topics = []
+    @membership_topics ||= {}
 
     # FIXME adding hrn to membership too?
     @membership << @hrn if @hrn
@@ -181,6 +182,10 @@ class OmfRc::ResourceProxy::AbstractResource
       t.unsubscribe
     end
 
+    @membership_topics.each_value do |t|
+      t.unsubscribe
+    end
+
     true
   end
 
@@ -234,11 +239,19 @@ class OmfRc::ResourceProxy::AbstractResource
       @membership << n_m unless @membership.include?(n_m)
     end
     @membership.each do |m|
-      OmfCommon.comm.subscribe(m) do |stanza|
-        if stanza.error?
+      OmfCommon.comm.subscribe(m) do |t|
+        if t.error?
           warn "Group #{m} disappeared"
           EM.next_tick do
             @membership.delete(m)
+          end
+        else
+          EM.next_tick do
+            @membership_topics[m] = t
+          end
+
+          t.on_message do |imsg|
+            process_omf_message(imsg, t)
           end
         end
       end
@@ -291,8 +304,6 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     case message.operation
-    #when :create
-    #  inform(:creation_ok, response_h, topic)
     when :request, :configure
       inform(:status, response_h, topic)
     when :release
@@ -346,8 +357,6 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-
-    # FIXME At this point topic for new instance has not been created.
   end
 
   def handle_configure_message(message, obj, response)

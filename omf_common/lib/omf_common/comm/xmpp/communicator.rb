@@ -165,7 +165,7 @@ class Comm
 
       # Provide a new block wrap to automatically log errors
       def callback_logging(*args, &block)
-        m = args.empty? ? "OPERATION" : args.map {|v| v.to_s.upcase }.join(" ")
+        m = args.empty? ? "OPERATION" : args.join(" >> ")
         proc do |stanza|
           if stanza.respond_to?(:error?) && stanza.error?
             e_stanza = Blather::StanzaError.import(stanza)

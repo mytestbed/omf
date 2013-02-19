@@ -30,6 +30,8 @@ module OmfEc
     def subscribe_and_monitor(topic_id, context_obj = nil, &block)
       OmfCommon.comm.subscribe(topic_id) do |res|
         unless res.error?
+          context_obj.associate_topic(res) if context_obj
+
           block.call(context_obj || res) if block
 
           res.on_creation_failed do |msg|
@@ -38,7 +40,6 @@ module OmfEc
           end
 
           res.on_creation_ok do |msg|
-            debug msg
             info "Resource #{msg[:resource_id]} created"
             OmfEc.experiment.add_resource(msg[:resource_id],
                                           type: msg[:type],
@@ -49,8 +50,7 @@ module OmfEc
           end
 
           res.on_status do |msg|
-            debug msg
-            info OmfEc.experiment.state
+            msg.each_property { |k, v| debug "#{k} > #{v}" }
 
             resource = OmfEc.experiment.resource(msg[:uid])
 
@@ -59,8 +59,6 @@ module OmfEc
                                             type: msg[:type],
                                             hrn: msg[:hrn],
                                             membership: msg[:membership])
-              info OmfEc.experiment.state
-
             else
               if msg[:status_type] == 'APP_EVENT'
                 info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
