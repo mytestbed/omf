@@ -31,7 +31,7 @@ require 'fcntl'
 #
 # Borrows from Open3
 #
-class ExecApp 
+class ExecApp
 
   # Holds the pids for all active apps
   @@all_apps = Hash.new
@@ -141,7 +141,7 @@ class ExecApp
   # Create a thread to monitor the process and its output
   # and report that back to the server
   #
-  # @parma name Name of app stream to monitor (should be :stdout, :stderr)
+  # @param name Name of app stream to monitor (should be :stdout, :stderr)
   # @param pipe Pipe to read from
   #
   def monitor_pipe(name, pipe)

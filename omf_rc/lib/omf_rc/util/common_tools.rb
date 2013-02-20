@@ -34,14 +34,12 @@ module OmfRc::Util::CommonTools
   #
   # @yieldparam [String] msg the error or warning message
   #
-	%w(error warn).each do |type|
-		work("log_inform_#{type}") do |res, msg|
-		  logger.send(type, msg)
-      res.comm.publish(
+  %w(error warn).each do |type|
+    work("log_inform_#{type}") do |res, msg|
+      logger.send(type, msg)
+      OmfCommon.comm.publish(
         res.uid,
-        OmfCommon::Message.inform(type.upcase) do |message|
-          message.element('reason' , msg)
-        end
+        OmfCommon::Message.create(:inform, nil, { reason: msg, inform_type: type.upcase })
       )
     end
   end

@@ -3,6 +3,7 @@ require 'test_helper'
 describe OmfCommon::Comm do
   describe 'when initialised with a pubsub implementation' do
     it 'must return a instance with all methods defined in corresponding module loaded' do
+      skip
       @comm = OmfCommon::Comm.new(:xmpp)
       %w(connect disconnect create_topic delete_topic subscribe unsubscribe publish affiliations).each do |m|
         @comm.must_respond_to m

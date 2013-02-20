@@ -172,11 +172,11 @@ def omf_created_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
+          <msg_id>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</msg_id>
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
-          <inform_type>CREATED</inform_type>
+          <inform_type>CREATION_OK</inform_type>
           <resource_id>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_id>
-          <resource_address>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_address>
         </inform>
       </item>
     </items>
@@ -194,7 +194,8 @@ def omf_status_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
+          <msg_id>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</msg_id>
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
           <inform_type>STATUS</inform_type>
           <property key="bob">bob</property>
@@ -215,9 +216,10 @@ def omf_failed_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
+          <msg_id>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</msg_id>
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
-          <inform_type>FAILED</inform_type>
+          <inform_type>CREATION_FAILED</inform_type>
           <reason>No idea</reason>
         </inform>
       </item>
@@ -236,7 +238,8 @@ def omf_released_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/6.0/protocol" msg_id="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
+          <msg_id>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</msg_id>
           <context_id>bf840fe9-c176-4fae-b7de-6fc27f183f76</context_id>
           <inform_type>RELEASED</inform_type>
           <resource_id>444f17fb-546e-4685-a0d0-63e64fa046c8</resource_id>

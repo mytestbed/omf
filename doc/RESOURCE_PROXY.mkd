@@ -1,0 +1,148 @@
+# Implement your own resource proxy
+
+## Before we could start
+
+Follow the instructions on {file:README.md README} file regarding installation and XMPP server setup.
+
+## Scenario
+
+Suppose we are managing some formula 1 team's garages, and we want to test the engines' we have, simply by adjusting the throttle and observing the engines' RPM. Unless you had the opportunity to connect your laptop to a real formula 1 engine, we can assume that all we need here is a mock up engine written in Ruby.
+
+We will build a garage controller (resource controller) acts as the proxy to the garage and engines, and an engine test controller, which asks garage controller to provide an engine and perform some throttle adjustments, while monitoring engines' RPM.
+
+### Files
+
+If you want to dive into the code right now, these are the two annotated files used for this example:
+
+* [Garage controller](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb)
+* [Engine test script](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb)
+* [Engine test script OEDL style](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_oedl.rb)
+
+
+### Resource controller script skeleton
+
+Firstly, we need a resource controller script running, which contains some instances of resource proxy represents 'garage', we can then use resource factory method to create such
+
+    OmfRc::ResourceFactory.new(:garage, {uid: 'garage_1', server: 'localhost', user: 'alpha', password: 'pw'})
+
+This does following behind the scene
+
+* Extend the instance with resource proxy module named 'garage' (should be defined first).
+* If additional options provided for pubsub communicator, a communicator instance will be created and attached to this resource proxy instance.
+* If before\_ready hook provided in the module, they will be executed.
+
+Refer to {OmfRc::ResourceFactory} for implementation.
+
+All we need to do to start is in the main eventmachine loop, ask the garage resource to connect
+
+    garage = OmfRc::ResourceFactory.new(:garage, options)
+    garage.connect
+
+### Resource proxy mixin module definition
+
+A resource proxy mixin module represents the functionalities the resource could provide, for example, this engine proxy can provide adjustable throttle to be configured, RPM value to be requested, etc.. The features defined here will be available to the engine proxy instance by the time it is created by ResourceFactory.
+
+For example, the garage controller script contains such proxy definitions
+
+    module OmfRc::ResourceProxy::Garage
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :garage
+    end
+
+    module OmfRc::ResourceProxy::Engine
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :engine
+    end
+
+### Add more features to engine using proxy DSL
+
+Now we are going to add some real features to these modules.
+
+The DSL methods will normally take a name parameter, and a block which be will be executed at the runtime.
+
+An optional yielded variable could used if your actions inside the block need access inside the context of resource proxy itself, i.e. getting or updating the instance object where this mixin module will be applied to.
+
+Normally we don't need to record the state of a real resource inside our resource proxy entities (e.g. the available memory of a running physical machine). In case you need to maintain the state, resource proxy abstract class provides a :property attribute (which is a [Hashie::Mash] (https://github.com/intridea/hashie#mash) object), for keeping these information inside the instances.
+
+For more information regarding these DSL methods, go to the section [Full DSL methods list](#Full_DSL_methods_list)
+
+Refer to the [Garage controller](https://github.com/mytestbed/omf/blob/master/doc/garage_controller.rb) script to see the actual implementation.
+
+### Engine test scripts
+
+Refer to
+
+* [Test script](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_test.rb)
+* [Test script OEDL](https://github.com/mytestbed/omf/blob/master/omf_ec/example/engine_oedl.rb)
+
+to find out how to interact with the garage and engine resources remotely using XMPP publish-suscribe communication.
+
+To run this test script, make sure you start the garage\_controller first. (You could modify the XMPP pubsub setup in the script if necessary)
+
+Then simply download the test script files, and use the EC (Experiment Controller) script loader to run it.
+
+    omf_ec -u charlie -s localhost -p password exec engine_test.rb
+
+or
+
+    omf_ec -u charlie -s localhost -p password exec engine_oedl.rb -- --num_of_garage 3
+
+Type omf\_ec or omf\_ec exec to see all the options.
+
+## Organise resource proxy modules
+
+### Define inline
+
+If you have a rather simple resource controller, with minimal set of features, like the ones described in this tutorial, you could just define these modules as part of the RC script.
+
+### Include resource proxy modules in the default package
+
+The default location of resource proxy definition files are located in the directory [omf\_rc/lib/omf\_rc/resource\_proxy](https://github.com/mytestbed/omf/tree/master/omf_rc/lib/omf_rc/resource_proxy).
+
+If you wish your feature set could be available as part of the default package, save them under this default directory, following this naming convention: OmfRc::ResourceProxy::Engine will register a proxy named :engine, and saved to file omf\_rc/lib/omf\_rc/resource\_proxy/engine.rb
+
+To load these default resource proxies, simple call a load method provided by ResourceFactory class in your resource controller script (e.g. engine\_control.rb)
+
+    OmfRc::ResourceFactory.load_default_resource_proxies
+
+Commit your definition files into the git repository and simply send us a pull request.
+
+### Package your proxy definition files as OMF extension gem
+
+You could also package your proxy definition files into separate gems, if you feel they should not go into the default RC package.
+
+This process is rather simple, take a look at this third party rc gem of openflow integration.
+
+https://github.com/kohoumas/omf_rc_openflow
+
+### Refactor common features into resource utilities
+
+If a set of features can be shared among different types of resources, it is a good idea to refactor them into resource utilities.
+
+Take this engine test example, if we have more than one type of engine needs to be tested, and they could all be able to adjust throttle, we can create a utility for this.
+
+    module OmfRc::Util::Throttle
+      include OmfRc::ResourceProxyDSL
+
+      configure :throttle do |resource, value|
+        resource.property.throttle = value.to_f / 100.0
+      end
+    end
+
+Then include this utility inside the engine resource proxy file by using:
+
+    utility :throttle
+
+You could also overwrite a property definition provided by the utility, by registering it again using the same name.
+
+## Full DSL methods list
+
+In the previous example, we use method register\_proxy to register resource proxy, request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
+
+    include OmfRc::ResourceProxyDSL
+
+The full list of resource proxy DSL can be found here:
+### {OmfRc::ResourceProxyDSL::ClassMethods Resource Proxy DSL API}
+

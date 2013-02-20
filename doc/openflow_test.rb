@@ -37,7 +37,7 @@ comm.when_ready do
   end
 end
 
-comm.on_created_message @messages[:create] do |message|
+comm.on_creation_ok_message @messages[:create] do |message|
   child_uid = message.read_content("resource_id")
   @messages[:release] ||= comm.release_message([resource_id: child_uid])
   logger.info "* Child resource \"#{child_uid}\" ready for testing"
@@ -58,7 +58,7 @@ comm.on_status_message @messages[:config_a] do |message|
   end
 end
 
-comm.on_failed_message do |message|
+comm.on_creation_failed_message do |message|
   logger.error message.read_content("error_message")
 end
 
@@ -69,12 +69,12 @@ end
 EM.run do
   comm.connect(options[:user], options[:password], options[:server])
 
-  trap(:INT) do 
+  trap(:INT) do
     comm.publish(options[:uid], @messages[:release])
     comm.disconnect
   end
-  trap(:TERM) do 
-    comm.publish(options[:uid], @messages[:release]) 
+  trap(:TERM) do
+    comm.publish(options[:uid], @messages[:release])
     comm.disconnect
   end
 end

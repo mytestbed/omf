@@ -1,0 +1,8 @@
+---
+# default topic name is the hostname
+#:uid: topic_name
+:user: pubsub_user
+:password: '123'
+:server: norbit.npc.nicta.com.au
+:debug: false
+:log_file_dir: /var/log/omf_rc.log

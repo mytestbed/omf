@@ -3,5 +3,4 @@
 --load yard_extension.rb
 omf_*/lib/**/*.rb
 -
-doc/RESOURCE_PROXY.md
-doc/UNIT_TEST.md
+doc/*.mkd

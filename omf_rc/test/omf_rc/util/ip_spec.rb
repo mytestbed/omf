@@ -12,8 +12,14 @@ describe OmfRc::Util::Ip do
         utility :ip
       end
 
-      @wlan00 = OmfRc::ResourceFactory.new(:ip_test, hrn: 'wlan00')
+      @xmpp = MiniTest::Mock.new
+      @xmpp.expect(:subscribe, true, [Array])
+
       @command = MiniTest::Mock.new
+
+      OmfCommon.stub :comm, @xmpp do
+        @wlan00 = OmfRc::ResourceFactory.new(:ip_test, hrn: 'wlan00')
+      end
     end
 
     it "must provide features defined in proxy" do
@@ -41,7 +47,9 @@ describe OmfRc::Util::Ip do
     it "could configure the device's prorperty" do
       lambda { @wlan00.configure_ip_addr("192.168.1.124/24") }.must_raise Cocaine::ExitStatusError
       Cocaine::CommandLine.stub(:new, @command) do
-        @command.expect(:run, "")
+        3.times do
+          @command.expect(:run, "")
+        end
         @command.expect(:run, fixture("ip/addr_show"))
         @wlan00.configure_ip_addr("192.168.1.124/24")
         @command.verify

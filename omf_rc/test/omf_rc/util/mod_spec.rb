@@ -9,18 +9,31 @@ describe OmfRc::Util::Mod do
         register_proxy :mod_test
         utility :mod
       end
+      @command = MiniTest::Mock.new
+      @xmpp = MiniTest::Mock.new
+      @xmpp.expect(:subscribe, true, [String])
     end
 
     it "will find out a list of modules" do
-      OmfCommon::Command.stub :execute, fixture("lsmod") do
-        OmfRc::ResourceFactory.new(:mod_test).request_modules.must_include "kvm"
-        OmfRc::ResourceFactory.new(:mod_test).request_modules.wont_include "Module"
+      OmfCommon.stub :comm, @xmpp do
+        Cocaine::CommandLine.stub(:new, @command) do
+          @command.expect(:run, fixture("lsmod"))
+          OmfRc::ResourceFactory.new(:mod_test).request_modules.must_include "kvm"
+          @command.expect(:run, fixture("lsmod"))
+          @xmpp.expect(:subscribe, true, [String])
+          OmfRc::ResourceFactory.new(:mod_test).request_modules.wont_include "Module"
+          @command.verify
+        end
       end
     end
 
     it "could load a module" do
-      OmfCommon::Command.stub :execute, true do
-        OmfRc::ResourceFactory.new(:mod_test).configure_load_module('magic_module').must_equal true
+      OmfCommon.stub :comm, @xmpp do
+        Cocaine::CommandLine.stub(:new, @command) do
+          @command.expect(:run, true)
+          OmfRc::ResourceFactory.new(:mod_test).configure_load_module(name: 'magic_module').must_equal "magic_module loaded"
+          @command.verify
+        end
       end
     end
   end

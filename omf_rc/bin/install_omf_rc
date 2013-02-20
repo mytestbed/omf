@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+
+if Process.uid!=0
+  abort "You have to be root to install the OMF RC startup script and config file.
+You also need to have the omf_rc gem installed as root and have RVM installed as root (if you don't use system ruby)."
+end
+
+options = {}
+optparse = OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+  opts.on("-i", "--initscript", "Install init script to run the OMF RC on boot (as root)") do |i|
+    options[:init] = i
+  end
+  opts.on("-c", "--configfile", "Install config file template in /etc/omf_rc/config.yml") do |c|
+    options[:config] = c
+  end
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end
+
+optparse.parse!
+if options.empty?
+  puts optparse
+  exit
+end
+
+spec = Gem::Specification.find_by_name("omf_rc")
+gem_root = spec.gem_dir
+
+if options[:config]
+  puts "Copying configuration file..."
+  FileUtils.mkdir_p "/etc/omf_rc"
+  FileUtils.cp "#{gem_root}/config/config.yml", "/etc/omf_rc/config.yml"
+  puts "done."
+end
+
+if options[:init]
+  puts "Detecting operating system..."
+  
+  if !File.exist?("/etc/os-release")
+    abort "Unknown or unsupported operating system. Cannot install init script."
+  end
+  
+  os=`awk -F'=' '/^ID=/{print $2}' /etc/os-release 2>/dev/null`.chomp
+  
+  if os.nil?
+    abort "Unknown or unsupported operating system. Cannot install init script."
+  end
+ 
+  puts "'#{os}' found"
+  
+  FileUtils.cp "#{gem_root}/init/run_omf_rc.sh", "/usr/local/bin/run_omf_rc.sh"
+  
+  case os
+  when "ubuntu"
+    FileUtils.cp "#{gem_root}/init/ubuntu", "/etc/init/omf_rc.conf"
+  when "debian"
+    FileUtils.cp "#{gem_root}/init/debian", "/etc/init.d/omf_rc"
+    `update-rc.d omf_rc defaults`
+  when "fedora"
+  else
+    abort "OS '#{os}' is not supported. Cannot install init script."
+  end
+end

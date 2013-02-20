@@ -1,96 +1,56 @@
 require 'test_helper'
 
-include OmfCommon
-
-PROP_ELEMENTS = %w(p1 p2 p3)
-
 describe OmfCommon::Message do
-  describe "when constructing valid messages" do
-    it "must return a create or configure XML element without failing" do
-      %w(create configure).each do |msg_name|
-        message = Message.__send__(msg_name) do |m|
-          PROP_ELEMENTS.each_with_index do |prop_element, index|
-            if index == 0
-              m.property(prop_element, rand(100))
-            else
-              m.property(prop_element, rand(100)) do |p|
-                p.element('unit', 'test')
-                p.element('precision', 'test')
-              end
-            end
-          end
-        end
-        message.valid?.must_equal true
+  describe "when initialised" do
+    before do
+      @internal_attr = %w(type operation guard msg_id timestamp inform_to context_id inform_type)
+      @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
+    end
+
+    it "must be able to query internal properties" do
+      @message.type.must_equal :create
+      @message.operation.must_equal :create
+      @message.msg_id.wont_be_nil
+      @message.timestamp.wont_be_nil
+    end
+
+    it "must be able to get property value"  do
+      @message[:p1].must_equal 'p1_value'
+      @message.read_property(:p1).must_equal 'p1_value'
+    end
+
+    it "must be able to set property value" do
+      @message[:p1] = 'new_value'
+      @message[:p1].must_equal 'new_value'
+      @message.write_property(:p2, 'new_value')
+      @message[:p2].must_equal 'new_value'
+    end
+
+    it "must be able to query internal message properties" do
+      @internal_attr.each do |name|
+        @message.must_respond_to name
       end
     end
 
-    it "must return a request XML element without failing" do
-      request = Message.request('foo@bar') do |m|
-        PROP_ELEMENTS.each do |prop_element|
-          m.property(prop_element, {min_value: 'test', max_value: 'test'})
-        end
-      end
-      request.valid?.must_equal true
+    it "must evaluate erb code when read property with evaluate option is true" do
+      @message[:p3] = "1 + 1 = <%= 1 + 1 %>"
+      @message[:p4] = "1 + 1 = <%= two %>"
+      @message.read_property(:p3, binding).must_equal "1 + 1 = 2"
+      @message[:p3].must_equal "1 + 1 = <%= 1 + 1 %>"
+      two = 2
+      @message[:p4, binding].must_equal "1 + 1 = 2"
+      @message[:p4].must_equal "1 + 1 = <%= two %>"
     end
 
-    it "must return a release XML element without failing" do
-      release = Message.release { |v| v.element('resource_id', 'test') }
-      release.valid?.must_equal true
-    end
-
-    it "must return a inform XML element without failing" do
-      inform = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
-        m.element('resource_id', 'test')
-        m.element('resource_address', 'test')
-        PROP_ELEMENTS.each do |prop_element|
-          m.property(prop_element, { current: 'test', target: 'test'})
-        end
-      end
-      inform.valid?.must_equal true
-    end
-
-    it "context_id & resource_id shortcut must work too" do
-      m = Message.inform('CREATED', '9012c3bc-68de-459a-ac9f-530cc7168e22') do |m|
-        m.element('resource_id', 'test')
-      end
-      m.resource_id.must_equal 'test'
-      m.context_id.must_equal '9012c3bc-68de-459a-ac9f-530cc7168e22'
-    end
-  end
-
-  describe "must be able to parse a XML element into Message object" do
-    it "must behave" do
-      xml = Message.create do |m|
-        m.property('type', 'vm')
-        m.property('os', 'debian')
-        m.property('memory', { value: 1024, unit: 'mb', precision: 0 })
-        m.property('devices', [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ])
-      end.canonicalize
-
-      message = Message.parse(xml)
-
-      message.must_be_kind_of Message
-      message.operation.must_equal :create
-      message.read_element("//property").size.must_equal 4
-      message.read_content("unit").must_equal 'mb'
-      message.read_element("/create/property").size.must_equal 4
-      message.read_property("type").must_equal 'vm'
-      message.read_property(:type).must_equal 'vm'
-
-      memory = message.read_property(:memory)
-      memory.must_be_kind_of Hashie::Mash
-      memory.value.must_equal 1024
-      memory.unit.must_equal 'mb'
-      memory.precision.must_equal 0
-
-      devices = message.read_property(:devices)
-      devices.items.must_be_kind_of Array
-      devices.items.size.must_equal 2
-      devices.items.find { |v| v.name == 'w1'}.driver.items.size.must_equal 2
-      # Each property iterator
-      message.each_property do |v|
-        %w(type os memory devices).must_include v.attr('key')
-      end
+    it "must be able to pretty print an app_event message" do
+      @message = OmfCommon::Message.create(:inform,
+                     { status_type: 'APP_EVENT',
+                       event: 'DONE.OK',
+                       app: 'app100',
+                       msg: 'Everything will be OK',
+                       seq: 1 },
+                     { inform_type: 'STATUS' })
+      @message.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
     end
   end
 end

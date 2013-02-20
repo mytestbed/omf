@@ -1,63 +1,100 @@
 #!/usr/bin/env ruby
 
-require "optparse"
+require 'optparse'
+require 'blather'
+
 require 'omf_rc'
 require 'omf_rc/resource_factory'
+
 $stdout.sync = true
-
-options = {
-  uid: `hostname`.chomp
-}
-
+options = {}
 executable_name = File.basename($PROGRAM_NAME)
-
-option_parser = OptionParser.new do |opts|
-  opts.banner = "usage: #{executable_name} [options]"
-
-  opts.on("-u USER", "Username") do |user|
-    options[:user] = user
-  end
-
-  opts.on("-p PASSWORD", "Password") do |password|
-    options[:password] = password
-  end
-
-  opts.on("-s SERVER", "XMPP server") do |server|
-    options[:server] = server
-  end
-
-  opts.on("-t TOPIC", "PubSub topic to create, also becomes the uid of the resource, default to hostname") do |topic|
-    options[:uid] = topic
-  end
-
-  opts.on("-d", "--debug", "Debug mode") do
-    options[:debug] = true
-  end
-end
+oml_enabled = false
 
 begin
-  option_parser.parse!
+  oml_enabled = OML4R::init(ARGV, :appName => executable_name) do |opts|
+    opts.banner = "usage: #{executable_name} [options]"
+
+    opts.on("-c CONFIGFILE", "Configuration File") do |file|
+      options[:configfile] = file
+    end
+
+    opts.on("-u USER", "Username") do |user|
+      options[:user] = user
+    end
+
+    opts.on("-p PASSWORD", "Password") do |password|
+      options[:password] = password
+    end
+
+    opts.on("-s SERVER", "PubSub server") do |server|
+      options[:server] = server
+    end
+
+    opts.on("-t TOPIC", "PubSub topic to create, also becomes the uid of the resource, default to hostname") do |topic|
+      options[:uid] = topic
+    end
+
+    opts.on("-d", "--debug", "Debug mode") do
+      options[:debug] = true
+    end
+
+    opts.on("-l LOG_FILE_DIR", "Write log file to this folder") do |file_dir|
+      options[:log_file_dir] = file_dir
+    end
+  end
 rescue => e
-  puts e.message
-  puts ""
-  puts option_parser.help
-  exit(1)
+  # Right now OML4R does not raise proper exceptions :(
+  # OML4R requires --oml-noop to be set if we want to run without doing any
+  # measurements... this is too restrictive here, we want to run without OML
+  # if no OML parameters were set and this even if --oml-noop is not set.
+  if e.message.include?('OML4R: Missing values for parameters :expID ')
+    puts "Warning: Missing some OML options to instrument this RC, so it will "+
+      "run without instrumentation. (see --oml-help)"
+  else
+    puts e.message
+    exit(1)
+  end
 end
 
-unless options[:server] && options[:user] && options[:server]
-  puts option_parser.help
+if !options[:configfile].nil?
+  cfg_options = (YAML.load_file(options[:configfile]))
+  options = cfg_options.merge(options)
+end
+
+if options[:uid].nil?
+  options[:uid]=`hostname`.chomp
+end
+
+OmfCommon::Measure.enable if oml_enabled
+
+unless options[:server] && options[:user] && options[:password]
+  puts "Error: Missing parameters to connect to a PubSub Server (see --help)"
   exit(1)
 end
 
 Logging.logger.root.level = :debug if options[:debug]
 Blather.logger = logger
 
+if options[:log_file_dir] && File.exist?(options[:log_file_dir])
+  Logging.logger.root.add_appenders(
+    Logging.appenders.file(
+      "#{options[:log_file_dir]}/omf_rc.log",
+      :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
+                                         :pattern => '[%d] %-5l %c: %m\n')))
+end
+
 OmfRc::ResourceFactory.load_default_resource_proxies
 
-EM.run do
-  node = OmfRc::ResourceFactory.new(:node, options)
-  node.connect
+OmfCommon::Eventloop.init(type: :em)
 
-  trap(:INT) { node.disconnect }
-  trap(:TERM) { node.disconnect }
+OmfCommon.eventloop.run do
+  OmfCommon::Comm.init(type: :xmpp, username: options[:user], password: options[:password], server: options[:server])
+
+  OmfCommon.comm.on_connected do
+    node = OmfRc::ResourceFactory.new(:node, options)
+
+    trap(:INT) { node.disconnect }
+    trap(:TERM) { node.disconnect }
+  end
 end

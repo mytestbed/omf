@@ -1,0 +1,4 @@
+Interface wlan0
+	ifindex 3
+	type managed
+	wiphy 0

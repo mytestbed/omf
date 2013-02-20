@@ -7,10 +7,12 @@ Gem::Specification.new do |s|
   s.version     = OmfRc::VERSION
   s.authors     = ["NICTA"]
   s.email       = ["omf-user@lists.nicta.com.au"]
-  s.homepage    = "https://www.mytestbed.net"
+  s.homepage    = "http://omf.mytestbed.net"
   s.summary     = %q{OMF resource controller}
   s.description = %q{Resource controller of OMF, a generic framework for controlling and managing networking testbeds.}
-
+  s.required_ruby_version = '>= 1.9.3'
+  s.license = 'MIT'
+  
   s.rubyforge_project = "omf_rc"
 
   s.files         = `git ls-files`.split("\n")

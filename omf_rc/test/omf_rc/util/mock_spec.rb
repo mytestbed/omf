@@ -9,7 +9,12 @@ describe OmfRc::Util::Mock do
         register_proxy :mock_test
         utility :mock
       end
-      @mock = OmfRc::ResourceFactory.new(:mock_test)
+
+      @xmpp = MiniTest::Mock.new
+      @xmpp.expect(:subscribe, true, [String])
+      OmfCommon.stub :comm, @xmpp do
+        @mock = OmfRc::ResourceFactory.new(:mock_test)
+      end
     end
 
     it "must have these demo methods available" do

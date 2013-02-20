@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar ns="http://schema.mytestbed.net/omf/6.0/protocol" xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
+    <choice>
+      <ref name="create"/>
+      <ref name="configure"/>
+      <ref name="request"/>
+      <ref name="release"/>
+      <ref name="inform"/>
+    </choice>
+  </start>
+  <define name="common_elements">
+    <interleave>
+      <element name="timestamp">
+        <text/>
+      </element>
+      <element name="msg_id">
+        <text/>
+      </element>
+      <optional>
+        <element name="digest">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <element name="signature">
+          <text/>
+        </element>
+      </optional>
+      <zeroOrMore>
+        <element name="property">
+          <ref name="prop_content"/>
+        </element>
+      </zeroOrMore>
+      <optional>
+        <element name="guard">
+          <zeroOrMore>
+            <element name="property">
+              <ref name="prop_content"/>
+            </element>
+          </zeroOrMore>
+        </element>
+      </optional>
+    </interleave>
+  </define>
+  <define name="anything">
+    <choice>
+      <text/>
+      <element>
+        <anyName/>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="anything"/>
+          </choice>
+        </zeroOrMore>
+      </element>
+    </choice>
+  </define>
+  <define name="prop_content">
+    <attribute name="key"/>
+    <optional>
+      <attribute name="type"/>
+    </optional>
+    <zeroOrMore>
+      <ref name="anything"/>
+    </zeroOrMore>
+  </define>
+  <define name="create">
+    <element name="create">
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="inform_to">
+            <text/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="configure">
+    <element name="configure">
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="inform_to">
+            <text/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="request">
+    <element name="request">
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="inform_to">
+            <text/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="release">
+    <element name="release">
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="inform_to">
+            <text/>
+          </element>
+        </optional>
+        <element name="resource_id">
+          <text/>
+        </element>
+      </interleave>
+    </element>
+  </define>
+  <define name="inform">
+    <element name="inform">
+      <interleave>
+        <ref name="common_elements"/>
+        <optional>
+          <element name="context_id">
+            <text/>
+          </element>
+        </optional>
+        <element name="inform_type">
+          <choice>
+            <value>CREATION_OK</value>
+            <value>CREATION_FAILED</value>
+            <value>STATUS</value>
+            <value>RELEASED</value>
+            <value>ERROR</value>
+            <value>WARN</value>
+          </choice>
+        </element>
+      </interleave>
+    </element>
+  </define>
+</grammar>

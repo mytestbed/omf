@@ -7,12 +7,7 @@ require 'omf_rc/resource_proxy/abstract_resource'
 #
 class OmfRc::ResourceFactory
   # List of registered resource proxies
-  @@proxy_list = []
-
-  # By default, we use xmpp dsl, which based on blather
-  DEFAULT_OPTS = {
-    dsl: 'xmpp'
-  }
+  @@proxy_list = Hashie::Mash.new
 
   class << self
     # Factory method to initiate new resource proxy
@@ -20,18 +15,25 @@ class OmfRc::ResourceFactory
     # @param (see OmfRc::ResourceProxy::AbstractResource#initialize)
     #
     # @see OmfRc::ResourceProxy::AbstractResource
-    def new(type, opts = nil, comm = nil, &block)
-      raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
-      type = type.to_s
-      opts = opts ? DEFAULT_OPTS.merge(opts) : DEFAULT_OPTS
+    def create(type, opts = {}, creation_opts = {}, &creation_callback)
+      unless @@proxy_list.include?(type)
+        raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
+      end
       # Create a new instance of abstract resource
-      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, comm)
+      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts, &creation_callback)
       # Then extend this instance with relevant module identified by type
-      resource.extend("OmfRc::ResourceProxy::#{type.camelize}".constantize)
+      emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize
+      resource.extend(emodule)
+      # Initiate property hash
+      resource.methods.each do |m|
+        resource.__send__(m) if m =~ /def_property_(.+)/
+      end
       # Execute resource before_ready hook if any
       resource.before_ready if resource.respond_to? :before_ready
       resource
     end
+
+    alias :new :create
 
     # Return the proxy list
     def proxy_list
@@ -39,8 +41,12 @@ class OmfRc::ResourceFactory
     end
 
     # Add a proxy to the list
-    def register_proxy(proxy)
-      @@proxy_list << proxy unless @@proxy_list.include?(proxy)
+    def register_proxy(proxy_opts)
+      if @@proxy_list.has_key? proxy_opts[:name]
+        raise StandardError, "Resource has been registered already"
+      else
+        @@proxy_list.update(proxy_opts)
+      end
     end
 
     # Require files from default resource proxy library folder
