@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'blather'
 
 require 'omf_rc'
 require 'omf_rc/resource_factory'
@@ -19,28 +18,20 @@ begin
       options[:configfile] = file
     end
 
-    opts.on("-u USER", "Username") do |user|
-      options[:user] = user
+    opts.on("-a ADVANCED_CONFIGFILE", "Advanced Configuration File") do |file|
+      options[:advanced_configfile] = file
     end
 
-    opts.on("-p PASSWORD", "Password") do |password|
-      options[:password] = password
+    opts.on("-u URI", "Communication URI (xmpp://user:password@domain)") do |uri|
+      options[:uri] = uri
     end
 
-    opts.on("-s SERVER", "PubSub server") do |server|
-      options[:server] = server
+    opts.on("-e ENVIRONMENT", "Environment (development, production ...)") do |environment|
+      options[:environment] = environment
     end
 
-    opts.on("-t TOPIC", "PubSub topic to create, also becomes the uid of the resource, default to hostname") do |topic|
-      options[:uid] = topic
-    end
-
-    opts.on("-d", "--debug", "Debug mode") do
-      options[:debug] = true
-    end
-
-    opts.on("-l LOG_FILE_DIR", "Write log file to this folder") do |file_dir|
-      options[:log_file_dir] = file_dir
+    opts.on("-i UID", "UID of the resource, also becomes the pubsub topic of the resource, default to hostname") do |uid|
+      options[:uid] = uid
     end
   end
 rescue => e
@@ -62,39 +53,39 @@ if !options[:configfile].nil?
   options = cfg_options.merge(options)
 end
 
-if options[:uid].nil?
-  options[:uid]=`hostname`.chomp
-end
+options[:uid] ||=`hostname`.chomp
 
 OmfCommon::Measure.enable if oml_enabled
 
-unless options[:server] && options[:user] && options[:password]
+options[:environment] ||= :development
+
+if options[:uri]
+  common_options = { communication: { url: options[:uri] } }
+else
+  common_options = {}
+end
+
+if !options[:advanced_configfile].nil?
+  a_cfg_options = (YAML.load_file(options[:advanced_configfile]))
+  common_options = a_cfg_options.merge(common_options)
+end
+
+unless common_options[:communication] && common_options[:communication][:url]
   puts "Error: Missing parameters to connect to a PubSub Server (see --help)"
   exit(1)
 end
 
-Logging.logger.root.level = :debug if options[:debug]
-Blather.logger = logger
-
-if options[:log_file_dir] && File.exist?(options[:log_file_dir])
-  Logging.logger.root.add_appenders(
-    Logging.appenders.file(
-      "#{options[:log_file_dir]}/omf_rc.log",
-      :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
-                                         :pattern => '[%d] %-5l %c: %m\n')))
-end
+resource_options = {
+  uid: options[:uid]
+}
 
 OmfRc::ResourceFactory.load_default_resource_proxies
 
-OmfCommon::Eventloop.init(type: :em)
+OmfCommon.init(options[:environment].to_sym, common_options) do |el|
 
-OmfCommon.eventloop.run do
-  OmfCommon::Comm.init(type: :xmpp, username: options[:user], password: options[:password], server: options[:server])
+  OmfCommon.comm.on_connected do |comm|
+    res = OmfRc::ResourceFactory.create(:node, resource_options)
 
-  OmfCommon.comm.on_connected do
-    node = OmfRc::ResourceFactory.new(:node, options)
-
-    trap(:INT) { node.disconnect }
-    trap(:TERM) { node.disconnect }
+    comm.on_interrupted { node.disconnect }
   end
 end
