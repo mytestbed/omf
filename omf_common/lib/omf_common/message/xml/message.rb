@@ -87,7 +87,7 @@ class XML
     end
 
     def itype
-      @content.itype.to_s.upcase unless @content.itype.nil?
+      @content.itype.to_s.upcase.gsub(/_/, '.') unless @content.itype.nil?
     end
 
     def marshall
