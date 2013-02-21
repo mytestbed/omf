@@ -35,7 +35,7 @@
 #   (stopped, running, paused, installed, completed)
 # - installed (Boolean) is this application installed? (default false)
 # - force_tarball_install (Boolean) if true then force the installation
-#   from tarball even if other distribution-specific installation are 
+#   from tarball even if other distribution-specific installation are
 #   available (default false)
 # - map_err_to_out (Boolean) if true then map StdErr to StdOut for this
 #   app (default false)
@@ -138,19 +138,18 @@ module OmfRc::ResourceProxy::Application
                   "(##{res.property.event_sequence}) - "+
                   "#{event_type}: '#{msg}'"
       if event_type.to_s.include?('DONE')
-        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed 
+        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
       end
 
       (res.membership + [res.uid]).each do |m|
         res.inform(:status, {
-          inform_to: m,
-          status: { status_type: 'APP_EVENT',
-                    event: event_type.to_s.upcase,
-                    app: app_id,
-                    msg: msg,
-                    seq: res.property.event_sequence,
-                    uid: res.uid }
-        })
+          status_type: 'APP_EVENT',
+          event: event_type.to_s.upcase,
+          app: app_id,
+          msg: msg,
+          seq: res.property.event_sequence,
+          uid: res.uid
+        }, m == res.uid ? nil : res.membership_topics[m])
       end
 
       res.property.event_sequence += 1
@@ -239,7 +238,7 @@ module OmfRc::ResourceProxy::Application
   #   stay in this state until the installation is done. The
   #   Application RP can only enter this state from a previous stopped
   #   state. Furthermore it can only exit this state to enter the stopped state
-  #   only when the installatio is done. Supported install methods are: Tarball, 
+  #   only when the installatio is done. Supported install methods are: Tarball,
   #   Ubuntu, and Fedora
   #
   # @yieldparam [String] value the state to set this app into
@@ -332,7 +331,7 @@ module OmfRc::ResourceProxy::Application
       # resume this paused app
       res.property.state = :running
       # do more things here...
-    else 
+    else
       # cannot run as we are still installing or already completed
       res.log_inform_warn "Cannot switch to running state as current state is '#{res.property.state}'"
     end

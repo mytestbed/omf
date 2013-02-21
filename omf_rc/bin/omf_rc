@@ -86,6 +86,6 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   OmfCommon.comm.on_connected do |comm|
     res = OmfRc::ResourceFactory.create(:node, resource_options)
 
-    comm.on_interrupted { node.disconnect }
+    comm.on_interrupted { res.disconnect }
   end
 end
