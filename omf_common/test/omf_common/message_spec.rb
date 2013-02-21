@@ -4,7 +4,7 @@ describe OmfCommon::Message do
   describe "when initialised" do
     before do
       @internal_attr = %w(type operation guard mid ts replyto cid itype)
-      @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' })
+      @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' }, { rtype: :bob })
     end
 
     it "must be able to query internal properties" do

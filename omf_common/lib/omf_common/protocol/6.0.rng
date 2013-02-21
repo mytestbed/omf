@@ -11,7 +11,9 @@
   </start>
   <define name="common_elements">
     <interleave>
-      <attribute name="mid"/>
+      <optional>
+        <attribute name="mid"/>
+      </optional>
       <element name="ts">
         <text/>
       </element>
@@ -24,9 +26,9 @@
         </element>
       </optional>
       <optional>
-        <element name="properties">
+        <element name="props">
           <zeroOrMore>
-            <ref name="propperty"/>
+            <ref name="property"/>
           </zeroOrMore>
         </element>
       </optional>

@@ -11,6 +11,9 @@ module OmfCommon
 
   class Message
 
+    OMF_CORE_READ = [:operation, :ts, :src, :mid, :replyto, :cid, :itype, :rtype, :guard]
+    OMF_CORE_WRITE = [:replyto, :itype]
+
     @@providers = {
       xml: {
         require: 'omf_common/message/xml/message',
@@ -58,17 +61,15 @@ module OmfCommon
       end
     end
 
-    [:operation, :ts, :mid, :replyto, :cid, :itype, :guard].each do |pname|
+    OMF_CORE_READ.each do |pname|
       define_method(pname.to_s) do |*args|
         _get_core(pname)
       end
     end
 
-    def type
-      _get_core(:operation)
-    end
+    alias_method :type, :operation
 
-    [:replyto, :itype].each do |pname|
+    OMF_CORE_WRITE.each do |pname|
       define_method("#{pname}=") do |val|
         _set_core(pname.to_sym, val)
       end

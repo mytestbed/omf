@@ -25,21 +25,29 @@ class XML
 
     class << self
       # Create a OMF message
-      def create(operation_type, properties = nil, additional_content = nil)
-        properties ||= {}
-        additional_content ||= {}
-
+      def create(operation_type, properties = {}, core_elements= {})
+        # For request messages, properties will be an array
         if properties.kind_of? Array
           properties = Hashie::Mash.new.tap do |mash|
             properties.each { |p| mash[p] = nil }
           end
         end
 
-        new(additional_content.merge({
+        properties = Hashie::Mash.new(properties)
+        core_elements = Hashie::Mash.new(core_elements)
+
+        if operation_type.to_sym == :create
+          core_elements[:rtype] ||= properties[:type]
+        end
+
+        content = core_elements.merge({
           operation: operation_type,
           type: operation_type,
-          properties: properties
-        }))
+          properties: properties,
+          src: 'bob'
+        })
+
+        new(content)
       end
 
       def parse(xml)
@@ -50,15 +58,17 @@ class XML
         self.create(xml_node.name.to_sym).tap do |message|
           message.xml = xml_node
 
+          message.send(:_set_core, :mid, message.xml.attr('mid'))
+
           message.xml.elements.each do |el|
-            unless %w(property digest).include? el.name
+            unless %w(digest props guard).include? el.name
               message.send(:_set_core, el.name, message.read_content(el.name))
             end
 
-            if el.name == 'property'
-              message.read_element('property').each do |prop_node|
+            if el.name == 'props'
+              message.read_element('props').first.element_children.each do |prop_node|
                 message.send(:_set_property,
-                             prop_node.attr('key'),
+                             prop_node.element_name,
                              message.reconstruct_data(prop_node))
               end
             end
@@ -91,7 +101,10 @@ class XML
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
-      [:ts, :mid, :replyto, :cid, :itype].each do |attr|
+      @xml.write_attr(:mid, mid)
+      @xml.add_child(Niceogiri::XML::Node.new(:props))
+
+      (OMF_CORE_READ - [:mid, :guard, :operation]).each do |attr|
         attr_value = self.send(attr)
 
         next unless attr_value
@@ -101,17 +114,16 @@ class XML
 
       self.properties.each { |k, v| add_property(k, v) }
 
-      digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
+      #digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
 
-      add_element(:digest, digest)
+      #add_element(:digest, digest)
       @xml
     end
 
     # Construct a property xml node
     #
     def add_property(key, value = nil)
-      key_node = Niceogiri::XML::Node.new('property')
-      key_node.write_attr('key', key)
+      key_node = Niceogiri::XML::Node.new(key)
 
       unless value.nil?
         key_node.write_attr('type', ruby_type_2_prop_type(value.class))
@@ -123,7 +135,7 @@ class XML
           key_node.add_child(c_node)
         end
       end
-      @xml.add_child(key_node)
+      read_element(:props).first.add_child(key_node)
       key_node
     end
 
@@ -171,15 +183,15 @@ class XML
     #
     def sign
       write_attr('mid', SecureRandom.uuid)
-      write_attr('ts', Time.now.utc.iso8601)
+      write_attr('ts', Time.now.utc.to_i)
       canonical_msg = self.canonicalize
 
-      priv_key =  OmfCommon::Key.instance.private_key
-      digest = OpenSSL::Digest::SHA512.new(canonical_msg)
+      #priv_key =  OmfCommon::Key.instance.private_key
+      #digest = OpenSSL::Digest::SHA512.new(canonical_msg)
 
-      signature = Base64.encode64(priv_key.sign(digest, canonical_msg)).encode('utf-8') if priv_key
-      write_attr('digest', digest)
-      write_attr('signature', signature) if signature
+      #signature = Base64.encode64(priv_key.sign(digest, canonical_msg)).encode('utf-8') if priv_key
+      #write_attr('digest', digest)
+      #write_attr('signature', signature) if signature
 
       if OmfCommon::Measure.enabled?
         MPMessage.inject(Time.now.to_f, operation.to_s, mid, cid, self.to_s.gsub("\n",''))
@@ -218,6 +230,7 @@ class XML
 
     # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
+      xpath_without_ns = xpath_without_ns.to_s
       @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
     end
 
@@ -322,9 +335,9 @@ class XML
     private
 
     def initialize(content = {})
-      @content = Hashie::Mash.new(content)
+      @content = content
       @content.mid = SecureRandom.uuid
-      @content.ts = Time.now.utc.iso8601
+      @content.ts = Time.now.utc.to_i
     end
 
     def _set_core(key, value)

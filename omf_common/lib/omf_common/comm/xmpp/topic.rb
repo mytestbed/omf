@@ -2,8 +2,8 @@ module OmfCommon
 class Comm
 class XMPP
   class Topic < OmfCommon::Comm::Topic
-    %w(creation_ok creation_failed status released error warn).each do |itype|
-      define_method("on_#{itype}") do |*args, &message_block|
+    %w(creation.ok creation.failed status released error warn).each do |itype|
+      define_method("on_#{itype.gsub(/\./, '_')}") do |*args, &message_block|
         mid = args[0].mid if args[0]
 
         raise ArgumentError, 'Missing callback' if message_block.nil?

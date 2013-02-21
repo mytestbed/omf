@@ -172,8 +172,7 @@ def omf_created_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
-          <mid>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</mid>
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <cid>bf840fe9-c176-4fae-b7de-6fc27f183f76</cid>
           <itype>CREATION.OK</itype>
           <res_id>444f17fb-546e-4685-a0d0-63e64fa046c8</res_id>
@@ -194,8 +193,7 @@ def omf_status_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
-          <mid>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</mid>
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <cid>bf840fe9-c176-4fae-b7de-6fc27f183f76</cid>
           <itype>STATUS</itype>
           <property key="bob">bob</property>
@@ -216,8 +214,7 @@ def omf_failed_xml
   <event xmlns="http://jabber.org/protocol/pubsub#event">
     <items node="mclaren">
       <item id="4JMgcKzxFDLsP74">
-        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
-          <mid>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</mid>
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <cid>bf840fe9-c176-4fae-b7de-6fc27f183f76</cid>
           <itype>CREATION.FAILED</itype>
           <reason>No idea</reason>
