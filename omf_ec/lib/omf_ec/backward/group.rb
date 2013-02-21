@@ -19,16 +19,16 @@ module OmfEc
         end
 
         on_event e_name do
-          resources[type: 'application', name: name].state = :run
+          resources[type: 'application', name: name].state = :running
         end
       end
 
       def startApplications
-        resources[type: 'application'].state = :run
+        resources[type: 'application'].state = :running
       end
 
       def stopApplications
-        resources[type: 'application'].state = :stop
+        resources[type: 'application'].state = :stopped
       end
 
       def addApplication(name, &block)

@@ -32,7 +32,7 @@
 # - pkg_ubuntu (String) the name of the Ubuntu package for this app
 # - pkg_fedora (String) the name of the Fedora package for this app
 # - state (String) the state of this Application RP
-#   (stop, run, pause, install)
+#   (stopped, running, paused, installed, completed)
 # - installed (Boolean) is this application installed? (default false)
 # - force_tarball_install (Boolean) if true then force the installation
 #   from tarball even if other distribution-specific installation are 
@@ -107,7 +107,7 @@ module OmfRc::ResourceProxy::Application
   property :force_tarball_install, :default => false
   property :pkg_ubuntu, :default => nil
   property :pkg_fedora, :default => nil
-  property :state, :default => :stop
+  property :state, :default => :stopped
   property :installed, :default => false
   property :map_err_to_out, :default => false
   property :event_sequence, :default => 0
@@ -137,7 +137,9 @@ module OmfRc::ResourceProxy::Application
       logger.info "App Event from '#{app_id}' "+
                   "(##{res.property.event_sequence}) - "+
                   "#{event_type}: '#{msg}'"
-      res.property.state = :stop if event_type.to_s.include?('DONE')
+      if event_type.to_s.include?('DONE')
+        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed 
+      end
 
       (res.membership + [res.uid]).each do |m|
         res.inform(:status, {
@@ -215,52 +217,56 @@ module OmfRc::ResourceProxy::Application
   end
 
   # Configure the state of this Application RP. The valid states are
-  # stop, run, pause, install. The semantic of each states are:
+  # stopped, running, paused, installing. The semantic of each states are:
   #
-  # - stop: the initial state for an Application RP, and the final state for
-  #   an applicaiton RP, for which the application instance finished
-  #   its execution or its installation
-  # - run: upon entering in this state, a new instance of the application is
+  # - stopped: the initial state for an Application RP
+  # - completed: the final state for an applicaiton RP. When the application
+  #   has been executed and its execution is finished, it enters this state.
+  #   When the application is completed it cannot change state again
+  #   TODO: maybe in future OMF, we could consider allowing an app to be reset?
+  # - running: upon entering in this state, a new instance of the application is
   #   started, the Application RP stays in this state until the
   #   application instance is finished or paused. The Application RP can
-  #   only enter this state from a previous 'pause' or 'stop' state.
-  # - pause: upon entering this state, the currently running instance of this
+  #   only enter this state from a previous paused or stopped state.
+  # - paused: upon entering this state, the currently running instance of this
   #   application should be paused (it is the responsibility of
-  #   specialised Application Proxy to ensure that! The default
+  #   specialised Application Proxy to ensure that! This default
   #   Application Proxy does nothing to the application instance when
   #   entering this state). The Application RP can only enter this
-  #   state from a previous 'run' state.
-  # - install: upon entering in this state, a new installation of the
+  #   state from a previous running state.
+  # - installing: upon entering in this state, a new installation of the
   #   application will be performed by the Application RP, which will
-  #   stay in this state until the installation is finished. The
-  #   Application RP can only enter this state from a previous 'stop'
-  #   state, and can only enter a 'stop' state once the installation
-  #   is finished.
-  #   Supported install methods are: Tarball, Ubuntu, and Fedora
+  #   stay in this state until the installation is done. The
+  #   Application RP can only enter this state from a previous stopped
+  #   state. Furthermore it can only exit this state to enter the stopped state
+  #   only when the installatio is done. Supported install methods are: Tarball, 
+  #   Ubuntu, and Fedora
   #
   # @yieldparam [String] value the state to set this app into
   #
   configure :state do |res, value|
     case value.to_s.downcase.to_sym
-    when :install then res.switch_to_install
-    when :stop then res.switch_to_stop
-    when :run then res.switch_to_run
-    when :pause then res.switch_to_pause
+    when :installing then res.switch_to_installing
+    when :stopped then res.switch_to_stopped
+    when :running then res.switch_to_running
+    when :paused then res.switch_to_paused
+    else
+      res.log_inform_warn "Cannot switch application to unknown state '#{value.to_s}'!"
     end
     res.property.state
   end
 
-  # Swich this Application RP into the 'install' state
+  # Swich this Application RP into the 'installing' state
   # (see the description of configure :state)
   #
-  work('switch_to_install') do |res|
-    if res.property.state.to_sym == :stop
+  work('switch_to_installing') do |res|
+    if res.property.state.to_sym == :stopped
       if res.property.installed
         res.log_inform_warn "The application is already installed"
       else
         # Select the proper installation method based on the platform
         # and the value of 'force_tarball_install'
-        res.property.state = :install
+        res.property.state = :installing
         if res.property.force_tarball_install ||
           (res.property.platform == :unknown)
           installing = res.install_tarball(res.property.pkg_tarball,
@@ -270,19 +276,19 @@ module OmfRc::ResourceProxy::Application
         elsif res.property.platform == :fedora
           installing = res.install_fedora(res.property.pkg_fedora)
         end
-        res.property.state = :stop unless installing
+        res.property.state = :stopped unless installing
       end
     else
       # cannot install as we are not stopped
-      res.log_inform_warn "Not in STOP state. Cannot switch to INSTALL state!"
+      res.log_inform_warn "Not in stopped state. Cannot switch to installing state!"
     end
   end
 
-  # Swich this Application RP into the 'stop' state
+  # Swich this Application RP into the 'stopped' state
   # (see the description of configure :state)
   #
-  work('switch_to_stop') do |res|
-    if res.property.state == :run || res.property.state == :pause
+  work('switch_to_stopped') do |res|
+    if res.property.state == :running || res.property.state == :paused
       id = res.property.app_id
       unless ExecApp[id].nil?
         # stop this app
@@ -299,18 +305,18 @@ module OmfRc::ResourceProxy::Application
             # finally, try sending KILL signal
             ExecApp[id].kill('KILL') unless ExecApp[id].nil?
           end
-          res.property.state = :stop
+          res.property.state = :completed
         rescue => err
         end
       end
     end
   end
 
-  # Swich this Application RP into the 'run' state
+  # Swich this Application RP into the 'running' state
   # (see the description of configure :state)
   #
-  work('switch_to_run') do |res|
-    if res.property.state == :stop
+  work('switch_to_running') do |res|
+    if res.property.state == :stopped
       # start a new instance of this app
       res.property.app_id = res.hrn.nil? ? res.uid : res.hrn
       # we need at least a defined binary path to run an app...
@@ -320,25 +326,25 @@ module OmfRc::ResourceProxy::Application
         ExecApp.new(res.property.app_id, res,
                     res.build_command_line,
                     res.property.map_err_to_out)
-        res.property.state = :run
+        res.property.state = :running
       end
-    elsif res.property.state == :pause
+    elsif res.property.state == :paused
       # resume this paused app
-      res.property.state = :run
+      res.property.state = :running
       # do more things here...
-    elsif res.property.state == :install
-      # cannot run as we are still installing
-      res.log_inform_warn "Still in INSTALL state. Cannot switch to RUN state!"
+    else 
+      # cannot run as we are still installing or already completed
+      res.log_inform_warn "Cannot switch to running state as current state is '#{res.property.state}'"
     end
   end
 
-  # Swich this Application RP into the 'pause' state
+  # Swich this Application RP into the 'paused' state
   # (see the description of configure :state)
   #
-  work('switch_to_pause') do |res|
-    if res.property.state == :run
+  work('switch_to_paused') do |res|
+    if res.property.state == :running
       # pause this app
-      res.property.state = :pause
+      res.property.state = :paused
       # do more things here...
     end
   end
@@ -354,7 +360,7 @@ module OmfRc::ResourceProxy::Application
     # Only update a parameter if it is dynamic and the application is running
     dynamic = false
     dynamic = att[:dynamic] if res.boolean?(att[:dynamic])
-    if dynamic && res.property.state == :run
+    if dynamic && res.property.state == :running
       line = ""
       line += "#{att[:cmd]} " unless att[:cmd].nil?
       line += "#{att[:value]}"

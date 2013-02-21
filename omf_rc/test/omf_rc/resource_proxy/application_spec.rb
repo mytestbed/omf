@@ -20,7 +20,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must have its properties set to sensible initial values" do
-      @app_test.request_state.to_sym.must_equal :stop
+      @app_test.request_state.to_sym.must_equal :stopped
       @app_test.request_tarball_install_path.must_equal '/'
       @app_test.request_force_tarball_install.must_equal false
       @app_test.request_installed.must_equal false
@@ -144,7 +144,7 @@ describe OmfRc::ResourceProxy::Application do
       @app_test.method(:configure_parameters).call(params1)
       # then update it
       params2 = { :p1 => { :value => 'bar'} , :p2 => { :value => 'abc'}  }
-      @app_test.property.state = :run
+      @app_test.property.state = :running
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map); end
         def ExecApp.[](id); return ExecApp.new(nil,nil,nil,nil) end
@@ -172,41 +172,47 @@ describe OmfRc::ResourceProxy::Application do
       end
     end
 
-    it "must switch its state to 'stop' if the event is of a type 'DONE'" do
+    it "must switch its state to :completed if the event is of a type 'DONE' and the application is not installing itself" do
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
           @app_test.on_app_event('DONE.OK', 'app_instance_id', 'Some text here')
-          @app_test.request_state.to_sym.must_equal :stop
+          @app_test.request_state.to_sym.must_equal :completed
+        end
+      end
+      OmfCommon.stub :comm, @xmpp do
+        @app_test.stub :inform, true do
+          @app_test.on_app_event('DONE.ERROR', 'app_instance_id', 'Some text here')
+          @app_test.request_state.to_sym.must_equal :completed
         end
       end
     end
 
-    it "must set installed property to true if the event is 'DONE.OK' and the app_id's suffix is '_INSTALL'" do
+    it "must set installed property to true if the event is 'DONE.OK' and the application was installing itself" do
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
           @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
-          @app_test.request_state.to_sym.must_equal :stop
+          @app_test.request_state.to_sym.must_equal :stopped
           @app_test.request_installed.must_equal true
         end
       end
     end
   end
 
-  describe "when configuring its state property to :install" do
-    it "must do nothing if its original state is not :stop" do
+  describe "when configuring its state property to :installing" do
+    it "must do nothing if its original state is not :stopped" do
       OmfCommon.stub :comm, @xmpp do
-        @app_test.property.state = :run
-        @app_test.method(:configure_state).call(:install)
-        @app_test.property.state.must_equal :run
+        @app_test.property.state = :running
+        @app_test.method(:configure_state).call(:installing)
+        @app_test.property.state.must_equal :running
       end
     end
 
-    it "must do nothing if its original state is :stop and it is already installed" do
+    it "must do nothing if its original state is :stopped and it is already installed" do
       OmfCommon.stub :comm, @xmpp do
-        @app_test.property.state = :stop
+        @app_test.property.state = :stopped
         @app_test.property.installed = true
-        @app_test.method(:configure_state).call(:install)
-        @app_test.property.state.must_equal :stop
+        @app_test.method(:configure_state).call(:installing)
+        @app_test.property.state.must_equal :stopped
       end
     end
 
@@ -220,19 +226,19 @@ describe OmfRc::ResourceProxy::Application do
       end
       def call_configure
         @app_test.stub :install_tarball, @stub_tarball_tasks do
-          @app_test.method(:configure_state).call(:install).must_equal :install
+          @app_test.method(:configure_state).call(:installing).must_equal :installing
           @did_call_install_tarball.must_equal true
         end
       end
       # Unknown Platform...
       @did_call_install_tarball = false
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.installed = false
       @app_test.property.platform = :unknown
       call_configure
       # Force Install Tarball...
       @did_call_install_tarball = false
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.installed = false
       @app_test.property.platform = :ubuntu
       @app_test.property.force_tarball_install = true
@@ -241,7 +247,7 @@ describe OmfRc::ResourceProxy::Application do
 
     it "must use the ubuntu install method if its OS platform is ubuntu" do
       @did_call_install_ubuntu = false
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.installed = false
       @app_test.property.platform = :ubuntu
       @app_test.property.pkg_ubuntu = 'foo'
@@ -250,14 +256,14 @@ describe OmfRc::ResourceProxy::Application do
         @did_call_install_ubuntu = true
       end
       @app_test.stub :install_ubuntu, @stub_ubuntu_tasks do
-        @app_test.method(:configure_state).call(:install).must_equal :install
+        @app_test.method(:configure_state).call(:installing).must_equal :installing
         @did_call_install_ubuntu.must_equal true
       end
     end
 
     it "must use the fedora install method if its OS platform is fedora" do
       @did_call_install_fedora = false
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.installed = false
       @app_test.property.platform = :fedora
       @app_test.property.pkg_fedora = 'foo'
@@ -266,38 +272,38 @@ describe OmfRc::ResourceProxy::Application do
         @did_call_install_fedora = true
       end
       @app_test.stub :install_fedora, @stub_fedora_tasks do
-        @app_test.method(:configure_state).call(:install).must_equal :install
+        @app_test.method(:configure_state).call(:installing).must_equal :installing
         @did_call_install_fedora.must_equal true
       end
     end
   end
 
-  describe "when configuring its state property to :run" do
-    it "must do nothing if its original state is :install" do
+  describe "when configuring its state property to :running" do
+    it "must do nothing if its original state is :installing" do
       OmfCommon.stub :comm, @xmpp do
-        @app_test.property.state = :install
-        @app_test.method(:configure_state).call(:run)
-        @app_test.property.state.must_equal :install
+        @app_test.property.state = :installing
+        @app_test.method(:configure_state).call(:running)
+        @app_test.property.state.must_equal :installing
       end
     end
 
-    it "must get back to the :run state if its original state is :pause" do
+    it "must get back to the :running state if its original state is :paused" do
       OmfCommon.stub :comm, @xmpp do
-        @app_test.property.state = :pause
-        @app_test.method(:configure_state).call(:run)
-        @app_test.property.state.must_equal :run
+        @app_test.property.state = :paused
+        @app_test.method(:configure_state).call(:running)
+        @app_test.property.state.must_equal :running
       end
     end
 
     it "must do nothing if its binary path is not set" do
       OmfCommon.stub :comm, @xmpp do
-        @app_test.property.state = :stop
-        @app_test.method(:configure_state).call(:run)
-        @app_test.property.state.must_equal :stop
+        @app_test.property.state = :stopped
+        @app_test.method(:configure_state).call(:running)
+        @app_test.property.state.must_equal :stopped
       end
     end
 
-    it "must start an app using ExecApp and a correct command line if its original state is :stop" do
+    it "must start an app using ExecApp and a correct command line if its original state is :stopped" do
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map)
           app_id.must_equal "an_application"
@@ -306,7 +312,7 @@ describe OmfRc::ResourceProxy::Application do
           err_out_map.must_equal false
         end
       end
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.binary_path = "my_cmd"
       test_env = { 'foo' => 123, 'bar_bar' => 'bar_123' }
       test_params = { :p1 => { :type => 'String', :mandatory => true, :cmd => '-param1', :default => 'foo', :value => 'bar', :order => 2},
@@ -316,8 +322,8 @@ describe OmfRc::ResourceProxy::Application do
         :p5 => { :type => 'Numeric', :default => 456}, }
       @app_test.method(:configure_environments).call(test_env)
       @app_test.method(:configure_parameters).call(test_params)
-      @app_test.method(:configure_state).call(:run)
-      @app_test.property.state.must_equal :run
+      @app_test.method(:configure_state).call(:running)
+      @app_test.property.state.must_equal :running
     end
 
     it "must start an app with OML command line options when use_oml parameter is set" do
@@ -326,14 +332,14 @@ describe OmfRc::ResourceProxy::Application do
           cmd_line.must_equal "env -i my_cmd --oml-config /tmp/bar.xml --oml-log-level 1 --oml-log-file foo "
         end
       end
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.binary_path = "my_cmd"
       @app_test.property.use_oml = true
       @app_test.property.oml_loglevel = 1
       @app_test.property.oml_logfile = "foo"
       @app_test.property.oml_configfile = "/tmp/bar.xml"
-      File.stub(:exist?, true) { @app_test.method(:configure_state).call(:run) }
-      @app_test.property.state.must_equal :run
+      File.stub(:exist?, true) { @app_test.method(:configure_state).call(:running) }
+      @app_test.property.state.must_equal :running
     end
 
     it "must start an app using its own built OML config when use_oml and oml parameters are set" do
@@ -344,12 +350,12 @@ describe OmfRc::ResourceProxy::Application do
           File.delete(xml_file)
         end
       end
-      @app_test.property.state = :stop
+      @app_test.property.state = :stopped
       @app_test.property.binary_path = "my_cmd"
       @app_test.property.use_oml = true
       @app_test.property.oml = eval(fixture('oml.hash'))
-      @app_test.method(:configure_state).call(:run)
-      @app_test.property.state.must_equal :run
+      @app_test.method(:configure_state).call(:running)
+      @app_test.property.state.must_equal :running
     end
 
     it "must not use any oml options if use_oml is set but both oml or oml_config are not set" do
@@ -359,48 +365,48 @@ describe OmfRc::ResourceProxy::Application do
             cmd_line.must_equal "env -i my_cmd "
           end
         end
-        @app_test.property.state = :stop
+        @app_test.property.state = :stopped
         @app_test.property.binary_path = "my_cmd"
         @app_test.property.use_oml = true
-        @app_test.method(:configure_state).call(:run)
-        @app_test.property.state.must_equal :run
+        @app_test.method(:configure_state).call(:running)
+        @app_test.property.state.must_equal :running
       end
     end
 
   end
 
-  describe "when configuring its state property to :pause" do
-    it "must do nothing if its original state is :stop or :install" do
-      @app_test.property.state = :stop
-      @app_test.method(:configure_state).call(:pause)
-      @app_test.property.state.must_equal :stop
-      @app_test.property.state = :install
-      @app_test.method(:configure_state).call(:pause)
-      @app_test.property.state.must_equal :install
+  describe "when configuring its state property to :paused" do
+    it "must do nothing if its original state is :stopped or :installing" do
+      @app_test.property.state = :stopped
+      @app_test.method(:configure_state).call(:paused)
+      @app_test.property.state.must_equal :stopped
+      @app_test.property.state = :installing
+      @app_test.method(:configure_state).call(:paused)
+      @app_test.property.state.must_equal :installing
     end
 
-    it "must do switch its state to :pause if its original state is :run or :pause" do
-      @app_test.property.state = :run
-      @app_test.method(:configure_state).call(:pause)
-      @app_test.property.state.must_equal :pause
-      @app_test.property.state = :pause
-      @app_test.method(:configure_state).call(:pause)
-      @app_test.property.state.must_equal :pause
+    it "must do switch its state to :paused if its original state is :running or :paused" do
+      @app_test.property.state = :running
+      @app_test.method(:configure_state).call(:paused)
+      @app_test.property.state.must_equal :paused
+      @app_test.property.state = :paused
+      @app_test.method(:configure_state).call(:paused)
+      @app_test.property.state.must_equal :paused
     end
   end
 
-  describe "when configuring its state property to :stop" do
-    it "must do nothing if its original state is :stop or :install" do
-      @app_test.property.state = :stop
-      @app_test.method(:configure_state).call(:pause)
-      @app_test.property.state.must_equal :stop
-      @app_test.property.state = :install
-      @app_test.method(:configure_state).call(:pause)
-      @app_test.property.state.must_equal :install
+  describe "when configuring its state property to :stopped" do
+    it "must do nothing if its original state is :stopped or :installing" do
+      @app_test.property.state = :stopped
+      @app_test.method(:configure_state).call(:paused)
+      @app_test.property.state.must_equal :stopped
+      @app_test.property.state = :installing
+      @app_test.method(:configure_state).call(:paused)
+      @app_test.property.state.must_equal :installing
     end
 
-    it "must stop its running application if its original state is :run or :pause" do
-      @app_test.property.state = :run
+    it "must stop its running application if its original state is :running or :paused" do
+      @app_test.property.state = :running
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map); end
         def ExecApp.[](id); return ExecApp.new(nil,nil,nil,nil) end
@@ -408,8 +414,8 @@ describe OmfRc::ResourceProxy::Application do
         def signal(sig); sig.must_equal 'TERM' end
         def kill(sig); sig.must_equal 'KILL' end
       end
-      @app_test.method(:configure_state).call(:stop)
-      @app_test.property.state.must_equal :stop
+      @app_test.method(:configure_state).call(:stopped)
+      @app_test.property.state.must_equal :completed
     end
   end
 

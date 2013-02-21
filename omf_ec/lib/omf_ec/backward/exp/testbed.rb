@@ -6,7 +6,7 @@ msgs = {
   create: comm.create_message([type: 'application']),
   req_platform: comm.request_message([:platform]),
   conf_path: comm.configure_message([binary_path: @cmd]),
-  run_application: comm.configure_message([state: :run])
+  run_application: comm.configure_message([state: :running])
 }
 
 msgs[:create].on_inform_creation_ok do |message|
