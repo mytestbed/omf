@@ -7,7 +7,7 @@ module OmfEc
           base.instance_eval do
 
             def_event :ALL_UP do |state|
-              !all_groups.empty? && all_groups.all? do |g|
+              all_groups? do |g|
                 plan = g.members.uniq.sort
                 actual = state.find_all do |v|
                   v[:membership] && v[:membership].include?(g.id)
@@ -42,7 +42,7 @@ module OmfEc
             end
 
             def_event :ALL_INTERFACE_UP do |state|
-              !all_groups.empty? && all_groups.all? do |g|
+              all_groups? do |g|
                 plan = g.net_ifs.map { |v| v.conf[:hrn] }.uniq.size * g.members.uniq.size
                 actual = state.find_all do |v|
                   v[:membership] &&
@@ -53,7 +53,7 @@ module OmfEc
             end
 
             def_event :ALL_UP_AND_INSTALLED do |state|
-              !all_groups.empty? && all_groups.all? do |g|
+              all_groups? do |g|
                 plan = g.app_contexts.size * g.members.uniq.size
                 actual = state.find_all do |v|
                   v[:membership] && v[:membership].include?("#{g.id}_application")

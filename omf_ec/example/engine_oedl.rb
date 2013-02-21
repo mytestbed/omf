@@ -1,8 +1,9 @@
 # OMF_VERSIONS = 6.0
 #
-defProperty('name', 'garage', 'Name of garage')
 
-garages = [prop.name]
+def_property('name', 'garage', 'Name of garage')
+
+garage = prop.name
 
 defEvent :engine_created do |state|
   # state holds list of resources, and automatically updated once OMF inform messages received.
@@ -18,19 +19,20 @@ defEvent :rpm_reached_4000 do |state|
 end
 
 # Define a group and add garages to it.
-defGroup('garages', *garages)
+defGroup('garages', garage)
 
 # :ALL_UP is a pre-defined event,
 # triggered when all resources set to be part of groups are available and configured as members of the associated groups.
 onEvent :ALL_UP do
   group('garages') do |g|
-    g.create_resource('primary_engine', type: 'engine', sn: "<%= rand(1000) %>")
+    g.create_resource('primary_engine', type: 'engine', sn: rand(1000))
 
     onEvent :engine_created do
       info ">>> Accelerating all engines"
       g.resources[type: 'engine'][name: 'primary_engine'].throttle = 50
 
       g.resources[type: 'engine'][name: 'primary_engine'].sn
+      g.resources[type: 'engine'][name: 'primary_engine'].membership
     end
 
     onEvent :rpm_reached_4000 do

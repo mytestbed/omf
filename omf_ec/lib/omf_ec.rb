@@ -26,5 +26,50 @@ module OmfEc
     def lib_root
       File.expand_path("../..", "#{__FILE__}/lib")
     end
+
+    def subscribe_and_monitor(topic_id, context_obj = nil, &block)
+      OmfCommon.comm.subscribe(topic_id) do |res|
+        unless res.error?
+          context_obj.associate_topic(res) if context_obj
+
+          block.call(context_obj || res) if block
+
+          res.on_creation_failed do |msg|
+            debug msg
+            warn "RC reports failure: '#{msg[:reason]}'"
+          end
+
+          res.on_creation_ok do |msg|
+            info "Resource #{msg[:resource_id]} created"
+            OmfEc.experiment.add_resource(msg[:resource_id],
+                                          type: msg[:type],
+                                          hrn: msg[:hrn],
+                                          membership: msg[:membership])
+
+            OmfEc.experiment.process_events
+          end
+
+          res.on_status do |msg|
+            msg.each_property { |k, v| debug "#{k} > #{v}" }
+
+            resource = OmfEc.experiment.resource(msg[:uid])
+
+            if resource.nil?
+              OmfEc.experiment.add_resource(msg[:uid],
+                                            type: msg[:type],
+                                            hrn: msg[:hrn],
+                                            membership: msg[:membership])
+            else
+              if msg[:status_type] == 'APP_EVENT'
+                info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
+              end
+              msg.each_property { |key, value| resource[key] = value }
+            end
+
+            OmfEc.experiment.process_events
+          end
+        end
+      end
+    end
   end
 end

@@ -30,45 +30,10 @@ module OmfEc
 
       def defGroup(name, *members, &block)
         group = OmfEc::Group.new(name)
-        OmfEc.exp.groups << group
-
-        members.each do |m|
-          m_group = OmfEc.exp.groups.find { |v| v.name == m }
-          if m_group
-            group.members += m_group.members
-          else
-            group.members << m
-          end
-        end
+        OmfEc.experiment.add_group(group)
+        group.add_resource(*members)
 
         block.call(group) if block
-
-        OmfCommon.comm.subscribe(group.id, create_if_non_existent: true) do |rg|
-          unless rg.error?
-            warn "What?"
-
-            warn "Subscribed to #{rg.address}"
-
-            members.each do |m|
-              group.add_resource(m)
-            end
-
-            Experiment.instance.process_events
-
-            #rg.on_message lambda {|m| m.operation == :inform && m.inform_type == 'CREATION_FAILED' && m.context_id.nil? } do |i|
-            #  warn "RC reports failure: '#{i.read_content("reason")}'"
-            #end
-
-            #rg.on_message lambda {|m| m.operation == :inform && m.inform_type == 'STATUS' } do |i|
-            rg.on_message do |i|
-              warn i
-            end
-              #r = OmfEc.exp.state.find { |v| v[:uid] == i.read_property(:uid) }
-              #unless r.nil?
-              #  i.each_property { |p_k, p_v| r[p_k] = p_v }
-              #end
-          end
-        end
       end
 
       # Wait for some time before issuing more commands

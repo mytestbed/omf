@@ -9,8 +9,8 @@ module OmfEc::Context
     @@context_count = Hash.new
 
     def initialize(name)
-      if OmfEc.exp.app_definitions.key?(name)
-        self.app_def = OmfEc.exp.app_definitions[name]
+      if OmfEc.experiment.app_definitions.key?(name)
+        self.app_def = OmfEc.experiment.app_definitions[name]
         self.param_values = Hash.new
         self.oml_collections = Array.new
         @@context_count[name] = 0 unless @@context_count.key?(name)
@@ -31,7 +31,7 @@ module OmfEc::Context
     # For now this follows v5.4 syntax...
     # We have not yet finalised an OML syntax inside OEDL for v6
     def measure(mp,filters)
-      collection = {:url => OmfEc.exp.oml_uri, :streams => [] }
+      collection = {:url => OmfEc.experiment.oml_uri, :streams => [] }
       stream = { :mp => mp , :filters => [] }.merge(filters)
       collection[:streams] << stream
       @oml_collections << collection
@@ -45,7 +45,7 @@ module OmfEc::Context
       if @oml_collections.size > 0
         p[:use_oml] = true
         p[:oml][:id] = @name
-        p[:oml][:experiment] = OmfEc.exp.id
+        p[:oml][:experiment] = OmfEc.experiment.id
         p[:oml][:collection] = @oml_collections      
       end
       p

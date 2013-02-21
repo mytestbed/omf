@@ -24,7 +24,7 @@ module OmfEc
 
     def def_application(name,&block)
       app_def = OmfEc::AppDefinition.new(name)
-      OmfEc.exp.app_definitions[name] = app_def
+      OmfEc.experiment.app_definitions[name] = app_def
       block.call(app_def) if block
     end
 
@@ -39,44 +39,29 @@ module OmfEc
     #
     # @see OmfEc::Backward::DSL#defGroup
     def def_group(name, &block)
-      group = OmfEc::Group.new(name)
-      OmfEc.exp.groups << group
-
-      OmfCommon.comm.subscribe(group.id, create_if_non_existent: true) do |rg|
-        warn rg
-        unless rg.error?
-          warn rg
-          block.call group if block
-
-          rg.on_message lambda {|m| m.operation == :inform && m.inform_type == 'CREATION_FAILED' && m.context_id.nil? } do |i|
-            warn "RC reports failure: '#{i.read_content("reason")}'"
-          end
-
-          rg.on_message lambda {|m| m.operation == :inform && m.inform_type == 'STATUS' && m.context_id.nil? } do |i|
-            r = OmfEc.exp.state.find { |v| v[:uid] == i[:uid] }
-            unless r.nil?
-              i.each_property { |p_k, p_v| r[p_k] = p_v }
-            end
-            Experiment.instance.process_events
-          end
-        end
-      end
+      group = OmfEc::Group.new(name, &block)
+      OmfEc.experiment.add_group(group)
+      group
     end
 
     # Get a group instance
     #
     # @param [String] name name of the group
     def group(name, &block)
-      group = OmfEc.exp.groups.find {|v| v.name == name}
+      group = OmfEc.experiment.group(name)
+      raise RuntimeError, "Group #{name} not found" if group.nil?
+
       block.call(group) if block
       group
     end
 
     # Iterator for all defined groups
     def all_groups(&block)
-      OmfEc.exp.groups.each do |g|
-        block.call(g) if block
-      end
+      OmfEc.experiment.each_group(&block)
+    end
+
+    def all_groups?(&block)
+      OmfEc.experiment.all_groups?(&block)
     end
 
     alias_method :all_nodes!, :all_groups
@@ -100,12 +85,12 @@ module OmfEc
     # @param description short text description of this property
     #
     def def_property(name, default_value, description = nil)
-      OmfEc.exp.property[name] ||= default_value
+      OmfEc.experiment.property[name] ||= default_value
     end
 
     # Return the context for setting experiment wide properties
     def property
-      OmfEc.exp.property
+      OmfEc.experiment.property
     end
 
     alias_method :prop, :property
@@ -132,16 +117,13 @@ module OmfEc
 
     # Define an event
     def def_event(name, &trigger)
-      if OmfEc.exp.events.find { |v| v[:name] == name }
-        raise RuntimeError, "Event '#{name}' has been defined"
-      else
-        OmfEc.exp.events << { name: name, trigger: trigger }
-      end
+      raise ArgumentError, 'Need a trigger callback' if trigger.nil?
+      OmfEc.experiment.add_event(name, trigger)
     end
 
     # Define an event callback
     def on_event(name, consume_event = true, &callback)
-      event = OmfEc.exp.events.find { |v| v[:name] == name }
+      event = OmfEc.experiment.event(name)
       if event.nil?
         raise RuntimeError, "Event '#{name}' not defined"
       else
