@@ -50,21 +50,25 @@ command :exec do |c|
     help_now! "Missing experiment script" if args[0].nil?
     help_now! "Experiment script not found" unless File.exist?(args[0])
 
-    # User provided exp properties
+    # User-provided command line values for Experiment Properties cannot be 
+    # set here as the propertties have not been defined yet by the experiment. 
+    # Thus just pass them to the experiment, which will be responsible
+    # for setting them later
+    properties = {}
     if args.size > 1
       exp_properties = args[1..-1]
-
       exp_properties.in_groups_of(2) do |p|
         unless p[0] =~ /^--(.+)/ && !p[1].nil?
           help_now! "Malformatted properties '#{exp_properties.join(' ')}'"
         else
-          OmfEc.experiment.property[$1.to_sym] = p[1].ducktype
+          properties[$1.to_sym] = p[1].ducktype
         end
       end
+      OmfEc.experiment.cmdline_properties = properties
     end
 
     # FIXME this loading script is way too simple
-    load_exp(args[0], global_options, options)
+    load_exp(args[0], global_options, options, properties)
   end
 end
 
@@ -231,7 +235,7 @@ def setup_logging(global_options = {})
   end
 end
 
-def load_exp(exp_path, global_options = {} , options = {})
+def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
     opts = {
       communication: { url: global_options[:comms_url] },

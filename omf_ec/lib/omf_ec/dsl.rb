@@ -4,6 +4,32 @@ require 'eventmachine'
 module OmfEc
   # DSL methods to be used for OEDL scripts
   module DSL
+
+    # Define OEDL-specific exceptions. These are the Exceptions that might be
+    # raised when the OMF EC is processing an OEDL experiment scripts
+    #
+    # The base exception is OEDLException
+    class OEDLException < Exception; end
+
+    class OEDLArgumentException < OEDLException
+      attr_reader :cmd, :arg
+      def initialize(cmd, arg, msg = nil)
+        @cmd = cmd
+        @arg = arg
+        msg ||= "Illegal value for argument '#{arg}' in command '#{cmd}'"
+        super(msg)
+      end
+    end
+
+    class OEDLIllegalCommandException < OEDLException
+      attr_reader :cmd
+      def initialize(cmd, msg = nil)
+        @cmd = cmd
+        msg ||= "Illegal command '#{cmd}' unsupported by OEDL"
+        super(msg)
+      end
+    end
+
     # Use EM timer to execute after certain time
     #
     # @example do something after 2 seconds
@@ -85,12 +111,12 @@ module OmfEc
     # @param description short text description of this property
     #
     def def_property(name, default_value, description = nil)
-      OmfEc.experiment.property[name] ||= default_value
+      OmfEc.experiment.add_property(name, default_value, description)
     end
 
     # Return the context for setting experiment wide properties
     def property
-      OmfEc.experiment.property
+      return OmfEc.experiment.property
     end
 
     alias_method :prop, :property

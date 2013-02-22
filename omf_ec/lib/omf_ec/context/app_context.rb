@@ -23,8 +23,17 @@ module OmfEc::Context
       end
     end
 
-    def setProperty(key, value)
-      @param_values[key] = value
+    def setProperty(key, property_value)
+      if property_value.kind_of?(ExperimentProperty)
+        @param_values[key] = property_value.value
+        # TODO: here we need to register a Proc block to the ExperimentProperty 
+        # if this property has its dynamic attribute set to true, so that
+        # our Proc block would be called by ExperimentProperty each time the
+        # property changes value
+        # In this callback we will send a 'configure' to the application
+      else
+        @param_values[key] = property_value
+      end
       self
     end
 

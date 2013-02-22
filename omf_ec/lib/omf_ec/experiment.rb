@@ -7,17 +7,27 @@ module OmfEc
   class Experiment
     include Singleton
 
-    attr_accessor :name, :oml_uri, :app_definitions, :property
+    attr_accessor :name, :oml_uri, :app_definitions, :cmdline_properties
     attr_reader :groups, :sub_groups, :state
 
     def initialize
       @id = Time.now.utc.iso8601
-      @property ||= Hashie::Mash.new
       @state ||= []
       @groups ||= []
       @events ||= []
       @app_definitions ||= Hash.new
       @sub_groups ||= []
+      @cmdline_properties ||= Hash.new
+    end
+
+    def property
+      return ExperimentProperty
+    end
+
+    def add_property(name, value = nil, description = nil)
+      override_value = @cmdline_properties[name.to_s.to_sym]
+      value = override_value unless override_value.nil?
+      ExperimentProperty.create(name, value, description)
     end
 
     def resource(id)

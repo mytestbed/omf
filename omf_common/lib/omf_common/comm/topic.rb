@@ -9,7 +9,8 @@ module OmfCommon
       @@lock = Monitor.new
 
       def self.create(name, opts = {}, &block)
-        name = name.to_sym
+        # Force string conversion as 'name' can be an ExperimentProperty
+        name = name.to_s.to_sym
         @@lock.synchronize do
           unless t = @@name2inst[name]
             #opts[:address] ||= address_for(name)

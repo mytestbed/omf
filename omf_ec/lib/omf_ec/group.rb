@@ -46,6 +46,7 @@ module OmfEc
     def add_resource(*names)
       # Recording membership first, used for ALL_UP event
       names.each do |name|
+        name = name.to_s # force string, as 'name' can be an ExperimentProperty
         g = OmfEc.experiment.group(name)
         if g
           @members += g.members
