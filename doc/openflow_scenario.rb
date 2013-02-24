@@ -58,8 +58,8 @@ comm.when_ready do
 end
 
 comm.on_creation_ok_message @messages[:create_1] do |message|
-  child_uid = message.read_content("resource_id")
-  @messages[:release_1] ||= comm.release_message([resource_id: child_uid])
+  child_uid = message.read_content("res_id")
+  @messages[:release_1] ||= comm.release_message([res_id: child_uid])
   logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
   comm.subscribe(child_uid) do
@@ -71,8 +71,8 @@ comm.on_creation_ok_message @messages[:create_1] do |message|
 end
 
 comm.on_creation_ok_message @messages[:create_2] do |message|
-  child_uid = message.read_content("resource_id")
-  @messages[:release_2] ||= comm.release_message([resource_id: child_uid])
+  child_uid = message.read_content("res_id")
+  @messages[:release_2] ||= comm.release_message([res_id: child_uid])
   logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
   comm.subscribe(child_uid) do
@@ -99,7 +99,7 @@ comm.on_creation_failed_message do |message|
 end
 
 comm.on_released_message do |message|
-  child_uid = message.read_content("resource_id")
+  child_uid = message.read_content("res_id")
   logger.info "Child resource \"#{child_uid}\" released"
 end
 

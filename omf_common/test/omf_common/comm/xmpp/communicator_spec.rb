@@ -187,28 +187,28 @@ describe OmfCommon::Comm::XMPP::Communicator do
 
     it "must generate omf inform xml fragment" do
       skip
-      m1 = @xmpp.inform_message([inform_type: 'CREATION_OK'])
+      m1 = @xmpp.inform_message([itype: 'CREATION.OK'])
       m2 = @xmpp.inform_message do |v|
-        v.property('inform_type', 'CREATION_OK')
+        v.property('itype', 'CREATION.OK')
       end
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'inform'
-      m1.body.to_xml.must_match /<property key="inform_type" type="string">CREATION_OK<\/property>/
-      m2.body.to_xml.must_match /<property key="inform_type" type="string">CREATION_OK<\/property>/
+      m1.body.to_xml.must_match /<property key="itype" type="string">CREATION.OK<\/property>/
+      m2.body.to_xml.must_match /<property key="itype" type="string">CREATION.OK<\/property>/
     end
 
     it "must generate omf release xml fragment" do
       skip
-      m1 = @xmpp.release_message([resource_id: 100])
+      m1 = @xmpp.release_message([res_id: 100])
       m2 = @xmpp.release_message do |v|
-        v.property('resource_id', 100)
+        v.property('res_id', 100)
       end
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'release'
-      m1.body.to_xml.must_match /<property key="resource_id" type="integer">100<\/property>/
-      m2.body.to_xml.must_match /<property key="resource_id" type="integer">100<\/property>/
+      m1.body.to_xml.must_match /<property key="res_id" type="integer">100<\/property>/
+      m2.body.to_xml.must_match /<property key="res_id" type="integer">100<\/property>/
     end
 
     it "must generate omf request xml fragment" do

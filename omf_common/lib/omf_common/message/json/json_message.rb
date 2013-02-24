@@ -18,14 +18,14 @@ module OmfCommon
           end 
           content = body.merge({
             operation: type,
-            msg_id: SecureRandom.uuid,
+            mid: SecureRandom.uuid,
             properties: properties
           })
           self.new(content)
         end
         
-        def self.create_inform_message(inform_type = nil, properties = {}, body = {})
-          body[:inform_type] = inform_type if inform_type
+        def self.create_inform_message(itype = nil, properties = {}, body = {})
+          body[:itype] = itype if itype
           create(:inform, properties, body)
         end
         

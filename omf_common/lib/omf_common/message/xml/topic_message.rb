@@ -11,9 +11,9 @@
       # comm.publish(topic_id, body.dup, &block)
     # end
 # 
-    # %w(created status failed released).each do |inform_type|
-      # define_method("on_inform_#{inform_type}") do |*args, &message_block|
-        # comm.send("on_#{inform_type}_message", body, &message_block)
+    # %w(created status failed released).each do |itype|
+      # define_method("on_inform_#{itype}") do |*args, &message_block|
+        # comm.send("on_#{itype}_message", body, &message_block)
       # end
     # end
   # end

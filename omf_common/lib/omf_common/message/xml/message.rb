@@ -25,21 +25,29 @@ class XML
 
     class << self
       # Create a OMF message
-      def create(operation_type, properties = nil, additional_content = nil)
-        properties ||= {}
-        additional_content ||= {}
-
+      def create(operation_type, properties = {}, core_elements= {})
+        # For request messages, properties will be an array
         if properties.kind_of? Array
           properties = Hashie::Mash.new.tap do |mash|
             properties.each { |p| mash[p] = nil }
           end
         end
 
-        new(additional_content.merge({
+        properties = Hashie::Mash.new(properties)
+        core_elements = Hashie::Mash.new(core_elements)
+
+        if operation_type.to_sym == :create
+          core_elements[:rtype] ||= properties[:type]
+        end
+
+        content = core_elements.merge({
           operation: operation_type,
           type: operation_type,
-          properties: properties
-        }))
+          properties: properties,
+          src: 'bob'
+        })
+
+        new(content)
       end
 
       def parse(xml)
@@ -50,34 +58,36 @@ class XML
         self.create(xml_node.name.to_sym).tap do |message|
           message.xml = xml_node
 
+          message.send(:_set_core, :mid, message.xml.attr('mid'))
+
           message.xml.elements.each do |el|
-            unless %w(property digest).include? el.name
+            unless %w(digest props guard).include? el.name
               message.send(:_set_core, el.name, message.read_content(el.name))
             end
 
-            if el.name == 'property'
-              message.read_element('property').each do |prop_node|
+            if el.name == 'props'
+              message.read_element('props').first.element_children.each do |prop_node|
                 message.send(:_set_property,
-                             prop_node.attr('key'),
+                             prop_node.element_name,
                              message.reconstruct_data(prop_node))
               end
             end
           end
 
-          if OmfCommon::Measure.enabled? && !@@msg_id_list.include?(message.msg_id)
-            MPMessage.inject(Time.now.to_f, message.operation.to_s, message.msg_id, message.context_id, message.to_s.gsub("\n",''))
+          if OmfCommon::Measure.enabled? && !@@mid_list.include?(message.mid)
+            MPMessage.inject(Time.now.to_f, message.operation.to_s, message.mid, message.cid, message.to_s.gsub("\n",''))
           end
         end
       end
     end
 
     def resource
-      r_id = _get_property(:resource_id)
+      r_id = _get_property(:res_id)
       OmfCommon::Comm::XMPP::Topic.create(r_id)
     end
 
-    def inform_type
-      @content.inform_type.to_s.upcase unless @content.inform_type.nil?
+    def itype
+      @content.itype.to_s.upcase.gsub(/_/, '.') unless @content.itype.nil?
     end
 
     def marshall
@@ -91,7 +101,10 @@ class XML
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
-      [:timestamp, :msg_id, :inform_to, :context_id, :inform_type].each do |attr|
+      @xml.write_attr(:mid, mid)
+      @xml.add_child(Niceogiri::XML::Node.new(:props))
+
+      (OMF_CORE_READ - [:mid, :guard, :operation]).each do |attr|
         attr_value = self.send(attr)
 
         next unless attr_value
@@ -101,17 +114,16 @@ class XML
 
       self.properties.each { |k, v| add_property(k, v) }
 
-      digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
+      #digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
 
-      add_element(:digest, digest)
+      #add_element(:digest, digest)
       @xml
     end
 
     # Construct a property xml node
     #
     def add_property(key, value = nil)
-      key_node = Niceogiri::XML::Node.new('property')
-      key_node.write_attr('key', key)
+      key_node = Niceogiri::XML::Node.new(key)
 
       unless value.nil?
         key_node.write_attr('type', ruby_type_2_prop_type(value.class))
@@ -123,7 +135,7 @@ class XML
           key_node.add_child(c_node)
         end
       end
-      @xml.add_child(key_node)
+      read_element(:props).first.add_child(key_node)
       key_node
     end
 
@@ -170,20 +182,20 @@ class XML
     # Generate SHA1 of canonicalised xml and write into the ID attribute of the message
     #
     def sign
-      write_attr('msg_id', SecureRandom.uuid)
-      write_attr('timestamp', Time.now.utc.iso8601)
+      write_attr('mid', SecureRandom.uuid)
+      write_attr('ts', Time.now.utc.to_i)
       canonical_msg = self.canonicalize
 
-      priv_key =  OmfCommon::Key.instance.private_key
-      digest = OpenSSL::Digest::SHA512.new(canonical_msg)
+      #priv_key =  OmfCommon::Key.instance.private_key
+      #digest = OpenSSL::Digest::SHA512.new(canonical_msg)
 
-      signature = Base64.encode64(priv_key.sign(digest, canonical_msg)).encode('utf-8') if priv_key
-      write_attr('digest', digest)
-      write_attr('signature', signature) if signature
+      #signature = Base64.encode64(priv_key.sign(digest, canonical_msg)).encode('utf-8') if priv_key
+      #write_attr('digest', digest)
+      #write_attr('signature', signature) if signature
 
       if OmfCommon::Measure.enabled?
-        MPMessage.inject(Time.now.to_f, operation.to_s, msg_id, context_id, self.to_s.gsub("\n",''))
-        @@msg_id_list << msg_id
+        MPMessage.inject(Time.now.to_f, operation.to_s, mid, cid, self.to_s.gsub("\n",''))
+        @@mid_list << mid
       end
       self
     end
@@ -218,6 +230,7 @@ class XML
 
     # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
+      xpath_without_ns = xpath_without_ns.to_s
       @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
     end
 
@@ -322,9 +335,9 @@ class XML
     private
 
     def initialize(content = {})
-      @content = Hashie::Mash.new(content)
-      @content.msg_id = SecureRandom.uuid
-      @content.timestamp = Time.now.utc.iso8601
+      @content = content
+      @content.mid = SecureRandom.uuid
+      @content.ts = Time.now.utc.to_i
     end
 
     def _set_core(key, value)

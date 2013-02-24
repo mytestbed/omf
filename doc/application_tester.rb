@@ -25,16 +25,16 @@ app_topic = comm.get_topic(app_id)
 # if it is an error/warning from the Application Proxy, log it accordingly
 app_topic.on_message  do |m|
   if m.operation == :inform
-    case m.read_content("inform_type")
+    case m.read_content("itype")
     when 'STATUS'
       if m.read_property("status_type") == 'APP_EVENT'
         logger.info "APP_EVENT #{m.read_property('event')} "+
         "from app #{m.read_property("app")} - msg: #{m.read_property("msg")}"
       end
     when 'ERROR'
-      logger.error m.read_content('reason') if m.read_content("inform_type") == 'ERROR'
+      logger.error m.read_content('reason') if m.read_content("itype") == 'ERROR'
     when 'WARN'
-      logger.warn m.read_content('reason') if m.read_content("inform_type") == 'WARN'
+      logger.warn m.read_content('reason') if m.read_content("itype") == 'WARN'
     end
   end
 end

@@ -40,8 +40,8 @@ module OmfEc
           end
 
           res.on_creation_ok do |msg|
-            info "Resource #{msg[:resource_id]} created"
-            OmfEc.experiment.add_resource(msg[:resource_id],
+            info "Resource #{msg[:res_id]} created"
+            OmfEc.experiment.add_resource(msg[:res_id],
                                           type: msg[:type],
                                           hrn: msg[:hrn],
                                           membership: msg[:membership])

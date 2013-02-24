@@ -9,11 +9,11 @@ describe OmfCommon::Message::XML::Message do
       # We will test prop value other than just strings
       @message = Message::XML::Message.create(:create,
                                      { p1: 'p1_value', p2: { unit: 'u', precision: 2 } },
-                                     { guard: { p1: 'p1_value' } })
+                                     { rtype: 'bob', guard: { p1: 'p1_value' } })
     end
 
     it "must to be validated using relaxng schema" do
-      #@message.valid?.must_equal true
+      @message.valid?.must_equal true
     end
 
     it "must be able to be serialised as XML" do
@@ -41,8 +41,8 @@ describe OmfCommon::Message::XML::Message do
     end
 
     it "must provide normal xml xpath query" do
-      @message.read_element("property").size.must_equal 8
-      @message.read_content("property[@key='memory']/unit").must_equal 'mb'
+      @message.read_element("props").first.element_children.size.must_equal 8
+      @message.read_content("props/memory/unit").must_equal 'mb'
     end
 
     it "must provide unified message property access" do
@@ -84,7 +84,7 @@ describe OmfCommon::Message::XML::Message do
   describe "when creating request messages" do
     it "must accept an array of properties instead of hash" do
       request_m = Message::XML::Message.create(:request, [:p1, :p2])
-      #request_m.valid?.must_equal true
+      request_m.valid?.must_equal true
       request_m[:p1].must_be_nil
     end
   end
@@ -92,17 +92,15 @@ describe OmfCommon::Message::XML::Message do
   describe "when parsing inform message" do
     it "must validate against inform message schema" do
       msg = Message::XML::Message.parse <<-XML
-        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
-          <timestamp>2013-02-14T07:12:03Z</timestamp>
-          <digest>3acfc5e51cedba31d9c62defba8c54e49624241d7587fe0932c6e9972904faca24ed0f061b944c542d4c964e5dd3e9e62d4d0e4df0889932231d5886ee0f750a</digest>
-          <property key="resource_id" type="string">garage</property>
-          <property key="hrn"/>
-          <inform_type>CREATION_OK</inform_type>
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="bob">
+          <src>xmpp://bob@localhost</src>
+          <ts>100</ts>
+          <itype>CREATION.OK</itype>
         </inform>
       XML
 
-      msg.timestamp.must_equal "2013-02-14T07:12:03Z"
-      msg.inform_type.must_equal "CREATION_OK"
+      msg.ts.must_equal "100"
+      msg.itype.must_equal "CREATION.OK"
 
       msg.valid?.must_equal true
     end
