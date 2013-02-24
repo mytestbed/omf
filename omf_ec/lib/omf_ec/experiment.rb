@@ -48,7 +48,11 @@ module OmfEc
     end
 
     def each_group(&block)
-      groups.each { |g| block.call(g) } if block
+      if block
+        groups.each { |g| block.call(g) }
+      else
+        groups
+      end
     end
 
     def all_groups?(&block)
