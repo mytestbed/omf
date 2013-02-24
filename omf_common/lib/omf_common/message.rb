@@ -12,7 +12,7 @@ module OmfCommon
   class Message
 
     OMF_CORE_READ = [:operation, :ts, :src, :mid, :replyto, :cid, :itype, :rtype, :guard]
-    OMF_CORE_WRITE = [:replyto, :itype]
+    OMF_CORE_WRITE = [:replyto, :itype, :guard]
 
     @@providers = {
       xml: {

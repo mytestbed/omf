@@ -72,6 +72,13 @@ class XML
                              message.reconstruct_data(prop_node))
               end
             end
+
+            if el.name == 'guard'
+              message.read_element('guard').first.element_children.each do |guard_node|
+                message.guard ||= Hashie::Mash.new
+                message.guard[guard_node.element_name] = message.reconstruct_data(guard_node)
+              end
+            end
           end
 
           if OmfCommon::Measure.enabled? && !@@mid_list.include?(message.mid)
@@ -103,16 +110,18 @@ class XML
 
       @xml.write_attr(:mid, mid)
       @xml.add_child(Niceogiri::XML::Node.new(:props))
+      @xml.add_child(Niceogiri::XML::Node.new(:guard)) if _get_core(:guard)
 
       (OMF_CORE_READ - [:mid, :guard, :operation]).each do |attr|
         attr_value = self.send(attr)
 
         next unless attr_value
 
-        add_element(attr, attr_value) if attr != 'guard'
+        add_element(attr, attr_value)
       end
 
       self.properties.each { |k, v| add_property(k, v) }
+      self.guard.each { |k, v| add_property(k, v, :guard) } if _get_core(:guard)
 
       #digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
 
@@ -122,7 +131,7 @@ class XML
 
     # Construct a property xml node
     #
-    def add_property(key, value = nil)
+    def add_property(key, value = nil, add_to = :props)
       key_node = Niceogiri::XML::Node.new(key)
 
       unless value.nil?
@@ -135,7 +144,7 @@ class XML
           key_node.add_child(c_node)
         end
       end
-      read_element(:props).first.add_child(key_node)
+      read_element(add_to).first.add_child(key_node)
       key_node
     end
 

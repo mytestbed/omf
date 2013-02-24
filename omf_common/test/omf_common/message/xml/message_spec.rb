@@ -18,20 +18,25 @@ describe OmfCommon::Message::XML::Message do
 
     it "must be able to be serialised as XML" do
       @message.to_xml.must_match /^<create(.+)create>$/m
+      @message.to_xml.must_match /<rtype>bob<\/rtype>/m
+      @message.to_xml.must_match /<props(.+)props>/m
+      @message.to_xml.must_match /<guard(.+)guard>/m
     end
   end
 
   describe "when asked to parse a XML element into Message::XML::Message object" do
     before do
-      @xml = Message::XML::Message.create(:create,
-                                { type: 'vm',
-                                  os: 'debian',
-                                  memory: { value: 1024, unit: 'mb', precision: 0 },
-                                  devices: [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ],
-                                  true: true,
-                                  false: false,
-                                  empty: nil,
-                                  boolean_array: [false, true] }).to_xml
+      @xml = Message::XML::Message.create(
+        :create,
+        { type: 'vm',
+          os: 'debian',
+          memory: { value: 1024, unit: 'mb', precision: 0 },
+          devices: [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ],
+          true: true,
+          false: false,
+          empty: nil,
+          boolean_array: [false, true] },
+        { guard: { os_type: 'linux' } }).to_xml
       @message = Message::XML::Message.parse(@xml)
     end
 
@@ -48,6 +53,10 @@ describe OmfCommon::Message::XML::Message do
     it "must provide unified message property access" do
       @message["type"].must_equal 'vm'
       @message[:type].must_equal 'vm'
+    end
+
+    it "must provide guard information" do
+      @message.guard[:os_type].must_equal 'linux'
     end
 
     it "must be able reconstruct complicate data" do
