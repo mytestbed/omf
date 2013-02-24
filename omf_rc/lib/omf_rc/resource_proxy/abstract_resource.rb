@@ -85,7 +85,9 @@ class OmfRc::ResourceProxy::AbstractResource
         t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
 
         t.on_message do |imsg|
-          process_omf_message(imsg, t)
+          if check_guard(imsg)
+            process_omf_message(imsg, t)
+          end
         end
       end
     end
@@ -434,111 +436,15 @@ class OmfRc::ResourceProxy::AbstractResource
     replyto || obj.uid
   end
 
-  # FIXME delete this
-  def _execute_omf_operation(message, obj)
-    dp = OmfRc::DeferredProcess.new
+  def check_guard(message)
+    guard = message.guard
 
-    # When successfully executed
-    dp.callback do |response|
-      response = Hashie::Mash.new(response)
-      case response.operation
-      when :create
-        new_uid = response.res_id
-        OmfCommon.comm.create_topic(new_uid) do
-          OmfCommon.comm.subscribe(new_uid) do
-            inform(:creation_ok, response)
-          end
-        end
-      when :request, :configure
-        inform(:status, response)
-      when :release
-        EM.add_timer(RELEASE_WAIT) do
-          inform(:released, response)
-        end
-      end
-    end
-
-    # When failed
-    dp.errback do |e|
-      inform(:creation_failed, e)
-    end
-
-    # Fire the process
-    dp.fire do
-      begin
-        default_response = {
-          operation: message.operation,
-          cid: message.mid,
-          replyto: replyto_address(obj, message.replyto)
-        }
-
-        guard = message.read_element("guard").first
-
-        unless guard.nil? || guard.element_children.empty?
-          guard_check = guard.element_children.all? do |g|
-            obj.__send__("request_#{g.attr('key')}") == g.content.ducktype
-          end
-          next nil unless guard_check
-        end
-
-        case message.operation
-        when :create
-          new_name = message.read_property(:name) || message.read_property(:hrn)
-          new_opts = opts.dup.merge(uid: nil, hrn: new_name)
-          new_obj = obj.create(message.read_property(:type), new_opts)
-          message.each_property do |p|
-            unless %w(type hrn name).include?(p.attr('key'))
-              method_name = "configure_#{p.attr('key')}"
-              p_value = message.read_property(p.attr('key'), new_obj.get_binding)
-              new_obj.__send__(method_name, p_value)
-            end
-          end
-          new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-          default_response.merge(res_id: new_obj.uid)
-        when :request, :configure
-          result = Hashie::Mash.new.tap do |mash|
-            properties = message.read_element("property")
-            if message.operation == :request && properties.empty?
-              obj.request_available_properties.request.each do |r_p|
-                method_name = "request_#{r_p.to_s}"
-                mash[r_p] ||= obj.__send__(method_name)
-              end
-            else
-              properties.each do |p|
-                method_name =  "#{message.operation.to_s}_#{p.attr('key')}"
-                p_value = message.read_property(p.attr('key'), obj.get_binding)
-                mash[p.attr('key')] ||= obj.__send__(method_name, p_value)
-              end
-            end
-          end
-          # Always return uid
-          result.uid = obj.uid
-          default_response.merge(status: result)
-        when :release
-          res_id = message.res_id
-          released_obj = obj.release(res_id)
-          released_obj ? default_response.merge(res_id: released_obj.uid) : nil
-        when :inform
-          nil # We really don't care about inform messages which created from here
-        else
-          raise StandardError, <<-ERROR
-            Invalid message received (Unknown OMF operation #{message.operation}): #{pubsub_item_payload}.
-            Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
-          ERROR
-        end
-      rescue => e
-        if (e.kind_of? OmfRc::UnknownPropertyError) && (message.operation == :configure || message.operation == :request)
-          msg = "Cannot #{message.operation} unknown property '#{e.message}' for resource '#{obj.type}'. Original message fragment: " +
-            "'#{message.read_element("property")}'"
-          logger.warn msg
-          raise OmfRc::MessageProcessError.new(message.cid, replyto_address(obj, message.replyto), msg)
-        else
-          logger.error e.message
-          logger.error e.backtrace.join("\n")
-          raise OmfRc::MessageProcessError.new(message.cid, replyto_address(obj, message.replyto), e.message)
-        end
+    if guard.nil? || guard.empty?
+      return true
+    else
+      guard.keys.all? do |key|
+        obj.__send__("request_#{key}") == guard[key]
       end
     end
   end
-
 end
