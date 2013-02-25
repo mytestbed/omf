@@ -81,8 +81,8 @@ class OmfRc::ResourceProxy::AbstractResource
         OmfCommon.comm.disconnect()
       else
         creation_callback.call(self) if creation_callback
-        copts = { res_id: @uid }
-        t.inform(:creation_ok, copts.merge(hrn: @hrn), copts)
+        copts = { res_id: self.resource_address }
+        t.inform(:creation_ok, copts.merge(hrn: @hrn).merge(@property), copts)
 
         t.on_message do |imsg|
           if check_guard(imsg)
@@ -350,17 +350,19 @@ class OmfRc::ResourceProxy::AbstractResource
     new_opts = { hrn: new_name }
     new_obj = obj.create(message[:type], new_opts) do |new_obj|
       response[:res_id] = new_obj.resource_address
-      new_obj.inform(:creation_ok, response, @topics[0])
-    end
 
-    exclude = [:type, :hrn, :name]
-    message.each_property do |key, value|
-      unless exclude.include?(key)
-        method_name = "configure_#{key}"
-        new_obj.__send__(method_name, value)
+      exclude = [:type, :hrn, :name]
+      message.each_property do |key, value|
+        unless exclude.include?(key)
+          method_name = "configure_#{key}"
+          response[key] = new_obj.__send__(method_name, value)
+        end
       end
+      new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
+
+      # self here is the parent
+      self.inform(:creation_ok, response)
     end
-    new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
   end
 
   def handle_configure_message(message, obj, response)
