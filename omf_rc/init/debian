@@ -1,0 +1,51 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          omf-rc
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
+DAEMON=/usr/local/bin/run_omf_rc.sh
+[ -x "$DAEMON" ] || exit 0
+NAME=omf_rc
+PIDFILE=/var/run/$NAME.pid
+. /lib/init/vars.sh
+. /lib/lsb/init-functions
+
+start(){
+        echo -n "Starting OMF Resource Controller: $NAME"
+	start-stop-daemon --start --quiet --background --pidfile $PIDFILE --make-pidfile --exec $DAEMON
+        echo "."
+}
+
+stop(){
+        echo -n "Stopping OMF Resource Controller: $NAME"
+	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+        echo "."
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart|force-reload)
+ 	stop
+ 	start
+	;;
+  status)
+	status_of_proc -p $PIDFILE "$DAEMON" "$NAME" && exit 0 || exit $?
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|force-reload|status}" >&2
+	exit 3
+	;;
+esac
+
+:

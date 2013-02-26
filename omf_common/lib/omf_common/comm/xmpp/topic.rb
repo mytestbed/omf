@@ -2,9 +2,9 @@ module OmfCommon
 class Comm
 class XMPP
   class Topic < OmfCommon::Comm::Topic
-    %w(creation_ok creation_failed status released error warn).each do |inform_type|
-      define_method("on_#{inform_type}") do |*args, &message_block|
-        msg_id = args[0].msg_id if args[0]
+    %w(creation.ok creation.failed status released error warn).each do |itype|
+      define_method("on_#{itype.gsub(/\./, '_')}") do |*args, &message_block|
+        mid = args[0].mid if args[0]
 
         raise ArgumentError, 'Missing callback' if message_block.nil?
 
@@ -17,8 +17,8 @@ class XMPP
             event.items.first.payload &&
             (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
             omf_message.operation == :inform &&
-            omf_message.read_content(:inform_type) == inform_type.upcase &&
-            (msg_id ? (omf_message.context_id == msg_id) : true)
+            omf_message.read_content(:itype) == itype.upcase &&
+            (mid ? (omf_message.cid == mid) : true)
         end
 
         OmfCommon.comm.topic_event(guard_block, &event_block)
@@ -42,7 +42,7 @@ class XMPP
     end
 
     def inform(type, props = {}, core_props = {}, &block)
-      msg = OmfCommon::Message.create(:inform, props, core_props.merge(inform_type: type))
+      msg = OmfCommon::Message.create(:inform, props, core_props.merge(itype: type))
       publish(msg, &block)
       self
     end

@@ -38,8 +38,8 @@ comm.when_ready do
 end
 
 comm.on_creation_ok_message @messages[:create] do |message|
-  child_uid = message.read_content("resource_id")
-  @messages[:release] ||= comm.release_message([resource_id: child_uid])
+  child_uid = message.read_content("res_id")
+  @messages[:release] ||= comm.release_message([res_id: child_uid])
   logger.info "* Child resource \"#{child_uid}\" ready for testing"
 
   comm.subscribe(child_uid) do

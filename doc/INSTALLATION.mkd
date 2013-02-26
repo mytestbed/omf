@@ -1,28 +1,32 @@
 # RUBY 1.9 INSTALLATION
 
-OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM(https://rvm.io) instead. Before installing RVM, you need to satisfy some build dependencies. OMF depends on a few other Ruby gems, which themselves also have dependencies. Please see the instructions below on how to install OMF on your operating system.
+OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. Before installing RVM, you need to satisfy some build dependencies. OMF depends on a few other Ruby gems, which themselves also have dependencies. Please see the instructions below on how to install OMF on your operating system.
 
 __If you experience problems using latest Ruby 1.9 version ruby-1.9.3-p362, try to install and use a previous version. OMF has been tested against ruby-1.9.3-p286__
 
 ## RVM (all Linux/Unix/BSD platforms, including Mac OSX)
 
-RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
+RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets. We generally recommend using it for all OMF installations.
 
-The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. For a local user installation, run:
+The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. For a system-wide installation of RVM (needed if you want to run OMF as root), become root first. To install RVM, run:
 
     curl -L https://get.rvm.io | bash -s stable
 
-then log out, log back in and run:
+The next step for system-wide installations is
+
+    source /etc/profile.d/rvm.sh
+
+Or if you installed RVM as a local user, run
+
+    source $HOME/.rvm/scripts/rvm
+
+Now the 'rvm' command should be available. Run
 
     rvm requirements
 
-You will see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed.  Now you can install and select ruby:
+to see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed.  Now you can install and select ruby:
 
     rvm install ruby-1.9.3-p286
-
-For a system-wide RVM installation (e.g. when you want to run the OMF RC on startup and/or as root), run the above commands as root. After the RVM installation you may need to run
-
-    source /etc/profile.d/rvm.sh
 
 To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of **libxml2** and **libxslt**. After installing those packages, you are ready to install the OMF gems. See the instructions at the end of this document.
 

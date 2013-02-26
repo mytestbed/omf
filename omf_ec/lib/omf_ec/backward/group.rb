@@ -14,8 +14,10 @@ module OmfEc
 
         e_name = "#{self.name}_application_#{name}_created_#{e_uid}"
 
+        resource_group_name = "#{self.id}_application"
+
         def_event e_name do |state|
-          state.find_all { |v| v[:hrn] == name }.size >= self.members.uniq.size
+          state.find_all { |v| v[:hrn] == name && v[:membership].include?(resource_group_name)}.size >= self.members.uniq.size
         end
 
         on_event e_name do

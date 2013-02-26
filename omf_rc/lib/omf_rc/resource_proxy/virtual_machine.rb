@@ -95,7 +95,7 @@
 #
 #    # Define a new event to run the VM resource once it is 'ready'
 #    vm_topic.on_message do |m|
-#      if (m.operation == :inform) && (m.read_content("inform_type") == 'STATUS') && m.read_property('ready')
+#      if (m.operation == :inform) && (m.read_content("itype") == 'STATUS') && m.read_property('ready')
 #        conf_vm_run.publish vm_topic.id    
 #      end
 #    end

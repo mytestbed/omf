@@ -9,29 +9,34 @@ describe OmfCommon::Message::XML::Message do
       # We will test prop value other than just strings
       @message = Message::XML::Message.create(:create,
                                      { p1: 'p1_value', p2: { unit: 'u', precision: 2 } },
-                                     { guard: { p1: 'p1_value' } })
+                                     { rtype: 'bob', guard: { p1: 'p1_value' } })
     end
 
     it "must to be validated using relaxng schema" do
-      #@message.valid?.must_equal true
+      @message.valid?.must_equal true
     end
 
     it "must be able to be serialised as XML" do
       @message.to_xml.must_match /^<create(.+)create>$/m
+      @message.to_xml.must_match /<rtype>bob<\/rtype>/m
+      @message.to_xml.must_match /<props(.+)props>/m
+      @message.to_xml.must_match /<guard(.+)guard>/m
     end
   end
 
   describe "when asked to parse a XML element into Message::XML::Message object" do
     before do
-      @xml = Message::XML::Message.create(:create,
-                                { type: 'vm',
-                                  os: 'debian',
-                                  memory: { value: 1024, unit: 'mb', precision: 0 },
-                                  devices: [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ],
-                                  true: true,
-                                  false: false,
-                                  empty: nil,
-                                  boolean_array: [false, true] }).to_xml
+      @xml = Message::XML::Message.create(
+        :create,
+        { type: 'vm',
+          os: 'debian',
+          memory: { value: 1024, unit: 'mb', precision: 0 },
+          devices: [{ name: 'w0', driver: 'mod_bob'}, { name: 'w1', driver: ['mod1', 'mod2']} ],
+          true: true,
+          false: false,
+          empty: nil,
+          boolean_array: [false, true] },
+        { guard: { os_type: 'linux' } }).to_xml
       @message = Message::XML::Message.parse(@xml)
     end
 
@@ -41,13 +46,17 @@ describe OmfCommon::Message::XML::Message do
     end
 
     it "must provide normal xml xpath query" do
-      @message.read_element("property").size.must_equal 8
-      @message.read_content("property[@key='memory']/unit").must_equal 'mb'
+      @message.read_element("props").first.element_children.size.must_equal 8
+      @message.read_content("props/memory/unit").must_equal 'mb'
     end
 
     it "must provide unified message property access" do
       @message["type"].must_equal 'vm'
       @message[:type].must_equal 'vm'
+    end
+
+    it "must provide guard information" do
+      @message.guard[:os_type].must_equal 'linux'
     end
 
     it "must be able reconstruct complicate data" do
@@ -84,7 +93,7 @@ describe OmfCommon::Message::XML::Message do
   describe "when creating request messages" do
     it "must accept an array of properties instead of hash" do
       request_m = Message::XML::Message.create(:request, [:p1, :p2])
-      #request_m.valid?.must_equal true
+      request_m.valid?.must_equal true
       request_m[:p1].must_be_nil
     end
   end
@@ -92,17 +101,15 @@ describe OmfCommon::Message::XML::Message do
   describe "when parsing inform message" do
     it "must validate against inform message schema" do
       msg = Message::XML::Message.parse <<-XML
-        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
-          <timestamp>2013-02-14T07:12:03Z</timestamp>
-          <digest>3acfc5e51cedba31d9c62defba8c54e49624241d7587fe0932c6e9972904faca24ed0f061b944c542d4c964e5dd3e9e62d4d0e4df0889932231d5886ee0f750a</digest>
-          <property key="resource_id" type="string">garage</property>
-          <property key="hrn"/>
-          <inform_type>CREATION_OK</inform_type>
+        <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="bob">
+          <src>xmpp://bob@localhost</src>
+          <ts>100</ts>
+          <itype>CREATION.OK</itype>
         </inform>
       XML
 
-      msg.timestamp.must_equal "2013-02-14T07:12:03Z"
-      msg.inform_type.must_equal "CREATION_OK"
+      msg.ts.must_equal "100"
+      msg.itype.must_equal "CREATION.OK"
 
       msg.valid?.must_equal true
     end

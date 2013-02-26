@@ -31,7 +31,7 @@ module OmfEc
     end
 
     def resource(id)
-      @state.find { |v| v[:uid] == id }
+      @state.find { |v| v[:uid].to_s == id.to_s }
     end
 
     def add_resource(name, opts = {})
@@ -58,7 +58,11 @@ module OmfEc
     end
 
     def each_group(&block)
-      groups.each { |g| block.call(g) } if block
+      if block
+        groups.each { |g| block.call(g) }
+      else
+        groups
+      end
     end
 
     def all_groups?(&block)

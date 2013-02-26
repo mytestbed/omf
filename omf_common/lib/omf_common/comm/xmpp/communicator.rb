@@ -59,6 +59,7 @@ class Comm
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def connect(username, password, server)
+        info "Connecting to '#{server}' ..."
         jid = "#{username}@#{server}"
         client.setup(jid, password)
         client.run

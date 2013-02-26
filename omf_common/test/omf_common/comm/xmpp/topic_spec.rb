@@ -46,7 +46,7 @@ describe OmfCommon::Comm::XMPP::Topic do
       OmfCommon.stub :comm, @xmpp do
         Blather::Client.stub :new, @client do
           omf_create = OmfCommon::Message.create(:create, { type: 'engine' })
-          omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+          omf_create.stub :mid, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
             omf_created = Blather::XMPPNode.parse(omf_created_xml)
             @client.receive_data omf_created
             @topic.on_creation_ok(omf_create) do |n|
@@ -63,7 +63,7 @@ describe OmfCommon::Comm::XMPP::Topic do
       OmfCommon.stub :comm, @xmpp do
         Blather::Client.stub :new, @client do
           omf_request = OmfCommon::Message.create(:request, [:bob])
-          omf_request.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+          omf_request.stub :mid, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
             omf_status = Blather::XMPPNode.parse(omf_status_xml)
             @client.receive_data omf_status
             @topic.on_status(omf_request) do |n|
@@ -79,8 +79,8 @@ describe OmfCommon::Comm::XMPP::Topic do
     it "must react to omf release message" do
       OmfCommon.stub :comm, @xmpp do
         Blather::Client.stub :new, @client do
-          omf_release = OmfCommon::Message.create(:release, nil, { resource_id: '100' })
-          omf_release.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+          omf_release = OmfCommon::Message.create(:release, nil, { res_id: '100' })
+          omf_release.stub :mid, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
             omf_released = Blather::XMPPNode.parse(omf_released_xml)
             @client.receive_data omf_released
             @topic.on_released(omf_release) do |n|
@@ -97,7 +97,7 @@ describe OmfCommon::Comm::XMPP::Topic do
       OmfCommon.stub :comm, @xmpp do
         Blather::Client.stub :new, @client do
           omf_create = OmfCommon::Message.create(:create, { type: 'engine' })
-          omf_create.stub :msg_id, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
+          omf_create.stub :mid, "bf840fe9-c176-4fae-b7de-6fc27f183f76" do
             omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
             @client.receive_data omf_failed
             @topic.on_creation_failed(omf_create) do |n|

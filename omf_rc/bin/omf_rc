@@ -82,6 +82,7 @@ resource_options = {
 OmfRc::ResourceFactory.load_default_resource_proxies
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
+  info "Starting OMF Resource Controller version '#{Gem.loaded_specs["omf_rc"].version}'"
 
   OmfCommon.comm.on_connected do |comm|
     res = OmfRc::ResourceFactory.create(:node, resource_options)
@@ -89,3 +90,4 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
     comm.on_interrupted { res.disconnect }
   end
 end
+info "Stopping OMF Resource Controller version '#{Gem.loaded_specs["omf_rc"].version}'"

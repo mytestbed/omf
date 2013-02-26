@@ -30,7 +30,11 @@ module OmfEc
 
     def subscribe_and_monitor(topic_id, context_obj = nil, &block)
       OmfCommon.comm.subscribe(topic_id) do |res|
-        unless res.error?
+        if res.error?
+          error "Failed to subscribe #{topic_id}"
+        else
+          info "Subscribed to #{topic_id}"
+
           context_obj.associate_topic(res) if context_obj
 
           block.call(context_obj || res) if block
@@ -41,8 +45,9 @@ module OmfEc
           end
 
           res.on_creation_ok do |msg|
-            info "Resource #{msg[:resource_id]} created"
-            OmfEc.experiment.add_resource(msg[:resource_id],
+            debug "Received CREATION.OK via #{topic_id}"
+            info "Resource #{msg[:res_id]} created"
+            OmfEc.experiment.add_resource(msg[:uid],
                                           type: msg[:type],
                                           hrn: msg[:hrn],
                                           membership: msg[:membership])
