@@ -67,7 +67,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @membership_topics ||= {}
 
     # FIXME adding hrn to membership too?
-    @membership << @hrn if @hrn
+    #@membership << @hrn if @hrn
 
     @property = @opts.property || Hashie::Mash.new
 
@@ -81,8 +81,8 @@ class OmfRc::ResourceProxy::AbstractResource
         OmfCommon.comm.disconnect()
       else
         creation_callback.call(self) if creation_callback
-        copts = { res_id: self.resource_address }
-        t.inform(:creation_ok, copts.merge(hrn: @hrn).merge(@property), copts)
+        copts = { res_id: self.resource_address, hrn: @hrn }.merge(@property)
+        t.inform(:creation_ok, copts, copts)
 
         t.on_message do |imsg|
           if check_guard(imsg)
@@ -237,23 +237,25 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [Array] name of group topics
   def configure_membership(*args)
     new_membership = [args[0]].flatten
-    new_membership.each do |n_m|
-      @membership << n_m unless @membership.include?(n_m)
-    end
-    @membership.each do |m|
-      OmfCommon.comm.subscribe(m) do |t|
-        if t.error?
-          warn "Group #{m} disappeared"
-          EM.next_tick do
-            @membership.delete(m)
-          end
-        else
-          EM.next_tick do
-            @membership_topics[m] = t
-          end
 
-          t.on_message do |imsg|
-            process_omf_message(imsg, t)
+    new_membership.each do |new_m|
+      unless @membership.include?(new_m)
+        OmfCommon.comm.subscribe(new_m) do |t|
+          if t.error?
+            warn "Group #{new_m} disappeared"
+            #EM.next_tick do
+            #  @membership.delete(m)
+            #end
+          else
+            EM.next_tick do
+              @membership << new_m
+              @membership_topics[new_m] = t
+              self.inform(:status, { membership: @membership }, t)
+            end
+
+            t.on_message do |imsg|
+              process_omf_message(imsg, t)
+            end
           end
         end
       end
@@ -358,6 +360,10 @@ class OmfRc::ResourceProxy::AbstractResource
           response[key] = new_obj.__send__(method_name, value)
         end
       end
+      response[:hrn] = new_obj.hrn
+      response[:uid] = new_obj.uid
+      response[:type] = new_obj.type
+
       new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
 
       # self here is the parent
@@ -413,9 +419,9 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     message.itype = itype
-    message[:uid] = self.uid
-    message[:type] = self.type
-    message[:hrn] = self.hrn
+    message[:uid] ||= self.uid
+    message[:type] ||= self.type
+    message[:hrn] ||= self.hrn
 
     topic.publish(message)
 

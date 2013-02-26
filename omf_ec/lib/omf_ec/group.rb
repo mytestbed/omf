@@ -47,19 +47,14 @@ module OmfEc
       # Recording membership first, used for ALL_UP event
       names.each do |name|
         g = OmfEc.experiment.group(name)
-        if g
-          @members += g.members
-        else
-          @members << name
-        end
-      end
-
-      names.each do |name|
-        g = OmfEc.experiment.group(name)
         if g # resource to add is a group
+          @members += g.members
           self.add_resource(*g.members.uniq)
         else
+          @members << name
           OmfEc.subscribe_and_monitor(name) do |res|
+            info res
+            info "Config #{name} to join #{self.id} #{self.name}"
             res.configure(membership: self.id)
           end
         end
