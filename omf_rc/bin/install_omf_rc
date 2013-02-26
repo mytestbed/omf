@@ -42,11 +42,11 @@ end
 if options[:init]
   puts "Detecting operating system..."
   
-  if !File.exist?("/etc/os-release")
+  if !File.exist?("/etc/issue")
     abort "Unknown or unsupported operating system. Cannot install init script."
   end
   
-  os=`awk -F'=' '/^ID=/{print $2}' /etc/os-release 2>/dev/null`.chomp
+  os=`awk 'NR==1 {print $1}' /etc/issue`.chomp
   
   if os.nil?
     abort "Unknown or unsupported operating system. Cannot install init script."
@@ -57,12 +57,17 @@ if options[:init]
   FileUtils.cp "#{gem_root}/init/run_omf_rc.sh", "/usr/local/bin/run_omf_rc.sh"
   
   case os
-  when "ubuntu"
+  when "Ubuntu"
     FileUtils.cp "#{gem_root}/init/ubuntu", "/etc/init/omf_rc.conf"
-  when "debian"
+    puts "Upstart script for Ubuntu has been installed. Execute 'start omf_rc' to run the daemon."
+  when "Debian"
     FileUtils.cp "#{gem_root}/init/debian", "/etc/init.d/omf_rc"
     `update-rc.d omf_rc defaults`
-  when "fedora"
+    puts "Init script for Debian has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
+  when "Fedora"
+     FileUtils.cp "#{gem_root}/init/fedora", "/etc/init.d/omf_rc"
+    `chkconfig --add omf_rc`
+    puts "Init script for Fedora has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
   else
     abort "OS '#{os}' is not supported. Cannot install init script."
   end

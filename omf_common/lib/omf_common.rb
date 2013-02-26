@@ -31,23 +31,6 @@ module OmfCommon
       }
     },
     production: {
-      daemonize: {
-        #app_name: "my_app",
-        dir_mode: :system, # :script (the default): the directory given by :dir is interpreted as a (absolute or relative) path)
-                           # or :system (/var/run is used as the pid file directory)
-        #dir: 'pids',       # Used in combination with :dir_mode (description above)
-        #ontop: true,       # When true, do not daemonize the application (but the pid-file and other things are written as usual)
-        backtrace: true,    # Write a backtrace of the last exceptions to the file ‘[app_name].log’ in the pid-file directory
-                            # if the application exits due to an uncaught exception
-        #monitor: true,     # Monitor the programs and restart crashed instances
-        # log_dir: 'log',   # A directory to put the log files into (when not given, resort to the default location
-                           # as derived from the :dir_mode and :dir options
-        log_output: true,  # When set, redirect both STDOUT and STDERR to a logfile named ‘[app_name].output’ in the pid-file directory
-        keep_pid_files: false # When set do not delete lingering pid-files (files for which the process is no longer running).
-        #hard_exit: false   # When set use exit! to end a daemons instead of exit (this will for example not call at_exit handlers).
-        # stop_proc: proc   # A proc to be called when the daemonized process receives a request to stop (works only for :load and :proc mode)
-      },
-
       eventloop: {
         type: :em
       },
