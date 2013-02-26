@@ -66,7 +66,7 @@ if options[:init]
     puts "Init script for Debian has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
   when "Fedora"
      FileUtils.cp "#{gem_root}/init/fedora", "/etc/init.d/omf_rc"
-    `chkconfig --add omf_rc`
+    `chkconfig --add omf_rc; systemctl --system daemon-reload`
     puts "Init script for Fedora has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
   else
     abort "OS '#{os}' is not supported. Cannot install init script."

@@ -13,14 +13,13 @@ DAEMON=/usr/local/bin/run_omf_rc.sh
 [ -x "$DAEMON" ] || exit 0
 NAME=omf_rc
 PIDFILE=/var/run/$NAME.pid
-. /lib/init/vars.sh
-. /lib/lsb/init-functions
+. /etc/rc.d/init.d/functions
 
 start(){
-        echo -n "Starting OMF Resource Controller: $NAME"
-        $DAEMON &
-	echo $! > $PIDFILE
-        echo "."
+    echo -n "Starting OMF Resource Controller: $NAME"
+    $DAEMON >& /var/log/$NAME.daemon.log &
+    echo $! > $PIDFILE
+    echo "."
 }
 
 stop(){
@@ -30,7 +29,7 @@ stop(){
 	rm $PIDFILE
 	sleep 2
     else
-	echo "No pidfile found. Is $NAME running?"
+	echo -e "\nNo pidfile found. Is $NAME running?"
     fi
     echo "."
 }
@@ -46,11 +45,8 @@ case "$1" in
  	stop
  	start
 	;;
-  status)
-	status_of_proc -p $PIDFILE "$DAEMON" "$NAME" && exit 0 || exit $?
-	;;
   *)
-	echo "Usage: $0 {start|stop|restart|force-reload|status}" >&2
+	echo "Usage: $0 {start|stop|restart|force-reload}" >&2
 	exit 3
 	;;
 esac
