@@ -1,11 +1,14 @@
 require 'hashie'
 require 'singleton'
+require 'monitor'
 
 module OmfEc
   # Experiment class to hold relevant state information
   #
   class Experiment
     include Singleton
+
+    include MonitorMixin
 
     attr_accessor :name, :oml_uri, :app_definitions, :property
     attr_reader :groups, :sub_groups, :state
@@ -18,6 +21,7 @@ module OmfEc
       @events ||= []
       @app_definitions ||= Hash.new
       @sub_groups ||= []
+      super
     end
 
     def resource(id)
@@ -25,8 +29,10 @@ module OmfEc
     end
 
     def add_resource(name, opts = {})
-      unless resource(name)
-        @state << Hashie::Mash.new({ uid: name }.merge(opts))
+      self.synchronize do
+        unless resource(name)
+          @state << Hashie::Mash.new({ uid: name }.merge(opts))
+        end
       end
     end
 
@@ -35,7 +41,9 @@ module OmfEc
     end
 
     def add_sub_group(name)
-      @sub_groups << name unless @sub_groups.include?(name)
+      self.synchronize do
+        @sub_groups << name unless @sub_groups.include?(name)
+      end
     end
 
     def group(name)
@@ -43,8 +51,10 @@ module OmfEc
     end
 
     def add_group(group)
-      raise ArgumentError, "Expect Group object, got #{group.inspect}" unless group.kind_of? OmfEc::Group
-      @groups << group unless group(group.name)
+      self.synchronize do
+        raise ArgumentError, "Expect Group object, got #{group.inspect}" unless group.kind_of? OmfEc::Group
+        @groups << group unless group(group.name)
+      end
     end
 
     def each_group(&block)
@@ -64,8 +74,10 @@ module OmfEc
     end
 
     def add_event(name, trigger)
-      raise RuntimeError, "Event '#{name}' has been defined" if event(name)
-      @events << { name: name, trigger: trigger }
+      self.synchronize do
+        raise RuntimeError, "Event '#{name}' has been defined" if event(name)
+        @events << { name: name, trigger: trigger }
+      end
     end
 
     # Unique experiment id
@@ -75,7 +87,7 @@ module OmfEc
 
     # Parsing user defined events, checking conditions against internal state, and execute callbacks if triggered
     def process_events
-      EM.next_tick do
+      self.synchronize do
         @events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
           if event[:trigger].call(@state)
             info "Event triggered: '#{event[:name]}'"

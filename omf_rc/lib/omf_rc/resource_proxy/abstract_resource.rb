@@ -2,6 +2,7 @@
 require 'omf_rc/omf_error'
 require 'securerandom'
 require 'hashie'
+require 'monitor'
 
 # OML Measurement Point (MP)
 # This MP is for measurements about messages published by the Resource Proxy
@@ -24,6 +25,8 @@ class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
 end
 
 class OmfRc::ResourceProxy::AbstractResource
+  include MonitorMixin
+
   # Time to wait before shutting down event loop, wait for deleting pubsub topics
   DISCONNECT_WAIT = 5
   # Time to wait before releasing resource, wait for deleting pubsub topics
@@ -91,6 +94,8 @@ class OmfRc::ResourceProxy::AbstractResource
         end
       end
     end
+
+    super()
   end
 
   # If method missing, try the property mash
@@ -137,7 +142,10 @@ class OmfRc::ResourceProxy::AbstractResource
     before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
     after_create(new_resource) if respond_to? :after_create
-    children << new_resource
+
+    self.synchronize do
+      children << new_resource
+    end
     new_resource
   end
 
@@ -146,15 +154,17 @@ class OmfRc::ResourceProxy::AbstractResource
   # @return [AbstractResource] Relsead child or nil if error
   #
   def release(res_id)
-    if (child = children.find { |v| v.uid.to_s == res_id.to_s })
-      if child.release_self()
-        children.delete(child)
-        child
+    self.synchronize do
+      if (child = children.find { |v| v.uid.to_s == res_id.to_s })
+        if child.release_self()
+          children.delete(child)
+          child
+        else
+          child = nil
+        end
       else
-        child = nil
+        warn "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
       end
-    else
-      warn "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
     end
     child
   end
@@ -164,28 +174,30 @@ class OmfRc::ResourceProxy::AbstractResource
   # Return true if successful
   #
   def release_self
-    # Release children resource recursively
-    children.dup.each do |c|
-      if c.release_self
-        children.delete(c)
+    self.synchronize do
+      # Release children resource recursively
+      children.dup.each do |c|
+        if c.release_self
+          children.delete(c)
+        end
       end
-    end
-    return false unless children.empty?
-    info "Releasing hrn: #{hrn}, uid: #{uid}"
-    self.before_release if self.respond_to? :before_release
-    props = {
-      res_id: resource_address
-    }
-    props[:hrn] = hrn if hrn
-    inform :released, props
+      return false unless children.empty?
+      info "Releasing hrn: #{hrn}, uid: #{uid}"
+      self.before_release if self.respond_to? :before_release
+      props = {
+        res_id: resource_address
+      }
+      props[:hrn] = hrn if hrn
+      inform :released, props
 
-    # clean up topics
-    @topics.each do |t|
-      t.unsubscribe
-    end
+      # clean up topics
+      @topics.each do |t|
+        t.unsubscribe
+      end
 
-    @membership_topics.each_value do |t|
-      t.unsubscribe
+      @membership_topics.each_value do |t|
+        t.unsubscribe
+      end
     end
 
     true
@@ -224,7 +236,9 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Make hrn configurable through pubsub interface
   def configure_hrn(hrn)
-    @hrn = hrn
+    self.synchronize do
+      @hrn = hrn
+    end
     @hrn
   end
 
@@ -247,13 +261,15 @@ class OmfRc::ResourceProxy::AbstractResource
             #  @membership.delete(m)
             #end
           else
-            EM.next_tick do
+            self.synchronize do
               @membership << new_m
               @membership_topics[new_m] = t
               self.inform(:status, { membership: @membership }, t)
             end
 
             t.on_message do |imsg|
+              #debug t.id if imsg.type == :configure
+              #debug imsg if imsg.type == :configure
               process_omf_message(imsg, t)
             end
           end
