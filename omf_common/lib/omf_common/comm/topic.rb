@@ -31,24 +31,24 @@ module OmfCommon
 
       # Request the creation of a new resource. Returns itself
       #
-      def create(res_type, config_props = {}, &block)
+      def create(res_type, config_props = {}, core_props = {}, &block)
         # new_res = nil
         #res_name = res_name.to_sym
         #config_props[:name] ||= res_name
         config_props[:type] ||= res_type
         debug "Create resource of type '#{res_type}'"
-        create_message_and_publish(:create, config_props, block)
+        create_message_and_publish(:create, config_props, core_props, block)
         self
       end
 
-      def configure(props = {}, &block)
-        create_message_and_publish(:configure, props, block)
+      def configure(props = {}, core_props = {}, &block)
+        create_message_and_publish(:configure, props, core_props, block)
         self
       end
 
-      def request(select = [], &block)
+      def request(select = [], core_props = {}, &block)
         # TODO: What are the parameters to the request method really?
-        create_message_and_publish(:request, select, block)
+        create_message_and_publish(:request, select, core_props, block)
         self
       end
 
@@ -65,19 +65,19 @@ module OmfCommon
         # self
       # end
 
-      def release(resource, &block)
+      def release(resource, core_props = {}, &block)
         unless resource.is_a? self.class
           raise "Expected '#{self.class}', but got '#{resource.class}'"
         end
-        msg = OmfCommon::Message.create(:release, {}, {res_id: resource.id})
+        msg = OmfCommon::Message.create(:release, {}, core_props.merge(res_id: resource.id))
         publish(msg, &block)
         self
       end
 
 
-      def create_message_and_publish(type, props = {}, block = nil)
+      def create_message_and_publish(type, props = {}, core_props = {}, block = nil)
         debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}"
-        msg = OmfCommon::Message.create(type, props)
+        msg = OmfCommon::Message.create(type, props, core_props)
         publish(msg, &block)
       end
 

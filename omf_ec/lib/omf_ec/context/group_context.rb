@@ -39,9 +39,9 @@ module OmfEc::Context
 
       case self.operation
       when :configure
-        topic.configure({ name => value })
+        topic.configure({ name => value }, { guard: self.guard })
       when :request
-        topic.request([:uid, :hrn, name])
+        topic.request([:uid, :hrn, name], { guard: self.guard })
       when :release
         #topic.release
       end
