@@ -47,16 +47,19 @@ module OmfEc
           res.on_creation_ok do |msg|
             debug "Received CREATION.OK via #{topic_id}"
             info "Resource #{msg[:res_id]} created"
+
             OmfEc.experiment.add_resource(msg[:uid],
                                           type: msg[:type],
-                                          hrn: msg[:hrn],
-                                          membership: msg[:membership])
+                                          hrn: msg[:hrn], membership: [])
 
             OmfEc.experiment.process_events
           end
 
           res.on_status do |msg|
-            msg.each_property { |k, v| debug "#{k} > #{v}" }
+
+            props = []
+            msg.each_property { |k, v| props << "#{k}: #{v}" }
+            debug props.join(", ")
 
             resource = OmfEc.experiment.resource(msg[:uid])
 

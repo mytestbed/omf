@@ -27,8 +27,14 @@ class XMPP
 
 
     def on_message(message_guard_proc = nil, &message_block)
+      @lock.synchronize do
+        @on_message_cbks << message_block
+      end
+
       event_block = proc do |event|
-        message_block.call(OmfCommon::Message.parse(event.items.first.payload))
+        @on_message_cbks.each do |cbk|
+          cbk.call(OmfCommon::Message.parse(event.items.first.payload))
+        end
       end
 
       guard_block = proc do |event|
@@ -66,6 +72,8 @@ class XMPP
     private
 
     def initialize(id, opts = {}, &block)
+      @on_message_cbks = []
+
       id = $1 if id =~ /^xmpp:\/\/(.+)@.+$/
 
       super

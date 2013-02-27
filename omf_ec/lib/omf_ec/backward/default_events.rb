@@ -9,6 +9,7 @@ module OmfEc
             def_event :ALL_UP do |state|
               all_groups? do |g|
                 plan = g.members.uniq.sort
+
                 actual = state.find_all do |v|
                   v[:membership] && v[:membership].include?(g.id)
                 end.map { |v| v[:uid] }.sort

@@ -67,6 +67,8 @@ if options[:init]
   when "Fedora"
      FileUtils.cp "#{gem_root}/init/fedora", "/etc/init.d/omf_rc"
     `chkconfig --add omf_rc`
+    # older Fedora's don't use systemd
+    `systemctl --system daemon-reload` if File.exist?("/bin/systemctl")
     puts "Init script for Fedora has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
   else
     abort "OS '#{os}' is not supported. Cannot install init script."
