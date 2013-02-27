@@ -11,11 +11,15 @@ module OmfCommon
       def self.create(name, opts = {}, &block)
         name = name.to_sym
         @@lock.synchronize do
-          unless t = @@name2inst[name]
+          unless @@name2inst[name]
+            debug "New topic: #{name}"
             #opts[:address] ||= address_for(name)
-            t = @@name2inst[name] = self.new(name, opts, &block)
+            @@name2inst[name] = self.new(name, opts, &block)
+          else
+            debug "Existing topic: #{name}"
+            block.call(@@name2inst[name]) if block
           end
-          t
+          @@name2inst[name]
         end
       end
 
