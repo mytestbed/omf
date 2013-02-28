@@ -13,7 +13,7 @@ module OmfEc
     # @param [String] name name of the application to define
     def initialize(name)
       self.name = name
-      self.properties = Hash.new
+      self.properties = Hashie::Mash.new
     end
 
     # Add new parameter(s) to this Application Definition
@@ -21,7 +21,7 @@ module OmfEc
     # @param [Hash] params a hash with the parameters to add
     #
     def define_parameter(params)
-      @properties[:parameters] = Hash.new unless @properties.key?(:parameters) 
+      @properties[:parameters] = Hashie::Mash.new unless @properties.key?(:parameters) 
       if params.kind_of? Hash
         @properties[:parameters].merge!(params)
       else
@@ -31,7 +31,7 @@ module OmfEc
     end
 
     def define_measurement_point(mp)
-      @properties[:oml] = Hash.new unless @properties.key?(:oml)
+      @properties[:oml] = Hashie::Mash.new unless @properties.key?(:oml)
       if mp.kind_of? Hash
         @properties[:oml][:available_mps] = Array.new unless @properties[:oml].key?(:available_mps) 
         @properties[:oml][:available_mps] << mp

@@ -21,7 +21,7 @@ module OmfEc
       end
     end
 
-    class OEDLIllegalCommandException < OEDLException
+    class OEDLCommandException < OEDLException
       attr_reader :cmd
       def initialize(cmd, msg = nil)
         @cmd = cmd
@@ -29,6 +29,16 @@ module OmfEc
         super(msg)
       end
     end
+
+    class OEDLUnknownProperty < OEDLException
+      attr_reader :cmd
+      def initialize(name, msg = nil)
+        @name = name
+        msg ||= "Unknown property '#{name}', not previously defined in your OEDL experiment"
+        super(msg)
+      end
+    end
+
 
     # Use EM timer to execute after certain time
     #

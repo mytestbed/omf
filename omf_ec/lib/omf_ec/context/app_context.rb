@@ -8,7 +8,7 @@ module OmfEc::Context
     # values for each. Thus we need to distinguish these different context
     @@context_count = Hash.new
 
-    def initialize(name)
+    def initialize(name, group)
       if OmfEc.experiment.app_definitions.key?(name)
         self.app_def = OmfEc.experiment.app_definitions[name]
         self.param_values = Hash.new
@@ -17,6 +17,7 @@ module OmfEc::Context
         id = @@context_count[name]
         @@context_count[name] += 1
         self.name = "#{name}_cxt_#{id}"
+        @group = group
         self
       else
         raise RuntimeError, "Cannot create context for unknwon application '#{name}'"
@@ -24,13 +25,26 @@ module OmfEc::Context
     end
 
     def setProperty(key, property_value)
+      app_def_param = app_def.properties.parameters
+      raise OEDLUnknownProperty.new(key, "Unknown parameter '#{key}' for application "+
+        "definition '#{app_def.name}'") if app_def_param.nil? || !app_def_param.key?(key)
       if property_value.kind_of?(ExperimentProperty)
         @param_values[key] = property_value.value
-        # TODO: here we need to register a Proc block to the ExperimentProperty 
-        # if this property has its dynamic attribute set to true, so that
-        # our Proc block would be called by ExperimentProperty each time the
-        # property changes value
-        # In this callback we will send a 'configure' to the application
+        # if this app parameter has its dynamic attribute set to true, then
+        # we register a callback block to the ExperimentProperty, which will
+        # be called each time the property changes its value
+        if app_def_param[key][:dynamic]
+          info "Binding dynamic parameter '#{key}' to the property '#{property_value.name}'"
+          property_value.on_change do |new_value|
+            info "Updating dynamic app parameter '#{key}' with value: '#{new_value}'"
+            #info "#{OmfEc.experiment.resource_by_hrn(@name).inspect}"
+            OmfEc.subscribe_and_monitor(@group.resource_group(:application)) do |topic|
+              p = properties
+              p[:parameters][key.to_sym][:value] = property_value.value
+              topic.configure(p, { guard: { hrn: @name} } )
+            end
+          end
+        end
       else
         @param_values[key] = property_value
       end
@@ -47,10 +61,19 @@ module OmfEc::Context
     end
 
     def properties
-      # deep copy the properties from the our app definition
+      # deep copy the properties from the app definition
       original = Marshal.load(Marshal.dump(app_def.properties)) 
+      # now build the properties for this context
+      # - use the properties from app definition as the base
+      # - if this context's param_values has a property which also exists in 
+      #   the app def and if that property has an assigned value, then 
+      #   use that value for the properties of this context
       p = original.merge({:type => 'application'})
-      @param_values.each { |k,v| p[:parameters][k][:value] = v if p[:parameters].key?(k) }
+      @param_values.each do |k,v|
+        if p[:parameters].key?(k)
+          p[:parameters][k][:value] = v.kind_of?(ExperimentProperty) ? v.value : v
+        end
+      end
       if @oml_collections.size > 0
         p[:use_oml] = true
         p[:oml][:id] = @name

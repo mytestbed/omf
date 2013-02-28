@@ -5,6 +5,10 @@ module OmfEc
     module Group
       # The following are ODEL 5 methods
 
+      def resource_group(type)
+        "#{self.id}_#{type.to_s}"
+      end
+
       # Create an application for the group and start it
       #
       def exec(name)
@@ -34,7 +38,7 @@ module OmfEc
       end
 
       def addApplication(name, &block)
-        app_cxt = OmfEc::Context::AppContext.new(name)
+        app_cxt = OmfEc::Context::AppContext.new(name,self)
         block.call(app_cxt) if block
         self.app_contexts << app_cxt
       end

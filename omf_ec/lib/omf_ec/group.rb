@@ -61,7 +61,7 @@ module OmfEc
             @members += g.members
             self.add_resource(*g.members.uniq)
           else
-            @members << name
+            @members << name.to_s
             OmfEc.subscribe_and_monitor(name) do |res|
               info res
               info "Config #{name} to join #{self.id} #{self.name}"

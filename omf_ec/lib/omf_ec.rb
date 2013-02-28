@@ -28,56 +28,64 @@ module OmfEc
       File.expand_path("../..", "#{__FILE__}/lib")
     end
 
-    def subscribe_and_monitor(topic_id, context_obj = nil, &block)
-      OmfCommon.comm.subscribe(topic_id) do |res|
-        if res.error?
-          error "Failed to subscribe #{topic_id}"
+    def register_default_callback(topic)
+      topic.on_creation_failed do |msg|
+        debug msg
+        warn "RC reports failure: '#{msg[:reason]}'"
+      end
+
+      topic.on_creation_ok do |msg|
+        debug "Received CREATION.OK via #{topic.id}"
+        info "Resource #{msg[:res_id]} created"
+
+        OmfEc.experiment.add_resource(msg[:uid],
+                                      type: msg[:type],
+                                      hrn: msg[:hrn], membership: [])
+
+        OmfEc.experiment.process_events
+      end
+
+      topic.on_status do |msg|
+
+        props = []
+        msg.each_property { |k, v| props << "#{k}: #{v}" }
+        debug props.join(", ")
+
+        resource = OmfEc.experiment.resource(msg[:uid])
+
+        if resource.nil?
+          OmfEc.experiment.add_resource(msg[:uid],
+                                        type: msg[:type],
+                                        hrn: msg[:hrn],
+                                        membership: msg[:membership])
         else
-          info "Subscribed to #{topic_id}"
-
-          context_obj.associate_topic(res) if context_obj
-
-          block.call(context_obj || res) if block
-
-          res.on_creation_failed do |msg|
-            debug msg
-            warn "RC reports failure: '#{msg[:reason]}'"
+          if msg[:status_type] == 'APP_EVENT'
+            info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
           end
+          msg.each_property { |key, value| resource[key] = value }
+        end
 
-          res.on_creation_ok do |msg|
-            debug "Received CREATION.OK via #{topic_id}"
-            info "Resource #{msg[:res_id]} created"
+        OmfEc.experiment.process_events
+      end
+    end
 
-            OmfEc.experiment.add_resource(msg[:uid],
-                                          type: msg[:type],
-                                          hrn: msg[:hrn], membership: [])
-
-            OmfEc.experiment.process_events
-          end
-
-          res.on_status do |msg|
-
-            props = []
-            msg.each_property { |k, v| props << "#{k}: #{v}" }
-            debug props.join(", ")
-
-            resource = OmfEc.experiment.resource(msg[:uid])
-
-            if resource.nil?
-              OmfEc.experiment.add_resource(msg[:uid],
-                                            type: msg[:type],
-                                            hrn: msg[:hrn],
-                                            membership: msg[:membership])
-            else
-              if msg[:status_type] == 'APP_EVENT'
-                info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
-              end
-              msg.each_property { |key, value| resource[key] = value }
-            end
-
-            OmfEc.experiment.process_events
+    #TODO: Could we find a better name for this method?
+    def subscribe_and_monitor(topic_id, context_obj = nil, &block)
+      topic = OmfCommon::Comm::Topic[topic_id]
+      if topic.nil?
+        OmfCommon.comm.subscribe(topic_id) do |topic|
+          if topic.error?
+            error "Failed to subscribe #{topic_id}"
+          else
+            info "Subscribed to #{topic_id}"
+            context_obj.associate_topic(topic) if context_obj
+            block.call(context_obj || topic) if block
+            register_default_callback(topic)
           end
         end
+      else
+        context_obj.associate_topic(topic) if context_obj
+        block.call(context_obj || topic) if block
       end
     end
   end

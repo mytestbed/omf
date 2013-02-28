@@ -364,7 +364,7 @@ module OmfRc::ResourceProxy::Application
       line += "#{att[:cmd]} " unless att[:cmd].nil?
       line += "#{att[:value]}"
       ExecApp[res.property.app_id].stdin(line)
-      logger.info "Updated parameter #{name} with value #{att[:value].inspect}"
+      logger.info "Updated parameter '#{name}' with value '#{att[:value].inspect}' (stdin: '#{line}')"
     end
   end
 

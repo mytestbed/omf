@@ -10,12 +10,12 @@ module OmfEc
 
     include MonitorMixin
 
-    attr_accessor :name, :oml_uri, :app_definitions, :property
+    attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties
     attr_reader :groups, :sub_groups, :state
 
     def initialize
       @id = Time.now.utc.iso8601
-      @state ||= []
+      @state ||= [] #TODO: we need to keep history of all the events and not ovewrite them
       @groups ||= []
       @events ||= []
       @app_definitions ||= Hash.new
@@ -36,6 +36,10 @@ module OmfEc
 
     def resource(id)
       @state.find { |v| v[:uid].to_s == id.to_s }
+    end
+
+    def resource_by_hrn(hrn)
+      @state.find { |v| v[:hrn].to_s == hrn.to_s }
     end
 
     def add_resource(name, opts = {})
