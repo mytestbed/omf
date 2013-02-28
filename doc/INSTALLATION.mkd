@@ -1,10 +1,8 @@
 # RVM installation (all Linux/Unix/BSD platforms, including Mac OSX)
 
-OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. Before installing RVM, you need to satisfy some build dependencies. OMF depends on a few other Ruby gems, which themselves also have dependencies. Please see the instructions below on how to install OMF on your operating system.
+OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
 
 __If you experience problems using latest Ruby 1.9 version ruby-1.9.3-p362, try to install and use a previous version. OMF has been tested against ruby-1.9.3-p286__
-
-RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
 
 The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. Before you can install Ruby and OMF via RVM, you need to satisfy some dependencies. Here are some examples for different operating systems:
 
@@ -65,24 +63,26 @@ Or if you installed RVM as a local user, run
 
 ## Ruby 1.9 installation
 
-Now the 'rvm' command should be available. Install Ruby:
+Now the 'rvm' command should be available. Install and select Ruby:
 
     rvm install ruby-1.9.3-p286
+    rvm gemset create omf
+    rvm use ruby-1.9.3-p286@omf --default
 
 You can now install OMF as per instructions below.
 
-# System Ruby installation, not using RVM
+# System Ruby installation (not using RVM)
 
 We recommend to use RVM, since the version and patch level of the Ruby that the OS vendors are shipping may be different from the one we used in our development. If you still prefer your system's Ruby, here are some instructions:
 
-## Ubuntu 12.04 or higher
+## Ubuntu 12.04 or higher (not using RVM)
 
 Type following in your console:
 
     sudo apt-get install ruby1.9.3 build-essential libxml2-dev libxslt-dev
     sudo gem install eventmachine -v 0.12.10 -- --with-cflags=\"-O2 -pipe -march=native -w\"
 
-## Fedora 17 or higher
+## Fedora 17 or higher (not using RVM)
 
 Type following in your console:
 
@@ -90,14 +90,12 @@ Type following in your console:
 
 # OMF installation
 
-After you've successfully installed Ruby 1.9 and OMF's gem dependencies, you can now fetch the OMF gems using:
+After you've successfully installed Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you can now fetch the OMF gems using:
 
-    rvm gemset create omf
-    rvm use ruby-1.9.3-p286@omf --default
     gem install omf_rc --pre --no-ri --no-rdoc
     gem install omf_ec --pre --no-ri --no-rdoc
 
-If you want to install the gems system-wide, run these with "sudo".
+If you want to install the gems system-wide, become root or run these with "sudo".
 
 # Autostart the OMF RC on boot
 
@@ -105,4 +103,4 @@ If you'd like to start a Resource Controller upon booting your node, please ensu
 
     install_omf_rc -i -c
 
-This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at @/etc/omf_rc/config.yml@. You must edit this file and set the correct values for your testbed before you can run the RC successfully.
+This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully.
