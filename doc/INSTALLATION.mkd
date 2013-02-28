@@ -1,14 +1,57 @@
-# RUBY 1.9 INSTALLATION
+# RVM installation (all Linux/Unix/BSD platforms, including Mac OSX)
 
 OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. Before installing RVM, you need to satisfy some build dependencies. OMF depends on a few other Ruby gems, which themselves also have dependencies. Please see the instructions below on how to install OMF on your operating system.
 
 __If you experience problems using latest Ruby 1.9 version ruby-1.9.3-p362, try to install and use a previous version. OMF has been tested against ruby-1.9.3-p286__
 
-## RVM (all Linux/Unix/BSD platforms, including Mac OSX)
+RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
 
-RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets. We generally recommend using it for all OMF installations.
+The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. Before you can install Ruby and OMF via RVM, you need to satisfy some dependencies. Here are some examples for different operating systems:
 
-The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. For a system-wide installation of RVM (needed if you want to run OMF as root), become root first. To install RVM, run:
+## Preparation
+
+### Ubuntu (using RVM)
+
+Type following in your console:
+
+    sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
+    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
+
+Then follow the RVM install instructions below
+
+### Debian (using RVM)
+
+Type following in your console as root:
+
+    apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
+    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion autoconf
+
+Then follow the RVM install instructions below
+
+### Fedora (using RVM)
+
+Type following in your console:
+
+    sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml tar
+    sudo yum groupinstall -y development-tools development-libs
+
+Then follow the RVM install instructions below
+
+### Mac OS X (using RVM)
+
+First install the latest XCode from the Mac App Store. Start XCode, open the preferences menu and install the "Command Line Tools" in the Downloads tab. After the installation is complete, open a Terminal and follow the RVM instructions below. RVM will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
+
+### Other OS (using RVM)
+
+After installing RVM, run
+
+    rvm requirements
+
+to see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed, then install Ruby as described below. To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of **libxml2** and **libxslt**.
+
+## RVM installation
+
+For a system-wide installation of RVM (needed if you want to run OMF as root), become root first. To install RVM, run:
 
     curl -L https://get.rvm.io | bash -s stable
 
@@ -20,67 +63,32 @@ Or if you installed RVM as a local user, run
 
     source $HOME/.rvm/scripts/rvm
 
-Now the 'rvm' command should be available. Run
+## Ruby 1.9 installation
 
-    rvm requirements
-
-to see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed.  Now you can install and select ruby:
+Now the 'rvm' command should be available. Install Ruby:
 
     rvm install ruby-1.9.3-p286
 
-To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of **libxml2** and **libxslt**. After installing those packages, you are ready to install the OMF gems. See the instructions at the end of this document.
+You can now install OMF as per instructions below.
 
-### Examples
-
-#### Ubuntu (using RVM)
-
-Type following in your console:
-
-    sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
-    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
-
-Then follow the RVM install instructions above
-
-#### Debian (using RVM)
-
-Type following in your console as root:
-
-    apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
-    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion autoconf
-
-Then follow the RVM install instructions above
-
-#### Fedora (using RVM)
-
-Type following in your console:
-
-    sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml tar
-    sudo yum groupinstall -y development-tools development-libs
-
-Then follow the RVM install instructions above
-
-#### Mac OS X (using RVM)
-
-First install the latest XCode from the Mac App Store. Start XCode, open the preferences menu and install the "Command Line Tools" in the Downloads tab. After the installation is complete, open a Terminal and follow the RVM instructions above. RVM will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
-
-## System Ruby, not using RVM
+# System Ruby installation, not using RVM
 
 We recommend to use RVM, since the version and patch level of the Ruby that the OS vendors are shipping may be different from the one we used in our development. If you still prefer your system's Ruby, here are some instructions:
 
-### Ubuntu 12.04 or higher
+## Ubuntu 12.04 or higher
 
 Type following in your console:
 
     sudo apt-get install ruby1.9.3 build-essential libxml2-dev libxslt-dev
     sudo gem install eventmachine -v 0.12.10 -- --with-cflags=\"-O2 -pipe -march=native -w\"
 
-### Fedora 17 or higher
+## Fedora 17 or higher
 
 Type following in your console:
 
     sudo yum install ruby-devel libxml2-devel libxslt-devel make gcc gcc-c++
 
-# OMF INSTALLATION
+# OMF installation
 
 After you've successfully installed Ruby 1.9 and OMF's gem dependencies, you can now fetch the OMF gems using:
 
