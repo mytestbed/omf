@@ -9,6 +9,7 @@ $stdout.sync = true
 options = {}
 executable_name = File.basename($PROGRAM_NAME)
 oml_enabled = false
+gem_version = Gem::Specification.find_by_name('omf_rc').version.to_s
 
 begin
   oml_enabled = OML4R::init(ARGV, :appName => executable_name) do |opts|
@@ -82,7 +83,7 @@ resource_options = {
 OmfRc::ResourceFactory.load_default_resource_proxies
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
-  info "Starting OMF Resource Controller"
+  info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
     res = OmfRc::ResourceFactory.create(:node, resource_options)
@@ -90,4 +91,4 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
     comm.on_interrupted { res.disconnect }
   end
 end
-info "Stopping OMF Resource Controller"
+info "Stopping OMF Resource Controller version '#{gem_version}'"
