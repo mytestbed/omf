@@ -13,10 +13,10 @@ version OmfEc::VERSION
 desc "Debug mode (printing debug logging messages)"
 switch [:d, :debug]
 
-desc "URL to communication layer"
-arg_name "URL"
+desc "URI for communication layer"
+arg_name "URI"
 default_value "xmpp://bob:password@localhost"
-flag [:c, :comms_url]
+flag [:u, :uri]
 
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
 switch [:x, :xmpp]
@@ -186,8 +186,8 @@ on_error do |exception|
 end
 
 pre do |global_options, command, options, args|
-  unless global_options[:comms_url]
-    help_now! "Incomplete options. Need communication URL"
+  unless global_options[:uri]
+    help_now! "Incomplete options. Need communication URI"
   end
 
 
@@ -238,7 +238,7 @@ end
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
     opts = {
-      communication: { url: global_options[:comms_url] },
+      communication: { url: global_options[:uri] },
       eventloop: { type: :em },
       logging: {
         level: global_options[:debug] ? 'debug' : 'info',

@@ -42,11 +42,11 @@ def on_engine_created(engine)
   end
 
   engine.on_error do |msg|
-    error msg.reason
+    error msg[:reason]
   end
 
   engine.on_warn do |msg|
-    warn msg.reason
+    warn msg[:reason]
   end
 end
 
