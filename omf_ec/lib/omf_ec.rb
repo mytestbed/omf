@@ -30,41 +30,29 @@ module OmfEc
 
     def register_default_callback(topic)
       topic.on_creation_failed do |msg|
-        debug msg
         warn "RC reports failure: '#{msg[:reason]}'"
+        debug msg
       end
 
       topic.on_creation_ok do |msg|
         debug "Received CREATION.OK via #{topic.id}"
         info "Resource #{msg[:res_id]} created"
 
-        OmfEc.experiment.add_resource(msg[:uid],
-                                      type: msg[:type],
-                                      hrn: msg[:hrn], membership: [])
+        OmfEc.experiment.add_or_update_resource_state(msg[:uid], msg.properties)
 
         OmfEc.experiment.process_events
       end
 
       topic.on_status do |msg|
-
         props = []
         msg.each_property { |k, v| props << "#{k}: #{v}" }
-        debug props.join(", ")
+        debug "#{topic.id} >> inform: #{props.join(", ")}"
 
-        resource = OmfEc.experiment.resource(msg[:uid])
-
-        if resource.nil?
-          OmfEc.experiment.add_resource(msg[:uid],
-                                        type: msg[:type],
-                                        hrn: msg[:hrn],
-                                        membership: msg[:membership])
-        else
-          if msg[:status_type] == 'APP_EVENT'
-            info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
-          end
-          msg.each_property { |key, value| resource[key] = value }
+        if msg[:status_type] == 'APP_EVENT'
+          info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
         end
 
+        OmfEc.experiment.add_or_update_resource_state(msg[:uid], msg.properties)
         OmfEc.experiment.process_events
       end
     end

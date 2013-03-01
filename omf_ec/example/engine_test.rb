@@ -1,13 +1,20 @@
 # OMF_VERSIONS = 6.0
 
 def create_engine(garage)
-  garage.create(:engine) do |reply_msg|
+  garage.create(:engine, { sn: 10001 }) do |reply_msg|
     if reply_msg.success?
       engine = reply_msg.resource
 
       engine.on_subscribed do
-        info ">>> Connected to newly created resource #{reply_msg[:res_id]}"
+        info ">>> Connected to newly created resource #{reply_msg[:res_id]} with serial number #{reply_msg[:sn]}"
         on_engine_created(engine)
+      end
+
+      after(2) do
+        info ">>> RELEASE engine"
+        garage.release(engine) do |reply_msg|
+          info reply_msg
+        end
       end
     else
       error ">>> Resource creation failed - #{reply_msg[:reason]}"

@@ -34,21 +34,43 @@ module OmfEc
       ExperimentProperty.create(name, value, description)
     end
 
-    def resource(id)
+    def resource_state(id)
       @state.find { |v| v[:uid].to_s == id.to_s }
     end
+
+    alias_method :resource, :resource_state
 
     def resource_by_hrn(hrn)
       @state.find { |v| v[:hrn].to_s == hrn.to_s }
     end
 
-    def add_resource(name, opts = {})
+    def add_or_update_resource_state(name, opts = {})
       self.synchronize do
-        unless resource(name)
+        res = resource_state(name)
+        if res
+          opts.each do |key, value|
+            if value.class == Array
+              # Merge array values
+              res[key] ||= []
+              res[key] += value
+              res[key].uniq!
+            elsif value.kind_of? Hash
+              # Merge hash values
+              res[key] ||= {}
+              res[key].merge(value)
+            else
+              # Overwrite otherwise
+              res[key] = value
+            end
+          end
+        else
+          info "Newly discovered resource >> #{opts[:uid]}"
           @state << Hashie::Mash.new({ uid: name }.merge(opts))
         end
       end
     end
+
+    alias_method :add_resource, :add_or_update_resource_state
 
     def sub_group(name)
       @sub_groups.find { |v| v == name }

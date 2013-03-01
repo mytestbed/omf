@@ -34,16 +34,25 @@ module OmfEc::Context
         topic = self.group.topic
       end
 
-      # if release, we need to request resource ids first
-      #op_name = self.operation == :release ? "request" : self.operation
-
       case self.operation
       when :configure
         topic.configure({ name => value }, { guard: self.guard })
       when :request
         topic.request([:uid, :hrn, name], { guard: self.guard })
       when :release
-        #topic.release
+        topics_to_release = OmfEc.experiment.state.find_all do |res_state|
+          all_equal(self.guard.keys) do |k|
+            res_state[k] == self.guard[k]
+          end
+        end
+
+        topics_to_release.each do |res_state|
+          OmfEc.subscribe_and_monitor(res_state.uid) do |child_topic|
+            OmfEc.subscribe_and_monitor(self.group.id) do |group_topic|
+              group_topic.release(child_topic) if child_topic
+            end
+          end
+        end
       end
 
       #o_m = OmfCommon.comm.__send__(op_name, send_to) do |m|
