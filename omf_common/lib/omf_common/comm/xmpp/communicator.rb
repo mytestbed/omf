@@ -173,7 +173,7 @@ class Comm
             if [:unexpected_request].include? e_stanza.name
               logger.debug e_stanza
             elsif e_stanza.name == :conflict
-              logger.debug e_stanza
+              #logger.debug e_stanza
             else
               logger.warn "#{e_stanza} Original: #{e_stanza.original}"
             end

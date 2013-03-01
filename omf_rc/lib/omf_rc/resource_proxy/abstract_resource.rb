@@ -87,7 +87,7 @@ class OmfRc::ResourceProxy::AbstractResource
         copts = { res_id: self.resource_address, hrn: @hrn }.merge(@property)
         t.inform(:creation_ok, copts, copts)
 
-        t.on_message do |imsg|
+        t.on_message(nil, @uid) do |imsg|
           process_omf_message(imsg, t)
         end
       end
@@ -161,8 +161,9 @@ class OmfRc::ResourceProxy::AbstractResource
       else
         child = nil
       end
+      debug "#{child.uid} released"
     else
-      warn "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
+      debug "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.map(&:uid).inspect}"
     end
     child
   end
@@ -172,30 +173,35 @@ class OmfRc::ResourceProxy::AbstractResource
   # Return true if successful
   #
   def release_self
-    self.synchronize do
-      # Release children resource recursively
-      children.dup.each do |c|
-        if c.release_self
+    # Release children resource recursively
+    children.each do |c|
+      if c.release_self
+        self.synchronize do
           children.delete(c)
         end
       end
-      return false unless children.empty?
-      info "Releasing hrn: #{hrn}, uid: #{uid}"
-      self.before_release if self.respond_to? :before_release
-      props = {
-        res_id: resource_address
-      }
-      props[:hrn] = hrn if hrn
-      inform :released, props
+    end
 
-      # clean up topics
-      @topics.each do |t|
-        t.unsubscribe
-      end
+    return false unless children.empty?
 
-      @membership_topics.each_value do |t|
-        t.unsubscribe
+    info "Releasing hrn: #{hrn}, uid: #{uid}"
+    self.before_release if self.respond_to? :before_release
+    props = {
+      res_id: resource_address
+    }
+    props[:hrn] = hrn if hrn
+    inform :released, props
+
+    # clean up topics
+    @topics.each do |t|
+      t.unsubscribe
+    end
+
+    @membership_topics.each_value do |t|
+      if t.respond_to? :delete_on_message_cbk_by_id
+        t.delete_on_message_cbk_by_id(@uid)
       end
+      t.unsubscribe
     end
 
     true
@@ -265,7 +271,7 @@ class OmfRc::ResourceProxy::AbstractResource
               self.inform(:status, { membership: @membership }, t)
             end
 
-            t.on_message do |imsg|
+            t.on_message(nil, @uid) do |imsg|
               process_omf_message(imsg, t)
             end
           end
@@ -328,7 +334,7 @@ class OmfRc::ResourceProxy::AbstractResource
       inform(:status, response_h, topic)
     when :release
       OmfCommon.eventloop.after(RELEASE_WAIT) do
-        inform(:released, response_h, topic)
+        inform(:released, response_h, topic) if response_h[:res_id]
       end
     end
   end
@@ -346,11 +352,7 @@ class OmfRc::ResourceProxy::AbstractResource
     when :configure
       handle_configure_message(message, obj, response)
     when :release
-      warn message
-      res_id = message.res_id
-      released_obj = obj.release(res_id)
-      # TODO: Under what circumstances would 'realease_obj' be NIL
-      response[:res_id] = released_obj.resource_address
+      handle_release_message(message, obj, response)
     when :inform
       nil # We really don't care about inform messages which created from here
     else
@@ -416,6 +418,17 @@ class OmfRc::ResourceProxy::AbstractResource
         response[name] = obj.__send__(method_name)
       end
     end
+    response
+  end
+
+  def handle_release_message(message, obj, response)
+    res_id = message.res_id
+    released_obj = obj.release(res_id)
+    # TODO: Under what circumstances would 'realease_obj' be NIL
+    #
+    # When release message send to a group, for bulk releasing,
+    # the proxy might not be aware of a res_id it received
+    response[:res_id] = released_obj.resource_address if released_obj
     response
   end
 
