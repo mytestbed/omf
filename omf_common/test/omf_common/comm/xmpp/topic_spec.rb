@@ -13,7 +13,7 @@ describe OmfCommon::Comm::XMPP::Topic do
 
     OmfCommon.stub :comm, @xmpp do
       Blather::Client.stub :new, @client do
-        @stream.expect(:send, true, [Blather::Stanza::Disco])
+        @stream.expect(:send, true, [Blather::Stanza::PubSub::Create])
         @topic = OmfCommon::Comm::XMPP::Topic.create(:test_topic)
       end
     end
