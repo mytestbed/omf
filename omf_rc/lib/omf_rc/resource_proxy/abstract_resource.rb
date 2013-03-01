@@ -88,9 +88,7 @@ class OmfRc::ResourceProxy::AbstractResource
         t.inform(:creation_ok, copts, copts)
 
         t.on_message do |imsg|
-          if check_guard(imsg)
-            process_omf_message(imsg, t)
-          end
+          process_omf_message(imsg, t)
         end
       end
     end
@@ -154,17 +152,17 @@ class OmfRc::ResourceProxy::AbstractResource
   # @return [AbstractResource] Relsead child or nil if error
   #
   def release(res_id)
-    self.synchronize do
-      if (child = children.find { |v| v.uid.to_s == res_id.to_s })
-        if child.release_self()
+    if (child = children.find { |v| v.uid.to_s == res_id.to_s })
+      if child.release_self()
+        self.synchronize do
           children.delete(child)
-          child
-        else
-          child = nil
         end
+        child
       else
-        warn "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
+        child = nil
       end
+    else
+      warn "#{res_id} does not belong to #{self.uid}(#{self.hrn}) - #{children.inspect}"
     end
     child
   end
@@ -268,8 +266,6 @@ class OmfRc::ResourceProxy::AbstractResource
             end
 
             t.on_message do |imsg|
-              #debug t.id if imsg.type == :configure
-              #debug imsg if imsg.type == :configure
               process_omf_message(imsg, t)
             end
           end
@@ -295,6 +291,8 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [OmfCommon::Message]
   # @param [OmfCommon::Comm::Topic]
   def process_omf_message(message, topic)
+    return unless check_guard(message)
+
     unless message.is_a? OmfCommon::Message
       raise ArgumentError, "Expected OmfCommon::Message, but got '#{message.class}'"
     end
@@ -348,6 +346,7 @@ class OmfRc::ResourceProxy::AbstractResource
     when :configure
       handle_configure_message(message, obj, response)
     when :release
+      warn message
       res_id = message.res_id
       released_obj = obj.release(res_id)
       # TODO: Under what circumstances would 'realease_obj' be NIL
@@ -435,9 +434,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     message.itype = itype
-    message[:uid] ||= self.uid
-    message[:type] ||= self.type
-    message[:hrn] ||= self.hrn
+    unless itype == :released
+      message[:uid] ||= self.uid
+      message[:type] ||= self.type
+      message[:hrn] ||= self.hrn
+    end
 
     topic.publish(message)
 
@@ -467,7 +468,12 @@ class OmfRc::ResourceProxy::AbstractResource
       return true
     else
       guard.keys.all? do |key|
-        obj.__send__("request_#{key}") == guard[key]
+        value = self.__send__("request_#{key}")
+        if value.kind_of? Symbol
+          value.to_s == guard[key].to_s
+        else
+          value == guard[key]
+        end
       end
     end
   end

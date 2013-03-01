@@ -16,6 +16,7 @@ class XMPP
           (event.items?) && (!event.delayed?) &&
             event.items.first.payload &&
             (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
+            event.node == id.to_s &&
             omf_message.operation == :inform &&
             omf_message.read_content(:itype) == itype.upcase &&
             (mid ? (omf_message.cid == mid) : true)
@@ -94,17 +95,17 @@ class XMPP
         end
       end
 
-      OmfCommon.comm.discover('items', "pubsub.#{OmfCommon.comm.jid.domain}", '') do |items_stanza|
-        if items_stanza.items.map { |i| i.node }.include?(id.to_s)
-          OmfCommon.comm._subscribe(id.to_s, &topic_block)
-        else
-          OmfCommon.comm._create(id.to_s) do |stanza|
-            if stanza.error?
-              block.call(stanza) if block
-            else
-              OmfCommon.comm._subscribe(id.to_s, &topic_block)
-            end
+      OmfCommon.comm._create(id.to_s) do |stanza|
+        if stanza.error?
+          e_stanza = Blather::StanzaError.import(stanza)
+          if e_stanza.name == :conflict
+            # Topic exists, just subscribe to it.
+            OmfCommon.comm._subscribe(id.to_s, &topic_block)
+          else
+            block.call(stanza) if block
           end
+        else
+          OmfCommon.comm._subscribe(id.to_s, &topic_block)
         end
       end
     end

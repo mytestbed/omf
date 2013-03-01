@@ -4,7 +4,7 @@ require 'omf_common/message/xml/message'
 include OmfCommon
 
 describe OmfCommon::Message::XML::Message do
-  describe "when initialised" do
+  describe "when create message initialised" do
     before do
       # We will test prop value other than just strings
       @message = Message::XML::Message.create(:create,

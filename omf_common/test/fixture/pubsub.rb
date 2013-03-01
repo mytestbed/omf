@@ -170,7 +170,7 @@ def omf_created_xml
   <<-NODE
 <message from="pubsub.localhost" to="bravo@localhost" id="mclaren__bravo@localhost__FT6ea">
   <event xmlns="http://jabber.org/protocol/pubsub#event">
-    <items node="mclaren">
+    <items node="test_topic">
       <item id="4JMgcKzxFDLsP74">
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <cid>bf840fe9-c176-4fae-b7de-6fc27f183f76</cid>
@@ -191,7 +191,7 @@ def omf_status_xml
   <<-NODE
 <message from="pubsub.localhost" to="bravo@localhost" id="mclaren__bravo@localhost__FT6ea">
   <event xmlns="http://jabber.org/protocol/pubsub#event">
-    <items node="mclaren">
+    <items node="test_topic">
       <item id="4JMgcKzxFDLsP74">
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <cid>bf840fe9-c176-4fae-b7de-6fc27f183f76</cid>
@@ -212,7 +212,7 @@ def omf_failed_xml
   <<-NODE
 <message from="pubsub.localhost" to="bravo@localhost" id="mclaren__bravo@localhost__FT6ea">
   <event xmlns="http://jabber.org/protocol/pubsub#event">
-    <items node="mclaren">
+    <items node="test_topic">
       <item id="4JMgcKzxFDLsP74">
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="a2b6aba9f11dc5bb88306a32d0720641f5020c1f">
           <cid>bf840fe9-c176-4fae-b7de-6fc27f183f76</cid>
@@ -233,7 +233,7 @@ def omf_released_xml
   <<-NODE
 <message from="pubsub.localhost" to="bravo@localhost" id="mclaren__bravo@localhost__FT6ea">
   <event xmlns="http://jabber.org/protocol/pubsub#event">
-    <items node="mclaren">
+    <items node="test_topic">
       <item id="4JMgcKzxFDLsP74">
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol">
           <mid>a2b6aba9f11dc5bb88306a32d0720641f5020c1f</mid>
