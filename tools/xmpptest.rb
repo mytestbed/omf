@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby1.8
 
 # change this to the gembundler path later
 require "rubygems"
