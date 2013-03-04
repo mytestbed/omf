@@ -252,11 +252,6 @@ class AppDefinition < MObject
             raise "Wrong type '#{value}' for Property '#{name}' "+
                   "(expecting Boolean)"
           end
-        when nil
-        when ExperimentProperty
-          #do nothing...
-        else
-          raise "Unknown type '#{type}' for Property '#{name}'" 
         end
         # Second, add the corresponding flag+value to command line, if required
         if (((type == :boolean) && (value == true)) || (type != :boolean))

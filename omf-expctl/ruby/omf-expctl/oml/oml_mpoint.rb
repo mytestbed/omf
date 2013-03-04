@@ -47,6 +47,11 @@ module OMF
           String => "xsd:string",
           'float' => "xsd:float",
           'int' => "xsd:int",
+          'int32' => "xsd:int",
+          'integer' => "xsd:int",
+          'uint32' => "xsd:uint",
+          'int64' => "xsd:int64",
+          'uint64' => "xsd:uint64",
           'string' => "xsd:string",
           'long' => "xsd:long",
           'short' => "xsd:short",
@@ -141,12 +146,7 @@ module OMF
             raise "Metric '" + name + "' already defined."
           end
           type = type.to_s
-          if (type =~ /xsd:/) != 0
-            if (! @@conversion.key?(type))
-              raise "Unknown type '#{type}' for metric '#{name}'."
-            end
-            type = @@conversion[type]
-          end
+          type = @@conversion[type] if !(type =~ /xsd:/) and @@conversion.key?(type)
           @metrics[name] = {:type => type, :description => description, :seqNo => @metrics.length}
         end
       

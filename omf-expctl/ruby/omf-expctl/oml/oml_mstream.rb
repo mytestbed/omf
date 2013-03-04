@@ -123,7 +123,9 @@ module OMF
       	    metricDef = measurementDef.metrics[parameter]
             # Set the default filter based on the metric type
       	    if metricDef[:type] == "xsd:float" || metricDef[:type] == "xsd:int" \
-                     || metricDef[:type] == "xsd:long" || metricDef[:type] == "xsd:short"
+                     || metricDef[:type] == "xsd:long" || metricDef[:type] == "xsd:short" \
+                     || metricDef[:type] == "xsd:uint" || metricDef[:type] == "xsd:int64"\
+                     || metricDef[:type] == "xsd:uint64"
               filterType = 'avg'
       	    else
               filterType = 'first'

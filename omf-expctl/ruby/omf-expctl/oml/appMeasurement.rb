@@ -38,6 +38,11 @@ class AppMeasurement
     Float => "xsd:float",
     Integer => "xsd:int",
     'int' => "xsd:int",
+    'int32' => "xsd:int",
+    'integer' => "xsd:int",
+    'uint32' => "xsd:uint",
+    'int64' => "xsd:int64",
+    'uint64' => "xsd:uint64",
     'long' => "xsd:long",
     :long => "xsd:long",
     'short' => "xsd:short",
@@ -152,12 +157,7 @@ class AppMeasurement
     if @metrics[name] != nil
       raise "Metric '" + name + "' already defined."
     end
-    if (type =~ /xsd:/) != 0
-      if (! @@conversion.key?(type))
-  raise "Unknown type '#{type}' for metric '#{name}'."
-      end
-      type = @@conversion[type]
-    end
+    type = @@conversion[type] if !(type =~ /xsd:/) and @@conversion.key?(type)
     @metrics[name] = {"type" => type, "description" => description, 'seqNo' => @metrics.length}
   end
 
