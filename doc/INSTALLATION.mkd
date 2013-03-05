@@ -1,67 +1,88 @@
-# RVM installation (all Linux/Unix/BSD platforms, including Mac OSX)
+# OMF 6 Installation Guide
+
+This installation guide caters for three types of audiences: **USERS**, **OPERATORS** and **DEVELOPERS**. Before you start, you need to identify your own role:
+
+* **USERS** want to run experiments in an existing OMF 6 testbed, without having to set up the testbed and its resources themselves.
+* **OPERATORS** maintain a testbed and want to make its resources available to OMF 6 users.
+* **DEVELOPERS** want to modify or extend OMF 6 functionality, e.g. by adding a new resource proxy to the code. Testing happens on a local machine or in a OMF 6 testbed.
+
+Each of the following sections has specific instructions for each audience class.
+
+## Dependencies
 
 OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
 
 __If you experience problems using latest Ruby 1.9 version ruby-1.9.3-p362, try to install and use a previous version. OMF has been tested against ruby-1.9.3-p286__
 
-The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. Before you can install Ruby and OMF via RVM, you need to satisfy some dependencies. Here are some examples for different operating systems:
+The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. The first step is to satisfy RVM and OMF build dependencies.
 
-## Preparation
+### **EVERYONE**
 
-### Ubuntu (using RVM)
+Here are some examples for different operating systems:
+
+#### Ubuntu
 
 Type following in your console:
 
     sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
     libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
 
-Then follow the RVM install instructions below
-
-### Debian (using RVM)
+#### Debian
 
 Type following in your console as root:
 
     apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
     libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion autoconf
 
-Then follow the RVM install instructions below
-
-### Fedora (using RVM)
+#### Fedora
 
 Type following in your console:
 
     sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml tar
     sudo yum groupinstall -y development-tools development-libs
 
-Then follow the RVM install instructions below
-
-### Mac OS X (using RVM)
+#### Mac OS X (using RVM)
 
 First install the latest XCode from the Mac App Store. Start XCode, open the preferences menu and install the "Command Line Tools" in the Downloads tab. After the installation is complete, open a Terminal and follow the RVM instructions below. RVM will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
 
-### Other OS (using RVM)
+#### Other OS (using RVM)
 
-After installing RVM, run
+Follow the RVM installation instructions in the next section, then come back here and run
 
-    rvm requirements
+	    rvm requirements
 
 to see the what is required to install Ruby through RVM in your OS environment. Follow those instructions and ensure all required packages are installed, then install Ruby as described below. To install OMF, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of **libxml2** and **libxslt**.
 
+### **Verify this step**
+
+If you are missing some dependencies, RVM and/or OMF installation will fail with a compilation error. Come back to this section and double check that you have all dependencies installed.
+
 ## RVM installation
 
-For a system-wide installation of RVM (needed if you want to run OMF as root), become root first. To install RVM, run:
+### **USERS & DEVELOPERS**
+
+You most likely want to install RVM with local user permissions (no root access required). Run:
 
     curl -L https://get.rvm.io | bash -s stable
-
-The next step for system-wide installations is
-
-    source /etc/profile.d/rvm.sh
-
-Or if you installed RVM as a local user, run
-
     source $HOME/.rvm/scripts/rvm
 
-## Ruby 1.9 installation
+### **OPERATORS**
+
+If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run the same command as above, but become root first. Then run:
+
+	source /etc/profile.d/rvm.sh
+
+### **Verify this step**
+
+	rvm -v
+
+should show the RVM version string, e.g.
+
+	rvm 1.18.14 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
+
+## Ruby installation
+
+### **USERS & DEVELOPERS**
 
 Now the 'rvm' command should be available. Install and select Ruby:
 
@@ -69,38 +90,140 @@ Now the 'rvm' command should be available. Install and select Ruby:
     rvm gemset create omf
     rvm use ruby-1.9.3-p286@omf --default
 
-You can now install OMF as per instructions below.
+### **OPERATORS**
 
-# System Ruby installation (not using RVM)
+Again, run the same command as above as root, if your OMF RC required root permissions. Otherwise, do everything as a regular user.
 
-We recommend to use RVM, since the version and patch level of the Ruby that the OS vendors are shipping may be different from the one we used in our development. If you still prefer your system's Ruby, here are some instructions:
+### **Verify this step**
 
-## Ubuntu 12.04 or higher (not using RVM)
+	rvm current; ruby -v
 
-Type following in your console:
+should show the currently used Ruby installation and the current gemset as well as the Ruby version string, e.g.
 
-    sudo apt-get install ruby1.9.3 build-essential libxml2-dev libxslt-dev
-    sudo gem install eventmachine -v 0.12.10 -- --with-cflags=\"-O2 -pipe -march=native -w\"
+	ruby-1.9.3-p286@omf
+	ruby 1.9.3p286 (2012-10-12 revision 37165)
 
-## Fedora 17 or higher (not using RVM)
+## Openfire Installation
 
-Type following in your console:
+### **USERS**
 
-    sudo yum install ruby-devel libxml2-devel libxslt-devel make gcc gcc-c++
+Your testbed operator should provide the XMPP server. You can skip this step.
 
-# OMF installation
+### **OPERATORS & DEVELOPERS**
 
-After you've successfully installed Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you can now fetch the OMF gems using:
+**OPERATORS** need to install an XMPP server in their testbed. It should be reachable from the outside Internet if any of the testbed users are on the outside of your organisation or if you want to federate your testbed with another organisation over the public Internet. **DEVELOPERS** should run an XMPP server on their local machine for development.
 
-    gem install omf_rc --pre --no-ri --no-rdoc
-    gem install omf_ec --pre --no-ri --no-rdoc
+For OMF, we recommend using Openfire. Other XMPP servers may work as well, but this has not been extensively tested. Ejabberd is known to have some issues regarding node permissions and database cleanup. If are upgrading from an older Openfire release and you have trouble running OMF, please wipe your Openfire database and recreate the pubsub nodes.
 
-If you want to install the gems system-wide, become root or run these with "sudo".
+* uninstall any other XMPP servers first
+* make sure ports TCP 5222, 5269 and 9090 are open in your firewall
+* on Ubuntu 12.04 or higher, run the following commands as root:
+<pre>wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
+apt-get install default-jre-headless
+dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
+</pre>
+* on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Java JRE
+* check if openfire is running: @ps aux | grep openfire@ . Startup can take a while, please be patient.
+* direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
+* choose your language and click continue
+* enter the XMPP server's hostname (e.g. norbit.npc.nicta.com.au or localhost) in the Domain field and click continue
+* choose the embedded database. You can also use other database types, but you will need to install the database server first and manually create a user and a database for Openfire.
+* when using mySQL, you need to change the length of the Pubsub node names in the mySQL database. Basically you need to run the commands:
+<pre>mysql -u openfire -p
+use openfire;
+alter table ofPubsubNode modify name VARCHAR(100);
+quit;
+</pre>
+* choose the default profile and click continue
+* enter an admin password and click continue, then wait until the installation is finished
+* log on to the web GUI at [http://localhost:9090](http://localhost:9090) with the user/password you chose in the wizard
+* click 'Server', 'Server Settings', 'Registration & Login', enable 'Inband Account Registration' and disable 'Anonymous Login'
+* To avoid duplicate subscriptions to the same topic in order to reduce the volume of messages, we recommend turning the multiple subscriptions feature off. Inside Openfire system properties panel, add *Property Name:* **xmpp.pubsub.multiple-subscriptions** *Property Value:* **false**
+* for server2server connectivity (used for testbed federation), you need to set up a DNS name "pubsub.yourhost.name" which can be resolved by public DNS servers. It can be an A record pointing to the same IP address as your host, or a CNAME pointing to the hostname. There is no need for a DNS SRV record.
+* if your testbed consists of several hundred nodes, you may consider increasing the maximum open file descriptor limit for the "openfire" user. This can be done by editing @/etc/security/limits.conf@ and adding the lines @root	soft nofile	100000@ and @root hard nofile 100000@, which allows a maximum of 100K open sockets/files per process. The default in Ubuntu is 1024. If this is not increased you may run into a problem where openfire does not accept any more incoming TCP connections.
 
-# Autostart the OMF RC on boot
+### **Verify this step**
+
+Replace \<xmppserver\> with your XMPP server name and run:
+
+	printf "<stream:stream to='host' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>" | nc <xmppserver> 5222 -q1
+
+If Openfire is running, you should get the following output:
+
+	<?xml version='1.0' encoding='UTF-8'?><stream:stream xmlns:stream="http://etherx.jabber.org/streams" xmlns="jabber:client" from="<xmppserver>" id="<some_id>" xml:lang="en">
+
+## OMF Communication Layer Installation
+
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. Let's start with OMF's communication layer. This is required for everyone.
+
+### **USERS & OPERATORS**
+
+    gem install omf_common --pre --no-ri --no-rdoc
+
+### **DEVELOPERS**
+
+We encourage developers to use the very latest OMF code from the master branch of our git repository. Ensure you have git installed and run
+
+	git clone git://git.mytestbed.net/omf.git
+	cd omf/omf_common; rake install; cd ..
+
+Some components are linked in OMF main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:
+
+	git submodule init
+	git submodule update
+
+### **Verify this step**
+
+???
+
+## OMF Resource Controller Installation
+
+### **USERS**
+
+The resource controller is part of the testbed and should be installed by the testbed provider. You can skip this step.
+
+### **OPERATORS**
+
+You need to deploy resource controllers for your testbed components. On a typical PC node, you can install the RC as root:
+
+	gem install omf_rc --pre --no-ri --no-rdoc
 
 If you'd like to start a Resource Controller upon booting your node, please ensure you have a system-wide RVM installation and run as root:
 
     install_omf_rc -i -c
 
 This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully.
+
+### **DEVELOPERS**
+
+Assuming that you have cloned our git repository from the previous step, run:
+
+	cd omf_rc; rake install; cd ..
+
+### **Verify this step**
+
+	omf_rc --help
+
+should print the RC's help screen. OPERATORS can reboot the node and check whether the RC is running as a daemon:
+
+	ps aux | grep omf_rc
+
+## OMF Experiment Controller Installation
+
+### **USERS**
+
+    gem install omf_ec --pre --no-ri --no-rdoc
+
+### **OPERATORS**
+
+The experiment controller is only needed by the testbed users. You can skip this step, unless you want to run some test experiments on your testbed. In that case, follow the USERS instructions above.
+
+### **DEVELOPERS**
+
+	cd omf_ec; rake install; cd ..
+
+### **Verify this step**
+
+	omf_ec --help
+
+should print the EC's help screen
