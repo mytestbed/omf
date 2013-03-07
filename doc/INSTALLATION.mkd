@@ -12,11 +12,9 @@ Each of the following sections has specific instructions for each audience class
 
 OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
 
-__If you experience problems using latest Ruby 1.9 version ruby-1.9.3-p362, try to install and use a previous version. OMF has been tested against ruby-1.9.3-p286__
-
 The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. The first step is to satisfy RVM and OMF build dependencies.
 
-### **EVERYONE**
+### **USERS, OPERATORS & DEVELOPERS**
 
 Here are some examples for different operating systems:
 
@@ -41,13 +39,13 @@ Type following in your console:
     sudo yum install -y git make gcc gcc-c++ ruby-devel libxml2 libxml2-devel libxslt libxslt-devel libyaml tar
     sudo yum groupinstall -y development-tools development-libs
 
-#### Mac OS X (using RVM)
+#### Mac OS X
 
 First install the latest XCode from the Mac App Store. Start XCode, open the preferences menu and install the "Command Line Tools" in the Downloads tab. After the installation is complete, open a Terminal and follow the RVM instructions below. RVM will print a warning about Ruby not being able to build using clang/LLVM compiler. This only applies to older Ruby versions though. Ruby 1.9.3 will build just fine.
 
-#### Other OS (using RVM)
+#### Other OS
 
-Follow the RVM installation instructions in the next section, then come back here and run
+Follow the RVM installation instructions in the next section, then come back here and run:
 
 	    rvm requirements
 
@@ -55,7 +53,7 @@ to see the what is required to install Ruby through RVM in your OS environment. 
 
 ### **Verify this step**
 
-If you are missing some dependencies, RVM and/or OMF installation will fail with a compilation error. Come back to this section and double check that you have all dependencies installed.
+If you are missing some dependencies, RVM and/or OMF installation will fail with a compilation error. Come back to this section and double check that you have all dependencies installed. Also refer to the [RVM user guide](https://rvm.io).
 
 ## RVM installation
 
@@ -76,7 +74,7 @@ If you want to install the OMF Resource Controller on a PC, you would typically 
 
 	rvm -v
 
-should show the RVM version string, e.g.
+should show the RVM version string, e.g.:
 
 	rvm 1.18.14 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
 
@@ -84,7 +82,7 @@ should show the RVM version string, e.g.
 
 ### **USERS & DEVELOPERS**
 
-Now the 'rvm' command should be available. Install and select Ruby:
+Install Ruby, create a gemset, set Ruby version and gemset as defaults:
 
     rvm install ruby-1.9.3-p286
     rvm gemset create omf
@@ -92,7 +90,7 @@ Now the 'rvm' command should be available. Install and select Ruby:
 
 ### **OPERATORS**
 
-Again, run the same command as above as root, if your OMF RC required root permissions. Otherwise, do everything as a regular user.
+Again, run the same command as above as root if your OMF RC requires root permissions. Otherwise, do everything as a regular user.
 
 ### **Verify this step**
 
@@ -103,7 +101,133 @@ should show the currently used Ruby installation and the current gemset as well 
 	ruby-1.9.3-p286@omf
 	ruby 1.9.3p286 (2012-10-12 revision 37165)
 
-## Openfire Installation
+
+## OMF Installation for USERS
+
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF.
+
+### Installing the Experiment Controller
+
+    gem install omf_ec --pre --no-ri --no-rdoc
+
+### Gaining access to an OMF testbed
+
+Contact an OMF testbed operator for an account. Make a resource reservation if required and gather the HRNs of the resources you'd like to use. Also find out what the testbed's XMPP server hostname is.
+
+### **Verify this step**
+
+To verify that you can run experiments on the testbed, we are providing a experiment script ({file:doc/oedl_simple_test.rb also available here}). Run:
+
+	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
+	omf_ec -u xmpp://user:password@<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
+
+Choose an existing XMPP user/password combination or pick a new one, for which an account will automatically created. Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). If everything goes well, you should see an output like
+
+	18:36:59 INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
+	18:36:59 INFO  Object: Connected
+	18:36:59 INFO  Object: Start experiment: 2013-03-07T07:36:59Z
+	18:36:59 INFO  OmfEc: res1 = "test" (String)
+	18:36:59 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
+	18:36:59 INFO  OmfEc: Subscribed to test
+	18:36:59 INFO  OmfEc: Config test to join Actor
+	18:37:00 INFO  OmfEc: Newly discovered resource >> test
+	18:37:00 INFO  OmfEc: Event triggered: 'ALL_UP'
+	18:37:03 INFO  Object: TEST - allGroups
+	18:37:03 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db_application
+	18:37:03 INFO  OmfEc: Resource xmpp://ccce4bf3-c8f7-4984-8e8e-1ade28d132a6@norbit.npc.nicta.com.au created
+	18:37:03 INFO  OmfEc: Newly discovered resource >> ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
+	18:37:03 INFO  OmfEc: Event triggered: 'Actor_application_/bin/date_created_ba8b4fad-8d47-4782-b12b-9c93dd215bf2'
+	18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date 
+	18:37:03 INFO  OmfEc: APP_EVENT STDOUT from app /bin/date - msg: Thu Mar  7 18:37:03 EST 2013
+	18:37:03 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/date - msg: status: pid 35135 exit 0
+	18:37:06 INFO  Object: TEST - group
+	18:37:06 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db_application
+	18:37:06 INFO  OmfEc: Newly discovered resource >> d3416b01-51d9-48d4-b6b5-442454e8e7fa
+	18:37:06 INFO  OmfEc: Resource xmpp://d3416b01-51d9-48d4-b6b5-442454e8e7fa@norbit.npc.nicta.com.au created
+	18:37:06 INFO  OmfEc: Event triggered: 'Actor_application_/bin/hostname -f_created_50da62ba-c8b5-49b1-8182-7632d68f312a'
+	18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f 
+	18:37:06 INFO  OmfEc: APP_EVENT STDOUT from app /bin/hostname -f - msg: y68.dynhost.nicta.com.au
+	18:37:06 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/hostname -f - msg: status: pid 35136 exit 0
+	18:37:09 INFO  OmfEc: Exit in up to 15 seconds...
+	18:37:19 INFO  OmfEc: Release applications and network interfaces
+	18:37:19 INFO  OmfEc: Subscribed to ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
+	18:37:19 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
+	18:37:19 INFO  OmfEc: Subscribed to d3416b01-51d9-48d4-b6b5-442454e8e7fa
+	18:37:19 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
+	18:37:24 INFO  XMPP::Communicator: Disconnecting ...
+
+Congratulations, you've just run your first OMF experiment!
+
+(link to tutorials and OEDL reference goes here)
+
+## OMF Installation for OPERATORS
+
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. For the resources you want to make available to OMF experimenters, you need to run one or multiple OMF Resource Controllers (RC). The RC that ships with the omf_rc gem is the classic RC for PC-style hardware. It allows the experimenter to configure the network devices on the node and run applications. It tpyically runs on the node itself.
+
+### Installing the PC-type RC
+
+On a typical PC node, you can install the RC as root:
+
+	gem install omf_rc --pre --no-ri --no-rdoc
+
+Now it's time to install an XMPP server. Follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation). Jump back here after you verified that Openfire is installed correctly.
+
+If you'd like to start the Resource Controller upon booting your node, please ensure you have a system-wide RVM installation and run as root:
+
+    install_omf_rc -i -c
+
+This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully. The most important part is the "uri" parameter, where you need to use the correct XMPP server hostname and a unique username/password combination for each RC. (TODO: Fix after feature #1052 is implemented)
+
+### Installing other RCs
+
+If you want to make other resources available to OMF users ([such as OpenFlow switches](https://github.com/kohoumas/omf_rc_openflow), KVM virtual machines, OpenStack instances etc.) please follow their respective installation guides.
+
+### **Verify this step**
+
+To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc_alive_check.rb also available here}). If you are using the PC-type RC from the omf_rc gem, run:
+
+	omf_rc -u xmpp://user:password@<xmpp_hostname> -i test
+
+For any other RC you might use, make sure it listens on the "test" topic on your XMPP server.
+
+Choose an existing XMPP user/password combination or pick a new one, for which an account will automatically created. Replace \<xmpp_hostname\> with the hostname of your Openfire server. Now open a new terminal and run:
+
+	curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
+	ruby rc_alive_check.rb xmpp://user:password@<xmpp_hostname> test
+
+using the same XMPP URI. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
+
+### Monitoring
+
+(TODO: write section on monitoring OMF testbeds with Jenkins)
+
+## OMF Installation for DEVELOPERS
+
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. 
+
+### Installing all gems from source
+
+We encourage developers to use the very latest OMF code from the master branch of our git repository. Ensure you have git installed and run
+
+	git clone git://git.mytestbed.net/omf.git
+	cd omf
+
+Some components are linked in OMF main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:
+
+	git submodule init
+	git submodule update
+
+In order to install the gem dependencies, then build, install and test the OMF gems, run:
+
+	rake
+
+### **Verify this step**
+
+If the rake task finishes without any errors, you've successfully installed OMF from source code. Head to the [developer guide](TODO) to learn how to modify OMF to suit your needs.
+
+Before you can run OMF, please follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation) below.
+
+## Appendix A: Openfire Installation
 
 ### **USERS**
 
@@ -144,86 +268,9 @@ quit;
 
 ### **Verify this step**
 
-Replace \<xmppserver\> with your XMPP server name and run:
+To verify that Openfire has been set up correctly, we are providing a test script ({file:doc/openfire_test.rb also available here}). Run:
 
-	printf "<stream:stream to='host' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>" | nc <xmppserver> 5222 -q1
+	curl -O https://raw.github.com/mytestbed/omf/master/doc/openfire_test.rb
+	ruby openfire_test.rb <xmpp_hostname>
 
-If Openfire is running, you should get the following output:
-
-	<?xml version='1.0' encoding='UTF-8'?><stream:stream xmlns:stream="http://etherx.jabber.org/streams" xmlns="jabber:client" from="<xmppserver>" id="<some_id>" xml:lang="en">
-
-## OMF Communication Layer Installation
-
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. Let's start with OMF's communication layer. This is required for everyone.
-
-### **USERS & OPERATORS**
-
-    gem install omf_common --pre --no-ri --no-rdoc
-
-### **DEVELOPERS**
-
-We encourage developers to use the very latest OMF code from the master branch of our git repository. Ensure you have git installed and run
-
-	git clone git://git.mytestbed.net/omf.git
-	cd omf/omf_common; rake install; cd ..
-
-Some components are linked in OMF main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:
-
-	git submodule init
-	git submodule update
-
-### **Verify this step**
-
-???
-
-## OMF Resource Controller Installation
-
-### **USERS**
-
-The resource controller is part of the testbed and should be installed by the testbed provider. You can skip this step.
-
-### **OPERATORS**
-
-You need to deploy resource controllers for your testbed components. On a typical PC node, you can install the RC as root:
-
-	gem install omf_rc --pre --no-ri --no-rdoc
-
-If you'd like to start a Resource Controller upon booting your node, please ensure you have a system-wide RVM installation and run as root:
-
-    install_omf_rc -i -c
-
-This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully.
-
-### **DEVELOPERS**
-
-Assuming that you have cloned our git repository from the previous step, run:
-
-	cd omf_rc; rake install; cd ..
-
-### **Verify this step**
-
-	omf_rc --help
-
-should print the RC's help screen. OPERATORS can reboot the node and check whether the RC is running as a daemon:
-
-	ps aux | grep omf_rc
-
-## OMF Experiment Controller Installation
-
-### **USERS**
-
-    gem install omf_ec --pre --no-ri --no-rdoc
-
-### **OPERATORS**
-
-The experiment controller is only needed by the testbed users. You can skip this step, unless you want to run some test experiments on your testbed. In that case, follow the USERS instructions above.
-
-### **DEVELOPERS**
-
-	cd omf_ec; rake install; cd ..
-
-### **Verify this step**
-
-	omf_ec --help
-
-should print the EC's help screen
+Watch the output for any lines starting with ERROR. Double check your Openfire settings as described above and re-run the test until you receive no more ERRORs.
