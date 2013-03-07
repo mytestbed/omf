@@ -26,15 +26,17 @@ class XMPP
       end
     end
 
-
-    def on_message(message_guard_proc = nil, &message_block)
+    def on_message(message_guard_proc = nil, ref_id = 0, &message_block)
       @lock.synchronize do
-        @on_message_cbks << message_block
+        @on_message_cbks[ref_id] ||= []
+        @on_message_cbks[ref_id] << message_block
       end
 
       event_block = proc do |event|
-        @on_message_cbks.each do |cbk|
-          cbk.call(OmfCommon::Message.parse(event.items.first.payload))
+        @on_message_cbks.each do |id, cbks|
+          cbks.each do |cbk|
+            cbk.call(OmfCommon::Message.parse(event.items.first.payload))
+          end
         end
       end
 
@@ -46,6 +48,12 @@ class XMPP
           (valid_guard?(message_guard_proc) ? message_guard_proc.call(omf_message) : true)
       end
       OmfCommon.comm.topic_event(guard_block, &event_block)
+    end
+
+    def delete_on_message_cbk_by_id(id)
+      @lock.synchronize do
+        @on_message_cbks[id] && @on_message_cbks.reject! { |k| k == id.to_s }
+      end
     end
 
     def inform(type, props = {}, core_props = {}, &block)
@@ -73,7 +81,7 @@ class XMPP
     private
 
     def initialize(id, opts = {}, &block)
-      @on_message_cbks = []
+      @on_message_cbks = Hashie::Mash.new
 
       id = $1 if id =~ /^xmpp:\/\/(.+)@.+$/
 

@@ -24,6 +24,23 @@ describe OmfCommon::Message::XML::Message do
     end
   end
 
+  describe "when release message initialised" do
+    before do
+      # We will test prop value other than just strings
+      @message = Message::XML::Message.create(:release, {}, { res_id: 'bob', guard: { p1: 'p1_value' } })
+    end
+
+    it "must to be validated using relaxng schema" do
+      @message.valid?.must_equal true
+    end
+
+    it "must be able to be serialised as XML" do
+      @message.to_xml.must_match /^<release(.+)release>$/m
+      @message.to_xml.must_match /<res_id>bob<\/res_id>/m
+      @message.to_xml.must_match /<guard(.+)guard>/m
+    end
+  end
+
   describe "when asked to parse a XML element into Message::XML::Message object" do
     before do
       @xml = Message::XML::Message.create(

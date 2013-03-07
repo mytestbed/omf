@@ -117,7 +117,7 @@ class XML
 
         next unless attr_value
 
-        add_element(attr, attr_value)
+        add_element(attr, attr_value) unless (self.operation != :release && attr == :res_id)
       end
 
       self.properties.each { |k, v| add_property(k, v) }
