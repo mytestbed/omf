@@ -12,7 +12,12 @@ describe OmfEc::DSL do
     end
 
     it "must respond to def_property" do
-      def_property('name', 'default', 'testing')
+      @exp = MiniTest::Mock.new
+      @exp.expect(:add_property, true, [String, Object, String])
+
+      OmfEc.stub :experiment, @exp do
+        def_property('name', 'default', 'testing')
+      end
     end
 
     it "must respond to def_application" do
