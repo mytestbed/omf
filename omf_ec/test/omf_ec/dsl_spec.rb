@@ -7,17 +7,8 @@ describe OmfEc::DSL do
     include OmfEc::DSL
 
     it "must respond to after and every" do
-      @el = MiniTest::Mock.new
-
-      @el.expect(:after, true, [Fixnum])
-      @el.expect(:every, true, [Fixnum])
-
-      OmfCommon.stub :eventloop, @el do
-        after(2) { 1 }
-        every(2) { 1 }
-
-        @el.verify
-      end
+      respond_to?(:after).must_equal true
+      respond_to?(:every).must_equal true
     end
 
     it "must respond to def_property" do
