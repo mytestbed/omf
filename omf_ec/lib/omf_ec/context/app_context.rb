@@ -37,7 +37,6 @@ module OmfEc::Context
           info "Binding dynamic parameter '#{key}' to the property '#{property_value.name}'"
           property_value.on_change do |new_value|
             info "Updating dynamic app parameter '#{key}' with value: '#{new_value}'"
-            #info "#{OmfEc.experiment.resource_by_hrn(@name).inspect}"
             OmfEc.subscribe_and_monitor(@group.resource_group(:application)) do |topic|
               p = properties
               p[:parameters][key.to_sym][:value] = property_value.value
