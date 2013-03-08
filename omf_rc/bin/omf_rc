@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'erb'
 
 require 'omf_rc'
 require 'omf_rc/resource_factory'
@@ -50,7 +51,7 @@ rescue => e
 end
 
 if !options[:configfile].nil?
-  cfg_options = (YAML.load_file(options[:configfile]))
+  cfg_options = YAML.load(ERB.new(File.read(options[:configfile])).result)
   options = cfg_options.merge(options)
 end
 
@@ -86,6 +87,7 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
+    info "Connected as #{comm.jid}" if comm.jid
     res = OmfRc::ResourceFactory.create(:node, resource_options)
 
     comm.on_interrupted { res.disconnect }
