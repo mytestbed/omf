@@ -10,7 +10,7 @@ class Comm
     class Communicator < OmfCommon::Comm
       include Blather::DSL
 
-      attr_accessor :published_messages
+      attr_accessor :published_messages, :normal_shutdown_mode, :retry_counter
 
       HOST_PREFIX = 'pubsub'
 
@@ -53,7 +53,24 @@ class Comm
         raise ArgumentError, "Password cannot be nil when connect to XMPP" if password.nil?
         raise ArgumentError, "Server cannot be nil when connect to XMPP" if server.nil?
 
+        @retry_counter = 0
+        @normal_shutdown_mode = false
+
         connect(username, password, server)
+
+        disconnected do
+          unless normal_shutdown_mode
+            unless retry_counter > 0
+              @retry_counter += 1
+              client.connect
+            else
+              error "Authentication failed."
+              OmfCommon.eventloop.stop
+            end
+          else
+            shutdown
+          end
+        end
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
@@ -70,6 +87,7 @@ class Comm
       def disconnect(opts = {})
         # NOTE Do not clean up
         info "Disconnecting ..."
+        @normal_shutdown_mode = true
         shutdown
         OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_f, jid, 'disconnect') if OmfCommon::Measure.enabled?
       end
