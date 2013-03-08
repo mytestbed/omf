@@ -101,7 +101,6 @@ should show the currently used Ruby installation and the current gemset as well 
 	ruby-1.9.3-p286@omf
 	ruby 1.9.3p286 (2012-10-12 revision 37165)
 
-
 ## OMF Installation for USERS
 
 After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF.
@@ -223,7 +222,7 @@ In order to install the gem dependencies, then build, install and test the OMF g
 
 ### **Verify this step**
 
-If the rake task finishes without any errors, you've successfully installed OMF from source code. Head to the [developer guide](TODO) to learn how to modify OMF to suit your needs.
+If the rake task finishes without any errors, you've successfully installed OMF from source code. Head to the {file:doc/DEVELOPERS.mkd Developer Guide} to learn how to modify OMF to suit your needs.
 
 Before you can run OMF, please follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation) below.
 

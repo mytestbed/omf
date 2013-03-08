@@ -1,20 +1,18 @@
-# Contributing
+# Contribution Guide
 
 ## Getting the source
 
-From github.com
-
-    git clone https://github.com/mytestbed/omf.git
-
-From mytesbed.net
+From mytestbed.net:
 
     git clone git://git.mytestbed.net/omf.git
 
-## Modify the source
+From github:
 
-Feel free to modify the code, fix a bug, add a feature, correct a typo in documentation, no contribution is too small.
+    git clone https://github.com/mytestbed/omf.git
 
-We do have some guidelines, and we do appreciate if you could follow them.
+## Modifying the source
+
+Feel free to modify the code, fix a bug, add a feature, correct a typo in documentation, no contribution is too small. We do have some guidelines, and we do appreciate if you could follow them.
 
 ### Readable code
 
@@ -144,12 +142,9 @@ Please consider the following:
 * Follow the same guidelines as modifying OMF code when come to code quality control.
 * If your project seems to be short lived (as part of your study, for example), please notify us for the necessary shift of the ownership, simply, do not throw anything, they might still be useful for the us.
 
-
 ### Gem creation and release
 
-If you are not familiar with ruby's package system, this official guide http://guides.rubygems.org/ will certainly help.
-
-We kindly provide a gem skeleton for you to start with:
+If you are not familiar with ruby's package system, this official guide http://guides.rubygems.org/ will certainly help. We provide a gem skeleton for you to start with:
 
 https://github.com/jackhong/omf
 
