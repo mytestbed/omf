@@ -366,7 +366,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def handle_create_message(message, obj, response)
     new_name = message[:name] || message[:hrn]
-    new_opts = { hrn: new_name }
+    new_opts = message.properties.merge({ hrn: new_name })
     new_obj = obj.create(message[:type], new_opts) do |new_obj|
       response[:res_id] = new_obj.resource_address
 

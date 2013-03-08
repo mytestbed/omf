@@ -22,4 +22,13 @@ module OmfRc::ResourceProxy::Node
     end.sort { |x, y| x[:name] <=> y[:name] }
   end
 
+  hook :before_create do |node, type, opts|
+    if type.to_sym == :net
+      net_dev = node.request_devices.find do |v|
+        v[:name] == opts[:if_name]
+      end
+      raise "Device '#{opts[:if_name]}' not found" if net_dev.nil?
+    end
+  end
+
 end

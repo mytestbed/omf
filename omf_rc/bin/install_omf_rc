@@ -36,6 +36,7 @@ if options[:config]
   puts "Copying configuration file..."
   FileUtils.mkdir_p "/etc/omf_rc"
   FileUtils.cp "#{gem_root}/config/config.yml", "/etc/omf_rc/config.yml"
+  FileUtils.chmod 0644, "/etc/omf_rc/config.yml"
   puts "done."
 end
 
