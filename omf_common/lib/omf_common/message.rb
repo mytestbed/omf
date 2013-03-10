@@ -117,7 +117,7 @@ module OmfCommon
     end
 
     def error?
-      (itype || '').start_with? 'error'
+      (itype || '') =~ /(error|ERROR|FAILED)/
     end
 
     def create_inform_reply_message(itype = nil, properties = {}, body = {})
