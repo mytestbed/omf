@@ -57,7 +57,7 @@ class OmfRc::ResourceFactory
       end
     end
 
-    def load_addtional_resource_proxies(folder)
+    def load_additional_resource_proxies(folder)
       Dir["#{folder}/*.rb"].each do |file|
         require "#{folder}/#{File.basename(file).gsub(/\.rb/, '')}"
       end

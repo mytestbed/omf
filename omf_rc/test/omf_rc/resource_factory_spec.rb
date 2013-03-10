@@ -27,7 +27,7 @@ describe OmfRc::ResourceFactory do
     it "must be able to load addtional proxies from local folder" do
       Dir.stub :[], ["non_exist_folder/test.rb"] do
         proc do
-          OmfRc::ResourceFactory.load_addtional_resource_proxies("non_exist_folder")
+          OmfRc::ResourceFactory.load_additional_resource_proxies("non_exist_folder")
         end.must_raise LoadError
       end
     end
