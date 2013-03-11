@@ -54,44 +54,6 @@ module OmfEc::Context
           end
         end
       end
-
-      #o_m = OmfCommon.comm.__send__(op_name, send_to) do |m|
-        #m.element(:guard) do |g|
-        #  self.guard.each_pair do |k, v|
-        #    g.property(k, v)
-        #  end
-        #end
-
-      #o_m.on_inform_status do |i|
-        #if self.operation == :release
-        #  uid = i.read_property(:uid)
-        #  info "Going to release #{uid}"
-        #  release_m = OmfCommon.comm.release_message(self.group) { |m| m.element('res_id', uid) }
-
-        #  release_m.publish self.group
-
-        #  release_m.on_inform_released do |m|
-        #    info "#{m.res_id} released"
-        #    r = OmfEc.experiment.state.find { |v| v[:uid] == m.res_id }
-        #    r[:released] = true unless r.nil?
-        #    block.call if block
-        #    Experiment.instance.process_events
-        #  end
-        #end
-
-        #r = OmfEc.experiment.state.find { |v| v[:uid] == i.read_property(:uid) }
-        #unless r.nil?
-        #  i.each_property do |p|
-        #    p_key = p.attr('key').to_sym
-        #    r[p_key] = i.read_property(p_key)
-        #  end
-        #end
-        #Experiment.instance.process_events
-      #end
-
-      #o_m.on_inform_creation_failed do |i|
-      #  warn "RC reports failure: '#{i.read_content("reason")}'"
-      #end
     end
   end
 end

@@ -26,19 +26,19 @@ module OmfEc
                 group.net_ifs && group.net_ifs.each do |nif|
                   nif.map_channel_freq
                   r_type = nif.conf[:type]
-                  r_hrn = nif.conf[:hrn]
+                  r_if_name = nif.conf[:if_name]
                   r_index = nif.conf[:index]
 
                   conf_to_send =
                     if r_type == 'wlan'
                       { type: r_type,
-                        mode: nif.conf.merge(:phy => "<%= request_wlan_devices[#{r_index}][:name] %>").except(:hrn, :type, :index)
+                        mode: nif.conf.merge(:phy => "<%= request_wlan_devices[#{r_index}][:name] %>").except(:if_name, :type, :index)
                       }
                     else
                       nif.conf.merge(type: r_type).except(:index)
                     end
 
-                  group.create_resource(r_hrn, conf_to_send)
+                  group.create_resource(r_if_name, conf_to_send)
                 end
                 # Create proxies for each apps that were added to this group
                 group.app_contexts.each { |a| group.create_resource(a.name, a.properties) }
@@ -47,7 +47,7 @@ module OmfEc
 
             def_event :ALL_INTERFACE_UP do |state|
               all_groups? do |g|
-                plan = g.net_ifs.map { |v| v.conf[:hrn] }.uniq.size * g.members.uniq.size
+                plan = g.net_ifs.map { |v| v.conf[:if_name] }.uniq.size * g.members.uniq.size
                 actual = state.find_all do |v|
                   v[:membership] &&
                     (v[:membership].include?("#{g.id}_wlan") || v[:membership].include?("#{g.id}_net"))

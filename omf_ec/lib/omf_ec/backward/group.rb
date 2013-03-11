@@ -55,16 +55,16 @@ module OmfEc
 
       def method_missing(name, *args, &block)
         if name =~ /w(\d+)/
-          net = self.net_ifs.find { |v| v.conf[:hrn] == "wlan#{$1}" }
+          net = self.net_ifs.find { |v| v.conf[:if_name] == "wlan#{$1}" }
           if net.nil?
-            net = OmfEc::Context::NetContext.new(:type => 'wlan', :hrn => "wlan#{$1}", :index => $1)
+            net = OmfEc::Context::NetContext.new(:type => 'wlan', :if_name => "wlan#{$1}", :index => $1)
             self.net_ifs << net
           end
           net
         elsif name =~ /e(\d+)/
-          net = self.net_ifs.find { |v| v.conf[:hrn] == "eth#{$1}" }
+          net = self.net_ifs.find { |v| v.conf[:if_name] == "eth#{$1}" }
           if net.nil?
-            net = OmfEc::Context::NetContext.new(:type => 'net', :hrn => "eth#{$1}", :index => $1)
+            net = OmfEc::Context::NetContext.new(:type => 'net', :if_name => "eth#{$1}", :index => $1)
             self.net_ifs << net
           end
           net
