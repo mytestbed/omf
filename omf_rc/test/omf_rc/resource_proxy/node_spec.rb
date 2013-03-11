@@ -57,14 +57,20 @@ describe OmfRc::ResourceProxy::Node do
 
     it "must provide a list of created interfaces" do
       OmfCommon.stub :comm, @xmpp do
-        2.times { @xmpp.expect(:subscribe, true, [String]) }
-        @node.create(:wlan, { :uid => 'wlan0', :if_name => 'wlan0' })
-        @node.create(:net, { :uid => 'eth0', :if_name => 'eth0' })
-
-        @node.request_interfaces.must_equal [
-          { name: 'eth0', type: :net, uid: 'eth0' },
-          { name: 'wlan0', type: :wlan, uid: 'wlan0' }
+        devices = [
+          { name: 'eth0', driver: 'e1000e', category: 'net', proxy: 'net' },
+          { name: 'phy0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' }
         ]
+        @node.stub :request_devices, devices do
+          2.times { @xmpp.expect(:subscribe, true, [String]) }
+          @node.create(:wlan, { :uid => 'wlan0', :if_name => 'wlan0' })
+          @node.create(:net, { :uid => 'eth0', :if_name => 'eth0' })
+
+          @node.request_interfaces.must_equal [
+            { name: 'eth0', type: :net, uid: 'eth0' },
+            { name: 'wlan0', type: :wlan, uid: 'wlan0' }
+          ]
+        end
       end
     end
   end
