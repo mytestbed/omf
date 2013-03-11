@@ -3,4 +3,6 @@
 --load yard_extension.rb
 omf_*/lib/**/*.rb
 -
-doc/*.mkd
+doc/**/*.mkd
+doc/**/*.rb
+*.mkd

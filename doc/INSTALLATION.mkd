@@ -10,7 +10,7 @@ Each of the following sections has specific instructions for each audience class
 
 ## Dependencies
 
-OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using RVM (https://rvm.io) instead. RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
+OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using [RVM](https://rvm.io) instead. RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
 
 The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. The first step is to satisfy RVM and OMF build dependencies.
 
@@ -115,7 +115,7 @@ Contact an OMF testbed operator for an account. Make a resource reservation if r
 
 ### **Verify this step**
 
-To verify that you can run experiments on the testbed, we are providing a experiment script ({file:doc/oedl_simple_test.rb also available here}). Run:
+To verify that you can run experiments on the testbed, we are providing a experiment script ({file:doc/oedl\_simple\_test.rb also available here}). Run:
 
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
 	omf_ec -u xmpp://user:password@<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
@@ -191,7 +191,7 @@ If you want to make other resources available to OMF users ([such as OpenFlow sw
 
 ### **Verify this step**
 
-To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc_alive_check.rb also available here}). If you are using the PC-type RC from the omf_rc gem, run:
+To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). If you are using the PC-type RC from the omf_rc gem, run:
 
 	omf_rc -u xmpp://user:password@<xmpp_hostname> -i test
 
