@@ -73,6 +73,7 @@ class OmfRc::ResourceProxy::AbstractResource
     #@membership << @hrn if @hrn
 
     @property = @opts.property || Hashie::Mash.new
+    @property.merge!(@opts.except([:uid, :hrn, :property, :instrument]))
 
     OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
       if t.id.to_s == @uid
