@@ -120,7 +120,7 @@ To verify that you can run experiments on the testbed, we are providing a experi
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
 	omf_ec -u xmpp://user:password@<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
 
-Choose an existing XMPP user/password combination or pick a new one, for which an account will automatically created. Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). If everything goes well, you should see an output like
+Choose an existing XMPP user/password combination or pick a new one, for which an account will automatically created. Just make sure the credentials are not used by another EC at the time. Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). If everything goes well, you should see an output like
 
 	18:36:59 INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
 	18:36:59 INFO  Object: Connected
@@ -175,7 +175,15 @@ If you'd like to start the Resource Controller upon booting your node, please en
 
     install_omf_rc -i -c
 
-This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully. The most important part is the "uri" parameter, where you need to use the correct XMPP server hostname and a unique username/password combination for each RC. (TODO: Fix after feature #1052 is implemented)
+This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
+
+	---
+	:uid: <%= `hostname`.chomp %>
+	:uri: xmpp://<%= `hostname`.chomp %>:password@localhost
+	:environment: development
+	:debug: false
+
+Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name* to the output of the Ruby command *`hostname`.chomp*. This way, the same configuration file can be used on different hosts, which are distinguished only by their DHCP-assigned hostname. You can use any other valid Ruby syntax here to bootstrap your RC, but ensure that each RC has a unique UID and XMPP user name within the testbed.
 
 ### Installing other RCs
 
@@ -249,7 +257,7 @@ dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
 * check if openfire is running: @ps aux | grep openfire@ . Startup can take a while, please be patient.
 * direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
 * choose your language and click continue
-* enter the XMPP server's hostname (e.g. norbit.npc.nicta.com.au or localhost) in the Domain field and click continue
+* enter the XMPP server's hostname (e.g. xmpp.domain.com or localhost) in the Domain field and click continue
 * choose the embedded database. You can also use other database types, but you will need to install the database server first and manually create a user and a database for Openfire.
 * when using mySQL, you need to change the length of the Pubsub node names in the mySQL database. Basically you need to run the commands:
 <pre>mysql -u openfire -p

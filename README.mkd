@@ -1,4 +1,4 @@
-# cOntrol and Management Framework (OMF)
+# OMF
 
 [![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
 
@@ -31,5 +31,3 @@ Ask for help and join the discussion on our mailing list.  [Subscribe](mailto:li
 ## License & Copyright
 
 {file:LICENSE.mkd}
-
-{file:omf_ec/lib/omf_ec/dsl.rb}

@@ -1,6 +1,6 @@
 ---
 # default topic name and xmpp user name is the hostname
 :uid: <%= `hostname`.chomp %>
-:uri: xmpp://<%= `hostname`.chomp %>:pw@localhost
+:uri: xmpp://<%= `hostname`.chomp %>:password@localhost
 :environment: development
 :debug: false

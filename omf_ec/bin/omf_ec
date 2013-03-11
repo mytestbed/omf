@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
-#
+
+abort "Please use Ruby 1.9.3 or higher" if RUBY_VERSION < "1.9.3"
+
 require 'gli'
 require 'omf_ec'
 $stdout.sync = true
