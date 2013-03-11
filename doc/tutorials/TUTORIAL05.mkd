@@ -1,0 +1,304 @@
+How to use your own or a 3rd party application with OMF
+=======================================================
+
+1. Prerequisites
+----------------
+
+-   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
+    works from a user’s point of view]].
+-   Make sure that you have completed and understood the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+2. Goal
+-------
+
+-   As mentioned earlier, to be able to use your own applications (or
+    3rd party applications) in your OMF experiment, you need to write an
+    OMF Application Definition for them.
+
+-   An Application Definition can be viewed as an interface that makes
+    the OMF Experiment Controller aware of your application, i.e. which
+    parameters it accepts, which measurement points it provides, or
+    where to find the package files that contains it.
+
+-   This tutorial shows you:
+    -   how to write an OMF Application Definition
+    -   how to use it within your Experiment Description
+
+3. Scenario
+-----------
+
+-   Here we are using the same simple scenario as in the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+-   This tutorial will show you how we created the OMF Application
+    Definition for the OTG2 application used in
+    [[BasicTutorialStage0-5-4|the “Hello World” experiment]].
+
+4. Developing the Application Definition for the example OTG2 Application
+-------------------------------------------------------------------------
+
+-   Following is an example of a valid application definition for the
+    OTG2 Application:
+
+<!-- -->
+
+    <code class="ruby">
+    defApplication('test:app:otg2', 'otg2') do |a|
+
+      a.path = "/usr/bin/otg2"
+      app.appPackage = "/home/myUsername/myArchive.tar" 
+      a.version(1, 1, 3)
+      a.shortDescription = "Programmable traffic generator v2"
+      a.description = "OTG is a configurable traffic generator."
+
+      # Define the properties that can be configured for this application
+      # 
+      # syntax: defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
+      #
+      a.defProperty('generator', 'Type of packet generator to use (cbr or expo)', '-g', {:type => :string, :dynamic => false})
+      a.defProperty('udp:broadcast', 'Broadcast', '--udp:broadcast', {:type => :integer, :dynamic => false})
+      a.defProperty('udp:dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
+      a.defProperty('udp:dst_port', 'Destination Port to send to', '--udp:dst_port', {:type => :integer, :dynamic => false})
+      a.defProperty('udp:local_host', 'IP address of this Source node', '--udp:local_host', {:type => :string, :dynamic => false})
+      a.defProperty('udp:local_port', 'Local Port of this source node', '--udp:local_port', {:type => :integer, :dynamic => false})
+      a.defProperty("cbr:size", "Size of packet [bytes]", '--cbr:size', {:dynamic => true, :type => :integer})
+      a.defProperty("cbr:rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
+      a.defProperty("exp:size", "Size of packet [bytes]", '--exp:size', {:dynamic => true, :type => :integer})
+      a.defProperty("exp:rate", "Data rate of the flow [kbps]", '--exp:rate', {:dynamic => true, :type => :integer})
+      a.defProperty("exp:ontime", "Average length of burst [msec]", '--exp:ontime', {:dynamic => true, :type => :integer})
+      a.defProperty("exp:offtime", "Average length of idle time [msec]", '--exp:offtime', {:dynamic => true, :type => :integer})
+
+      # Define the Measurement Points and associated metrics that are available for this application
+      #
+      a.defMeasurement('udp_out') do |m|
+        m.defMetric('ts',:float)
+        m.defMetric('flow_id',:long)
+        m.defMetric('seq_no',:long)
+        m.defMetric('pkt_length',:long)
+        m.defMetric('dst_host',:string)
+        m.defMetric('dst_port',:long)
+      end
+    end
+    </code>
+
+-   **Line 1**: declares the URI and name for your OMF Application
+    definition:
+
+<!-- -->
+
+    Syntax:   defApplication (URI, name)
+              - URI     The URI where your Application Definition resides
+              - name    The human-readable name of your Application Definition
+
+    Examples of valid URIs:
+    - "otg2application"   => This Application Definition is saved in a file "otg2application.rb", 
+                             which is located in the same directory as the Experiment Description
+                             that is using this Application Definition
+    - "dir1:dir2:otg2"    => This Application Definition is saved in a file "otg2.rb", which is 
+                             located in the sub-directories "dir1/dir2" of the same directory as the
+                             Experiment Description using this Application Definition
+
+    Note:   1) About the URI search path
+               The EC will first assume that the URI is relative to the current directory where it
+               is being invoked, then it will search for it in two predefined default OMF paths where 
+               the EC-bundled Application Definition reside.
+               A future version of OMF (>5.4) will allow the use of absolute URIs which for example 
+               could refer to Application Definitions hosted on some webservers
+
+            2) The Application Definition can also be directly added in the top of your OMF Experiment
+               description, instead of being saved in a separate file. In such case, OMF will directly
+               load your Application Definition before it loads your Experiment Description, and thus 
+               it will not try to resolve the URI as described in 1) above.
+
+-   **Line 3**: declare the *absolute* path where your application
+    resides on the resources
+    -   Here the application `otg2` is located in `/usr/bin/` on the
+        nodes
+
+-   **Line 4**: (optional) Specify an automatic method to install your
+    application the resource
+    -   OMF 5.4 supports 3 types of installation schemes:
+
+<!-- -->
+
+    - "TAR-based Install" - This is our Poor Man Install method.
+                           Your application is packaged in a TAR archive, which will be uploaded
+                            to each resource. This TAR archive will be extracted at the root @/@
+                            directory of the filesystem of each resource. Therefore, you must layout 
+                            the directory structure in your TAR archive in the exact way you would 
+                            like its content to be placed in the resource's filesystem.
+
+                            Syntax:   appPackage = URI
+
+                            where URI points to where your TAR file resides, e.g. it could be a local
+                            file or a complete URL. For example:
+                               appPackage = "/home/me/mydir/my_application_archive.tar"
+                            or 
+                               appPackage = "http://mytestbed.net/my_application_archive.tar"
+
+    - "DEB Install" - Your application is packaged as a Debian/Ubuntu DEB package
+
+                      Syntax:    debPackage = MyPackageName
+
+                      Note: OMF assumes that the resource on which the package will be installed 
+                      has a properly configured APT tool
+
+
+    - "RPM Install" - Your application is packaged as a Fedora RPM package
+
+                      Syntax:    rpmPackage = MyPackageName
+
+                      Note: OMF assumes that the resource on which the package will be installed 
+                      has a properly configured YUM tool
+
+-   **Line 5-7**: more information about your application
+
+-   **Line 13-24**: declare the properties of your applications. These
+    are the command-line parameters of the applications, that you would
+    like to set within your Experiment Description.
+
+<!-- -->
+
+    # Define a property for this application.
+    #
+    # - name = the name of the property
+    # - description = some text describing this property
+    # - parameter = the parameter which should be used on the command line for this property (can be a nil charactere '')
+    # - options = a list of options associated with this property 
+    #
+    # Currently, the following options are defined:
+    #
+    #   :type => <type> -- Checks if property value is of 'type'.
+    #                       If type is 'Boolean', only the name is used if 'true'
+    #   :dynamic => true|false -- If true, property can be changed at run-time
+    #   :order => int   -- Uses the int to order the properties when forming command line
+    #
+    def defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
+
+-   A complete description of the *defProperty* command is given in
+    [[The\_Experiment\_Controller\_API|the OEDL reference manual]].
+
+-   **Line 28-35**: declare a OML Measurement Point (MP) and the
+    associated metrics that your application is providing.
+    -   This step is optional if you do not wish to collect any
+        measurement from your application
+    -   These are the MP and metrics that were previously added to your
+        application source code
+        -   the [[oml:Quick\_Start\_Tutorial|Quick Start OML tutorial]]
+            shows you how to add Measurement Point to your application’s
+            source code
+        -   the [[OMLWrapperHowTo|OML-enabled Ruby Wrapper tutorial]]
+            shows you how to write an OML-enabled wrapper around an
+            existing application for which you do not have the source
+            code
+
+    -   A complete description of the *defMeasurement* command is given
+        in [[The\_Experiment\_Controller\_API|the OEDL reference
+        manual]]
+
+<!-- -->
+
+    Syntax: defMeasurement(id)
+      - id: the identification of the Measurement Point (MP), 
+            as defined in your application source code
+
+    Syntax: defMetric(name, type)
+      - name: the name of a metric associated with your MP, 
+              as defined in your application source code
+      - type: the type of this metric 
+              (e.g. :float, :integer, :string)
+
+5. Using your Application with OMF
+----------------------------------
+
+-   The [[BasicTutorialStage0-5-4| “Hello World” tutorial]] shows how to
+    use an application in your experiment, via its Application
+    Definition
+
+-   Here is the relevant code snippet from the
+    [[BasicTutorialStage0-5-4|“Hello World” experiment description]]:
+
+<!-- -->
+
+    <code class="ruby">
+    defGroup('Sender', "omf.nicta.node2") do |node|
+      node.addApplication("test:app:otg2") do |app|
+        app.setProperty('udp:local_host', '192.168.0.2')
+        app.setProperty('udp:dst_host', '192.168.0.3')
+        app.setProperty('udp:dst_port', 3000)
+        app.measure('udp_out', :interval => 3)
+      end
+      ...
+    end
+    </code>
+
+-   Note:
+    -   OMF 5.4 has a default installation of the OTG2 Application
+        Definition, hence the URI `test:app:otg2` in the above snippet
+    -   If you wanted to use the Application Definition which we
+        described above, then you should replace Line 2 in the above
+        snippet by:
+
+<!-- -->
+
+    <code class="ruby">
+      ...
+      node.addApplication("otg2application") do |app|
+      ... 
+    </code>
+
+6. Running the experiment
+-------------------------
+
+To run this experiment you should use the exact same commands and
+instructions as for the [[BasicTutorialStage0-5-4| “Hello World”
+tutorial]].
+
+You should also see a similar type of output as for the
+[[BasicTutorialStage0-5-4|“Hello World” tutorial]].
+
+7. The Results
+--------------
+
+Again here, you should obtain some similar type of results as in the
+[[BasicTutorialStage0-5-4|“Hello World” example]], and you should be
+able to obtain a similar graph either by processing the result database
+with your own tools, or by using the EC’s graph capabilities.
+
+6. What is Next?
+----------------
+
+Now that you know how to use your own applications with OMF, you may
+want to read the following basic OMF tutorials. Each one of them is
+introducing an OMF feature, using the simple “Hello World” experiment as
+a base. You do not need to follow them in the order suggested below.
+
+-   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
+    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+
+-   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
+    and change them at run-time]]
+
+-   [[BasicTutorialStage2-5-4|How to configure or address all resources
+    within a defined group, and use simple substitutions]]
+
+-   [[BasicTutorialStage3-5-4|How to use your own or a 3rd party
+    application with OMF]]
+
+-   [[BasicTutorialStage4-5-4|How to use Measurement Filters to
+    customise your Measurement]]
+
+-   [[BasicTutorialStage5-5-4|How to use Prototypes to specify
+    particular Applications]]
+
+-   [[BasicTutorialStage6-5-4|How to save a disk image]]
+
+-   [[BasicTutorialStage7-5-4|How to load a disk image]]
+
+And finally, a “Conference Room” scenario which combines all of the
+above features:
+
+-   [[BasicTutorialStage8-5-4|The Conference Room tutorial]]
+
+* * * * *

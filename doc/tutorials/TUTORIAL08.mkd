@@ -1,0 +1,199 @@
+The Conference Room Tutorial
+============================
+
+0. Video now available!
+-----------------------
+
+We recently uploaded a video of this tutorial, which you can watch here:
+[http://omf.mytestbed.net/videos/tv-conf-room.mp4](http://omf.mytestbed.net/videos/tv-conf-room.mp4)
+
+1. Prerequisites
+----------------
+
+-   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
+    works from a user’s point of view]].
+-   Make sure that you have completed and understood
+    [[BasicTutorials-5-4|all the basic tutorias]].
+
+2. Goal
+-------
+
+-   This tutorial shows an experiment which uses all of the features
+    described in the [[BasicTutorials-5-4|previous basic tutorials]].
+
+-   As detailed explanation on how to use these features are available
+    in [[BasicTutorials-5-4|the basic tutorials]], this page just shows
+    the Experiment Description and some graphs obtained by running this
+    experiment with different parameters
+
+3. Scenario
+-----------
+
+-   The “Conference Room” scenario is based on the basic Sender/Receiver
+    scenario of the [[BasicTutorialStage0-5-4|“Hello World” tutorial]].
+
+![](scenario.png)
+
+-   Here we have:
+    -   One resource in a unique Receiver group
+    -   Multiple resources in different groups of Senders, which will
+        send UDP Constant-Bit-Rate traffic to the Receiver
+    -   The Senders will start and stop sending their traffic
+        sequentially
+
+-   Different parameters of the experiment can be changed using
+    Properties
+
+4. The Experiment Description
+-----------------------------
+
+The Experiment Description (ED) describing this experiment is (download
+it here: attachment:conf-room-demo.rb):
+
+    <code class="ruby">
+    defProperty('hrnPrefix', "omf.nicta.node", "Prefix to use for the HRN of resources")
+    defProperty('resources', "[1,2,3,4,5,8,9,10,11,12,13]", "List of IDs for the resources to use as senders")
+    defProperty('receiver', "6", "ID for the resource to use as a receiver")
+    defProperty('groupSize', 4, "Number of resources to put in each group of senders")
+    defProperty('rate', 300, 'Bits per second sent from senders')
+    defProperty('packetSize', 256, 'Byte size of packets sent from senders')
+    defProperty('wifiType', "g", "The type of WIFI to use in this experiment")
+    defProperty('channel', '6', "The WIFI channel to use in this experiment")
+    defProperty('netid', "confroom", "The ESSID to use in this experiment")
+    defProperty('stepDuration', 60, "The duration of each step of this conf-room")
+
+    # Define the Receiver
+    defGroup('Receiver', "#{property.hrnPrefix}#{property.receiver}") do |node|
+      node.addApplication("test:app:otr2") do |app|
+        app.setProperty('udp:local_host', '%net.w0.ip%')
+        app.setProperty('udp:local_port', 3000)
+        app.measure('udp_in', :samples => 1)
+      end
+      node.net.w0.mode = "master"
+      node.net.w0.type = property.wifiType
+      node.net.w0.channel = property.channel
+      node.net.w0.essid = property.netid
+      node.net.w0.ip = "192.168.0.254"
+    end
+
+    # Define each Sender groups
+    groupList = []
+    res = eval(property.resources.value)
+    groupNumber = res.size >= property.groupSize ? (res.size.to_f / property.groupSize.value.to_f).ceil : 1
+    (1..groupNumber).each do |i|
+      list = []
+      (1..property.groupSize).each do |j| popped = res.pop ; list << popped if !popped.nil?  end
+      senderNames = list.collect do |id| "#{property.hrnPrefix}#{id}" end 
+      senders = senderNames.join(',')
+
+      info "Group Sender #{i}: '#{senders}'"
+      groupList << "Sender#{i}"
+      defGroup("Sender#{i}", senders) do |node|
+        node.addApplication("test:app:otg2") do |app|
+          app.setProperty('udp:local_host', '%net.w0.ip%')
+          app.setProperty('udp:dst_host', '192.168.0.254')
+          app.setProperty('udp:dst_port', 3000)
+          app.setProperty('cbr:size', property.packetSize)
+          app.setProperty('cbr:rate', property.rate)
+          app.measure('udp_out', :samples => 1)
+        end
+        node.net.w0.mode = "managed"
+        node.net.w0.type = property.wifiType
+        node.net.w0.channel = property.channel
+        node.net.w0.essid = property.netid
+        node.net.w0.ip = "192.168.0.%index%"
+      end 
+    end
+
+    onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      wait 10
+      group('Receiver').startApplications
+      wait 10
+      (1..groupNumber).each do |i|
+        group("Sender#{i}").startApplications
+        wait property.stepDuration
+      end
+      (1..groupNumber).each do |i|
+        group("Sender#{i}").stopApplications
+        wait property.stepDuration
+      end
+      group('Receiver').stopApplications
+      Experiment.done
+    end
+
+    addTab(:defaults)
+    addTab(:graph2) do |tab|
+      opts = { :postfix => %{Sender index for incoming UDP traffic = F(time)}, :updateEvery => 1 }
+      tab.addGraph("Incoming UDP", opts) do |g|
+        data = Hash.new
+        index = 1
+        mpIn = ms('udp_in')
+        mpIn.project(:oml_ts_server, :src_host, :seq_no).each do |sample|
+          time, src, seq = sample.tuple
+          if data[src].nil? 
+            data[src] = [index,[]] 
+            index += 1
+          end
+          data[src][1] << [time, data[src][0]] 
+        end
+        data.each do |src,value|
+          g.addLine(value[1], :label => "Node #{value[0]}") 
+        end
+      end
+    end
+    </code>
+
+-   Please refer to the [[BasicTutorials-5-4|previous basic tutorials]]
+    for more detail on understanding this ED.
+
+4. Running the experiment
+-------------------------
+
+-   Please refer to the [[BasicTutorials-5-4|previous basic tutorials]]
+    and the [[GettingStarted|Getting Started page]] to find out:
+    -   how to run an experiment with OMF.
+    -   how to access and use your result database
+    -   how to define graphs to plot during your experiment runtime
+    -   how to access the EC’s webpage during your experiment runtime
+
+-   Here we assume that you have the above ED saved in the file named
+    `dynamic-properties.rb`.
+
+\* Run the experiment using the default values for all the properties:\
+
+    omf exec conf-room.rb
+
+7. What is Next?
+----------------
+
+Now you may want to read the following basic OMF tutorials. You do not
+need to follow them in the order suggested below.
+
+-   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
+    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+
+-   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
+    and change them at run-time]]
+
+-   [[BasicTutorialStage2-5-4|How to configure or address all resources
+    within a defined group, and use simple substitutions]]
+
+-   [[BasicTutorialStage3-5-4|How to use your own or a 3rd party
+    application with OMF]]
+
+-   [[BasicTutorialStage4-5-4|How to use Measurement Filters to
+    customise your Measurement]]
+
+-   [[BasicTutorialStage5-5-4|How to use Prototypes to specify
+    particular Applications]]
+
+-   [[BasicTutorialStage6-5-4|How to save a disk image]]
+
+-   [[BasicTutorialStage7-5-4|How to load a disk image]]
+
+And finally, a “Conference Room” scenario which combines all of the
+above features:
+
+-   [[BasicTutorialStage8-5-4|The Conference Room tutorial]]
+
+* * * * *

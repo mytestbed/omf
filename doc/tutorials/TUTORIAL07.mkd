@@ -1,0 +1,399 @@
+How to use OMF Prototypes to specify your Application
+=====================================================
+
+1. Prerequisites
+----------------
+
+-   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
+    works from a user’s point of view]].
+-   Make sure that you have completed and understood the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+-   Make sure that you have completed and understood the
+    [[BasicTutorialStage3-5-4|“how to use your own application”
+    tutorial]].
+
+2. Goal
+-------
+
+-   In the previous [[BasicTutorialStage3-5-4|“how to use your own
+    application” tutorial]], we saw how to create and use an Application
+    Definition which will allow your experiment to use and control your
+    own or a 3rd party application.
+
+-   While you can use your own application directly in your experiment
+    through its Application Definition, sometime you may want to use a
+    more specific instance of that application without necessary having
+    to set a all collection of parameters each time. You can do this in
+    your OMF experiment through the definition of a *Prototype*
+
+-   A *Prototype* is a specialized version of your application for which
+    you have preset some parameters and/or some measurements to collect.
+
+-   This tutorial shows you:
+    -   how to write an OMF Prototype definition (which uses
+        [[BasicTutorialStage3-5-4|an existing OMF Application
+        definition]])
+    -   how to use it within your Experiment Description
+
+3. Scenario
+-----------
+
+-   Here we are using the same simple scenario as in the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]] (one
+    traffic *Sender* and one *Receiver\_)
+    \
+    \* However:\
+    **\* the traffic generator application used in the ] can actually
+    generate 2 types of traffic: a constant bit rate one , and an
+    exponential distributed one . We only used the CBR mode in the
+    previous ]\
+    **\* Here we will create 2 OMF Prototypes that will be
+    specializations of the OTG2 application:\
+    **\* Prototype 1 will be an Exponential traffic generator \
+    **\* Prototype 2 will be a Constant-Bit-Rate traffic generator \
+    **\* Both Prototypes will be using the OTG2 application definition \
+    **\* Both Prototypes will have default values for the traffic
+    generation parameters
+    \
+    h2. 3. The Experiment Files
+    \
+    h3. 3.1. The OTG2 Application Definition
+    \
+    \<pre\><code class="ruby">\
+    defApplication do |a|
+    \
+     a.path = “/usr/bin/otg2”\
+     app.appPackage = “/home/myUsername/myArchive.tar” \
+     a.version\
+     a.shortDescription = “Programmable traffic generator v2”\
+     a.description = “OTG is a configurable traffic generator.”
+    \
+     \# Define the properties that can be configured for this
+    application\
+     \# \
+     \# syntax: defProperty\
+     \#\
+     a.defProperty’, ’~~g’, )\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty\
+     a.defProperty
+    \
+     \# Define the Measurement Points and associated metrics that are
+    available for this application\
+     \#\
+     a.defMeasurement do |m|\
+     m.defMetric\
+     m.defMetric\
+     m.defMetric\
+     m.defMetric\
+     m.defMetric\
+     m.defMetric\
+     end\
+    end\
+    </code>\</pre\>
+    \
+    \* This type of Application Definition has already been explained in
+    details in ].
+    \
+    h3. 3.2. The OMF Prototypes based on the OTG2 Application
+    \
+    \* Here is the OMF prototype for the **Exponential** Traffic
+    Generator based on OTG2:\
+    **\* download it here: attachment:expo\_generator.rb
+    \
+    \<pre\><code class="ruby">\
+    defPrototype do |proto|\
+     proto.name = “UDP\_EXPO\_Traffic\_Generator”\
+     proto.description = “A traffic generator using an Exponential
+    model”
+    \
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty\
+     proto.defProperty
+    \
+     proto.addApplication do |app|\
+     app.bindProperty \
+     app.bindProperty \
+     app.bindProperty\
+     app.bindProperty\
+     app.bindProperty\
+     app.bindProperty\
+     app.bindProperty\
+     app.bindProperty\
+     app.bindProperty\
+     app.bindProperty\
+     app.measure do |mp|\
+     mp.filter\
+     mp.filter\
+     end\
+     end\
+    end\
+    </code>\</pre\>
+    \
+    ** **Line 1**: we define a new OMF Prototype and give it the URI
+    `expo_generator`
+    \
+    \* **Line 2-3**: some information about this prototype
+    \
+    \* **Line 5-14**: we define some configurable parameters for this
+    prototype\
+    **\* For example, we define a property `trafficModel` and we give it
+    a default value of `expo`\
+    **\* NOTE: the method used here `defProperty` is different from the
+    `defProperty` used when definition an OMF Application definition
+    with `defApplication` \
+    **\* the `defProperty` used inside a `defApplication` is described
+    in ]. \
+    **\* the `defProperty` used here inside a `defPrototype` is:
+    \
+    \<pre\>\
+    syntax: defProperty
+    \
+    ~~ name : the name for this property, this will be use to set it in
+    the experiment\
+     - description : some description of this property\
+     - default : a default value to give to this property, when it is
+    not\
+     explicitly set in the experiment \
+    \</pre\>
+    \
+    \* **Line 16**: defines the OMF Application Definition which
+    describes the Application on which this Prototype is based\
+    **\* the URI for the Application Definition to use here should be
+    exactly the one assigned to the Application Definition, e.g.
+    `otg2_app_def` here
+    \
+    ** **Line 17-26**: each property that we defined for this prototype
+    need to be*bound\_ to a given property defined in the Application
+    Definition
+    -   this is done by using the `bindProperty` method described below
+    -   any configurable parameters of the original Application
+        Definition which is not bound here to a Prototype property will
+        not be accessible for configuration bia the Prototype
+
+<!-- -->
+
+    syntax:   bindProperty(target, property)
+
+       - target   : the name for the Application Definition property to which a Prototype
+                    property should be bound to
+       - property : the name of the Prototype property, which we want to bind to some existing
+                    Application Definition property. 
+
+-   **Line 27-29**: defines the measurements we would like to collect
+    for this Prototype and the filters to apply to them
+    -   the measurements defined here need to be made available by
+        existing Measurement Point, as defined in the Application
+        Definition
+    -   the use of measurements and filters to apply to them is
+        described in [[BasicTutorialStage4-5-4|the Measurements and
+        Filters tutorial]]
+
+-   Here is the OMF prototype for the **Constant-Bit-Rate** Traffic
+    Generator based on OTG2:
+    -   download it here: attachment:expo\_generator.rb
+    -   the descriptions of the previous prototype above also applies to
+        this following one
+
+<!-- -->
+
+    <code class="ruby">
+    defPrototype("cbr_generator") do |proto|
+      proto.name = "UDP_CBR_Traffic_Generator"
+      proto.description = "A traffic generator using a Constant Bit Rate model"
+
+      proto.defProperty('trafficModel', 'Model of traffic to use', 'cbr')
+      proto.defProperty('destinationHost', 'Host to send packets to')
+      proto.defProperty('destinationPort', 'Host to send packets to',3000)
+      proto.defProperty('localHost', 'Host that generate the packets')
+      proto.defProperty('localPort', 'Host that generate the packets',3000)
+      proto.defProperty('packetSize', 'Size of packets [bytes]', 512)
+      proto.defProperty('rate', 'Number of bits per second [kbps]', 1024)
+      proto.defProperty('broadcast', 'Allow broadcast', 1)
+
+      proto.addApplication("otg2_app_def") do |app|
+        app.bindProperty('generator', 'trafficModel')   
+        app.bindProperty('udp:broadcast', 'broadcast')  
+        app.bindProperty('udp:dst_host', 'destinationHost')
+        app.bindProperty('udp:dst_port', 'destinationPort')
+        app.bindProperty('udp:local_host', 'localHost')
+        app.bindProperty('udp:local_port', 'localPort')
+        app.bindProperty('cbr:size', 'packetSize')
+        app.bindProperty('cbr:rate', 'rate')
+        app.measure('udp_out', :samples => 1) do |mp|
+          mp.filter('seq_no','first')
+          mp.filter('pkt_length','first')
+        end
+      end
+    end
+    </code>
+
+### 3.3. The Experiment Description
+
+-   Here is the OMF Experiment Description using the above CBR and EXPO
+    prototypes
+    -   download it here: attachment:using-prototypes.rb
+
+<!-- -->
+
+    <code class="ruby">
+    defGroup('CBR_Sender', "omf.nicta.node8") do |node|
+      options = { 'localHost' => '%net.w0.ip%',
+                  'destinationHost' => '192.168.255.255',
+                  'packetSize' => 256 }
+      node.addPrototype("cbr_generator", options)
+    end
+
+    defGroup('EXPO_Sender', "omf.nicta.node8") do |node|
+      options = { 'localHost' => '%net.w0.ip%',
+                  'destinationHost' => '192.168.255.255',
+                  'packetSize' => 1024 }
+      node.addPrototype("expo_generator", options)
+    end
+
+    defGroup('Receiver', "omf.nicta.node9") do |node|
+      node.addApplication("test:app:otr2") do |app|
+        app.setProperty('udp:local_host', '192.168.255.255')
+        app.setProperty('udp:local_port', 3000)
+        app.measure('udp_in', :samples => 1)
+      end
+    end
+
+    allGroups.net.w0 do |interface|
+      interface.mode = "adhoc"
+      interface.type = 'g'
+      interface.channel = "6"
+      interface.essid = "helloworld"
+      interface.ip = "192.168.0.%index%"
+    end
+
+    onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      wait 10
+      info "Starting the Receiver"
+      group("Receiver").startApplications
+      info "Starting the EXPO-traffic Sender"
+      group("EXPO_Sender").startApplications
+      wait 40
+      info "Stopping the EXPO-traffic Sender"
+      group("EXPO_Sender").stopApplications
+      wait 5
+      info "Starting the CBR-traffic Sender"
+      group("CBR_Sender").startApplications
+      wait 40
+      info "Now stopping all everything"
+      #allGroups.stopApplications
+      group("CBR_Sender").stopApplications
+      group("Receiver").stopApplications
+      Experiment.done
+    end
+    </code>
+
+-   **Line 1-6**: we define a group named “CBR\_Sender”
+    -   we do NOT add the OTG2 application directly to the resource
+        (`omf.nicta.node8`) in this group as we did in the
+        [[BasicTutorialStage0-5-4|“Hello World” tutorial]]
+    -   instead here we add a the `cbr_generator` Prototype to this
+        resources:
+        -   first we define the list of properties which we would like
+            to set for this Prototype (line 2 to 4)
+        -   then we use `addPrototype` to associate the Prototype to all
+            the resources in this group
+
+<!-- -->
+
+    syntax:   addPrototype(uri, options)
+
+       - uri     : the URI of the Prototype (e.g. as we defined in the Prototype Definitions above)
+       - options : the list of properties and values which we would like to set for this Prototype
+
+-   **Line 8-13**: we do the same for another group “EXPO\_Sender”, but
+    with a the `expo_generator` prototype
+
+-   **Line 31-49**: this is the experiment scenario
+    -   first we start the *receiver*
+    -   we start the exponential traffic generator and let it run for
+        40sec
+    -   we stop the exponential generator and wait for 5sec
+    -   we start the constant-bit-rate generator and let it run from
+        40sec
+    -   we stop everything
+
+-   Please refer to the following tutorials for detailed description of
+    the rest of this experiment:
+    -   the [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]]
+    -   the [[BasicTutorialStage2-5-4|tutorial on how to
+        configure/address resources and use simple substitutions]]
+
+4. Running the experiment
+-------------------------
+
+### 5.1. How to run it
+
+Please refer to the [[BasicTutorialStage0-5-4|“Hello World” tutorial]]
+and the [[GettingStarted|Getting Started page]] to find out how to run
+an experiment with OMF. Here we assume that you have the above ED saved
+in the file named `using-prototypes.rb`, and the above Application and
+Prototype Definitions in the same directory with the file names as
+specified by their respective URIs.
+
+\* to run the experiment:\
+
+    omf exec using-prototypes.rb
+
+6. The Results
+--------------
+
+-   Please refer to the [[BasicTutorialStage0-5-4|“Hello World”
+    tutorial]] to find out how to access and use your result database
+
+7. What is Next?
+----------------
+
+Now that you know how to use OMF Prototypes, you may want to read the
+following basic OMF tutorials. Each one of them is introducing an OMF
+feature, using the simple “Hello World” experiment as a base. You do not
+need to follow them in the order suggested below.
+
+-   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
+    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+
+-   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
+    and change them at run-time]]
+
+-   [[BasicTutorialStage2-5-4|How to configure or address all resources
+    within a defined group, and use simple substitutions¶]]
+
+-   [[BasicTutorialStage3-5-4|How to use your own or a 3rd party
+    application with OMF]]
+
+-   [[BasicTutorialStage4-5-4|How to use Measurement Filters to
+    customise your Measurement]]
+
+-   [[BasicTutorialStage5-5-4|How to use Prototypes to specify
+    particular Applications]]
+
+-   [[BasicTutorialStage6-5-4|How to save a disk image]]
+
+-   [[BasicTutorialStage7-5-4|How to load a disk image]]
+
+And finally, a “Conference Room” scenario which combines all of the
+above features:
+
+-   [[BasicTutorialStage8-5-4|The Conference Room tutorial]]
+
+* * * * *

@@ -118,9 +118,9 @@ Contact an OMF testbed operator for an account. Make a resource reservation if r
 To verify that you can run experiments on the testbed, we are providing a experiment script ({file:doc/oedl\_simple\_test.rb also available here}). Run:
 
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
-	omf_ec -u xmpp://user:password@<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
+	omf_ec -u xmpp://<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
 
-Choose an existing XMPP user/password combination or pick a new one, for which an account will automatically created. Just make sure the credentials are not used by another EC at the time. Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). If everything goes well, you should see an output like
+Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). If everything goes well, you should see an output like
 
 	18:36:59 INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
 	18:36:59 INFO  Object: Connected
@@ -193,14 +193,14 @@ If you want to make other resources available to OMF users ([such as OpenFlow sw
 
 To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). If you are using the PC-type RC from the omf_rc gem, run:
 
-	omf_rc -u xmpp://user:password@<xmpp_hostname> -i test
+	omf_rc -u xmpp://<xmpp_hostname> -i test
 
 For any other RC you might use, make sure it listens on the "test" topic on your XMPP server.
 
-Choose an existing XMPP user/password combination or pick a new one, for which an account will automatically created. Replace \<xmpp_hostname\> with the hostname of your Openfire server. Now open a new terminal and run:
+Replace \<xmpp_hostname\> with the hostname of your Openfire server. Now open a new terminal and run:
 
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
-	ruby rc_alive_check.rb xmpp://user:password@<xmpp_hostname> test
+	ruby rc_alive_check.rb xmpp://<xmpp_hostname> test
 
 using the same XMPP URI. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
 
