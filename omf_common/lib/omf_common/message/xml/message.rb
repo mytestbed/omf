@@ -167,10 +167,10 @@ class XML
         end
       when Array
         value.map do |v|
-          n = Niceogiri::XML::Node.new('item')
+          n = Niceogiri::XML::Node.new('it')
           n.write_attr('type', ruby_type_2_prop_type(v.class))
 
-          c_node = value_node_set(v, 'item')
+          c_node = value_node_set(v, 'it')
           if c_node.class == Array
             c_node.each { |c_n| n.add_child(c_n) }
           else
@@ -372,6 +372,8 @@ class XML
         'boolean'
       when *%w(fixnum bignum)
         'integer'
+      when /hash|mash/
+        'hash'
       else
         v_type
       end

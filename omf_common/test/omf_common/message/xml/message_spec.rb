@@ -53,7 +53,8 @@ describe OmfCommon::Message::XML::Message do
           false: false,
           empty: nil,
           boolean_array: [false, true] },
-        { guard: { os_type: 'linux' } }).to_xml
+        { rtype: 'vm', guard: { os_type: 'linux' } }).to_xml
+
       @message = Message::XML::Message.parse(@xml)
     end
 
