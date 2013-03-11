@@ -3,6 +3,7 @@ require 'blather/client/dsl'
 require 'omf_common/comm/xmpp/xmpp_mp'
 require 'omf_common/comm/xmpp/topic'
 require 'uri'
+require 'socket'
 
 module OmfCommon
 class Comm
@@ -48,6 +49,10 @@ class Comm
         else
           username, password, server = opts[:username], opts[:password], opts[:server]
         end
+
+        random_name = "#{Socket.gethostname}-#{Process.pid}"
+        username ||= random_name
+        password ||= random_name
 
         raise ArgumentError, "Username cannot be nil when connect to XMPP" if username.nil?
         raise ArgumentError, "Password cannot be nil when connect to XMPP" if password.nil?
