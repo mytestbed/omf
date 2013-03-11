@@ -43,8 +43,7 @@ class XML
         content = core_elements.merge({
           operation: operation_type,
           type: operation_type,
-          properties: properties,
-          src: 'bob'
+          properties: properties
         })
 
         new(content)
@@ -109,8 +108,18 @@ class XML
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 
       @xml.write_attr(:mid, mid)
-      @xml.add_child(Niceogiri::XML::Node.new(:props))
-      @xml.add_child(Niceogiri::XML::Node.new(:guard)) if _get_core(:guard)
+
+      props_node = Niceogiri::XML::Node.new(:props)
+      guard_node = Niceogiri::XML::Node.new(:guard)
+
+      if default_props_ns
+        default_props_ns.each do |k, v|
+          props_node.add_namespace_definition(k.to_s, v.to_s)
+        end
+      end
+
+      @xml.add_child(props_node)
+      @xml.add_child(guard_node) if _get_core(:guard)
 
       (OMF_CORE_READ - [:mid, :guard, :operation]).each do |attr|
         attr_value = self.send(attr)
@@ -132,7 +141,11 @@ class XML
     # Construct a property xml node
     #
     def add_property(key, value = nil, add_to = :props)
-      key_node = Niceogiri::XML::Node.new(key)
+      if default_props_ns && add_to == :props
+        key_node = Niceogiri::XML::Node.new(key, nil, default_props_ns)
+      else
+        key_node = Niceogiri::XML::Node.new(key)
+      end
 
       unless value.nil?
         key_node.write_attr('type', ruby_type_2_prop_type(value.class))
@@ -153,7 +166,7 @@ class XML
       when Hash
         [].tap do |array|
           value.each_pair do |k, v|
-            n = Niceogiri::XML::Node.new(k)
+            n = Niceogiri::XML::Node.new(k, nil, OMF_NAMESPACE)
             n.write_attr('type', ruby_type_2_prop_type(v.class))
 
             c_node = value_node_set(v, k)
@@ -167,7 +180,7 @@ class XML
         end
       when Array
         value.map do |v|
-          n = Niceogiri::XML::Node.new('item')
+          n = Niceogiri::XML::Node.new('item', nil, OMF_NAMESPACE)
           n.write_attr('type', ruby_type_2_prop_type(v.class))
 
           c_node = value_node_set(v, 'item')
@@ -182,7 +195,7 @@ class XML
         if key.nil?
           string_value(value)
         else
-          n = Niceogiri::XML::Node.new(key)
+          n = Niceogiri::XML::Node.new(key, nil, OMF_NAMESPACE)
           n.add_child(string_value(value))
         end
       end
@@ -240,7 +253,11 @@ class XML
     # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
       xpath_without_ns = xpath_without_ns.to_s
-      @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
+      if default_props_ns && xpath_without_ns !~ /props|guard|ts|src|mid|rtype|res_id|cid|itype/
+        @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, "\\1#{rtype.to_s}:\\2"), default_props_ns)
+      else
+        @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)
+      end
     end
 
     # In case you think method :element_by_xpath_with_default_namespace is too long
@@ -327,15 +344,15 @@ class XML
       properties.each { |k, v| block.call(k, v) unless v.nil? }
     end
 
-    def [](name, evaluate = false)
-      value = properties[name]
+    #def [](name, evaluate = false)
+    #  value = properties[name]
 
-      if evaluate && value.kind_of?(String)
-        ERB.new(value).result(evaluate)
-      else
-        value
-      end
-    end
+    #  if evaluate && value.kind_of?(String)
+    #    ERB.new(value).result(evaluate)
+    #  else
+    #    value
+    #  end
+    #end
 
     alias_method :read_property, :[]
 
@@ -357,11 +374,13 @@ class XML
       @content[key]
     end
 
-    def _set_property(key, value)
+    def _set_property(key, value, ns = nil)
+      # TODO what to do here
       @content.properties[key] = value
     end
 
-    def _get_property(key)
+    def _get_property(key, ns = nil)
+      # TODO what to do here
       @content.properties[key]
     end
 

@@ -4,7 +4,7 @@ start = (create | configure | request | release | inform)
 
 common_elements = attribute mid { text }?
   & element ts { text }
-  & element src { text }
+  & element src { text }?
   & element replyto { text }?
   & element props { property * }?
   & element guard { property * }?
