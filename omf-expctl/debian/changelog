@@ -1,3 +1,9 @@
+omf-expctl-5.4 (5.4.2-ubuntu6) precise; urgency=low
+
+  * removed OML type checking
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 04 Mar 2013 17:22:09 +1100
+
 omf-expctl-5.4 (5.4.2-ubuntu5) precise; urgency=low
 
   * minor cleanups

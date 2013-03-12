@@ -40,7 +40,7 @@ TEXT
 
   # Define the properties that can be configured for this application
   # 
-  # syntax: defProperty(name, description, mnemonic = nil, options = nil)
+  # syntax: defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
   #
   a.defProperty('generator', 'Type of packet generator to use (cbr or expo)', '-g', {:type => :string, :dynamic => false})
   a.defProperty('udp:broadcast', 'Broadcast', '--udp:broadcast', {:type => :integer, :dynamic => false})

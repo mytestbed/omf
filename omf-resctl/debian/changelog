@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu10) precise; urgency=low
+
+  * fixed bug #979
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 04 Mar 2013 17:20:42 +1100
+
 omf-resctl-5.4 (5.4.2-ubuntu9) precise; urgency=low
 
   * updated config files
