@@ -5,10 +5,6 @@ module OmfCommon
     class AMQP
       class Topic < OmfCommon::Comm::Topic
 
-        # def self.address_for(name)
-          # "#{name}@local"
-        # end
-        
         def to_s
           "AMQP::Topic<#{id}>"
         end
@@ -35,7 +31,6 @@ module OmfCommon
             after(0, &block)
           end
         end  
-        
         
         private
         
@@ -72,19 +67,12 @@ module OmfCommon
           end
         end
         
-        
         def _send_message(msg, block = nil)
           super
           debug "(#{id}) Send message #{msg.inspect}"
-          content = msg.marshall
-          @exchange.publish(content)
-          # OmfCommon.eventloop.after(0) do
-            # on_incoming_message(msg)
-          # end
+          content_type, content = msg.marshall
+          @exchange.publish(content, content_type: content_type, message_id: msg.mid)
         end
-        
-
-
       end # class
     end # module 
   end # module

@@ -1,11 +1,17 @@
 
 require 'json'
+require 'omf_common/auth'
 
 module OmfCommon
   class Message
     class Json
       class Message < OmfCommon::Message
         
+        @@key2json_key = {
+          operation: :op,
+          res_id: :rid
+        }
+                
 
         def self.create(type, properties, body = {})
           if type == :request 
@@ -17,9 +23,9 @@ module OmfCommon
             raise "Expected hash, but got #{properties.class}"
           end 
           content = body.merge({
-            operation: type,
+            op: type,
             mid: SecureRandom.uuid,
-            properties: properties
+            props: properties
           })
           self.new(content)
         end
@@ -31,7 +37,8 @@ module OmfCommon
         
         # Create and return a message by parsing 'str'
         #
-        def self.parse(str)
+        def self.parse(str, content_type)
+          #puts "CT>> #{content_type}"
           content = JSON.parse(str, :symbolize_names => true)
           #puts content
           new(content)
@@ -91,27 +98,38 @@ module OmfCommon
         end
         
         def marshall
-          @content.to_json
+          puts "MARSHALL: #{@content.inspect} - #{@properties.to_hash.inspect}"
+          raise "Missing SRC declaration in #{@content}" unless @content[:src]
+          raise 'local/local' if @content[:src].match 'local:/local'
+          if self.class.authenticate?
+             src = @content[:src]
+             if cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
+               puts ">>> Found cert for '#{src} - #{cert}"
+             end
+          end
+          ['text/json', @content.to_json]
         end
         
         private 
         def initialize(content)
           debug "Create message: #{content.inspect}"
-          @content = content
-          unless op = content[:operation]
+          unless op = content[:op]
             raise "Missing message type (:operation)"
           end
-          content[:operation] = op.to_sym # needs to be symbol
-          @properties = content[:properties] || []
+          @content = {}
+          content[:op] = op.to_sym # needs to be symbol
+          content.each {|k,v| _set_core(k, v)}
+          @properties = content[:props] || []
           #@properties = Hashie::Mash.new(content[:properties])
+          @authenticate = self.class.authenticate?
         end
         
         def _set_core(key, value)
-          @content[key] = value
+          @content[(@@key2json_key[key] || key).to_sym] = value
         end
 
         def _get_core(key)
-          @content[key]
+          @content[@@key2json_key[key] || key]
         end
         
         def _set_property(key, value)

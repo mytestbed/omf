@@ -25,6 +25,7 @@ module OmfCommon
       }
     }
     @@message_class = nil
+    @@authenticate_messages = true
 
     def self.create(type, properties, body = {})
       @@message_class.create(type, properties, body)
@@ -34,11 +35,17 @@ module OmfCommon
       body[:itype] = itype if itype
       create(:inform, properties, body)
     end
+    
+    # Return true if all messages will be authenticated, return false otherwise
+    #
+    def self.authenticate?
+      @@authenticate_messages 
+    end
 
     # Create and return a message by parsing 'str'
     #
-    def self.parse(str)
-      @@message_class.parse(str)
+    def self.parse(str, content_type = nil)
+      @@message_class.parse(str, content_type)
     end
 
     def self.init(opts = {})
