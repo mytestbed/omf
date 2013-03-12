@@ -1,10 +1,5 @@
-# Tutorial 01
-
-{file:doc/tutorials/tutorial01.rb Tutorial 1 OEDL}
-
-
-1. “Hello World” - Wireless
----------------------------
+1. “Hello World” - Wired
+------------------------
 
 This tutorial presents a simple example, which shows you all the basic
 steps to quickly develop, run, and access the result of an experiment
@@ -26,15 +21,15 @@ port 5054
 
 Figure 1 shows the simple experiment scenario, which we will use as the
 example for this basic tutorial.\
-![](/attachments/download/359)\
+![](/attachments/download/358)\
 Figure 1. Simple experiment scenario
 
--   This experiment involves two wireless PC-based nodes, i.e. Node 1
-    and Node 2
+-   This experiment involves two PC-based nodes connected by a wired
+    LAN, i.e. Node 1 and Node 2
 -   Node 1 is running a simple UDP traffic generator application (OTG2)
 -   Node 2 is running a simple traffic receiver application (OTR2)
 -   Node 1 is the “Sender” and will generate and send traffic to the
-    “Receiver” node 2, over a wireless 802.11g channel.
+    “Receiver” node 2
 
 Note: At NICTA and WINLAB, these 2 applications (OTG2 & OTR2) are
 already pre-installed on the default baseline disk image for the
@@ -118,7 +113,8 @@ experiment. An ED is written using the
 [[The\_Experiment\_Controller\_API|OMF Experiment Description Language
 (OEDL)]].
 
-The ED describing this simple “Hello World” experiment is:
+The ED describing this simple “Hello World” experiment is (download it
+here: attachment:hello-world.rb):
 
     <code class="ruby">
     defGroup('Sender', "omf.nicta.node2") do |node|
@@ -126,26 +122,18 @@ The ED describing this simple “Hello World” experiment is:
         app.setProperty('udp:local_host', '192.168.0.2')
         app.setProperty('udp:dst_host', '192.168.0.3')
         app.setProperty('udp:dst_port', 3000)
-        app.measure('udp_out', :interval => 3)
+        app.measure('udp_out', :samples => 1)
       end
-      node.net.w0.mode = "adhoc"
-      node.net.w0.type = 'g'
-      node.net.w0.channel = "6"
-      node.net.w0.essid = "helloworld"
-      node.net.w0.ip = "192.168.0.2"
+      node.net.e0.ip = "192.168.0.2"
     end
 
     defGroup('Receiver', "omf.nicta.node3") do |node|
       node.addApplication("test:app:otr2") do |app|
         app.setProperty('udp:local_host', '192.168.0.3')
         app.setProperty('udp:local_port', 3000)
-        app.measure('udp_in', :interval => 3)
+        app.measure('udp_in', :samples => 1)
       end
-      node.net.w0.mode = "adhoc"
-      node.net.w0.type = 'g'
-      node.net.w0.channel = "6"
-      node.net.w0.essid = "helloworld"
-      node.net.w0.ip = "192.168.0.3"
+      node.net.e0.ip = "192.168.0.3"
     end
 
     onEvent(:ALL_UP_AND_INSTALLED) do |event|
@@ -186,24 +174,29 @@ The ED describing this simple “Hello World” experiment is:
             listen on
         -   Line 6: we request the collection of the measurements from
             the `udp_out` Measurement Point provided by the application,
-            at a regular interval of 3 sec
+            here we are collecting every produced samples (samples = 1)
 
 -   **Line 8-12**: we configure some properties for this group, i.e. all
     the nodes in this group will share these properties (here, only node
     `omf.nicta.node2`)
-    -   More precisely:
-        -   Line 8: the first wireless interface (named `w0`) of the
-            node is placed in `ad-hoc` mode
-        -   Line 9: this same interface is configured to operate in
-            802.11g type
-        -   Line 10: this same interface is configured to operate on
-            channel `6`
-        -   Line 11: the Extended Service Set ID (ESSID) of this
-            interface is set to `helloworld`
-        -   Line 12: finally, the IP address of this interface is set to
+    -   More precisely, we configure the first wired interface (named
+        `e0`) of the node
+        -   Line 8: the IP address of this interface is set to
             `192.168.0.2`
+        -   **Important**:
+            -   the resources on the NICTA and WINLAB testbeds all have
+                a wired network interface dedicated to experimental use
+                in addition to the wired interface used for control and
+                measurement
+            -   If you are using your own resources on your own
+                OMF-enabled testbed, and each resource has only one
+                wired interface that it shares between its experimental
+                and control/measurement traffic, then you should not
+                change the interface’s configuration here. Also you
+                should set the correct corresponding IPs in Line 3 and
+                4.
 
--   **Line 15-26**: we define a similar group, called `Receiver`, which
+-   **Line 11-18**: we define a similar group, called `Receiver`, which
     will only include node `omf.nicta.node3` running the existing
     application `test:app:otr2`. This application is a simple traffic
     sink, which should also be installed on the baseline disk image.
@@ -220,7 +213,7 @@ The ED describing this simple “Hello World” experiment is:
         `defGroup`, `addApplication`, etc… commands can be found on the
         [[The\_Experiment\_Controller\_API|OEDL reference pages]].
 
-### 3.2 Event-based Action Descriptions (Line 28 to 37)
+### 3.2 Event-based Action Descriptions (Line 20 to 29)
 
 OMF uses an event-based approach to describe the different actions
 required to perform during an experiment. Basically, you can define
@@ -237,23 +230,23 @@ required applications are installed on them”.
 OMF comes with a set of default events, which have already been defined
 for you, and `:ALL_UP_AND_INSTALLED` is one of them. All we have to do
 here is specify the tasks that we would like to do when that event
-occurs, which is the call to `onEvent(...)` on line 26.
+occurs, which is the call to `onEvent(...)` on line 20.
 
--   **Line 28-37**: here we declare what to do when the event
+-   **Line 20-29**: here we declare what to do when the event
     `:ALL_UP_AND_INSTALLED` happens:
-    -   line 29, 32, 35: print some messages on the standard output when
+    -   line 21, 24, 27: print some messages on the standard output when
         our experiment is running
-    -   Line 30: instruct the controller to pause for 10 sec
-    -   Line 31: tell all the Groups of this experiment to start all the
+    -   Line 22: instruct the controller to pause for 10 sec
+    -   Line 23: tell all the Groups of this experiment to start all the
         applications associated to them. In this tutorial, this command
         will tell all the nodes in the groups “Sender” and “Receiver” to
         start their associated applications.
-    -   Line 33: wait for 30 sec. Basically, here we are giving time for
+    -   Line 25: wait for 30 sec. Basically, here we are giving time for
         UDP traffic to be exchanged from “Sender” to “Receiver”. This is
         in fact the experiment.
-    -   Line 34: tell all the Groups to stop all the applications
+    -   Line 26: tell all the Groups to stop all the applications
         running on all the nodes associated to them.
-    -   Line 36: declare the end of the Experiment. This will trigger
+    -   Line 28: declare the end of the Experiment. This will trigger
         some “cleaning” actions on the nodes (e.g. turn off the network
         interfaces, stop receiving commands for this experiment, etc…)
 
@@ -290,7 +283,9 @@ configure the resources and instruct them to perform actions.
     -   use your favorite editor to create a new file in your home
         directory on the console of the testbed (e.g. `hello-world.rb`)
     -   cut-and-paste the above “Hello World” ED into this file and save
-        it.
+        it
+    -   or download the experiment file directly from here:
+        attachment:hello-world.rb
 
 -   Now invoke the EC to run your experiment
 
@@ -308,23 +303,21 @@ similar to this (note that in this particular instance, we are using
 node28 and node29):
 
     <code class="text">
-     INFO NodeHandler: OMF Experiment Controller 5.4
-     INFO NodeHandler: Slice ID: testing_slice (default)
-     INFO NodeHandler: Experiment ID: testing_slice-2010-09-03t09.41.43+10.00
+      INFO NodeHandler: OMF Experiment Controller 5.4 (git 97ed1a2)
+     INFO NodeHandler: Slice ID: default_slice (default)
+     INFO NodeHandler: Experiment ID: default_slice-2013-03-06t16.55.53+11.00
      INFO NodeHandler: Message authentication is disabled
-
      INFO Experiment: load system:exp:stdlib
-     INFO property.resetDelay: value = 210 (Fixnum)
-     INFO property.resetTries: value = 1 (Fixnum)
+     INFO property.resetDelay: resetDelay = 210 (Fixnum)
+     INFO property.resetTries: resetTries = 1 (Fixnum)
      INFO Experiment: load system:exp:eventlib
-     INFO Experiment: load hello-world.rb
-     INFO Topology: Loading topology 'omf.nicta.node28'.
-     INFO Topology: Loading topology 'omf.nicta.node29'.
+     INFO Experiment: load wired.rb
+     INFO Topology: Loading topology 'omf.nicta.node36'.
+     INFO Topology: Loading topology 'omf.nicta.node37'.
+     INFO Experiment: Switching ON resources which are OFF
      INFO ALL_UP_AND_INSTALLED: Event triggered. Starting the associated tasks.
      INFO exp: This is my first OMF experiment
      INFO exp: Request from Experiment Script: Wait for 10s....
-     INFO omf.nicta.node29: Device 'net/w0' reported 02:0B:6B:57:BA:04
-     INFO omf.nicta.node28: Device 'net/w0' reported 02:0B:6B:57:BA:04
      INFO exp: All my Applications are started now...
      INFO exp: Request from Experiment Script: Wait for 30s....
      INFO exp: All my Applications are stopped now.
@@ -332,8 +325,7 @@ node28 and node29):
      INFO NodeHandler: 
      INFO NodeHandler: Shutting down experiment, please wait...
      INFO NodeHandler: 
-     INFO run: Experiment testing_slice-2010-09-03t09.41.43+10.00 finished after 1:36
-
+     INFO run: Experiment default_slice-2013-03-06t16.55.53+11.00 finished after 0:53
     </code>
 
 -   Line 1-5: some information about the EC and your experiment:
@@ -351,11 +343,8 @@ node28 and node29):
     associated `onEvent` block, which we described in the above ED
 -   Line 15: indicates that your experiment is waiting for 10sec as you
     requested in the ED
--   Line 16-17: some information coming directly from the nodes in your
-    experiment, here the nodes say that their wireless interface `w0`
-    joined the BSSID identified by the address `02:0B:6B:57:BA:04`
--   Line 18-20: some information about the execution of your experiment
--   Line 21: indicates that your experiment has reached the
+-   Line 16-18: some information about the execution of your experiment
+-   Line 19: indicates that your experiment has reached the
     Experiment.Done statement in the ED, i.e. the event
     `:EXPERIMENT_DONE` has been triggered
 
@@ -365,6 +354,10 @@ node28 and node29):
     -   the EC in your experiment will also keep a XML tree describing
         the state of your experiment, which will be located at
         `/tmp/Your_Experiment_ID-state.xml`
+    -   in the case of the above experiment run, here are two examples
+        of these files:
+        -   attachment:hello-world.EC.log
+        -   attachment:hello-world.EC-state.log
 
 5. Accessing the Results from the Experiment
 --------------------------------------------
@@ -417,7 +410,8 @@ service.
     is ascii code “%2B”
 
 -   You should now have a file named “myDatabase” which is a SQLite dump
-    of your result database.
+    of your result database. The database dump for this Hello World
+    experiment is attached here: attachment:myDatabase
 
 -   You can open this database, an run queries on it (refer to the
     [SQLITE3](http://www.sqlite.org) website for more information on how
@@ -426,13 +420,6 @@ service.
 <!-- -->
 
     sqlite3 -init myDatabase myDatabase.sq3
-
--   Alternatively, you may want to install the “SQLite manager”
-    extension for the Firefox browser from
-    [here](https://addons.mozilla.org/en-US/firefox/addon/5817/) . It
-    allows you to open the SQLite binary database file or the dump file
-    directly and gives you various options for viewing your results and
-    exporting them into other formats such as comma-separated or XML.
 
 -   Note: the *result* AM service provides more functions than just
     “dump a database”, a list of its other functions is available on
@@ -443,9 +430,8 @@ service.
     measurement database
 
 Another way to access experiment result is to use the omf-web-basic
-program from the omf\_web gem to launch a web interface where you can
-browse data and view line graph visualisation. The interface looks like
-this:
+program from omf\_web gem to launch a web interface where you can browse
+data and view line graph visualisation. The interface looks like this:
 
 ![](/attachments/609/2012-02-08-132036_686x744_scrot.png)
 

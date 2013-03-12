@@ -1,0 +1,181 @@
+How to configure or address all resources within a defined group, and use simple substitutions
+==============================================================================================
+
+1. Prerequisites
+----------------
+
+-   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
+    works from a user’s point of view]].
+-   Make sure that you have completed and understood the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+2. Goal
+-------
+
+-   This tutorial shows you:
+    -   how to configure or address all the resources in one specific
+        group or all the groups defined in your experiment
+    -   how to use the basic substitution feature of OMF
+
+3. Scenario
+-----------
+
+-   Here we are using the same simple scenario as in the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+-   We will modify this example, to allow us to:
+    -   configure the 1st wireless interface of all the resources in all
+        the groups in a unique block of command
+    -   address all the resource in a specific group with a given
+        request, e.g. start all applications.
+
+4. The New “Hello World” Experiment Description
+-----------------------------------------------
+
+The Experiment Description (ED) describing this simple experiment is
+(download it here: attachment:using-groups.rb):
+
+    <code class="ruby">
+    defGroup('Sender', "omf.nicta.node2") do |node|
+      node.addApplication("test:app:otg2") do |app|
+        app.setProperty('udp:local_host', '%net.w0.ip%')
+        app.setProperty('udp:dst_host', '192.168.255.255')
+        app.setProperty('udp:broadcast', 1)
+        app.setProperty('udp:dst_port', 3000)
+        app.measure('udp_out', :samples => 1)
+      end
+    end
+
+    defGroup('Receiver', "omf.nicta.node3") do |node|
+      node.addApplication("test:app:otr2") do |app|
+        app.setProperty('udp:local_host', '192.168.255.255')
+        app.setProperty('udp:local_port', 3000)
+        app.measure('udp_in', :samples => 1)
+      end
+    end
+
+    allGroups.net.w0 do |interface|
+      interface.mode = "adhoc"
+      interface.type = 'g'
+      interface.channel = "6"
+      interface.essid = "helloworld"
+      interface.ip = "192.168.0.%index%"
+    end
+
+    onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      wait 10
+      group("Receiver").startApplications
+      wait 5
+      group("Sender").startApplications
+      wait 30
+      group("Sender").stopApplications
+      wait 5
+      group("Receiver").stopApplications
+      Experiment.done
+    end
+    </code>
+
+The Experiment Description (ED) describing this simple experiment is
+(download it here: attachment:using-groups.rb):
+
+-   **Line 19-25**: we use the `allGroups` command to configure some
+    parameters on all the nodes in all the groups
+    -   Line 19: `allGroups` is followed by a Resource Path `net.w0`,
+        which specify a network interface resource (`net`), and more
+        specifically the 1st wireless one (`w0`). In the following block
+        (line 20-24), this `net.w0` network resource is known as
+        `interface`.
+    -   Line 20: configure the `mode` parameter of the `interface` to
+        the value “adhoc”. This would have been equivalent to the
+        `net.w0.mode = "adhoc"` line used in the
+        [[BasicTutorialStage0-5-4|Hello World tutorial]]
+    -   Line 24: uses OMF’s substitution feature to configure the `ip`
+        parameter of the `interface`:
+        -   Here the value is set to `"192.168.0%index%"`
+        -   OMF assign a unique integer value to each resource, i.e. an
+            *index*
+        -   When OMF sees `%index%`, for each node in all the groups it
+            will substitute the `%index%` string by the node’s index
+            value
+        -   For example, on a resource which as the index 3, the value
+            `"192.168.0.%index%"` will be replaced by `"192.168.0.3"`
+        -   The following substitution strings are valid in OMF:
+            -   `%index%` - replaced by the resource’s unique index
+            -   `%hostname%` - replaced by the resource’s hostname, if
+                any
+            -   `%net.w0.ip%` - replaced by the value of the resource’s
+                parameter `net.w0.ip`
+            -   `%net.XX.YYY%` - replaced by the value of the resource’s
+                parameter `net.XX.YYY`
+
+        -   Note: This substitution is done locally at the Resource
+            Controller running on the resource.
+
+-   **Line 3**: we configure one parameter of the application OTG2 using
+    the substitution `net.w0.ip`
+    -   On each resource in the group `Sender`, the application OTG2
+        will have its `udp:local_host` parameter set to the IP address
+        of the 1sst wireless interface
+
+-   **Line 29, 31, 33, 35**: we use the `group` command to address a
+    specific group
+    -   Line 29: we send the request `startApplications` only to the
+        resources which are in the specific group “Receiver”. This is
+        different from what we did in the
+        [[BasicTutorialStage0-5-4|Hello World tutorial]].
+    -   We do the same for different request with different groups in
+        the remaining lines
+
+-   **Another example** of the these features is:
+    -   @ group(‘Sender’).net.w0.channel = 11 @
+    -   which assign the value 11 to the channel parameter of the 1st
+        wireless interface of all the resources in the group `Sender`
+
+-   **Finally…** Please refer to the [[BasicTutorialStage0-5-4|basic
+    “Hello World” tutorial]] if you do not understand the remaining
+    lines of the above ED.
+
+5. Running the experiment & using the results
+---------------------------------------------
+
+Running this experiment and accessing/using its results are exactly
+similar as running the [[BasicTutorialStage0-5-4|“Hello World”
+tutorial]] and accessing/using its results. Thus, please refer to the
+[[BasicTutorialStage0-5-4|“Hello World” tutorial]].
+
+6. What is Next?
+----------------
+
+Now that you know how to configure/address groups of resources, you may
+want to read the following basic OMF tutorials. Each one of them is
+introducing an OMF feature, using the simple “Hello World” experiment as
+a base. You do not need to follow them in the order suggested below.
+
+-   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
+    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+
+-   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
+    and change them at run-time]]
+
+-   [[BasicTutorialStage2-5-4|How to configure or address all resources
+    within a defined group, and use simple substitutions]]
+
+-   [[BasicTutorialStage3-5-4|How to use your own or a 3rd party
+    application with OMF]]
+
+-   [[BasicTutorialStage4-5-4|How to use Measurement Filters to
+    customise your Measurement]]
+
+-   [[BasicTutorialStage5-5-4|How to use Prototypes to specify
+    particular Applications]]
+
+-   [[BasicTutorialStage6-5-4|How to save a disk image]]
+
+-   [[BasicTutorialStage7-5-4|How to load a disk image]]
+
+And finally, a “Conference Room” scenario which combines all of the
+above features:
+
+-   [[BasicTutorialStage8-5-4|The Conference Room tutorial]]
+
+* * * * *

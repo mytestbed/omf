@@ -1,0 +1,319 @@
+How to pass parameters to your experiment and change them at run-time
+=====================================================================
+
+1. Prerequisites
+----------------
+
+-   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
+    works from a user’s point of view]].
+-   Make sure that you have completed and understood the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+2. Goal
+-------
+
+-   This tutorial shows you how to define and use Experiment Properties
+    within your experiment.
+
+-   Experiment Properties allows you to:
+    -   pass parameters to your experiment when it starts its execution,
+        via the use of options to the `omf-<version> exec` command line
+    -   change values of these parameters dynamically, while your
+        experiment is running
+
+3. Scenario
+-----------
+
+-   Here we are using the same simple scenario as in the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+-   We will modify this example, to allow us to:
+    -   define some of the attributes of this experiment as parameters,
+        aka *properties*
+    -   assign values to these *properties*
+    -   change these values at runtime, i.e. while the experiment is
+        running
+
+4. The New “Hello World” Experiment Description
+-----------------------------------------------
+
+The Experiment Description (ED) describing this simple experiment is:
+
+    <code class="ruby">
+    defProperty('theSender', 'omf.nicta.node1', "ID of sender node")
+    defProperty('theReceiver', 'omf.nicta.node2', "ID of receiver node")
+    defProperty('packetsize', 128, "Packet size (byte) from the sender node")
+    defProperty('bitrate', 2048, "Bitrate (bit/s) from the sender node")
+    defProperty('runtime', 40, "Time in second for the experiment is to run")
+    defProperty('wifiType', "g", "The type of WIFI to use in this experiment")
+    defProperty('channel', '6', "The WIFI channel to use in this experiment")
+    defProperty('netid', "example2", "The ESSID to use in this experiment")
+
+    defGroup('Sender',property.theSender) do |node|
+      node.addApplication("test:app:otg2") do |app|
+        app.setProperty('udp:local_host', '192.168.0.2')
+        app.setProperty('udp:dst_host', '192.168.0.3')
+        app.setProperty('udp:dst_port', 3000)
+        app.setProperty('cbr:size', property.packetsize)
+        app.setProperty('cbr:rate', property.bitrate * 2)
+        app.measure('udp_out', :samples => 1)
+      end
+      node.net.w0.mode = "adhoc"
+      node.net.w0.type = property.wifiType
+      node.net.w0.channel = property.channel
+      node.net.w0.essid = "foo"+property.netid
+      node.net.w0.ip = "192.168.0.2"
+    end
+
+    defGroup('Receiver',property.theReceiver) do |node|
+      node.addApplication("test:app:otr2") do |app|
+        app.setProperty('udp:local_host', '192.168.0.3')
+        app.setProperty('udp:local_port', 3000)
+        app.measure('udp_in', :samples => 1)
+      end
+      node.net.w0.mode = "adhoc"
+      node.net.w0.type = property.wifiType
+      node.net.w0.channel = property.channel
+      node.net.w0.essid = "foo"+property.netid
+      node.net.w0.ip = "192.168.0.3"
+    end
+
+    onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      info "This is my first OMF experiment"
+      wait 10
+      allGroups.startApplications
+      info "All my Applications are started now..."
+      wait property.runtime / 4
+      property.packetsize = 256
+      wait property.runtime / 4
+      property.packetsize = 512
+      wait property.runtime / 4
+      property.packetsize = 1024
+      wait property.runtime / 4
+      allGroups.stopApplications
+      info "All my Applications are stopped now."
+      Experiment.done
+    end
+    </code>
+
+This ED is available for download here: attachment:dynamic-properties.rb
+
+-   **Line 1-8**: define 8 Experiment Properties, i.e. parameters to the
+    experiment, and set their default values and descriptions
+    -   Line 1: defines a property named `theSender`, which has a
+        default value `omf.nicta.node1`. This parameter represents the
+        ID of the node to use as a sender in “Hello World”.
+    -   Line 3: defines the `packetsize` property, which has a default
+        integer value `128`. It represents the packet size in bytes
+        which the sender in “Hello World” will use to generates its UDP
+        traffic.
+    -   Line 7: we define the `channel` property, which as a default
+        string value `6`, i.e. the 802.11 channel to use in “Hello
+        World”
+    -   etc…
+
+\* **Line 10-24**: we use these Experiment Properties in our definition
+and configuration of the `Sender` group. These lines show you multiple
+examples on how to use Experiment Properties. For example:\
+**\* we use the syntax: `property.name` to access the value of the
+property called `name` \
+**\* we use the same syntax to assign an Experiment Property to an
+application parameter (e.g. Line 15)\
+**\* we use operations with Experiment Properties as arguments\
+****\* Line 22: the addition of a property to a string returns this
+string concatenated with the string representation of that property.\
+****\* Line 16: arithmetic operations involving a properties and an
+integer/float are allowed .
+\
+** **Line 39-54**: we dynamically change the value of the `packetsize`
+property during the execution of the experiment.\
+**\* Line 44: we let the experiment run for a quarter of the time with
+the initial “packetsize” value\
+**\* Line 45: we change the value of the “packetsize” property\
+**\* Line 46: we let the experiment run for another quarter of the time\
+**\* etc…
+
+-   **How does the dynamic update of a property work?**
+    -   First you assign an Experiment Property to an application
+        parameters (line 15)
+    -   Later, when you change the value of that property (line 45), a
+        string line is sent to the Standard-In input of that application
+    -   Here for example, line 45 triggers the string line “cbr:size
+        256” to be written to the Standard-In input of the application
+        otg2 used by the “Sender” group
+    -   Prerequisites for this to work:
+        -   Your application (otg2 in this example) needs to be able to
+            received and interprets strings on its Standard-In input,
+            while it is running. This should be easy to implement in
+            your own applications.
+        -   This mechanism **only** works when you assign directly the
+            Experiment Property as the application parameter as in Line
+            15!
+        -   If you use an operation as part of this assignment (e.g.line
+            16), then your application parameter will be assigned the
+            resulting value of that operation. Thus, any change in the
+            used Experiment Property **will not** result in a dynamic
+            application parameter change
+            -   for example, calling `property.bitrate = 1024` in the
+                tasks declaration (line 39-54) will not result in the
+                dynamic update of the application’s bitrate parameter.
+
+-   **Important**
+    -   There are a few reserved names that are used by the EC or Ruby,
+        and which **cannot** be used to name Experiment Properties
+    -   A list of these names can be found on [[ReservedKeywords|the
+        reserved names and keywords list]].
+
+-   **Finally…** Please refer to the [[BasicTutorialStage0-5-4|basic
+    “Hello World” tutorial]] if you do not understand the remaining
+    lines of the above ED.
+
+5. Running the experiment
+-------------------------
+
+### 5.1. How to run it
+
+Please refer to the [[BasicTutorialStage0-5-4|basic “Hello World”
+tutorial]] and the [[GettingStarted|Getting Started page]] to find out
+how to run an experiment with OMF. Here we assume that you have the
+above ED saved in the file named `dynamic-properties.rb`.
+
+\* if you want to run the experiment using the default values for all
+the properties (as defined in line 1-8):\
+
+    omf-<version> exec dynamic-properties.rb
+
+\* if you want to pass your own initial values to some of the
+experiment’s properties via the command line:\
+
+    omf-<version> exec dynamic_properties.rb -- --theSender omf.nicta.node36 --theReceiver omf.nicta.node37
+
+    # OR
+
+    omf-<version> exec dynamic_properties.rb -- --runtime 80 --bitrate 1024
+
+    # ETC...
+
+### 5.2. What you should see on the console:
+
+-   You should see an output similar to the following:
+
+<!-- -->
+
+    <code class="text">
+     INFO NodeHandler: OMF Experiment Controller 5.4 (git 97ed1a2)
+     INFO NodeHandler: Slice ID: default_slice (default)
+     INFO NodeHandler: Experiment ID: default_slice-2013-03-06t16.52.50+11.00
+     INFO NodeHandler: Message authentication is disabled
+     INFO Experiment: load system:exp:stdlib
+     INFO property.resetDelay: resetDelay = 210 (Fixnum)
+     INFO property.resetTries: resetTries = 1 (Fixnum)
+     INFO Experiment: load system:exp:eventlib
+     INFO Experiment: load dynamic-properties.rb
+     INFO property.theSender: theSender = "omf.nicta.node36" (String)
+     INFO property.theReceiver: theReceiver = "omf.nicta.node37" (String)
+     INFO property.packetsize: packetsize = 128 (Fixnum)
+     INFO property.bitrate: bitrate = 2048 (Fixnum)
+     INFO property.runtime: runtime = 40 (Fixnum)
+     INFO property.wifiType: wifiType = "g" (String)
+     INFO property.channel: channel = "6" (String)
+     INFO property.netid: netid = "example2" (String)
+     INFO Topology: Loading topology 'omf.nicta.node36'.
+     INFO Topology: Loading topology 'omf.nicta.node37'.
+     INFO Experiment: Switching ON resources which are OFF
+     INFO omf.nicta.node36: Device 'net/w0' reported Not-Associated
+     INFO ALL_UP_AND_INSTALLED: Event triggered. Starting the associated tasks.
+     INFO exp: This is my first OMF experiment
+     INFO exp: Request from Experiment Script: Wait for 10s....
+     INFO omf.nicta.node37: Device 'net/w0' reported Not-Associated
+     INFO omf.nicta.node36: Device 'net/w0' reported 46:32:28:8A:DA:DD
+     INFO exp: All my Applications are started now...
+     INFO exp: Request from Experiment Script: Wait for 10s....
+     INFO omf.nicta.node37: Device 'net/w0' reported 46:32:28:8A:DA:DD
+     INFO property.packetsize: packetsize = 256 (Fixnum)
+     INFO exp: Request from Experiment Script: Wait for 10s....
+     INFO property.packetsize: packetsize = 512 (Fixnum)
+     INFO exp: Request from Experiment Script: Wait for 10s....
+     INFO property.packetsize: packetsize = 1024 (Fixnum)
+     INFO exp: Request from Experiment Script: Wait for 10s....
+     INFO exp: All my Applications are stopped now.
+     INFO EXPERIMENT_DONE: Event triggered. Starting the associated tasks.
+     INFO NodeHandler: 
+     INFO NodeHandler: Shutting down experiment, please wait...
+     INFO NodeHandler: 
+     INFO run: Experiment default_slice-2013-03-06t16.52.50+11.00 finished after 1:3
+    </code>
+
+6. The Results
+--------------
+
+-   Please refer to the [[BasicTutorialStage0-5-4|“Hello World”
+    tutorial]] to find out how to access and use your result database
+    -   you can download an example of a database produced by this
+        experiment here: attachment:myDatabase
+
+-   Following the same example as in the
+    [[BasicTutorialStage0-5-4|“Hello World” tutorial]], where you can
+    configure and run visualisation server for this experiment
+
+-   To create a new widget to show packet size variation, simple add
+    following to the config yaml file.
+
+<pre>
+<code class="text"> \
+- name: Incoming UDP packet size \
+type: line\_chart \
+data: otg2\_udp\_out \
+mapping: \
+x: oml\_seq \
+y: pkt\_length \
+group\_by: oml\_sender\_id
+
+</code>
+
+</pre>
+-   Once visualisation server started, the widget we just defined should
+    look like this:
+
+![](/attachments/613/dynamic_properties.png) ![]()
+
+-   On this graph, we can see the packet size of the incoming UDP
+    traffic increasing in steps every 10 sec during our 40-sec
+    experiment.
+
+7. What is Next?
+----------------
+
+Now that you know how to use Experiment Properties, you may want to read
+the following basic OMF tutorials. Each one of them is introducing an
+OMF feature, using the simple “Hello World” experiment as a base. You do
+not need to follow them in the order suggested below.
+
+-   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
+    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+
+-   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
+    and change them at run-time]]
+
+-   [[BasicTutorialStage2-5-3|How to configure or address all resources
+    within a defined group, and use simple substitutions]]
+
+-   [[BasicTutorialStage3-5-3|How to use your own or a 3rd party
+    application with OMF]]
+
+-   [[BasicTutorialStage4-5-3|How to use Measurement Filters to
+    customise your Measurement]]
+
+-   [[BasicTutorialStage5-5-3|How to use Prototypes to specify
+    particular Applications]]
+
+-   [[BasicTutorialStage6-5-3|How to save a disk image]]
+
+-   [[BasicTutorialStage7-5-3|How to load a disk image]]
+
+And finally, a “Conference Room” scenario which combines all of the
+above features:
+
+-   [[BasicTutorialStage8-5-3|The Conference Room tutorial]]
+
+* * * * *

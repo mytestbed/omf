@@ -1,0 +1,271 @@
+How to use Filters to customise your Measurement Collection
+===========================================================
+
+1. Prerequisites
+----------------
+
+-   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
+    works from a user’s point of view]].
+-   Make sure that you have completed and understood the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+
+2. Goal
+-------
+
+-   This tutorial shows you how to use Filters within your Experiment
+    Description.
+-   A Filter allows you to perform some pre-processing on a specific
+    measurement stream at the resource that produces it. The resulting
+    pre-processed measurements are then sent to the measurement
+    collection server.
+-   Such pre-processing can help you dramatically reduce the volume of
+    collected measurement by only collecting integrated metrics, such as
+    average or standard-deviation over a specific range of samples.
+
+-   About Filters:
+    -   They are defined and made available to you by the OML Client
+        Library, which should be installed on your resources.
+    -   OML has a set of Filters which you can use: [OML list of
+        available
+        filters](http://mytestbed.net/projects/oml/repository/revisions/master/show/lib/client/filter)
+    -   You can also define your own Filter, as described on the
+        [[oml:Developing\_Filters|Developing OML Filter page]]
+
+3. Scenario
+-----------
+
+-   Here we are using the same simple scenario as in the
+    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+-   We add a few properties to that simple experiment, similar to what
+    we did in the [[BasicTutorialStage1-5-4|“How to pass parameter to
+    your experiment” tutorial]].
+-   However, instead of collecting all the measurements as in the
+    [[BasicTutorialStage0-5-4|“Hello World” tutorial]], here we use the
+    “avg” (average) and “sum” filters to pre-process them and to only
+    collect the resulting integrated measurements.
+
+4. The New “Hello World” Experiment Description
+-----------------------------------------------
+
+The Experiment Description (ED) describing this simple experiment is
+(download it here: attachment:using-filters.rb):
+
+    <code class="ruby">
+    defProperty('theSender', 'omf.nicta.node1', "ID of sender node")
+    defProperty('theReceiver', 'omf.nicta.node2', "ID of receiver node")
+    defProperty('packetsize', 256, "Packet size (byte) from the sender node")
+    defProperty('runtime', 30, "Time in second for the experiment is to run")
+
+    defGroup('Sender',property.theSender) do |node|
+      node.addApplication("test:app:otg2") do |app|
+        app.setProperty('udp:local_host', '192.168.0.2')
+        app.setProperty('udp:dst_host', '192.168.0.3')
+        app.setProperty('udp:dst_port', 3000)
+        app.setProperty('cbr:size', property.packetsize)
+        app.measure('udp_out', :samples => 3) do |mp|
+          mp.filter('seq_no', 'avg')
+        end
+      end
+      node.net.w0.mode = "adhoc"
+      node.net.w0.type = 'g'
+      node.net.w0.channel = "6"
+      node.net.w0.essid = "helloworld"
+      node.net.w0.ip = "192.168.0.2"
+    end
+
+    defGroup('Receiver',property.theReceiver) do |node|
+      node.addApplication("test:app:otr2") do |app|
+        app.setProperty('udp:local_host', '192.168.0.3')
+        app.setProperty('udp:local_port', 3000)
+        app.measure('udp_in', :samples => 2) do |mp|
+          mp.filter('pkt_length', 'sum')
+          mp.filter('seq_no', 'avg')
+        end
+      end
+      node.net.w0.mode = "adhoc"
+      node.net.w0.type = 'g'
+      node.net.w0.channel = "6"
+      node.net.w0.essid = "helloworld"
+      node.net.w0.ip = "192.168.0.3"
+    end
+
+    onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      wait 10
+      allGroups.startApplications
+      wait property.runtime / 2
+      property.packetsize = 512
+      wait property.runtime / 2
+      allGroups.stopApplications
+      Experiment.done
+    end
+    </code>
+
+The Experiment Description (ED) describing this simple experiment is
+(download it here: attachment:using-filters.rb):
+
+-   **Line 12-14**: we define the measurement to collect and an
+    associated filter to apply:
+    -   Line 12: similar to the [[BasicTutorialStage0-5-4|“Hello World”
+        tutorial]], we request the collection of measurements from the
+        “udp\_out” Measurement Point (MP) at regular intervals of 3
+        samples.
+    -   Line 13: we define a filter to apply to these measurements (i.e.
+        pre-processing on the node before collection by the OML server)
+        -   here we want to apply the filter to the `seq_no` metric
+            within a measurement
+        -   the filter to apply is the `avg` one, which will return the
+            average value of the selected metric (`seq_no`) over the
+            sampling interval (= 3 here)
+        -   thus, every 3 samples, we will collect only the average of
+            the `seq_no` metric over these last 3 samples.
+
+-   **Line 27-30**: same as above but with different metrics and filters
+
+-   The syntax for collecting measurements with/without using filters
+    is:
+
+<!-- -->
+
+    1) - Collect all the metrics from a given Measurement Point:
+    Syntax:  measure(measurementPoint, samplingWindow)
+
+      - measurementPoint : the name of the Measurement Point, as defined by the application
+      - samplingWindow   : the size of the sampling window, either in 'samples' or 'interval'
+                         - 'samples => X'  : return measurements for every X samples
+                         - 'interval => X' : return measurements for every X seconds
+
+      Example: app.measure('udp_in', :interval => 3)
+      which will collect every 3 sec all the metrics from the 'udp_in' Measurement Point. 
+
+
+    2) - Collect only some metrics and applies filters to them:
+    Syntax:  measure(measurementPoint, samplingWindow) do |mp|
+               mp.filter(metric, type)
+               ...
+             end
+
+      - type   : the type of filter to apply. Currently only 6 types are available:
+                 - 'avg'    : return the average over the sampling window
+                 - 'stddev' : return the standard deviation over the sampling window
+                 - 'first'  : return the 1st measurement over the sampling window
+                 - 'last'   : return the last measurement over the sampling window
+                 - 'sum'    : return the sum over the sampling window
+                 - 'delta'  : return the difference between the 1st and last sample over the sampling window
+      - metric : the name of the metric on which to apply the filter, as defined by
+                 the Measurement Point (which is itself defined by the application)
+
+      Example: 
+               app.measure('udp_out', :samples => 4) do |mp|
+                 mp.filter('pkt_length', 'sum')
+                 mp.filter('seq_no', 'last')
+               end
+      which will collect for every 4 samples, the sum of the 'pkt_length' metric over the 4 samples, 
+      and the 'seq_no' of the last sample 
+
+-   **Finally…** Please refer to the [[BasicTutorialStage0-5-4|basic
+    “Hello World” tutorial]] if you do not understand the other lines of
+    the above ED.
+
+5. More about Measurements and Filters:
+---------------------------------------
+
+-   How do I find out which Measurement Points and metrics are available
+    for an application?
+    -   Measurement Points and metrics are defined in the OMF
+        Application Definition of your application
+    -   An example of such Application Definition is given on the
+        [[BasicTutorialStage3-5-4|“How to use applications” tutorial]]
+
+-   How do I add Measurement Points to my own application?
+    -   You have 2 options:
+        -   1) add OML support (and Measurement Points) to the source
+            code of your application
+            -   follow “the Quick Start with OML”
+                tutorial:[http://mytestbed.net/wiki/oml/Quick\_Start\_Tutorial](http://mytestbed.net/wiki/oml/Quick_Start_Tutorial)
+                from the OML project
+
+        -   2) write a *wrapper* that takes your application’s output
+            and provides them as Measurement Points to your experiment
+            -   follow the [[OMLWrapperHowTo|“How to write an OML
+                wrapper” tutorial]]
+
+-   Where can I find more information on OML, Measurement Points, and
+    filters?
+    -   Please refer to the [OML project documentation
+        pages](http://mytestbed.net/wiki/oml/Documentation)
+    -   To see the currently available filters: [OML list of
+        filters](http://mytestbed.net/projects/oml/repository/revisions/master/show/lib/client/filter)
+    -   To write your own filter: [[oml:Developing\_Filters|“How to
+        develop your OML Filter” tutorial]]
+
+**\* OML has a set of Filters which you can use: [OML list of available
+filters](http://mytestbed.net/projects/oml/repository/revisions/master/show/lib/client/filter)\
+**\* You can also define your own Filter, as described on the
+[[oml:Developing\_Filters|Developing OML Filter page]]
+
+5. Running the experiment
+-------------------------
+
+To run this experiment you should use the exact same commands and
+instructions as for the [[BasicTutorialStage0-5-4| “Hello World”
+tutorial]].
+
+You should also see a similar type of output as for the
+[[BasicTutorialStage0-5-4|“Hello World” tutorial]].
+
+6. The Results
+--------------
+
+Please refer to the [[BasicTutorialStage0-5-4|“Hello World” tutorial]]
+to learn how to access the result database from your experiment.
+
+A sample database from a typical run of this experiment is attached
+here: attachment:myDatabase
+
+When comparing this database with the one from the
+[[BasicTutorialStage0-5-4|“Hello World” tutorial]], you may notice
+that:\
+\* the `otg2_udp_out` table has only the 3 fields *avg*,*min*,*max* for
+the `seq_no` metric (see line 13 in the above ED)\
+\* the `otg2_udp_out` table has few number of entries, since we
+requested an interval of 4 samples\
+\* similarly the `otr2_udp_in` table has only the values for the summed
+`pkt_length` metric and averaged `seq_no` metric (see lines 28 and 29 in
+the above ED).
+
+7. What is Next?
+----------------
+
+Now that you know how to filters on your collected measurements, you may
+want to read the following basic OMF tutorials. Each one of them is
+introducing an OMF feature, using the simple “Hello World” experiment as
+a base. You do not need to follow them in the order suggested below.
+
+-   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
+    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+
+-   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
+    and change them at run-time]]
+
+-   [[BasicTutorialStage2-5-4|How to configure or address all resources
+    within a defined group, and use simple substitutions]]
+
+-   [[BasicTutorialStage3-5-4|How to use your own or a 3rd party
+    application with OMF]]
+
+-   [[BasicTutorialStage4-5-4|How to use Measurement Filters to
+    customise your Measurement]]
+
+-   [[BasicTutorialStage5-5-4|How to use Prototypes to specify
+    particular Applications]]
+
+-   [[BasicTutorialStage6-5-4|How to save a disk image]]
+
+-   [[BasicTutorialStage7-5-4|How to load a disk image]]
+
+And finally, a “Conference Room” scenario which combines all of the
+above features:
+
+-   [[BasicTutorialStage8-5-4|The Conference Room tutorial]]
+
+* * * * *
