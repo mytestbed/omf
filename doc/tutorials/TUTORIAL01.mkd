@@ -1,126 +1,121 @@
 # Tutorial 01
 
-{file:doc/tutorials/tutorial01.rb Tutorial 1 OEDL}
 
 
 1. “Hello World” - Wireless
 ---------------------------
 
-This tutorial presents a simple example, which shows you all the basic
-steps to quickly develop, run, and access the result of an experiment
-with OMF. Subsequent tutorials will build on this one to show you how to
-use other OMF features.
+This simple tutorial presents all the basic steps to develop, run, and 
+access the result of an experiment with OMF 6. 
+Subsequent tutorials will build on this one to introduce further OMF
+features.
 
-If you are a new OMF users, you may want to read
-[[An\_Introduction\_to\_OMF|the short OMF System Overview]] and/or the
-[[UsageOverview|Experiment Life-cycle Overview]]
+If you are a new OMF user (i.e. an experimenter), you may want to read
+the [OMF sytem overview]
+(http://omf.mytestbed.net/projects/omf/wiki/An_Introduction_to_OMF)
+or the [experimenter overview] 
+(http://omf.mytestbed.net/projects/omf/wiki/UsageOverview)
+pages
 
-**Notation**
+**Objectives**
 
-<version> Full version number. E.g. 5.3, 5.4\
-<version_compact> Naming convention used in port number. E.g. OMF has
-inventory service running at port 50<version_compact>, so OMF 5.4 uses
-port 5054
+After reading this tutorial you should be able to:
+- develop a simple networking experiment using OEDL, the OMF Experiment
+Description Language
+- orchestrate that experiment using 2 OMF-enabled resources of PC types
+- access the measurement collected during that experiment run
 
-**Experiment Scenario:**
+**Files**
 
-Figure 1 shows the simple experiment scenario, which we will use as the
-example for this basic tutorial.\
-![](/attachments/download/359)\
-Figure 1. Simple experiment scenario
+The experiment description (aka script) is: 
+{file:doc/tutorials/tutorial01.rb tutorial01.rb} 
 
--   This experiment involves two wireless PC-based nodes, i.e. Node 1
-    and Node 2
--   Node 1 is running a simple UDP traffic generator application (OTG2)
--   Node 2 is running a simple traffic receiver application (OTR2)
--   Node 1 is the “Sender” and will generate and send traffic to the
-    “Receiver” node 2, over a wireless 802.11g channel.
+**Experiment Scenario**
 
-Note: At NICTA and WINLAB, these 2 applications (OTG2 & OTR2) are
-already pre-installed on the default baseline disk image for the
-wireless nodes. If you are using another OMF testbeds, you can find and
-install these applications from [the OML Application
-pages](http://mytestbed.net/projects/show/omlapp).
+The following figure shows the simple experiment scenario for this tutorial
+![Figure 1. Simple experiment scenario](./fig-tut1.png)
 
-2. Accessing and Reserving resources on an OMF-enabled testbed
+- This experiment involves 2 resource of type PC with wireless capabilities:
+Node 1 and Node 2
+- Node 1 is running a simple UDP traffic generator application (OTG2)
+- Node 2 is running a simple traffic receiver application (OTR2)
+- Node 1 is the “Sender” and will generate and send traffic to the
+“Receiver” node 2, over a wireless 802.11g channel.
+
+Note: when using PC-type resources on the NICTA or ORBIT testbeds, the 
+applications OTG2 and OTR2 should already be pre-installed in the default
+image of your resources. If you are using another OMF enabled testbed, you
+may install these applications by following the instructions on 
+[the OML Application pages]
+(http://mytestbed.net/projects/show/omlapp).
+
+2. Accessing/Provisioning Resources
 --------------------------------------------------------------
 
-This tutorial assumes that you are using either one of the NICTA
-testbeds or one of the WINLAB ORBIT testbeds.
+This tutorial assumes that you are using OMF-enabled resources, which are
+provided by either a NICTA or ORBIT testbed. This section briefly describes
+the steps to reserve and provision resources on these testbeds.
 
--   **Using a testbed at NICTA?** Please refer to the [[OMFatNICTA|OMF
-    at NICTA Getting Starting page]]
--   **Using a testbed at WINLAB?** Please refer to the [[OMFatWINLAB|OMF
-    at WINLAB Getting Starting page]]
--   Using another OMF-enabled testbed? Please refer to
-    [[GettingStarted|the Getting Started page]] or contact the operator
-    of your testbed
--   Using your own freshly installed testbed with OMF? Just replace host
-    and username below with your specific details.
+You can complete this tutorial with OMF-enabled resources, which are provided
+by other testbeds. In such a case, please refer to these testbeds' specific 
+documentation for instructions on how to reserve/provision their resources.
+
+Alternatively you may also decide to install OMF on your own testbed, if
+so then please follow the instructions for testbed operators on our
+{file:doc/INSTALLATION.mkd OMF 6 Installation Guide}
+
+**Accessing Resources at NICTA/ORBIT**
+
+- Are you using a testbed at NICTA? Please refer to the 
+[OMF at NICTA Getting Starting page]
+(http://mytestbed.net/projects/omf/wiki/OMFatNICTA)
+- Are you using a testbed at ORBIT? Please refer to the 
+[OMF at ORBIT Getting Starting page]
+(http://mytestbed.net/projects/omf/wiki/OMFatWINLAB)
+
+**Provisioning Resources at NICTA/ORBIT**
+
+The current version of OMF 6 does not yet have a complete process in place
+to provision a PC-type resource at NICTA or ORBIT. Such feature will be added
+in the next release. Provision in the context of PC-type resources at NICTA
+and ORBIT means having a specific user disk image loaded on the resource.
+
+In the meantime, please use the method described on 
+[the OMF 5.4 imaging page]
+(http://mytestbed.net/projects/omf/wiki/BasicTutorialStage7-5-4)
+for instruction on how to provision/image resources at NICTA or ORBIT.
+
+Using these instructions, make sure that you load on your resource a disk
+image that contains OMF 6 (normally the latest baseline.ndz image will do)
+
+
+3. Installing the Experiment Controller
+--------------------------------------------------------------
 
 The OMF Experiment Controller (EC) is the software that will interpret
-your Experiment Description (ED) and execute it accordingly. You can
-either:
+your Experiment Description (ED) and interact with the resources to 
+execute it accordingly. You can either:
 
--   Use the already installed EC, which is present on the consoles of
-    any of the NICTA or WINLAB testbeds
--   [[Installation\_Guide\_54|Download, install, and configure]] the EC
-    on your own machine (Supported OS: Ubuntu/Debian, Fedora, Mac OSX)
+- use a pre-installed EC on the consoles of any NICTA or ORBIT testbeds
+- or install your own EC on your machine, by following the instructions
+for users on our {file:doc/INSTALLATION.mkd OMF 6 Installation Guide}
 
-This tutorial assumes the former, i.e. you will be using the EC
-installed on your NICTA/WINLAB testbed’s console:
+This tutorial assumes the latter, i.e. you have installed an EC on your
+machine and will use it to orchestrate your experiment
 
--   make a reservation for some resources on a testbed (see
-    [[OMFatNICTA|OMF at NICTA]] or [[OMFatWINLAB|OMF at WINLAB]])
 
--   log on to the *console* machine corresponding to this testbed,
-    during your reserved time slot:
-
-<!-- -->
-
-    Example at NICTA:
-       ssh myUsername@norbit.npc.nicta.com.au
-       password:
-
-    Example at WINLAB:
-       ssh myUsername@console.sb1.orbit-lab.org
-       password:
-
--   If you cannot login, contact a testbed administrator [at
-    NICTA](http://mytestbed.net/tab/show/omf) or [at
-    WINLAB](http://www.orbit-lab.org/wiki/about/WhoToContact).
-
--   Install a *baseline* disk image on the 2 resources, which you have
-    reserved and which we will use in this tutorial. Here we assume that
-    these two nodes are: **`omf.nicta.node2`** and **`omf.nicta.node3`**
-    (if you are using other nodes, replace these names accordingly).
-
-<!-- -->
-
-    omf-<version> load -t omf.nicta.node2,omf.nicta.node3 -i baseline.ndz
-
--   You should see something similar [[OutputLoad|to this output
-    example]] on your screen.
-
--   You may also want to view [[ToolManPages|the manual pages for the
-    “omf” command]], or read the [[BasicTutorialStage7-5-3|“How to load
-    a disk image” tutorial]]
-
-3. Developing the “Hello World” Experiment Description
+4. Developing the “Hello World” Experiment
 ------------------------------------------------------
 
-To run an experiment with OMF, you need first to describe it into an
-Experiment Description (ED) file. An Experiment Description (ED) is a
-script that is supplied as an input to the OMF Experiment Controller
-(EC). It contains detailed descriptions of the resources involved in an
-experiment and the sets of actions to perform in order to realize that
-experiment. An ED is written using the
-[[The\_Experiment\_Controller\_API|OMF Experiment Description Language
-(OEDL)]].
+To run an experiment with OMF, you first need to describe it into an
+Experiment Description (ED). An ED is a file/script that is supplied as an 
+input to the Experiment Controller (EC). It contains a detailed description
+of the resources involved in an experiment and the sets of actions to perform 
+in order to realize that experiment. An ED is written using the
+OMF Experiment Description Language (OEDL).
 
-The ED describing this simple “Hello World” experiment is:
+The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial01.rb tutorial01.rb}:
 
-    <code class="ruby">
     defGroup('Sender', "omf.nicta.node2") do |node|
       node.addApplication("test:app:otg2") do |app|
         app.setProperty('udp:local_host', '192.168.0.2')
@@ -158,7 +153,6 @@ The ED describing this simple “Hello World” experiment is:
       info "All my Applications are stopped now."
       Experiment.done
     end
-    </code>
 
 ### 3.1 Resource Description and Configuration (Line 1 to 26)
 
