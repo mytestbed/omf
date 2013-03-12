@@ -18,8 +18,6 @@ class XML
   class Message < OmfCommon::Message
     include Comparable
 
-    OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-
     attr_accessor :xml
     attr_accessor :content
 
@@ -112,10 +110,8 @@ class XML
       props_node = Niceogiri::XML::Node.new(:props)
       guard_node = Niceogiri::XML::Node.new(:guard)
 
-      if default_props_ns
-        default_props_ns.each do |k, v|
-          props_node.add_namespace_definition(k.to_s, v.to_s)
-        end
+      props_ns.each do |k, v|
+        props_node.add_namespace_definition(k.to_s, v.to_s)
       end
 
       @xml.add_child(props_node)
@@ -141,7 +137,7 @@ class XML
     # Construct a property xml node
     #
     def add_property(key, value = nil, add_to = :props)
-      if default_props_ns && add_to == :props
+      if !default_props_ns.empty? && add_to == :props
         key_node = Niceogiri::XML::Node.new(key, nil, default_props_ns)
       else
         key_node = Niceogiri::XML::Node.new(key)
@@ -253,7 +249,7 @@ class XML
     # Short cut for grabbing a group of nodes using xpath, but with default namespace
     def element_by_xpath_with_default_namespace(xpath_without_ns)
       xpath_without_ns = xpath_without_ns.to_s
-      if default_props_ns && xpath_without_ns !~ /props|guard|ts|src|mid|rtype|res_id|cid|itype/
+      if !default_props_ns.empty? && xpath_without_ns !~ /props|guard|ts|src|mid|rtype|res_id|cid|itype/
         @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, "\\1#{rtype.to_s}:\\2"), default_props_ns)
       else
         @xml.xpath(xpath_without_ns.gsub(/(^|\/{1,2})(\w+)/, '\1xmlns:\2'), :xmlns => OMF_NAMESPACE)

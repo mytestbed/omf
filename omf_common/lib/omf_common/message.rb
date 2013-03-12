@@ -91,6 +91,10 @@ module OmfCommon
     def []=(name, ns = nil, value)
       # TODO why itype cannot be set?
       #raise if name.to_sym == :itype
+      if ns
+        @props_ns ||= {}
+        @props_ns.merge(ns)
+      end
       _set_property(name.to_sym, value, ns)
     end
 
@@ -149,7 +153,13 @@ module OmfCommon
     # Construct default namespace of the props from resource type
     def default_props_ns
       resource_type = _get_core(:rtype)
-      resource_type ? { resource_type.to_s => "#{OMF_NAMESPACE}/#{resource_type}" } : nil
+      resource_type ? { resource_type.to_s => "#{OMF_NAMESPACE}/#{resource_type}" } : {}
+    end
+
+    # Get all property namespace defs
+    def props_ns
+      @props_ns ||= {}
+      default_props_ns.merge(@props_ns)
     end
 
     private
