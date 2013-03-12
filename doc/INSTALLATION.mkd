@@ -1,5 +1,17 @@
 # OMF 6 Installation Guide
 
+![OMF components](install_diagram.png)
+
+## Introduction
+
+In an OMF testbed, everything is a resource. The entity that controls one or multiple resources is called **Resource Controller (RC)**. The RC can run directly on the resource (e.g. a PC), or run on a separate computer that can control the resources (e.g. a bunch of sensor nodes or an OpenFlow switch). OMF is designed to support many different types of resources, and additional RCs for those resources can make use of our OMF APIs.
+
+All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default OMF uses XMPP for that. Each OMF component must be able to talk to at least one XMPP server, although there can be multiple XMPP servers used in an experiment.
+
+The experimenter uses the **Experiment Controller (EC)** to run the experiment script and steer the resources. The EC can be installed on a user-facing machine inside the testbed, or alternatively on the user's own computer.
+
+## Roles
+
 This installation guide caters for three types of audiences: **USERS**, **OPERATORS** and **DEVELOPERS**. Before you start, you need to identify your own role:
 
 * **USERS** want to run experiments in an existing OMF 6 testbed, without having to set up the testbed and its resources themselves.
