@@ -1,6 +1,8 @@
 ---
-# default topic name and xmpp user name is the hostname
-:uid: <%= `hostname`.chomp %>
-:uri: xmpp://<%= `hostname`.chomp %>:password@localhost
+# default topic name is this machine's hostname
+# default xmpp user name/password is "hostname-pid"
+# this is to ensure that every RC has its own topic and XMPP account
+:uid: <%= Socket.gethostname %>
+:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
 :environment: development
 :debug: false
