@@ -11,6 +11,7 @@ module OmfCommon
 
   class Message
 
+    OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
     OMF_CORE_READ = [:operation, :ts, :src, :mid, :replyto, :cid, :itype, :rtype, :guard, :res_id]
     OMF_CORE_WRITE = [:replyto, :itype, :guard]
 
@@ -75,14 +76,26 @@ module OmfCommon
       end
     end
 
-    def [](name)
-      _get_property(name.to_sym)
+    # To access properties
+    #
+    # @param [String] name of the property
+    # @param [Hash] ns namespace of property
+    def [](name, ns = nil)
+      _get_property(name.to_sym, ns)
     end
 
-    def []=(name, value)
+    # To set properties
+    #
+    # @param [String] name of the property
+    # @param [Hash] ns namespace of property
+    def []=(name, ns = nil, value)
       # TODO why itype cannot be set?
       #raise if name.to_sym == :itype
-      _set_property(name.to_sym, value)
+      if ns
+        @props_ns ||= {}
+        @props_ns.merge(ns)
+      end
+      _set_property(name.to_sym, value, ns)
     end
 
     def each_property(&block)
@@ -134,6 +147,28 @@ module OmfCommon
     end
 
     def valid?
+      raise NotImplementedError
+    end
+
+    # Construct default namespace of the props from resource type
+    def default_props_ns
+      resource_type = _get_core(:rtype)
+      resource_type ? { resource_type.to_s => "#{OMF_NAMESPACE}/#{resource_type}" } : {}
+    end
+
+    # Get all property namespace defs
+    def props_ns
+      @props_ns ||= {}
+      default_props_ns.merge(@props_ns)
+    end
+
+    private
+
+    def  _get_property(name, ns = nil)
+      raise NotImplementedError
+    end
+
+    def  _set_property(name, value, ns = nil)
       raise NotImplementedError
     end
   end

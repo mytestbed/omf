@@ -33,6 +33,7 @@ describe OmfCommon::Message do
     end
 
     it "must evaluate erb code when read property with evaluate option is true" do
+      skip
       @message[:p3] = "1 + 1 = <%= 1 + 1 %>"
       @message[:p4] = "1 + 1 = <%= two %>"
       @message.read_property(:p3, binding).must_equal "1 + 1 = 2"

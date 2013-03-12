@@ -17,9 +17,11 @@
       <element name="ts">
         <text/>
       </element>
-      <element name="src">
-        <text/>
-      </element>
+      <optional>
+        <element name="src">
+          <text/>
+        </element>
+      </optional>
       <optional>
         <element name="replyto">
           <text/>
