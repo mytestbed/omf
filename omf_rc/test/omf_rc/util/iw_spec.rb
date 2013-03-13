@@ -23,7 +23,7 @@ Cocaine::CommandLine.stub(:new, @command) do
         @xmpp.expect(:subscribe, true, [Array])
 
         OmfCommon.stub :comm, @xmpp do
-          @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00' })
+          @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })
         end
       end
 
@@ -59,20 +59,20 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must could initialise wpa config/pid file path" do
         @wlan00.init_ap_conf_pid
-        @wlan00.request_ap_conf.must_match /tmp\/hostapd\.wlan00.+\.conf/
-        @wlan00.request_ap_pid.must_match /tmp\/hostapd\.wlan00.+\.pid/
+        @wlan00.request_ap_conf.must_match /tmp\/hostapd\.wlan1.+\.conf/
+        @wlan00.request_ap_pid.must_match /tmp\/hostapd\.wlan1.+\.pid/
       end
 
       it "must could initialise wpa config/pid file path" do
         @wlan00.init_wpa_conf_pid
-        @wlan00.request_wpa_conf.must_match /tmp\/wpa\.wlan00.+\.conf/
-        @wlan00.request_wpa_pid.must_match /tmp\/wpa\.wlan00.+\.pid/
+        @wlan00.request_wpa_conf.must_match /tmp\/wpa\.wlan1.+\.conf/
+        @wlan00.request_wpa_pid.must_match /tmp\/wpa\.wlan1.+\.pid/
       end
 
       it "could delete current interface" do
         Cocaine::CommandLine.stub(:new, @command) do
           @command.expect(:run, true)
-          @wlan00.delele_interface
+          @wlan00.delete_interface
           @command.verify
         end
       end
@@ -98,21 +98,21 @@ Cocaine::CommandLine.stub(:new, @command) do
 
           @wlan00.configure_mode(mode: 'master', channel: 1, essid: 'bob', hw_mode: 'b')
           File.open(@wlan00.property.ap_conf) do |f|
-            f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=1\nhw_mode=b\n"
+            f.read.must_match "driver=nl80211\ninterface=wlan1\nssid=bob\nchannel=1\nhw_mode=b\n"
           end
 
           3.times { @command.expect(:run, true) }
 
           @wlan00.configure_mode(mode: 'master', channel: 1, essid: 'bob', hw_mode: 'n')
           File.open(@wlan00.property.ap_conf) do |f|
-            f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=1\nhw_mode=g\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
+            f.read.must_match "driver=nl80211\ninterface=wlan1\nssid=bob\nchannel=1\nhw_mode=g\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
           end
 
           3.times { @command.expect(:run, true) }
 
           @wlan00.configure_mode(mode: 'master', channel: 16, essid: 'bob', hw_mode: 'n')
           File.open(@wlan00.property.ap_conf) do |f|
-            f.read.must_match "driver=nl80211\ninterface=wlan00\nssid=bob\nchannel=16\nhw_mode=a\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
+            f.read.must_match "driver=nl80211\ninterface=wlan1\nssid=bob\nchannel=16\nhw_mode=a\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
           end
 
           @command.verify
