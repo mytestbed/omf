@@ -9,8 +9,8 @@ module OmfRc::Util::Hostapd
   # Initialise access point conf and pid location
   #
   work :init_ap_conf_pid do |device|
-    device.property.ap_conf = Tempfile.new(["hostapd.#{device.hrn}", ".conf"]).path
-    device.property.ap_pid = Tempfile.new(["hostapd.#{device.hrn}", ".pid"]).path
+    device.property.ap_conf = Tempfile.new(["hostapd.#{device.property.if_name}", ".conf"]).path
+    device.property.ap_pid = Tempfile.new(["hostapd.#{device.property.if_name}", ".pid"]).path
   end
   # Set up and run a hostapd instance
   #
@@ -18,7 +18,7 @@ module OmfRc::Util::Hostapd
     device.init_ap_conf_pid
 
     File.open(device.property.ap_conf, "w") do |f|
-      f << "driver=nl80211\ninterface=#{device.hrn}\nssid=#{device.property.essid}\nchannel=#{device.property.channel}\n"
+      f << "driver=nl80211\ninterface=#{device.property.if_name}\nssid=#{device.property.essid}\nchannel=#{device.property.channel}\n"
       f << "hw_mode=#{device.property.hw_mode}\n" if %w(a b g).include? device.property.hw_mode
       if device.property.hw_mode == 'n'
         if device.property.channel.to_i < 15
