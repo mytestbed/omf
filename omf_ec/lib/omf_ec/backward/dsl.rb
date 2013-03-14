@@ -22,9 +22,10 @@ module OmfEc
         end
       end
 
-      def defApplication(uri,name,&block)
+      def defApplication(uri, name=nil ,&block)
         # URI parameter was used by previous OMF5 EC, for now we
         # do nothing with it in OMF6
+        name = uri if name.nil?
         def_application(name,&block)
       end
 
