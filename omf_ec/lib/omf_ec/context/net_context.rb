@@ -35,10 +35,10 @@ module OmfEc::Context
 
     def map_channel_freq
       if self.conf[:channel] && self.conf[:frequency].nil?
-        self.conf[:frequency] = FREQUENCY[self.conf[:channel].to_i]
+        self.conf[:frequency] = FREQUENCY[self.conf[:channel].to_s.to_i]
       end
       if self.conf[:channel].nil? && self.conf[:frequency]
-        self.conf[:channel] = FREQUENCY.keys.find { |k| FREQUENCY[k] == self.conf[:frequency].to_i }
+        self.conf[:channel] = FREQUENCY.keys.find { |k| FREQUENCY[k] == self.conf[:frequency].to_sto_i }
       end
       self
     end
