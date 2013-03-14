@@ -1,8 +1,8 @@
-# Tutorial 01
+# Tutorial 00
 
 
 
-1. “Hello World” - Wireless
+1. "Hello World" Tutorial
 ---------------------------
 
 This simple tutorial presents all the basic steps to develop, run, and 
@@ -20,40 +20,38 @@ pages
 **Objectives**
 
 After reading this tutorial you should be able to:
+
 - develop a simple networking experiment using OEDL, the OMF Experiment
 Description Language
-- orchestrate that experiment using 2 OMF-enabled resources of PC types
+- orchestrate that experiment using one OMF-enabled resources of PC types
 - access the measurement collected during that experiment run
 
 **Files**
 
 The experiment description (aka script) is: 
-{file:doc/tutorials/tutorial01.rb tutorial01.rb} 
+{file:doc/tutorials/tutorial01.rb tutorial00.rb} 
 
 **Experiment Scenario**
 
-The following figure shows the simple experiment scenario for this tutorial
+- This simple experiment involves a single resource of type PC, which has a
+network interface connected to the Internet (or any LAN with other hosts).
+In this experiment, we will instruct that resource to start an instance of
+the 'ping-oml2' application to probe another host on the network.
+
+- This 'ping-oml2' application is a wrapper around the traditional ping 
+application. It captures the ping outputs and sends them as measurement
+streams to an OML2 collection point (an OML2 server in this case), which then
+stores them in a database available to the experimenter.
+
+
+The following figure illustrates that simple experiment scenario
 
 ![Figure 1. Simple experiment scenario](./fig-tut1.png)
-
-- This experiment involves 2 resource of type PC with wireless capabilities:
-Node 1 and Node 2
-- Node 1 is running a simple UDP traffic generator application (OTG2)
-- Node 2 is running a simple traffic receiver application (OTR2)
-- Node 1 is the “Sender” and will generate and send traffic to the
-“Receiver” node 2, over a wireless 802.11g channel.
-
-Note: when using PC-type resources on the NICTA or ORBIT testbeds, the 
-applications OTG2 and OTR2 should already be pre-installed in the default
-image of your resources. If you are using another OMF enabled testbed, you
-may install these applications by following the instructions on 
-[the OML Application pages]
-(http://mytestbed.net/projects/show/omlapp).
 
 2. Prerequisites
 --------------------------------------------------------------
 
-### 2.A. Accessing/Provisioning Resources
+### 2A. Accessing/Provisioning Resources
 
 
 This tutorial assumes that you are using OMF-enabled resources, which are
@@ -68,7 +66,7 @@ Alternatively you may also decide to install OMF on your own testbed, if
 so then please follow the instructions for testbed operators on our
 {file:doc/INSTALLATION.mkd OMF 6 Installation Guide}
 
-**Accessing Resources at NICTA/ORBIT**
+**Accessing a Resource at NICTA/ORBIT**
 
 - Are you using a testbed at NICTA? Please refer to the 
 [OMF at NICTA Getting Starting page]
@@ -77,23 +75,48 @@ so then please follow the instructions for testbed operators on our
 [OMF at ORBIT Getting Starting page]
 (http://mytestbed.net/projects/omf/wiki/OMFatWINLAB)
 
-**Provisioning Resources at NICTA/ORBIT**
+**Provisioning a Resource at NICTA/ORBIT**
 
-The current version of OMF 6 does not yet have a complete process in place
+- The current version of OMF 6 does not yet have a complete process in place
 to provision a PC-type resource at NICTA or ORBIT. Such feature will be added
 in the next release. Provision in the context of PC-type resources at NICTA
 and ORBIT means having a specific user disk image loaded on the resource.
 
-In the meantime, please use the method described on 
+- In the meantime, please use the method described on 
 [the OMF 5.4 imaging page]
 (http://mytestbed.net/projects/omf/wiki/BasicTutorialStage7-5-4)
 for instruction on how to provision/image resources at NICTA or ORBIT.
-
 Using these instructions, make sure that you load on your resource a disk
 image that contains OMF 6 (normally the latest baseline.ndz image will do)
 
+**Installing the 'ping-oml2' application on your resource**
 
-### 2.B. Installing the Experiment Controller
+- When using PC-type resources on the NICTA or ORBIT testbeds, the 
+applications 'ping-oml2' should already be pre-installed in the default
+disk image for your resource (usually this would be the 'baseline.ndz' image).
+Thus you can directly move to the next section about 'Installing the Experiment
+Controller'
+
+- If you are using a PC-type resource from another OMF enabled testbed:
+  - you will need to install this 'ping-oml2' application 
+by following the instructions on [the OML Application pages]
+(http://oml.mytestbed.net/projects/omlapp/wiki/OML-instrumented_Applications)
+  - for example on an resource running Ubuntu Linux, you would issue the
+  following commands:
+
+            sudo apt-add-repository "deb http://download.opensuse.org/repositories/home:/cdwertmann:/oml/xUbuntu_12.10/ ./" 
+            sudo apt-add-repository "deb http://download.opensuse.rg/repositories/home:/cdwertmann:/oml/xUbuntu_12.10/ ./" 
+            curl http://download.opensuse.org/repositories/home:/cdwertmann:/oml/xUbuntu_12.10/Release.key | sudo apt-key add -
+            sudo apt-get update
+            sudo apt-get install ping-oml2
+  
+  - for any other platforms, please refer to [the OML Application pages]
+(http://oml.mytestbed.net/projects/omlapp/wiki/OML-instrumented_Applications).
+- Note: OMF has a feature that allows you to install applications as part of
+your experiment orchestration. This feature is not presented in this simple
+tutorial, but it is described in details in this [other tutorial]()
+
+### 2B. Installing the Experiment Controller
 
 
 The OMF Experiment Controller (EC) is the software that will interpret
@@ -108,7 +131,7 @@ This tutorial assumes the latter, i.e. you have installed an EC on your
 machine and will use it to orchestrate your experiment
 
 
-4. Developing the “Hello World” Experiment
+3. Developing the “Hello World” Experiment
 ------------------------------------------------------
 
 To run an experiment with OMF, you first need to describe it into an
@@ -118,47 +141,128 @@ of the resources involved in an experiment and the sets of actions to perform
 in order to realize that experiment. An ED is written using the
 OMF Experiment Description Language (OEDL).
 
-The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial01.rb tutorial01.rb}:
+The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial00.rb tutorial00.rb}. It is composed of 3 distinct
+parts, described in the following listing and paragraphs below.
 
-    defGroup('Sender', "omf.nicta.node2") do |node|
-      node.addApplication("test:app:otg2") do |app|
-        app.setProperty('udp:local_host', '192.168.0.2')
-        app.setProperty('udp:dst_host', '192.168.0.3')
-        app.setProperty('udp:dst_port', 3000)
-        app.measure('udp_out', :interval => 3)
+    # A. Define an OMF Application Definition for the ping-oml2 application
+    # The OMF entities are using this definition to know where to find the
+    # application, what are its configurable parameters, and what are the
+    # OML2 measurement points that it provides.
+    # This ping-oml2 application will be known by OMF entities as 'ping_oml2'
+    #
+    defApplication('ping_oml2') do |app|
+      app.description = 'Simple Definition for the ping-oml2 application'
+      # Define the path to the binary executable for this application
+      app.binary_path = '/usr/bin/ping-oml2'
+      # Define the configurable parameters for this application
+      # For example if target is set to foo.com and count is set to 2, then the 
+      # application will be started with the command line:
+      # /usr/bin/ping-oml2 -a foo.com -c 2
+      app.defProperty('target', 'Address to ping', '-a', {:type => :string})
+      app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
+      # Define the OML2 measurement point that this application provides.
+      # Here we have only one measurement point (MP) named 'ping'. Each measurement
+      # sample from this MP will be composed of a 4-tuples (addr,ttl,rtt,rtt_unit)
+      app.defMeasurement('ping') do |m|
+        m.defMetric('dest_addr',:string)
+        m.defMetric('ttl',:uint32)
+        m.defMetric('rtt',:double)
+        m.defMetric('rtt_unit',:string)
       end
-      node.net.w0.mode = "adhoc"
-      node.net.w0.type = 'g'
-      node.net.w0.channel = "6"
-      node.net.w0.essid = "helloworld"
-      node.net.w0.ip = "192.168.0.2"
     end
 
-    defGroup('Receiver', "omf.nicta.node3") do |node|
-      node.addApplication("test:app:otr2") do |app|
-        app.setProperty('udp:local_host', '192.168.0.3')
-        app.setProperty('udp:local_port', 3000)
-        app.measure('udp_in', :interval => 3)
+    # B. Define a group of resources which will run the ping-oml2 application
+    # Here we define only one group (Sender), which has only one resource in it 
+    # (omf6.nicta.node8)
+    #
+    defGroup('Sender', 'omf6.nicta.node8') do |g|
+      # Associate the application ping_oml2 defined above to each resources
+      # in this group
+      g.addApplication("ping_oml2") do |app|
+        # Configure the parameters for the ping_oml2 application
+        app.setProperty('target', 'www.nicta.com.au')
+        app.setProperty('count', 3)
+        # Request the ping_oml2 application to collect measurement samples
+        # from the 'ping' measuremnt point (as defined above), and send them
+        # to an OML2 collection point
+        app.measure('ping', :samples => 1)
       end
-      node.net.w0.mode = "adhoc"
-      node.net.w0.type = 'g'
-      node.net.w0.channel = "6"
-      node.net.w0.essid = "helloworld"
-      node.net.w0.ip = "192.168.0.3"
     end
 
+    # C. Define the sequence of tasks to perform when the event
+    # "all resources are up and all applications are install" is being triggered
+    #
     onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      # Print some information message
       info "This is my first OMF experiment"
-      wait 10
+      # Start all the Applications associated to all the Groups
       allGroups.startApplications
-      info "All my Applications are started now..."
-      wait 30
+      # Wait for 5 sec
+      wait 5
+      # Stop all the Applications associated to all the Groups
       allGroups.stopApplications
-      info "All my Applications are stopped now."
+      # Tell the Experiment Controller to terminate the experiment now
       Experiment.done
     end
 
-### 3.1 Resource Description and Configuration (Line 1 to 26)
+### 3A. Application Definition
+
+OMF entities need to learn about the applications that will be used in the 
+experiment, such as where their binary executable resides, what configurable
+parameters they have, or what measurements they can collect. All this 
+information is provided in the block of instructions defined between the
+'do' and 'end' markers following the 'defApplication' commands:
+
+- first we provided the path for the application itself 
+(i.e. app.binary_path = '/usr/bin/ping-oml2')
+- then we define all the configurable command line parameters of the 
+application, that we would like to configure within OMF. This is done using
+the 'defProperty' command for each parameter. In this example, we are only 
+interested in interacting with 2 parameters of the application, namely the ones
+referred to as '-a' and '-c' on the command, which correspond to the target
+host to ping and the number of pings to send, respectively.
+- finally we define all the OML2 measurement points (MP) that this application
+has (if any). In this example we have only one MP named 'ping'. If that MP
+is activated (i.e. we want it to collect measurement), it will provide a
+serie of 4-tuple samples
+
+It is important to note that this Application Definition is only informative
+for OMF, i.e. it is only a description of what the real application has to 
+offer. Indeed, the application itself must already implements the parameters
+and measurement points that you define in this App definition.
+
+### 3B. Group/Resource Definition
+
+Within an OMF experiment, resources may be grouped together within named
+Groups. A named Group can be itself viewed as a resource holding other 
+resources. A given resource can belong to many groups at the same time, and
+a group itself may be part of another group.
+In this example, we define a single group named 'Sender', which contains a
+single resource 'omf6.nicta.node8'.
+
+> **IMPORTANT** When running this experiment using your own resource and testbed
+please change 'omf6.nicta.node8' in the ED to the actual name of your 
+own resource.
+
+When we define a group, we can associate configuration settings and
+applications to all members of that group. In this example, we only associate a
+one application to the single member of the 'Sender' group. This is done using
+the 'addApplication' command. Furthermore, when associating an application
+to a group, we can provide a given configuration for that application in the
+specific context of that group. This is achieved inside the block of
+instructions following the 'addApplication' command. In this example, we
+
+- configure the 'target' parameter to the value 'www.nicta.com.au'
+- configure the 'count' parameter to the vlaue 2
+- request the application to collect every measurement samples that the
+'ping' measurement point will produce
+
+### 3C. Group/Resource Definition
+
+
+
+
+Resource Description and Configuration (Line 1 to 26)
 
 -   **Line 1**: we define a new group of resources, called `Sender`.
     This group includes a unique node, which is identified by a unique
