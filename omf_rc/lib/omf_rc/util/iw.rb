@@ -115,6 +115,15 @@ module OmfRc::Util::Iw
     # capture value hash and store internally
     device.property.update(value)
 
+    if device.property.phy && device.property.phy =~ /^%(\d+)%$/
+      wlan_phy_device = device.request_wlan_devices[$1.to_i]
+      if wlan_phy_device
+        device.property.phy = wlan_phy_device[:name]
+      else
+        raise ArgumentError, "Could not find your wifi device no #{$1.to_i}"
+      end
+    end
+
     device.validate_iw_properties
 
     device.delete_interface rescue logger.warn "Interface #{device.property.if_name} not found"
