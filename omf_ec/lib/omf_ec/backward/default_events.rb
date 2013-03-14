@@ -32,6 +32,7 @@ module OmfEc
                   conf_to_send =
                     if r_type == 'wlan'
                       { type: r_type,
+                        if_name: r_if_name,
                         mode: nif.conf.merge(:phy => "%#{r_index}%").except(:if_name, :type, :index)
                       }
                     else

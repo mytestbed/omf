@@ -27,7 +27,7 @@ module OmfEc::Context
                    else
                      net_prop
                    end
-        self.conf.merge!(net_prop => args[0])
+        self.conf.merge!(net_prop => args[0].to_s)
       else
         super
       end
