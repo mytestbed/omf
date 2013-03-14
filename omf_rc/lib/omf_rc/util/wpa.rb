@@ -9,8 +9,8 @@ module OmfRc::Util::Wpa
   # Initialise wpa related conf and pid location
   #
   work :init_wpa_conf_pid do |device|
-    device.property.wpa_conf = Tempfile.new(["wpa.#{device.hrn}", ".conf"]).path
-    device.property.wpa_pid = Tempfile.new(["wpa.#{device.hrn}", ".pid"]).path
+    device.property.wpa_conf = Tempfile.new(["wpa.#{device.property.if_name}", ".conf"]).path
+    device.property.wpa_pid = Tempfile.new(["wpa.#{device.property.if_name}", ".pid"]).path
   end
 
   work :wpasup do |device|
@@ -20,7 +20,7 @@ module OmfRc::Util::Wpa
       f << "network={\n  ssid=\"#{device.property.essid}\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
     end
     CommandLine.new("wpa_supplicant", "-B -P :wpa_pid -i:dev -c:wpa_conf",
-                    :dev => device.hrn,
+                    :dev => device.property.if_name,
                     :wpa_conf => device.property.wpa_conf,
                     :wpa_pid => device.property.wpa_pid).run
   end

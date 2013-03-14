@@ -28,6 +28,8 @@ Design documents and developer tutorials are available in our {file:doc/DEVELOPE
 
 Ask for help and join the discussion on our mailing list.  [Subscribe](mailto:lists@lists.nicta.com.au?subject=subscribe%20omf-user&body=Just%20send%20this%20message%20to%20subscribe%20to%20the%20mailing%20list) to the list and [browse](http://omf.mytestbed.net/tab/show?id=omf) the message archive holding many frequently asked questions.
 
+If you find a bug, please log in to [the website](http://omf.mytestbed.net/projects/omf/issues) and click "New Issue" in the top menu. If you do not have an account, feel free to register. Alternatively, you can send your bug report [via email](mailto:omf-issues@mytestbed.net) (does not require an account). Please attach log files and describe which version of OMF and what platform you are using.
+
 ## License & Copyright
 
 {file:LICENSE.mkd}

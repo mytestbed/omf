@@ -16,7 +16,7 @@ module OmfRc::Util::Iw
     CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
       configure p do |device, value|
         CommandLine.new("iw", "dev :dev set :property :value",
-                        :dev => device.hrn,
+                        :dev => device.property.if_name,
                         :property => p,
                         :value => value).run
       end
@@ -30,7 +30,7 @@ module OmfRc::Util::Iw
   request :link do |device|
     known_properties = Mash.new
 
-    command = CommandLine.new("iw", "dev :dev link", :dev => device.hrn)
+    command = CommandLine.new("iw", "dev :dev link", :dev => device.property.if_name)
 
     command.run.chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
       v.match(/^(.+):\W*(.+)$/).tap do |m|
@@ -46,7 +46,7 @@ module OmfRc::Util::Iw
   request :info do |device|
     known_properties = Mash.new
 
-    command = CommandLine.new("iw", "dev :dev info", :dev => device.hrn)
+    command = CommandLine.new("iw", "dev :dev info", :dev => device.property.if_name)
 
     command.run.chomp.split("\n").drop(1).each do |v|
       v.match(/^\W*(.+) (.+)$/).tap do |m|
@@ -59,8 +59,8 @@ module OmfRc::Util::Iw
 
   # Delete current interface, clean up
   #
-  work :delele_interface do |device|
-    CommandLine.new("iw", "dev :dev del", :dev => device.hrn).run
+  work :delete_interface do |device|
+    CommandLine.new("iw", "dev :dev del", :dev => device.property.if_name).run
   end
 
   # Add interface to device
@@ -68,7 +68,7 @@ module OmfRc::Util::Iw
   work :add_interface do |device, type|
     CommandLine.new("iw", "phy :phy interface add :dev type :type",
                     :phy => device.property.phy,
-                    :dev => device.hrn,
+                    :dev => device.property.if_name,
                     :type => type.to_s).run
   end
 
@@ -76,7 +76,7 @@ module OmfRc::Util::Iw
   #
   work :join_ibss do |device|
     CommandLine.new("iw", "dev :device ibss join :essid :frequency",
-                      :device => device.hrn.to_s,
+                      :device => device.property.if_name.to_s,
                       :essid => device.property.essid.to_s,
                       :frequency => device.property.frequency.to_s).run
   end
@@ -115,9 +115,18 @@ module OmfRc::Util::Iw
     # capture value hash and store internally
     device.property.update(value)
 
+    if device.property.phy && device.property.phy =~ /^%(\d+)%$/
+      wlan_phy_device = device.request_wlan_devices[$1.to_i]
+      if wlan_phy_device
+        device.property.phy = wlan_phy_device[:name]
+      else
+        raise ArgumentError, "Could not find your wifi device no #{$1.to_i}"
+      end
+    end
+
     device.validate_iw_properties
 
-    device.delele_interface rescue logger.warn "Interface #{device.hrn} not found"
+    device.delete_interface rescue logger.warn "Interface #{device.property.if_name} not found"
 
     # TODO should just remove all interfaces from physical device, at least make it optional
 

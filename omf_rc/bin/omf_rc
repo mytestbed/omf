@@ -4,6 +4,7 @@ abort "Please use Ruby 1.9.3 or higher" if RUBY_VERSION < "1.9.3"
 
 require 'optparse'
 require 'erb'
+require 'socket'
 
 require 'omf_rc'
 require 'omf_rc/resource_factory'

@@ -1,0 +1,629 @@
+# Developers Guide to OMF
+
+## Prerequisites
+
+### Set up your environment
+
+Please please make sure you followed the {file:doc/INSTALLATION.mkd INSTALLATION GUIDE} and get thing installed and configured properly.
+
+If somehow you experienced problems regarding running examples listed in this guide, please first check that you indeed followed the {file:doc/INSTALLATION.mkd INSTALLATION GUIDE} and got things installed and configured properly.
+
+## Background
+
+### FRCP protocol
+
+If you are more towards implementing FRCP protocol without using Ruby nor our library, you could skip this guide and go to check out [FRCP protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions) documents directly.
+
+### Resource controller system
+
+One of the biggest changes we are trying to make in version 6 resource controller system is to focus on the core features, and instead of trying to implement all the functionalities and hardware support, we want to provide an abstract entity acts as the proxy, processing the resource related messages based on the [new FRCP protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions), and decides what type of the actions to perform according to the operation defined by the message and constrained by the proxy's capabilities which could be easily defined and extended by the resource providers.
+
+In our design, the clients interact with the resource proxies purely via pubsub messages, they publish certain operation (create, request, configure, and release) messages to the pubsub topics, and subscribe to the nodes for inform messages published by the resource proxies based on the outcome of the these requested operations. The resource proxy instances are actually doing the same, but the opposite, they are subscribing to the pubsub system, react when new operation messages appeared by calling the internal methods corresponding to the content of the operation messages.
+
+![Interaction with proxy](images/proxy.png)
+
+We created a little tutorial will give a brief example demonstrating the workflow and how to implement these resource proxy definitions.
+
+### Move this
+
+For example, when a request message contains XML entity property 'speed' received, the resource proxy will try to call method 'request\_speed' (it is a naming convention, method name request\_property\_name is for request messages, and configure\_property\_name is for configure messages.)
+
+Since the base abstract resource proxy doesn't have request\_speed method defined, we need to extend it by implementing a resource proxy definition file, which contains the definition of request\_speed functionality. The resource proxy definition is a mixin module, conceptually represents a type of resource it needs to handle. These modules could define a series of functionalities they could support, including:
+
+* Register a module to be used by the resource controller
+* Properties can be requested
+* Properties can be configured
+* Operations should be performed at certain stage, e.g. before resource is ready to use, or before resource is set to be released.
+
+When a new instance of resource proxy is being created, such mixin modules can be used to extend the resource proxy instance. By naming convention, creating an instance of resource proxy with type ':alpha', will result the resource proxy instance extended using mixin resource proxy module 'Alpha'.
+
+
+## Tutorial
+
+Suppose we are doing some kind of engine testing in a racing team garage, and using OMF to build a garage controller to handle interaction messages issued by the staff.
+
+This tutorial will utilise DSL methods provided by our RC library, and the full API documentation can be accessed here:
+
+**{OmfRc::ResourceProxyDSL::ClassMethods Resource proxy DSL API doucumentation}**
+
+This will be a good reference you feel puzzled about certain keywords, methods in the tutorial code we provide here.
+
+### Step 1: Garage and engine proxy definition
+
+We will build a garage controller (resource controller) acts as the proxy to the garage and engines, and an engine test controller, which asks garage controller to provide an engine and perform some throttle adjustments, while monitoring engines' RPM.
+
+A resource proxy mixin module represents the functionalities the resource could provide, for example, this engine proxy can provide adjustable throttle to be configured, RPM value to be requested, etc.. The features defined here will be available to the engine proxy instance by the time it is created by ResourceFactory.
+
+For example, the garage controller script contains such proxy definitions
+
+    # Need omf_rc gem to be required
+    #
+    require 'omf_rc'
+
+    # By using default namespace OmfRc::ResourceProxy, the module defined could be loaded automatically.
+    #
+    module OmfRc::ResourceProxy::Garage
+      # Include DSL module, which provides all DSL helper methods
+      #
+      include OmfRc::ResourceProxyDSL
+
+      # DSL method register_proxy will register this module definition,
+      # where :garage become the :type of the proxy.
+      #
+      register_proxy :garage
+    end
+
+    module OmfRc::ResourceProxy::Engine
+      include OmfRc::ResourceProxyDSL
+
+      # You can specify what kind of proxy can create it, this case, :garage
+      #
+      register_proxy :engine, :create_by => :garage
+
+      # DSL method property will define proxy's internal properties,
+      # and you can provide initial default value.
+      #
+      property :manufacturer, :default => "Cosworth"
+      property :max_rpm, :default => 12500
+      property :rpm, :default => 1000
+    end
+
+    # This init method will set up your run time environment,
+    # communication, eventloop, logging etc. We will explain that later.
+    #
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Garage controoler >> Connected to XMPP server"
+        garage = OmfRc::ResourceFactory.create(:garage, uid: 'garage')
+        comm.on_interrupted { garage.disconnect }
+      end
+    end
+
+Garage Controller Console output:
+
+    18:17:46  INFO XMPP::Communicator: Connecting to 'localhost' ...
+    18:17:47  INFO Object: Garage controller >> Connected to XMPP server
+    18:17:47 DEBUG XMPP::Topic: New topic: garage
+    18:17:47 DEBUG XMPP::Communicator: _subscribe >> garage SUCCEED
+    18:17:47 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+
+Interact with garage controller
+
+### Step 2: Request information of the garage
+
+![Request information of the garage](images/tutorial_step_2.png)
+
+Engine test script
+
+    # Use omf_common communicator directly
+    #
+    require 'omf_common'
+
+    # As seen previously, this init will set up various run time options for you.
+    #
+    # First line simply indicates:
+    # * Use :development as default environment,
+    #   this will use Eventmachine by default, set logging level to :debug
+    # * Use XMPP as default communication layer and XMPP server to connect to is localhost
+    # * By default username:password will be auto generated
+    #
+    # OmfCommon.comm returns a communicator instance,
+    # and this will be your entry point to interact with XMPP server.
+    #
+    # OmfCommon.eventloop returns Eventmachine runtime instance since it is default.
+    #
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
+      # Event :on_connected will be triggered when connected to XMPP server
+      #
+      OmfCommon.comm.on_connected do |comm|
+        info "Engine test script >> Connected to XMPP"
+
+        # Subscribe to a XMPP topic represents :garage, the name was set in the controller code if you wonder.
+        # Once triggered, it will yield a Topic object.
+        #
+        comm.subscribe('garage') do |garage|
+          unless garage.error?
+            # Request two properties from garage, :uid and :type
+            #
+            # This is asynchronous, the reply_msg will only get processed when garage received the request
+            # and we actually received the inform message it issued.
+            #
+            # Once we got the reply, simply iterate two properties and print them
+            #
+            garage.request([:uid, :type]) do |reply_msg|
+              reply_msg.each_property do |k, v|
+                info "#{k} >> #{v}"
+              end
+            end
+          else
+            error garage.inspect
+          end
+        end
+
+        # Eventloop allows to control the flow, in this case, we disconnect after 5 seconds.
+        #
+        OmfCommon.eventloop.after(5) { comm.disconnect }
+        # If you hit ctrl-c, we will disconnect too.
+        #
+        comm.on_interrupted { comm.disconnect }
+      end
+    end
+
+Console output:
+
+    13:08:25  INFO XMPP::Communicator: Connecting to 'localhost' ...
+    13:08:25  INFO Object: Engine test script >> Connected to XMPP
+    13:08:25 DEBUG XMPP::Topic: New topic: garage
+    13:08:25 DEBUG XMPP::Communicator: _subscribe >> garage SUCCEED
+    13:08:25 DEBUG XMPP::Topic: (garage) create_message_and_publish 'request': [:uid, :type]
+    13:08:25 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    13:08:25  INFO Object: uid >> garage
+    13:08:25  INFO Object: type >> garage
+    13:08:25  INFO Object: hrn >>
+    13:08:30  INFO XMPP::Communicator: Disconnecting ...
+
+### Step 3: Create & release engine
+
+![Create & release engine](images/tutorial_step_3.png)
+
+Engine test script
+
+    require 'rubygems'
+    require 'omf_common'
+
+    def create_engine(garage)
+      garage.create(:engine, hrn: 'my_engine') do |reply_msg|
+        if reply_msg.success?
+          engine = reply_msg.resource
+
+          engine.on_subscribed do
+            info ">>> Connected to newly created engine #{reply_msg[:hrn]}(id: #{reply_msg[:res_id]})"
+          end
+
+          OmfCommon.eventloop.after(3) do
+            info ">>> Release engine"
+            garage.release(engine) do |reply_msg|
+              info "Engine #{reply_msg[:res_id]} released"
+              OmfCommon.comm.disconnect
+            end
+          end
+        else
+          error ">>> Resource creation failed - #{reply_msg[:reason]}"
+        end
+      end
+    end
+
+    OmfCommon.init(:development, communication: { url: 'xmpp://lima:pw@localhost' }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Engine test script >> Connected to XMPP"
+
+        comm.subscribe('garage') do |garage|
+          unless garage.error?
+            create_engine(garage)
+          else
+            error garage.inspect
+          end
+        end
+
+        OmfCommon.eventloop.after(10) { comm.disconnect }
+        comm.on_interrupted { comm.disconnect }
+      end
+    end
+
+Output:
+
+    13:20:50  INFO XMPP::Communicator: Connecting to 'localhost' ...
+    13:20:50  INFO Object: Engine test script >> Connected to XMPP
+    13:20:50 DEBUG XMPP::Topic: New topic: garage
+    13:20:50 DEBUG XMPP::Communicator: _subscribe >> garage SUCCEED
+    13:20:50 DEBUG XMPP::Topic: Create resource of type 'engine'
+    13:20:50 DEBUG XMPP::Topic: (garage) create_message_and_publish 'create': {:hrn=>"my_engine", :type=>:engine}
+    13:20:50 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    13:20:50 DEBUG XMPP::Topic: New topic: xmpp://1e1c5fd6-6d7a-4375-a48c-9dddbdf05394@interlagos
+    13:20:50 DEBUG XMPP::Communicator: _subscribe >> 1e1c5fd6-6d7a-4375-a48c-9dddbdf05394 SUCCEED
+    13:20:50  INFO Object: >>> Connected to newly created engine my_engine(id: xmpp://1e1c5fd6-6d7a-4375-a48c-9dddbdf05394@interlagos)
+    13:20:53  INFO Object: >>> Release engine
+    13:20:53 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    13:20:59  INFO Object: Engine xmpp://1e1c5fd6-6d7a-4375-a48c-9dddbdf05394@interlagos released
+    13:20:59  INFO XMPP::Communicator: Disconnecting ...
+
+#### Resource controller script skeleton
+
+Firstly, we need a resource controller script running, which contains some instances of resource proxy represents 'garage', we can then use resource factory method to create such
+
+    OmfRc::ResourceFactory.create(:garage, {uid: 'garage_1', server: 'localhost', user: 'alpha', password: 'pw'})
+
+This does following behind the scene
+
+* Extend the instance with resource proxy module named 'garage' (should be defined first).
+* If additional options provided for pubsub communicator, a communicator instance will be created and attached to this resource proxy instance.
+* If before\_ready hook provided in the module, they will be executed.
+
+Refer to {OmfRc::ResourceFactory} for implementation.
+
+All we need to do to start is in the main eventmachine loop, ask the garage resource to connect
+
+    garage = OmfRc::ResourceFactory.create(:garage, options)
+    garage.connect
+
+
+### Step 4: Add more features to garage engine proxies
+
+Now we are going to add some real features to these modules.
+
+The DSL methods will normally take a name parameter, and a block which be will be executed at the runtime.
+
+An optional yielded variable could used if your actions inside the block need access inside the context of resource proxy itself, i.e. getting or updating the instance object where this mixin module will be applied to.
+
+Normally we don't need to record the state of a real resource inside our resource proxy entities (e.g. the available memory of a running physical machine). In case you need to maintain the state, resource proxy abstract class provides a :property attribute (which is a [Hashie::Mash] (https://github.com/intridea/hashie#mash) object), for keeping these information inside the instances.
+
+![Configure engine property](images/tutorial_step_4.png)
+
+#### Modified Proxy:
+
+    require 'rubygems'
+    require 'omf_rc'
+    require 'omf_rc/resource_factory'
+
+    module OmfRc::ResourceProxy::Garage
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :garage
+    end
+
+    module OmfRc::ResourceProxy::Engine
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :engine, :create_by => :garage
+
+      property :manufacturer, :default => "Cosworth"
+      property :max_rpm, :default => 12500
+      property :rpm, :default => 1000
+      property :throttle, :default => 0
+
+      hook :before_ready do |engine|
+        OmfCommon.eventloop.every(2) do
+          engine.property.rpm += (engine.property.throttle * 5000 - 500).to_i
+          engine.property.rpm = 1000 if engine.property.rpm < 1000
+        end
+      end
+
+      configure :throttle do |engine, value|
+        engine.property.throttle = value.to_f / 100.0
+      end
+    end
+
+    OmfCommon.init(:development, communication: { url: 'xmpp://delta:pw@localhost' }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Garage controoler >> Connected to XMPP server"
+        garage = OmfRc::ResourceFactory.create(:garage, uid: 'garage', hrn: 'my_garage')
+        comm.on_interrupted { garage.disconnect }
+      end
+    end
+
+#### Engine test:
+
+    require 'rubygems'
+    require 'omf_common'
+
+    def create_engine(garage)
+      garage.create(:engine, hrn: 'my_engine') do |reply_msg|
+        if reply_msg.success?
+          engine = reply_msg.resource
+
+          engine.on_subscribed do
+            info ">>> Connected to newly created engine #{reply_msg[:hrn]}(id: #{reply_msg[:res_id]})"
+            on_engine_created(engine)
+          end
+
+          OmfCommon.eventloop.after(10) do
+            release_engine(garage, engine)
+          end
+        else
+          error ">>> Resource creation failed - #{reply_msg[:reason]}"
+        end
+      end
+    end
+
+    def on_engine_created(engine)
+      info "> Now we will apply 50% throttle to the engine"
+      engine.configure(throttle: 50)
+
+      OmfCommon.eventloop.every(2) do
+        engine.request([:rpm]) do |reply_msg|
+          info "RPM >> #{reply_msg[:rpm]}"
+        end
+      end
+
+      # Some time later
+      OmfCommon.eventloop.after(5) do
+        info "> We want to reduce the throttle to 0"
+        engine.configure(throttle: 0)
+      end
+    end
+
+    def release_engine(garage, engine)
+      info ">>> Release engine"
+      garage.release(engine) do |reply_msg|
+        info "Engine #{reply_msg[:res_id]} released"
+        OmfCommon.comm.disconnect
+      end
+    end
+
+    OmfCommon.init(:development, communication: { url: 'xmpp://lima:pw@localhost' }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Engine test script >> Connected to XMPP"
+
+        comm.subscribe('garage') do |garage|
+          unless garage.error?
+            create_engine(garage)
+          else
+            error garage.inspect
+          end
+        end
+
+        OmfCommon.eventloop.after(20) { comm.disconnect }
+        comm.on_interrupted { comm.disconnect }
+      end
+    end
+
+#### Test output:
+
+    15:52:32  INFO XMPP::Communicator: Connecting to 'localhost' ...
+    15:52:32  INFO Object: Engine test script >> Connected to XMPP
+    15:52:32 DEBUG XMPP::Topic: New topic: garage
+    15:52:32 DEBUG XMPP::Communicator: _subscribe >> garage SUCCEED
+    15:52:32 DEBUG XMPP::Topic: Create resource of type 'engine'
+    15:52:32 DEBUG XMPP::Topic: (garage) create_message_and_publish 'create': {:hrn=>"my_engine", :type=>:engine}
+    15:52:32 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    15:52:32 DEBUG XMPP::Topic: New topic: xmpp://f9288cef-ae76-4561-a199-276800efe029@interlagos
+    15:52:32 DEBUG XMPP::Communicator: _subscribe >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:32  INFO Object: >>> Connected to newly created engine my_engine(id: xmpp://f9288cef-ae76-4561-a199-276800efe029@interlagos)
+    15:52:32  INFO Object: > Now we will apply 50% throttle to the engine
+    15:52:32 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'configure': {:throttle=>50}
+    15:52:32 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:34 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:34 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:34  INFO Object: RPM >> 3000
+    15:52:36 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:36 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:36  INFO Object: RPM >> 5000
+    15:52:37  INFO Object: > We want to reduce the throttle to 0
+    15:52:37 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'configure': {:throttle=>0}
+    15:52:37 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:38 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:38 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:38  INFO Object: RPM >> 4500
+    15:52:40 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:40 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:40  INFO Object: RPM >> 4000
+    15:52:42  INFO Object: >>> Release engine
+    15:52:42 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    15:52:42 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:42 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:42  INFO Object: RPM >> 3500
+    15:52:44 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:44 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:44  INFO Object: RPM >> 3000
+    15:52:46 DEBUG XMPP::Topic: (f9288cef-ae76-4561-a199-276800efe029) create_message_and_publish 'request': [:rpm]
+    15:52:46 DEBUG XMPP::Communicator: publish >> f9288cef-ae76-4561-a199-276800efe029 SUCCEED
+    15:52:46  INFO Object: RPM >> 2500
+    15:52:47  INFO Object: Engine xmpp://f9288cef-ae76-4561-a199-276800efe029@interlagos released
+    15:52:47  INFO XMPP::Communicator: Disconnecting ...
+
+
+### Step 5: Hooks
+
+![Hooks](images/tutorial_step_5.png)
+
+#### Proxy with hooks
+
+    require 'rubygems'
+    require 'omf_rc'
+    require 'omf_rc/resource_factory'
+
+    module OmfRc::ResourceProxy::Garage
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :garage
+
+      hook :before_create do |garage, new_resource_type, new_resource_opts|
+        info "Garage has #{garage.children.size} engine(s)"
+        info "You asked me to create a new #{new_resource_type} with options: #{new_resource_opts}"
+      end
+
+      hook :after_create do |garage, engine|
+        info "Engine #{engine.uid} created"
+      end
+    end
+
+    module OmfRc::ResourceProxy::Engine
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :engine, :create_by => :garage
+
+      property :serial_number, :default => "0000"
+      property :rpm, :default => 0
+
+      hook :before_ready do |engine|
+        engine.property.rpm = 1000
+        info "Engine serial number is #{engine.property.serial_number}"
+      end
+
+      hook :after_initial_configured do |engine|
+        info "Engine serial number is #{engine.property.serial_number}"
+      end
+
+      # before_release hook will be called before the resource is fully released, shut down the engine in this case.
+      #
+      hook :before_release do |engine|
+        engine.property.rpm = 0
+      end
+    end
+
+    OmfCommon.init(:development, communication: { url: 'xmpp://delta:pw@localhost' }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Garage controoler >> Connected to XMPP server"
+        garage = OmfRc::ResourceFactory.create(:garage, uid: 'garage', hrn: 'my_garage')
+        comm.on_interrupted { garage.disconnect }
+      end
+    end
+
+#### Engine test:
+
+    require 'rubygems'
+    require 'omf_common'
+
+    def create_engine(garage)
+      garage.create(:engine, hrn: 'my_engine', serial_number: '1234') do |reply_msg|
+        if reply_msg.success?
+          engine = reply_msg.resource
+
+          engine.on_subscribed do
+            info ">>> Connected to newly created engine #{reply_msg[:hrn]}(id: #{reply_msg[:res_id]})"
+          end
+
+          OmfCommon.eventloop.after(3) do
+            release_engine(garage, engine)
+          end
+        else
+          error ">>> Resource creation failed - #{reply_msg[:reason]}"
+        end
+      end
+    end
+
+    def release_engine(garage, engine)
+      info ">>> Release engine"
+      garage.release(engine) do |reply_msg|
+        info "Engine #{reply_msg[:res_id]} released"
+        OmfCommon.comm.disconnect
+      end
+    end
+
+    OmfCommon.init(:development, communication: { url: 'xmpp://lima:pw@localhost' }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Engine test script >> Connected to XMPP"
+
+        comm.subscribe('garage') do |garage|
+          unless garage.error?
+            create_engine(garage)
+          else
+            error garage.inspect
+          end
+        end
+
+        OmfCommon.eventloop.after(10) { comm.disconnect }
+        comm.on_interrupted { comm.disconnect }
+      end
+    end
+
+#### Proxy output:
+
+    15:33:03  INFO XMPP::Communicator: Connecting to 'localhost' ...
+    15:33:03  INFO Object: Garage controoler >> Connected to XMPP server
+    15:33:03 DEBUG XMPP::Topic: New topic: garage
+    15:33:03 DEBUG XMPP::Communicator: _subscribe >> garage SUCCEED
+    15:33:03 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    15:33:12  INFO ResourceProxy::Garage: Garage has 0 engine(s)
+    15:33:12  INFO ResourceProxy::Garage: You asked me to create a new engine with options: {:hrn=>"my_engine"}
+    15:33:12 DEBUG XMPP::Topic: New topic: 9ae92796-bcd7-4770-a698-78df44d63fe2
+    15:33:12  INFO ResourceProxy::Engine: Engine serial number is 0000
+    15:33:12  INFO ResourceProxy::Garage: Engine 9ae92796-bcd7-4770-a698-78df44d63fe2 created
+    15:33:12 DEBUG XMPP::Communicator: _create >> 9ae92796-bcd7-4770-a698-78df44d63fe2 SUCCEED
+    15:33:12 DEBUG XMPP::Communicator: _subscribe >> 9ae92796-bcd7-4770-a698-78df44d63fe2 SUCCEED
+    15:33:12  INFO ResourceProxy::Engine: Engine serial number is 1234
+    15:33:12 DEBUG XMPP::Communicator: publish >> garage SUCCEED
+    15:33:12 DEBUG XMPP::Communicator: publish >> 9ae92796-bcd7-4770-a698-78df44d63fe2 SUCCEED
+    15:33:15  INFO ResourceProxy::AbstractResource: Releasing hrn: my_engine, uid: 9ae92796-bcd7-4770-a698-78df44d63fe2
+
+
+That is the end of the tutorial
+
+## Advanced topics
+
+## Organise resource proxy modules
+
+### Define inline
+
+If you have a rather simple resource controller, with minimal set of features, like the ones described in this tutorial, you could just define these modules as part of the RC script.
+
+### Include resource proxy modules in the default package
+
+The default location of resource proxy definition files are located in the directory [omf\_rc/lib/omf\_rc/resource\_proxy](https://github.com/mytestbed/omf/tree/master/omf_rc/lib/omf_rc/resource_proxy).
+
+If you wish your feature set could be available as part of the default package, save them under this default directory, following this naming convention: OmfRc::ResourceProxy::Engine will register a proxy named :engine, and saved to file omf\_rc/lib/omf\_rc/resource\_proxy/engine.rb
+
+To load these default resource proxies, simple call a load method provided by ResourceFactory class in your resource controller script (e.g. engine\_control.rb)
+
+    OmfRc::ResourceFactory.load_default_resource_proxies
+
+Commit your definition files into the git repository and simply send us a pull request.
+
+### Package your proxy definition files as OMF extension gem
+
+You could also package your proxy definition files into separate gems, if you feel they should not go into the default RC package.
+
+This process is rather simple, take a look at this third party rc gem of openflow integration.
+
+https://github.com/kohoumas/omf_rc_openflow
+
+### Refactor common features into resource utilities
+
+If a set of features can be shared among different types of resources, it is a good idea to refactor them into resource utilities.
+
+Take this engine test example, if we have more than one type of engine needs to be tested, and they could all be able to adjust throttle, we can create a utility for this.
+
+    module OmfRc::Util::Throttle
+      include OmfRc::ResourceProxyDSL
+
+      configure :throttle do |resource, value|
+        resource.property.throttle = value.to_f / 100.0
+      end
+    end
+
+Then include this utility inside the engine resource proxy file by using:
+
+    utility :throttle
+
+You could also overwrite a property definition provided by the utility, by registering it again using the same name.
+
+## Full DSL methods list
+
+In the previous example, we use method register\_proxy to register resource proxy, request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
+
+    include OmfRc::ResourceProxyDSL
+
+The full list of resource proxy DSL can be found here:
+### {OmfRc::ResourceProxyDSL::ClassMethods Resource Proxy DSL API}
+
+## More RC tutorials
+
+{file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}
+{file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}
+
+
+## Contributing
+
+Contribute to OMF project? Please refer to this document for some notes:
+
+{file:doc/CONTRIBUTING.mkd}

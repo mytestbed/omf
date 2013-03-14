@@ -1,5 +1,17 @@
 # OMF 6 Installation Guide
 
+![OMF components](install_diagram.png)
+
+## Introduction
+
+In an OMF testbed, everything is a resource. The entity that controls one or multiple resources is called **Resource Controller (RC)**. The RC can run directly on the resource (e.g. a PC), or run on a separate computer that can control the resources (e.g. a bunch of sensor nodes or an OpenFlow switch). OMF is designed to support many different types of resources, and additional RCs for those resources can make use of our OMF APIs.
+
+All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default OMF uses XMPP for that. Each OMF component must be able to talk to at least one XMPP server, although there can be multiple XMPP servers used in an experiment.
+
+The experimenter uses the **Experiment Controller (EC)** to run the experiment script and steer the resources. The EC can be installed on a user-facing machine inside the testbed, or alternatively on the user's own computer.
+
+## Roles
+
 This installation guide caters for three types of audiences: **USERS**, **OPERATORS** and **DEVELOPERS**. Before you start, you need to identify your own role:
 
 * **USERS** want to run experiments in an existing OMF 6 testbed, without having to set up the testbed and its resources themselves.
@@ -120,7 +132,7 @@ To verify that you can run experiments on the testbed, we are providing a experi
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
 	omf_ec -u xmpp://<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
 
-Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). If everything goes well, you should see an output like
+Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. If everything goes well, you should see an output like
 
 	18:36:59 INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
 	18:36:59 INFO  Object: Connected
@@ -161,7 +173,7 @@ Congratulations, you've just run your first OMF experiment!
 
 ## OMF Installation for OPERATORS
 
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. For the resources you want to make available to OMF experimenters, you need to run one or multiple OMF Resource Controllers (RC). The RC that ships with the omf_rc gem is the classic RC for PC-style hardware. It allows the experimenter to configure the network devices on the node and run applications. It tpyically runs on the node itself.
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. For the resources you want to make available to OMF experimenters, you need to run one or multiple OMF Resource Controllers (RC). The RC that ships with the omf_rc gem is the classic RC for PC-style hardware. It allows the experimenter to configure the network devices on the node and run applications. It typically runs on the node itself.
 
 ### Installing the PC-type RC
 
@@ -175,19 +187,19 @@ If you'd like to start the Resource Controller upon booting your node, please en
 
     install_omf_rc -i -c
 
-This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You must edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
+This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
 
 	---
-	:uid: <%= `hostname`.chomp %>
-	:uri: xmpp://<%= `hostname`.chomp %>:password@localhost
+	:uid: <%= Socket.gethostname %>
+	:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@<xmpp_hostname>
 	:environment: development
 	:debug: false
 
-Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name* to the output of the Ruby command *`hostname`.chomp*. This way, the same configuration file can be used on different hosts, which are distinguished only by their DHCP-assigned hostname. You can use any other valid Ruby syntax here to bootstrap your RC, but ensure that each RC has a unique UID and XMPP user name within the testbed.
+The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname.
 
 ### Installing other RCs
 
-If you want to make other resources available to OMF users ([such as OpenFlow switches](https://github.com/kohoumas/omf_rc_openflow), KVM virtual machines, OpenStack instances etc.) please follow their respective installation guides.
+If you want to make other resources available to OMF users ([such as OpenFlow switches](https://github.com/kohoumas/omf_rc_openflow), OpenStack instances etc.) please follow their respective installation guides.
 
 ### **Verify this step**
 
@@ -195,7 +207,7 @@ To verify that your RC is responding correctly, we are providing a test script (
 
 	omf_rc -u xmpp://<xmpp_hostname> -i test
 
-For any other RC you might use, make sure it listens on the "test" topic on your XMPP server.
+No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. For any other RC you might use, make sure it listens on the "test" topic on your XMPP server.
 
 Replace \<xmpp_hostname\> with the hostname of your Openfire server. Now open a new terminal and run:
 
@@ -270,7 +282,7 @@ quit;
 * log on to the web GUI at [http://localhost:9090](http://localhost:9090) with the user/password you chose in the wizard
 * click 'Server', 'Server Settings', 'Registration & Login', enable 'Inband Account Registration' and disable 'Anonymous Login'
 * To avoid duplicate subscriptions to the same topic in order to reduce the volume of messages, we recommend turning the multiple subscriptions feature off. Inside Openfire system properties panel, add *Property Name:* **xmpp.pubsub.multiple-subscriptions** *Property Value:* **false**
-* for server2server connectivity (used for testbed federation), you need to set up a DNS name "pubsub.yourhost.name" which can be resolved by public DNS servers. It can be an A record pointing to the same IP address as your host, or a CNAME pointing to the hostname. There is no need for a DNS SRV record.
+* for server2server connectivity (used for testbed federation), you need to set up a DNS name "pubsub.yourhost.name" which can be resolved by public DNS servers. It can be an A record pointing to the same IP address as your host, or a CNAME pointing to the hostname. There is no need for a DNS SRV record. Learn more about S2S [here](http://omf.mytestbed.net/projects/omf/wiki/Openfire_s2s).
 * if your testbed consists of several hundred nodes, you may consider increasing the maximum open file descriptor limit for the "openfire" user. This can be done by editing @/etc/security/limits.conf@ and adding the lines @root	soft nofile	100000@ and @root hard nofile 100000@, which allows a maximum of 100K open sockets/files per process. The default in Ubuntu is 1024. If this is not increased you may run into a problem where openfire does not accept any more incoming TCP connections.
 
 ### **Verify this step**
