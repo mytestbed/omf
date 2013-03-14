@@ -34,7 +34,7 @@ case "$1" in
     echo "********************************************************************"
     echo "IF YOU ARE UPGRADING FROM OMF 5.4.1 PLEASE RECREATE THE PUBSUB NODES"
     echo "as described in the OMF installation guide:"
-    echo "http://mytestbed.net/projects/omf/wiki/Installation_Guide_54#Creating-the-Pubsub-nodes"
+    echo "http://mytestbed.net/projects/omf54/wiki/Installation_Guide_54#Creating-the-Pubsub-nodes"
     echo "********************************************************************"
     ;;
     

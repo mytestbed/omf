@@ -4,7 +4,7 @@
 
 # This installation script assumes the testbed configuration as in the OMF 
 # installation guide:
-# http://mytestbed.net/projects/omf/wiki/Installation_Guide_54
+# http://mytestbed.net/projects/omf54/wiki/Installation_Guide_54
 
 require 'yaml'
 
