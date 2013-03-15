@@ -1,17 +1,3 @@
 # Tutorials
 
-{file:doc/tutorials/TUTORIAL01.mkd Tutorial 1}
-
-{file:doc/tutorials/TUTORIAL02.mkd Tutorial 2}
-
-{file:doc/tutorials/TUTORIAL03.mkd Tutorial 3}
-
-{file:doc/tutorials/TUTORIAL04.mkd Tutorial 4}
-
-{file:doc/tutorials/TUTORIAL05.mkd Tutorial 5}
-
-{file:doc/tutorials/TUTORIAL06.mkd Tutorial 6}
-
-{file:doc/tutorials/TUTORIAL07.mkd Tutorial 7}
-
-{file:doc/tutorials/TUTORIAL08.mkd Tutorial 8}
+{file:doc/tutorials/TUTORIAL00.mkd Tutorial 0}

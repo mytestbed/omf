@@ -45,11 +45,6 @@ application. It captures the ping outputs and sends them as measurement
 streams to an OML2 collection point (an OML2 server in this case), which then
 stores them in a database available to the experimenter.
 
-
-The following figure illustrates that simple experiment scenario
-
-![Figure 1. Simple experiment scenario](./fig-tut1.png)
-
 2. Prerequisites
 --------------------------------------------------------------
 
