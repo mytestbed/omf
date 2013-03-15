@@ -369,23 +369,32 @@ class OmfRc::ResourceProxy::AbstractResource
     new_name = message[:name] || message[:hrn]
     new_opts = message.properties.merge({ hrn: new_name })
     new_obj = obj.create(message[:type], new_opts) do |new_obj|
-      response[:res_id] = new_obj.resource_address
+      begin
+        response[:res_id] = new_obj.resource_address
 
-      exclude = [:type, :hrn, :name]
-      message.each_property do |key, value|
-        unless exclude.include?(key)
-          method_name = "configure_#{key}"
-          response[key] = new_obj.__send__(method_name, value)
+        exclude = [:type, :hrn, :name]
+        message.each_property do |key, value|
+          unless exclude.include?(key)
+            method_name = "configure_#{key}"
+            response[key] = new_obj.__send__(method_name, value)
+          end
         end
+        response[:hrn] = new_obj.hrn
+        response[:uid] = new_obj.uid
+        response[:type] = new_obj.type
+
+        new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
+
+        # self here is the parent
+        self.inform(:creation_ok, response)
+      rescue Exception => ex
+        err_resp = message.create_inform_reply_message()
+        err_resp[:reason] = ex.to_s
+        error "Encountered exception, returning ERROR message"
+        debug ex.message
+        debug ex.backtrace.join("\n")
+        return self.inform(:error, err_resp)
       end
-      response[:hrn] = new_obj.hrn
-      response[:uid] = new_obj.uid
-      response[:type] = new_obj.type
-
-      new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-
-      # self here is the parent
-      self.inform(:creation_ok, response)
     end
   end
 

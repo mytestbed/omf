@@ -30,7 +30,17 @@ module OmfEc
 
     def register_default_callback(topic)
       topic.on_creation_failed do |msg|
-        warn "RC reports failure: '#{msg[:reason]}'"
+        warn "RC reports creation.failed: '#{msg[:reason]}'"
+        debug msg
+      end
+
+      topic.on_error do |msg|
+        warn "RC reports error: '#{msg[:reason]}'"
+        debug msg
+      end
+
+      topic.on_warn do |msg|
+        warn "RC reports warning: '#{msg[:reason]}'"
         debug msg
       end
 

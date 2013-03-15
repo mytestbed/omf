@@ -12,31 +12,17 @@ If somehow you experienced problems regarding running examples listed in this gu
 
 ### FRCP protocol
 
-If you are more towards implementing FRCP protocol without using Ruby nor our library, you could skip this guide and go to check out [FRCP protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions) documents directly.
+If you are more towards implementing FRCP protocol without using Ruby nor our library, you could skip this guide and go to check out [FRCP protocol](http://omf.mytestbed.net/projects/omf6/wiki/ArchitecturalFoundation2ProtocolInteractions) documents directly.
 
 ### Resource controller system
 
-One of the biggest changes we are trying to make in version 6 resource controller system is to focus on the core features, and instead of trying to implement all the functionalities and hardware support, we want to provide an abstract entity acts as the proxy, processing the resource related messages based on the [new FRCP protocol](http://omf.mytestbed.net/projects/omf/wiki/ArchitecturalFoundation2ProtocolInteractions), and decides what type of the actions to perform according to the operation defined by the message and constrained by the proxy's capabilities which could be easily defined and extended by the resource providers.
+One of the biggest changes we are trying to make in version 6 resource controller system is to focus on the core features, and instead of trying to implement all the functionalities and hardware support, we want to provide an abstract entity acts as the proxy, processing the resource related messages based on the [new FRCP protocol](http://omf.mytestbed.net/projects/omf6/wiki/ArchitecturalFoundation2ProtocolInteractions), and decides what type of the actions to perform according to the operation defined by the message and constrained by the proxy's capabilities which could be easily defined and extended by the resource providers.
 
-In our design, the clients interact with the resource proxies purely via pubsub messages, they publish certain operation (create, request, configure, and release) messages to the pubsub topics, and subscribe to the nodes for inform messages published by the resource proxies based on the outcome of the these requested operations. The resource proxy instances are actually doing the same, but the opposite, they are subscribing to the pubsub system, react when new operation messages appeared by calling the internal methods corresponding to the content of the operation messages.
+In our design, users interact with the resource proxies purely via pubsub messages, they publish certain operation (create, request, configure, and release) messages to the pubsub topics, and subscribe to the PubSub topics for inform messages published by the resource proxies based on the outcome of the these requested operations. The resource proxy instances are actually doing the same, but the opposite, they are subscribing to the PubSub topics, react when new operation messages appeared by calling the internal methods corresponding to the content of the operation messages.
 
 ![Interaction with proxy](images/proxy.png)
 
-We created a little tutorial will give a brief example demonstrating the workflow and how to implement these resource proxy definitions.
-
-### Move this
-
-For example, when a request message contains XML entity property 'speed' received, the resource proxy will try to call method 'request\_speed' (it is a naming convention, method name request\_property\_name is for request messages, and configure\_property\_name is for configure messages.)
-
-Since the base abstract resource proxy doesn't have request\_speed method defined, we need to extend it by implementing a resource proxy definition file, which contains the definition of request\_speed functionality. The resource proxy definition is a mixin module, conceptually represents a type of resource it needs to handle. These modules could define a series of functionalities they could support, including:
-
-* Register a module to be used by the resource controller
-* Properties can be requested
-* Properties can be configured
-* Operations should be performed at certain stage, e.g. before resource is ready to use, or before resource is set to be released.
-
-When a new instance of resource proxy is being created, such mixin modules can be used to extend the resource proxy instance. By naming convention, creating an instance of resource proxy with type ':alpha', will result the resource proxy instance extended using mixin resource proxy module 'Alpha'.
-
+We created a little tutorial will give a brief example demonstrating the work flow and how to implement these resource proxy definitions.
 
 ## Tutorial
 
@@ -48,13 +34,17 @@ This tutorial will utilise DSL methods provided by our RC library, and the full 
 
 This will be a good reference you feel puzzled about certain keywords, methods in the tutorial code we provide here.
 
+The Ruby source code provided in this tutorial can be copied and pasted to your favourite editor, and execute as standard Ruby scripts.
+
 ### Step 1: Garage and engine proxy definition
 
-We will build a garage controller (resource controller) acts as the proxy to the garage and engines, and an engine test controller, which asks garage controller to provide an engine and perform some throttle adjustments, while monitoring engines' RPM.
+We will build a garage resource controller acts as the proxy to the garage and engines, while the staff use scripts to interact and guide garage controller to perform certain operations.
 
-A resource proxy mixin module represents the functionalities the resource could provide, for example, this engine proxy can provide adjustable throttle to be configured, RPM value to be requested, etc.. The features defined here will be available to the engine proxy instance by the time it is created by ResourceFactory.
+A resource proxy definition module (Mixin) represents the functionalities the resource could provide, including internal property state, what properties can be configured or requested, what operations to perform based on stage of the work flow. The features defined in the proxy definition module will be available to the engine proxy instance by the time it is created by the resource factory.
 
-For example, the garage controller script contains such proxy definitions
+We start by defining a garage proxy and a engine proxy, where garage can create engines (parent child relationship).
+
+**Garage controller skeletion**
 
     # Need omf_rc gem to be required
     #
@@ -99,7 +89,13 @@ For example, the garage controller script contains such proxy definitions
       end
     end
 
-Garage Controller Console output:
+Now save the script to a file, then run the script using:
+
+    ruby <filename>
+
+You can verify it is running by compare its output to the following
+
+**Garage controller console output**
 
     18:17:46  INFO XMPP::Communicator: Connecting to 'localhost' ...
     18:17:47  INFO Object: Garage controller >> Connected to XMPP server
@@ -111,9 +107,11 @@ Interact with garage controller
 
 ### Step 2: Request information of the garage
 
+Now since the garage controller is running, we can query its information by sending FRCP request message. We will omf\_common library's communicator to achieve this.
+
 ![Request information of the garage](images/tutorial_step_2.png)
 
-Engine test script
+**Test script, querying garage**
 
     # Use omf_common communicator directly
     #
@@ -169,7 +167,9 @@ Engine test script
       end
     end
 
-Console output:
+While engine is running, execute this script, you should be able to see garage's properties in the output.
+
+**Console output**
 
     13:08:25  INFO XMPP::Communicator: Connecting to 'localhost' ...
     13:08:25  INFO Object: Engine test script >> Connected to XMPP
@@ -184,28 +184,38 @@ Console output:
 
 ### Step 3: Create & release engine
 
+Now we will let garage to create an engine proxy instance, and once it is created, we will then release it after certain period. This will demonstrate the resource life-cycle described in the FRCP protocol.
+
 ![Create & release engine](images/tutorial_step_3.png)
 
-Engine test script
+**Create engine and then release it**
 
-    require 'rubygems'
     require 'omf_common'
 
+    # We define a create_engine method here to contain all the logic around engine creation
+    #
     def create_engine(garage)
+      # We create an engine instance with a human readable name 'my_engine'
+      #
       garage.create(:engine, hrn: 'my_engine') do |reply_msg|
+        # This reply_msg will be the inform message issued by garage controller
+        #
         if reply_msg.success?
+          # Since we need to interact with engine's PubSub topic,
+          # we call #resource method to construct a topic from the FRCP message content.
+          #
           engine = reply_msg.resource
 
+          # Because of the asynchronous nature, we need to use this on_subscribed callback
+          # to make sure the operation in the block executed only when subscribed to the newly created engine's topic
           engine.on_subscribed do
             info ">>> Connected to newly created engine #{reply_msg[:hrn]}(id: #{reply_msg[:res_id]})"
           end
 
+          # Then later on, we will ask garage again to release this engine.
+          #
           OmfCommon.eventloop.after(3) do
-            info ">>> Release engine"
-            garage.release(engine) do |reply_msg|
-              info "Engine #{reply_msg[:res_id]} released"
-              OmfCommon.comm.disconnect
-            end
+            release_engine(garage, engine)
           end
         else
           error ">>> Resource creation failed - #{reply_msg[:reason]}"
@@ -213,12 +223,24 @@ Engine test script
       end
     end
 
-    OmfCommon.init(:development, communication: { url: 'xmpp://lima:pw@localhost' }) do
+    def release_engine(garage, engine)
+      info ">>> Release engine"
+      # Only parent (garage) can release its child (engine)
+      #
+      garage.release(engine) do |reply_msg|
+        info "Engine #{reply_msg[:res_id]} released"
+        OmfCommon.comm.disconnect
+      end
+    end
+
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
       OmfCommon.comm.on_connected do |comm|
         info "Engine test script >> Connected to XMPP"
 
         comm.subscribe('garage') do |garage|
           unless garage.error?
+            # Now calling create_engine method we defined, with newly created garage topic object
+            #
             create_engine(garage)
           else
             error garage.inspect
@@ -230,7 +252,9 @@ Engine test script
       end
     end
 
-Output:
+While garage controller is running, execute this script and check the output
+
+**Console output**
 
     13:20:50  INFO XMPP::Communicator: Connecting to 'localhost' ...
     13:20:50  INFO Object: Engine test script >> Connected to XMPP
@@ -247,26 +271,6 @@ Output:
     13:20:59  INFO Object: Engine xmpp://1e1c5fd6-6d7a-4375-a48c-9dddbdf05394@interlagos released
     13:20:59  INFO XMPP::Communicator: Disconnecting ...
 
-#### Resource controller script skeleton
-
-Firstly, we need a resource controller script running, which contains some instances of resource proxy represents 'garage', we can then use resource factory method to create such
-
-    OmfRc::ResourceFactory.create(:garage, {uid: 'garage_1', server: 'localhost', user: 'alpha', password: 'pw'})
-
-This does following behind the scene
-
-* Extend the instance with resource proxy module named 'garage' (should be defined first).
-* If additional options provided for pubsub communicator, a communicator instance will be created and attached to this resource proxy instance.
-* If before\_ready hook provided in the module, they will be executed.
-
-Refer to {OmfRc::ResourceFactory} for implementation.
-
-All we need to do to start is in the main eventmachine loop, ask the garage resource to connect
-
-    garage = OmfRc::ResourceFactory.create(:garage, options)
-    garage.connect
-
-
 ### Step 4: Add more features to garage engine proxies
 
 Now we are going to add some real features to these modules.
@@ -275,15 +279,13 @@ The DSL methods will normally take a name parameter, and a block which be will b
 
 An optional yielded variable could used if your actions inside the block need access inside the context of resource proxy itself, i.e. getting or updating the instance object where this mixin module will be applied to.
 
-Normally we don't need to record the state of a real resource inside our resource proxy entities (e.g. the available memory of a running physical machine). In case you need to maintain the state, resource proxy abstract class provides a :property attribute (which is a [Hashie::Mash] (https://github.com/intridea/hashie#mash) object), for keeping these information inside the instances.
+Normally we don't need to record the state of a real resource inside our resource proxy entities (e.g. the available memory of a running physical machine). In case you need to maintain the state, resource proxy abstract class provides a :property attribute, for keeping these information inside the instances.
 
 ![Configure engine property](images/tutorial_step_4.png)
 
-#### Modified Proxy:
+**Modified Proxy**
 
-    require 'rubygems'
     require 'omf_rc'
-    require 'omf_rc/resource_factory'
 
     module OmfRc::ResourceProxy::Garage
       include OmfRc::ResourceProxyDSL
@@ -321,7 +323,7 @@ Normally we don't need to record the state of a real resource inside our resourc
       end
     end
 
-#### Engine test:
+**Engine test**
 
     require 'rubygems'
     require 'omf_common'
@@ -387,7 +389,7 @@ Normally we don't need to record the state of a real resource inside our resourc
       end
     end
 
-#### Test output:
+**Test output**
 
     15:52:32  INFO XMPP::Communicator: Connecting to 'localhost' ...
     15:52:32  INFO Object: Engine test script >> Connected to XMPP
@@ -434,9 +436,24 @@ Normally we don't need to record the state of a real resource inside our resourc
 
 ### Step 5: Hooks
 
+OMF allow you to define hook callbacks, which basically can be called at certain stage of the operation.
+
+Currently the system supports these hooks:
+
+**Execute in parent resource**
+
+* before\_create, called before parent creates the child resource. (in the context of parent resource)
+* after\_create, called after parent creates the child resource.
+
+**Execute in child resource**
+
+* before\_ready, called when a resource created, before creating an associated pubsub topic
+* before\_release, called before a resource released
+* after\_initial\_configured, called after child resource created, and initial set of properties have been configured.
+
 ![Hooks](images/tutorial_step_5.png)
 
-#### Proxy with hooks
+**Proxy with hooks**
 
     require 'rubygems'
     require 'omf_rc'
@@ -489,7 +506,7 @@ Normally we don't need to record the state of a real resource inside our resourc
       end
     end
 
-#### Engine test:
+**Engine test**
 
     require 'rubygems'
     require 'omf_common'
@@ -537,7 +554,7 @@ Normally we don't need to record the state of a real resource inside our resourc
       end
     end
 
-#### Proxy output:
+**Proxy output**
 
     15:33:03  INFO XMPP::Communicator: Connecting to 'localhost' ...
     15:33:03  INFO Object: Garage controoler >> Connected to XMPP server
@@ -561,13 +578,13 @@ That is the end of the tutorial
 
 ## Advanced topics
 
-## Organise resource proxy modules
+### Organise resource proxy modules
 
-### Define inline
+**Define inline**
 
 If you have a rather simple resource controller, with minimal set of features, like the ones described in this tutorial, you could just define these modules as part of the RC script.
 
-### Include resource proxy modules in the default package
+**Include resource proxy modules in the default package**
 
 The default location of resource proxy definition files are located in the directory [omf\_rc/lib/omf\_rc/resource\_proxy](https://github.com/mytestbed/omf/tree/master/omf_rc/lib/omf_rc/resource_proxy).
 
@@ -579,7 +596,7 @@ To load these default resource proxies, simple call a load method provided by Re
 
 Commit your definition files into the git repository and simply send us a pull request.
 
-### Package your proxy definition files as OMF extension gem
+**Package your proxy definition files as OMF extension gem**
 
 You could also package your proxy definition files into separate gems, if you feel they should not go into the default RC package.
 
@@ -607,23 +624,13 @@ Then include this utility inside the engine resource proxy file by using:
 
 You could also overwrite a property definition provided by the utility, by registering it again using the same name.
 
-## Full DSL methods list
-
-In the previous example, we use method register\_proxy to register resource proxy, request to provide property to be requested, etc. They are all part of resource proxy DSL, and provided by included module resource\_proxy\_dsl.
-
-    include OmfRc::ResourceProxyDSL
-
-The full list of resource proxy DSL can be found here:
-### {OmfRc::ResourceProxyDSL::ClassMethods Resource Proxy DSL API}
-
-## More RC tutorials
+## Additional Resource Controller tutorials
 
 {file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}
 {file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}
 
+## Contributing to OMF
 
-## Contributing
-
-Contribute to OMF project? Please refer to this document for some notes:
+Ready to be part of OMF project? Please refer to this document for some guidelines:
 
 {file:doc/CONTRIBUTING.mkd}
