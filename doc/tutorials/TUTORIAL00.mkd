@@ -34,9 +34,11 @@ The experiment description (aka script) is:
 **Experiment Scenario**
 
 - This simple experiment involves a single resource of type PC, which has a
-network interface connected to the Internet (or any LAN with other hosts).
+active network interface.
 In this experiment, we will instruct that resource to start an instance of
-the 'ping-oml2' application to probe another host on the network.
+the 'ping-oml2' application to probe another host on the network attached
+to that interface (e.g. another host on the Internet, the LAN, or the 
+resource's itself).
 
 - This 'ping-oml2' application is a wrapper around the traditional ping 
 application. It captures the ping outputs and sends them as measurement
@@ -142,7 +144,7 @@ in order to realize that experiment. An ED is written using the
 OMF Experiment Description Language (OEDL).
 
 The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial00.rb tutorial00.rb}. It is composed of 3 distinct
-parts, described in the following listing and paragraphs below.
+parts, described in the following listing and subsections below.
 
     # A. Define an OMF Application Definition for the ping-oml2 application
     # The OMF entities are using this definition to know where to find the
@@ -213,18 +215,39 @@ parameters they have, or what measurements they can collect. All this
 information is provided in the block of instructions defined between the
 'do' and 'end' markers following the 'defApplication' commands:
 
+    defApplication('ping_oml2') do |app|
+      app.description = 'Simple Definition for the ping-oml2 application'
+      ...
+    end
+
 - first we provided the path for the application itself 
 (i.e. app.binary_path = '/usr/bin/ping-oml2')
+
+        app.binary_path = '/usr/bin/ping-oml2'
+
 - then we define all the configurable command line parameters of the 
 application, that we would like to configure within OMF. This is done using
 the 'defProperty' command for each parameter. In this example, we are only 
 interested in interacting with 2 parameters of the application, namely the ones
 referred to as '-a' and '-c' on the command, which correspond to the target
 host to ping and the number of pings to send, respectively.
+
+        # /usr/bin/ping-oml2 -a foo.com -c 2
+        app.defProperty('target', 'Address to ping', '-a', {:type => :string})
+        app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
+
 - finally we define all the OML2 measurement points (MP) that this application
 has (if any). In this example we have only one MP named 'ping'. If that MP
 is activated (i.e. we want it to collect measurement), it will provide a
 serie of 4-tuple samples
+
+        # sample from this MP will be composed of a 4-tuples (addr,ttl,rtt,rtt_unit)
+        app.defMeasurement('ping') do |m|
+          m.defMetric('dest_addr',:string)
+          m.defMetric('ttl',:uint32)
+          m.defMetric('rtt',:double)
+          m.defMetric('rtt_unit',:string)
+        end
 
 It is important to note that this Application Definition is only informative
 for OMF, i.e. it is only a description of what the real application has to 
@@ -244,6 +267,10 @@ single resource 'omf6.nicta.node8'.
 please change 'omf6.nicta.node8' in the ED to the actual name of your 
 own resource.
 
+    defGroup('Sender', 'omf6.nicta.node8') do |g|
+      ...
+    end
+
 When we define a group, we can associate configuration settings and
 applications to all members of that group. In this example, we only associate a
 one application to the single member of the 'Sender' group. This is done using
@@ -257,333 +284,272 @@ instructions following the 'addApplication' command. In this example, we
 - request the application to collect every measurement samples that the
 'ping' measurement point will produce
 
-### 3C. Group/Resource Definition
+        g.addApplication("ping_oml2") do |app|
+          app.setProperty('target', 'www.nicta.com.au')
+          app.setProperty('count', 3)
+          app.measure('ping', :samples => 1)
+        end
 
+### 3D. Event Definition
 
+An experiment in OMF is fully event driven. This means that to perform an 
+experiment, you as the experimenter have to define:
 
+- sets of events that may be triggered during the course of the experiment execution
+- sets of consecutive tasks to perform when each of these events are 
+triggered
 
-Resource Description and Configuration (Line 1 to 26)
+For example, your experiment might involve 2 events: 
 
--   **Line 1**: we define a new group of resources, called `Sender`.
-    This group includes a unique node, which is identified by a unique
-    id: `omf.nicta.node2`.
+- 'when my PC node is ready' and 
+- 'when my application has finished running'. You would then a
 
--   **Line 2-7**: we associate an existing application called
-    `test:app:otg2` to this group. This application will be installed
-    and run on each node of this group (here, only `omf.nicta.node2`).
-    In this tutorial, this application is already installed on the
-    baseline disk image, which you previously loaded on the node. This
-    application is a simple traffic generator, which by default
-    generates fixed-sized UDP packets at a constant bitrate.
-    -   More precisely:
-        -   Line 3: we set the parameter `udp:local_host` of the
-            application to the IP address that we give to the
-            experimental interface of `omf.nicta.node2` (i.e the sender)
-        -   Line 4: we set the parameter `udp:dst_host` of the
-            application to the IP address that we give to the
-            experimental interface of `omf.nicta.node3` (i.e. the
-            receiver)
-        -   Line 5: we set the parameter `udp:dst_port` of the
-            application to the port that node `omf.nicta.node3` will
-            listen on
-        -   Line 6: we request the collection of the measurements from
-            the `udp_out` Measurement Point provided by the application,
-            at a regular interval of 3 sec
+You would then associate the following tasks to each of these events:
 
--   **Line 8-12**: we configure some properties for this group, i.e. all
-    the nodes in this group will share these properties (here, only node
-    `omf.nicta.node2`)
-    -   More precisely:
-        -   Line 8: the first wireless interface (named `w0`) of the
-            node is placed in `ad-hoc` mode
-        -   Line 9: this same interface is configured to operate in
-            802.11g type
-        -   Line 10: this same interface is configured to operate on
-            channel `6`
-        -   Line 11: the Extended Service Set ID (ESSID) of this
-            interface is set to `helloworld`
-        -   Line 12: finally, the IP address of this interface is set to
-            `192.168.0.2`
+- 'configure my application on my PC node and start it'
+- 'do some cleanup, send me an email, and switch off my PC node'
 
--   **Line 15-26**: we define a similar group, called `Receiver`, which
-    will only include node `omf.nicta.node3` running the existing
-    application `test:app:otr2`. This application is a simple traffic
-    sink, which should also be installed on the baseline disk image.
-    Similar to the previous OTG2 applications, we further set properties
-    for OTR2, and request the data from the `udp_in` Measurement Points
-    to be captured. We also configure the interface of the nodes in this
-    group in a similar manner as for the `Sender` group.
+For your convenience, the OMF EC already defines by default a set of common
+events that are useful to many experiments. For example, these default 
+defined events are:
 
--   **Note**:
-    -   More details about how to define groups and topologies, or
-        configure resources can be found on the [[other tutorial
-        pages]].
-    -   More details about all the available options of the above
-        `defGroup`, `addApplication`, etc… commands can be found on the
-        [[The\_Experiment\_Controller\_API|OEDL reference pages]].
+- *:ALL_UP* - triggered when all resources in all the defined groups have 
+contacted the EC and ready to participate in the experiment
+- *:ALL_INTERFACE_UP* - triggered when all the network interfaces, which were
+configured within this experiment are in their 'up' active state
+- *:ALL_UP_AND_INSTALLED* - triggered when all the resources are 'ALL_UP' and
+all the applications associated to them are installed and ready to be started
 
-### 3.2 Event-based Action Descriptions (Line 28 to 37)
+For these default EC-defined event, there is no need for you to redefine them
+in your ED. The only thing that you have to do is define the set of tasks 
+you would like to perform when one of these events triggers. In this tutorial
+we define a set of tasks to perform when the *:ALL_UP_AND_INSTALLED* event
+is triggered, using the 'onEvent' command:
 
-OMF uses an event-based approach to describe the different actions
-required to perform during an experiment. Basically, you can define
-events and the sets of actions to execute when they are triggered.
-Events can be characterise by many different conditions. For example, an
-event can be “when nodes in group X are all powered ON”, or “when
-measured data Z reaches a threshold X”, or “when interface of node Y is
-configured”, …
+    onEvent(:ALL_UP_AND_INSTALLED) do |event|
+      ...
+    end
 
-In this simple experiment, we are only interested in 1 event, which is
-`:ALL_UP_AND_INSTALLED` = “when all the nodes are ON, and all the
-required applications are installed on them”.
+The set of consecutive tasks that we define are:
 
-OMF comes with a set of default events, which have already been defined
-for you, and `:ALL_UP_AND_INSTALLED` is one of them. All we have to do
-here is specify the tasks that we would like to do when that event
-occurs, which is the call to `onEvent(...)` on line 26.
+- print some information message (using the 'info' command)
+- start all the applications associated with all the groups (using the 'startApplications' command on the 'allGroups' accessor)
+- wait for 5 seconds
+- stop all the applications associated with all the groups
 
--   **Line 28-37**: here we declare what to do when the event
-    `:ALL_UP_AND_INSTALLED` happens:
-    -   line 29, 32, 35: print some messages on the standard output when
-        our experiment is running
-    -   Line 30: instruct the controller to pause for 10 sec
-    -   Line 31: tell all the Groups of this experiment to start all the
-        applications associated to them. In this tutorial, this command
-        will tell all the nodes in the groups “Sender” and “Receiver” to
-        start their associated applications.
-    -   Line 33: wait for 30 sec. Basically, here we are giving time for
-        UDP traffic to be exchanged from “Sender” to “Receiver”. This is
-        in fact the experiment.
-    -   Line 34: tell all the Groups to stop all the applications
-        running on all the nodes associated to them.
-    -   Line 36: declare the end of the Experiment. This will trigger
-        some “cleaning” actions on the nodes (e.g. turn off the network
-        interfaces, stop receiving commands for this experiment, etc…)
+        info "This is my first OMF experiment"
+        allGroups.startApplications
+        wait 5
+        allGroups.stopApplications
 
--   **Note**:
-    -   More details about how to define other states or actions to
-        perform within them can be found on the [[other tutorial
-        pages]].
-    -   More details about all the available options of the above
-        commands can be found on the
-        [[The\_Experiment\_Controller\_API|OEDL reference pages]].
+As OMF experiment are fully event driven, you have to explicitly tell the OMF
+EC when to terminate the experiment! Otherwise, it will keep waiting for more
+events to happen, and of course if nothing else change in your experiment after
+that, you may never see the EC software stopping. To explicitly tell the EC
+to terminate the experiment, we use the following command which can be placed
+in any event-tasks definition as you design your experiment:
+
+      Experiment.done
+
+If you would like more information on defining your own custom events, please
+read our [User-Defined Event Tutorial]()
 
 4. Running the “Hello World” Experiment
 ---------------------------------------
 
-### 4.1. How do you run it?
+### 4A. How do you run it?
 
-Please refer to the above Section 2 to find out how to access an
-OMF-enabled testbed and how to reserve resources on it, if necessary.
-The rest of this section assumes that you are using an NICTA or WINLAB
-testbeds, and that you have installed a baseline image on your resources
-(i.e. NICTA’s and WINLAB’s baseline image have the applications OTG2 and
-OTR2 pre-installed).
+Assuming that you have checked all the prerequisite points in the above 
+section 2, and that you have the EC software installed on your own computer,
+then to run your experiment you have to:
 
-The command line `omf exec` invokes the Experiment Controller (EC)
-application, which will be orchestrating the experiment execution on
-your behalf. As explained on the [[An\_Introduction\_to\_OMF|OMF
-Introduction page]], the EC will interprets your ED and send commands to
-the various Resource Controllers (RCs) and Aggregate Manager (AM)
-related to the resources in your experiment. These commands will
-configure the resources and instruct them to perform actions.
+- save its description in a file on your computer, thus either
+  - cut-and-paste the above ED listing into a new file named 'tutorial00.rb'
+  - download the ED directly: 
+{file:doc/tutorials/tutorial01.rb tutorial00.rb} 
 
--   First you need to create an file, which will hold your experiment
-    description:
-    -   use your favorite editor to create a new file in your home
-        directory on the console of the testbed (e.g. `hello-world.rb`)
-    -   cut-and-paste the above “Hello World” ED into this file and save
-        it.
+- open a terminal and navigate to the folder/directory where you saved that file
+- start the EC software and tell it to execute the experiment described in your ED file, using the command line:
 
--   Now invoke the EC to run your experiment
+        omf_ec -c xmpp://usr:pwd@srv exec --oml_uri tcp:srv:port tutorial00.rb
 
-<!-- -->
+  - **replace** *xmpp://usr:pwd@srv* with the credentials for your user on the
+  xmpp pubsub server that is used to communicate with the resources
+  - **replace** *tcp:srv:port* with the hostname/IP and port of the OML2 server
+  which will collect the experiment's measurement
 
-    omf-<version> exec hello-world.rb
+- So **only for example**, if you are using the username 'foo' and the password
+'bar' to connect to the xmpp pubsub server 'my_xmpp.com' and if you
+furthermore want to use the OML2 server with hostname 'my_oml.com at port
+3003 to collect the measurement of your experiment, then you would use the 
+command:
 
--   You can use the command `omf-<version> help exec` to get a full list
-    of options for the `omf-<version> exec` command.
+        omf_ec -c xmpp://foo:bar@my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 tutorial00.rb
 
-### 4.2. What you should see on the console:
+If you would like to know more about the other options of the OMF EC software
+please run the commands:
+
+        omf_ec help
+        omf_ec help exec
+
+
+### 4B. What will happen next?
 
 When running the EC with the above command, you should see an output
-similar to this (note that in this particular instance, we are using
-node28 and node29):
+similar to this:
 
-    <code class="text">
-     INFO NodeHandler: OMF Experiment Controller 5.4
-     INFO NodeHandler: Slice ID: testing_slice (default)
-     INFO NodeHandler: Experiment ID: testing_slice-2010-09-03t09.41.43+10.00
-     INFO NodeHandler: Message authentication is disabled
+      INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
+      INFO  Object: Connected
+      INFO  Object: Start experiment: 2013-03-14T03:48:48Z
+      INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
+      INFO  OmfEc: Subscribed to omf6.nicta.node8
+      INFO  OmfEc: Config omf6.nicta.node8 to join Sender
+      INFO  OmfEc: Newly discovered resource >> omf6dev.node8
+      INFO  OmfEc: Event triggered: 'ALL_UP'
+      INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
+      INFO  OmfEc: Resource xmpp://bd9c68d5-1469-41a0-9a33-4bdba501f7b0@norbit.npc.nicta.com.au created
+      INFO  OmfEc: Newly discovered resource >> bd9c68d5-1469-41a0-9a33-4bdba501f7b0
+      INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
+      INFO  Object: This is my first OMF experiment
+      INFO  Object: Request from Experiment Script: Wait for 10s....
+      WARN  Object: Calling 'wait' or 'sleep' will block entire EC event loop. Please try 'after' or 'every'
+      INFO  OmfEc: APP_EVENT STARTED from app ping_oml2_cxt_0 - msg: env -i /usr/bin/ping-oml2 -a www.nicta.com.au -c 3 --oml-config /tmp/bd9c68d5.xml
+      INFO  OmfEc: APP_EVENT STDERR from app ping_oml2_cxt_0 - msg: INFO ping-oml2 2.9.0-dirty
+      INFO  OmfEc: APP_EVENT STDERR from app ping_oml2_cxt_0 - msg: INFO OML4R Client V2.9.0.1 [Protocol V3] Copyright 2009-2012, NICTA
+      INFO  OmfEc: Exit in up to 15 seconds...
+      INFO  OmfEc: APP_EVENT STDERR from app ping_oml2_cxt_0 - msg: INFO Collection URI is tcp:norbit.npc.nicta.com.au:3003
+      INFO  OmfEc: APP_EVENT STDOUT from app ping_oml2_cxt_0 - msg: 64 bytes from 221.199.217.18: icmp_req=1 ttl=62 time=0.000 ms
+      INFO  OmfEc: APP_EVENT STDOUT from app ping_oml2_cxt_0 - msg: 64 bytes from 221.199.217.18: icmp_req=1 ttl=62 time=0.000 ms
+      INFO  OmfEc: APP_EVENT STDOUT from app ping_oml2_cxt_0 - msg: 64 bytes from 221.199.217.18: icmp_req=1 ttl=62 time=0.000 ms
+      INFO  OmfEc: APP_EVENT DONE.OK from app ping_oml2_cxt_0 - msg: status: pid 2065 exit 0
+      INFO  OmfEc: Release applications and network interfaces
+      INFO  OmfEc: Subscribed to bd9c68d5-1469-41a0-9a33-4bdba501f7b0
+      INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
+      INFO  XMPP::Communicator: Disconnecting ...
 
-     INFO Experiment: load system:exp:stdlib
-     INFO property.resetDelay: value = 210 (Fixnum)
-     INFO property.resetTries: value = 1 (Fixnum)
-     INFO Experiment: load system:exp:eventlib
-     INFO Experiment: load hello-world.rb
-     INFO Topology: Loading topology 'omf.nicta.node28'.
-     INFO Topology: Loading topology 'omf.nicta.node29'.
-     INFO ALL_UP_AND_INSTALLED: Event triggered. Starting the associated tasks.
-     INFO exp: This is my first OMF experiment
-     INFO exp: Request from Experiment Script: Wait for 10s....
-     INFO omf.nicta.node29: Device 'net/w0' reported 02:0B:6B:57:BA:04
-     INFO omf.nicta.node28: Device 'net/w0' reported 02:0B:6B:57:BA:04
-     INFO exp: All my Applications are started now...
-     INFO exp: Request from Experiment Script: Wait for 30s....
-     INFO exp: All my Applications are stopped now.
-     INFO EXPERIMENT_DONE: Event triggered. Starting the associated tasks.
-     INFO NodeHandler: 
-     INFO NodeHandler: Shutting down experiment, please wait...
-     INFO NodeHandler: 
-     INFO run: Experiment testing_slice-2010-09-03t09.41.43+10.00 finished after 1:36
+The above screen output was optained when running the EC on the NICTA testbed,
+with the experiment described in 
+{file:doc/tutorials/tutorial01.rb tutorial00.rb} 
+and using the resource named 'omf6.nicta.node8'
 
-    </code>
+### 4C. What does that screen output mean?
 
--   Line 1-5: some information about the EC and your experiment:
-    -   line 1: the EC’s version & revision number
-    -   line 2: the name of your slice, here: `testing_slice`
-    -   line 3: the ID of your experiment, here:
-        `testing_slice-2010-09-03t09.41.43+10.00`
-    -   line 4: the EC says that it is running without message
-        authentication
+Here is a brief explanation of the output messages displayed by the EC above:
 
--   Line 6-12: some information about the properties of your experiment
+- First the EC provides us with some information about the parameters of
+this experiment (ID, xmpp server used, resource used,...):
 
--   Line 13: indicates that the `:ALL_UP_AND_INSTALLED` event has been
-    triggered, thus the EC will now execute the commands declared in the
-    associated `onEvent` block, which we described in the above ED
--   Line 15: indicates that your experiment is waiting for 10sec as you
-    requested in the ED
--   Line 16-17: some information coming directly from the nodes in your
-    experiment, here the nodes say that their wireless interface `w0`
-    joined the BSSID identified by the address `02:0B:6B:57:BA:04`
--   Line 18-20: some information about the execution of your experiment
--   Line 21: indicates that your experiment has reached the
-    Experiment.Done statement in the ED, i.e. the event
-    `:EXPERIMENT_DONE` has been triggered
+        INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
+        INFO  Object: Connected
+        INFO  Object: Start experiment: 2013-03-14T03:48:48Z
+        ...
+        INFO  OmfEc: Subscribed to omf6.nicta.node8
+        INFO  OmfEc: Config omf6.nicta.node8 to join Sender
 
--   **Note**:
-    -   your experiment will generate a log file, which will be located
-        at: `/tmp/Your_Experiment_ID.log`
-    -   the EC in your experiment will also keep a XML tree describing
-        the state of your experiment, which will be located at
-        `/tmp/Your_Experiment_ID-state.xml`
+- It also provides us some feedback about its communication with the xmpp
+server and other OMF entities:
+
+        ...
+        INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
+        INFO  OmfEc: Subscribed to omf6.nicta.node8
+        ...
+        INFO  OmfEc: Newly discovered resource >> omf6dev.node8
+        ...
+        INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
+        ...
+        INFO  OmfEc: Newly discovered resource >> bd9c68d5-1469-41a0-9a33-4bdba501f7b0
+        ...
+        INFO  OmfEc: Subscribed to bd9c68d5-1469-41a0-9a33-4bdba501f7b0
+        INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
+        INFO  XMPP::Communicator: Disconnecting ...
+
+- Then it also informs us when a defined event has been triggered:
+
+        ...
+        INFO  OmfEc: Event triggered: 'ALL_UP'
+        ...
+        INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
+        ...
+
+- Finally, when an event is triggered (such as ALL_UP_AND_INSTALLED), it
+informs us about the tasks executed for that event, and their 
+results/outputs:
+
+        ...
+        INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
+        INFO  Object: This is my first OMF experiment
+        INFO  Object: Request from Experiment Script: Wait for 10s....
+        WARN  Object: Calling 'wait' or 'sleep' will block entire ...
+        INFO  OmfEc: APP_EVENT STARTED from app ping_oml2_cxt_0 - ...
+        INFO  OmfEc: APP_EVENT STDERR from app ping_oml2_cxt_0 - msg: INFO ping-oml2 2.9.0-dirty
+        INFO  OmfEc: APP_EVENT STDERR from app ping_oml2_cxt_0 - msg: INFO OML4R Client V2.9.0.1 [Protocol V3] Copyright 2009-2012, NICTA
+        INFO  OmfEc: Exit in up to 15 seconds...
+        INFO  OmfEc: APP_EVENT STDERR from app ping_oml2_cxt_0 - msg: INFO Collection URI is tcp:norbit.npc.nicta.com.au:3003
+        INFO  OmfEc: APP_EVENT STDOUT from app ping_oml2_cxt_0 - msg: 64 bytes from 221.199.217.18: icmp_req=1 ttl=62 time=0.000 ms
+        INFO  OmfEc: APP_EVENT STDOUT from app ping_oml2_cxt_0 - msg: 64 bytes from 221.199.217.18: icmp_req=1 ttl=62 time=0.000 ms
+        INFO  OmfEc: APP_EVENT STDOUT from app ping_oml2_cxt_0 - msg: 64 bytes from 221.199.217.18: icmp_req=1 ttl=62 time=0.000 ms
+        INFO  OmfEc: APP_EVENT DONE.OK from app ping_oml2_cxt_0 - msg: status: pid 2065 exit 0
+        ...
+
 
 5. Accessing the Results from the Experiment
 --------------------------------------------
 
-In the above ED, we requested the collection of measurements from two
-Measurement Points (MP):\
-\* the `udp_out` MP provided by the OTG2 application \
-\* the `udp_in` MP provided by the OTR2 application
+During the execution of the above experiment script, the ping-oml2 application
+has collected some measurement, as we requested it to do, and sent them to
+the OML2 server that we selected (the --oml-uri option of the EC command line).
 
-Thus, while the experiment was running, these applications were
-forwarding measurements to the OML framework (refer to the
-[[An\_Introduction\_to\_OMF\#OMLIntro|OMF Introduction page]] for more
-details). The OML server stored these measurements in a SQL database.
+### How do you access the measurements?
 
-### 5.1 How do you access the measurement database after the experiment stops?
+This depends on how the OML2 server which received your measurment is set up.
+Indeed the collection point for your measurement (OML2 server) can be
+configured to use either a SQLite3 or a PostgreSQL, moreover additional tools
+could have been put in place by your testbed operators to faciliate the
+access to the resulting database.
 
-Currently the collected measurements are stored in a SQLite database,
-which is located on the server that runs the OML Measurement Collection
-Server. For each new experiment execution, an measurement database is
-created with the same name as the Experiment ID. In this example, the
-experiment database has the name
-`testing_slice-2010-09-03t09.41.43+10.00`.
+For a detailed description of OML2 server's configuration modes, please
+refer to [the OML2 Documentation]
+(http://mytestbed.net/projects/oml/wiki)
 
-Every OMF installation has one or more Aggregate Manager(s) providing a
-range of services to manage the testbed resources. One of these services
-is called *result*, and as its name implies, it provides an easy access
-to experiment results. One of the possible ways to access your result
-database, is to request a database dump of it from the *result* AM
-service.
+Here is a short example on how you would access your data if you used
+the NICTA testbed:
 
--   First, find out the hostname and port of the *result* AM service on
-    your OMF-enalbed testbed
-    -   For NICTA, this service is running on the console of your
-        testbed. Its host & port are: “localhost:50<version_compact>”
-    -   For WINLAB, this services is running on the server at the host &
-        port: “oml:50<version_compact>”
+- assuming that the OML2 server was running on the host 'my_oml.com' and was configured to use SQLite3 and store the databases in '/var/lib/oml2/'
+- first you need to get access to a console on that host, assuming you have
+an account 'foo' with the password 'bar':
 
--   To request a dump of your result database from the console:
+        ssh foo@my_oml.com  # the enter the password 'bar'
 
-<!-- -->
+- then you use the sqlite3 command to access your experiment database, which
+is in the file *your_experiment_id.sq3*. Thus assuming the experiment ID above
+(2013-03-14T03:48:48Z):
 
-    ## At NICTA
-    wget "http://localhost:50<version_compact>/result/dumpDatabase?expID=testing_slice-2010-09-03t09.41.43%2B10.00" -O myDatabase
+        sqlite3 /var/lib/oml2/2013-03-14T03:48:48Z.sq3
 
-    ## At WINLAB
-    wget "http://oml:50<version_compact>/result/dumpDatabase?expID=testing_slice-2010-09-03t09.41.43%2B10.00" -O myDatabase
+For more information on SQLite3, please refer to its [documentation website]
+(http://www.sqlite.org/docs.html)
 
--   Note that as we are using an HTTP interface in this example and our
-    experiment ID has a “+” in this example, we need to escape it with
-    is ascii code “%2B”
+### How do I display my measurements in some nice graphs?
 
--   You should now have a file named “myDatabase” which is a SQLite dump
-    of your result database.
+We have a separate tool named **omf_web** which allows you to build
+some custom visualisation of the data collected within your experiment and
+display them within your Internet browser. For more information on how to
+use that tool, please refer to the [omf_web documentation]
+(https://github.com/mytestbed/omf_web)
 
--   You can open this database, an run queries on it (refer to the
-    [SQLITE3](http://www.sqlite.org) website for more information on how
-    to do this)
 
-<!-- -->
+6. What should I do next?
+-------------------------
 
-    sqlite3 -init myDatabase myDatabase.sq3
+We will soon release more tutorials on how to use all the features of OMF6
+from the experimenter's perspective.
 
--   Alternatively, you may want to install the “SQLite manager”
-    extension for the Firefox browser from
-    [here](https://addons.mozilla.org/en-US/firefox/addon/5817/) . It
-    allows you to open the SQLite binary database file or the dump file
-    directly and gives you various options for viewing your results and
-    exporting them into other formats such as comma-separated or XML.
+In the meantime, you may have a look at the OMF 5.4 documentation, which
+will not completely accurate and applicable to OMF 6, would still give you
+some ideas of the features available for experimenters.
 
--   Note: the *result* AM service provides more functions than just
-    “dump a database”, a list of its other functions is available on
-    [[AM\_Services\_Result|the Result AM page]].
-
--   Also please refer to the [[oml:|OML Documentation pages]] to learn
-    more about the different tables and fields in any OML generated
-    measurement database
-
-Another way to access experiment result is to use the omf-web-basic
-program from the omf\_web gem to launch a web interface where you can
-browse data and view line graph visualisation. The interface looks like
-this:
-
-![](/attachments/609/2012-02-08-132036_686x744_scrot.png)
-
-Please go to this page for more detailed instructions: [[Experiment
-Visualisation]].
-
-6. What is Next?
-----------------
-
-Now that you know how to develop and run a simple experiment, you may
-want to read the following basic OMF tutorials. Each one of them is
-introducing an OMF feature, using this simple “Hello World” experiment
-as a base. You do not need to follow them in the order suggested below.
-
--   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
-    and change them at run-time]]
-
--   [[BasicTutorialStage2-5-3|How to configure or address all resources
-    within a defined group, and use simple substitutions]]
-
--   [[BasicTutorialStage3-5-3|How to use your own or a 3rd party
-    application with OMF]]
-
--   [[BasicTutorialStage4-5-3|How to use Measurement Filters to
-    customise your Measurement]]
-
--   [[BasicTutorialStage5-5-3|How to use Prototypes to specify
-    particular Applications]]
-
--   [[BasicTutorialStage6-5-3|How to save a disk image]]
-
--   [[BasicTutorialStage7-5-3|How to load a disk image]]
-
-And finally, a “Conference Room” scenario which combines all of the
-above features:
-
--   [[BasicTutorialStage8-5-3|The Conference Room tutorial]]
-
-* * * * *
+Finally, if you have any questions on how to use OMF 6 or any problem running
+this 'Hello World' tutorial, please join the [OMF Mailing List]
+(https://lists.nicta.com.au/wws/info/omf-user)
+and [Post Your Questions There]
+(https://lists.nicta.com.au/wws/info/omf-user)
