@@ -93,7 +93,7 @@ module OmfRc::ResourceProxyDSL
     #    # * resource: the parent resource itself
     #    # * new_resource: the child resource instance
     #    hook :after_create do |resource, new_resource|
-    #      logger.info "#{resource.uid} created #{new_resource.uid}
+    #      logger.info "#{resource.uid} created #{new_resource.uid}"
     #    end
     #
     #    # before_ready hook

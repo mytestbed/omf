@@ -273,17 +273,13 @@ While garage controller is running, execute this script and check the output
 
 ### Step 4: Add more features to garage engine proxies
 
-Now we are going to add some real features to these modules.
-
-The DSL methods will normally take a name parameter, and a block which be will be executed at the runtime.
-
-An optional yielded variable could used if your actions inside the block need access inside the context of resource proxy itself, i.e. getting or updating the instance object where this mixin module will be applied to.
-
-Normally we don't need to record the state of a real resource inside our resource proxy entities (e.g. the available memory of a running physical machine). In case you need to maintain the state, resource proxy abstract class provides a :property attribute, for keeping these information inside the instances.
+Now we are going to add a feature of controlling throttle to the engine proxy, so that we can apply different level of throttle and monitor engine's RPM value.
 
 ![Configure engine property](images/tutorial_step_4.png)
 
-**Modified Proxy**
+To allow this, we need to update our garage controller to allow configuring throttle, and provide some simple RPM calculation.
+
+**Modified garage proxy**
 
     require 'omf_rc'
 
@@ -300,32 +296,43 @@ Normally we don't need to record the state of a real resource inside our resourc
 
       property :manufacturer, :default => "Cosworth"
       property :max_rpm, :default => 12500
+      # Add additional property to store rpm and throttle
+      #
       property :rpm, :default => 1000
       property :throttle, :default => 0
 
       hook :before_ready do |engine|
+        # Constantly calculate RPM value, rules are:
+        #
+        # * Applying 100% throttle will increase RPM by 5000 per second
+        # * Engine will reduce RPM by 500 per second when no throttle applied
+        #
         OmfCommon.eventloop.every(2) do
           engine.property.rpm += (engine.property.throttle * 5000 - 500).to_i
           engine.property.rpm = 1000 if engine.property.rpm < 1000
         end
       end
 
+      # Then we simply register a configure property handler for throttle,
+      # We expect a percentage value received and convert into decimal value
+      #
       configure :throttle do |engine, value|
         engine.property.throttle = value.to_f / 100.0
       end
     end
 
-    OmfCommon.init(:development, communication: { url: 'xmpp://delta:pw@localhost' }) do
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
       OmfCommon.comm.on_connected do |comm|
         info "Garage controoler >> Connected to XMPP server"
-        garage = OmfRc::ResourceFactory.create(:garage, uid: 'garage', hrn: 'my_garage')
+        garage = OmfRc::ResourceFactory.create(:garage, uid: 'garage')
         comm.on_interrupted { garage.disconnect }
       end
     end
 
+We then modify the engine test script to configure throttle, and request RPM values.
+
 **Engine test**
 
-    require 'rubygems'
     require 'omf_common'
 
     def create_engine(garage)
@@ -351,13 +358,16 @@ Normally we don't need to record the state of a real resource inside our resourc
       info "> Now we will apply 50% throttle to the engine"
       engine.configure(throttle: 50)
 
+      # Every 2 seconds, we send a request to engine, request its RPM value
+      #
       OmfCommon.eventloop.every(2) do
         engine.request([:rpm]) do |reply_msg|
           info "RPM >> #{reply_msg[:rpm]}"
         end
       end
 
-      # Some time later
+      # Some time later, we configure the throttle back to 0
+      #
       OmfCommon.eventloop.after(5) do
         info "> We want to reduce the throttle to 0"
         engine.configure(throttle: 0)
@@ -372,7 +382,7 @@ Normally we don't need to record the state of a real resource inside our resourc
       end
     end
 
-    OmfCommon.init(:development, communication: { url: 'xmpp://lima:pw@localhost' }) do
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
       OmfCommon.comm.on_connected do |comm|
         info "Engine test script >> Connected to XMPP"
 
@@ -389,7 +399,9 @@ Normally we don't need to record the state of a real resource inside our resourc
       end
     end
 
-**Test output**
+Now in the output you could notice that RPM value increased and then decreased.
+
+**Engine test output**
 
     15:52:32  INFO XMPP::Communicator: Connecting to 'localhost' ...
     15:52:32  INFO Object: Engine test script >> Connected to XMPP
@@ -451,25 +463,39 @@ Currently the system supports these hooks:
 * before\_release, called before a resource released
 * after\_initial\_configured, called after child resource created, and initial set of properties have been configured.
 
+Please also refer to **{OmfRc::ResourceProxyDSL::ClassMethods#hook DSL hook method}** for more information.
+
 ![Hooks](images/tutorial_step_5.png)
+
+Now modify the garage controller to test these hooks.
 
 **Proxy with hooks**
 
-    require 'rubygems'
     require 'omf_rc'
-    require 'omf_rc/resource_factory'
 
     module OmfRc::ResourceProxy::Garage
       include OmfRc::ResourceProxyDSL
 
       register_proxy :garage
 
+      # before_create allows you access the current garage instance, the type of new resource it is going to create,
+      # and initial options passed to be used for new resource
+      #
       hook :before_create do |garage, new_resource_type, new_resource_opts|
+        # Can check existing engines already created
+        #
         info "Garage has #{garage.children.size} engine(s)"
+
+        # Can verify new resource's options
+        #
         info "You asked me to create a new #{new_resource_type} with options: #{new_resource_opts}"
       end
 
+      # after_create hook has access to the current garage instance and newly created engine instance
+      #
       hook :after_create do |garage, engine|
+        # Can inspect or update newly created resource
+        #
         info "Engine #{engine.uid} created"
       end
     end
@@ -482,12 +508,21 @@ Currently the system supports these hooks:
       property :serial_number, :default => "0000"
       property :rpm, :default => 0
 
+      # Use this to do initialisation/bootstrap
+      #
       hook :before_ready do |engine|
         engine.property.rpm = 1000
+        # Notice that now serial number hasn't been configured yet.
+        #
         info "Engine serial number is #{engine.property.serial_number}"
       end
 
+      # Since now new resource has been created and configured properly,
+      # additional logic can be applied based on configured properties' state.
+      #
       hook :after_initial_configured do |engine|
+        # Notice now serial number is configured.
+        #
         info "Engine serial number is #{engine.property.serial_number}"
       end
 
@@ -498,7 +533,7 @@ Currently the system supports these hooks:
       end
     end
 
-    OmfCommon.init(:development, communication: { url: 'xmpp://delta:pw@localhost' }) do
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
       OmfCommon.comm.on_connected do |comm|
         info "Garage controoler >> Connected to XMPP server"
         garage = OmfRc::ResourceFactory.create(:garage, uid: 'garage', hrn: 'my_garage')
@@ -506,9 +541,10 @@ Currently the system supports these hooks:
       end
     end
 
+Then use this simple engine test script to run through the resource cycle, from create to release.
+
 **Engine test**
 
-    require 'rubygems'
     require 'omf_common'
 
     def create_engine(garage)
@@ -537,7 +573,7 @@ Currently the system supports these hooks:
       end
     end
 
-    OmfCommon.init(:development, communication: { url: 'xmpp://lima:pw@localhost' }) do
+    OmfCommon.init(:development, communication: { url: 'xmpp://localhost' }) do
       OmfCommon.comm.on_connected do |comm|
         info "Engine test script >> Connected to XMPP"
 
@@ -553,6 +589,10 @@ Currently the system supports these hooks:
         comm.on_interrupted { comm.disconnect }
       end
     end
+
+While you are running garage controller and test script, you should be able to see the following log message on the garage controller side.
+
+Please check the 'info' messages and you could notice the order of how these hooks got executed. Verify the order against the diagram we showed earlier.
 
 **Proxy output**
 
@@ -574,7 +614,7 @@ Currently the system supports these hooks:
     15:33:15  INFO ResourceProxy::AbstractResource: Releasing hrn: my_engine, uid: 9ae92796-bcd7-4770-a698-78df44d63fe2
 
 
-That is the end of the tutorial
+That concludes our little tutorial for you.
 
 ## Advanced topics
 
@@ -602,7 +642,7 @@ You could also package your proxy definition files into separate gems, if you fe
 
 This process is rather simple, take a look at this third party rc gem of openflow integration.
 
-https://github.com/kohoumas/omf_rc_openflow
+**https://github.com/kohoumas/omf_rc_openflow**
 
 ### Refactor common features into resource utilities
 
@@ -626,11 +666,12 @@ You could also overwrite a property definition provided by the utility, by regis
 
 ## Additional Resource Controller tutorials
 
-{file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}
-{file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}
+**{file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}**
+
+**{file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}**
 
 ## Contributing to OMF
 
 Ready to be part of OMF project? Please refer to this document for some guidelines:
 
-{file:doc/CONTRIBUTING.mkd}
+**{file:doc/CONTRIBUTING.mkd}**
