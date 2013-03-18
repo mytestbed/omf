@@ -163,7 +163,7 @@ source /usr/local/rvm/scripts/rvm
 command rvm install 1.9.3
 PATH=$PATH:/usr/local/rvm/rubies/ruby-1.9.3-p194/bin/ 
 source /usr/local/rvm/environments/ruby-1.9.3-p194
-gem install omf_rc --pre --no-ri --no-rdoc 
+gem install omf_rc --no-ri --no-rdoc 
 # HACK
 # Right now we dont have a Ubuntu startup script for OMF6 RC
 # Do this quick hack in the meantime
