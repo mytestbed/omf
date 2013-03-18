@@ -664,12 +664,6 @@ Then include this utility inside the engine resource proxy file by using:
 
 You could also overwrite a property definition provided by the utility, by registering it again using the same name.
 
-## Additional Resource Controller tutorials
-
-**{file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}**
-
-**{file:doc/PROXY\_INSTRUMENTATION.mkd Instrumentation of a Resource Proxy}**
-
 ## Contributing to OMF
 
 Ready to be part of OMF project? Please refer to this document for some guidelines:
