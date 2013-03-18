@@ -14,6 +14,7 @@ module OmfRc::Util::Iw
   #
   begin
     CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
+      next if p == 'type'
       configure p do |device, value|
         CommandLine.new("iw", "dev :dev set :property :value",
                         :dev => device.property.if_name,

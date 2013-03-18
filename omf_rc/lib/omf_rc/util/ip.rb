@@ -15,6 +15,9 @@ module OmfRc::Util::Ip
   end
 
   configure :ip_addr do |resource, value|
+    if value.nil? || value.split('/')[1].nil?
+      raise ArgumentError, "You need to provide an IP address with netmask. E.g. 0.0.0.0/24"
+    end
     # Remove all ip addrs associated with the device
     resource.flush_ip_addrs
     CommandLine.new("ip",  "addr add :ip_address dev :device",

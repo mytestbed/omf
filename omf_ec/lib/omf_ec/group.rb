@@ -77,7 +77,7 @@ module OmfEc
     # @param [Hash] opts to be used to create new resources
     def create_resource(name, opts, &block)
       self.synchronize do
-        raise ArgumentError, "Option :type if required for creating resource" if opts[:type].nil?
+        raise ArgumentError, "Option :type is required for creating resource" if opts[:type].nil?
 
         # Make a deep copy of opts in case it contains structures of structures
         begin
