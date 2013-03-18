@@ -29,7 +29,7 @@ defGroup('Receiver', property.res2) {|node|
   node.net.w0.ip = "192.168.0.20/24"
 }
 
-onEvent(:ALL_UP_AND_INSTALLED) do |event|
+onEvent(:ALL_INTERFACE_UP) do |event|
   info "TEST - Running ifconfig on Sender"
   group('Sender').exec("/sbin/ifconfig")
 
