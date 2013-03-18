@@ -7,8 +7,8 @@ module OmfRc::ResourceProxy::Wlan
   utility :mod
   utility :iw
   utility :sysfs
-  
-  property :if_name, :default => "eth0"
+
+  property :if_name, :default => "wlan0"
 
   hook :before_release do |device|
     case device.property.mode.to_sym
