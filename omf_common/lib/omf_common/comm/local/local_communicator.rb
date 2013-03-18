@@ -13,6 +13,7 @@ module OmfCommon
         # Initialize comms layer
         #
         def init(opts = {})
+          super
         end
   
         # Shut down comms layer

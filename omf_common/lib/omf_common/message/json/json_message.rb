@@ -1,18 +1,21 @@
 
 require 'json'
 require 'omf_common/auth'
+require 'json/jwt'
 
 module OmfCommon
   class Message
     class Json
       class Message < OmfCommon::Message
         
+        # This maps properties in the internal representation of
+        # a message to names used for the JSON message
+        #
         @@key2json_key = {
           operation: :op,
           res_id: :rid
         }
                 
-
         def self.create(type, properties, body = {})
           if type == :request 
             unless properties.kind_of?(Array)
@@ -39,9 +42,57 @@ module OmfCommon
         #
         def self.parse(str, content_type)
           #puts "CT>> #{content_type}"
-          content = JSON.parse(str, :symbolize_names => true)
-          #puts content
-          new(content)
+          case content_type.to_s
+          when 'jwt'
+            content = parse_jwt(str)
+          when 'text/json'
+            content = JSON.parse(str, :symbolize_names => true)
+          else
+            warn "Received message with unknown content type '#{content_type}'"
+          end
+          #puts "CTTT>> #{content}::#{content.class}"
+          content ? new(content) : nil
+        end
+        
+        def self.parse_jwt(jwt_string)
+          key_or_secret = :skip_verification
+          # Code lifted from 'json-jwt-0.4.3/lib/json/jwt.rb'
+          case jwt_string.count('.')
+          when 2 # JWT / JWS
+            header, claims, signature = jwt_string.split('.', 3).collect do |segment|
+              UrlSafeBase64.decode64 segment.to_s
+            end
+            header, claims = [header, claims].collect do |json|
+              #MultiJson.load(json).with_indifferent_access
+              JSON.parse(json, :symbolize_names => true)
+            end
+            signature_base_string = jwt_string.split('.')[0, 2].join('.')
+            jwt = JSON::JWT.new claims
+            jwt.header = header
+            jwt.signature = signature
+  
+            # NOTE:
+            #  Some JSON libraries generates wrong format of JSON (spaces between keys and values etc.)
+            #  So we need to use raw base64 strings for signature verification.
+            unless src = claims[:iss]
+              warn "JWT: Message is missing :iss element"
+              return nil
+            end
+            if cert_pem = claims[:crt]
+              # let's the credential store take care of it
+              OmfCommon::Auth::CertificateStore.instance.register_x509(cert_pem)
+            end
+            unless cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
+              warn "JWT: Can't find cert for issuer '#{src}'"
+              return nil
+            end
+            #puts ">>> #{cert.to_x509.public_key}::#{signature_base_string}"
+            jwt.verify signature_base_string, cert.to_x509.public_key #unless key_or_secret == :skip_verification
+            JSON.parse(claims[:cnt], :symbolize_names => true)
+          else
+            warn('JWT: Invalid Format. JWT should include 2 or 3 dots.')
+            return nil
+          end
         end
                 
         def each_property(&block)
@@ -97,17 +148,36 @@ module OmfCommon
           "JsonMessage: #{@content.inspect}"
         end
         
-        def marshall
-          puts "MARSHALL: #{@content.inspect} - #{@properties.to_hash.inspect}"
+        # Marshall message into a string to be shipped across the network.
+        # Depending on authentication setting, the message will be signed as 
+        # well, or maybe even dropped.
+        #
+        # @param [Topic] topic for which to marshall 
+        # 
+        def marshall(topic)
+          #puts "MARSHALL: #{@content.inspect} - #{@properties.to_hash.inspect}"
           raise "Missing SRC declaration in #{@content}" unless @content[:src]
           raise 'local/local' if @content[:src].match 'local:/local'
+          
+          payload = @content.to_json
           if self.class.authenticate?
              src = @content[:src]
-             if cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
-               puts ">>> Found cert for '#{src} - #{cert}"
+             cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
+             if cert && cert.can_sign?
+               debug "Found cert for '#{src} - #{cert}"
+               msg = {cnt: payload, iss: src}
+               unless @certOnTopic[k = [topic, src]]
+                 # first time for this src on this topic, so let's send the cert along
+                 msg[:crt] = cert.to_pem_compact
+                 #ALWAYS ADD CERT @certOnTopic[k] = Time.now
+               end
+               #:RS256, :RS384, :RS512
+               p = JSON::JWT.new(msg).sign(cert.key , :RS256).to_s
+               #puts "SIGNED>> #{msg}"
+               return ['jwt', p]
              end
           end
-          ['text/json', @content.to_json]
+          ['text/json', payload]
         end
         
         private 
@@ -122,6 +192,8 @@ module OmfCommon
           @properties = content[:props] || []
           #@properties = Hashie::Mash.new(content[:properties])
           @authenticate = self.class.authenticate?
+          # keep track if we sent local certs on a topic. Should do this the first time
+          @certOnTopic = {}
         end
         
         def _set_core(key, value)

@@ -69,6 +69,7 @@ module OmfCommon
         unless resource.is_a? self.class
           raise "Expected '#{self.class}', but got '#{resource.class}'"
         end
+        core_props[:src] ||= Comm.instance.local_address
         msg = OmfCommon::Message.create(:release, {}, core_props.merge(res_id: resource.id))
         publish(msg, &block)
         self

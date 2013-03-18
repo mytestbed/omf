@@ -136,7 +136,7 @@ module OmfCommon
       raise NotImplementedError
     end
 
-    def marshall
+    def marshall(include_cert = false)
       raise NotImplementedError
     end
 

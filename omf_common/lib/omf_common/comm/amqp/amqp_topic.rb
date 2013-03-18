@@ -51,10 +51,11 @@ module OmfCommon
             #puts "QQ1(#{id}): #{queue}"
             queue.bind(@exchange)
             queue.subscribe do |headers, payload|
-              #puts "===(#{id}) Incoming message '#{payload}'"
-              msg = Message.parse(payload)
+              #puts "===(#{id}) Incoming message '#{headers.content_type}'"
+              debug "Received message on #{@address}"
+              msg = Message.parse(payload, headers.content_type)
               #puts "---(#{id}) Parsed message '#{msg}'"
-              on_incoming_message(msg)
+              on_incoming_message(msg) if msg
             end
             # Call all accumulated on_subscribed handlers
             @lock.synchronize do
@@ -69,8 +70,8 @@ module OmfCommon
         
         def _send_message(msg, block = nil)
           super
-          debug "(#{id}) Send message #{msg.inspect}"
-          content_type, content = msg.marshall
+          content_type, content = msg.marshall(self)
+          debug "(#{id}) Send message (#{content_type}) #{msg.inspect}"
           @exchange.publish(content, content_type: content_type, message_id: msg.mid)
         end
       end # class

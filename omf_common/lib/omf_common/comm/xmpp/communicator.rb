@@ -54,6 +54,7 @@ class Comm
         raise ArgumentError, "Server cannot be nil when connect to XMPP" if server.nil?
 
         connect(username, password, server)
+        super
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server

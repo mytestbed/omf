@@ -78,7 +78,6 @@ module OmfCommon
     # Initialize comms layer
     #
     def init(opts = {})
-      raise "Not implemented"
     end
 
     # Return the address used for all 'generic' messages
@@ -146,7 +145,9 @@ module OmfCommon
       unless local_address = opts[:local_address]
         local_address = "#{Socket.gethostbyname(Socket.gethostname)[0]}-#{Process.pid}"
       end
-      @local_topic = create_topic(local_address.gsub('.', '-'))
+      on_connected do
+        @local_topic = create_topic(local_address.gsub('.', '-'))
+      end
     end
 
   end

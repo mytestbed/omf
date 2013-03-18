@@ -16,7 +16,8 @@ opts = {
 
 
 OmfCommon.init(:local, opts) 
-
+# Create a certificate for this controller
+root_cert.create_for(:controller, :controller, OmfCommon::Comm.instance.local_address())
 
 
 def create_engine(garage)

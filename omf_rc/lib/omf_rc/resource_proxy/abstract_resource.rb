@@ -83,7 +83,7 @@ class OmfRc::ResourceProxy::AbstractResource
         OmfCommon.comm.disconnect()
       else
         if @certificate = @opts.certificate
-          OmfCommon::Auth::CertificateStore.instance.register(t.address, @certificate)
+          OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
         else
           if pcert = @opts.parent_certificate
             @certificate = pcert.create_for(@uid, @type, t.address)
@@ -451,9 +451,9 @@ class OmfRc::ResourceProxy::AbstractResource
     topic ||= @topics.first
     if inform_data.is_a? Hash
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
-      idate = inform_data.dup
+      idata = inform_data.dup
       idata.src = @topics.first.address
-      message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, )
+      message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, inform_data, idata)
     else
       message = inform_data
     end
