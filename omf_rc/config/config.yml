@@ -4,5 +4,5 @@
 # this is to ensure that every RC has its own topic and XMPP account
 :uid: <%= Socket.gethostname %>
 :uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
-:environment: development
+:environment: production
 :debug: false

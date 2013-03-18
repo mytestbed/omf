@@ -119,7 +119,7 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
 ### Installing the Experiment Controller
 
-    gem install omf_ec --pre --no-ri --no-rdoc
+    gem install omf_ec --no-ri --no-rdoc
 
 ### Gaining access to an OMF testbed
 
@@ -179,7 +179,7 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
 On a typical PC node, you can install the RC as root:
 
-	gem install omf_rc --pre --no-ri --no-rdoc
+	gem install omf_rc --no-ri --no-rdoc
 
 Now it's time to install an XMPP server. Follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation). Jump back here after you verified that Openfire is installed correctly.
 
