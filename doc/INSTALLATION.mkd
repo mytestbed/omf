@@ -42,7 +42,7 @@ Type following in your console:
 Type following in your console as root:
 
     apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev \
-    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion autoconf
+    libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion
 
 #### Fedora
 
@@ -97,6 +97,7 @@ should show the RVM version string, e.g.:
 Install Ruby, create a gemset, set Ruby version and gemset as defaults:
 
     rvm install ruby-1.9.3-p286
+    rvm use ruby-1.9.3-p286
     rvm gemset create omf
     rvm use ruby-1.9.3-p286@omf --default
 
