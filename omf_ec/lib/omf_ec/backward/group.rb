@@ -30,11 +30,19 @@ module OmfEc
       end
 
       def startApplications
-        resources[type: 'application'].state = :running
+        if self.app_contexts.empty?
+          warn "No applications defined in group #{self.name}. Nothing to start"
+        else
+          resources[type: 'application'].state = :running
+        end
       end
 
       def stopApplications
-        resources[type: 'application'].state = :stopped
+        if self.app_contexts.empty?
+          warn "No applications defined in group #{self.name}. Nothing to stop"
+        else
+          resources[type: 'application'].state = :stopped
+        end
       end
 
       def addApplication(name, &block)
