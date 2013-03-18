@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{OMF experiment controller}
   s.description = %q{Experiment controller of OMF, a generic framework for controlling and managing networking testbeds.}
   s.required_ruby_version = '>= 1.9.3'
-  s.license = 'MIT'  
+  s.license = 'MIT'
 
   s.rubyforge_project = "omf_ec"
 
@@ -22,6 +22,6 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest", "~> 3.2"
-  s.add_runtime_dependency "omf_common", "~> 6.0.0.pre"
+  s.add_runtime_dependency "omf_common", "~> 6.0.0"
   s.add_runtime_dependency "gli", "~> 2.5.3"
 end

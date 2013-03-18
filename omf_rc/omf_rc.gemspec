@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = %q{Resource controller of OMF, a generic framework for controlling and managing networking testbeds.}
   s.required_ruby_version = '>= 1.9.3'
   s.license = 'MIT'
-  
+
   s.rubyforge_project = "omf_rc"
 
   s.files         = `git ls-files`.split("\n")
@@ -24,6 +24,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "minitest", "~> 3.2"
   s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
   s.add_development_dependency "simplecov"
-  s.add_runtime_dependency "omf_common", "~> 6.0.0.pre"
+  s.add_runtime_dependency "omf_common", "~> 6.0.0"
   s.add_runtime_dependency "cocaine", "~> 0.3.0"
 end
