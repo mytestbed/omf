@@ -36,11 +36,11 @@ module OmfCommon
       body[:itype] = itype if itype
       create(:inform, properties, body)
     end
-    
+
     # Return true if all messages will be authenticated, return false otherwise
     #
     def self.authenticate?
-      @@authenticate_messages 
+      @@authenticate_messages
     end
 
     # Create and return a message by parsing 'str'

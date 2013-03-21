@@ -33,7 +33,7 @@ end
 describe AbstractResource do
   before do
     @xmpp = MiniTest::Mock.new
-    @xmpp.expect(:subscribe, true, [Array])
+    @xmpp.expect(:subscribe, true, [String])
     OmfCommon.stub :comm, @xmpp do
       @node = OmfRc::ResourceFactory.new(:node, { hrn: 'default_node' }, { create_children_resources: true })
     end
@@ -69,7 +69,7 @@ describe AbstractResource do
 
     it "must add the resource to its created resource list" do
       OmfCommon.stub :comm, @xmpp do
-        @xmpp.expect(:subscribe, true, [Array])
+        @xmpp.expect(:subscribe, true, [String])
         child = @node.create(:wifi, { hrn: 'default_wifi' })
         @node.children.must_include child
         @node.request_child_resources.find { |v| v.uid == child.uid }.name.must_equal 'default_wifi'
@@ -82,7 +82,7 @@ describe AbstractResource do
       skip
       OmfCommon.stub :comm, @xmpp do
         @xmpp.expect(:delete_topic, nil)
-        @xmpp.expect(:subscribe, true, [Array])
+        @xmpp.expect(:subscribe, true, [String])
         child = @node.create(:wifi, { hrn: 'default_wifi' })
         @node.children.wont_be_empty
         @node.release(child.uid)

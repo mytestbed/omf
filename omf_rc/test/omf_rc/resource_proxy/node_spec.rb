@@ -4,7 +4,7 @@ require 'omf_rc/resource_proxy/node'
 describe OmfRc::ResourceProxy::Node do
   before do
     @xmpp = MiniTest::Mock.new
-    @xmpp.expect(:subscribe, true, [Array])
+    @xmpp.expect(:subscribe, true, [String])
 
     OmfCommon.stub :comm, @xmpp do
       @node = OmfRc::ResourceFactory.new(:node, hrn: 'node_test')
@@ -46,7 +46,7 @@ describe OmfRc::ResourceProxy::Node do
 
     it "must provide a list of created applications" do
       OmfCommon.stub :comm, @xmpp do
-        @xmpp.expect(:subscribe, true, [Array])
+        @xmpp.expect(:subscribe, true, [String])
         @node.create(:application, { :uid => 'app_test', :hrn => 'app_test' })
 
         @node.request_applications.must_equal [

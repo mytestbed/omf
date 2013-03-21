@@ -62,12 +62,12 @@ module OmfCommon
       end
       @@instance = inst
       Message.init(provider[:message_provider])
-      
+
       if aopts = opts[:auth]
         require 'omf_common/auth'
         OmfCommon::Auth.init(aopts)
       end
-      
+
       inst.init(opts)
     end
 
@@ -84,9 +84,9 @@ module OmfCommon
     # not specifically being sent from a resource
     #
     def local_address()
-      @local_topic.address 
+      @local_topic.address
     end
-    
+
     def local_topic()
       @local_topic
     end

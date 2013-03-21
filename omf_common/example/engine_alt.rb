@@ -8,16 +8,16 @@ opts = {
     auth: {
       #store: 'amqp://localhost',
       certs: [
-        root_cert.to_pem_compact       
+        root_cert.to_pem_compact
       ]
     }
   }
 }
 
 
-OmfCommon.init(:local, opts) 
+OmfCommon.init(:local, opts)
 # Create a certificate for this controller
-root_cert.create_for(:controller, :controller, OmfCommon::Comm.instance.local_address())
+root_cert.create_for(:controller, :controller, OmfCommon.comm.local_address())
 
 
 def create_engine(garage)
@@ -52,7 +52,7 @@ end
 # This method is called whenever a new engine has been created by the garage.
 #
 # @param [Topic] engine Topic representing the created engine
-# 
+#
 def on_engine_created(engine, garage)
   # Monitor all status information from teh engine
   engine.on_inform_status do |msg|
@@ -72,19 +72,19 @@ def on_engine_created(engine, garage)
   #engine.request() do |msg|
     puts ">>> REPLY #{msg.inspect}"
   end
-            
-              
 
 
-  return 
-  
+
+
+  return
+
   # Now we will apply 50% throttle to the engine
   engine.configure(throttle: 50)
 
   # Some time later, we want to reduce the throttle to 0, to avoid blowing up the engine
   engine.after(5) do
     engine.configure(throttle: 0)
-    
+
     # While we are at it, also test error handling
     engine.request([:error]) do |msg|
       if msg.success?
@@ -108,15 +108,15 @@ end
 
 OmfCommon.eventloop.run do |el|
   OmfCommon.comm.on_connected do |comm|
-    
+
     # Create garage proxy
     load File.join(File.dirname(__FILE__), '..', '..', 'omf_rc', 'example', 'garage_controller.rb')
     garage_cert = root_cert.create_for(:garage1, :garage)
     garage_inst = OmfRc::ResourceFactory.create(:garage, uid: :garage_1, certificate: garage_cert)
-    
+
     # Get handle on existing entity
     comm.subscribe('garage_1') do |garage|
-    
+
       garage.on_inform_failed do |msg|
         logger.error msg
       end
@@ -125,7 +125,7 @@ OmfCommon.eventloop.run do |el|
         create_engine(garage)
       end
     end
-    
+
     el.after(20) { el.stop }
   end
 end
