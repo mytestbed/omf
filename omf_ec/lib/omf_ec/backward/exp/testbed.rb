@@ -1,47 +1,43 @@
-comm = OmfCommon.comm
+def create_app(testbed)
+  testbed.create(:application) do |reply|
+    if reply.success?
+      app = reply.resource
 
-testbed_topic = comm.get_topic('testbed')
+      app.on_subscribed do
+        app.request([:platform])
 
-msgs = {
-  create: comm.create_message([type: 'application']),
-  req_platform: comm.request_message([:platform]),
-  conf_path: comm.configure_message([binary_path: @cmd]),
-  run_application: comm.configure_message([state: :running])
-}
+        after(1) { app.configure(binary_path: @cmd) }
+        after(2) { app.configure(state: :running) }
 
-msgs[:create].on_inform_creation_ok do |message|
-  app_topic = comm.get_topic(message.res_id)
-  app_topic.subscribe do
-    msgs[:req_platform].publish app_topic.id
-    sleep 1
-    msgs[:conf_path].publish app_topic.id
-    sleep 1
-    msgs[:run_application].publish app_topic.id
-  end
-
-  app_topic.on_message  do |m|
-    if m.operation == :inform
-      case m.read_content("itype")
-      when 'STATUS'
-        if m.read_property("status_type") == 'APP_EVENT'
-          after (2) { comm.disconnect } if m.read_property("event") =~ /DONE.(OK|ERROR)/
-          puts m.read_property("msg")
+        app.on_status  do |m|
+          if m[:status_type] == 'APP_EVENT'
+            after(2) { Omfcomm.comm.disconnect } if m[:event] =~ /DONE.(OK|ERROR)/
+            info m[:msg]
+          else
+            m.each_property do |k, v|
+              info "#{k} => #{v.strip}"
+            end
+          end
         end
-      when 'ERROR'
-        logger.error m.read_content('reason') if m.read_content("itype") == 'ERROR'
-      when 'WARN'
-        logger.warn m.read_content('reason') if m.read_content("itype") == 'WARN'
+
+        app.on_warn  do |m|
+          warn m[:reason]
+        end
+
+        app.on_error  do |m|
+          error m[:reason]
+        end
       end
+    else
+      error reply[:reason]
     end
   end
 end
 
-msgs[:req_platform].on_inform_status do |m|
-  m.each_property do |p|
-    logger.info "#{p.attr('key')} => #{p.content.strip}"
+OmfCommon.comm.subscribe('testbed') do |testbed|
+  unless testbed.error?
+    create_app(testbed)
+  else
+    error testbed.inspect
   end
-end
-
-testbed_topic.subscribe do
-  msgs[:create].publish testbed_topic.id
 end
