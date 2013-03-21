@@ -106,7 +106,7 @@ command :load do |c|
   c.flag [:outprefix]
 
   c.action do |global_options, options, args|
-    @cmd = "omf-5.4 load -t #{options[:t]} -i #{options[:i]} "
+    @cmd = "USER=#{ENV['USER']} omf-5.4 load -t #{options[:t]} -i #{options[:i]} "
     @cmd += "-o #{options[:o]} --outpath #{options[:outpath]} "
     @cmd += "-r #{options[:r]} " if options[:r]
     @cmd += "--outprefix #{options[:outprefix]} " if options[:outprefix]
@@ -130,7 +130,7 @@ command :save do |c|
   c.flag [:r, :resize]
 
   c.action do |global_options, options, args|
-    @cmd = "omf-5.4 save "
+    @cmd = "USER=#{ENV['USER']} omf-5.4 save "
     @cmd += "-n #{options[:n]} " if options[:n]
     @cmd += "-r #{options[:r]} " if options[:r]
     load_exp(@testbed_exp_path, global_options, options)

@@ -11,11 +11,11 @@ def create_app(testbed)
 
         app.on_status  do |m|
           if m[:status_type] == 'APP_EVENT'
-            after(2) { Omfcomm.comm.disconnect } if m[:event] =~ /DONE.(OK|ERROR)/
+            after(2) { OmfCommon.comm.disconnect } if m[:event] =~ /DONE.(OK|ERROR)/
             info m[:msg]
           else
             m.each_property do |k, v|
-              info "#{k} => #{v.strip}"
+              info "#{k} => #{v.strip}" unless v.nil?
             end
           end
         end
