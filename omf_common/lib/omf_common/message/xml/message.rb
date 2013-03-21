@@ -47,7 +47,8 @@ class XML
         new(content)
       end
 
-      def parse(xml, content_type)
+      def parse(xml, content_type = "text/xml")
+        raise ArgumentError, "Unknown content type: #{content_type}" unless content_type =~ /xml/
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
 
         xml_node = Nokogiri::XML(xml).root
