@@ -47,7 +47,7 @@ class XML
         new(content)
       end
 
-      def parse(xml)
+      def parse(xml, content_type)
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
 
         xml_node = Nokogiri::XML(xml).root
@@ -96,7 +96,7 @@ class XML
 
     def marshall
       build_xml
-      @xml.to_xml
+      ['text/xml', @xml.to_xml]
     end
 
     alias_method :to_xml, :marshall

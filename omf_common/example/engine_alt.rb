@@ -1,25 +1,23 @@
 # OMF_VERSIONS = 6.0
 require 'omf_common'
+require 'omf_common/auth/certificate'
 
+root_cert = OmfCommon::Auth::Certificate.create('sa', 'authority')
 opts = {
   communication: {
-    url: 'amqp://localhost',
+    auth: {
+      #store: 'amqp://localhost',
+      certs: [
+        root_cert.to_pem_compact       
+      ]
+    }
   }
 }
 
-# $stdout.sync = true
-# Logging.appenders.stdout(
-  # 'my_format',
-  # :layout => Logging.layouts.pattern(:date_pattern => '%H:%M:%S',
-                                     # :pattern => '%d %5l %c{2}: %m\n',
-                                     # :color_scheme => 'none'))
-# Logging.logger.root.appenders = 'my_format'
-# Logging.logger.root.level = :debug if opts[:debug]
 
-# Environment setup
-#OmfCommon.init(:developement, opts) 
-OmfCommon.init(:local) 
-
+OmfCommon.init(:local, opts) 
+# Create a certificate for this controller
+root_cert.create_for(:controller, :controller, OmfCommon::Comm.instance.local_address())
 
 
 def create_engine(garage)
@@ -113,7 +111,8 @@ OmfCommon.eventloop.run do |el|
     
     # Create garage proxy
     load File.join(File.dirname(__FILE__), '..', '..', 'omf_rc', 'example', 'garage_controller.rb')
-    garage_inst = OmfRc::ResourceFactory.create(:garage, hrn: :garage_1)
+    garage_cert = root_cert.create_for(:garage1, :garage)
+    garage_inst = OmfRc::ResourceFactory.create(:garage, uid: :garage_1, certificate: garage_cert)
     
     # Get handle on existing entity
     comm.subscribe('garage_1') do |garage|

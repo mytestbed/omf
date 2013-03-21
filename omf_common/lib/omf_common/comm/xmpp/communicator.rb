@@ -76,6 +76,8 @@ class Comm
             shutdown
           end
         end
+
+			  super
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server

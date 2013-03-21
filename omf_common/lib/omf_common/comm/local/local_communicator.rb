@@ -1,5 +1,5 @@
 require 'omf_common/comm/local/local_topic'
-require 'omf_common/comm/monkey_patches'
+#require 'omf_common/comm/monkey_patches'
 
 module OmfCommon
   class Comm
@@ -13,6 +13,7 @@ module OmfCommon
         # Initialize comms layer
         #
         def init(opts = {})
+          super
         end
   
         # Shut down comms layer

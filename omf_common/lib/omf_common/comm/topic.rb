@@ -70,6 +70,7 @@ module OmfCommon
         unless resource.is_a? self.class
           raise "Expected '#{self.class}', but got '#{resource.class}'"
         end
+        core_props[:src] ||= Comm.instance.local_address
         msg = OmfCommon::Message.create(:release, {}, core_props.merge(res_id: resource.id))
         publish(msg, &block)
         self
@@ -78,6 +79,7 @@ module OmfCommon
 
       def create_message_and_publish(type, props = {}, core_props = {}, block = nil)
         debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}"
+        core_props[:src] ||= Comm.instance.local_address
         msg = OmfCommon::Message.create(type, props, core_props)
         publish(msg, &block)
       end
@@ -148,6 +150,11 @@ module OmfCommon
         end
       end
 
+      # Process a message received from this topic. 
+      #
+      # @param [OmfCommon::Message] msg Message received
+      # @param [Hash] auth_info Authentication information
+      # @option auth_info [Symbol] :signer Id  
       def on_incoming_message(msg)
         type = msg.operation
         debug "(#{id}) Deliver message '#{type}': #{msg.inspect}"

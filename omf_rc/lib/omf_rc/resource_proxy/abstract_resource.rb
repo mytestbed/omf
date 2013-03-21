@@ -51,6 +51,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option opts [String] :hrn Human readable name
   # @option opts [Hash] :property A hash for keeping internal state
   # @option opts [Hash] :instrument A hash for keeping instrumentation-related state
+  # @option opts [OmfCommon::Auth::Certificate] :certificate The certificate for this resource
   #
   # @param [Hash] creation_opts options to control the resource creation process
   # @option creation_opts [Boolean] :suppress_create_message Don't send an initial CREATION.OK Inform message
@@ -61,7 +62,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
 
     @type = type
-    @uid = @opts.uid || SecureRandom.uuid
+    @uid = (@opts.uid || SecureRandom.uuid).to_s
     @hrn = @opts.hrn && @opts.hrn.to_s
 
     @children ||= []
@@ -75,18 +76,25 @@ class OmfRc::ResourceProxy::AbstractResource
     @property = @opts.property || Hashie::Mash.new
     @property.merge!(@opts.except([:uid, :hrn, :property, :instrument]))
 
-    OmfCommon.comm.subscribe(@hrn ? [@uid, @hrn] : @uid) do |t|
-      if t.id.to_s == @uid
-        @topics << t
-      end
+    OmfCommon.comm.subscribe(@uid) do |t|
+      @topics << t
 
       if t.error?
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
         OmfCommon.comm.disconnect()
       else
+        if @certificate = @opts.certificate
+          OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
+        else
+          if pcert = @opts.parent_certificate
+            @certificate = pcert.create_for(@uid, @type, t.address)
+          end
+        end
+        
         creation_callback.call(self) if creation_callback
-        copts = { res_id: self.resource_address, hrn: @hrn }.merge(@property)
-        t.inform(:creation_ok, copts, copts)
+        copts = { res_id: self.resource_address, src: self.resource_address}
+        copts[:cert] = @certificate.to_pem_compact if @certificate
+        t.inform(:creation_ok, @property, copts)
 
         t.on_message(nil, @uid) do |imsg|
           process_omf_message(imsg, t)
@@ -138,6 +146,7 @@ class OmfRc::ResourceProxy::AbstractResource
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
     end
 
+    opts[:parent_certificate] = @certificate
     before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
     after_create(new_resource) if respond_to? :after_create
@@ -342,7 +351,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Handling all messages, then delegate them to individual handler
   def handle_message(message, obj)
-    response = message.create_inform_reply_message()
+    response = message.create_inform_reply_message(nil, {}, src: resource_address)
     response.replyto replyto_address(obj, message.replyto)
 
     case message.operation
@@ -382,6 +391,9 @@ class OmfRc::ResourceProxy::AbstractResource
         response[:hrn] = new_obj.hrn
         response[:uid] = new_obj.uid
         response[:type] = new_obj.type
+				if cred = new_obj.certificate
+          response[:cert] = cred.to_pem_compact
+        end
 
         new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
 
@@ -408,11 +420,10 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def handle_request_message(message, obj, response)
     allowed_properties = obj.request_available_properties.request - [:message]
-
     have_unbound = false
 
     message.each_unbound_request_property do |name|
-      puts "NAME>> #{name.inspect}"
+      #puts "NAME>> #{name.inspect}"
 
       unless allowed_properties.include?(name.to_sym)
         raise ArgumentError, "Unknown 'requestable' property '#{name}'. Allowed properties are: #{allowed_properties.join(', ')}"
@@ -448,10 +459,11 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
   def inform(itype, inform_data, topic = nil)
     topic ||= @topics.first
-
     if inform_data.is_a? Hash
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
-      message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, inform_data.dup)
+      idata = inform_data.dup
+      idata.src = @topics.first.address
+      message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, inform_data, idata)
     else
       message = inform_data
     end
