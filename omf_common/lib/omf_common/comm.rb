@@ -143,7 +143,13 @@ module OmfCommon
     def initialize(opts = {})
       @opts = opts
       unless local_address = opts[:local_address]
-        local_address = "#{Socket.gethostbyname(Socket.gethostname)[0]}-#{Process.pid}"
+        hostname = nil
+        begin
+          hostname = Socket.gethostbyname(Socket.gethostname)[0]
+        rescue Exception
+          hostname = `hostname`
+        end
+        local_address = "#{hostname}-#{Process.pid}"
       end
       on_connected do
         @local_topic = create_topic(local_address.gsub('.', '-'))
