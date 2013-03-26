@@ -114,11 +114,13 @@ module OmfCommon
           @content[key]
         end
         
-        def _set_property(key, value)
+        def _set_property(key, value, ns = nil)
+          warn "Can't handle namespaces yet" if ns
           @properties[key] = value
         end
 
-        def _get_property(key)
+        def _get_property(key, ns = nil)
+          warn "Can't handle namespaces yet" if ns
           #puts key
           @properties[key]
         end
