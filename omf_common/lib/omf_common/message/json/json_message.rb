@@ -47,13 +47,13 @@ module OmfCommon
             content = parse_jwt(str, &block)
           when 'text/json'
             content = JSON.parse(str, :symbolize_names => true)
-            block 
           else
             warn "Received message with unknown content type '#{content_type}'"
           end
           #puts "CTTT>> #{content}::#{content.class}"
-          block.call(content) if content
-          content
+          msg = content ? new(content) : nil
+          block.call(msg) if msg
+          msg
         end
         
         def self.parse_jwt(jwt_string)
