@@ -39,7 +39,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # @!attribute property
   #   @return [String] the resource's internal meta data storage
-  attr_accessor :uid, :hrn, :type, :comm, :property
+  attr_accessor :uid, :hrn, :type, :comm, :property, :certificate
   attr_reader :opts, :children, :membership, :creation_opts, :membership_topics
 
   # Initialisation
@@ -90,7 +90,7 @@ class OmfRc::ResourceProxy::AbstractResource
             @certificate = pcert.create_for(@uid, @type, t.address)
           end
         end
-        
+
         creation_callback.call(self) if creation_callback
         copts = { res_id: self.resource_address, src: self.resource_address}
         copts[:cert] = @certificate.to_pem_compact if @certificate
