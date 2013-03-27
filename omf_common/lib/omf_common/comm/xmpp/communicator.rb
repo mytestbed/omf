@@ -76,8 +76,8 @@ class Comm
           end
         end
 
-        trap(:INT) { @cbks[:interpreted].each { |cbk| cbk.call(self) } }
-        trap(:TERM) { @cbks[:interpreted].each { |cbk| cbk.call(self) } }
+        trap(:INT) { @cbks[:interpreted].empty? ? disconnect : @cbks[:interpreted].each { |cbk| cbk.call(self) } }
+        trap(:TERM) { @cbks[:interpreted].empty? ? disconnect : @cbks[:interpreted].each { |cbk| cbk.call(self) } }
 
         super
       end
