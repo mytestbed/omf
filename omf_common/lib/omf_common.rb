@@ -6,7 +6,7 @@ require 'omf_common/measure'
 require 'omf_common/message'
 require 'omf_common/comm'
 require 'omf_common/command'
-require 'omf_common/key'
+require 'omf_common/auth'
 require 'omf_common/core_ext/string'
 require 'omf_common/eventloop'
 
@@ -125,7 +125,7 @@ module OmfCommon
       require 'omf_common/auth/credential_store'
       OmfCommon::Auth::CredentialStore.init(aopts)
     end
-    
+
     # Initialise event loop
     eopts = opts[:eventloop]
     Eventloop.init(eopts)
