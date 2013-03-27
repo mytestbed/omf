@@ -28,7 +28,7 @@ module OmfCommon
             if @subscribed
               call_now = true
             else
-              @on_subscrided_handlers << block
+              @on_subscribed_handlers << block
             end
           end
           if call_now
@@ -48,7 +48,7 @@ module OmfCommon
           @exchange = channel.topic(id, :auto_delete => true)
           @lock = Monitor.new
           @subscribed = false
-          @on_subscrided_handlers = []
+          @on_subscribed_handlers = []
           
           # Subscribe as well
           #puts "QQ0(#{id})"
@@ -61,13 +61,14 @@ module OmfCommon
               #puts "---(#{id}) Parsed message '#{msg}'"
               on_incoming_message(msg)
             end
+            debug "Subscribed to '#@id'"
             # Call all accumulated on_subscribed handlers
             @lock.synchronize do
               @subscribed = true
-              @on_subscrided_handlers.each do |block|
+              @on_subscribed_handlers.each do |block|
                 after(0, &block)
               end
-              @on_subscrided_handlers = nil
+              @on_subscribed_handlers = nil
             end
           end
         end

@@ -109,7 +109,9 @@ module OmfCommon
       ta = tna.collect do |tn|
         t = create_topic(tn)
         if block
-          block.call(t)
+          t.on_subscribed do 
+            block.call(t)
+          end
         end
         t
       end
