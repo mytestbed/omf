@@ -151,6 +151,10 @@ module OmfCommon
   #      :same - Look in the same directory as '$0'
   #   :remove_root ROOT_NAME: Remove the root node. Throw exception if not ROOT_NAME
   #   :wait_for_readable SECS: Wait until the yaml file becomes readable. Check every SECS
+  #   :erb_process flag: Run the content of the loaded file through ERB first before YAML parsing
+  #   :erb_safe_level level: If safe_level is set to a non-nil value, ERB code will be run in a 
+  #                                   separate thread with $SAFE set to the provided level.
+  #   :erb_binding binding: Optional binding given to ERB#result 
   #
   def self.load_yaml(file_name, opts = {})
     if path_opt = opts[:path]
@@ -167,7 +171,12 @@ module OmfCommon
         sleep readable_check # wait until file shows up
       end
     end
-    yh = YAML.load_file(file_name)
+    str = File.read(file_name)
+    if opts[:erb_process]
+      require 'erb'
+      str = ERB.new(str, opts[:erb_safe_level]).result(opts[:erb_binding] || binding)
+    end
+    yh = YAML.load(str)
     if opts[:symbolize_keys]
       yh = _rec_sym_keys(yh)
     end
