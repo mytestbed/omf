@@ -45,6 +45,11 @@ module OmfCommon
           end
         end
         
+        def properties
+          @properties
+        end
+        
+        
         def has_properties?
           not @properties.empty?
         end

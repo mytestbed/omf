@@ -116,7 +116,15 @@ module OmfCommon
       raise NotImplementedError
     end
 
+    def properties
+      raise NotImplementedError
+    end
+
     def has_properties?
+      not properties.empty?
+    end
+
+    def guard?
       raise NotImplementedError
     end
 
