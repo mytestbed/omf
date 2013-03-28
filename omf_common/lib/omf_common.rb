@@ -48,6 +48,31 @@ module OmfCommon
 
       }
     },
+    daemon: {
+      daemonize: {
+        dir_mode: :script,
+        dir: '/tmp',
+        backtrace: true,
+        log_dir: '/var/log',
+        log_output: true
+      },
+      eventloop: {
+        type: :em
+      },
+      logging: {
+        level: 'info',
+
+        appenders: {
+          file: {
+            log_dir: '/var/log',
+            #log_file: 'foo.log',
+            date_pattern: '%F %T %z',
+            pattern: '[%d] %-5l %c: %m\n'
+          }
+        }
+
+      }
+    },
     local: {
       communication: {
         type: :local,
@@ -65,7 +90,7 @@ module OmfCommon
         }
       }
     },
-    test_dev: {
+    test_daemon: {
       daemonize: {
         dir_mode: :script,
         dir: '/tmp',
@@ -74,7 +99,7 @@ module OmfCommon
         log_output: true
       },
       eventloop: {
-        type: :local
+        type: :em
       },
       logging: {
         level: 'debug',
