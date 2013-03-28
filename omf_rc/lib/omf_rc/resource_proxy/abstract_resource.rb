@@ -367,17 +367,25 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def handle_create_message(message, obj, response)
     new_name = message[:name] || message[:hrn]
-    new_opts = message.properties.merge({ hrn: new_name })
-    new_obj = obj.create(message[:type], new_opts) do |new_obj|
+    mprops = message.properties.merge({ hrn: new_name })
+    exclude = [:type, :hrn, :name, :uid]
+    props = {}
+    copts = {}
+    mprops.each do |k, v| 
+      if exclude.include?(k)
+        copts[k] = v
+      else
+        props[k] = v
+      end
+    end
+    new_obj = obj.create(message[:type], copts) do |new_obj|
       begin
         response[:res_id] = new_obj.resource_address
 
-        exclude = [:type, :hrn, :name]
-        message.each_property do |key, value|
-          unless exclude.include?(key)
-            method_name = "configure_#{key}"
-            response[key] = new_obj.__send__(method_name, value)
-          end
+        
+        props.each do |key, value|
+          method_name = "configure_#{key}"
+          response[key] = new_obj.__send__(method_name, value)
         end
         response[:hrn] = new_obj.hrn
         response[:uid] = new_obj.uid
@@ -446,7 +454,15 @@ class OmfRc::ResourceProxy::AbstractResource
   # Publish an inform message
   # @param [Symbol] itype the type of inform message
   # @param [Hash | Hashie::Mash | Exception | String] inform_data the type of inform message
+  # @param [String] topic Name of topic to send it. :ALL means to uid as well s all members
+  #
   def inform(itype, inform_data, topic = nil)
+    if topic == :ALL 
+      inform(itype, inform_data)
+      membership.each {|m| inform(itype, inform_data, m)}
+      return
+    end
+    
     topic ||= @topics.first
 
     if inform_data.is_a? Hash
