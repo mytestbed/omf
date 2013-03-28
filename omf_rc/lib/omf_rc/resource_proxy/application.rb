@@ -111,11 +111,11 @@ module OmfRc::ResourceProxy::Application
   property :installed, :default => false
   property :map_err_to_out, :default => false
   property :event_sequence, :default => 0
-  property :parameters, :default => Hash.new
-  property :environments, :default => Hash.new
+  property :parameters, :default => Hashie::Mash.new
+  property :environments, :default => Hashie::Mash.new
   property :use_oml, :default => false
   property :oml_configfile, :default => nil
-  property :oml, :default => Hash.new
+  property :oml, :default => Hashie::Mash.new
   property :oml_logfile, :default => nil
   property :oml_loglevel, :default => nil
 
@@ -228,7 +228,7 @@ module OmfRc::ResourceProxy::Application
       res.log_inform_error "Parameter configuration failed! Parameters not "+
         "passed as Hash (#{params.inspect})"
     end
-    res.property.parameters[p]
+    res.property.parameters
   end
 
   # Configure the state of this Application RP. The valid states are
