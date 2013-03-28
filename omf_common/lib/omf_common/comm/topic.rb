@@ -84,7 +84,7 @@ module OmfCommon
 
       def publish(msg, &block)
         # TODO should it be _send_message(msg, &block) ?
-        #raise "Expected message but got '#{msg.class}" unless msg.is_a?(OmfCommon::Message)
+        raise "Expected message but got '#{msg.class}" unless msg.is_a?(OmfCommon::Message)
         _send_message(msg, block)
       end
 

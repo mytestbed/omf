@@ -117,6 +117,20 @@ module OmfCommon
       end
       ta[0]
     end
+    
+    # Publish a message on a topic
+    #
+    # @param [String, Array] topic_name Pubsub topic name
+    # @param [OmfCoomon::Message] message
+    #
+    def publish(topic_name, message)
+      #puts "PUBLISH>>>>> #{topic_name}::#{message}"
+      tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
+      ta = tna.collect do |tn|
+        t = create_topic(tn)
+        t.publish(message)
+      end
+    end
 
     # Return the options used to initiate this
     # communicator.

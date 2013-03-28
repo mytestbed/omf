@@ -79,9 +79,6 @@ module OmfCommon
           debug "(#{id}) Send message #{msg.inspect}"
           content = msg.marshall
           @exchange.publish(content)
-          # OmfCommon.eventloop.after(0) do
-            # on_incoming_message(msg)
-          # end
         end
         
 
