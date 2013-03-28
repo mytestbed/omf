@@ -123,6 +123,18 @@ module OmfRc::ResourceProxy::Application
     # define_method("on_app_event") { |*args| process_event(self, *args) }
   # end
 
+  hook :after_initial_configured do |res|
+    # if state was set to running or installing from the create we need
+    # to make sure that this happens!
+    if res.property.state.to_s.downcase.to_sym == :running
+      res.property.state = :stopped
+      res.switch_to_running
+    elsif res.property.state.to_s.downcase.to_sym == :installing
+      res.property.state = :stopped
+      res.switch_to_installing
+    end
+  end
+
   # This method processes an event coming from the application instance, which
   # was started by this Resource Proxy (RP). It is a callback, which is usually
   # called by the ExecApp class in OMF
