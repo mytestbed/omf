@@ -459,7 +459,7 @@ class OmfRc::ResourceProxy::AbstractResource
   def inform(itype, inform_data, topic = nil)
     if topic == :ALL 
       inform(itype, inform_data)
-      membership.each {|m| inform(itype, inform_data, m)}
+      membership_topics.each {|m| inform(itype, inform_data, m[1])}
       return
     end
     
