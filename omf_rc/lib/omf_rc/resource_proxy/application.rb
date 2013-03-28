@@ -119,9 +119,9 @@ module OmfRc::ResourceProxy::Application
   property :oml_logfile, :default => nil
   property :oml_loglevel, :default => nil
 
-  hook :before_ready do |res|
-    define_method("on_app_event") { |*args| process_event(self, *args) }
-  end
+  # hook :before_ready do |res|
+    # define_method("on_app_event") { |*args| process_event(self, *args) }
+  # end
 
   # This method processes an event coming from the application instance, which
   # was started by this Resource Proxy (RP). It is a callback, which is usually
@@ -139,18 +139,22 @@ module OmfRc::ResourceProxy::Application
                   "#{event_type}: '#{msg}'"
       if event_type.to_s.include?('DONE')
         res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
+        res.inform(:status, {
+                        state: res.property.state,
+                        uid: res.uid # do we really need this? SHould be identical to 'src'
+                      }, :ALL)
       end
 
-      (res.membership + [res.uid]).each do |m|
-        res.inform(:status, {
-          status_type: 'APP_EVENT',
-          event: event_type.to_s.upcase,
-          app: app_id,
-          msg: msg,
-          seq: res.property.event_sequence,
-          uid: res.uid
-        }, m == res.uid ? nil : res.membership_topics[m])
-      end
+      res.inform(:status, {
+                    status_type: 'APP_EVENT',
+                    event: event_type.to_s.upcase,
+                    app: app_id,
+                    msg: msg,
+                    seq: res.property.event_sequence,
+                    uid: res.uid
+                  }, :ALL)
+      
+      
 
       res.property.event_sequence += 1
       res.property.installed = true if app_id.include?("_INSTALL") &&
@@ -244,13 +248,15 @@ module OmfRc::ResourceProxy::Application
   # @yieldparam [String] value the state to set this app into
   #
   configure :state do |res, value|
-    case value.to_s.downcase.to_sym
-    when :installing then res.switch_to_installing
-    when :stopped then res.switch_to_stopped
-    when :running then res.switch_to_running
-    when :paused then res.switch_to_paused
-    else
-      res.log_inform_warn "Cannot switch application to unknown state '#{value.to_s}'!"
+    OmfCommon.eventloop.after(0) do
+      case value.to_s.downcase.to_sym
+      when :installing then res.switch_to_installing
+      when :stopped then res.switch_to_stopped
+      when :running then res.switch_to_running
+      when :paused then res.switch_to_paused
+      else
+        res.log_inform_warn "Cannot switch application to unknown state '#{value.to_s}'!"
+      end
     end
     res.property.state
   end
@@ -322,9 +328,11 @@ module OmfRc::ResourceProxy::Application
       if res.property.binary_path.nil?
         res.log_inform_warn "Binary path not set! No Application to run!"
       else
-        ExecApp.new(res.property.app_id, res,
+        ExecApp.new(res.property.app_id,
                     res.build_command_line,
-                    res.property.map_err_to_out)
+                    res.property.map_err_to_out) do |event_type, app_id, msg|
+                      res.process_event(res, event_type, app_id, msg)
+                    end
         res.property.state = :running
       end
     elsif res.property.state == :paused
@@ -434,7 +442,7 @@ module OmfRc::ResourceProxy::Application
     end
     cmd_line += res.property.binary_path + " "
     # Add command line parameter in their specified order if any
-    sorted_parameters = res.property.parameters.sort_by {|k,v| v[:order]}
+    sorted_parameters = res.property.parameters.sort_by {|k,v| puts v.inspect; v[:order] || -1}
     sorted_parameters.each do |param,att|
       needed = false
       needed = att[:mandatory] if res.boolean?(att[:mandatory])
