@@ -28,7 +28,7 @@ module OmfCommon
     @@message_class = nil
 
     def self.create(type, properties, body = {})
-      @@message_class.create(type, properties, body)
+      @@message_class.create(type, properties || {}, body)
     end
 
     def self.create_inform_message(itype = nil, properties = {}, body = {})
