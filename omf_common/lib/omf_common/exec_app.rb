@@ -32,7 +32,7 @@ require 'fcntl'
 # Borrows from Open3
 #
 class ExecApp
-
+  
   # Holds the pids for all active apps
   @@all_apps = Hash.new
 
@@ -69,25 +69,27 @@ class ExecApp
   #
   # Run an application 'cmd' in a separate thread and monitor
   # its stdout. Also send status reports to the 'observer' by
-  # calling its "on_app_event(eventType, appId, message")"
+  # calling its "call(eventType, appId, message")"
   #
   # @param id ID of application (used for reporting)
   # @param observer Observer of application's progress
   # @param cmd Command path and args
   # @param map_std_err_to_out If true report stderr as stdin [false]
   #
-  def initialize(id, observer, cmd, map_std_err_to_out = false)
+  def initialize(id, cmd, map_std_err_to_out = false, &observer)
 
     @id = id
     @observer = observer
     @@all_apps[id] = self
+    @exit_status = nil
+    @threads = []
 
     pw = IO::pipe   # pipe[0] for read, pipe[1] for write
     pr = IO::pipe
     pe = IO::pipe
 
     logger.debug "Starting application '#{id}' - cmd: '#{cmd}'"
-    @observer.on_app_event(:STARTED, id, cmd)
+    @observer.call(:STARTED, id, cmd)
     @pid = fork {
       # child will remap pipes to std and exec cmd
       pw[1].close
@@ -118,21 +120,29 @@ class ExecApp
     monitor_pipe(:stdout, pr[0])
     monitor_pipe(map_std_err_to_out ? :stdout : :stderr, pe[0])
     # Create thread which waits for application to exit
-    Thread.new(id, @pid) do |id, pid|
+    @threads << Thread.new(id, @pid) do |id, pid|
       ret = Process.waitpid(pid)
-      status = $?
+      @exit_status = $?.exitstatus
       @@all_apps.delete(@id)
       # app finished
-      if (status == 0) || @clean_exit
-        s = "OK"
+      if (@exit_status == 0) || @clean_exit
         logger.debug "Application '#{id}' finished"
       else
-        s = "ERROR"
-        logger.debug "Application '#{id}' failed (code=#{status})"
+        logger.debug "Application '#{id}' failed (code=#{@exit_status})"
       end
-      @observer.on_app_event("DONE.#{s}", @id, "status: #{status}")
     end
     @stdin = pw[1]
+    
+    # wait for done in yet another thread
+    Thread.new do
+      @threads.each {|t| t.join }
+      if (@exit_status == 0) || @clean_exit
+        s = "OK"
+      else
+        s = "ERROR"
+      end
+      @observer.call("DONE.#{s}", @id, "status: #{@exit_status}")
+    end
   end
 
   private
@@ -145,14 +155,20 @@ class ExecApp
   # @param pipe Pipe to read from
   #
   def monitor_pipe(name, pipe)
-    Thread.new() do
+    @threads << Thread.new() do
       begin
         while true do
+#          self.synchronized do
+            # if the process stopped and everything is read, break
+            #break if @exit_status && !pipe.ready?
+ #         end
+          
           s = pipe.readline.chomp
-          @observer.on_app_event(name.to_s.upcase, @id, s)
+          @observer.call(name.to_s.upcase, @id, s)
         end
       rescue EOFError
         # do nothing
+        puts "++++ STOP MONITORING #{name}"
       rescue Exception => err
         logger.error "monitorApp(#{@id}): #{err}"
       ensure
