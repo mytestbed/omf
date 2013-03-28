@@ -47,7 +47,8 @@ OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
     comm.subscribe(resource) do |topic|
       topic.request(req_properties) do |msg|
-        puts "#{resource}   <#{msg.type}(#{msg.itype})>    #{msg.inspect}"
+        dm = (opts[:logging][:level] == 'debug') ? "    #{msg.inspect}" : ""
+        puts "#{resource}   <#{msg.type}(#{msg.itype})>#{dm}"
         msg.each_property do |name, value|
           puts "    #{name}: #{value}"
         end

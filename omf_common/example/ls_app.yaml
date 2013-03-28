@@ -1,0 +1,16 @@
+#
+# Describes how to run simple 'ls' on a node
+#
+create:
+  type: application
+  properties:
+    binary_path: /bin/ls
+    state: running
+    membership: apps
+    #environment: # (Hash) the environment variables to set prior to starting this app.
+    parameters:
+      p1:
+        cmd: -l
+        value: true
+        type: Boolean
+        order: 1

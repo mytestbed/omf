@@ -25,6 +25,7 @@ opts = {
 
 observed_topic = nil
 $follow_children = true
+$debug = false
 
 op = OptionParser.new
 op.banner = "Usage: #{op.program_name} [options] topic1 topic2 ...\n#{DESCR}\n"
@@ -36,6 +37,7 @@ op.on '-f', "--[no-]follow-children", "Follow all newly created resources [#{$fo
 end
 op.on '-d', '--debug', "Set logging to DEBUG level" do
   opts[:logging][:level] = 'debug'
+  $debug = true
 end
 op.on_tail('-h', "--help", "Show this message") { $stderr.puts op; exit }
 observed_topics = op.parse(ARGV)
@@ -56,7 +58,7 @@ def observe(tname, comm)
   comm.subscribe(tname) do |topic|
     topic.on_message do |msg|
       ts = Time.now.strftime('%H:%M:%S')
-      puts "#{ts}  #{msg.type}(#{msg.itype})  #{msg.inspect}"
+      puts "#{ts}  #{msg.type}(#{msg.itype})  #{$debug ? msg.inspect : ''}"
       puts "  #{topic.id}"
       msg.each_property do |name, value|
         puts "    #{name}: #{value}"
