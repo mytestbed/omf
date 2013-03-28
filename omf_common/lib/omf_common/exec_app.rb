@@ -144,7 +144,7 @@ class ExecApp
       @observer.call("DONE.#{s}", @id, "status: #{@exit_status}")
     end
   end
-
+    
   private
 
   #
@@ -158,19 +158,16 @@ class ExecApp
     @threads << Thread.new() do
       begin
         while true do
-#          self.synchronized do
-            # if the process stopped and everything is read, break
-            #break if @exit_status && !pipe.ready?
- #         end
-          
           s = pipe.readline.chomp
+          #puts "#{name}: #{s}"
           @observer.call(name.to_s.upcase, @id, s)
         end
       rescue EOFError
         # do nothing
-        puts "++++ STOP MONITORING #{name}"
+        #puts "++++ STOP MONITORING #{name}"
       rescue Exception => err
         logger.error "monitorApp(#{@id}): #{err}"
+        logger.debug "#{err}\n\t#{err.backtrace.join("\n\t")}"
       ensure
         pipe.close
       end

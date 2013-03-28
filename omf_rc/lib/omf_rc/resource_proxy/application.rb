@@ -454,7 +454,7 @@ module OmfRc::ResourceProxy::Application
     end
     cmd_line += res.property.binary_path + " "
     # Add command line parameter in their specified order if any
-    sorted_parameters = res.property.parameters.sort_by {|k,v| puts v.inspect; v[:order] || -1}
+    sorted_parameters = res.property.parameters.sort_by {|k,v| v[:order] || -1}
     sorted_parameters.each do |param,att|
       needed = false
       needed = att[:mandatory] if res.boolean?(att[:mandatory])
