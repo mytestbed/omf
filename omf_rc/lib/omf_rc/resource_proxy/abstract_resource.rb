@@ -61,7 +61,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
 
     @type = type
-    @uid = @opts.uid || SecureRandom.uuid
+    @uid = (@opts.uid || SecureRandom.uuid).to_s
     @hrn = @opts.hrn && @opts.hrn.to_s
 
     @children ||= []
