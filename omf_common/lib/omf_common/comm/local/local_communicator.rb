@@ -1,5 +1,4 @@
 require 'omf_common/comm/local/local_topic'
-require 'omf_common/comm/monkey_patches'
 
 module OmfCommon
   class Comm
