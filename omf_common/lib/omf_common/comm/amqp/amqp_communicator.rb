@@ -44,6 +44,7 @@ module OmfCommon
         # @param [String] topic Pubsub topic name
         def create_topic(topic, opts = {})
           raise "Topic can't be nil or empty" if topic.nil? || topic.empty?
+          topic = topic.to_s
           opts = opts.dup
           opts[:channel] = @channel
           if topic.start_with? 'amqp:'
@@ -69,7 +70,16 @@ module OmfCommon
             warn "Attempt to delete unknown topic '#{topic}"
           end        
         end
+
+        def broadcast_file(file_path, topic_url, opts = {}, &block)
+          require 'omf_common/comm/amqp/amqp_file_transfer'
+          OmfCommon::Comm::AMQP::FileBroadcaster.new(file_path, @channel, topic_url, opts, &block)
+        end
   
+        def receive_file(file_path, topic_url, opts = {}, &block)
+          require 'omf_common/comm/amqp/amqp_file_transfer'
+          FileReceiver.new(file_path, @channel, topic_url, opts, &block)
+        end
       end
     end
   end
