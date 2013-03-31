@@ -31,6 +31,21 @@ module OmfCommon
         @tasks << [Time.now + interval_sec, block, :periodic => interval_sec]
       end
       
+      # Call 'block' in the context of a separate thread.
+      #
+      def defer(&block)
+        @logger.note("DEFER")
+        Thread.new do
+          begin
+            block.call()
+          rescue Exception => ex
+            @logger.error "Exception '#{ex}'"
+            @logger.debug ex.backtract.join("\n\t")
+          end
+        end
+      end
+      
+      
       def stop 
         @running = false
       end
