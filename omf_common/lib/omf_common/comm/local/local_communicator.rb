@@ -4,7 +4,6 @@ module OmfCommon
   class Comm
     class Local
       class Communicator  < OmfCommon::Comm
-               
         # def initialize(opts = {})
           # # ignore arguments
         # end
@@ -12,6 +11,7 @@ module OmfCommon
         # Initialize comms layer
         #
         def init(opts = {})
+          @distributed_files = {}
         end
   
         # Shut down comms layer
@@ -45,6 +45,26 @@ module OmfCommon
           
           OmfCommon.eventloop.after(0) do
             block.arity == 1 ? block.call(self) : block.call
+          end
+        end
+  
+        def broadcast_file(file_path, topic_url, opts = {}, &block)
+          @distributed_files[topic_url] = file_path
+          "local:#{topic_url}"
+        end
+  
+        def receive_file(file_path, topic_url, opts = {}, &block)
+          OmfCommon.eventloop.after(0) do
+            unless original = @distributed_files[topic_url]
+              raise "File '#{topic_url}' hasn't started broadcasting"
+            end
+            `cp #{original} #{file_path}`
+            unless $?.success?
+              error "Couldn't copy '#{original}' to '#{file_path}'"
+            end
+            if block
+              block.call({action: :done, size: -1, received: -1})
+            end
           end
         end
   

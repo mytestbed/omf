@@ -14,3 +14,8 @@ create:
         value: true
         type: Boolean
         order: 1
+      p2:
+        cmd: /
+        value: true
+        type: Boolean
+        order: 2        
