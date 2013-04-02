@@ -76,10 +76,13 @@ module OmfCommon
           topic_name ||= SecureRandom.uuid
           require 'omf_common/comm/amqp/amqp_file_transfer'
           OmfCommon::Comm::AMQP::FileBroadcaster.new(file_path, @channel, topic_name, opts, &block)
-          @address_prefix + topic_name
+          "bdcst:#{@address_prefix + topic_name}"
         end
   
         def receive_file(topic_url, file_path = nil, opts = {}, &block)
+          if topic_url.start_with? @address_prefix
+            topic_url = topic_url[@address_prefix.length .. -1]
+          end
           require 'omf_common/comm/amqp/amqp_file_transfer'
           file_path ||= File.join(Dir.tmpdir, Dir::Tmpname.make_tmpname('bdcast', '.xxx'))
           FileReceiver.new(file_path, @channel, topic_url, opts, &block)

@@ -38,11 +38,16 @@ module OmfCommon
           super
           debug "(#{id}) Send message #{msg.inspect}"
           if @@marshall_messages
-            content_type, payload = msg.marshall
-            msg = Message.parse(payload, content_type)
-          end
-          OmfCommon.eventloop.after(0) do
-            on_incoming_message(msg)
+            content_type, payload = msg.marshall(self)
+            Message.parse(payload, content_type) do
+              OmfCommon.eventloop.after(0) do
+                on_incoming_message(msg)
+              end   
+            end
+          else
+            OmfCommon.eventloop.after(0) do
+              on_incoming_message(msg)
+            end
           end
         end
         
