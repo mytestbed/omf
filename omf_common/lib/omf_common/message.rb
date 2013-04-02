@@ -43,10 +43,13 @@ module OmfCommon
       @@authenticate_messages
     end
 
-    # Create and return a message by parsing 'str'
+    # Parse message from 'str' and pass it to 'block'.
+    # If authnetication is on, the message will only be handed
+    # to 'block' if the source of the message can be authenticated.
     #
-    def self.parse(str, content_type = nil)
-      @@message_class.parse(str, content_type)
+    def self.parse(str, content_type = nil, &block)
+      raise 'Need message handling blcok' unless block
+      @@message_class.parse(str, content_type, &block)
     end
 
     def self.init(opts = {})

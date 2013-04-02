@@ -53,9 +53,10 @@ module OmfCommon
             queue.subscribe do |headers, payload|
               #puts "===(#{id}) Incoming message '#{headers.content_type}'"
               debug "Received message on #{@address}"
-              msg = Message.parse(payload, headers.content_type)
-              #puts "---(#{id}) Parsed message '#{msg}'"
-              on_incoming_message(msg) if msg
+              Message.parse(payload, headers.content_type) do |msg|
+                #puts "---(#{id}) Parsed message '#{msg}'"
+                on_incoming_message(msg)
+              end
             end
             # Call all accumulated on_subscribed handlers
             @lock.synchronize do
