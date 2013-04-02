@@ -48,7 +48,7 @@ opts[:communication][:url] = r.join('/')
 
 OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
-    comm.broadcast_file(file_path, resource_url) do |state|
+    comm.broadcast_file(file_path, resource) do |state|
       debug state.inspect
       OmfCommon.eventloop.stop if state[:action] == :done
     end

@@ -71,13 +71,16 @@ module OmfCommon
           end        
         end
 
-        def broadcast_file(file_path, topic_url, opts = {}, &block)
+        def broadcast_file(file_path, topic_name = nil, opts = {}, &block)
+          topic_name ||= SecureRandom.uuid
           require 'omf_common/comm/amqp/amqp_file_transfer'
-          OmfCommon::Comm::AMQP::FileBroadcaster.new(file_path, @channel, topic_url, opts, &block)
+          OmfCommon::Comm::AMQP::FileBroadcaster.new(file_path, @channel, topic_name, opts, &block)
+          @address_prefix + topic_name
         end
   
-        def receive_file(file_path, topic_url, opts = {}, &block)
+        def receive_file(topic_url, file_path = nil, opts = {}, &block)
           require 'omf_common/comm/amqp/amqp_file_transfer'
+          file_path ||= File.join(Dir.tmpdir, Dir::Tmpname.make_tmpname('bdcast', '.xxx'))
           FileReceiver.new(file_path, @channel, topic_url, opts, &block)
         end
       end

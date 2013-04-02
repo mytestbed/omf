@@ -1,4 +1,5 @@
 require 'omf_common/comm/local/local_topic'
+require 'securerandom'
 
 module OmfCommon
   class Comm
@@ -48,24 +49,32 @@ module OmfCommon
           end
         end
   
-        def broadcast_file(file_path, topic_url, opts = {}, &block)
+        def broadcast_file(file_path, topic_url = nil, opts = {}, &block)
+          topic_url ||= SecureRandom.uuid
           @distributed_files[topic_url] = file_path
-          "local:#{topic_url}"
+          "bdcst:local:#{topic_url}"
         end
   
-        def receive_file(file_path, topic_url, opts = {}, &block)
+        def receive_file(topic_url, file_path = nil, opts = {}, &block)
+          if topic_url.start_with? 'local:'
+            topic_url = topic_url[6 .. -1]
+          end
+          file_path ||= File.join(Dir.tmpdir, Dir::Tmpname.make_tmpname('bdcast', ''))
           OmfCommon.eventloop.after(0) do
+            #puts ">>>>>> #{topic_url}::#{@distributed_files.keys}"
             unless original = @distributed_files[topic_url]
               raise "File '#{topic_url}' hasn't started broadcasting"
             end
+            mime_type = `file -b --mime-type #{original}`
             `cp #{original} #{file_path}`
             unless $?.success?
               error "Couldn't copy '#{original}' to '#{file_path}'"
             end
             if block
-              block.call({action: :done, size: -1, received: -1})
+              block.call({action: :done, mime_type: mime_type.strip, path: file_path, size: -1, received: -1})
             end
           end
+          file_path
         end
   
         # Publish to a pubsub topic

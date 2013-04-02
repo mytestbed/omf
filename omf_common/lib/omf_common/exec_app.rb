@@ -76,7 +76,7 @@ class ExecApp
   # @param cmd Command path and args
   # @param map_std_err_to_out If true report stderr as stdin [false]
   #
-  def initialize(id, cmd, map_std_err_to_out = false, &observer)
+  def initialize(id, cmd, map_std_err_to_out = false, working_directory = nil, &observer)
 
     @id = id
     @observer = observer
@@ -105,6 +105,7 @@ class ExecApp
       pe[1].close
 
       begin
+        Dir.chdir working_directory if working_directory
         exec(cmd)
       rescue => ex
         cmd = cmd.join(' ') if cmd.kind_of?(Array)
