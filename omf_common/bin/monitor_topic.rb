@@ -15,7 +15,9 @@ OP_MODE = :development
 
 opts = {
   communication: {
-    url: 'amqp://srv.mytestbed.net'
+    url: 'amqp://srv.mytestbed.net',
+    auth: {}
+
   },
   eventloop: { type: :em},
   logging: {

@@ -20,7 +20,7 @@ Cocaine::CommandLine.stub(:new, @command) do
         end
 
         @xmpp = MiniTest::Mock.new
-        @xmpp.expect(:subscribe, true, [Array])
+        @xmpp.expect(:subscribe, true, [String])
 
         OmfCommon.stub :comm, @xmpp do
           @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })

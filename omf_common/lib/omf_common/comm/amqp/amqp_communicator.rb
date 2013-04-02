@@ -20,23 +20,24 @@ module OmfCommon
           @address_prefix = @url + '/'
           ::AMQP.connect(@url) do |connection|
             @channel  = ::AMQP::Channel.new(connection)
-            
-            if @on_connected_proc
-              @on_connected_proc.arity == 1 ? @on_connected_proc.call(self) : @on_connected_proc.call
+            @on_connected_procs.each do |proc|
+              proc.arity == 1 ? proc.call(self) : proc.call
             end
                       
             OmfCommon.eventloop.on_stop do
               connection.close
             end
           end
+          super
         end
   
         # Shut down comms layer
         def disconnect(opts = {})
         end
         
+        # TODO: Should be thread safe and check if already connected
         def on_connected(&block)
-          @on_connected_proc = block
+          @on_connected_procs << block
         end
   
         # Create a new pubsub topic with additional configuration
@@ -44,9 +45,9 @@ module OmfCommon
         # @param [String] topic Pubsub topic name
         def create_topic(topic, opts = {})
           raise "Topic can't be nil or empty" if topic.nil? || topic.empty?
-          topic = topic.to_s
           opts = opts.dup
           opts[:channel] = @channel
+          topic = topic.to_s
           if topic.start_with? 'amqp:'
             # absolute address
             unless topic.start_with? @address_prefix 
@@ -82,6 +83,12 @@ module OmfCommon
           require 'omf_common/comm/amqp/amqp_file_transfer'
           file_path ||= File.join(Dir.tmpdir, Dir::Tmpname.make_tmpname('bdcast', '.xxx'))
           FileReceiver.new(file_path, @channel, topic_url, opts, &block)
+        end
+
+        private
+        def initialize(opts = {})
+          @on_connected_procs = []
+          super
         end
       end
     end

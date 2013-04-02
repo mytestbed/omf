@@ -71,7 +71,12 @@ module OmfCommon
           @deferred.each { |proc| proc.call }
           @deferred = nil
           if block
-            block.arity == 0 ? block.call : block.call(self)
+            begin
+              block.arity == 0 ? block.call : block.call(self)
+            rescue Exception => ex
+              error "While executing run block - #{ex}"
+              debug ex.backtrace.join("\n\t")
+            end
           end
         end
       end

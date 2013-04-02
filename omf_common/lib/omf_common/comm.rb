@@ -62,6 +62,12 @@ module OmfCommon
       end
       @@instance = inst
       Message.init(provider[:message_provider])
+
+      if aopts = opts[:auth]
+        require 'omf_common/auth'
+        OmfCommon::Auth.init(aopts)
+      end
+
       inst.init(opts)
     end
 
@@ -72,7 +78,17 @@ module OmfCommon
     # Initialize comms layer
     #
     def init(opts = {})
-      raise "Not implemented"
+    end
+
+    # Return the address used for all 'generic' messages
+    # not specifically being sent from a resource
+    #
+    def local_address()
+      @local_topic.address
+    end
+
+    def local_topic()
+      @local_topic
     end
 
     # Shut down comms layer
@@ -142,6 +158,18 @@ module OmfCommon
     private
     def initialize(opts = {})
       @opts = opts
+      unless local_address = opts[:local_address]
+        hostname = nil
+        begin
+          hostname = Socket.gethostbyname(Socket.gethostname)[0]
+        rescue Exception
+          hostname = `hostname`
+        end
+        local_address = "#{hostname}-#{Process.pid}"
+      end
+      on_connected do
+        @local_topic = create_topic(local_address.gsub('.', '-'))
+      end
     end
 
   end
