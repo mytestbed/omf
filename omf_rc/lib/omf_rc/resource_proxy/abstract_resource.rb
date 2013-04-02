@@ -485,6 +485,20 @@ class OmfRc::ResourceProxy::AbstractResource
       self.uid, replyto, inform_message.mid) if OmfCommon::Measure.enabled?
   end
 
+  def inform_status(props)
+    inform :status, props
+  end
+    
+  def inform_error(reason)
+    error reason
+    inform :error, {reason: reason}
+  end
+
+  def inform_warn(reason)
+    warn reason
+    inform :warn, {reason: reason}
+  end
+
   private
 
   # Find resource object based on topic name
