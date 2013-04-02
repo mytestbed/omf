@@ -92,6 +92,8 @@ should show the RVM version string, e.g.:
 
 ## Ruby installation
 
+**Note:** In this guide we mention a specific Ruby version and patchlevel. We have had problems with other Ruby versions and patchlevels before, so we only officially support this specific one. If you choose to use a different patchlevel, you may run into problems with OMF.
+
 ### **USERS & DEVELOPERS**
 
 Install Ruby, create a gemset, set Ruby version and gemset as defaults:
@@ -128,7 +130,7 @@ Contact an OMF testbed operator for an account. Make a resource reservation if r
 
 ### **Verify this step**
 
-To verify that you can run experiments on the testbed, we are providing a experiment script ({file:doc/oedl\_simple\_test.rb also available here}). Run:
+To verify that you can run experiments on the testbed, we are providing an experiment script ({file:doc/oedl\_simple\_test.rb also available here}). Run:
 
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
 	omf_ec -u xmpp://<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
@@ -204,18 +206,34 @@ If you want to make other resources available to OMF users ([such as OpenFlow sw
 
 ### **Verify this step**
 
-To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). If you are using the PC-type RC from the omf_rc gem, run:
+If you want to start the RC using an init script and you installed this script with the '-i' flag above, you can start the daemon like this:
+
+Ubuntu:
+
+        start omf_rc
+
+Debian & Fedora:
+
+        /etc/init.d/omf_rc start
+
+Check for the RC process by running:
+
+        ps aux | grep omf_rc
+
+If there is no "omf_rc" process, check the syslog for any errors that the startup script may have thrown.
+
+To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). If you are already running the RC as a daemon in the background, you can use that RC instead of starting a new one. Otherwise run:
 
 	omf_rc -u xmpp://<xmpp_hostname> -i test
 
-No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. For any other RC you might use, make sure it listens on the "test" topic on your XMPP server.
+No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. For any other RC you might use, make sure it listens on the "test" topic on your XMPP server. Replace \<xmpp_hostname\> with the hostname of your Openfire server. 
 
-Replace \<xmpp_hostname\> with the hostname of your Openfire server. Now open a new terminal and run:
+Now open a new terminal and run:
 
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
 	ruby rc_alive_check.rb xmpp://<xmpp_hostname> test
 
-using the same XMPP URI. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
+using the same XMPP URI. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments. If you use the daemonized RC, your default topic name would be your local hostname instead of "test", unless you changed the :uid: parameter in the RC config file to something else.
 
 ### Monitoring
 

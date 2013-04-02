@@ -17,7 +17,7 @@ PIDFILE=/var/run/$NAME.pid
 
 start(){
     echo -n "Starting OMF Resource Controller: $NAME"
-    $DAEMON >& /var/log/$NAME.daemon.log &
+    $DAEMON 2>&1 | logger -t omf_rc &
     echo $! > $PIDFILE
     echo "."
 }
