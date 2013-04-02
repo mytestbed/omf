@@ -26,6 +26,7 @@ module OmfCommon
       }
     }
     @@message_class = nil
+    @@authenticate_messages = true
 
     def self.create(type, properties, body = {})
       @@message_class.create(type, properties || {}, body)
@@ -36,10 +37,19 @@ module OmfCommon
       create(:inform, properties, body)
     end
 
-    # Create and return a message by parsing 'str'
+    # Return true if all messages will be authenticated, return false otherwise
     #
-    def self.parse(str)
-      @@message_class.parse(str)
+    def self.authenticate?
+      @@authenticate_messages
+    end
+
+    # Parse message from 'str' and pass it to 'block'.
+    # If authnetication is on, the message will only be handed
+    # to 'block' if the source of the message can be authenticated.
+    #
+    def self.parse(str, content_type = nil, &block)
+      raise 'Need message handling blcok' unless block
+      @@message_class.parse(str, content_type, &block)
     end
 
     def self.init(opts = {})
@@ -150,7 +160,7 @@ module OmfCommon
       raise NotImplementedError
     end
 
-    def marshall
+    def marshall(include_cert = false)
       raise NotImplementedError
     end
 

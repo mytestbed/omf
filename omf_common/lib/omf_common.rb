@@ -6,7 +6,7 @@ require 'omf_common/measure'
 require 'omf_common/message'
 require 'omf_common/comm'
 require 'omf_common/command'
-require 'omf_common/key'
+require 'omf_common/auth'
 require 'omf_common/core_ext/string'
 require 'omf_common/eventloop'
 
@@ -145,9 +145,14 @@ module OmfCommon
     unless copts = opts[:communication]
       raise "Missing :communication description"
     end
-    eopts = opts[:eventloop]
+
+    if aopts = opts[:auth]
+      require 'omf_common/auth/credential_store'
+      OmfCommon::Auth::CredentialStore.init(aopts)
+    end
 
     # Initialise event loop
+    eopts = opts[:eventloop]
     Eventloop.init(eopts)
     # start eventloop immediately if we received a run block
     eventloop.run do

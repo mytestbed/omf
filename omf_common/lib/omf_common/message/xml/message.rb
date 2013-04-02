@@ -47,7 +47,9 @@ class XML
         new(content)
       end
 
-      def parse(xml)
+      def parse(xml, content_type = "text/xml")
+        content_type ||= "text/xml" # Since by default parent class pass in nil object
+        raise ArgumentError, "Unknown content type: #{content_type}" unless content_type =~ /xml/
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
 
         xml_node = Nokogiri::XML(xml).root
@@ -96,11 +98,14 @@ class XML
 
     def marshall
       build_xml
-      @xml.to_xml
+      ['text/xml', @xml.to_xml]
     end
 
-    alias_method :to_xml, :marshall
-    alias_method :to_s, :marshall
+    def to_xml
+      marshall[1]
+    end
+
+    alias_method :to_s, :to_xml
 
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)

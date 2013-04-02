@@ -5,10 +5,6 @@ module OmfCommon
     class AMQP
       class Topic < OmfCommon::Comm::Topic
 
-        # def self.address_for(name)
-          # "#{name}@local"
-        # end
-        
         def to_s
           "AMQP::Topic<#{id}>"
         end
@@ -56,10 +52,12 @@ module OmfCommon
             #puts "QQ1(#{id}): #{queue}"
             queue.bind(@exchange)
             queue.subscribe do |headers, payload|
-              #puts "===(#{id}) Incoming message '#{payload}'"
-              msg = Message.parse(payload)
-              #puts "---(#{id}) Parsed message '#{msg}'"
-              on_incoming_message(msg)
+              #puts "===(#{id}) Incoming message '#{headers.content_type}'"
+              debug "Received message on #{@address}"
+              Message.parse(payload, headers.content_type) do |msg|
+                #puts "---(#{id}) Parsed message '#{msg}'"
+                on_incoming_message(msg)
+              end
             end
             debug "Subscribed to '#@id'"
             # Call all accumulated on_subscribed handlers
@@ -76,13 +74,10 @@ module OmfCommon
         
         def _send_message(msg, block = nil)
           super
-          debug "(#{id}) Send message #{msg.inspect}"
-          content = msg.marshall
-          @exchange.publish(content)
+          content_type, content = msg.marshall(self)
+          debug "(#{id}) Send message (#{content_type}) #{msg.inspect}"
+          @exchange.publish(content, content_type: content_type, message_id: msg.mid)
         end
-        
-
-
       end # class
     end # module 
   end # module

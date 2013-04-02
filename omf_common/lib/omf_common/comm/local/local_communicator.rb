@@ -12,6 +12,7 @@ module OmfCommon
         #
         def init(opts = {})
           @distributed_files = {}
+					super
         end
   
         # Shut down comms layer

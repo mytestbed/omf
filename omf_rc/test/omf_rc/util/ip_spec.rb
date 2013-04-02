@@ -13,7 +13,7 @@ describe OmfRc::Util::Ip do
       end
 
       @xmpp = MiniTest::Mock.new
-      @xmpp.expect(:subscribe, true, [Array])
+      @xmpp.expect(:subscribe, true, [String])
 
       @command = MiniTest::Mock.new
 

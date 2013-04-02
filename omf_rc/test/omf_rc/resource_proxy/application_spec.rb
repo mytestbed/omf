@@ -5,7 +5,7 @@ describe OmfRc::ResourceProxy::Application do
 
   before do
     @xmpp = MiniTest::Mock.new
-    @xmpp.expect(:subscribe, true, [Array])
+    @xmpp.expect(:subscribe, true, [String])
     @xmpp.expect(:publish, true, [String, OmfCommon::Message])
 
     OmfCommon.stub :comm, @xmpp do

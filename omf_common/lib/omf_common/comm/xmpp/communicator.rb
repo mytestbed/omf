@@ -27,16 +27,11 @@ class Comm
 
       # Capture system :INT & :TERM signal
       def on_interrupted(&block)
-        if block
-          trap(:INT) { block.call(self) }
-          trap(:TERM) { block.call(self) }
-        end
+        @cbks[:interpreted] << block
       end
 
       def on_connected(&block)
-        when_ready do
-          block.call(self)
-        end
+        @cbks[:connected] << block
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
@@ -63,6 +58,10 @@ class Comm
 
         connect(username, password, server)
 
+        when_ready do
+          @cbks[:connected].each { |cbk| cbk.call(self) }
+        end
+
         disconnected do
           unless normal_shutdown_mode
             unless retry_counter > 0
@@ -76,6 +75,11 @@ class Comm
             shutdown
           end
         end
+
+        trap(:INT) { @cbks[:interpreted].empty? ? disconnect : @cbks[:interpreted].each { |cbk| cbk.call(self) } }
+        trap(:TERM) { @cbks[:interpreted].empty? ? disconnect : @cbks[:interpreted].each { |cbk| cbk.call(self) } }
+
+        super
       end
 
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
@@ -184,6 +188,7 @@ class Comm
 
       def initialize(opts = {})
         self.published_messages = []
+        @cbks = {connected: [], interpreted: []}
         super
       end
 
