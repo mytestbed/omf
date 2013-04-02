@@ -477,8 +477,11 @@ class OmfRc::ResourceProxy::AbstractResource
     topic ||= @topics.first
     if inform_data.is_a? Hash
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
-      idata = inform_data.dup
-      idata.src = @topics.first.address
+      #idata = inform_data.dup
+      idata = {
+        src: @topics.first.address,
+        type: self.type  # NOTE: Should we add the object's type as well???
+      }
       message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, inform_data, idata)
     else
       message = inform_data
@@ -486,9 +489,9 @@ class OmfRc::ResourceProxy::AbstractResource
 
     message.itype = itype
     unless itype == :released
-      message[:uid] ||= self.uid
-      message[:type] ||= self.type
-      message[:hrn] ||= self.hrn
+      #message[:uid] ||= self.uid
+      #message[:type] ||= self.type
+      message[:hrn] ||= self.hrn if self.hrn
     end
 
     topic.publish(message)
