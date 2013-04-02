@@ -48,7 +48,7 @@ module OmfCommon
     # to 'block' if the source of the message can be authenticated.
     #
     def self.parse(str, content_type = nil, &block)
-      raise 'Need message handling blcok' unless block
+      raise 'Need message handling block' unless block
       @@message_class.parse(str, content_type, &block)
     end
 
@@ -70,6 +70,7 @@ module OmfCommon
       else
         raise "Missing provider class info - :constructor"
       end
+      @@authenticate_messages = opts[:authenticate]
     end
 
     OMF_CORE_READ.each do |pname|

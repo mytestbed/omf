@@ -61,7 +61,9 @@ module OmfCommon
         raise "Missing communicator creation info - :constructor"
       end
       @@instance = inst
-      Message.init(provider[:message_provider])
+      mopts = provider[:message_provider]
+      mopts[:authenticate] = (opts[:auth] != nil)
+      Message.init(mopts)
 
       if aopts = opts[:auth]
         require 'omf_common/auth'
@@ -163,7 +165,7 @@ module OmfCommon
         begin
           hostname = Socket.gethostbyname(Socket.gethostname)[0]
         rescue Exception
-          hostname = `hostname`
+          hostname = (`hostname` || 'unknown').strip
         end
         local_address = "#{hostname}-#{Process.pid}"
       end
