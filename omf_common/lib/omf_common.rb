@@ -248,7 +248,18 @@ module OmfCommon
       end
     end
     if level = opts[:level]
-      logger.level = level.to_sym
+      if level.is_a? Hash
+        # package level settings
+        level.each do |name, lvl|
+          if name.to_s == 'default'
+            logger.level = lvl.to_sym
+          else
+            Logging.logger[name.to_s].level = lvl.to_sym 
+          end
+        end
+      else
+        logger.level = level.to_sym
+      end
     end
   end
 
