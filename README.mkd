@@ -2,6 +2,13 @@
 
 [![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
 
+[![Gem Version](https://badge.fury.io/rb/omf_common.png)](http://badge.fury.io/rb/omf\_common)
+*omf_common*
+[![Gem Version](https://badge.fury.io/rb/omf_rc.png)](http://badge.fury.io/rb/omf\_rc)
+*omf_rc*
+[![Gem Version](https://badge.fury.io/rb/omf_ec.png)](http://badge.fury.io/rb/omf\_ec)
+*omf_ec*
+
 ## Note
 
 _This is OMF version 6. If are looking for the previous generation of OMF (5.x), please see the installation guides [here](https://omf.mytestbed.net/projects/omf/wiki/Installation)_.

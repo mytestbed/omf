@@ -18,7 +18,7 @@ describe OmfCommon::Comm::XMPP::Communicator do
 
     it "must be able to connect and tigger on_connected callbacks" do
       Blather::Client.stub :new, @client do
-        @xmpp.jid.inspect.must_equal "bob@example.com"
+        @xmpp.jid.to_s.must_equal "bob@example.com"
 
         @xmpp.on_connected do |communicator|
           communicator.must_be_kind_of OmfCommon::Comm::XMPP::Communicator

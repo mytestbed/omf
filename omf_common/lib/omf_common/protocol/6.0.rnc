@@ -1,6 +1,6 @@
 default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
-start = (create | configure | request | release | inform)
+start = (create | configure | request | release | inform | env)
 
 common_elements = attribute mid { text }?
   & element ts { text }
@@ -35,4 +35,8 @@ inform = element inform {
   common_elements
   & element cid { text }?
   & element itype { "CREATION.OK" | "CREATION.FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN" }
+}
+
+env = element env {
+ create | configure | request | release | inform
 }

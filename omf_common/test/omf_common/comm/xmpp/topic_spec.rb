@@ -32,7 +32,9 @@ describe OmfCommon::Comm::XMPP::Topic do
           end
 
           @client.stub :write, write_callback do
-            @topic.create(:bob, { hrn: 'bob' })
+            @xmpp.stub :local_address, 'test_addr' do
+              @topic.create(:bob, { hrn: 'bob' })
+            end
           end
         end
       end
@@ -50,8 +52,12 @@ describe OmfCommon::Comm::XMPP::Topic do
             omf_created = Blather::XMPPNode.parse(omf_created_xml)
             @client.receive_data omf_created
             @topic.on_creation_ok(omf_create) do |n|
-              n.must_equal OmfCommon::Message.parse(omf_created.items.first.payload)
-              done!
+              OmfCommon::Message.parse(omf_created.items.first.payload) do |parsed_msg|
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
+                done!
+              end
             end
           end
         end
@@ -67,8 +73,12 @@ describe OmfCommon::Comm::XMPP::Topic do
             omf_status = Blather::XMPPNode.parse(omf_status_xml)
             @client.receive_data omf_status
             @topic.on_status(omf_request) do |n|
-              n.must_equal OmfCommon::Message.parse(omf_status.items.first.payload)
-              done!
+              OmfCommon::Message.parse(omf_status.items.first.payload) do |parsed_msg|
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
+                done!
+              end
             end
           end
         end
@@ -84,8 +94,12 @@ describe OmfCommon::Comm::XMPP::Topic do
             omf_released = Blather::XMPPNode.parse(omf_released_xml)
             @client.receive_data omf_released
             @topic.on_released(omf_release) do |n|
-              n.must_equal OmfCommon::Message.parse(omf_released.items.first.payload)
-              done!
+              OmfCommon::Message.parse(omf_released.items.first.payload) do |parsed_msg|
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
+                done!
+              end
             end
           end
         end
@@ -101,8 +115,12 @@ describe OmfCommon::Comm::XMPP::Topic do
             omf_failed = Blather::XMPPNode.parse(omf_failed_xml)
             @client.receive_data omf_failed
             @topic.on_creation_failed(omf_create) do |n|
-              n.must_equal OmfCommon::Message.parse(omf_failed.items.first.payload)
-              done!
+              OmfCommon::Message.parse(omf_failed.items.first.payload) do |parsed_msg|
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
+                done!
+              end
             end
           end
         end
