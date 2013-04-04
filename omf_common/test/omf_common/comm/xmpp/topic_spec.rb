@@ -53,7 +53,9 @@ describe OmfCommon::Comm::XMPP::Topic do
             @client.receive_data omf_created
             @topic.on_creation_ok(omf_create) do |n|
               OmfCommon::Message.parse(omf_created.items.first.payload) do |parsed_msg|
-                n.must_equal parsed_msg
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
                 done!
               end
             end
@@ -72,7 +74,9 @@ describe OmfCommon::Comm::XMPP::Topic do
             @client.receive_data omf_status
             @topic.on_status(omf_request) do |n|
               OmfCommon::Message.parse(omf_status.items.first.payload) do |parsed_msg|
-                n.must_equal parsed_msg
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
                 done!
               end
             end
@@ -91,7 +95,9 @@ describe OmfCommon::Comm::XMPP::Topic do
             @client.receive_data omf_released
             @topic.on_released(omf_release) do |n|
               OmfCommon::Message.parse(omf_released.items.first.payload) do |parsed_msg|
-                n.must_equal parsed_msg
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
                 done!
               end
             end
@@ -110,7 +116,9 @@ describe OmfCommon::Comm::XMPP::Topic do
             @client.receive_data omf_failed
             @topic.on_creation_failed(omf_create) do |n|
               OmfCommon::Message.parse(omf_failed.items.first.payload) do |parsed_msg|
-                n.must_equal parsed_msg
+                n.stub :ts, parsed_msg.ts do
+                  n.must_equal parsed_msg
+                end
                 done!
               end
             end
