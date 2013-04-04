@@ -3,11 +3,11 @@
 [![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
 
 [![Gem Version](https://badge.fury.io/rb/omf_common.png)](http://badge.fury.io/rb/omf_common)
-_omf_common_
+_omf\_common_
 [![Gem Version](https://badge.fury.io/rb/omf_rc.png)](http://badge.fury.io/rb/omf_rc)
-_omf_rc_
+_omf\_rc_
 [![Gem Version](https://badge.fury.io/rb/omf_ec.png)](http://badge.fury.io/rb/omf_ec)
-_omf_ec_
+_omf\_ec_
 
 ## Note
 
