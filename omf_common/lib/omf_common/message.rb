@@ -26,7 +26,7 @@ module OmfCommon
       }
     }
     @@message_class = nil
-    @@authenticate_messages = true
+    @@authenticate_messages = false
 
     def self.create(type, properties, body = {})
       @@message_class.create(type, properties || {}, body)
