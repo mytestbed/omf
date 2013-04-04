@@ -130,7 +130,7 @@ class XML
         add_element(attr, attr_value) unless (self.operation != :release && attr == :res_id)
       end
 
-      self.properties.each { |k, v| add_property(k, v) }
+      self.properties.each { |k, v| add_property(k, v) unless k == 'certificate'}
       self.guard.each { |k, v| add_property(k, v, :guard) } if _get_core(:guard)
 
       #digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)

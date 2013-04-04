@@ -32,7 +32,9 @@ describe OmfCommon::Comm::XMPP::Topic do
           end
 
           @client.stub :write, write_callback do
-            @topic.create(:bob, { hrn: 'bob' })
+            @xmpp.stub :local_address, 'test_addr' do
+              @topic.create(:bob, { hrn: 'bob' })
+            end
           end
         end
       end

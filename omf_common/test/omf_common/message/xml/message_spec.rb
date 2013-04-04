@@ -133,4 +133,17 @@ describe OmfCommon::Message::XML::Message do
       msg.valid?.must_equal true
     end
   end
+
+  describe "when authentication enabled and certificate provided" do
+    it "must generate an envelope for the message" do
+      Message::XML::Message.authenticate?.must_equal true
+      cert = OmfCommon::Auth::Certificate.create(nil, 'bob', 'bob')
+      puts cert.to_pem_compact
+      message = Message::XML::Message.create(:create,
+                                              { type: 'bob', p1: 'p1_value', certificate: cert},
+                                              { rtype: 'bob', cert: cert.to_pem_compact})
+      puts message.to_s
+      message.valid?.must_equal true
+    end
+  end
 end

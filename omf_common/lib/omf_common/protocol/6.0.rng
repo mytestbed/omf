@@ -7,6 +7,7 @@
       <ref name="request"/>
       <ref name="release"/>
       <ref name="inform"/>
+      <ref name="env"/>
     </choice>
   </start>
   <define name="common_elements">
@@ -123,6 +124,17 @@
           </choice>
         </element>
       </interleave>
+    </element>
+  </define>
+  <define name="env">
+    <element name="env">
+      <choice>
+        <ref name="create"/>
+        <ref name="configure"/>
+        <ref name="request"/>
+        <ref name="release"/>
+        <ref name="inform"/>
+      </choice>
     </element>
   </define>
 </grammar>
