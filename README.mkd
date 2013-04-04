@@ -2,12 +2,12 @@
 
 [![Build Status](https://secure.travis-ci.org/mytestbed/omf.png)](http://travis-ci.org/mytestbed/omf)
 
-[![Gem Version](https://badge.fury.io/rb/omf_common.png)](http://badge.fury.io/rb/omf_common)
-_omf\_common_
-[![Gem Version](https://badge.fury.io/rb/omf_rc.png)](http://badge.fury.io/rb/omf_rc)
-_omf\_rc_
-[![Gem Version](https://badge.fury.io/rb/omf_ec.png)](http://badge.fury.io/rb/omf_ec)
-_omf\_ec_
+[![Gem Version](https://badge.fury.io/rb/omf_common.png)](http://badge.fury.io/rb/omf\_common)
+*omf_common*
+[![Gem Version](https://badge.fury.io/rb/omf_rc.png)](http://badge.fury.io/rb/omf\_rc)
+*omf_rc*
+[![Gem Version](https://badge.fury.io/rb/omf_ec.png)](http://badge.fury.io/rb/omf\_ec)
+*omf_ec*
 
 ## Note
 
