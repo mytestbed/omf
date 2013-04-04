@@ -9,20 +9,14 @@ class XMPP
         raise ArgumentError, 'Missing callback' if message_block.nil?
 
         event_block = proc do |event|
-          message_block.call(OmfCommon::Message.parse(event.items.first.payload))
+          OmfCommon::Message.parse(event.items.first.payload) do |parsed_msg|
+            if parsed_msg.operation == :inform && parsed_msg.itype == itype.upcase && (mid ? (parsed_msg.cid == mid) : true)
+              message_block.call(parsed_msg)
+            end
+          end
         end
 
-        guard_block = proc do |event|
-          (event.items?) && (!event.delayed?) &&
-            event.items.first.payload &&
-            (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
-            event.node == id.to_s &&
-            omf_message.operation == :inform &&
-            omf_message.read_content(:itype) == itype.upcase &&
-            (mid ? (omf_message.cid == mid) : true)
-        end
-
-        OmfCommon.comm.topic_event(guard_block, &event_block)
+        OmfCommon.comm.topic_event(default_guard, &event_block)
       end
     end
 
@@ -35,19 +29,16 @@ class XMPP
       event_block = proc do |event|
         @on_message_cbks.each do |id, cbks|
           cbks.each do |cbk|
-            cbk.call(OmfCommon::Message.parse(event.items.first.payload))
+            OmfCommon::Message.parse(event.items.first.payload) do |parsed_msg|
+              if (valid_guard?(message_guard_proc) ? message_guard_proc.call(parsed_msg) : true)
+                cbk.call(parsed_msg)
+              end
+            end
           end
         end
       end
 
-      guard_block = proc do |event|
-        (event.items?) && (!event.delayed?) &&
-          event.items.first.payload &&
-          (omf_message = OmfCommon::Message.parse(event.items.first.payload)) &&
-          event.node == id.to_s &&
-          (valid_guard?(message_guard_proc) ? message_guard_proc.call(omf_message) : true)
-      end
-      OmfCommon.comm.topic_event(guard_block, &event_block)
+      OmfCommon.comm.topic_event(default_guard, &event_block)
     end
 
     def delete_on_message_cbk_by_id(id)
@@ -141,6 +132,13 @@ class XMPP
       guard_proc && guard_proc.class == Proc
     end
 
+    def default_guard
+      proc do |event|
+        (event.items?) && (!event.delayed?) &&
+          event.items.first.payload &&
+          event.node == self.id.to_s
+      end
+    end
   end
 end
 end

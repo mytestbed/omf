@@ -47,14 +47,16 @@ class XML
         new(content)
       end
 
-      def parse(xml, content_type = "text/xml")
+      def parse(xml, content_type = "text/xml", &block)
+        raise ArgumentError, 'Need message handling block' unless block
+
         content_type ||= "text/xml" # Since by default parent class pass in nil object
         raise ArgumentError, "Unknown content type: #{content_type}" unless content_type =~ /xml/
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
 
         xml_node = Nokogiri::XML(xml).root
 
-        self.create(xml_node.name.to_sym).tap do |message|
+        parsed_msg = self.create(xml_node.name.to_sym).tap do |message|
           message.xml = xml_node
 
           message.send(:_set_core, :mid, message.xml.attr('mid'))
@@ -84,6 +86,8 @@ class XML
             MPMessage.inject(Time.now.to_f, message.operation.to_s, message.mid, message.cid, message.to_s.gsub("\n",''))
           end
         end
+        block.call(parsed_msg)
+        parsed_msg
       end
     end
 

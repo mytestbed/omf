@@ -55,7 +55,7 @@ describe OmfCommon::Message::XML::Message do
           boolean_array: [false, true] },
         { rtype: 'vm', guard: { os_type: 'linux' } }).to_xml
 
-      @message = Message::XML::Message.parse(@xml)
+      Message::XML::Message.parse(@xml) { |v| @message = v }
     end
 
     it "must create the object correctly" do
@@ -119,18 +119,19 @@ describe OmfCommon::Message::XML::Message do
 
   describe "when parsing inform message" do
     it "must validate against inform message schema" do
-      msg = Message::XML::Message.parse <<-XML
+      raw_xml = <<-XML
         <inform xmlns="http://schema.mytestbed.net/omf/6.0/protocol" mid="bob">
           <src>xmpp://bob@localhost</src>
           <ts>100</ts>
           <itype>CREATION.OK</itype>
         </inform>
       XML
+      Message::XML::Message.parse(raw_xml) do |parsed_msg|
+        parsed_msg.ts.must_equal "100"
+        parsed_msg.itype.must_equal "CREATION.OK"
 
-      msg.ts.must_equal "100"
-      msg.itype.must_equal "CREATION.OK"
-
-      msg.valid?.must_equal true
+        parsed_msg.valid?.must_equal true
+      end
     end
   end
 
