@@ -33,9 +33,6 @@ module OmfCommon
       # Request the creation of a new resource. Returns itself
       #
       def create(res_type, config_props = {}, core_props = {}, &block)
-        # new_res = nil
-        #res_name = res_name.to_sym
-        #config_props[:name] ||= res_name
         config_props[:type] ||= res_type
         debug "Create resource of type '#{res_type}'"
         create_message_and_publish(:create, config_props, core_props, block)
@@ -59,13 +56,6 @@ module OmfCommon
         self
       end
 
-      # def inform(type, props = {}, &block)
-        # msg = OmfCommon::Message.create(:inform, props)
-        # msg.itype = type
-        # publish(msg, &block)
-        # self
-      # end
-
       def release(resource, core_props = {}, &block)
         unless resource.is_a? self.class
           raise "Expected '#{self.class}', but got '#{resource.class}'"
@@ -76,7 +66,6 @@ module OmfCommon
         self
       end
 
-
       def create_message_and_publish(type, props = {}, core_props = {}, block = nil)
         debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}"
         core_props[:src] ||= OmfCommon.comm.local_address
@@ -85,19 +74,25 @@ module OmfCommon
       end
 
       def publish(msg, &block)
-        # TODO should it be _send_message(msg, &block) ?
         raise "Expected message but got '#{msg.class}" unless msg.is_a?(OmfCommon::Message)
         _send_message(msg, block)
       end
 
+      # TODO we should fix this long list related to INFORM messages
+      # according to FRCP, inform types are (underscore form):
+      # :creation_ok, :creation_failed, :status, :error, :warn, :released
+      #
+      # and we shall add :message for ALL types of messages.
       [:created,
         :create_succeeded, :create_failed,
         :inform_status, :inform_failed,
         :released, :failed,
-        :message
+        :message,
+        :creation_ok, :creation_failed, :status, :error, :warn
       ].each do |itype|
         mname = "on_#{itype}"
         define_method(mname) do |*args, &message_block|
+          raise ArgumentError, 'Missing message callback' if message_block.nil?
           debug "(#{id}) register handler for '#{mname}'"
           @lock.synchronize do
             (@handlers[itype] ||= []) << message_block
@@ -142,11 +137,15 @@ module OmfCommon
         @context2cbk = {}
       end
 
-
+      # _send_message will also register callbacks for reply messages by default
+      #
       def _send_message(msg, block = nil)
         if (block)
           # register callback for responses to 'mid'
-          @context2cbk[msg.mid.to_s] = {block: block, created_at: Time.now}
+          debug "(#{id}) register callback for responses to 'mid: #{msg.mid}'"
+          @lock.synchronize do
+            @context2cbk[msg.mid.to_s] = { block: block, created_at: Time.now }
+          end
         end
       end
 
@@ -160,8 +159,8 @@ module OmfCommon
         debug "(#{id}) Deliver message '#{type}': #{msg.inspect}"
         htypes = [type, :message]
         if type == :inform
+          # TODO keep converting itype is painful, need to solve this.
           if it = msg.itype.to_s.downcase
-            #puts "TTT> #{it}"
             case it
             when "creation_ok"
               htypes << :create_succeeded
@@ -174,7 +173,7 @@ module OmfCommon
         end
 
         debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg.cid})"
-        hs = htypes.map do |ht| @handlers[ht] end.compact.flatten
+        hs = htypes.map { |ht| @handlers[ht] }.compact.flatten
         debug "(#{id}) Distributing message to '#{hs.inspect}'"
         hs.each do |block|
           block.call msg
@@ -183,15 +182,8 @@ module OmfCommon
           debug "(#{id}) Distributing message to '#{cbk.inspect}'"
           cbk[:last_used] = Time.now
           cbk[:block].call(msg)
-        # else
-          # if msg.cid
-            # puts "====NOOOO for #{msg.cid} - #{@context2cbk.keys.inspect}"
-          # end
         end
-
       end
-
-
     end
   end
 end

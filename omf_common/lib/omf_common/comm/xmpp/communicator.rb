@@ -170,8 +170,14 @@ class Comm
       #
       def topic_event(additional_guard = nil, &block)
         guard_block = proc do |event|
-          passed = (event.items?) && (!event.delayed?) && event.items.first.payload &&
-            !published_messages.include?(OpenSSL::Digest::SHA1.new(event.items.first.payload))
+          info event
+          passed = !event.delayed? && event.items? && !event.items.first.payload.nil? #&&
+            #!published_messages.include?(OpenSSL::Digest::SHA1.new(event.items.first.payload))
+
+          info "#{event.items?} - #{!event.delayed?} = #{!event.items.first.payload.nil?}"
+          info "#{event.node}"
+
+          info passed
 
           MPReceived.inject(Time.now.to_f, jid, event.node, event.items.first.payload.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled? && passed
 
