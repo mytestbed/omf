@@ -9,7 +9,6 @@ require 'omf_common/message/xml/relaxng_schema'
 module OmfCommon
 class Message
 class XML
-
   # @example To create a valid omf message, e.g. a 'create' message:
   #
   #   Message.create(:create,
@@ -55,6 +54,28 @@ class XML
         raise ArgumentError, 'Can not parse an empty XML into OMF message' if xml.nil? || xml.empty?
 
         xml_node = Nokogiri::XML(xml).root
+
+        if xml_node.name.to_sym == :env # envelope
+          cert = xml_node.element_children.find { |v| v.element_name == 'cert' }.content
+          sig = xml_node.element_children.find { |v| v.element_name == 'sig' }.content
+          iss = xml_node.element_children.find { |v| v.element_name == 'iss' }.content
+          xml_node = xml_node.element_children.find { |v| v.element_name =~ /create|request|configure|inform/ }
+
+          existing_cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
+
+          if existing_cert
+             cert = existing_cert
+          else
+            OmfCommon::Auth::CertificateStore.instance.register_x509(cert)
+            cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
+          end
+
+          canonicalized_xml_node = xml_node.canonicalize.gsub(/\n +/, '')
+
+          unless cert.to_x509.public_key.verify(OpenSSL::Digest::SHA256.new(canonicalized_xml_node), Base64.decode64(sig), canonicalized_xml_node)
+            warn "Verfication failed #{canonicalized_xml_node}"
+          end
+        end
 
         parsed_msg = self.create(xml_node.name.to_sym).tap do |message|
           message.xml = xml_node
@@ -102,14 +123,41 @@ class XML
 
     def marshall
       build_xml
-      ['text/xml', @xml.to_xml]
-    end
 
-    def to_xml
-      marshall[1]
-    end
+      if self.class.authenticate?
+        src = @content[:src]
+        cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
+        if cert && cert.can_sign?
+          debug "Found cert for '#{src} - #{cert}"
+          signature_node = Niceogiri::XML::Node.new(:sig)
 
-    alias_method :to_s, :to_xml
+          signature = Base64.encode64(cert.key.sign(OpenSSL::Digest::SHA256.new(@xml.canonicalize), @xml.canonicalize)).encode('utf-8')
+          signature_node.add_child(signature)
+
+          @envelope = Niceogiri::XML::Node.new(:env, nil, OMF_NAMESPACE)
+          @envelope.add_child(@xml)
+          @envelope.add_child(signature_node)
+
+          iss_node = Niceogiri::XML::Node.new(:iss)
+          iss_node.add_child(src)
+          @envelope.add_child(iss_node)
+
+          #unless @certOnTopic[k = [topic, src]]
+          # first time for this src on this topic, so let's send the cert along
+          cert_node = Niceogiri::XML::Node.new(:cert)
+          cert_node.add_child(cert.to_pem_compact)
+          @envelope.add_child(cert_node)
+          #ALWAYS ADD CERT @certOnTopic[k] = Time.now
+          #end
+          ['text/xml', @envelope]
+        else
+          error "Missing cert for #{src}"
+          ['text/xml', nil]
+        end
+      else
+        ['text/xml', @xml]
+      end
+    end
 
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
@@ -137,9 +185,6 @@ class XML
       self.properties.each { |k, v| add_property(k, v) unless k == 'certificate'}
       self.guard.each { |k, v| add_property(k, v, :guard) } if _get_core(:guard)
 
-      #digest = OpenSSL::Digest::SHA512.new(@xml.canonicalize)
-
-      #add_element(:digest, digest)
       @xml
     end
 
@@ -204,27 +249,6 @@ class XML
           n.add_child(string_value(value))
         end
       end
-    end
-
-    # Generate SHA1 of canonicalised xml and write into the ID attribute of the message
-    #
-    def sign
-      write_attr('mid', SecureRandom.uuid)
-      write_attr('ts', Time.now.utc.to_i)
-      canonical_msg = self.canonicalize
-
-      #priv_key =  OmfCommon::Key.instance.private_key
-      #digest = OpenSSL::Digest::SHA512.new(canonical_msg)
-
-      #signature = Base64.encode64(priv_key.sign(digest, canonical_msg)).encode('utf-8') if priv_key
-      #write_attr('digest', digest)
-      #write_attr('signature', signature) if signature
-
-      if OmfCommon::Measure.enabled?
-        MPMessage.inject(Time.now.to_f, operation.to_s, mid, cid, self.to_s.gsub("\n",''))
-        @@mid_list << mid
-      end
-      self
     end
 
     # Validate against relaxng schema
@@ -359,9 +383,8 @@ class XML
     #  end
     #end
 
-    alias_method :read_property, :[]
-
     alias_method :write_property, :[]=
+    alias_method :read_property, :[]
 
     private
 
@@ -369,6 +392,8 @@ class XML
       @content = content
       @content.mid = SecureRandom.uuid
       @content.ts = Time.now.utc.to_i
+      # keep track if we sent local certs on a topic. Should do this the first time
+      @certOnTopic = {}
     end
 
     def _set_core(key, value)

@@ -60,8 +60,6 @@ class XMPP
       end
 
       event_block = proc do |event|
-        error 'FFS'
-
         OmfCommon::Message.parse(event.items.first.payload) do |parsed_msg|
           on_incoming_message(parsed_msg)
         end

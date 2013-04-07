@@ -155,7 +155,7 @@ class Comm
       def publish(topic, message, &block)
         raise StandardError, "Invalid message" unless message.valid?
 
-        message = message.xml unless message.kind_of? String
+        message = message.marshall[1] unless message.kind_of? String
 
         new_block = proc do |stanza|
           published_messages << OpenSSL::Digest::SHA1.new(message.to_s)
@@ -170,14 +170,8 @@ class Comm
       #
       def topic_event(additional_guard = nil, &block)
         guard_block = proc do |event|
-          info event
           passed = !event.delayed? && event.items? && !event.items.first.payload.nil? #&&
             #!published_messages.include?(OpenSSL::Digest::SHA1.new(event.items.first.payload))
-
-          info "#{event.items?} - #{!event.delayed?} = #{!event.items.first.payload.nil?}"
-          info "#{event.node}"
-
-          info passed
 
           MPReceived.inject(Time.now.to_f, jid, event.node, event.items.first.payload.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled? && passed
 
