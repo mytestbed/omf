@@ -6,10 +6,6 @@ module OmfRc::ResourceProxy::Node
   utility :mod
   utility :sysfs
 
-  request :proxies do
-    OmfRc::ResourceFactory.proxy_list
-  end
-
   request :interfaces do |node|
     node.children.find_all { |v| v.type == :net || v.type == :wlan }.map do |v|
       { name: v.property.if_name, type: v.type, uid: v.uid }

@@ -159,6 +159,10 @@ class XML
       end
     end
 
+    def to_s
+      @content
+    end
+
     def build_xml
       @xml = Niceogiri::XML::Node.new(self.operation.to_s, nil, OMF_NAMESPACE)
 

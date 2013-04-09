@@ -70,9 +70,6 @@ class OmfRc::ResourceProxy::AbstractResource
     @topics = []
     @membership_topics ||= {}
 
-    # FIXME adding hrn to membership too?
-    #@membership << @hrn if @hrn
-
     @property = @opts.property || Hashie::Mash.new
     @property.merge!(@opts.except([:uid, :hrn, :property, :instrument]))
 
@@ -141,8 +138,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @param (see #initialize)
   def create(type, opts = {}, creation_opts = {}, &creation_callback)
-    proxy_info = OmfRc::ResourceFactory.proxy_list[type]
-    if proxy_info && proxy_info.create_by && !proxy_info.create_by.include?(self.type.to_sym)
+    unless request_supported_children_type.include?(type)
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
     end
 
@@ -215,6 +211,18 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     true
+  end
+
+  # Return a list of all loaded resource proxies
+  #
+  def request_proxies(*args)
+    OmfRc::ResourceFactory.proxy_list
+  end
+
+  def request_supported_children_type(*args)
+    OmfRc::ResourceFactory.proxy_list.reject { |v| v == @type.to_s }.find_all do |k, v|
+      (v.create_by && v.create_by.include?(@type.to_sym)) || v.create_by.nil?
+    end.map(&:first)
   end
 
   # Return a list of all properties can be requested and configured
@@ -380,7 +388,7 @@ class OmfRc::ResourceProxy::AbstractResource
     exclude = [:type, :hrn, :name, :uid]
     props = {}
     copts = {}
-    mprops.each do |k, v| 
+    mprops.each do |k, v|
       if exclude.include?(k)
         copts[k] = v
       else
@@ -391,7 +399,7 @@ class OmfRc::ResourceProxy::AbstractResource
       begin
         response[:res_id] = new_obj.resource_address
 
-        
+
         props.each do |key, value|
           method_name = "configure_#{key}"
           response[key] = new_obj.__send__(method_name, value)
@@ -468,12 +476,12 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [String] topic Name of topic to send it. :ALL means to uid as well s all members
   #
   def inform(itype, inform_data, topic = nil)
-    if topic == :ALL 
+    if topic == :ALL
       inform(itype, inform_data)
       membership_topics.each {|m| inform(itype, inform_data, m[1])}
       return
     end
-    
+
     topic ||= @topics.first
     if inform_data.is_a? Hash
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
@@ -503,7 +511,7 @@ class OmfRc::ResourceProxy::AbstractResource
   def inform_status(props)
     inform :status, props
   end
-    
+
   def inform_error(reason)
     error reason
     inform :error, {reason: reason}
