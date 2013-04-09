@@ -222,7 +222,7 @@ class OmfRc::ResourceProxy::AbstractResource
   def request_supported_children_type(*args)
     OmfRc::ResourceFactory.proxy_list.reject { |v| v == @type.to_s }.find_all do |k, v|
       (v.create_by && v.create_by.include?(@type.to_sym)) || v.create_by.nil?
-    end.map(&:first)
+    end.map(&:first).map(&:to_sym)
   end
 
   # Return a list of all properties can be requested and configured

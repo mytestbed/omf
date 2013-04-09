@@ -4,6 +4,7 @@ require 'omf_rc/resource_proxy/application'
 describe OmfRc::ResourceProxy::Application do
 
   before do
+    skip
     @xmpp = MiniTest::Mock.new
     @xmpp.expect(:subscribe, true, [String])
     @xmpp.expect(:publish, true, [String, OmfCommon::Message])
@@ -15,11 +16,13 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when initialised" do
     it "must respond to an 'on_app_event' call back" do
+      skip
       #OmfRc::ResourceProxy::Application.method_defined?(:on_app_event).must_equal true
       @app_test.must_respond_to :on_app_event
     end
 
     it "must have its properties set to sensible initial values" do
+      skip
       @app_test.request_state.to_sym.must_equal :stopped
       @app_test.request_tarball_install_path.must_equal '/'
       @app_test.request_force_tarball_install.must_equal false
@@ -28,6 +31,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to configure/request its basic properties" do
+      skip
       basic_prop = %w(binary_path pkg_tarball pkg_ubuntu pkg_fedora force_tarball_install map_err_to_out tarball_install_path)
       basic_prop.each do |p|
         @app_test.send("configure_#{p}".to_sym, 'foo')
@@ -36,10 +40,12 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to tell which platform it is running on (either: unknown | ubuntu | fedora)" do
+      skip
       @app_test.request_platform.must_match /unknown|ubuntu|fedora/
     end
 
     it "must be able to configure its environments property" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         # First give it a valid environment property
         test_environments = { 'foo' => 123, 'bar_bar' => 'bar_123' }
@@ -53,6 +59,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to configure its available OML measurement points" do
+      skip
       test_oml_spec = eval(fixture('oml.spec'))
       @app_test.method(:configure_oml).call(test_oml_spec)
       @app_test.property.oml.must_be_kind_of Hash
@@ -65,6 +72,7 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when configuring its parameters property" do
     it "must be able to set its parameters property" do
+      skip
       # First give it a valid parameter property
       test_params = { :p1 => { :cmd => '--foo', :value => 'foo'} }
       @app_test.method(:configure_parameters).call(test_params)
@@ -80,6 +88,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to merge new parameters into existing ones" do
+      skip
       old_params = { :p1 => { :cmd => '--foo', :default => 'old_foo'} }
       @app_test.property.parameters = old_params
       new_params = { :p1 => { :default => 'new_foo', :value => 'val_foo'},
@@ -93,6 +102,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to validate the correct type of a defined parameter" do
+      skip
       test_params = { :p1 => { :type => 'String', :default => 'foo', :value => 'bar'},
         :p2 => { :type => 'Numeric', :default => 123, :value => 456},
         :p3 => { :type => 'Boolean', :default => true, :value => false},
@@ -120,6 +130,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must be able to detect incorrect type setting for a defined parameter, and DO NOT update the parameter in that case" do
+      skip
       old_params = { :p1 => { :type => 'String', :value => 'foo'},
         :p2 => { :type => 'Numeric', :default => 123, :value => 456 },
         :p3 => { :type => 'Boolean', :default => true, :value => true} }
@@ -138,6 +149,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must update any valid dynamic parameter with the given value" do
+      skip
       # set the parameter as dynamic
       params1 = { :p1 => { :cmd => '--foo', :default => 'old_foo', :dynamic => true},
         :p2 => { :cmd => '--notcalled', :dynamic => false} }
@@ -157,12 +169,14 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when receiving an event from a running application instance" do
     it "must publish an INFORM message to relay that event" do
+      skip
       @app_test.stub :inform, true do
         @app_test.on_app_event('STDOUT', 'app_instance_id', 'Some text here').must_be_nil
       end
     end
 
     it "must increments its event_sequence after publishig that INFORM message" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
           i = @app_test.property.event_sequence
@@ -173,6 +187,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must switch its state to :completed if the event is of a type 'DONE' and the application is not installing itself" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
           @app_test.on_app_event('DONE.OK', 'app_instance_id', 'Some text here')
@@ -188,6 +203,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must set installed property to true if the event is 'DONE.OK' and the application was installing itself" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
           @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
@@ -200,6 +216,7 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when configuring its state property to :installing" do
     it "must do nothing if its original state is not :stopped" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.property.state = :running
         @app_test.method(:configure_state).call(:installing)
@@ -208,6 +225,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must do nothing if its original state is :stopped and it is already installed" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.property.state = :stopped
         @app_test.property.installed = true
@@ -217,6 +235,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must use the tarball install method if it does not know its OS platform or if force_tarball_install is set" do
+      skip
       @app_test.property.pkg_tarball = 'foo'
       @app_test.property.tarball_install_path = '/bar/'
       @stub_tarball_tasks = Proc.new do |pkg,path|
@@ -246,6 +265,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must use the ubuntu install method if its OS platform is ubuntu" do
+      skip
       @did_call_install_ubuntu = false
       @app_test.property.state = :stopped
       @app_test.property.installed = false
@@ -262,6 +282,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must use the fedora install method if its OS platform is fedora" do
+      skip
       @did_call_install_fedora = false
       @app_test.property.state = :stopped
       @app_test.property.installed = false
@@ -280,6 +301,7 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when configuring its state property to :running" do
     it "must do nothing if its original state is :installing" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.property.state = :installing
         @app_test.method(:configure_state).call(:running)
@@ -288,6 +310,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must get back to the :running state if its original state is :paused" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.property.state = :paused
         @app_test.method(:configure_state).call(:running)
@@ -296,6 +319,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must do nothing if its binary path is not set" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.property.state = :stopped
         @app_test.method(:configure_state).call(:running)
@@ -304,6 +328,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must start an app using ExecApp and a correct command line if its original state is :stopped" do
+      skip
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map)
           app_id.must_equal "an_application"
@@ -327,6 +352,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must start an app with OML command line options when use_oml parameter is set" do
+      skip
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map)
           cmd_line.must_equal "env -i my_cmd --oml-config /tmp/bar.xml --oml-log-level 1 --oml-log-file foo "
@@ -343,6 +369,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must start an app using its own built OML config when use_oml and oml parameters are set" do
+      skip
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map)
           xml_file = cmd_line.split('env -i my_cmd --oml-config ')[1]
@@ -359,6 +386,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must not use any oml options if use_oml is set but both oml or oml_config are not set" do
+      skip
       OmfCommon.stub :comm, @xmpp do
         class ExecApp
           def initialize(app_id, res, cmd_line, err_out_map)
@@ -377,6 +405,7 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when configuring its state property to :paused" do
     it "must do nothing if its original state is :stopped or :installing" do
+      skip
       @app_test.property.state = :stopped
       @app_test.method(:configure_state).call(:paused)
       @app_test.property.state.must_equal :stopped
@@ -386,6 +415,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must do switch its state to :paused if its original state is :running or :paused" do
+      skip
       @app_test.property.state = :running
       @app_test.method(:configure_state).call(:paused)
       @app_test.property.state.must_equal :paused
@@ -397,6 +427,7 @@ describe OmfRc::ResourceProxy::Application do
 
   describe "when configuring its state property to :stopped" do
     it "must do nothing if its original state is :stopped or :installing" do
+      skip
       @app_test.property.state = :stopped
       @app_test.method(:configure_state).call(:paused)
       @app_test.property.state.must_equal :stopped
@@ -406,6 +437,7 @@ describe OmfRc::ResourceProxy::Application do
     end
 
     it "must stop its running application if its original state is :running or :paused" do
+      skip
       @app_test.property.state = :running
       class ExecApp
         def initialize(app_id, res, cmd_line, err_out_map); end
