@@ -168,8 +168,8 @@ describe OmfCommon::Comm::XMPP::Communicator do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'create'
-      m1.body.to_xml.must_match /<property key="type" type="string">engine<\/property>/
-      m2.body.to_xml.must_match /<property key="type" type="string">engine<\/property>/
+      m1.body.marshall[1].must_match /<property key="type" type="string">engine<\/property>/
+      m2.body.marshall[1].must_match /<property key="type" type="string">engine<\/property>/
     end
 
     it "must generate omf configure xml fragment" do
@@ -181,8 +181,8 @@ describe OmfCommon::Comm::XMPP::Communicator do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'configure'
-      m1.body.to_xml.must_match /<property key="throttle" type="integer">50<\/property>/
-      m2.body.to_xml.must_match /<property key="throttle" type="integer">50<\/property>/
+      m1.body.marshall[1].must_match /<property key="throttle" type="integer">50<\/property>/
+      m2.body.marshall[1].must_match /<property key="throttle" type="integer">50<\/property>/
     end
 
     it "must generate omf inform xml fragment" do
@@ -194,8 +194,8 @@ describe OmfCommon::Comm::XMPP::Communicator do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'inform'
-      m1.body.to_xml.must_match /<property key="itype" type="string">CREATION.OK<\/property>/
-      m2.body.to_xml.must_match /<property key="itype" type="string">CREATION.OK<\/property>/
+      m1.body.marshall[1].must_match /<property key="itype" type="string">CREATION.OK<\/property>/
+      m2.body.marshall[1].must_match /<property key="itype" type="string">CREATION.OK<\/property>/
     end
 
     it "must generate omf release xml fragment" do
@@ -207,8 +207,8 @@ describe OmfCommon::Comm::XMPP::Communicator do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'release'
-      m1.body.to_xml.must_match /<property key="res_id" type="integer">100<\/property>/
-      m2.body.to_xml.must_match /<property key="res_id" type="integer">100<\/property>/
+      m1.body.marshall[1].must_match /<property key="res_id" type="integer">100<\/property>/
+      m2.body.marshall[1].must_match /<property key="res_id" type="integer">100<\/property>/
     end
 
     it "must generate omf request xml fragment" do
@@ -222,12 +222,12 @@ describe OmfCommon::Comm::XMPP::Communicator do
       m1.must_be_kind_of OmfCommon::TopicMessage
       m2.must_be_kind_of OmfCommon::TopicMessage
       m1.body.name.must_equal 'request'
-      m1.body.to_xml.must_match /<property key="max_rpm"\/>/
-      m1.body.to_xml.must_match /<property key="provider" type="hash">/
-      m2.body.to_xml.must_match /<property key="provider" type="hash">/
-      m1.body.to_xml.must_match /<country type="string">japan<\/country>/
-      m2.body.to_xml.must_match /<country type="string">japan<\/country>/
-      m1.body.to_xml.must_match /<property key="max_power"\/>/
+      m1.body.marshall[1].must_match /<property key="max_rpm"\/>/
+      m1.body.marshall[1].must_match /<property key="provider" type="hash">/
+      m2.body.marshall[1].must_match /<property key="provider" type="hash">/
+      m1.body.marshall[1].must_match /<country type="string">japan<\/country>/
+      m2.body.marshall[1].must_match /<country type="string">japan<\/country>/
+      m1.body.marshall[1].must_match /<property key="max_power"\/>/
     end
   end
 

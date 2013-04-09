@@ -8,6 +8,7 @@ require 'minitest/spec'
 require 'minitest/mock'
 
 require 'omf_common'
+require 'blather/client/dsl'
 
 OmfCommon::Message.init(type: :xml)
 

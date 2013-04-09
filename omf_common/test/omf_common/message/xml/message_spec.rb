@@ -17,10 +17,11 @@ describe OmfCommon::Message::XML::Message do
     end
 
     it "must be able to be serialised as XML" do
-      @message.to_xml.must_match /^<create(.+)create>$/m
-      @message.to_xml.must_match /<rtype>bob<\/rtype>/m
-      @message.to_xml.must_match /<props(.+)props>/m
-      @message.to_xml.must_match /<guard(.+)guard>/m
+      xml_payload = @message.marshall[1].to_xml
+      xml_payload.must_match /^<create(.+)create>$/m
+      xml_payload.must_match /<rtype>bob<\/rtype>/m
+      xml_payload.must_match /<props(.+)props>/m
+      xml_payload.must_match /<guard(.+)guard>/m
     end
   end
 
@@ -35,9 +36,10 @@ describe OmfCommon::Message::XML::Message do
     end
 
     it "must be able to be serialised as XML" do
-      @message.to_xml.must_match /^<release(.+)release>$/m
-      @message.to_xml.must_match /<res_id>bob<\/res_id>/m
-      @message.to_xml.must_match /<guard(.+)guard>/m
+      xml_payload = @message.marshall[1].to_xml
+      xml_payload.must_match /^<release(.+)release>$/m
+      xml_payload.must_match /<res_id>bob<\/res_id>/m
+      xml_payload.must_match /<guard(.+)guard>/m
     end
   end
 
@@ -53,7 +55,7 @@ describe OmfCommon::Message::XML::Message do
           false: false,
           empty: nil,
           boolean_array: [false, true] },
-        { rtype: 'vm', guard: { os_type: 'linux' } }).to_xml
+        { rtype: 'vm', guard: { os_type: 'linux' } }).marshall[1].to_xml
 
       Message::XML::Message.parse(@xml) { |v| @message = v }
     end
@@ -137,14 +139,19 @@ describe OmfCommon::Message::XML::Message do
 
   describe "when authentication enabled and certificate provided" do
     it "must generate an envelope for the message" do
-      Message::XML::Message.authenticate?.must_equal true
-      cert = OmfCommon::Auth::Certificate.create(nil, 'bob', 'bob')
-      puts cert.to_pem_compact
-      message = Message::XML::Message.create(:create,
-                                              { type: 'bob', p1: 'p1_value', certificate: cert},
-                                              { rtype: 'bob', cert: cert.to_pem_compact})
-      puts message.to_s
-      message.valid?.must_equal true
+      Message.stub(:authenticate?, true) do
+        OmfCommon::Auth.init
+        cert = OmfCommon::Auth::Certificate.create(nil, 'sa', 'auth')
+        bob_cert = cert.create_for('bob', 'bob', 'bob')
+
+        message = Message::XML::Message.create(:create,
+                                                { type: 'bob', p1: 'p1_value'},
+                                                { rtype: 'bob', src: 'bob'})
+
+        # m indicates multiple lines
+        message.marshall[1].to_xml.must_match /<env(.+)env>/m
+        message.valid?.must_equal true
+      end
     end
   end
 end
