@@ -138,7 +138,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @param (see #initialize)
   def create(type, opts = {}, creation_opts = {}, &creation_callback)
-    unless request_supported_children_type.include?(type)
+    unless request_supported_children_type.include?(type.to_sym)
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
     end
 
