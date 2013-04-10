@@ -49,7 +49,7 @@ module OmfCommon
         provider = @@providers[type]
       end
       unless provider
-        raise "Missing Comm provider declaration. Either define 'type', 'provider', or 'url'"
+        raise ArgumentError, "Missing Comm provider declaration. Either define 'type', 'provider', or 'url'"
       end
 
       require provider[:require] if provider[:require]
@@ -58,7 +58,7 @@ module OmfCommon
         provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
         inst = provider_class.new(opts)
       else
-        raise "Missing communicator creation info - :constructor"
+        raise ArgumentError, "Missing communicator creation info - :constructor"
       end
       @@instance = inst
       mopts = provider[:message_provider]
@@ -95,25 +95,25 @@ module OmfCommon
 
     # Shut down comms layer
     def disconnect(opts = {})
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     def on_connected(&block)
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     # Create a new pubsub topic with additional configuration
     #
     # @param [String] topic Pubsub topic name
     def create_topic(topic, opts = {})
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     # Delete a pubsub topic
     #
     # @param [String] topic Pubsub topic name
     def delete_topic(topic, &block)
-      raise "Not implemented"
+      raise NotImplementedError
     end
 
     # Subscribe to a pubsub topic
@@ -127,7 +127,7 @@ module OmfCommon
       ta = tna.collect do |tn|
         t = create_topic(tn)
         if block
-          t.on_subscribed do 
+          t.on_subscribed do
             block.call(t)
           end
         end
@@ -135,7 +135,7 @@ module OmfCommon
       end
       ta[0]
     end
-    
+
     # Publish a message on a topic
     #
     # @param [String, Array] topic_name Pubsub topic name

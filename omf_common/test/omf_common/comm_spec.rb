@@ -1,18 +1,71 @@
 require 'test_helper'
+require 'omf_common/comm/local/local_communicator'
 
 describe OmfCommon::Comm do
-  describe 'when initialised with a pubsub implementation' do
-    it 'must return a instance with all methods defined in corresponding module loaded' do
-      skip
-      @comm = OmfCommon::Comm.new(:xmpp)
-      %w(connect disconnect create_topic delete_topic subscribe unsubscribe publish affiliations).each do |m|
-        @comm.must_respond_to m
+  describe "when initialised without providing a pubsub implementation" do
+    before do
+      OmfCommon::Comm.any_instance.stubs(:on_connected)
+      @abstract_comm = OmfCommon::Comm.new(bob: nil)
+      @topic = mock
+    end
+
+    it "must raise no implementation error for abstract methods" do
+      OmfCommon::Comm.any_instance.unstub(:on_connected)
+      [:disconnect, :on_connected, :on_connected].each do |m|
+        lambda { @abstract_comm.send(m, ) }.must_raise NotImplementedError
       end
 
-      # also existing blather DSL should work  too
-      %w(when_ready shutdown).each do |m|
-        @comm.must_respond_to m
+      [:create_topic, :delete_topic].each do |m|
+        lambda { @abstract_comm.send(m, :bob) }.must_raise NotImplementedError
       end
+    end
+
+    it "must return options" do
+      @abstract_comm.options.must_equal(bob: nil)
+    end
+
+    it "must be able to subscribe to a topic" do
+      @abstract_comm.stubs(:create_topic).returns(@topic)
+      @topic.expects(:on_subscribed)
+      @abstract_comm.subscribe(:bob) { 'do nothing' }
+    end
+
+    it "must be able to publish message" do
+      @abstract_comm.stubs(:create_topic).returns(@topic)
+      @topic.expects(:publish)
+      @abstract_comm.publish(:bob, 'message')
+    end
+  end
+
+  describe 'when initialised with a pubsub implementation' do
+    after do
+      OmfCommon::Comm.reset
+    end
+
+    it 'must fail if you throw in rubbish options' do
+      lambda { OmfCommon::Comm.init(bob: nil) }.must_raise ArgumentError
+      lambda { OmfCommon::Comm.init(provider: {}) }.must_raise ArgumentError
+      lambda { OmfCommon::Comm.init(provider: { constructor: {}, require: {} }) }.must_raise TypeError
+    end
+
+    it 'must fail if already initialised' do
+      OmfCommon::Comm::Local::Communicator.any_instance.stubs(:on_connected)
+      OmfCommon::Message.stubs(:init)
+      error = lambda do
+        OmfCommon::Comm.init(type: :local)
+        OmfCommon::Comm.init(type: :local)
+      end.call rescue $!
+      error.message.must_match /Comms layer already initialised/
+    end
+
+    it 'must handle auth options and be able to return singleton instance' do
+      OmfCommon::Comm::Local::Communicator.any_instance.stubs(:on_connected)
+
+      OmfCommon::Message.stubs(:init)
+      OmfCommon::Auth::CertificateStore.stubs(:init)
+      OmfCommon::Comm.init(type: :local, auth: {})
+
+      OmfCommon::Comm.instance.must_be_kind_of OmfCommon::Comm::Local::Communicator
     end
   end
 end
