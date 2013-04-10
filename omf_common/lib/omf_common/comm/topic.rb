@@ -58,7 +58,7 @@ module OmfCommon
 
       def release(resource, core_props = {}, &block)
         unless resource.is_a? self.class
-          raise "Expected '#{self.class}', but got '#{resource.class}'"
+          raise ArgumentError, "Expected '#{self.class}', but got '#{resource.class}'"
         end
         core_props[:src] ||= OmfCommon.comm.local_address
         msg = OmfCommon::Message.create(:release, {}, core_props.merge(res_id: resource.id))
@@ -108,7 +108,7 @@ module OmfCommon
       end
 
       def on_subscribed(&block)
-        raise "Not implemented"
+        raise NotImplementedError
       end
 
       # For detecting message publishing error, means if callback indeed yield a Topic object, there is no publishing error, thus always false
@@ -117,7 +117,7 @@ module OmfCommon
       end
 
       def address
-        raise "Not implemented"
+        raise NotImplementedError
       end
 
       def after(delay_sec, &block)
@@ -166,9 +166,9 @@ module OmfCommon
               htypes << :create_succeeded
             when 'status'
               htypes << :inform_status
-            else
-              htypes << it.to_sym
             end
+
+            htypes << it.to_sym
           end
         end
 

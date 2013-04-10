@@ -1,6 +1,5 @@
 require 'test_helper'
 require 'fixture/pubsub'
-require 'em/minitest/spec'
 
 require 'omf_common/comm/xmpp/communicator'
 
