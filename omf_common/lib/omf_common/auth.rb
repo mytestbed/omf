@@ -2,12 +2,12 @@
 
 module OmfCommon
   module Auth
-    
-    class AuthException < Exception; end
-    
+
+    class AuthException < StandardError; end
+
     def self.init(opts = {})
       CertificateStore.init(opts)
-    end    
+    end
   end
 end
 

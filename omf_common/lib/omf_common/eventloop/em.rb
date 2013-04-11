@@ -24,7 +24,7 @@ module OmfCommon
           end
         end
       end
-      
+
       # Call 'block' in the context of a separate thread.
       #
       def defer(&block)
@@ -32,7 +32,7 @@ module OmfCommon
         EM.defer do
           begin
             block.call()
-          rescue Exception => ex
+          rescue  => ex
             error "Exception '#{ex}'"
             debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
           end
@@ -43,10 +43,10 @@ module OmfCommon
       #
       # @param [Float] interval in sec
       def every(interval_sec, &block)
-        # to allow canceling the periodic timer we need to 
+        # to allow canceling the periodic timer we need to
         # hand back a reference to it which responds to 'cancel'
-        # As this is getting rather complex when allowing for 
-        # registration before the EM is up and running, we simply throw 
+        # As this is getting rather complex when allowing for
+        # registration before the EM is up and running, we simply throw
         # and exception at this time.
         raise "Can't handle 'every' registration before the EM is up" unless EM.reactor_running?
         # if EM.reactor_running?
@@ -59,11 +59,11 @@ module OmfCommon
         EM.add_periodic_timer(interval_sec) do
           begin
             block.call()
-          rescue Exception => ex
+          rescue  => ex
             error "Exception '#{ex}'"
             debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
           end
-        end      
+        end
       end
 
       def run(&block)
@@ -73,9 +73,9 @@ module OmfCommon
           if block
             begin
               block.arity == 0 ? block.call : block.call(self)
-            rescue Exception => ex
+            rescue  => ex
               error "While executing run block - #{ex}"
-              debug ex.backtrace.join("\n\t")
+              error ex.backtrace.join("\n\t")
             end
           end
         end

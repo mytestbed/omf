@@ -9,7 +9,7 @@ module OmfEc
     # raised when the OMF EC is processing an OEDL experiment scripts
     #
     # The base exception is OEDLException
-    class OEDLException < Exception; end
+    class OEDLException < StandardError; end
 
     class OEDLArgumentException < OEDLException
       attr_reader :cmd, :arg

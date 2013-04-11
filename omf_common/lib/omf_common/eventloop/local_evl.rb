@@ -38,7 +38,7 @@ module OmfCommon
         Thread.new do
           begin
             block.call()
-          rescue Exception => ex
+          rescue  => ex
             @logger.error "Exception '#{ex}'"
             @logger.debug ex.backtract.join("\n\t")
           end

@@ -164,7 +164,7 @@ module OmfCommon
         hostname = nil
         begin
           hostname = Socket.gethostbyname(Socket.gethostname)[0]
-        rescue Exception
+        rescue 
           hostname = (`hostname` || 'unknown').strip
         end
         local_address = "#{hostname}-#{Process.pid}"

@@ -166,7 +166,7 @@ class ExecApp
       rescue EOFError
         # do nothing
         #puts "++++ STOP MONITORING #{name}"
-      rescue Exception => err
+      rescue  => err
         logger.error "monitorApp(#{@id}): #{err}"
         logger.debug "#{err}\n\t#{err.backtrace.join("\n\t")}"
       ensure

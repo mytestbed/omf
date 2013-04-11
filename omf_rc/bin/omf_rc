@@ -16,7 +16,7 @@ oml_enabled = false
 gem_version = Gem::Specification.find_by_name('omf_rc').version.to_s
 
 begin
-  oml_enabled = OML4R::init(ARGV, :appName => executable_name) do |opts|
+  oml_enabled = OML4R::init(ARGV, appName: executable_name) do |opts|
     opts.banner = "usage: #{executable_name} [options]"
 
     opts.on("-c CONFIGFILE", "Configuration File") do |file|
@@ -39,18 +39,11 @@ begin
       options[:uid] = uid
     end
   end
+rescue OML4R::MissingArgumentException => e
+  puts "Warning: #{e.message} to instrument this RC, so it will run without instrumentation. (see --oml-help)"
 rescue => e
-  # Right now OML4R does not raise proper exceptions :(
-  # OML4R requires --oml-noop to be set if we want to run without doing any
-  # measurements... this is too restrictive here, we want to run without OML
-  # if no OML parameters were set and this even if --oml-noop is not set.
-  if e.message.include?('OML4R: Missing values for parameters :expID ')
-    puts "Warning: Missing some OML options to instrument this RC, so it will "+
-      "run without instrumentation. (see --oml-help)"
-  else
-    puts e.message
-    exit(1)
-  end
+  puts e.message
+  exit(1)
 end
 
 if !options[:configfile].nil?
@@ -64,8 +57,10 @@ OmfCommon::Measure.enable if oml_enabled
 
 options[:environment] ||= :development
 
+root_cert = OmfCommon::Auth::Certificate.create(nil, 'ca', 'authority')
+
 if options[:uri]
-  common_options = { communication: { url: options[:uri] } }
+  common_options = { communication: { url: options[:uri], auth: { certs: [root_cert.to_pem_compact] } } }
 else
   common_options = {}
 end
@@ -80,13 +75,14 @@ unless common_options[:communication] && common_options[:communication][:url]
   exit(1)
 end
 
-resource_options = {
-  uid: options[:uid]
-}
-
 OmfRc::ResourceFactory.load_default_resource_proxies
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
+  resource_options = {
+    uid: options[:uid],
+    certificate: root_cert.create_for("xmpp://#{options[:uid]}@#{Socket.gethostname}", options[:uid], :node)
+  }
+
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
