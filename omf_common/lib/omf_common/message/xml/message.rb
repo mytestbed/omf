@@ -59,7 +59,7 @@ class XML
           cert = xml_node.element_children.find { |v| v.element_name == 'cert' }.content
           sig = xml_node.element_children.find { |v| v.element_name == 'sig' }.content
           iss = xml_node.element_children.find { |v| v.element_name == 'iss' }.content
-          xml_node = xml_node.element_children.find { |v| v.element_name =~ /create|request|configure|inform/ }
+          xml_node = xml_node.element_children.find { |v| v.element_name =~ /create|request|configure|release|inform/ }
 
           existing_cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
 
@@ -70,10 +70,10 @@ class XML
             cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
           end
 
-          canonicalized_xml_node = xml_node.canonicalize.gsub(/\n +/, '')
+          canonicalised_xml_node = fix_canonicalised_xml(xml_node.canonicalize)
 
-          unless cert.to_x509.public_key.verify(OpenSSL::Digest::SHA256.new(canonicalized_xml_node), Base64.decode64(sig), canonicalized_xml_node)
-            warn "Verfication failed #{canonicalized_xml_node}"
+          unless cert.to_x509.public_key.verify(OpenSSL::Digest::SHA256.new(canonicalised_xml_node), Base64.decode64(sig), canonicalised_xml_node)
+            warn "Verfication failed #{canonicalised_xml_node} #{OpenSSL::Digest::SHA256.new(canonicalised_xml_node)}"
           end
         end
 
@@ -131,7 +131,9 @@ class XML
           debug "Found cert for '#{src} - #{cert}"
           signature_node = Niceogiri::XML::Node.new(:sig)
 
-          signature = Base64.encode64(cert.key.sign(OpenSSL::Digest::SHA256.new(@xml.canonicalize), @xml.canonicalize)).encode('utf-8')
+          canonicalised_xml = self.class.fix_canonicalised_xml(@xml.canonicalize)
+
+          signature = Base64.encode64(cert.key.sign(OpenSSL::Digest::SHA256.new(canonicalised_xml), canonicalised_xml)).encode('utf-8')
           signature_node.add_child(signature)
 
           @envelope = Niceogiri::XML::Node.new(:env, nil, OMF_NAMESPACE)
@@ -440,6 +442,10 @@ class XML
         value = value.to_s
       end
       value
+    end
+
+    def self.fix_canonicalised_xml(str)
+      str.gsub(/\n +/, '').gsub(/ xmlns=\"\"/, '')
     end
   end
 end
