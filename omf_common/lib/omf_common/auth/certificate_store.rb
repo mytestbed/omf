@@ -7,9 +7,9 @@ require 'omf_common/auth'
 # module OmfCommon
   # class Key
     # include Singleton
-# 
+#
     # attr_accessor :private_key
-# 
+#
     # def import(filename)
       # self.private_key = OpenSSL::PKey.read(File.read(filename))
     # end
@@ -17,26 +17,26 @@ require 'omf_common/auth'
 # end
 
 module OmfCommon::Auth
-    
-  class MissingPrivateKeyException < AuthException; end      
+
+  class MissingPrivateKeyException < AuthException; end
 
   class CertificateStore
-    
-    
+
+
     @@instance = nil
-    
+
     def self.init(opts = {})
       if @@instance
         raise "CertificateStore already iniitalised"
       end
       @@instance = self.new(opts)
     end
-    
+
     def self.instance
       throw "CertificateStore not initialized" unless @@instance
       @@instance
     end
-    
+
     def register(certificate, address = nil)
       if address ||= certificate.address
         @certs[address] = certificate if address
@@ -45,28 +45,28 @@ module OmfCommon::Auth
       end
       @certs[certificate.subject] = certificate
     end
-    
+
     def register_x509(cert_pem)
       if (cert = Certificate.create_from_x509(cert_pem))
-        puts "REGISTERED #{cert}"
+        debug "REGISTERED #{cert}"
         register(cert)
       end
     end
-    
+
     def cert_for(url)
       @certs[url]
     end
-    
-    
-    private 
+
+
+    private
     def initialize(opts)
       @certs = {}
       if store = opts[:store]
       else
-        @store = {private: {}, public: {}}          
+        @store = {private: {}, public: {}}
       end
       @serial = 0
     end
   end # class
-  
+
 end # module

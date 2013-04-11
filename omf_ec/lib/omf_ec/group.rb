@@ -82,7 +82,7 @@ module OmfEc
         # Make a deep copy of opts in case it contains structures of structures
         begin
           opts = Marshal.load ( Marshal.dump(opts.merge(hrn: name)))
-        rescue Exception => e
+        rescue => e
           raise "#{e.message} - Could not deep copy opts: '#{opts.inspect}'"
         end
 

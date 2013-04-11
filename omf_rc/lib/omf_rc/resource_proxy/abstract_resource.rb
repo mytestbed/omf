@@ -336,7 +336,7 @@ class OmfRc::ResourceProxy::AbstractResource
   def execute_omf_operation(message, obj, topic)
     begin
       response_h = handle_message(message, obj)
-    rescue Exception => ex
+    rescue  => ex
       err_resp = message.create_inform_reply_message()
       err_resp[:reason] = ex.to_s
       error "Encountered exception, returning ERROR message"
@@ -415,7 +415,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
         # self here is the parent
         self.inform(:creation_ok, response)
-      rescue Exception => ex
+      rescue  => ex
         err_resp = message.create_inform_reply_message()
         err_resp[:reason] = ex.to_s
         error "Encountered exception, returning ERROR message"
