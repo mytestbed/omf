@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'optparse'
 
 DESCR = %{
@@ -15,7 +17,7 @@ OP_MODE = :development
 
 opts = {
   communication: {
-    url: 'amqp://srv.mytestbed.net',
+    #url: 'xmpp://srv.mytestbed.net',
     auth: {}
 
   },
@@ -31,13 +33,13 @@ $debug = false
 
 op = OptionParser.new
 op.banner = "Usage: #{op.program_name} [options] topic1 topic2 ...\n#{DESCR}\n"
-op.on '-c', '--comms-url URL', "URL to communication layer [#{opts[:communication][:url]}]" do |url|
+op.on '-c', '--comms-url URL', "URL of communication server (e.g. xmpp://my.server.com) [#{opts[:communication][:url]}]" do |url|
   opts[:communication][:url] = url
 end
 op.on '-f', "--[no-]follow-children", "Follow all newly created resources [#{$follow_children}]" do |flag|
   $follow_children = flag
 end
-op.on '-d', '--debug', "Set logging to DEBUG level" do
+op.on '-d', '--debug', "Set log level to DEBUG" do
   opts[:logging][:level] = 'debug'
   $debug = true
 end

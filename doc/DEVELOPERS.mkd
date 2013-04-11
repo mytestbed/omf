@@ -6,7 +6,58 @@
 
 Please please make sure you followed the {file:doc/INSTALLATION.mkd INSTALLATION GUIDE} and get thing installed and configured properly.
 
-If somehow you experienced problems regarding running examples listed in this guide, please first check that you indeed followed the {file:doc/INSTALLATION.mkd INSTALLATION GUIDE} and got things installed and configured properly.
+If somehow you experienced problems regarding running examples listed in this guide, please first check that you indeed followed the {file:doc/INSTALLATION.mkd INSTALLATION GUIDE} and have things installed and configured properly.
+
+## Communication layer test and debug tools
+
+To quickly send a message or monitor incoming messages on a topic, we provide a few utilities that come with the omf_common gem.
+
+Monitor a topic:
+
+    $ omf_monitor_topic -h
+    Usage: omf_monitor_topic [options] topic1 topic2 ...
+
+    Monitor a set of resources (topics) and print all observed messages.
+
+    If the 'follow-children' flag is set, automatically add all resources
+    created by the monitored resources to the monitor set. Please note
+    that there will be a delay until the new monitors are in place which
+    can result in missed messages.
+
+    -c, --comms-url URL              URL of communication server (e.g. xmpp://my.server.com) []
+    -f, --[no-]follow-children       Follow all newly created resources [true]
+    -d, --debug                      Set log level to DEBUG
+    -h, --help                       Show this message
+
+Send a CREATE message:
+
+    $ omf_send_create -h
+    Usage: omf_send_create [options] property1:value1 property2:value2 ...
+
+    Send a create message to a specific resource (topic) and print out any replies.
+
+    Any additional command line arguments are interpreted as property:value and are
+    sent with the create message.
+
+    -r, --resource-url URL           URL of resource (e.g. xmpp://my.server.com/topic1)
+    -t, --type TYPE                  Type of resource to create (e.g. node)
+    -y, --yaml YAML_FILE             Read type and property from YAML file
+    -d, --debug                      Set log level to DEBUG
+    -h, --help                       Show this message
+
+Send a REQUEST message:
+
+    $ omf_send_request -h
+    Usage: omf_send_request [options] prop1 prop2 ...
+
+    Send a request to a specific resource (topic) and print out any replies.
+
+    Any additional command line arguments are interpreted as limiting the request
+    to those, otherwise all properties are requested.
+
+        -r, --resource-url URL           URL of resource (e.g. xmpp://my.server.com/topic1)
+        -d, --debug                      Set log level to DEBUG
+        -h, --help                       Show this message
 
 ## Background
 

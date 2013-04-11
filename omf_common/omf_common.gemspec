@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.executables   = ["omf_monitor_topic","omf_send_request", "omf_send_create"]
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
@@ -31,5 +31,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "blather", "= 0.8.1"
   s.add_runtime_dependency "logging", "~> 1.7.1"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
-  s.add_runtime_dependency "oml4r", "~> 2.9.0"
+  s.add_runtime_dependency "oml4r", "~> 2.9.1"
+  #s.add_runtime_dependency "json-jwt", "~> 0.5.2"
+  #s.add_runtime_dependency "amqp", "~> 1.0.1"
 end

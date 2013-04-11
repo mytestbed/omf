@@ -1,9 +1,10 @@
-#
-DESCR = %{
-Send a create to a specific resource (topic) and print out any replies.
+#!/usr/bin/env ruby
 
-Any additional command line arguments are interpreted as paramters to 
-the create.
+DESCR = %{
+Send a create message to a specific resource (topic) and print out any replies.
+
+Any additional command line arguments are interpreted as property:value and are
+sent with the create message.
 }
 
 require 'omf_common'
@@ -13,7 +14,7 @@ $debug = false
 
 opts = {
   communication: {
-#    url: 'amqp://srv.mytestbed.net'
+    #url: 'xmpp://srv.mytestbed.net'
   },
   eventloop: { type: :em},
   logging: {
@@ -26,14 +27,14 @@ resource_type = nil
 resource_properties = {}
 
 op = OptionParser.new
-op.banner = "Usage: #{op.program_name} [options] type pname1: val1 pname2: val2 ...\n#{DESCR}\n"
-op.on '-r', '--resource-url URL', "URL of resource" do |url|
+op.banner = "Usage: #{op.program_name} [options] property1:value1 property2:value2 ...\n#{DESCR}\n"
+op.on '-r', '--resource-url URL', "URL of resource (e.g. xmpp://my.server.com/topic1)" do |url|
   resource_url = url
 end
-op.on '-t', '--type TYPE', "Type of resource to create" do |type|
+op.on '-t', '--type TYPE', "Type of resource to create (e.g. node)" do |type|
   resource_type = type
 end
-op.on '-y', '--yaml YAML_FILE', "Read ype and property from YAML file" do |yfile|
+op.on '-y', '--yaml YAML_FILE', "Read type and property from YAML file" do |yfile|
   require 'yaml'
   y = YAML.load_file(yfile)
   unless o = y['create']
@@ -43,7 +44,7 @@ op.on '-y', '--yaml YAML_FILE', "Read ype and property from YAML file" do |yfile
   resource_type = o['type']
   resource_properties = o['properties']
 end
-op.on '-d', '--debug', "Set logging to DEBUG level" do
+op.on '-d', '--debug', "Set log level to DEBUG" do
   opts[:logging][:level] = 'debug'
   $debug = true
 end
@@ -98,7 +99,7 @@ OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
     comm.subscribe(resource) do |ptopic|
       uid = resource_properties[:uid] ||= SecureRandom.uuid # uuid of newly created object
-      # ALready subscribe to the new object's topic to not miss
+      # Already subscribe to the new object's topic to avoid missing
       # any initial messages
       comm.subscribe(uid) do |ctopic|
         ctopic.on_message do |msg|

@@ -1,4 +1,5 @@
-#
+#!/usr/bin/env ruby
+
 DESCR = %{
 Send a request to a specific resource (topic) and print out any replies.
 
@@ -12,7 +13,7 @@ OP_MODE = :development
 
 opts = {
   communication: {
-#    url: 'amqp://srv.mytestbed.net'
+    #url: 'xmpp://srv.mytestbed.net'
   },
   eventloop: { type: :em},
   logging: {
@@ -24,10 +25,10 @@ resource_url = nil
 
 op = OptionParser.new
 op.banner = "Usage: #{op.program_name} [options] prop1 prop2 ...\n#{DESCR}\n"
-op.on '-r', '--resource-url URL', "URL of resource" do |url|
+op.on '-r', '--resource-url URL', "URL of resource (e.g. xmpp://my.server.com/topic1)" do |url|
   resource_url = url
 end
-op.on '-d', '--debug', "Set logging to DEBUG level" do
+op.on '-d', '--debug', "Set log level to DEBUG" do
   opts[:logging][:level] = 'debug'
 end
 op.on_tail('-h', "--help", "Show this message") { $stderr.puts op; exit }

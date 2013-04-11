@@ -10,7 +10,7 @@ $debug = false
 
 opts = {
   communication: {
-#    url: 'amqp://srv.mytestbed.net'
+    #url: 'xmpp://srv.mytestbed.net'
   },
   eventloop: { type: :em},
   logging: {
