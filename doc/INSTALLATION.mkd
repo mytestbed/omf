@@ -279,8 +279,8 @@ For OMF, we recommend using Openfire. Other XMPP servers may work as well, but t
         dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
 
 * on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
-* check if openfire is running: @ps aux | grep openfire@ . Startup can take a while, please be patient.
-* if openfire failed to start, you may need to edit @/etc/init.d/openfire@ and set the correct JAVA_HOME for your Java installation, e.g.:
+* check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
+* if openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA_HOME for your Java installation, e.g.:
 
         JAVA_HOME=/usr/lib/jvm/java-7-oracle
 
@@ -300,7 +300,7 @@ quit;
 * click 'Server', 'Server Settings', 'Registration & Login', enable 'Inband Account Registration' and disable 'Anonymous Login'
 * To avoid duplicate subscriptions to the same topic in order to reduce the volume of messages, we recommend turning the multiple subscriptions feature off. Inside Openfire system properties panel, add *Property Name:* **xmpp.pubsub.multiple-subscriptions** *Property Value:* **false**
 * for server2server connectivity (used for testbed federation), you need to set up a DNS name "pubsub.yourhost.name" which can be resolved by public DNS servers. It can be an A record pointing to the same IP address as your host, or a CNAME pointing to the hostname. There is no need for a DNS SRV record. Learn more about S2S [here](http://omf.mytestbed.net/projects/omf/wiki/Openfire_s2s).
-* if your testbed consists of several hundred nodes, you may consider increasing the maximum open file descriptor limit for the "openfire" user. This can be done by editing @/etc/security/limits.conf@ and adding the lines @root	soft nofile	100000@ and @root hard nofile 100000@, which allows a maximum of 100K open sockets/files per process. The default in Ubuntu is 1024. If this is not increased you may run into a problem where openfire does not accept any more incoming TCP connections.
+* if your testbed consists of several hundred nodes, you may consider increasing the maximum open file descriptor limit for the "openfire" user. This can be done by editing `/etc/security/limits.conf` and adding the lines `root	soft nofile	100000` and `root hard nofile 100000`, which allows a maximum of 100K open sockets/files per process. The default in Ubuntu is 1024. If this is not increased you may run into a problem where openfire does not accept any more incoming TCP connections.
 
 ### **Verify this step**
 
