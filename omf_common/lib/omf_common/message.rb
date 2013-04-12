@@ -157,6 +157,21 @@ module OmfCommon
       self.class.create_inform_message(itype, properties, body)
     end
 
+    def itype(*args)
+      if (format = args[0]) && !_get_core(:itype).nil?
+        case format.to_sym
+        when :ruby
+          _get_core(:itype).to_s.downcase.gsub(/\./, '_')
+        when :frcp
+          _get_core(:itype).to_s.upcase.gsub(/_/, '.')
+        else
+          raise ArgumentError, "Unknown format '#{format}'. Please use ':ruby, :frcp' instead."
+        end
+      else
+        _get_core(:itype)
+      end
+    end
+
     def to_s
       raise NotImplementedError
     end
@@ -188,6 +203,14 @@ module OmfCommon
     end
 
     def  _set_property(name, value, ns = nil)
+      raise NotImplementedError
+    end
+
+    def _set_core(key, value)
+      raise NotImplementedError
+    end
+
+    def _get_core(key)
       raise NotImplementedError
     end
   end

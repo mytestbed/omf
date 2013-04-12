@@ -117,10 +117,6 @@ class XML
       OmfCommon::Comm::XMPP::Topic.create(r_id)
     end
 
-    def itype
-      @content.itype.to_s.upcase.gsub(/_/, '.') unless @content.itype.nil?
-    end
-
     def marshall
       build_xml
 
@@ -181,7 +177,7 @@ class XML
       @xml.add_child(guard_node) if _get_core(:guard)
 
       (OMF_CORE_READ - [:mid, :guard, :operation]).each do |attr|
-        attr_value = self.send(attr)
+        attr_value = attr == :itype ? self.send(attr, :frcp) : self.send(attr)
 
         next unless attr_value
 

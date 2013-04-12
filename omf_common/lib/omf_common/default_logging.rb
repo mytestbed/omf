@@ -37,5 +37,11 @@ module OmfCommon
     def warn(*args, &block)
       logger.warn(*args, &block)
     end
+
+    # Log a warning message for deprecated methods
+    def warn_deprecation(deprecated_name, *suggest_names)
+      logger.warn "[DEPRECATION] '#{deprecated_name}' is deprecated. Please use '#{suggest_names.join(', ')}' instead."
+    end
+
   end
 end

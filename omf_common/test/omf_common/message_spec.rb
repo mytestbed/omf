@@ -53,5 +53,19 @@ describe OmfCommon::Message do
                      { itype: 'STATUS' })
       @message.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
     end
+
+    it "must return inform type (itype), formatted" do
+      @message.itype = 'CREATION.OK'
+
+      @message.itype.must_equal 'CREATION.OK'
+      @message.itype(:ruby).must_equal 'creation_ok'
+      @message.itype(:frcp).must_equal 'CREATION.OK'
+
+      @message.itype = :creation_ok
+
+      @message.itype.must_equal :creation_ok
+      @message.itype(:ruby).must_equal 'creation_ok'
+      @message.itype(:frcp).must_equal 'CREATION.OK'
+    end
   end
 end

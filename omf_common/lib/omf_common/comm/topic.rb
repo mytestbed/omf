@@ -87,18 +87,22 @@ module OmfCommon
         :create_succeeded, :create_failed,
         :inform_status, :inform_failed,
         :released, :failed,
-        :message,
         :creation_ok, :creation_failed, :status, :error, :warn
       ].each do |itype|
         mname = "on_#{itype}"
         define_method(mname) do |*args, &message_block|
-          raise ArgumentError, 'Missing message callback' if message_block.nil?
-          debug "(#{id}) register handler for '#{mname}'"
-          @lock.synchronize do
-            (@handlers[itype] ||= []) << message_block
-          end
-          self
+          warn_deprecation(mname, :on_message, :on_inform)
+
+          add_message_handler(itype, &message_block)
         end
+      end
+
+      def on_message(*args, &message_block)
+        add_message_handler(:message, &message_block)
+      end
+
+      def on_inform(*args, &message_block)
+        add_message_handler(:inform, &message_block)
       end
 
       # Unsubscribe from the underlying comms layer
@@ -160,7 +164,7 @@ module OmfCommon
         htypes = [type, :message]
         if type == :inform
           # TODO keep converting itype is painful, need to solve this.
-          if it = msg.itype.to_s.downcase
+          if it = msg.itype(:ruby)
             case it
             when "creation_ok"
               htypes << :create_succeeded
@@ -184,6 +188,16 @@ module OmfCommon
           cbk[:block].call(msg)
         end
       end
+
+      def add_message_handler(handler_name, &message_block)
+        raise ArgumentError, 'Missing message callback' if message_block.nil?
+        debug "(#{id}) register handler for '#{handler_name}'"
+        @lock.synchronize do
+          (@handlers[handler_name] ||= []) << message_block
+        end
+        self
+      end
+
     end
   end
 end
