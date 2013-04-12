@@ -1,7 +1,5 @@
 # Tutorial 00
 
-
-
 1. "Hello World" Tutorial
 ---------------------------
 
@@ -48,7 +46,7 @@ stores them in a database available to the experimenter.
 2. Prerequisites
 --------------------------------------------------------------
 
-### 2A. Accessing/Provisioning Resources
+### 2a) Accessing/Provisioning Resources
 
 
 This tutorial assumes that you are using OMF-enabled resources, which are
@@ -113,7 +111,7 @@ by following the instructions on [the OML Application pages]
 your experiment orchestration. This feature is not presented in this simple
 tutorial, but it is described in details in this [other tutorial]()
 
-### 2B. Installing the Experiment Controller
+### 2b) Installing the Experiment Controller
 
 
 The OMF Experiment Controller (EC) is the software that will interpret
@@ -202,7 +200,7 @@ parts, described in the following listing and subsections below.
       Experiment.done
     end
 
-### 3A. Application Definition
+### 3a) Application Definition
 
 OMF entities need to learn about the applications that will be used in the
 experiment, such as where their binary executable resides, what configurable
@@ -249,7 +247,7 @@ for OMF, i.e. it is only a description of what the real application has to
 offer. Indeed, the application itself must already implements the parameters
 and measurement points that you define in this App definition.
 
-### 3B. Group/Resource Definition
+### 3b) Group/Resource Definition
 
 Within an OMF experiment, resources may be grouped together within named
 Groups. A named Group can be itself viewed as a resource holding other
@@ -285,7 +283,7 @@ instructions following the 'addApplication' command. In this example, we
           app.measure('ping', :samples => 1)
         end
 
-### 3D. Event Definition
+### 3c) Event Definition
 
 An experiment in OMF is fully event driven. This means that to perform an
 experiment, you as the experimenter have to define:
@@ -352,7 +350,7 @@ read our [User-Defined Event Tutorial]()
 4. Running the “Hello World” Experiment
 ---------------------------------------
 
-### 4A. How do you run it?
+### 4a) How do you run it?
 
 Assuming that you have checked all the prerequisite points in the above
 section 2, and that you have the EC software installed on your own computer,
@@ -366,7 +364,7 @@ then to run your experiment you have to:
 - open a terminal and navigate to the folder/directory where you saved that file
 - start the EC software and tell it to execute the experiment described in your ED file, using the command line:
 
-        omf_ec -c xmpp://usr:pwd@srv exec --oml_uri tcp:srv:port tutorial00.rb
+        omf_ec -u xmpp://usr:pwd@my_xmpp.com exec --oml_uri tcp:srv:port tutorial00.rb
 
   - **replace** *xmpp://usr:pwd@srv* with the credentials for your user on the
   xmpp pubsub server that is used to communicate with the resources
@@ -379,7 +377,7 @@ furthermore want to use the OML2 server with hostname 'my_oml.com at port
 3003 to collect the measurement of your experiment, then you would use the
 command:
 
-        omf_ec -c xmpp://foo:bar@my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 tutorial00.rb
+        omf_ec -u xmpp://foo:bar@my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 tutorial00.rb
 
 If you would like to know more about the other options of the OMF EC software
 please run the commands:
@@ -388,7 +386,7 @@ please run the commands:
         omf_ec help exec
 
 
-### 4B. What will happen next?
+### 4b) What will happen next?
 
 When running the EC with the above command, you should see an output
 similar to this:
@@ -427,7 +425,7 @@ with the experiment described in
 {file:doc/tutorials/tutorial01.rb tutorial00.rb}
 and using the resource named 'omf6.nicta.node8'
 
-### 4C. What does that screen output mean?
+### 4c) What does that screen output mean?
 
 Here is a brief explanation of the output messages displayed by the EC above:
 
@@ -486,7 +484,6 @@ results/outputs:
         INFO  OmfEc: APP_EVENT DONE.OK from app ping_oml2_cxt_0 - msg: status: pid 2065 exit 0
         ...
 
-
 5. Accessing the Results from the Experiment
 --------------------------------------------
 
@@ -526,7 +523,8 @@ For more information on SQLite3, please refer to its [documentation website]
 
 ### How do I display my measurements in some nice graphs?
 
-We have a separate tool named **omf_web** which allows you to build
+We have a separate tool named [**omf_web**]
+(https://github.com/mytestbed/omf_web) which allows you to build
 some custom visualisation of the data collected within your experiment and
 display them within your Internet browser. For more information on how to
 use that tool, please refer to the [omf_web documentation]

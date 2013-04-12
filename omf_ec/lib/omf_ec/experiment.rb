@@ -111,7 +111,7 @@ module OmfEc
 
     def add_event(name, trigger)
       self.synchronize do
-        raise RuntimeError, "Event '#{name}' has been defined" if event(name)
+        raise RuntimeError, "Event '#{name}' has already been defined" if event(name)
         @events << { name: name, trigger: trigger }
       end
     end

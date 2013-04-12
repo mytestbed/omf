@@ -20,7 +20,7 @@ module OmfEc::Context
         @group = group
         self
       else
-        raise RuntimeError, "Cannot create context for unknwon application '#{name}'"
+        raise RuntimeError, "Cannot create context for unknown application '#{name}'"
       end
     end
 
