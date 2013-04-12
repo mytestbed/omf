@@ -13,7 +13,7 @@ describe OmfEc::ExperimentProperty do
         begin
           OmfEc::ExperimentProperty.create(name)
           created_properties = created_properties + 1
-        rescue Exception => ex
+        rescue  => ex
           ex.must_be_kind_of OEDLCommandException
         end
       end

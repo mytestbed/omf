@@ -11,7 +11,7 @@ module OmfEc
                 plan = g.members.uniq.sort
                 actual = state.find_all do |v|
                   v[:membership] && v[:membership].include?(g.id)
-                end.map { |v| v[:uid] }.sort
+                end.map { |v| v[:address] }.sort
 
                 debug "Planned: #{g.name}(#{g.id}): #{plan}"
                 debug "Actual: #{g.name}(#{g.id}): #{actual}"

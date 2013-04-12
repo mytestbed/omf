@@ -34,8 +34,8 @@ module OmfEc
       ExperimentProperty.create(name, value, description)
     end
 
-    def resource_state(id)
-      @state.find { |v| v[:uid].to_s == id.to_s }
+    def resource_state(address)
+      @state.find { |v| v[:address].to_s == address.to_s }
     end
 
     alias_method :resource, :resource_state
@@ -64,8 +64,8 @@ module OmfEc
             end
           end
         else
-          info "Newly discovered resource >> #{opts[:uid]}"
-          @state << Hashie::Mash.new({ uid: name }.merge(opts))
+          info "Newly discovered resource >> #{name}"
+          @state << Hashie::Mash.new({ address: name }).merge(opts)
         end
       end
     end

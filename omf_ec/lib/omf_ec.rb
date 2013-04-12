@@ -46,9 +46,9 @@ module OmfEc
 
       topic.on_creation_ok do |msg|
         debug "Received CREATION.OK via #{topic.id}"
-        info "Resource #{msg[:res_id]} created"
+        info "Resource #{msg[:res_id]} #{msg.resource.address} created"
 
-        OmfEc.experiment.add_or_update_resource_state(msg[:uid], msg.properties)
+        OmfEc.experiment.add_or_update_resource_state(msg.resource.address, msg.properties)
 
         OmfEc.experiment.process_events
       end
@@ -62,7 +62,7 @@ module OmfEc
           info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
         end
 
-        OmfEc.experiment.add_or_update_resource_state(msg[:uid], msg.properties)
+        OmfEc.experiment.add_or_update_resource_state(msg.src, msg.properties)
         OmfEc.experiment.process_events
       end
     end

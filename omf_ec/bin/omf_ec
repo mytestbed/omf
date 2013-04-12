@@ -52,8 +52,8 @@ command :exec do |c|
     help_now! "Missing experiment script" if args[0].nil?
     help_now! "Experiment script not found" unless File.exist?(args[0])
 
-    # User-provided command line values for Experiment Properties cannot be 
-    # set here as the propertties have not been defined yet by the experiment. 
+    # User-provided command line values for Experiment Properties cannot be
+    # set here as the propertties have not been defined yet by the experiment.
     # Thus just pass them to the experiment, which will be responsible
     # for setting them later
     properties = {}
@@ -239,8 +239,10 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
+    root_cert = OmfCommon::Auth::Certificate.create(nil, 'ca', 'authority')
+
     opts = {
-      communication: { url: global_options[:uri] },
+      communication: { url: global_options[:uri], auth: { certs: [root_cert.to_pem_compact] } },
       eventloop: { type: :em },
       logging: {
         level: global_options[:debug] ? 'debug' : 'info',
@@ -260,6 +262,8 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       OmfCommon.comm.on_connected do |comm|
         info "Connected"
         info "Start experiment: #{OmfEc.experiment.id}"
+
+        root_cert.create_for(OmfCommon.comm.local_address, :experiment_controller, OmfCommon.comm.local_address)
 
         begin
           include OmfEc::Backward::DefaultEvents

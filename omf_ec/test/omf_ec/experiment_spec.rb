@@ -35,7 +35,7 @@ describe OmfEc::Experiment do
 
   it "must be able to add resource to state" do
     @experiment.add_or_update_resource_state('bob', type: :test)
-    @experiment.resource_state('bob')[:uid].must_equal 'bob'
+    @experiment.resource_state('bob')[:address].must_equal 'bob'
     @experiment.resource_state('bob')[:type].must_equal :test
   end
 end
