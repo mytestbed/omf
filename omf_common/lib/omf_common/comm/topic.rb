@@ -164,7 +164,7 @@ module OmfCommon
         htypes = [type, :message]
         if type == :inform
           # TODO keep converting itype is painful, need to solve this.
-          if it = msg.itype(:ruby)
+          if (it = msg.itype(:ruby)) # format itype as lower case string
             case it
             when "creation_ok"
               htypes << :create_succeeded

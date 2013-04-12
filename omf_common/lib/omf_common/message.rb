@@ -157,8 +157,14 @@ module OmfCommon
       self.class.create_inform_message(itype, properties, body)
     end
 
-    def itype(*args)
-      if (format = args[0]) && !_get_core(:itype).nil?
+    # Fetch inform type
+    #
+    # When no format provided, return the value as it is.
+    #
+    # @param [Symbol] format to render itype, valid formats: :ruby, :frcp
+    #
+    def itype(format = nil)
+      if format && !_get_core(:itype).nil?
         case format.to_sym
         when :ruby
           _get_core(:itype).to_s.downcase.gsub(/\./, '_')
