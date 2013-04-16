@@ -84,7 +84,21 @@ module OmfCommon
     def on_stop(&block)
       warn "Missing implementation 'on_stop'" 
     end
+    
+    # Calling 'block' when having trapped an INT signal
+    #
+    def on_int_signal(&block)
+      # trap(:INT)
+      warn "Missing implementation 'on_int_signal'" 
+    end
 
+    # Calling 'block' when having trapped a TERM signal
+    #
+    def on_term_signal(&block)
+      # trap(:TERM) {}
+      warn "Missing implementation 'on_term_signal'" 
+    end
+       
     private
     def initialize(opts = {}, &block)
       #run(&block) if block
