@@ -337,7 +337,7 @@ class OmfRc::ResourceProxy::AbstractResource
     begin
       response_h = handle_message(message, obj)
     rescue  => ex
-      err_resp = message.create_inform_reply_message()
+      err_resp = message.create_inform_reply_message(nil, {}, src: resource_address)
       err_resp[:reason] = ex.to_s
       error "Encountered exception, returning ERROR message"
       debug ex.message
@@ -416,7 +416,7 @@ class OmfRc::ResourceProxy::AbstractResource
         # self here is the parent
         self.inform(:creation_ok, response)
       rescue  => ex
-        err_resp = message.create_inform_reply_message()
+        err_resp = message.create_inform_reply_message(nil, {}, src: resource_address)
         err_resp[:reason] = ex.to_s
         error "Encountered exception, returning ERROR message"
         debug ex.message
