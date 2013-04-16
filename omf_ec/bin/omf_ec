@@ -260,7 +260,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       setup_logging(global_options)
 
       OmfCommon.comm.on_connected do |comm|
-        info "Connected"
+        info "Connected using #{comm.conn_info}"
         info "Start experiment: #{OmfEc.experiment.id}"
 
         root_cert.create_for(OmfCommon.comm.local_address, :experiment_controller, OmfCommon.comm.local_address)

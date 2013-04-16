@@ -102,6 +102,10 @@ module OmfCommon
       raise NotImplementedError
     end
 
+    # TODO should expand this to on_signal(:INT)
+    def on_interrupted(*args, &block)
+    end
+
     # Create a new pubsub topic with additional configuration
     #
     # @param [String] topic Pubsub topic name
@@ -114,6 +118,13 @@ module OmfCommon
     # @param [String] topic Pubsub topic name
     def delete_topic(topic, &block)
       raise NotImplementedError
+    end
+
+    # Returning connection information
+    #
+    # @retun [Hash] connection information hash, with type, user and domain.
+    def conn_info
+      { proto: nil, user: nil, domain: nil }
     end
 
     # Subscribe to a pubsub topic
@@ -164,7 +175,7 @@ module OmfCommon
         hostname = nil
         begin
           hostname = Socket.gethostbyname(Socket.gethostname)[0]
-        rescue 
+        rescue
           hostname = (`hostname` || 'unknown').strip
         end
         local_address = "#{hostname}-#{Process.pid}"

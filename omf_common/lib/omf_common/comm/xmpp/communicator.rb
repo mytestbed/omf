@@ -25,6 +25,10 @@ class Comm
           { :var => "pubsub#publish_model", :value => "open" }]
       })
 
+      def conn_info
+        { proto: :xmpp, user: jid.node, domain: jid.domain }
+      end
+
       # Capture system :INT & :TERM signal
       def on_interrupted(&block)
         @cbks[:interpreted] << block

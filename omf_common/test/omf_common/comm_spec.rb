@@ -24,6 +24,10 @@ describe OmfCommon::Comm do
       @abstract_comm.options.must_equal(bob: nil)
     end
 
+    it "must return connection info" do
+      @abstract_comm.conn_info.must_equal({ proto: nil, user: nil, domain: nil })
+    end
+
     it "must be able to subscribe to a topic" do
       @abstract_comm.stubs(:create_topic).returns(@topic)
       @topic.expects(:on_subscribed)

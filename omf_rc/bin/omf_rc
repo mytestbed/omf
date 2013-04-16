@@ -78,15 +78,15 @@ end
 OmfRc::ResourceFactory.load_default_resource_proxies
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
-  resource_options = {
-    uid: options[:uid],
-    certificate: root_cert.create_for("xmpp://#{options[:uid]}@#{Socket.gethostname}", options[:uid], :node)
-  }
-
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
-    info "Connected as #{comm.jid}" if comm.jid
+    resource_options = {
+      uid: options[:uid],
+      certificate: root_cert.create_for("#{comm.conn_info[:proto]}://#{options[:uid]}@#{comm.conn_info[:domain]}", options[:uid], :node)
+    }
+
+    info "Connected using #{comm.conn_info}"
     res = OmfRc::ResourceFactory.create(:node, resource_options)
 
     comm.on_interrupted { res.disconnect }
