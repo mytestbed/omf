@@ -164,8 +164,11 @@ module OmfCommon
         def marshall(topic)
           #puts "MARSHALL: #{@content.inspect} - #{@properties.to_hash.inspect}"
           raise "Missing SRC declaration in #{@content}" unless @content[:src]
-          raise 'local/local' if @content[:src].match 'local:/local'
-          
+          if @content[:src].is_a? OmfCommon::Comm::Topic
+            @content[:src] = @content[:src].id
+          end
+          #raise 'local/local' if @content[:src].id.match 'local:/local'
+          puts @content.inspect
           payload = @content.to_json
           if self.class.authenticate?
              src = @content[:src]
@@ -195,6 +198,9 @@ module OmfCommon
           end
           @content = {}
           content[:op] = op.to_sym # needs to be symbol
+          if src = content[:src]
+            content[:src] = OmfCommon.comm.create_topic(src)
+          end
           content.each {|k,v| _set_core(k, v)}
           @properties = content[:props] || []
           #@properties = Hashie::Mash.new(content[:properties])
