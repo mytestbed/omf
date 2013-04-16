@@ -395,7 +395,7 @@ class OmfRc::ResourceProxy::AbstractResource
         props[k] = v
       end
     end
-    new_obj = obj.create(message[:type], copts) lambda do |new_obj|
+    new_obj = obj.create(message[:type], copts, &lambda do |new_obj|
       begin
         response[:res_id] = new_obj.resource_address
 
@@ -423,7 +423,7 @@ class OmfRc::ResourceProxy::AbstractResource
         debug ex.backtrace.join("\n")
         return self.inform(:error, err_resp)
       end
-    end
+    end)
   end
 
   def handle_configure_message(message, obj, response)
