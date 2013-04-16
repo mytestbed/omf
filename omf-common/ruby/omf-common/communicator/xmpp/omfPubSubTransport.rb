@@ -167,7 +167,8 @@ class OMFPubSubTransport < MObject
   end
 
   def reset
-    @@xmppServices.leave_all_nodes
+    # disabled because it takes too long. Prefer regular OF DB cleanups.
+    #@@xmppServices.leave_all_nodes
     @@threads.each { |t| t.exit }
     @@queues = Array.new
     @@threads = Array.new
@@ -175,7 +176,8 @@ class OMFPubSubTransport < MObject
   end
 
   def stop
-    @@xmppServices.remove_all_nodes if @@forceCreate
+    # disabled because it takes too long. Prefer regular OF DB cleanups.
+    #@@xmppServices.remove_all_nodes if @@forceCreate
     reset
     @@xmppServices.stop
   end

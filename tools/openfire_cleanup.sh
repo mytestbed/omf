@@ -8,6 +8,7 @@ use openfire;
 truncate ofPubsubItem;
 truncate ofPresence;
 truncate ofPubsubSubscription;
+truncate ofOffline;
 delete from ofUser where username not like 'aggmgr%' and username != 'admin';
 quit
 EOF
