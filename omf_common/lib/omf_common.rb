@@ -19,8 +19,9 @@ module OmfCommon
         type: 'em'
       },
       logging: {
-        level: 'debug',
-
+        level: { 
+          default: 'debug'
+        },
         appenders: {
           stdout: {
             date_pattern: '%H:%M:%S',
@@ -35,8 +36,9 @@ module OmfCommon
         type: :em
       },
       logging: {
-        level: 'info',
-
+        level: { 
+          default: 'info'
+        },
         appenders: {
           file: {
             log_dir: '/var/log',
@@ -60,8 +62,9 @@ module OmfCommon
         type: :em
       },
       logging: {
-        level: 'info',
-
+        level: { 
+          default: 'info'
+        },
         appenders: {
           file: {
             log_dir: '/var/log',
@@ -79,8 +82,9 @@ module OmfCommon
       },
       eventloop: { type: :local},
       logging: {
-        level: 'debug',
-
+        level: { 
+          default: 'debug'
+        },
         appenders: {
           stdout: {
             date_pattern: '%H:%M:%S',
@@ -102,7 +106,9 @@ module OmfCommon
         type: :em
       },
       logging: {
-        level: 'debug',
+        level: { 
+          default: 'debug'
+        },
         appenders: {
           file: {
             log_dir: '/tmp',
@@ -182,9 +188,9 @@ module OmfCommon
   #   :remove_root ROOT_NAME: Remove the root node. Throw exception if not ROOT_NAME
   #   :wait_for_readable SECS: Wait until the yaml file becomes readable. Check every SECS
   #   :erb_process flag: Run the content of the loaded file through ERB first before YAML parsing
-  #   :erb_safe_level level: If safe_level is set to a non-nil value, ERB code will be run in a
+  #   :erb_safe_level level: If safe_level is set to a non-nil value, ERB code will be run in a 
   #                                   separate thread with $SAFE set to the provided level.
-  #   :erb_binding binding: Optional binding given to ERB#result
+  #   :erb_binding binding: Optional binding given to ERB#result 
   #
   def self.load_yaml(file_name, opts = {})
     if path_opt = opts[:path]
@@ -201,12 +207,7 @@ module OmfCommon
         sleep readable_check # wait until file shows up
       end
     end
-    str = File.read(file_name)
-    if opts[:erb_process]
-      require 'erb'
-      str = ERB.new(str, opts[:erb_safe_level]).result(opts[:erb_binding] || binding)
-    end
-    yh = YAML.load(str)
+:q
     if opts[:symbolize_keys]
       yh = _rec_sym_keys(yh)
     end
@@ -254,7 +255,7 @@ module OmfCommon
           if name.to_s == 'default'
             logger.level = lvl.to_sym
           else
-            Logging.logger[name.to_s].level = lvl.to_sym
+            Logging.logger[name.to_s].level = lvl.to_sym 
           end
         end
       else
