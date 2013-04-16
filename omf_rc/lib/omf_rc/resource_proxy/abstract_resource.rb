@@ -84,14 +84,14 @@ class OmfRc::ResourceProxy::AbstractResource
           OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
         else
           if pcert = @opts.parent_certificate
-            @certificate = pcert.create_for(@uid, @type, t.address)
+            @certificate = pcert.create_for(resource_address, @type, t.address)
           end
         end
 
         creation_callback.call(self) if creation_callback
         copts = { res_id: self.resource_address, src: self.resource_address}
         copts[:cert] = @certificate.to_pem_compact if @certificate
-        t.inform(:creation_ok, @property, copts)
+        t.inform(:creation_ok, @property.reject { |k| k.to_sym == :parent_certificate }, copts)
 
         t.on_message(nil, @uid) do |imsg|
           process_omf_message(imsg, t)
