@@ -207,7 +207,7 @@ module OmfCommon
         sleep readable_check # wait until file shows up
       end
     end
-:q
+
     if opts[:symbolize_keys]
       yh = _rec_sym_keys(yh)
     end
@@ -265,6 +265,9 @@ module OmfCommon
   end
 
   def self._rec_merge(this_hash, other_hash)
+    # if the dominant side is not a hash we stop recursing and pick the primitive value
+    return other_hash unless other_hash.is_a? Hash
+
     r = {}
     this_hash.merge(other_hash) do |key, oldval, newval|
       r[key] = oldval.is_a?(Hash) ? _rec_merge(oldval, newval) : newval
