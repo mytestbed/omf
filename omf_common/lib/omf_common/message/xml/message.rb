@@ -193,6 +193,7 @@ class XML
     # Construct a property xml node
     #
     def add_property(key, value = nil, add_to = :props)
+      key = escape_key(key)
       if !default_props_ns.empty? && add_to == :props
         key_node = Niceogiri::XML::Node.new(key, nil, default_props_ns)
       else
@@ -218,6 +219,7 @@ class XML
       when Hash
         [].tap do |array|
           value.each_pair do |k, v|
+            k = escape_key(k)
             n = Niceogiri::XML::Node.new(k, nil, OMF_NAMESPACE)
             n.write_attr('type', ruby_type_2_prop_type(v.class))
 
@@ -247,6 +249,7 @@ class XML
         if key.nil?
           string_value(value)
         else
+          key = escape_key(key)
           n = Niceogiri::XML::Node.new(key, nil, OMF_NAMESPACE)
           n.add_child(string_value(value))
         end
@@ -271,6 +274,7 @@ class XML
     # Short cut for adding xml node
     #
     def add_element(key, value = nil, &block)
+      key = escape_key(key)
       key_node = Niceogiri::XML::Node.new(key)
       @xml.add_child(key_node)
       if block
@@ -427,6 +431,16 @@ class XML
         'hash'
       else
         v_type
+      end
+    end
+
+    def escape_key(key)
+      key = key.to_s
+      if key =~ /(\W)/
+        warn "Due to the limitation of XML messages, please only use word character (a-z A-Z 0-9 _) in your property names. Offending characters will be replaced with underscore(_)."
+        key = key.gsub(/\W/, '_')
+      else
+        key
       end
     end
 
