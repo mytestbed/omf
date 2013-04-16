@@ -143,6 +143,7 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     opts[:parent_certificate] = @certificate
+    opts[:parent] = self
     before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
     after_create(new_resource) if respond_to? :after_create
