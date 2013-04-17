@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
-$: << File.join(File.dirname(__FILE__), '../lib')
+BIN_DIR = File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
+TOP_DIR = File.join(BIN_DIR, '..')
+$: << File.join(TOP_DIR, 'lib')
 
 DESCR = %{
 Send a request to a specific resource (topic) and print out any replies.

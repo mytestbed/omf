@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+BIN_DIR = File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
+TOP_DIR = File.join(BIN_DIR, '..')
+$: << File.join(TOP_DIR, 'lib')
 
 DESCR = %{
 Send a create message to a specific resource (topic) and print out any replies.

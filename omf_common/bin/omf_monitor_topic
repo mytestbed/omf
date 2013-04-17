@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
-$: << File.join(File.dirname(__FILE__), '../lib')
+BIN_DIR = File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
+TOP_DIR = File.join(BIN_DIR, '..')
+$: << File.join(TOP_DIR, 'lib')
 
 DESCR = %{
 Monitor a set of resources (topics) and print all observed messages.
