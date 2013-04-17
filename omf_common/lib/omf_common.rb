@@ -208,6 +208,13 @@ module OmfCommon
       end
     end
 
+    str = File.read(file_name)
+    if opts[:erb_process]
+      require 'erb'
+      str = ERB.new(str, opts[:erb_safe_level]).result(opts[:erb_binding] || binding)
+    end
+    yh = YAML.load(str)
+
     if opts[:symbolize_keys]
       yh = _rec_sym_keys(yh)
     end
