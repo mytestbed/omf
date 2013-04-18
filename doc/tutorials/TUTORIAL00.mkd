@@ -21,8 +21,8 @@ After reading this tutorial you should be able to:
 
 - develop a simple networking experiment using OEDL, the OMF Experiment
 Description Language
-- orchestrate that experiment using one OMF-enabled resources of PC types
-- access the measurement collected during that experiment run
+- orchestrate that experiment using one OMF-enabled resources (PC type)
+- access the measurements collected during that experiment run
 
 **Files**
 
@@ -47,7 +47,6 @@ stores them in a database available to the experimenter.
 --------------------------------------------------------------
 
 ### 2a) Accessing/Provisioning Resources
-
 
 This tutorial assumes that you are using OMF-enabled resources, which are
 provided by either a NICTA or ORBIT testbed. This section briefly describes
@@ -79,7 +78,7 @@ and ORBIT means having a specific user disk image loaded on the resource.
 
 - In the meantime, please use the method described on
 [the OMF 5.4 imaging page]
-(http://mytestbed.net/projects/omf/wiki/BasicTutorialStage7-5-4)
+(http://mytestbed.net/projects/omf54/wiki/BasicTutorialStage7-5-4)
 for instruction on how to provision/image resources at NICTA or ORBIT.
 Using these instructions, make sure that you load on your resource a disk
 image that contains OMF 6 (normally the latest baseline.ndz image will do)
@@ -359,7 +358,7 @@ then to run your experiment you have to:
 - save its description in a file on your computer, thus either
   - cut-and-paste the above ED listing into a new file named 'tutorial00.rb'
   - download the ED directly:
-{file:doc/tutorials/tutorial01.rb tutorial00.rb}
+{file:doc/tutorials/tutorial00.rb tutorial00.rb}
 
 - open a terminal and navigate to the folder/directory where you saved that file
 - start the EC software and tell it to execute the experiment described in your ED file, using the command line:
@@ -422,7 +421,7 @@ similar to this:
 
 The above screen output was optained when running the EC on the NICTA testbed,
 with the experiment described in
-{file:doc/tutorials/tutorial01.rb tutorial00.rb}
+{file:doc/tutorials/tutorial00.rb tutorial00.rb}
 and using the resource named 'omf6.nicta.node8'
 
 ### 4c) What does that screen output mean?

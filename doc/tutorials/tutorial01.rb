@@ -1,8 +1,6 @@
-defApplication('otr2', 'otr2') do |a|
+defApplication('otr2') do |a|
 
-  a.path = "/usr/bin/otr2"
-# a.version(1, 1, 3)
-  a.shortDescription = "Programmable traffic sink"
+  a.binary_path = "/usr/bin/otr2"
   a.description = <<TEXT
 otr is a configurable traffic sink. It contains port to receive
 packet streams via various transport options, such as TCP and UDP.
@@ -21,11 +19,9 @@ TEXT
   end
 end
 
-defApplication('otg2', 'otg2') do |a|
+defApplication('otg2') do |a|
 
-  a.path = "/usr/bin/otg2"
-#  a.version(1, 1, 3)
-  a.shortDescription = "Programmable traffic generator v2"
+  a.binary_path = "/usr/bin/otg2"
   a.description = <<TEXT
 OTG is a configurable traffic generator. It contains generators
 producing various forms of packet streams and port for sending

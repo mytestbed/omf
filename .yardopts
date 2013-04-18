@@ -5,4 +5,5 @@ omf_*/lib/**/*.rb
 -
 doc/**/*.mkd
 doc/**/*.rb
+doc/**/*.png
 *.mkd
