@@ -436,9 +436,9 @@ class XML
 
     def escape_key(key)
       key = key.to_s
-      if key =~ /(\W)/
+      if key =~ /\W+/
         warn "Due to the limitation of XML messages, please only use word character (a-z A-Z 0-9 _) in your property names. Offending characters will be replaced with underscore(_)."
-        key = key.gsub(/\W/, '_')
+        key = key.gsub(/\W+/, '_')
       else
         key
       end
