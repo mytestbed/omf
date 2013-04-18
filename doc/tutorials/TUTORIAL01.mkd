@@ -33,7 +33,7 @@ The experiment description (aka OEDL script) is:
 
 The following figure shows the simple experiment scenario for this tutorial:
 
-![Figure 1. Simple experiment scenario](fig-tut1.png)
+![Figure 1. Simple experiment scenario](images/tutorial01-fig1.png)
 
 - This experiment involves two resources of type PC with wireless capabilities:
 Node 1 and Node 2
