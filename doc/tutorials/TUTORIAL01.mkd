@@ -1,6 +1,6 @@
 # Tutorial 01
 
-
+**This tutorial is currently being updated**
 
 1. “Hello World” - Wireless
 ---------------------------
@@ -22,8 +22,8 @@ pages
 After reading this tutorial you should be able to:
 - develop a simple networking experiment using OEDL, the OMF Experiment
 Description Language
-- orchestrate that experiment using 2 OMF-enabled resources of PC types
-- access the measurement collected during that experiment run
+- orchestrate that experiment using two OMF-enabled resources of PC type
+- access the measurements collected during that experiment run
 
 **Files**
 
@@ -48,13 +48,12 @@ applications OTG2 and OTR2 should already be pre-installed in the default
 image of your resources. If you are using another OMF enabled testbed, you
 may install these applications by following the instructions on 
 [the OML Application pages]
-(http://mytestbed.net/projects/show/omlapp).
+(http://mytestbed.net/projects/omlapp).
 
 2. Prerequisites
 --------------------------------------------------------------
 
 ### 2.A. Accessing/Provisioning Resources
-
 
 This tutorial assumes that you are using OMF-enabled resources, which are
 provided by either a NICTA or ORBIT testbed. This section briefly describes

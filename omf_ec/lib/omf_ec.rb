@@ -29,41 +29,36 @@ module OmfEc
     end
 
     def register_default_callback(topic)
-      topic.on_creation_failed do |msg|
-        warn "RC reports creation.failed: '#{msg[:reason]}'"
-        debug msg
-      end
+      topic.on_inform do |msg|
+        case msg.itype
+        when 'CREATION.FAILED'
+          warn "RC reports creation.failed: '#{msg[:reason]}'"
+          debug msg
+        when 'ERROR'
+          warn "RC reports error: '#{msg[:reason]}'"
+          debug msg
+        when 'WARN'
+          warn "RC reports warning: '#{msg[:reason]}'"
+          debug msg
+        when 'CREATION.OK'
+          debug "Received CREATION.OK via #{topic.id}"
+          info "Resource #{msg[:res_id]} #{msg.resource.address} created"
 
-      topic.on_error do |msg|
-        warn "RC reports error: '#{msg[:reason]}'"
-        debug msg
-      end
+          OmfEc.experiment.add_or_update_resource_state(msg.resource.address, msg.properties)
 
-      topic.on_warn do |msg|
-        warn "RC reports warning: '#{msg[:reason]}'"
-        debug msg
-      end
+          OmfEc.experiment.process_events
+        when 'STATUS'
+          props = []
+          msg.each_property { |k, v| props << "#{k}: #{v}" }
+          debug "#{topic.id} >> inform: #{props.join(", ")}"
 
-      topic.on_creation_ok do |msg|
-        debug "Received CREATION.OK via #{topic.id}"
-        info "Resource #{msg[:res_id]} #{msg.resource.address} created"
+          if msg[:status_type] == 'APP_EVENT'
+            info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
+          end
 
-        OmfEc.experiment.add_or_update_resource_state(msg.resource.address, msg.properties)
-
-        OmfEc.experiment.process_events
-      end
-
-      topic.on_status do |msg|
-        props = []
-        msg.each_property { |k, v| props << "#{k}: #{v}" }
-        debug "#{topic.id} >> inform: #{props.join(", ")}"
-
-        if msg[:status_type] == 'APP_EVENT'
-          info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
+          OmfEc.experiment.add_or_update_resource_state(msg.src, msg.properties)
+          OmfEc.experiment.process_events
         end
-
-        OmfEc.experiment.add_or_update_resource_state(msg.src, msg.properties)
-        OmfEc.experiment.process_events
       end
     end
 
