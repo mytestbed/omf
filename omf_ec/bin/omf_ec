@@ -245,7 +245,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       communication: { url: global_options[:uri], auth: { certs: [root_cert.to_pem_compact] } },
       eventloop: { type: :em },
       logging: {
-        level: global_options[:debug] ? 'debug' : 'info',
+        level: { default: global_options[:debug] ? 'debug' : 'info' },
         appenders: {
           stdout: {
             date_pattern: '%H:%M:%S',

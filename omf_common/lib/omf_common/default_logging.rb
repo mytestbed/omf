@@ -43,5 +43,10 @@ module OmfCommon
       logger.warn "[DEPRECATION] '#{deprecated_name}' is deprecated. Please use '#{suggest_names.join(', ')}' instead."
     end
 
+    def warn_removed(deprecated_name)
+      define_method(deprecated_name) do |*args, &block|
+        logger.warn "[DEPRECATION] '#{deprecated_name}' is removed. Please do not use it."
+      end
+    end
   end
 end
