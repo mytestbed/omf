@@ -216,9 +216,9 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Return a list of all loaded resource proxies
   #
-  def request_proxies(*args)
-    OmfRc::ResourceFactory.proxy_list
-  end
+  # def request_proxies(*args)
+    # OmfRc::ResourceFactory.proxy_list
+  # end
 
   def request_supported_children_type(*args)
     OmfRc::ResourceFactory.proxy_list.reject { |v| v == @type.to_s }.find_all do |k, v|
@@ -308,7 +308,8 @@ class OmfRc::ResourceProxy::AbstractResource
   # Request child resources
   # @return [Hashie::Mash] child resource mash with uid and hrn
   def request_child_resources(*args)
-    children.map { |c| Hashie::Mash.new({ uid: c.uid, name: c.hrn }) }
+    #children.map { |c| Hashie::Mash.new({ uid: c.uid, name: c.hrn }) }
+    children.map { |c| c.to_hash }
   end
 
   # Parse omf message and execute as instructed by the message
@@ -439,21 +440,22 @@ class OmfRc::ResourceProxy::AbstractResource
     allowed_properties = obj.request_available_properties.request - [:message]
     have_unbound = false
 
-    message.each_unbound_request_property do |name|
-      #puts "NAME>> #{name.inspect}"
-
-      unless allowed_properties.include?(name.to_sym)
-        raise ArgumentError, "Unknown 'requestable' property '#{name}'. Allowed properties are: #{allowed_properties.join(', ')}"
-      end
-      method_name = "request_#{name}"
-      response[name] = obj.__send__(method_name)
-      have_unbound = true
-    end
+    # message.each_unbound_request_property do |name|
+      # #puts "NAME>> #{name.inspect}"
+# 
+      # unless allowed_properties.include?(name.to_sym)
+        # raise ArgumentError, "Unknown 'requestable' property '#{name}'. Allowed properties are: #{allowed_properties.join(', ')}"
+      # end
+      # method_name = "request_#{name}"
+      # response[name] = obj.__send__(method_name)
+      # have_unbound = true
+    # end
     unless have_unbound
       # return ALL properties
       allowed_properties.each do |name|
         method_name = "request_#{name}"
-        response[name] = obj.__send__(method_name)
+        value = obj.__send__(method_name)
+        response[name] = value if value
       end
     end
     response
@@ -521,6 +523,11 @@ class OmfRc::ResourceProxy::AbstractResource
   def inform_warn(reason)
     warn reason
     inform :warn, {reason: reason}
+  end
+
+  # Return a hash describing a reference to this object
+  def to_hash(options={})
+    { uid: @uid, address: resource_address() }
   end
 
   private

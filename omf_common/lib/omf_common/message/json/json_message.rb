@@ -168,7 +168,7 @@ module OmfCommon
             @content[:src] = @content[:src].id
           end
           #raise 'local/local' if @content[:src].id.match 'local:/local'
-          puts @content.inspect
+          #puts @content.inspect
           payload = @content.to_json
           if self.class.authenticate?
              src = @content[:src]
