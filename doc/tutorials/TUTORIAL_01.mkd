@@ -27,7 +27,7 @@ Description Language
 **Files**
 
 The experiment description (aka OEDL script) is: 
-{file:doc/tutorials/tutorial01.rb tutorial01.rb} 
+{file:doc/tutorials/tutorial01.rb.rb tutorial01.rb} 
 
 **Experiment Scenario**
 

@@ -1,6 +1,6 @@
 # OMF 6 Installation Guide
 
-![OMF components](install_diagram.png)
+![OMF components](images/install_diagram.png)
 
 ## Introduction
 

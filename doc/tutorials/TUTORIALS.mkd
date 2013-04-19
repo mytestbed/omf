@@ -1,3 +1,0 @@
-# Tutorials
-
-{file:doc/tutorials/TUTORIAL00.mkd Tutorial 0}
