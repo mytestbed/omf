@@ -12,10 +12,6 @@ describe OmfRc::ResourceProxy::Node do
   end
 
   describe "when included in the resource instance" do
-    it "must be able to tell registered proxies" do
-      @node.request_proxies.must_include :node
-    end
-
     it "must provide a list of supported network devices" do
       devices = [
         { name: 'eth0', driver: 'e1000e', category: 'net', proxy: 'net' },
