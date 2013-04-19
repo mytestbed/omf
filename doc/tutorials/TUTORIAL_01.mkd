@@ -4,7 +4,7 @@
 ---------------------------
 
 This simple tutorial presents all the basic steps to develop, run, and 
-access the result of an experiment with OMF 6. 
+access the result of a wireless network experiment with OMF 6.
 Subsequent tutorials will build on this one to introduce further OMF
 features.
 
@@ -21,13 +21,13 @@ After reading this tutorial you should be able to:
 
 - develop a simple networking experiment using OEDL, the OMF Experiment
 Description Language
-- orchestrate that experiment using two OMF-enabled resources of PC type
+- orchestrate that experiment using two OMF-enabled resources of PC type with wireless interfaces
 - access the measurements collected during that experiment run
 
 **Files**
 
 The experiment description (aka OEDL script) is: 
-{file:doc/tutorials/tutorial01.rb.rb tutorial01.rb} 
+{file:doc/tutorials/tutorial01.rb tutorial01.rb} 
 
 **Experiment Scenario**
 
@@ -41,6 +41,8 @@ Node 1 and Node 2
 - Node 2 is running a simple traffic receiver application (OTR2)
 - Node 1 is the “Sender” and will generate and send traffic to the
 “Receiver” node 2, over a wireless (IEEE 802.11g) channel.
+- OTG and OTR are OML-enabled applications and are configured to report statistics 
+about the sent and received traffic to an OML server.
 
 Note: when using PC-type resources on the NICTA or ORBIT testbeds, the 
 applications OTG2 and OTR2 should already be pre-installed in the default
@@ -54,7 +56,7 @@ may install these applications on your node image by following the instructions 
 
 ### 2a) Accessing/Provisioning Resources
 
-This tutorial assumes that you are using OMF-enabled resources, which are
+This tutorial assumes that you are using OMF-enabled resources with WLAN interfaces, which are
 provided by either a NICTA or ORBIT testbed. This section briefly describes
 the steps to reserve and provision resources on these testbeds.
 
@@ -64,15 +66,16 @@ documentation for instructions on how to reserve/provision their resources with 
 
 Alternatively you may also decide to install OMF on your own testbed, if
 so then please follow the instructions for testbed operators on our
-{file:doc/INSTALLATION.mkd OMF 6 Installation Guide}
+{file:doc/INSTALLATION.mkd OMF 6 Installation Guide}. Remember to install 802.11g compatible
+wireless cards (we use cards that support the ath5k or ath9k driver).
 
 **Accessing Resources at NICTA/ORBIT**
 
 - Are you using a testbed at NICTA? Please refer to the 
-[OMF at NICTA Getting Starting page]
+[OMF at NICTA Getting Started page]
 (http://mytestbed.net/projects/omf/wiki/OMFatNICTA)
 - Are you using a testbed at ORBIT? Please refer to the 
-[OMF at ORBIT Getting Starting page]
+[OMF at ORBIT Getting Started page]
 (http://mytestbed.net/projects/omf/wiki/OMFatWINLAB)
 
 **Provisioning Resources at NICTA/ORBIT**
@@ -89,7 +92,6 @@ for instruction on how to provision/image resources at NICTA or ORBIT.
 
 Using these instructions, make sure that you load a disk image onto your resources
 that contains OMF 6 (normally the latest baseline.ndz image will do).
-
 
 ### 2b) Installing the Experiment Controller
 
@@ -116,7 +118,7 @@ of the resources involved in an experiment and the sets of actions to perform
 in order to execute that experiment. An ED is written using the
 OMF Experiment Description Language (OEDL), which is based on Ruby syntax.
 
-The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial01.rb tutorial01.rb}:
+The ED describing this simple “Hello World” wireless experiment is {file:doc/tutorials/tutorial01.rb tutorial01.rb}:
 
 	defApplication('otr2') do |a|
 
@@ -225,13 +227,12 @@ information is provided in the block of instructions defined between the
 	  #...
 	end
 
-- first we provided the path for the application itself
-(i.e. app.binary_path = '/usr/bin/otr2')
+- first we provide the path for the application itself
 
         app.binary_path = '/usr/bin/otr2'
 
 - then we define all the configurable command line parameters of the
-application, that we would like to configure within OMF. This is done using
+application that we would like to configure within OMF. This is done using
 the 'defProperty' command for each parameter. Type 'string' means that the value
 passed to this parameter is a string, `:dynamic => false` means that this parameter value
 cannot be updated at runtime.
@@ -240,8 +241,8 @@ cannot be updated at runtime.
 		a.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
 
 - finally we define all the OML measurement points (MP) that this application
-has (if any). If that MP (`udp_in`)is activated (i.e. we want it to collect measurement), it will provide a
-series of 6 tuple samples
+has (if any). If that MP (`udp_in`) is activated, it will send a
+series of 6 tuple samples to the OML server
 
 		a.defMeasurement('udp_in') do |m|
 		  m.defMetric('ts',:float)
@@ -252,23 +253,26 @@ series of 6 tuple samples
 		  m.defMetric('dst_port',:long)
 		end
 
+- the same exercise is done for the OTG application, which has a few more parameters than OTR
+
 It is important to note that this Application Definition is only informative
 for OMF, i.e. it is only a description of what the real application has to
-offer. Indeed, the application itself must already implement the parameters
-and measurement points that you define in this App definition.
+offer. The application itself must already implement the parameters
+and measurement points that you define in this App definition. The man
+page usually contains a complete list of supported parameters.
 
-Many OML-enabled applications ship with an OMF application definition.
+Many OML-enabled applications already ship with an OMF application definition.
 
 ### 3b) Group/Resource Definition
 
 Within an OMF experiment, resources may be grouped together within named
 Groups. A named Group can be itself viewed as a resource holding other
-resources. A given resource can belong to many groups at the same time, and
+resources. A given resource can belong to multiple groups at the same time, and
 a group itself may be part of another group.
 In this example, we define a two group named 'Sender' and 'Receiver', which contain a
 single resource each.
 
-> **IMPORTANT** When running this experiment using your own resource and testbed
+> **IMPORTANT** When running this experiment using your own resources and testbed
 please change `omf.nicta.node30` and `omf.nicta.node29` in the ED to the actual name of your
 own resource.
 
@@ -277,10 +281,10 @@ own resource.
     end
 
 When we define a group, we can associate configuration settings and
-applications to all members of that group. In this example, we only associate 
-one application to the single member of the 'Sender' and 'Receiver' groups. This is done using
+applications with all members of that group. In this example, we only associate 
+one application to each of the single members of the 'Sender' and 'Receiver' groups. This is done using
 the 'addApplication' command. Furthermore, when associating an application
-to a group, we can provide a given configuration for that application in the
+with a group, we can provide a given configuration for that application in the
 specific context of that group. This is achieved inside the block of
 instructions following the 'addApplication' command. For the sender, we
 
@@ -297,54 +301,54 @@ For both groups, we
 
 - request the application to collect the measurement samples that its measurement point will produce at an interval of 3 seconds
 
-		node.addApplication("otg2") do |app|
-			app.setProperty('udp_local_host', '192.168.0.2')
-			app.setProperty('udp_dst_host', '192.168.0.3')
-			app.setProperty('udp_dst_port', 3000)
-			app.measure('udp_out', :interval => 3)
-		end
-		# ...
-		node.addApplication("otr2") do |app|
-			app.setProperty('udp_local_host', '192.168.0.3')
-			app.setProperty('udp_local_port', 3000)
-			app.measure('udp_in', :interval => 3)
-		end
+In OEDL it looks like this:
+
+	node.addApplication("otg2") do |app|
+		app.setProperty('udp_local_host', '192.168.0.2')
+		app.setProperty('udp_dst_host', '192.168.0.3')
+		app.setProperty('udp_dst_port', 3000)
+		app.measure('udp_out', :interval => 3)
+	end
+	# ...
+	node.addApplication("otr2") do |app|
+		app.setProperty('udp_local_host', '192.168.0.3')
+		app.setProperty('udp_local_port', 3000)
+		app.measure('udp_in', :interval => 3)
+	end
 
 ### 3c) Event Definition
 
-An experiment in OMF is fully event driven. This means that to perform an
+Experiments in OMF are fully event driven. This means that to perform an
 experiment, you as the experimenter have to define:
 
-- sets of events that may be triggered during the course of the experiment execution
-- sets of consecutive tasks to perform when each of these events are
-triggered
+- events that may be triggered during the course of the experiment execution
+- tasks to perform when each of these events are triggered
 
 For example, your experiment might involve 2 events:
 
-- 'when my PC node is ready' and
-- 'when my application has finished running'. You would then a
+- *when my PC node is ready* and
+- *when my application has finished running*
 
-You would then associate the following tasks to each of these events:
+You would then associate the following tasks to each of those events:
 
-- 'configure my application on my PC node and start it'
-- 'do some cleanup, send me an email, and switch off my PC node'
+- *configure the application on my PC node and start it*
+- *do some cleanup, send me an email, and switch off my PC node*
 
-For your convenience, the OMF EC already defines by default a set of common
-events that are useful to many experiments. For example, these default
-defined events are:
+For convenience, the OMF EC already comes with a set of common
+events that are useful for many experiments. Some of these default events are:
 
-- *:ALL_UP* - triggered when all resources in all the defined groups have
-contacted the EC and ready to participate in the experiment
-- *:ALL_INTERFACE_UP* - triggered when all the network interfaces, which were
-configured within this experiment are in their 'up' active state
-- *:ALL_UP_AND_INSTALLED* - triggered when all the resources are 'ALL_UP' and
-all the applications associated to them are installed and ready to be started
+- `:ALL_UP` - triggered when all resources in all the defined groups have
+contacted the EC and are ready to engage in the experiment
+- `:ALL_INTERFACE_UP` - triggered when all the network interfaces which were
+configured within this experiment are in their 'up' (active) state
+- `:ALL_UP_AND_INSTALLED` - triggered when `:ALL_UP` fires and the applications associated
+with the resources are installed and ready to be started
 
-For these default EC-defined event, there is no need for you to redefine them
+For these default events, there is no need for you to redefine them
 in your ED. The only thing that you have to do is define the set of tasks
 you would like to perform when one of these events triggers. In this tutorial
 we define a set of tasks to perform when the *:ALL_UP_AND_INSTALLED* event
-is triggered, using the 'onEvent' command:
+is fired, using the 'onEvent' method:
 
     onEvent(:ALL_UP_AND_INSTALLED) do |event|
       #...
@@ -353,33 +357,35 @@ is triggered, using the 'onEvent' command:
 The set of consecutive tasks that we define are:
 
 - print some information message (using the 'info' command)
-- after 10 seconds, start all the applications associated with all the groups (using the 'startApplications' command on the 'allGroups' accessor)
-- after 40 seconds, stop all the applications associated with all the groups
+- after 10 seconds, start all the applications associated with all the groups (using the 'startApplications' method call on the 'allGroups' accessor)
+- after 40 seconds, stop all the applications associated with all the groups and end the experiment
 
 In OEDL, this translates to:
 
-	info "This is my first OMF experiment"
-	after 10 do
-	  allGroups.startApplications
-	  info "All my Applications are started now..."
-	end
-	after 40 do
-	  allGroups.stopApplications
-	  info "All my Applications are stopped now."
-	  Experiment.done
+	onEvent(:ALL_UP_AND_INSTALLED) do |event|
+	  info "This is my first OMF experiment"
+	  after 10 do
+	    allGroups.startApplications
+	    info "All my Applications are started now..."
+	  end
+	  after 40 do
+	    allGroups.stopApplications
+	    info "All my Applications are stopped now."
+	    Experiment.done
+	  end
 	end
 
-As OMF experiment are fully event driven, you have to explicitly tell the OMF
-EC when to terminate the experiment! Otherwise, it will keep waiting for more
-events to happen, and of course if nothing else change in your experiment after
-that, you may never see the EC software stopping. To explicitly tell the EC
+As OMF experiments are fully event-driven, you have to explicitly tell the OMF
+EC when to terminate the experiment. Otherwise, it will keep waiting for more
+events to happen, and of course if nothing else changes in your experiment after
+that, you may never see the EC quit. To explicitly tell the EC
 to terminate the experiment, we use the following command which can be placed
 in any event-tasks definition as you design your experiment:
 
       Experiment.done
 
 If you would like more information on defining your own custom events, please
-read our [User-Defined Event Tutorial]()
+read our [User-Defined Event Tutorial (coming soon)]()
 
 4. Running the “Hello World” Experiment
 ---------------------------------------
@@ -387,32 +393,30 @@ read our [User-Defined Event Tutorial]()
 ### 4a) How do you run it?
 
 Assuming that you have checked all the prerequisite points in the above
-section 2, and that you have the EC software installed on your own computer,
-then to run your experiment you have to:
+section 2, to run your experiment you have to:
 
-- save its description in a file on your computer, thus either
+- save the experiment description in a file on your computer, thus either
   - cut-and-paste the above ED listing into a new file named 'tutorial01.rb'
   - download the ED directly: {file:doc/tutorials/tutorial01.rb tutorial01.rb}
 
-- open a terminal and navigate to the folder/directory where you saved that file
+- open a terminal and navigate to the directory where you saved that file
 - start the EC software and tell it to execute the experiment described in your ED file, using the command line:
 
         omf_ec -u xmpp://my_xmpp.com exec --oml_uri tcp:my_oml.com:port tutorial01.rb
 
   - **replace** *my_xmpp.com* with the hostname of the
-  XMPP server that is used to communicate with the resources
+  XMPP server that is used to communicate with the resources. This is usually provided by your testbed.
   - **replace** *tcp:my_oml.com:port* with the hostname/IP and port of the OML2 server
-  which will collect the experiment's measurement
+  which will collect the experiment's measurement. This is usually provided by your testbed.
 
-- So **only for example**, if you are using the xmpp pubsub server 'my_xmpp.com' 
-and you want to use the OML2 server with hostname 'my_oml.com at port
-3003 to collect the measurement of your experiment, then you would use the
-command:
+- So **only for example**, if you are using the XMPP server at 'my_xmpp.com' 
+and you want to use the OML2 server at 'my_oml.com with port
+3003 to collect the measurements from your experiment, then you would use the
+command line:
 
         omf_ec -u xmpp://my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 tutorial01.rb
 
-If you would like to know more about the other options of the OMF EC software
-please run the commands:
+If you would like to know more about the other options of the OMF EC software, please run:
 
         omf_ec help
         omf_ec help exec
@@ -462,14 +466,14 @@ similar to this:
 
 The above screen output was obtained when running the EC on the NICTA testbed,
 with the experiment described in {file:doc/tutorials/tutorial01.rb tutorial01.rb}
-and using the resources named 'omf.nicta.node29' and 'omf.nicta.node30'
+and using the resources named 'omf.nicta.node29' and 'omf.nicta.node30'.
 
 ### 4c) What does that screen output mean?
 
 Here is a brief explanation of the output messages displayed by the EC above:
 
 - First the EC provides us with some information about the parameters of
-this experiment (ID, xmpp server used, resource used,...):
+this experiment (Experiment ID, XMPP server used, resources used,...):
 
 		18:15:35 INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
 		18:15:35 INFO  Object: Connected
@@ -535,14 +539,13 @@ results/outputs:
 5. Accessing the Results from the Experiment
 --------------------------------------------
 
-During the execution of the above experiment script, the ping-oml2 application
-has collected some measurement, as we requested it to do, and sent them to
+During the execution of the experiment, the OTG and OTR applications
+have collected some measurements, as we requested them to do, and sent them to
 the OML2 server that we selected (the --oml-uri option of the EC command line).
 
 ### How do you access the measurements?
 
-This depends on how the OML2 server which received your measurement is set up.
-The collection point for your measurement (OML2 server) can be
+This depends on how the OML2 server which received your measurements is set up. It can be
 configured to use either a SQLite3 or a PostgreSQL database backend, moreover additional tools
 may have been put in place by your testbed operator to facilitate the access to the result database.
 
@@ -551,19 +554,18 @@ refer to [the OML2 Documentation](http://mytestbed.net/projects/oml/wiki)
 
 Here is a short example on how you would access your data on the NICTA testbed:
 
-- assuming that the OML2 server was running on the host 'my_oml.com' and was configured to use SQLite3 and store the databases in '/var/lib/oml2/'
-- first you need to get access to a console on that host, assuming you have
-an account 'foo' with the password 'bar':
+- assuming that the OML2 server was running on the host 'my_oml.com' and was configured to use SQLite3 and stores the result databases in `/var/lib/oml2/`
+- first you need to get access to a console on that host, assuming you have an account 'foo' with the password 'bar':
 
         ssh foo@my_oml.com  # then enter the password 'bar'
 
-- then you use the sqlite3 command to access your experiment database, which
-is in the file *your_experiment_id.sq3*. Thus assuming the experiment ID above
+- then you use the sqlite3 command to dump your experiment database, which
+is in the file `/var/lib/oml2/your_experiment_id.sq3`. Thus assuming the experiment ID above
 (2013-04-18T08:15:35Z):
 
         sqlite3 /var/lib/oml2/2013-04-18T08:15:35Z.sq3 .dump
 
-This will dump the database contents in SQL format to the console.For more information on SQLite3, please refer to its [documentation website]
+This will dump the database contents in SQL format to the console. For more information on SQLite3, please refer to its [documentation website]
 (http://www.sqlite.org/docs.html)
 
 ### How do I display my measurements in some nice graphs?
@@ -571,10 +573,9 @@ This will dump the database contents in SQL format to the console.For more infor
 We have a separate tool named [**omf_web**]
 (https://github.com/mytestbed/omf_web) which allows you to build
 some custom visualisation of the data collected within your experiment and
-display them within your Internet browser. For more information on how to
+display them within your web browser. For more information on how to
 use that tool, please refer to the [omf_web documentation]
 (https://github.com/mytestbed/omf_web)
-
 
 6. What should I do next?
 -------------------------
@@ -583,10 +584,9 @@ We will soon release more tutorials on how to use all the features of OMF6
 from the experimenter's perspective.
 
 In the meantime, you may have a look at the OMF 5.4 documentation, which
-will not completely accurate and applicable to OMF 6, would still give you
-some ideas of the features available for experimenters.
+will not be completely accurate and applicable to OMF 6, but would still give you
+some ideas of the OMF features available for experimenters.
 
-Finally, if you have any questions on how to use OMF 6 or any problem running
-this 'Hello World' tutorial, please join the [OMF Mailing List]
-(https://lists.nicta.com.au/wws/info/omf-user)
-and post your questions there.
+Finally, if you have any questions on how to use OMF 6 or any problems running
+this 'Hello World' wireless tutorial, please join the [OMF Mailing List]
+(https://lists.nicta.com.au/wws/info/omf-user) and post your questions there.

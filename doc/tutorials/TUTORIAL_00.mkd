@@ -63,10 +63,10 @@ so then please follow the instructions for testbed operators on our
 **Accessing a Resource at NICTA/ORBIT**
 
 - Are you using a testbed at NICTA? Please refer to the
-[OMF at NICTA Getting Starting page]
+[OMF at NICTA Getting Started page]
 (http://mytestbed.net/projects/omf/wiki/OMFatNICTA)
 - Are you using a testbed at ORBIT? Please refer to the
-[OMF at ORBIT Getting Starting page]
+[OMF at ORBIT Getting Started page]
 (http://mytestbed.net/projects/omf/wiki/OMFatWINLAB)
 
 **Provisioning a Resource at NICTA/ORBIT**
@@ -305,17 +305,17 @@ For your convenience, the OMF EC already defines by default a set of common
 events that are useful to many experiments. For example, these default
 defined events are:
 
-- *:ALL_UP* - triggered when all resources in all the defined groups have
+- `:ALL_UP` - triggered when all resources in all the defined groups have
 contacted the EC and ready to participate in the experiment
-- *:ALL_INTERFACE_UP* - triggered when all the network interfaces, which were
+- `:ALL_INTERFACE_UP` - triggered when all the network interfaces, which were
 configured within this experiment are in their 'up' active state
-- *:ALL_UP_AND_INSTALLED* - triggered when all the resources are 'ALL_UP' and
+- `:ALL_UP_AND_INSTALLED` - triggered when all the resources are 'ALL_UP' and
 all the applications associated to them are installed and ready to be started
 
 For these default EC-defined event, there is no need for you to redefine them
 in your ED. The only thing that you have to do is define the set of tasks
 you would like to perform when one of these events triggers. In this tutorial
-we define a set of tasks to perform when the *:ALL_UP_AND_INSTALLED* event
+we define a set of tasks to perform when the `:ALL_UP_AND_INSTALLED` event
 is triggered, using the 'onEvent' command:
 
     onEvent(:ALL_UP_AND_INSTALLED) do |event|
