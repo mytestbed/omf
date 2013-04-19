@@ -141,6 +141,13 @@ describe OmfCommon::Message::XML::Message do
     it "must generate an envelope for the message" do
       Message.stub(:authenticate?, true) do
         OmfCommon::Auth.init
+
+        comm = mock
+        topic = OmfCommon::Comm::Topic.create("bob_topic")
+        topic.stubs(:address).returns('bob')
+        OmfCommon.stubs(:comm).returns(comm)
+        comm.expects(:create_topic).returns(topic)
+
         cert = OmfCommon::Auth::Certificate.create(nil, 'sa', 'auth')
         bob_cert = cert.create_for('bob', 'bob', 'bob')
 
@@ -151,6 +158,8 @@ describe OmfCommon::Message::XML::Message do
         # m indicates multiple lines
         message.marshall[1].to_xml.must_match /<env(.+)env>/m
         message.valid?.must_equal true
+
+        OmfCommon.comm.unstub(:comm)
       end
     end
   end

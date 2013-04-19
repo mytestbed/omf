@@ -122,6 +122,7 @@ class XML
 
       if self.class.authenticate?
         src = @content[:src]
+        src = src.address if src.is_a?(OmfCommon::Comm::Topic)
         cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
         if cert && cert.can_sign?
           debug "Found cert for '#{src} - #{cert}"
@@ -177,7 +178,14 @@ class XML
       @xml.add_child(guard_node) if _get_core(:guard)
 
       (OMF_CORE_READ - [:mid, :guard, :operation]).each do |attr|
-        attr_value = attr == :itype ? self.send(attr, :frcp) : self.send(attr)
+        attr_value = case attr
+                     when :itype
+                       self.itype(:frcp)
+                     when :src
+                       self.src.is_a?(OmfCommon::Comm::Topic) ? self.src.address : self.src
+                     else
+                       self.send(attr)
+                     end
 
         next unless attr_value
 
@@ -398,6 +406,9 @@ class XML
       @content = content
       @content.mid = SecureRandom.uuid
       @content.ts = Time.now.utc.to_i
+      if (src = content[:src])
+        @content.src = OmfCommon.comm.create_topic(src)
+      end
       # keep track if we sent local certs on a topic. Should do this the first time
       @certOnTopic = {}
     end
