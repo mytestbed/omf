@@ -357,7 +357,7 @@ class XML
     end
 
     def has_properties?
-      @content.properties.empty?
+      !@content.properties.empty?
     end
 
     def guard?
