@@ -51,6 +51,7 @@ module OmfCommon
       end
 
       def inform(type, props = {}, core_props = {}, &block)
+        core_props[:src] ||= OmfCommon.comm.local_address
         msg = OmfCommon::Message.create(:inform, props, core_props.merge(itype: type))
         publish(msg, &block)
         self
