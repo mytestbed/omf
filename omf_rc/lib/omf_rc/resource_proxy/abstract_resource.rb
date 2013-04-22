@@ -378,11 +378,19 @@ class OmfRc::ResourceProxy::AbstractResource
       begin
         response[:res_id] = new_obj.resource_address
 
-
         props.each do |key, value|
           method_name = "configure_#{key}"
-          response[key] = new_obj.__send__(method_name, value)
+
+          if new_obj.respond_to? method_name
+            response[key] = new_obj.__send__(method_name, value)
+          elsif new_obj.respond_to? "request_#{key}"
+            # For read only props, they won't have "configure" method defined,
+            # we can still set them directly during this creation.
+            new_obj.property[key] = value
+            response[key] = value
+          end
         end
+
         response[:hrn] = new_obj.hrn
         response[:uid] = new_obj.uid
         response[:type] = new_obj.type
