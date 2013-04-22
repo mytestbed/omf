@@ -80,10 +80,10 @@ class OmfRc::ResourceProxy::AbstractResource
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
         OmfCommon.comm.disconnect()
       else
-        if @certificate = @opts.certificate
+        if (@certificate = @opts.certificate)
           OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
         else
-          if pcert = @opts.parent_certificate
+          if (pcert = @opts.parent_certificate)
             @certificate = pcert.create_for(resource_address, @type, t.address)
           end
         end
@@ -100,23 +100,6 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     super()
-  end
-
-  # If method missing, try the property mash
-  def method_missing(method_name, *args)
-    warn "Method missing: '#{method_name}'"
-    if (method_name =~ /request_(.+)/)
-      property.key?($1) ? property.send($1) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
-    elsif (method_name =~ /configure_(.+)/)
-      property.key?($1) ? property.send("[]=", $1, *args) : (raise OmfRc::UnknownPropertyError, method_name.to_s)
-    else
-      super
-    end
-  end
-
-  # Overwirte methods to add ghost methods
-  def methods
-    super + property.keys.map { |v| ["configure_#{v}".to_sym, "request_#{v}".to_sym] }.flatten
   end
 
   # Return the public 'routable'  address for this resource
@@ -142,7 +125,7 @@ class OmfRc::ResourceProxy::AbstractResource
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
     end
 
-    opts[:parent_certificate] = @certificate
+    opts[:parent_certificate] = @certificate if @certificate
     opts[:parent] = self
     before_create(type, opts) if respond_to? :before_create
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
@@ -213,12 +196,6 @@ class OmfRc::ResourceProxy::AbstractResource
 
     true
   end
-
-  # Return a list of all loaded resource proxies
-  #
-  # def request_proxies(*args)
-    # OmfRc::ResourceFactory.proxy_list
-  # end
 
   def request_supported_children_type(*args)
     OmfRc::ResourceFactory.proxy_list.reject { |v| v == @type.to_s }.find_all do |k, v|
@@ -409,7 +386,7 @@ class OmfRc::ResourceProxy::AbstractResource
         response[:hrn] = new_obj.hrn
         response[:uid] = new_obj.uid
         response[:type] = new_obj.type
-				if cred = new_obj.certificate
+				if (cred = new_obj.certificate)
           response[:cert] = cred.to_pem_compact
         end
 
@@ -437,27 +414,19 @@ class OmfRc::ResourceProxy::AbstractResource
   end
 
   def handle_request_message(message, obj, response)
-    allowed_properties = obj.request_available_properties.request - [:message]
-    have_unbound = false
+    request_props = if message.has_properties?
+                      message.properties.keys.map(&:to_sym) & obj.request_available_properties.request
+                    else
+                      # Return ALL props when nothing specified
+                      obj.request_available_properties.request
+                    end
 
-    # message.each_unbound_request_property do |name|
-      # #puts "NAME>> #{name.inspect}"
-# 
-      # unless allowed_properties.include?(name.to_sym)
-        # raise ArgumentError, "Unknown 'requestable' property '#{name}'. Allowed properties are: #{allowed_properties.join(', ')}"
-      # end
-      # method_name = "request_#{name}"
-      # response[name] = obj.__send__(method_name)
-      # have_unbound = true
-    # end
-    unless have_unbound
-      # return ALL properties
-      allowed_properties.each do |name|
-        method_name = "request_#{name}"
-        value = obj.__send__(method_name)
-        response[name] = value if value
-      end
+    request_props.each do |p_name|
+      method_name = "request_#{p_name.to_s}"
+      value = obj.__send__(method_name)
+      response[p_name] = value if value
     end
+
     response
   end
 
