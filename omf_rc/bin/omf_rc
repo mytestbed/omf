@@ -51,16 +51,20 @@ if !options[:configfile].nil?
   options = cfg_options.merge(options)
 end
 
-options[:uid] ||=`hostname`.chomp
+if options[:resources].nil? || options[:resources].empty?
+  options[:uid] ||= Socket.gethostname
+  options[:resources] = [{ type: :node, uid: options[:uid] }]
+end
 
 OmfCommon::Measure.enable if oml_enabled
 
 options[:environment] ||= :development
 
-root_cert = OmfCommon::Auth::Certificate.create(nil, 'ca', 'authority')
+#root_cert = OmfCommon::Auth::Certificate.create(nil, 'ca', 'authority')
 
 if options[:uri]
-  common_options = { communication: { url: options[:uri], auth: { certs: [root_cert.to_pem_compact] } } }
+  #common_options = { communication: { url: options[:uri], auth: { certs: [root_cert.to_pem_compact] } } }
+  common_options = { communication: { url: options[:uri] } }#, auth: { certs: [root_cert.to_pem_compact] } } }
 else
   common_options = {}
 end
@@ -75,21 +79,43 @@ unless common_options[:communication] && common_options[:communication][:url]
   exit(1)
 end
 
-OmfRc::ResourceFactory.load_default_resource_proxies
+if options[:add_default_factories] != false
+  OmfRc::ResourceFactory.load_default_resource_proxies
+end
+
+if options[:factories]
+  options[:factories].each do |f|
+    if (req = f[:require])
+      begin
+        info "Try to load resource module '#{req}'"
+        require(req)
+      rescue LoadError => e
+        error e.message
+      end
+    end
+  end
+end
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
-    resource_options = {
-      uid: options[:uid],
-      certificate: root_cert.create_for("#{comm.conn_info[:proto]}://#{options[:uid]}@#{comm.conn_info[:domain]}", options[:uid], :node)
-    }
+    #resource_options = {
+    #  uid: options[:uid],
+    #  certificate: root_cert.create_for("#{comm.conn_info[:proto]}://#{options[:uid]}@#{comm.conn_info[:domain]}", options[:uid], :node)
+    #}
 
     info "Connected using #{comm.conn_info}"
-    res = OmfRc::ResourceFactory.create(:node, resource_options)
 
-    comm.on_interrupted { res.disconnect }
+    options[:resources].each do |res_opts|
+      rtype = res_opts.delete(:type)
+      begin
+        OmfRc::ResourceFactory.create(rtype, res_opts)
+      rescue => e
+        error e.message
+      end
+    end
+
   end
 end
 info "Stopping OMF Resource Controller version '#{gem_version}'"

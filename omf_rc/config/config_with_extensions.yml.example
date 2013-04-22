@@ -1,0 +1,13 @@
+---
+:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
+:environment: development
+:debug: false
+
+:resources:
+- :type: openflow_slice_factory
+  :uid: <%= Socket.gethostname %>
+
+:add_default_factories: false # Not loading default type factories
+
+:factories: # Additional resources which can be created by this RC
+- :require: omf_rc_openflow
