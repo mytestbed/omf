@@ -32,3 +32,9 @@ class OmfCommon::Eventloop
     @@instance = nil
   end
 end
+
+class OmfCommon::Auth::CertificateStore
+  def self.reset
+    @@instance = nil
+  end
+end

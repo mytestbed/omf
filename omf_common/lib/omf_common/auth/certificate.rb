@@ -1,5 +1,6 @@
 require 'openssl'
 require 'omf_common/auth'
+require 'omf_common/auth/ssh_pub_key_convert'
 
 module OmfCommon::Auth
 
@@ -11,6 +12,9 @@ module OmfCommon::Auth
     END_CERT = "\n-----END CERTIFICATE-----\n"
     @@serial = 0
 
+    # @param [String] name unique name of the entity (resource name)
+    # @param [String] type type of the entity (resource type)
+    # @param [String] domain of the resource
     #
     def self.create(address, name, type, domain = DEF_DOMAIN_NAME, issuer = nil, not_before = Time.now, duration = 3600)
       subject = _create_name(name, type, domain)
@@ -36,11 +40,16 @@ module OmfCommon::Auth
       [OpenSSL::PKey::RSA.new(size), OpenSSL::Digest::SHA1.new]
     end
 
-    def self._create_name(name, type, domain = nil)
-      OpenSSL::X509::Name.new [['CN', "frcp//#{domain || @def_domain}//frcp.#{type}.#{name}"]], {}
+    # @param [String] name unique name of the entity (resource name)
+    # @param [String] type type of the entity (resource type)
+    #
+    def self._create_name(name, type, domain = DEF_DOMAIN_NAME)
+      OpenSSL::X509::Name.new [['CN', "frcp//#{domain}//frcp.#{type}.#{name}"]], {}
     end
 
-
+    # Create a X509 certificate
+    #
+    # @param [] address
     # @return {cert, key}
     #
     def self._create_x509_cert(address, subject, key = nil, digest = nil,
@@ -53,6 +62,7 @@ module OmfCommon::Auth
 
       cert = OpenSSL::X509::Certificate.new
       cert.version = 2
+      # TODO change serial to non-sequential secure random numbers for production use
       cert.serial = (@@serial += 1)
       cert.subject = subject
       cert.public_key = key.public_key
@@ -103,13 +113,12 @@ module OmfCommon::Auth
         domain = opts[:domain]
         @subject = _create_name(name, type, domain)
       end
-      #@domain = opts[:domain] || DEF_DOMAIN_NAME
       @cert ||= _create_x509_cert(@address, @subject, @key, @digest)[:cert]
     end
 
-    def create_for(address, name, type, duration = 3600)
-      raise "Address required" unless address
-      cert = self.class.create(address, name, type, @domain, self, Time.now, duration)
+    def create_for(address, name, type, domain = DEF_DOMAIN_NAME, duration = 3600)
+      raise ArgumentError, "Address required" unless address
+      cert = self.class.create(address, name, type, domain, self, Time.now, duration)
       CertificateStore.instance.register(cert, address)
       cert
     end
@@ -129,6 +138,14 @@ module OmfCommon::Auth
 
     def to_pem_compact
       to_pem.lines.to_a[1 ... -1].join.strip
+    end
+
+    def verify_cert
+      if @cert.issuer == self.subject # self signed cert
+        @cert.verify(@cert.public_key)
+      else
+        @cert.verify(CertificateStore.instance.cert_for(@cert.issuer).to_x509.public_key)
+      end
     end
 
     # Will return one of the following
