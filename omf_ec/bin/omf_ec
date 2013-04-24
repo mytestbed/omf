@@ -23,9 +23,17 @@ flag [:u, :uri]
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
 switch [:x, :xmpp]
 
-desc "Private key file"
+desc "Root certificate file"
+arg_name "cert", :optional
+flag [:root_cert]
+
+desc "Your certificate"
+arg_name "cert", :optional
+flag [:cert]
+
+desc "Your private key"
 arg_name "key", :optional
-flag [:private_key]
+flag [:key]
 
 desc "Log file directory"
 arg_name "directory"
@@ -239,10 +247,19 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
-    #root_cert = OmfCommon::Auth::Certificate.create(nil, 'ca', 'authority')
+    if global_options[:root_cert] && File.exist?(global_options[:root_cert])
+      root = OmfCommon::Auth::Certificate.create_from_x509(File.read(global_options[:root_cert]))
+    end
+
+    if global_options[:cert] && File.exist?(global_options[:cert]) &&
+      global_options[:key] && File.exist?(global_options[:key])
+
+      entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(global_options[:cert]),
+                                                             File.read(global_options[:key]))
+    end
 
     opts = {
-      communication: { url: global_options[:uri] },# auth: { certs: [root_cert.to_pem_compact] } },
+      communication: { url: global_options[:uri] },
       eventloop: { type: :em },
       logging: {
         level: { default: global_options[:debug] ? 'debug' : 'info' },
@@ -256,6 +273,8 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       }
     }
 
+    opts[:communication][:auth] = { certs: [ root.to_pem_compact ] } if root
+
     OmfCommon.init(:development, opts) do |el|
       setup_logging(global_options)
 
@@ -263,7 +282,8 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         info "Connected using #{comm.conn_info}"
         info "Start experiment: #{OmfEc.experiment.id}"
 
-        #root_cert.create_for(OmfCommon.comm.local_address, :experiment_controller, OmfCommon.comm.local_address)
+        OmfCommon::Auth::CertificateStore.instance.register(root) if root
+        OmfCommon::Auth::CertificateStore.instance.register(entity, OmfCommon.comm.local_address) if entity
 
         begin
           include OmfEc::Backward::DefaultEvents
@@ -273,7 +293,6 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
           error e.backtrace.join("\n")
         end
 
-        #comm.on_interrupted { Experiment.done }
         comm.on_interrupted { comm.disconnect }
       end
     end

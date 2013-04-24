@@ -60,11 +60,8 @@ OmfCommon::Measure.enable if oml_enabled
 
 options[:environment] ||= :development
 
-#root_cert = OmfCommon::Auth::Certificate.create(nil, 'ca', 'authority')
-
 if options[:uri]
-  #common_options = { communication: { url: options[:uri], auth: { certs: [root_cert.to_pem_compact] } } }
-  common_options = { communication: { url: options[:uri] } }#, auth: { certs: [root_cert.to_pem_compact] } } }
+  common_options = { communication: { url: options[:uri] } }
 else
   common_options = {}
 end
@@ -96,19 +93,32 @@ if options[:factories]
   end
 end
 
+if options[:auth]
+  if File.exist?(options[:auth][:root_cert])
+    root = OmfCommon::Auth::Certificate.create_from_x509(File.read(options[:auth][:root_cert]))
+  end
+
+  if File.exist?(options[:auth][:entity_cert]) && File.exist?(options[:auth][:entity_key])
+    entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(options[:auth][:entity_cert]),
+                                                           File.read(options[:auth][:entity_key]))
+  end
+end
+
+common_options[:communication][:auth] = { certs: [ root.to_pem_compact ] } if root
+
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
-    #resource_options = {
-    #  uid: options[:uid],
-    #  certificate: root_cert.create_for("#{comm.conn_info[:proto]}://#{options[:uid]}@#{comm.conn_info[:domain]}", options[:uid], :node)
-    #}
+
+    OmfCommon::Auth::CertificateStore.instance.register(root) if root
+    OmfCommon::Auth::CertificateStore.instance.register(entity) if entity
 
     info "Connected using #{comm.conn_info}"
 
     options[:resources].each do |res_opts|
       rtype = res_opts.delete(:type)
+      res_opts[:certificate] = entity if entity
       begin
         OmfRc::ResourceFactory.create(rtype, res_opts)
       rescue => e
