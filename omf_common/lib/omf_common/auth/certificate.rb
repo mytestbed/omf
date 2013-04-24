@@ -16,28 +16,41 @@ module OmfCommon::Auth
     # @param [String] type type of the entity (resource type)
     # @param [String] domain of the resource
     #
-    def self.create(address, name, type, domain = DEF_DOMAIN_NAME, issuer = nil, not_before = Time.now, duration = 3600)
+    def self.create(address, name, type, domain = DEF_DOMAIN_NAME, issuer = nil, not_before = Time.now, duration = 3600, key = nil)
       subject = _create_name(name, type, domain)
-      key, digest = _create_key()
+      if key.nil?
+        key, digest = _create_key()
+      else
+        digest = _create_digest
+      end
+
       c = _create_x509_cert(address, subject, key, digest, issuer, not_before, duration)
       c[:address] = address if address
       self.new c
     end
 
-    def self.create_from_x509(pem)
+    # @param [String] pem is the content of existing x509 cert
+    # @param [OpenSSL::PKey::RSA] key is the private key which can be attached to the instance for signing.
+    def self.create_from_x509(pem, key = nil)
       unless pem.start_with? BEGIN_CERT
         pem = "#{BEGIN_CERT}#{pem}#{END_CERT}"
       end
-      #puts pem
       cert = OpenSSL::X509::Certificate.new(pem)
-      #puts cert
-      self.new cert: cert
+
+      if key && !cert.check_private_key(key)
+        raise ArgumentError, "Private key provided could not match the public key of given certificate"
+      end
+      self.new({ cert: cert, key: key })
     end
 
     # Returns an array with a new RSA key and a SHA1 digest
     #
     def self._create_key(size = 2048)
       [OpenSSL::PKey::RSA.new(size), OpenSSL::Digest::SHA1.new]
+    end
+
+    def self._create_digest
+      OpenSSL::Digest::SHA1.new
     end
 
     # @param [String] name unique name of the entity (resource name)
@@ -52,13 +65,9 @@ module OmfCommon::Auth
     # @param [] address
     # @return {cert, key}
     #
-    def self._create_x509_cert(address, subject, key = nil, digest = nil,
+    def self._create_x509_cert(address, subject, key, digest = nil,
                               issuer = nil, not_before = Time.now, duration = DEF_DURATION, extensions = [])
-      #extensions ||= []
       extensions << ["subjectAltName", "URI:#{address}", false] if address
-      unless key
-        key, digest = create_key()
-      end
 
       cert = OpenSSL::X509::Certificate.new
       cert.version = 2
@@ -85,7 +94,7 @@ module OmfCommon::Auth
         cert.issuer = subject
         cert.sign(key, digest)
       end
-      {cert: cert, key: key}
+      { cert: cert, key: key }
     end
 
     attr_reader :address, :subject, :key, :digest
@@ -116,9 +125,9 @@ module OmfCommon::Auth
       @cert ||= _create_x509_cert(@address, @subject, @key, @digest)[:cert]
     end
 
-    def create_for(address, name, type, domain = DEF_DOMAIN_NAME, duration = 3600)
+    def create_for(address, name, type, domain = DEF_DOMAIN_NAME, duration = 3600, key = nil)
       raise ArgumentError, "Address required" unless address
-      cert = self.class.create(address, name, type, domain, self, Time.now, duration)
+      cert = self.class.create(address, name, type, domain, self, Time.now, duration, key)
       CertificateStore.instance.register(cert, address)
       cert
     end
@@ -129,7 +138,7 @@ module OmfCommon::Auth
     end
 
     def can_sign?
-      @key != nil
+      !@key.nil? && @key.private?
     end
 
     def to_pem

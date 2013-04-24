@@ -82,4 +82,32 @@ describe OmfCommon::Auth::Certificate do
       @cert.to_x509.check_private_key(@key).must_equal true
     end
   end
+
+  describe "when provided an existing public key" do
+    it "must generate a cert contains a converted public key" do
+      private_folder = "#{File.dirname(__FILE__)}/../../fixture"
+      pub_key = OpenSSL::PKey::RSA.new(File.read("#{private_folder}/omf_test.pub.pem"))
+
+      test_entity = @root.create_for('my_addr', 'bob', 'my_resource', 'omf', 365, pub_key)
+      test_entity.to_x509.public_key.to_s.must_equal  pub_key.to_s
+      test_entity.can_sign?.must_equal false
+      test_entity.verify_cert.must_equal true
+    end
+  end
+
+  describe "when provided an existing public cert and I have a private key associated" do
+    it "must attach the private key into instance so it could sign messages" do
+      private_folder = "#{File.dirname(__FILE__)}/../../fixture"
+      key = OpenSSL::PKey::RSA.new(File.read("#{private_folder}/omf_test.pem"))
+      pub_key = OpenSSL::PKey::RSA.new(File.read("#{private_folder}/omf_test.pub.pem"))
+
+      x509_cert = @root.create_for('my_addr', 'bob', 'my_resource', 'omf', 365, pub_key).to_x509.to_s
+
+      # Now create an instance using this cert
+      test_entity = OmfCommon::Auth::Certificate.create_from_x509(x509_cert, key)
+      test_entity.to_x509.public_key.to_s.must_equal  pub_key.to_s
+      test_entity.can_sign?.must_equal true
+      test_entity.to_x509.check_private_key(key).must_equal true
+    end
+  end
 end
