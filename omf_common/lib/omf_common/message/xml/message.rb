@@ -61,19 +61,27 @@ class XML
           iss = xml_node.element_children.find { |v| v.element_name == 'iss' }.content
           xml_node = xml_node.element_children.find { |v| v.element_name =~ /create|request|configure|release|inform/ }
 
-          existing_cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
+          if self.authenticate?
+            existing_cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
 
-          if existing_cert
-             cert = existing_cert
-          else
-            OmfCommon::Auth::CertificateStore.instance.register_x509(cert, iss)
-            cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
-          end
+            if existing_cert
+               cert = existing_cert
+            else
+              OmfCommon::Auth::CertificateStore.instance.register_x509(cert, iss)
+              cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
+            end
 
-          canonicalised_xml_node = fix_canonicalised_xml(xml_node.canonicalize)
+            unless cert.verify_cert
+              warn "Invalid certificate '#{cert.to_s}', NOT signed by root certificate."
+              return nil
+            end
 
-          unless cert.to_x509.public_key.verify(OpenSSL::Digest::SHA256.new(canonicalised_xml_node), Base64.decode64(sig), canonicalised_xml_node)
-            warn "Verfication failed #{canonicalised_xml_node} #{OpenSSL::Digest::SHA256.new(canonicalised_xml_node)}"
+            canonicalised_xml_node = fix_canonicalised_xml(xml_node.canonicalize)
+
+            unless cert.to_x509.public_key.verify(OpenSSL::Digest::SHA256.new(canonicalised_xml_node), Base64.decode64(sig), canonicalised_xml_node)
+              warn "Verfication failed #{canonicalised_xml_node} #{OpenSSL::Digest::SHA256.new(canonicalised_xml_node)}"
+              return nil
+            end
           end
         end
 

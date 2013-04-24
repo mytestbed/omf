@@ -88,6 +88,11 @@ module OmfCommon
               warn "JWT: Can't find cert for issuer '#{src}'"
               return nil
             end
+
+            unless cert.verify_cert
+              warn "JWT: Invalid certificate '#{cert.to_s}', NOT signed by root certificate."
+            end
+
             #puts ">>> #{cert.to_x509.public_key}::#{signature_base_string}"
             jwt.verify signature_base_string, cert.to_x509.public_key #unless key_or_secret == :skip_verification
             JSON.parse(claims[:cnt], :symbolize_names => true)
