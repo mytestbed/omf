@@ -66,7 +66,7 @@ class XML
           if existing_cert
              cert = existing_cert
           else
-            OmfCommon::Auth::CertificateStore.instance.register_x509(cert)
+            OmfCommon::Auth::CertificateStore.instance.register_x509(cert, iss)
             cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
           end
 

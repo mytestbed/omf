@@ -30,12 +30,14 @@ module OmfCommon::Auth
     end
 
     # @param [String] pem is the content of existing x509 cert
-    # @param [OpenSSL::PKey::RSA] key is the private key which can be attached to the instance for signing.
+    # @param [OpenSSL::PKey::RSA|String] key is the private key which can be attached to the instance for signing.
     def self.create_from_x509(pem, key = nil)
       unless pem.start_with? BEGIN_CERT
         pem = "#{BEGIN_CERT}#{pem}#{END_CERT}"
       end
       cert = OpenSSL::X509::Certificate.new(pem)
+
+      key = OpenSSL::PKey::RSA.new(key) if key && key.is_a?(String)
 
       if key && !cert.check_private_key(key)
         raise ArgumentError, "Private key provided could not match the public key of given certificate"

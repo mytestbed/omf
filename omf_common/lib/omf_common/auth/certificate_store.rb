@@ -46,10 +46,10 @@ module OmfCommon::Auth
       @certs[certificate.subject] = certificate
     end
 
-    def register_x509(cert_pem)
+    def register_x509(cert_pem, address = nil)
       if (cert = Certificate.create_from_x509(cert_pem))
         debug "REGISTERED #{cert}"
-        register(cert)
+        register(cert, address)
       end
     end
 

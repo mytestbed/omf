@@ -7,7 +7,7 @@ module OmfCommon
   class Message
     class Json
       class Message < OmfCommon::Message
-        
+
         # This maps properties in the internal representation of
         # a message to names used for the JSON message
         #
@@ -15,16 +15,16 @@ module OmfCommon
           operation: :op,
           res_id: :rid
         }
-                
+
         def self.create(type, properties, body = {})
-          if type == :request 
+          if type == :request
             unless properties.kind_of?(Array)
               raise "Expected array, but got #{properties.class} for request message"
             end
             properties = {select: properties}
           elsif not properties.kind_of?(Hash)
             raise "Expected hash, but got #{properties.class}"
-          end 
+          end
           content = body.merge({
             op: type,
             mid: SecureRandom.uuid,
@@ -32,12 +32,12 @@ module OmfCommon
           })
           self.new(content)
         end
-        
+
         def self.create_inform_message(itype = nil, properties = {}, body = {})
           body[:itype] = itype if itype
           create(:inform, properties, body)
         end
-        
+
         # Create and return a message by parsing 'str'
         #
         def self.parse(str, content_type, &block)
@@ -55,7 +55,7 @@ module OmfCommon
           block.call(msg) if msg
           msg
         end
-        
+
         def self.parse_jwt(jwt_string)
           key_or_secret = :skip_verification
           # Code lifted from 'json-jwt-0.4.3/lib/json/jwt.rb'
@@ -72,7 +72,7 @@ module OmfCommon
             jwt = JSON::JWT.new claims
             jwt.header = header
             jwt.signature = signature
-  
+
             # NOTE:
             #  Some JSON libraries generates wrong format of JSON (spaces between keys and values etc.)
             #  So we need to use raw base64 strings for signature verification.
@@ -82,7 +82,7 @@ module OmfCommon
             end
             if cert_pem = claims[:crt]
               # let's the credential store take care of it
-              OmfCommon::Auth::CertificateStore.instance.register_x509(cert_pem)
+              OmfCommon::Auth::CertificateStore.instance.register_x509(cert_pem, src)
             end
             unless cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
               warn "JWT: Can't find cert for issuer '#{src}'"
@@ -96,7 +96,7 @@ module OmfCommon
             return nil
           end
         end
-                
+
         def each_property(&block)
           @properties.each do |k, v|
             #unless INTERNAL_PROPS.include?(k.to_sym)
@@ -104,21 +104,21 @@ module OmfCommon
             #end
           end
         end
-        
+
         def properties
           @properties
         end
-        
-        
+
+
         def has_properties?
           not @properties.empty?
         end
-        
+
         def valid?
           true # don't do schema verification , yet
         end
-        
-        # Loop over all the unbound (sent without a value) properties 
+
+        # Loop over all the unbound (sent without a value) properties
         # of a request message.
         #
         def each_unbound_request_property(&block)
@@ -131,9 +131,9 @@ module OmfCommon
               block.call(el)
             end
           end
-        end    
-    
-        # Loop over all the bound (sent with a value) properties 
+        end
+
+        # Loop over all the bound (sent with a value) properties
         # of a request message.
         #
         def each_bound_request_property(&block)
@@ -148,19 +148,19 @@ module OmfCommon
               end
             end
           end
-        end    
-        
-                
+        end
+
+
         def to_s
           "JsonMessage: #{@content.inspect}"
         end
-        
+
         # Marshall message into a string to be shipped across the network.
-        # Depending on authentication setting, the message will be signed as 
+        # Depending on authentication setting, the message will be signed as
         # well, or maybe even dropped.
         #
-        # @param [Topic] topic for which to marshall 
-        # 
+        # @param [Topic] topic for which to marshall
+        #
         def marshall(topic)
           #puts "MARSHALL: #{@content.inspect} - #{@properties.to_hash.inspect}"
           raise "Missing SRC declaration in #{@content}" unless @content[:src]
@@ -189,8 +189,8 @@ module OmfCommon
           end
           ['text/json', payload]
         end
-        
-        private 
+
+        private
         def initialize(content)
           debug "Create message: #{content.inspect}"
           unless op = content[:op]
@@ -208,7 +208,7 @@ module OmfCommon
           # keep track if we sent local certs on a topic. Should do this the first time
           @certOnTopic = {}
         end
-        
+
         def _set_core(key, value)
           @content[(@@key2json_key[key] || key).to_sym] = value
         end
@@ -216,7 +216,7 @@ module OmfCommon
         def _get_core(key)
           @content[@@key2json_key[key] || key]
         end
-        
+
         def _set_property(key, value, ns = nil)
           warn "Can't handle namespaces yet" if ns
           @properties[key] = value
@@ -227,8 +227,8 @@ module OmfCommon
           #puts key
           @properties[key]
         end
-        
+
       end # class
     end
   end
-end 
+end
