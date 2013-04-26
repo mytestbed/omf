@@ -173,7 +173,7 @@ The ED describing this simple “Hello World” wireless experiment is {file:doc
 	  end
 	end
 
-	defGroup('Sender', "omf.nicta.node29") do |node|
+	defGroup('Sender', "omf.nicta.node36") do |node|
 	  node.addApplication("otg2") do |app|
 	    app.setProperty('udp_local_host', '192.168.0.2')
 	    app.setProperty('udp_dst_host', '192.168.0.3')
@@ -187,7 +187,7 @@ The ED describing this simple “Hello World” wireless experiment is {file:doc
 	  node.net.w0.ip = "192.168.0.2/24"
 	end
 
-	defGroup('Receiver', "omf.nicta.node30") do |node|
+	defGroup('Receiver', "omf.nicta.node37") do |node|
 	  node.addApplication("otr2") do |app|
 	    app.setProperty('udp_local_host', '192.168.0.3')
 	    app.setProperty('udp_local_port', 3000)
@@ -273,10 +273,10 @@ In this example, we define a two group named 'Sender' and 'Receiver', which cont
 single resource each.
 
 > **IMPORTANT** When running this experiment using your own resources and testbed
-please change `omf.nicta.node30` and `omf.nicta.node29` in the ED to the actual name of your
+please change `omf.nicta.node36` and `omf.nicta.node37` in the ED to the actual name of your
 own resource.
 
-    defGroup('Sender', 'omf.nicta.node29') do |g|
+    defGroup('Sender', 'omf.nicta.node36') do |g|
       #...
     end
 
@@ -418,8 +418,8 @@ command line:
 
 If you would like to know more about the other options of the OMF EC software, please run:
 
-        omf_ec help
-        omf_ec help exec
+    omf_ec help
+    omf_ec help exec
 
 ### 4b) What will happen next?
 
@@ -430,13 +430,13 @@ similar to this:
 	18:15:35 INFO  Object: Connected
 	18:15:35 INFO  Object: Start experiment: 2013-04-18T08:15:35Z
 	18:15:35 INFO  OmfEc: Subscribed to b08025bb-6021-401b-bb55-c80c8a4fc99a
-	18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node29
-	18:15:35 INFO  OmfEc: Config omf.nicta.node29 to join Sender
+	18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node36
+	18:15:35 INFO  OmfEc: Config omf.nicta.node36 to join Sender
 	18:15:35 INFO  OmfEc: Subscribed to 062ed093-c11e-4039-8b4c-35d007aabc4e
-	18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node30
-	18:15:35 INFO  OmfEc: Config omf.nicta.node30 to join Receiver
-	18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node29
-	18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node30
+	18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node37
+	18:15:35 INFO  OmfEc: Config omf.nicta.node37 to join Receiver
+	18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node36
+	18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node37
 	18:15:35 INFO  OmfEc: Event triggered: 'ALL_UP'
 	18:15:35 INFO  OmfEc: Subscribed to b08025bb-6021-401b-bb55-c80c8a4fc99a_wlan
 	18:15:35 INFO  OmfEc: Subscribed to b08025bb-6021-401b-bb55-c80c8a4fc99a_application
@@ -466,7 +466,7 @@ similar to this:
 
 The above screen output was obtained when running the EC on the NICTA testbed,
 with the experiment described in {file:doc/tutorials/tutorial01.rb tutorial01.rb}
-and using the resources named 'omf.nicta.node29' and 'omf.nicta.node30'.
+and using the resources named 'omf.nicta.node36' and 'omf.nicta.node37'.
 
 ### 4c) What does that screen output mean?
 
@@ -479,21 +479,21 @@ this experiment (Experiment ID, XMPP server used, resources used,...):
 		18:15:35 INFO  Object: Connected
 		18:15:35 INFO  Object: Start experiment: 2013-04-18T08:15:35Z
 	        ...
-		18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node29
-		18:15:35 INFO  OmfEc: Config omf.nicta.node29 to join Sender
+		18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node36
+		18:15:35 INFO  OmfEc: Config omf.nicta.node36 to join Sender
 
 - It also provides us some feedback about its communication with the XMPP
 server and other OMF entities:
 
 		...
 		18:15:35 INFO  OmfEc: Subscribed to b08025bb-6021-401b-bb55-c80c8a4fc99a
-		18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node29
+		18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node36
 		...
 		18:15:35 INFO  OmfEc: Subscribed to 062ed093-c11e-4039-8b4c-35d007aabc4e
-		18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node30
+		18:15:35 INFO  OmfEc: Subscribed to omf.nicta.node37
 		...
-		18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node29
-		18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node30
+		18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node36
+		18:15:35 INFO  OmfEc: Newly discovered resource >> omf.nicta.node37
 		...
 		18:15:35 INFO  OmfEc: Subscribed to b08025bb-6021-401b-bb55-c80c8a4fc99a_wlan
 		18:15:35 INFO  OmfEc: Subscribed to b08025bb-6021-401b-bb55-c80c8a4fc99a_application
