@@ -89,9 +89,14 @@ class OmfRc::ResourceProxy::AbstractResource
         end
 
         creation_callback.call(self) if creation_callback
-        copts = { res_id: self.resource_address, src: self.resource_address}
+
+        copts = { src: self.resource_address }
         copts[:cert] = @certificate.to_pem_compact if @certificate
-        t.inform(:creation_ok, @property.reject { |k| [:parent_certificate, :parent].include?(k.to_sym) }, copts)
+
+        cprops = @property.reject { |k| [:parent_certificate, :parent].include?(k.to_sym) }
+        cprops[:res_id] = self.resource_address
+
+        t.inform(:creation_ok, cprops, copts)
 
         t.on_message(nil, @uid) do |imsg|
           process_omf_message(imsg, t)

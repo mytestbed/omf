@@ -65,12 +65,29 @@ module OmfEc
           end
         else
           info "Newly discovered resource >> #{name}"
-          @state << Hashie::Mash.new({ address: name }).merge(opts)
+          res = Hashie::Mash.new({ address: name }).merge(opts)
+          @state << res
+
+          # Re send membership configure
+          planned_groups = groups_by_res(res[:address])
+
+          unless planned_groups.empty?
+            OmfEc.subscribe_and_monitor(name) do |res|
+              info "Config #{name} to join #{planned_groups.map(&:name).join(', ')}"
+              res.configure(membership: planned_groups.map(&:id).join(', '))
+            end
+          end
         end
       end
     end
 
     alias_method :add_resource, :add_or_update_resource_state
+
+    # Find all groups a given resource belongs to
+    #
+    def groups_by_res(res_addr)
+      groups.find_all { |g| g.members.include?(res_addr) }
+    end
 
     def sub_group(name)
       @sub_groups.find { |v| v == name }
