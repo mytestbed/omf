@@ -74,5 +74,3 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   group("Receiver").stopApplications
   Experiment.done
 end
-
-
