@@ -24,7 +24,6 @@
 defProperty('res1', 'omf.nicta.node1', "ID of sender node")
 defProperty('res2', 'omf.nicta.node2', "ID of receiver node")
 defProperty('duration', 30, "Duration of the experiment")
-defProperty('graph', false, "Display graph or not")
 
 defGroup('CBR_Sender', property.res1) do |node|
   options = { 'localHost' => '%net.w0.ip%',
@@ -76,36 +75,4 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   Experiment.done
 end
 
-
-if property.graph.value
-  addTab(:defaults)
-  addTab(:graph2) do |tab|
-    opts1 = { :postfix => %{This graph shows the Sequence Number from CBR and EXP UDP traffic.}, :updateEvery => 1 }
-    tab.addGraph("Sequence Number", opts1) do |g|
-      dataOut = Hash.new
-      mpOut = ms('udp_out')
-      mpOut.project(:oml_sender_id, :oml_ts_server, :seq_no).each do |sample|
-        sender, time, seq = sample.tuple
-        dataOut[sender] = [] if dataOut[sender] == nil
-        dataOut[sender] << [time,seq]
-      end
-      dataOut.each do |source, data|
-        g.addLine(data, :label => "#{msSenderName[source]}")
-      end
-    end
-    opts2 = { :postfix => %{This graph shows the Packet Size (bytes)from CBR and EXP UDP traffic.}, :updateEvery => 1 }
-    tab.addGraph("Packet Size", opts2) do |g|
-      dataOut = Hash.new
-      mpOut = ms('udp_out')
-      mpOut.project(:oml_sender_id, :oml_ts_server, :pkt_length).each do |sample|
-        sender, time, plength = sample.tuple
-        dataOut[sender] = [] if dataOut[sender] == nil
-        dataOut[sender] << [time,plength]
-      end
-      dataOut.each do |source, data|
-        g.addLine(data, :label => "#{msSenderName[source]}")
-      end
-    end
-  end
-end
 

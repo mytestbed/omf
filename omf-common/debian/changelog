@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4.2-ubuntu11) precise; urgency=low
+
+  * do not attempt to send XMPP messages when the Pubsub Transport has been shut down
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 30 Apr 2013 20:06:58 +1000
+
 omf-common-5.4 (5.4.2-ubuntu7) precise; urgency=low
 
   * removed some dependencies

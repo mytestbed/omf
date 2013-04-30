@@ -93,26 +93,3 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   group('Receiver').stopApplications
   Experiment.done
 end
-
-
-addTab(:defaults)
-addTab(:graph2) do |tab|
-  opts = { :postfix => %{Sender index for incoming UDP traffic = F(time)}, :updateEvery => 1 }
-  tab.addGraph("Incoming UDP", opts) do |g|
-    data = Hash.new
-    index = 1
-    mpIn = ms('udp_in')
-    mpIn.project(:oml_ts_server, :src_host, :seq_no).each do |sample|
-      time, src, seq = sample.tuple
-      if data[src].nil? 
-        data[src] = [index,[]] 
-        index += 1
-      end
-      data[src][1] << [time, data[src][0]] 
-    end
-    data.each do |src,value|
-      g.addLine(value[1], :label => "Node #{value[0]}") 
-    end
-  end
-end
-

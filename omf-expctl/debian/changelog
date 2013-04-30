@@ -1,3 +1,9 @@
+omf-expctl-5.4 (5.4.2-ubuntu11) precise; urgency=low
+
+  * Do not attempt to send XMPP messages when the Pubsub Transport has been shut down 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 30 Apr 2013 20:08:23 +1000
+
 omf-expctl-5.4 (5.4.2-ubuntu6) precise; urgency=low
 
   * removed OML type checking

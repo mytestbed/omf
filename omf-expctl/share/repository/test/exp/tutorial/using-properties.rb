@@ -29,7 +29,6 @@ defProperty('runtime', 40, "Time in second for the experiment is to run")
 defProperty('wifiType', "g", "The type of WIFI to use in this experiment")
 defProperty('channel', '6', "The WIFI channel to use in this experiment")
 defProperty('netid', "example2", "The ESSID to use in this experiment")
-defProperty('graph', false, "Display graph or not")
 
 defGroup('Sender',property.res1) do |node|
   node.addApplication("test:app:otg2") do |app|
@@ -75,19 +74,4 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   allGroups.stopApplications
   info "All my Applications are stopped now."
   Experiment.done
-end
-
-if property.graph.value
-  addTab(:defaults)
-  addTab(:graph2) do |tab|
-    opts = { :postfix => %{This graph shows the Packet Size of the incoming UDP traffic (byte).}, :updateEvery => 1 }
-    tab.addGraph("Incoming UDP Packet Size", opts) do |g|
-      dataIn = Array.new
-      mpIn = ms('udp_in')
-      mpIn.project(:oml_ts_server, :pkt_length).each do |sample|
-        dataIn << sample.tuple
-      end
-      g.addLine(dataIn, :label => "Incoming UDP (byte)")
-    end
-  end
 end
