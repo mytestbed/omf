@@ -1,13 +1,10 @@
 def create_app(testbed)
-  testbed.create(:application) do |reply|
+  testbed.create(:application, binary_path: @cmd) do |reply|
     if reply.success?
       app = reply.resource
 
       app.on_subscribed do
-        app.request([:platform])
-
-        after(1) { app.configure(binary_path: @cmd) }
-        after(2) { app.configure(state: :running) }
+        app.configure(state: :running)
 
         app.on_status  do |m|
           case m.itype

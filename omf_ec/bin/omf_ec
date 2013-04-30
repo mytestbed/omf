@@ -17,7 +17,7 @@ switch [:d, :debug]
 
 desc "URI for communication layer"
 arg_name "URI"
-default_value "xmpp://bob:password@localhost"
+default_value "xmpp://localhost"
 flag [:u, :uri]
 
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
