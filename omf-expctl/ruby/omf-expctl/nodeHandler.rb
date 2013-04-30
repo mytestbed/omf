@@ -825,8 +825,6 @@ class NodeHandler < MObject
     info ""
     return if !@running
 
-    @processCommands = false
-
     begin
       ECCommunicator.instance.send_reset
       ECCommunicator.instance.send_noop

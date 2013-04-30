@@ -179,6 +179,7 @@ class OMFPubSubTransport < MObject
     # disabled because it takes too long. Prefer regular OF DB cleanups.
     #@@xmppServices.remove_all_nodes if @@forceCreate
     reset
+    @@started = false
     @@xmppServices.stop
   end
 
@@ -191,6 +192,11 @@ class OMFPubSubTransport < MObject
   end
 
   def send(address, msg)
+    if !@@started
+      warn "Not sending msg: '#{message}' to '#{dst}' on '#{domain}' because the \
+PubSub transport is not started"
+      return true
+    end
     if address.kind_of?(String)
       a = address.split('/')
       domain = a.delete_at(0)

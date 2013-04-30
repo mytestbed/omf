@@ -11,19 +11,19 @@
     <formatter type="PatternFormatter" pattern="%d %l %C: %m" />
   </outputter>
   <outputter type="StdoutOutputter" name="console" level="INFO"/>
-  <outputter type="OMF::EC::Communicator::PubOutputter" name="pub" level="INFO"/>
+  <!-- <outputter type="OMF::EC::Communicator::PubOutputter" name="pub" level="INFO"/> -->
   
 
   <!-- loggers -->
-  <logger name="nodeHandler" outputters="log, console, pub" level="DEBUG" trace="true"/>
+  <logger name="nodeHandler" outputters="log, console" level="DEBUG" trace="true"/>
   <!-- To streamline log file... -->
   <!-- 1) Only log ERROR-level messages from the Communication stack -->
-  <logger name="nodeHandler::OmfXMPPServices" outputters="log, console, pub" level="ERROR"/>
-  <logger name="nodeHandler::OMFPubSubTransport" outputters="log, console, pub" level="ERROR"/>
-  <logger name="nodeHandler::ECCommunicator" outputters="log, console, pub" level="ERROR"/>
+  <logger name="nodeHandler::OmfXMPPServices" outputters="log, console" level="ERROR"/>
+  <logger name="nodeHandler::OMFPubSubTransport" outputters="log, console" level="ERROR"/>
+  <logger name="nodeHandler::ECCommunicator" outputters="log, console" level="ERROR"/>
   <!-- 2) Only log ERROR-level messages from the ALLGROUP NodeSet and the Every-block loop -->
-  <logger name="nodeHandler::set::_ALLGROUPS_" outputters="log, console, pub" level="ERROR"/>
-  <logger name="nodeHandler::every" outputters="log, console, pub" level="ERROR"/>
+  <logger name="nodeHandler::set::_ALLGROUPS_" outputters="log, console" level="ERROR"/>
+  <logger name="nodeHandler::every" outputters="log, console" level="ERROR"/>
   
   <!--
   <logger name="client" level="INFO" outputters="client, console"/>

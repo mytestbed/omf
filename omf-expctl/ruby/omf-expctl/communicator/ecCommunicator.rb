@@ -70,7 +70,8 @@ class ECCommunicator < OmfCommunicator
     OmfProtocol::EC_COMMANDS.each { |cmd| define_self_command(cmd) }
     # 5 - Announce this experiment
     @slice_addr = create_address(:sliceID => @@sliceID, :domain => @@domain)
-    send_experiment_announce
+    # disabled experiment announcements until we need it
+    # send_experiment_announce
     synchronize do @initialized = true end
   end
 
