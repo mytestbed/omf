@@ -10,22 +10,21 @@ def create_app(testbed)
         after(2) { app.configure(state: :running) }
 
         app.on_status  do |m|
-          if m[:status_type] == 'APP_EVENT'
-            after(2) { OmfCommon.comm.disconnect } if m[:event] =~ /DONE.(OK|ERROR)/
-            info m[:msg]
-          else
-            m.each_property do |k, v|
-              info "#{k} => #{v.strip}" unless v.nil?
+          case m.itype
+          when 'STATUS'
+            if m[:status_type] == 'APP_EVENT'
+              after(2) { OmfCommon.comm.disconnect } if m[:event] =~ /DONE.(OK|ERROR)/
+                info m[:msg]
+            else
+              m.each_property do |k, v|
+                info "#{k} => #{v.strip}" unless v.nil?
+              end
             end
+          when 'WARN'
+            warn m[:reason]
+          when 'ERROR'
+            error m[:reason]
           end
-        end
-
-        app.on_warn  do |m|
-          warn m[:reason]
-        end
-
-        app.on_error  do |m|
-          error m[:reason]
         end
       end
     else
