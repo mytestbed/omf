@@ -329,7 +329,7 @@ module OmfRc::ResourceProxy::Application
     end
   end
 
-  # Swich this Application RP into the 'running' state
+  # Switch this Application RP into the 'running' state
   # (see the description of configure :state)
   #
   work('switch_to_running') do |res|

@@ -25,6 +25,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
   s.add_development_dependency "pry"
   s.add_development_dependency "simplecov"
-  s.add_runtime_dependency "omf_common", "~> 6.0.2.pre.1"
+  s.add_runtime_dependency "omf_common", "~> 6.0.2.pre.2"
   s.add_runtime_dependency "cocaine", "~> 0.3.0"
 end
