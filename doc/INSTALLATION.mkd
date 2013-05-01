@@ -117,6 +117,35 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
     gem install omf_ec --no-ri --no-rdoc
 
+### Configuring the Experiment Controller
+
+    omf_ec initconfig
+
+will create a configuration file template in `~/.config/omf_ec.yml`. It's not mandatory to create this file, because all parameters for the EC can be specified on the command line. However if you prefer using a confguration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run:
+
+    ---
+    :u: xmpp://<xmpp_hostname>
+    :root_cert:
+    :cert:
+    :key:
+    :log_file_dir: /tmp
+    :version: false
+    :d: false
+    :x: false
+    :help: false
+    :debug: false
+    :xmpp: false
+    commands:
+      :_doc: {}
+      :exec:
+        :oml_uri: 'tcp:<oml_hostname>:3004'
+      :load: {}
+      :save: {}
+      :stat: {}
+      :tell: {}
+
+The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/). The `:commands:` section can be used to pass parameters only to specific OMF subcommands, such as exec, load or save. The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account.
+
 ### Gaining access to an OMF testbed
 
 Contact an OMF testbed operator for an account. Make a resource reservation if required and gather the HRNs of the resources you'd like to use. Also find out what the testbed's XMPP server hostname is.
@@ -128,9 +157,9 @@ To verify that you can run experiments on the testbed, we are providing an exper
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
 	omf_ec -u xmpp://<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
 
-Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. If everything goes well, you should see an output like
+Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. If everything goes well, you should see an output like:
 
-	18:36:59 INFO  XMPP::Communicator: Connecting to 'norbit.npc.nicta.com.au' ...
+	18:36:59 INFO  XMPP::Communicator: Connecting to '<xmpp_hostname>' ...
 	18:36:59 INFO  Object: Connected
 	18:36:59 INFO  Object: Start experiment: 2013-03-07T07:36:59Z
 	18:36:59 INFO  OmfEc: res1 = "test" (String)
@@ -191,7 +220,9 @@ This installs an init script for your distribution (currently supports Debian, U
     :environment: development
     :debug: false
 
-The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname.
+The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/).
+
+The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname.
 
 ### Installing other RCs
 

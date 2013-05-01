@@ -40,6 +40,7 @@ arg_name "directory"
 default_value "/tmp"
 flag [:log_file_dir]
 
+# the path given here is relative to the user's home directory
 config_file(".config/omf_ec.yml")
 
 desc "Execute an experiment script"
