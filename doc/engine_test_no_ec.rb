@@ -40,18 +40,17 @@ def on_engine_created(engine)
   end
 
   # Monitor all status information from the engine
-  engine.on_status do |msg|
-    msg.each_property do |name, value|
-      info "#{name}: #{value}"
+  engine.on_inform do |msg|
+    case msg.itype
+    when 'STATUS'
+      msg.each_property do |name, value|
+        info "#{name}: #{value}"
+      end
+    when 'ERROR'
+      error msg[:reason]
+    when 'WARN'
+      warn msg[:reason]
     end
-  end
-
-  engine.on_error do |msg|
-    error msg[:reason]
-  end
-
-  engine.on_warn do |msg|
-    warn msg[:reason]
   end
 end
 

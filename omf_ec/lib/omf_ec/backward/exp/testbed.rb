@@ -6,7 +6,7 @@ def create_app(testbed)
       app.on_subscribed do
         app.configure(state: :running)
 
-        app.on_status  do |m|
+        app.on_inform  do |m|
           case m.itype
           when 'STATUS'
             if m[:status_type] == 'APP_EVENT'
