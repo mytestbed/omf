@@ -197,14 +197,12 @@ on_error do |exception|
 end
 
 pre do |global_options, command, options, args|
+  opts = OmfCommon.load_yaml(config_file_name) if File.exist?(config_file_name)
+  opts.delete("commands")
+  global_options.merge!(opts)
+
   unless global_options[:uri]
     help_now! "Incomplete options. Need communication URI"
-  end
-
-
-  # Import private key
-  if global_options[:private_key]
-    OmfCommon::Key.instance.import(global_options[:private_key])
   end
 
   # Check version
