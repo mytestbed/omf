@@ -138,7 +138,7 @@ will create a configuration file template in `~/.config/omf_ec.yml`. It's not ma
     commands:
       :_doc: {}
       :exec:
-        :oml_uri: 'tcp:<oml_hostname>:3004'
+        :oml_uri: 'tcp:<oml_server_hostname>:<oml_server_port>'
       :load: {}
       :save: {}
       :stat: {}
@@ -271,17 +271,17 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
 We encourage developers to use the very latest OMF code from the master branch of our git repository. Ensure you have git installed and run
 
-	git clone git://git.mytestbed.net/omf.git
-	cd omf
+    git clone git://git.mytestbed.net/omf.git
+    cd omf
 
 Some components are linked in OMF main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:
 
-	git submodule init
-	git submodule update
+    git submodule init
+    git submodule update
 
 In order to install the gem dependencies, then build, install and test the OMF gems, run:
 
-	rake
+    rake
 
 ### **Verify this step**
 
