@@ -121,7 +121,7 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
     omf_ec initconfig
 
-will create a configuration file template in `~/.config/omf_ec.yml`. It's not mandatory to create this file, because all parameters for the EC can be specified on the command line. However if you prefer using a confguration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run:
+will create a configuration file template in `~/.config/omf_ec.yml`. It's not mandatory to create this file, because all parameters for the EC can be specified on the command line. However if you prefer using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run:
 
     ---
     :u: xmpp://<xmpp_hostname>

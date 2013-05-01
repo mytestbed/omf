@@ -17,7 +17,8 @@ gem_version = Gem::Specification.find_by_name('omf_rc').version.to_s
 
 begin
   oml_enabled = OML4R::init(ARGV, appName: executable_name) do |opts|
-    opts.banner = "usage: #{executable_name} [options]"
+    opts.banner = "OMF Resource Controller version '#{gem_version}'\n"
+    opts.banner += "Usage: #{executable_name} [options]"
 
     opts.on("-c CONFIGFILE", "Configuration File") do |file|
       options[:configfile] = file
@@ -35,8 +36,18 @@ begin
       options[:environment] = environment
     end
 
-    opts.on("-i UID", "UID of the resource, also becomes the pubsub topic of the resource, default to hostname") do |uid|
+    opts.on("-i UID", "UID (and pubsub topic) of the resource, defaults to hostname") do |uid|
       options[:uid] = uid
+    end
+
+    opts.on("-v", "--version", "Show version") do
+      puts "OMF Resource Controller version '#{gem_version}'"
+      exit
+    end
+
+    opts.on("-h", "--help", "Show this message") do
+      puts opts
+      exit
     end
   end
 rescue OML4R::MissingArgumentException => e
