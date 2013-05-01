@@ -44,6 +44,7 @@ describe OmfCommon::Comm::Topic do
       OmfCommon.stubs(:comm).returns(@comm)
       @topic = OmfCommon::Comm::Topic.create(:bob)
       @comm.stubs(:local_address).returns(:bob_address)
+      @comm.stubs(:create_topic).returns(@topic)
     end
 
     after do
