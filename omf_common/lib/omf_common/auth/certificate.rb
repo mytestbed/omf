@@ -64,7 +64,9 @@ module OmfCommon::Auth
 
     # Create a X509 certificate
     #
-    # @param [] address
+    # @param [String] address
+    # @param [String] subject
+    # @param [OpenSSL::PKey::RSA] key
     # @return {cert, key}
     #
     def self._create_x509_cert(address, subject, key, digest = nil,
@@ -127,8 +129,18 @@ module OmfCommon::Auth
       @cert ||= _create_x509_cert(@address, @subject, @key, @digest)[:cert]
     end
 
+    # @param [OpenSSL::PKey::RSA|String] key is most likely the public key of the resource.
+    #
     def create_for(address, name, type, domain = DEF_DOMAIN_NAME, duration = 3600, key = nil)
       raise ArgumentError, "Address required" unless address
+
+      begin
+        key = OpenSSL::PKey::RSA.new(key) if key && key.is_a?(String)
+      rescue OpenSSL::PKey::RSAError
+        # It might be a SSH pub key, try that
+        key = OmfCommon::Auth::SSHPubKeyConvert.convert(key)
+      end
+
       cert = self.class.create(address, name, type, domain, self, Time.now, duration, key)
       CertificateStore.instance.register(cert, address)
       cert
