@@ -4,7 +4,6 @@ require 'omf_ec/dsl'
 include OmfEc::DSL
 
 describe OmfEc::ExperimentProperty do
-
   describe "when a new ExperimentProperty is created" do
     it "must raise an error if it is given an invalid name" do
       created_properties = 0
@@ -41,7 +40,7 @@ describe OmfEc::ExperimentProperty do
     it "must inform all of its observers when its value changes" do
       value = 2
       foobar = OmfEc::ExperimentProperty.create('foobar',1)
-      foobar.on_change { |v| v.must_equal value } 
+      foobar.on_change { |v| v.must_equal value }
       foobar.on_change { |v| (v*2).must_equal value*2 }
       OmfEc::ExperimentProperty[:foobar] = value
       OmfEc::ExperimentProperty[:foobar].value.must_equal value
@@ -50,8 +49,11 @@ describe OmfEc::ExperimentProperty do
 
   describe "when a the Class ExperimentProperty is creating a new property" do
     it "must inform all of its observers" do
+      OmfEc::ExperimentProperty.reset
+
       size_before = OmfEc::ExperimentProperty.length
       OmfEc::ExperimentProperty.add_observer do |c,p|
+        c.must_equal :create
         p.name.must_equal 'barfoo'
         p.value.must_equal 123
         p.description.must_equal 'abc'
@@ -63,18 +65,23 @@ describe OmfEc::ExperimentProperty do
 
   describe "when an operation involves an ExperimentProperty" do
     it "must return the expected result" do
+      OmfEc::ExperimentProperty.reset
+
+      OmfEc::ExperimentProperty.create('foo', 1, 'abc')
+      OmfEc::ExperimentProperty.create('bar','b')
+
       OmfEc::ExperimentProperty[:foo] = 2
       (OmfEc::ExperimentProperty[:foo] + 1).must_equal 3
       (1 + OmfEc::ExperimentProperty[:foo]).must_equal 3
       (OmfEc::ExperimentProperty[:foo] - 1).must_equal 1
       (1 - OmfEc::ExperimentProperty[:foo]).must_equal -1
-      (OmfEc::ExperimentProperty[:foo] * 2).must_equal 4      
+      (OmfEc::ExperimentProperty[:foo] * 2).must_equal 4
       (2 * OmfEc::ExperimentProperty[:foo]).must_equal 4
-      (OmfEc::ExperimentProperty[:foo] / 1).must_equal 2      
+      (OmfEc::ExperimentProperty[:foo] / 1).must_equal 2
       (2 / OmfEc::ExperimentProperty[:foo]).must_equal 1
       OmfEc::ExperimentProperty[:bar] = 'a'
-      (OmfEc::ExperimentProperty[:bar] + "b").must_equal 'ab'     
-      ('b' + OmfEc::ExperimentProperty[:bar]).must_equal 'ba'    
+      (OmfEc::ExperimentProperty[:bar] + "b").must_equal 'ab'
+      ('b' + OmfEc::ExperimentProperty[:bar]).must_equal 'ba'
     end
   end
 

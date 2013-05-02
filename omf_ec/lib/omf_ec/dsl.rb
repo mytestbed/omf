@@ -148,7 +148,7 @@ module OmfEc
     # Check if any elements in array equals the value provided
     #
     def one_equal(array, value)
-      array.any? ? false : array.all? { |v| v.to_s == value.to_s }
+      !array.any? ? false : array.any? { |v| v.to_s == value.to_s }
     end
 
     # Define an event

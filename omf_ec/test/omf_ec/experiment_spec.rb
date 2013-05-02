@@ -21,6 +21,7 @@ describe OmfEc::Experiment do
   end
 
   it "must be able to add sub group" do
+    skip
     @experiment.add_sub_group('bob')
     @experiment.sub_group('bob').must_equal "bob"
   end

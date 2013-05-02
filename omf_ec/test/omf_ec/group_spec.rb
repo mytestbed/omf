@@ -2,26 +2,28 @@ require 'test_helper'
 require 'omf_ec/group'
 
 describe OmfEc::Group do
+  before do
+    OmfEc.stubs(:subscribe_and_monitor)
+  end
+
+  after do
+    OmfEc.unstub(:subscribe_and_monitor)
+  end
+
   describe "when initialised" do
     it "must be generate unique id if :unique option is on" do
-      OmfEc.stub :subscribe_and_monitor, true do
-        OmfEc::Group.new('bob').id.wont_equal 'bob'
-      end
+      OmfEc::Group.new('bob').id.wont_equal 'bob'
     end
 
     it "must use name as id if :unique option is off" do
-      OmfEc.stub :subscribe_and_monitor, true do
-        OmfEc::Group.new('bob', unique: false).id.must_equal 'bob'
-      end
+      OmfEc::Group.new('bob', unique: false).id.must_equal 'bob'
     end
   end
 
   describe "when used to represent group resource" do
     before do
-      @comm = MiniTest::Mock.new
-      OmfEc.stub :subscribe_and_monitor, true do
-        @group = OmfEc::Group.new('bob', unique: false)
-      end
+      @group = OmfEc::Group.new('bob', unique: false)
+      @g_b = OmfEc::Group.new('g_b', unique: false)
     end
 
     it "must init default context related arrasy" do
@@ -31,26 +33,28 @@ describe OmfEc::Group do
     end
 
     it "must be capable of adding existing resources to group" do
-      skip
-      OmfCommon.stub :comm, @comm do
-        @comm.expect(:subscribe, true, [Array])
-        @group.add_resource(['r1', 'r2'])
-        @comm.verify
-      end
+      @group.add_resource(['r1', 'r2'])
+
+      OmfEc.experiment.stubs(:groups).returns([@g_b])
+
+      @group.add_resource('g_b')
     end
 
     it "must be capable of creating new resources and add them to group" do
-      skip
-      OmfCommon.stub :comm, @comm do
-        @comm.expect(:subscribe, true, [String])
-        @comm.expect(:create_topic, true, [String])
-        @group.create_resource('r1', { type: :test, p1: 'bob' })
-        @comm.verify
-      end
+      @group.create_resource('r1', { type: :test, p1: 'bob' })
     end
 
     it "must create new group context when calling resources" do
       @group.resources.must_be_kind_of OmfEc::Context::GroupContext
+    end
+
+    it "must be capable of associating pubsub topic instances" do
+      t = mock
+      @group.associate_topic(t)
+      @group.topic.must_equal t
+
+      @group.associate_resource_topic('bob', t)
+      @group.resource_topic('bob').must_equal t
     end
   end
 end

@@ -11,7 +11,7 @@ module OmfEc
 
     # Contains all the experiment properties
     @@properties = Hashie::Mash.new
-    
+
     # Holds all observers on any Experiment Property creation
     @@creation_observers = []
 
@@ -24,10 +24,10 @@ module OmfEc
     def self.[](name)
       p = @@properties[name.to_s.to_sym]
       if p.nil?
-        raise OEDLCommandException.new(name, 
+        raise OEDLCommandException.new(name,
           "Unknown experiment property '#{name}'\n\tKnown properties are "+
           "'#{ExperimentProperty.names.join(', ')}'")
-      end  
+      end
       return p
     end
 
@@ -60,7 +60,7 @@ module OmfEc
         return p
       end
     end
-  
+
     # Iterate over all Experiment Properties. The block
     # will be called with the respective property as single
     # argument
@@ -86,7 +86,7 @@ module OmfEc
       name = name.to_s
       # http://stackoverflow.com/questions/4378670/what-is-a-ruby-regex-to-match-a-function-name
       if /[@$"]/ =~ name.to_sym.inspect
-        raise OEDLCommandException.new("ExperimentProperty.create", 
+        raise OEDLCommandException.new("ExperimentProperty.create",
           "Cannot create property '#{name}', its name is not a valid Ruby name")
       end
       p = nil
@@ -135,14 +135,14 @@ module OmfEc
       set(value)
     end
 
-    # 
-    # Add a block of command to the list of actions to do 
+    #
+    # Add a block of command to the list of actions to do
     # when this property is being changed
     #
     # - &block =  the block of command to add
     #
     def on_change (&block)
-      debug "Somebody bound to me" 
+      debug "Somebody bound to me"
       @change_observers << block
     end
 
@@ -198,7 +198,7 @@ module OmfEc
 
     # Addition operator for Integer, Float, and String properties
     def +(right)
-      if @value.kind_of?(Integer) || @value.kind_of?(Float) || @value.kind_of?(String) 
+      if @value.kind_of?(Integer) || @value.kind_of?(Float) || @value.kind_of?(String)
         return (@value + right)
       else
         raise OEDLCommandException.new("+", "Illegal operation, "+
@@ -210,13 +210,13 @@ module OmfEc
     # Explicit Coercion for Integer, Float, and String properties
     # (allow property to be on the right-hand of an operator such as +)
     def coerce(other)
-      if @value.kind_of?(Integer) || @value.kind_of?(Float) || @value.kind_of?(String) 
+      if @value.kind_of?(Integer) || @value.kind_of?(Float) || @value.kind_of?(String)
         return other, @value
       else
         raise OEDLCommandException.new("coercion", "Illegal operation, "+
           "The value of Experiment Property '#{@name}' cannot be coerced to allow "+
           " the requested operation (current value is of type #{value.class})")
       end
-    end    
+    end
   end
 end

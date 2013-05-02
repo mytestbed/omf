@@ -2,52 +2,110 @@ require 'test_helper'
 require 'omf_ec/dsl'
 
 describe OmfEc::DSL do
+  before do
+    OmfCommon::Eventloop.init(type: :em)
+    @dsl = Class.new { include OmfEc::DSL }.new
+    OmfEc.stubs(:subscribe_and_monitor)
+  end
+
+  after do
+    OmfCommon::Eventloop.reset
+    OmfEc::Experiment.reset
+    OmfEc::ExperimentProperty.reset
+    OmfEc.unstub(:subscribe_and_monitor)
+  end
+
+
   describe "when included" do
-
-    include OmfEc::DSL
-
     it "must respond to after and every" do
-      respond_to?(:after).must_equal true
-      respond_to?(:every).must_equal true
+      EM.run { @dsl.after(0.01) { EM.stop } }
+      EM.run { @dsl.every(0.01) { EM.stop } }
     end
 
-    it "must respond to def_property" do
-      @exp = MiniTest::Mock.new
-      @exp.expect(:add_property, true, [String, Object, String])
-
-      OmfEc.stub :experiment, @exp do
-        def_property('name', 'default', 'testing')
-      end
+    it "must define property correctly" do
+      @dsl.def_property('name', 'default', 'testing')
+      @dsl.property.must_equal OmfEc::ExperimentProperty
+      OmfEc::ExperimentProperty.reset
     end
 
     it "must respond to def_application" do
       block = proc { 1 }
-      def_application('bob', &block).must_equal 1
+      @dsl.def_application('bob', &block).must_equal 1
       OmfEc.experiment.app_definitions.key?('bob').must_equal true
+    end
+
+    it "must respond to group" do
+      lambda { @dsl.group('bob') }.must_raise RuntimeError
+      g = mock
+      OmfEc.experiment.stubs(:group).returns(g)
+      @dsl.group('bob').must_equal g
     end
 
     it "must respond to def_group" do
       block = proc { 1 }
-      OmfEc.stub :subscribe_and_monitor, true do
-        def_group('bob', &block).must_be_kind_of OmfEc::Group
-      end
+      @dsl.def_group('bob', &block).must_be_kind_of OmfEc::Group
     end
 
     it "must respond to all_groups iterator" do
       block = proc { 1 }
-      all_groups(&block)
+      @dsl.all_groups(&block)
     end
 
     it "must respond to all_groups?" do
-      OmfEc.stub :subscribe_and_monitor, true do
-        OmfEc.experiment.stub :groups, [] do
-          all_groups? { true }.must_equal false
-        end
-        def_group('bob')
-        all_groups? { |g| g.name == 'bob' }.must_equal true
+      OmfEc.experiment.stub :groups, [] do
+        @dsl.all_groups? { true }.must_equal false
+      end
+      @dsl.def_group('bob')
+      @dsl.all_groups? { |g| g.name == 'bob' }.must_equal true
+    end
+
+    it "must respond to all_equal" do
+      @dsl.all_equal([]).must_equal false
+      @dsl.all_equal([1, 1], 1).must_equal true
+      @dsl.all_equal([1, 1]) do |v|
+        v == 1
+      end.must_equal true
+    end
+
+    it "must respond to one_equal" do
+      @dsl.one_equal([1, 0], 1).must_equal true
+      @dsl.one_equal([0, 0], 1).must_equal false
+    end
+
+    it "must init OEDL exceptions" do
+      lambda { raise OEDLArgumentException.new("ls", "bob") }.must_raise OEDLArgumentException
+      lambda { raise OEDLCommandException.new("bob") }.must_raise OEDLCommandException
+      lambda { raise OEDLUnknownProperty.new("bob") }.must_raise OEDLUnknownProperty
+    end
+
+    it "must respond to done!" do
+      done!
+    end
+
+    it "must respond to define an event" do
+      lambda { def_event :bob }.must_raise ArgumentError
+
+      def_event(:bob) { nil }
+    end
+
+    it "must respond to event callback" do
+      lambda { on_event(:bob) }.must_raise RuntimeError
+      def_event(:bob) { nil }
+      on_event(:bob) { nil }
+    end
+
+    describe "when using OEDL 5 syntax" do
+      it "must respond to wait" do
+        @dsl.wait(0.01)
+      end
+
+      it "must respond to defApplication" do
+        @dsl.defApplication('some_uri')
+      end
+
+      it "must respond to defGroup" do
+        @dsl.defGroup('bob', 'a', 'b') { nil }
       end
     end
   end
-
 end
-
