@@ -1,11 +1,15 @@
 # DSL contains some helper methods to ease the process defining resource proxies
 #
+# DSL methods are defined under {OmfRc::ResourceProxyDSL::ClassMethods}
+#
 module OmfRc::ResourceProxyDSL
   PROXY_DIR = "omf_rc/resource_proxy"
   UTIL_DIR = "omf_rc/util"
 
   DEF_ACCESS = [:configure, :request]
 
+  # When this module included, methods defined under ClassMethods will be available in resource definition files
+  #
   def self.included(base)
     base.extend(ClassMethods)
   end
@@ -322,6 +326,16 @@ module OmfRc::ResourceProxyDSL
     end
 
     # Define internal property
+    #
+    # @param [Symbol] name of the property
+    #
+    # @option opts [Object] :default default value of the property
+    # @option opts [Array] :access defines access to the property, default is [:configure, :request]
+    #
+    # @example define a request-only property
+    #
+    #   property :bob, default: 1, access: [:request]
+    #
     def property(name, opts = {})
       opts = Hashie::Mash.new(opts)
 
