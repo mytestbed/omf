@@ -42,6 +42,8 @@ module OmfCommon::Auth
     #
     def self.convert(keystring)
       (type, b64, id) = keystring.split(' ')
+      raise ArgumentError, "Invalid SSH public key '#{keystring}'" if b64.nil?
+
       decoded_key = Base64.decode64(b64)
       (n, bytes) = unpack_u32(decoded_key)
       (keytype, bytes) = unpack_string(bytes, n)

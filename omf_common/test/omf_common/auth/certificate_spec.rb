@@ -93,6 +93,18 @@ describe OmfCommon::Auth::Certificate do
       test_entity.can_sign?.must_equal false
       test_entity.verify_cert.must_equal true
     end
+
+    it "must generate a cert from SSH key too" do
+      private_folder = "#{File.dirname(__FILE__)}/../../fixture"
+      ssh_pub_key = File.read("#{private_folder}/omf_test.pub")
+      pub_key = OpenSSL::PKey::RSA.new(File.read("#{private_folder}/omf_test.pub.pem"))
+      lambda do
+        test_entity = @root.create_for('my_addr', 'bob', 'my_resource', 'omf', 365, 'bob')
+      end.must_raise ArgumentError
+
+      test_entity = @root.create_for('my_addr', 'bob', 'my_resource', 'omf', 365, ssh_pub_key)
+      test_entity.to_x509.public_key.to_s.must_equal  pub_key.to_s
+    end
   end
 
   describe "when provided an existing public cert and I have a private key associated" do
