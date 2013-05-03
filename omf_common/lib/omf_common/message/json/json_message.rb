@@ -18,10 +18,13 @@ module OmfCommon
 
         def self.create(type, properties, body = {})
           if type == :request
-            unless properties.kind_of?(Array)
+            unless (req_props = properties).kind_of?(Array)
               raise "Expected array, but got #{properties.class} for request message"
             end
-            properties = {select: properties}
+            #properties = {select: properties}
+            properties = {}
+            req_props.each {|n| properties[n] = nil }
+            
           elsif not properties.kind_of?(Hash)
             raise "Expected hash, but got #{properties.class}"
           end

@@ -13,6 +13,7 @@ to those, otherwise all properties are requested.
 require 'omf_common'
 
 OP_MODE = :development
+$timeout = 10
 
 opts = {
   communication: {
@@ -47,17 +48,31 @@ r = resource_url.split('/')
 resource = r.pop
 opts[:communication][:url] = r.join('/')
 
+def print_prop(name, value, level = 0)
+  print "  #{'  ' * level}#{name}:"
+  if value.is_a? Hash
+    puts ''
+    value.each {|k, v| print_prop(k, v, level + 1)}
+  else 
+    puts " #{value}"
+  end
+end
+
 OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
     comm.subscribe(resource) do |topic|
       topic.request(req_properties) do |msg|
-        dm = (opts[:logging][:level] == 'debug') ? "    #{msg.inspect}" : ""
-        puts "#{resource}   <#{msg.type}(#{msg.itype})>#{dm}"
-        msg.each_property do |name, value|
-          puts "    #{name}: #{value}"
+        if (src_topic = msg.src.id) == topic.id
+          puts "#{topic.id}"        
+        else
+          puts "#{src_topic} via #{topic.id}"
         end
-        puts "------"
+        msg.each_property do |name, value|
+          print_prop(name, value)
+        end
+        puts "-----------------"
       end
+      el.after($timeout) { el.stop } if $timeout > 0
     end
   end
 end
