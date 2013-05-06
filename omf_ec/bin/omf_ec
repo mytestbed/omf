@@ -198,8 +198,10 @@ end
 
 pre do |global_options, command, options, args|
   opts = OmfCommon.load_yaml(config_file_name) if File.exist?(config_file_name)
-  opts.delete("commands")
-  global_options.merge!(opts)
+  if opts
+    opts.delete("commands")
+    global_options.merge!(opts)
+  end
 
   unless global_options[:uri]
     help_now! "Incomplete options. Need communication URI"

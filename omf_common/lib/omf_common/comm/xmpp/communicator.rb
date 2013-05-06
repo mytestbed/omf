@@ -20,7 +20,8 @@ class Comm
         :fields => [
           { :var => "FORM_TYPE", :type => 'hidden', :value => "http://jabber.org/protocol/pubsub#node_config" },
           { :var => "pubsub#persist_items", :value => "0" },
-          { :var => "pubsub#max_items", :value => "0" },
+          { :var => "pubsub#purge_offline", :value => "1" },
+          { :var => "pubsub#send_last_published_item", :value => "never" },
           { :var => "pubsub#notify_retract",  :value => "0" },
           { :var => "pubsub#publish_model", :value => "open" }]
       })
