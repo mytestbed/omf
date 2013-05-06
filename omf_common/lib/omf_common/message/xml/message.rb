@@ -71,8 +71,13 @@ class XML
               cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
             end
 
-            unless cert.verify_cert
-              warn "Invalid certificate '#{cert.to_s}', NOT signed by root certificate."
+            if cert.nil?
+              warn "Missing certificate of '#{iss}'"
+              return nil
+            end
+
+            unless OmfCommon::Auth::CertificateStore.instance.verify(cert)
+              warn "Invalid certificate '#{cert.to_s}', NOT signed by CA certs, or its CA cert NOT loaded into cert store."
               return nil
             end
 

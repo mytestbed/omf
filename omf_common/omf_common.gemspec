@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "logging", "~> 1.7.1"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
   s.add_runtime_dependency "oml4r", "~> 2.9.1"
+  s.add_runtime_dependency "json", "~> 1.7.7"
   #s.add_runtime_dependency "json-jwt", "~> 0.5.2"
   #s.add_runtime_dependency "amqp", "~> 1.0.1"
 end

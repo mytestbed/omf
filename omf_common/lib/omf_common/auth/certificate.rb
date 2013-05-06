@@ -32,9 +32,11 @@ module OmfCommon::Auth
     # @param [String] pem is the content of existing x509 cert
     # @param [OpenSSL::PKey::RSA|String] key is the private key which can be attached to the instance for signing.
     def self.create_from_x509(pem, key = nil)
-      unless pem.start_with? BEGIN_CERT
+      # Some command list generated cert can use \r\n as newline char
+      unless pem =~ /^-----BEGIN CERTIFICATE-----/
         pem = "#{BEGIN_CERT}#{pem}#{END_CERT}"
       end
+
       cert = OpenSSL::X509::Certificate.new(pem)
 
       key = OpenSSL::PKey::RSA.new(key) if key && key.is_a?(String)

@@ -46,6 +46,16 @@ describe OmfCommon::Auth::Certificate do
     @entity.verify_cert.must_equal true
   end
 
+  it "must be verified successfully by using X509 cert store" do
+    store = OpenSSL::X509::Store.new
+    store.add_cert(@root.to_x509)
+
+    @entity = @root.create_for('my_addr', 'bob', 'my_resource', 'omf')
+
+    store.verify(@root.to_x509).must_equal true
+    store.verify(@entity.to_x509).must_equal true
+  end
+
   it "must verify cert validity" do
     @root.verify_cert.must_equal true
     @root.create_for('my_addr', 'bob', 'my_resource', 'omf').verify_cert.must_equal true

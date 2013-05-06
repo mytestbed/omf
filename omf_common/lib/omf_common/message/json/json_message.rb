@@ -92,8 +92,8 @@ module OmfCommon
               return nil
             end
 
-            unless cert.verify_cert
-              warn "JWT: Invalid certificate '#{cert.to_s}', NOT signed by root certificate."
+            unless OmfCommon::Auth::CertificateStore.instance.verify(cert)
+              warn "JWT: Invalid certificate '#{cert.to_s}', NOT signed by CA certs, or its CA cert NOT loaded into cert store."
             end
 
             #puts ">>> #{cert.to_x509.public_key}::#{signature_base_string}"
