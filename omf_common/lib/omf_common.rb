@@ -12,6 +12,10 @@ require 'omf_common/eventloop'
 
 include OmfCommon::DefaultLogging
 
+# Set the default encoding to UTF8
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
+
 module OmfCommon
   DEFAULTS = {
     development: {
