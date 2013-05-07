@@ -4,7 +4,7 @@ require 'omf_common'
 
 OmfCommon::Auth::CertificateStore.init
 
-root = OmfCommon::Auth::Certificate.create(nil, 'omf_ca', 'ca', 'omf')
+root = OmfCommon::Auth::Certificate.create(nil, 'omf_ca', 'ca', 'omf', 3600 * 365 * 10)
 
 ec_key = OpenSSL::PKey::RSA.new(2048)
 rc_key = OpenSSL::PKey::RSA.new(2048)
@@ -12,8 +12,8 @@ rc_key = OpenSSL::PKey::RSA.new(2048)
 ec_pub = ec_key.public_key
 rc_pub = rc_key.public_key
 
-ec = root.create_for('ec', 'ec', 'controller', 'omf', 365, ec_pub)
-rc = root.create_for('rc', 'rc', 'controller', 'omf', 365, rc_pub)
+ec = root.create_for('my_ec', 'ec', 'controller', 'omf', 3600 * 365 * 10, ec_pub)
+rc = root.create_for('my_rc', 'rc', 'controller', 'omf', 3600 * 365 * 10, rc_pub)
 
 %w(root ec_key rc_key ec_pub rc_pub ec rc).each do |n|
   File.write("#{n}.pem", eval(n).to_pem)
