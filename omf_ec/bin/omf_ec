@@ -23,9 +23,9 @@ flag [:u, :uri]
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
 switch [:x, :xmpp]
 
-desc "Root certificate file"
+desc "Directory contains root certificates"
 arg_name "cert", :optional
-flag [:root_cert]
+flag [:root_cert_dir]
 
 desc "Your certificate"
 arg_name "cert", :optional
@@ -246,10 +246,6 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
-    if global_options[:root_cert] && File.exist?(global_options[:root_cert])
-      root = OmfCommon::Auth::Certificate.create_from_x509(File.read(global_options[:root_cert]))
-    end
-
     if global_options[:cert] && File.exist?(global_options[:cert]) &&
       global_options[:key] && File.exist?(global_options[:key])
 
@@ -272,7 +268,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       }
     }
 
-    opts[:communication][:auth] = { certs: [ root.to_pem_compact ] } if root
+    opts[:communication][:auth] = {} if entity
 
     OmfCommon.init(:development, opts) do |el|
       setup_logging(global_options)
@@ -281,7 +277,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         info "Connected using #{comm.conn_info}"
         info "Start experiment: #{OmfEc.experiment.id}"
 
-        OmfCommon::Auth::CertificateStore.instance.register(root) if root
+        OmfCommon::Auth::CertificateStore.instance.register_default_certs(global_options[:root_cert_dir]) if global_options[:root_cert_dir]
         OmfCommon::Auth::CertificateStore.instance.register(entity, OmfCommon.comm.local_address) if entity
 
         begin

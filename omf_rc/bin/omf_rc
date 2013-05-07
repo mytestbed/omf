@@ -9,6 +9,7 @@ require 'socket'
 require 'omf_rc'
 require 'omf_rc/resource_factory'
 
+
 $stdout.sync = true
 options = {}
 executable_name = File.basename($PROGRAM_NAME)

@@ -8,6 +8,6 @@
 :debug: false
 
 :auth:
-  :root_cert: /home/jack/omf_keys/root.pem
-  :entity_cert: /home/jack/omf_keys/rc.pem
-  :entity_key: /home/jack/omf_keys/rc_key.pem
+  :root_cert_dir: /tmp/keys/root
+  :entity_cert: /tmp/keys/rc.pem
+  :entity_key: /tmp/keys/rc_key.pem

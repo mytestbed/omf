@@ -61,11 +61,20 @@ module OmfCommon::Auth
       v_result
     end
 
+    # Load a set of CA certs into cert store from a given location
+    #
+    # @param [String] folder contains all the CA certs
+    #
+    def register_default_certs(folder)
+      Dir["#{folder}/*"].each do |cert|
+        register_x509(File.read(cert))
+      end
+    end
+
     private
 
     def initialize(opts)
       @x509_store = OpenSSL::X509::Store.new
-      @x509_store.set_default_paths
 
       @certs = {}
       if store = opts[:store]
