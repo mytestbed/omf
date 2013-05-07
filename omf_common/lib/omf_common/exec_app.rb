@@ -36,24 +36,27 @@ class ExecApp
   # Holds the pids for all active apps
   @@all_apps = Hash.new
 
+  # Return an application instance based on its ID
+  #
+  # @param [String] id of the application to return
+  def self.[](id)
+    app = @@all_apps[id]
+    logger.info "Unknown application '#{id}/#{id.class}'" if app.nil?
+    return app
+  end
+
+  def self.signal_all(signal = 'KILL')
+    @@all_apps.each_value { |app| app.signal(signal) }
+  end
+
+  attr_reader :pid, :clean_exit
+  
   # True if this active app is being killed by a proper
   # call to ExecApp.signal_all() or signal()
   # (i.e. when the caller of ExecApp decided to stop the application,
   # as far as we are concerned, this is a 'clean' exit)
   @clean_exit = false
 
-  # Return an application instance based on its ID
-  #
-  # @param [String] id of the application to return
-  def ExecApp.[](id)
-    app = @@all_apps[id]
-    logger.info "Unknown application '#{id}/#{id.class}'" if app.nil?
-    return app
-  end
-
-  def ExecApp.signal_all(signal = 'KILL')
-    @@all_apps.each_value { |app| app.signal(signal) }
-  end
 
   def stdin(line)
     logger.debug "Writing '#{line}' to app '#{@id}'"
@@ -63,8 +66,9 @@ class ExecApp
 
   def signal(signal = 'KILL')
     @clean_exit = true
-    Process.kill(signal, @pid)
+    Process.kill(signal, -1 * @pid) # we are sending to the entire process group
   end
+
 
   #
   # Run an application 'cmd' in a separate thread and monitor
@@ -78,9 +82,9 @@ class ExecApp
   #
   def initialize(id, cmd, map_std_err_to_out = false, working_directory = nil, &observer)
 
-    @id = id
+    @id = id || self.object_id
     @observer = observer
-    @@all_apps[id] = self
+    @@all_apps[@id] = self
     @exit_status = nil
     @threads = []
 
@@ -88,8 +92,9 @@ class ExecApp
     pr = IO::pipe
     pe = IO::pipe
 
-    logger.debug "Starting application '#{id}' - cmd: '#{cmd}'"
-    @observer.call(:STARTED, id, cmd)
+    logger.debug "Starting application '#{@id}' - cmd: '#{cmd}'"
+    #@observer.call(:STARTED, id, cmd)
+    call_observer(:STARTED, cmd)
     @pid = fork {
       # child will remap pipes to std and exec cmd
       pw[1].close
@@ -105,6 +110,9 @@ class ExecApp
       pe[1].close
 
       begin
+        pgid = Process.setsid # Create a new process group 
+                              # which includes all potential child processes
+        STDOUT.puts "INTERNAL WARNING: Assuming process_group_id == pid" unless pgid == $$ 
         Dir.chdir working_directory if working_directory
         exec(cmd)
       rescue => ex
@@ -124,12 +132,16 @@ class ExecApp
     @threads << Thread.new(id, @pid) do |id, pid|
       ret = Process.waitpid(pid)
       @exit_status = $?.exitstatus
+      if @exit_status > 127 
+        @exit_status = 128 - @exit_status
+      end
       @@all_apps.delete(@id)
       # app finished
       if (@exit_status == 0) || @clean_exit
-        logger.debug "Application '#{id}' finished"
+        logger.debug "Application '#{@id}' finished"
       else
-        logger.debug "Application '#{id}' failed (code=#{@exit_status})"
+        
+        logger.debug "Application '#{@id}' failed (code=#{@exit_status})"
       end
     end
     @stdin = pw[1]
@@ -142,8 +154,11 @@ class ExecApp
       else
         s = "ERROR"
       end
-      @observer.call("DONE.#{s}", @id, "status: #{@exit_status}")
+      #@observer.call("DONE.#{s}", @id, "status: #{@exit_status}")
+      call_observer("DONE.#{s}", "status: #{@exit_status}")
+
     end
+    logger.debug "Application is running with PID #{@pid}"
   end
     
   private
@@ -160,18 +175,26 @@ class ExecApp
       begin
         while true do
           s = pipe.readline.chomp
-          #puts "#{name}: #{s}"
-          @observer.call(name.to_s.upcase, @id, s)
+          call_observer(name.to_s.upcase, s)
         end
       rescue EOFError
         # do nothing
-        #puts "++++ STOP MONITORING #{name}"
       rescue  => err
         logger.error "monitorApp(#{@id}): #{err}"
         logger.debug "#{err}\n\t#{err.backtrace.join("\n\t")}"
       ensure
         pipe.close
       end
+    end
+  end
+  
+  def call_observer(event_type, msg)
+    return unless @observer
+    begin
+      @observer.call(event_type, @id, msg)
+    rescue Exception => ex
+      logger.warn "Exception while calling observer '#{@observer}': #{ex}"
+      logger.debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
     end
   end
 end
