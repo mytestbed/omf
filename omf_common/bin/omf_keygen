@@ -4,7 +4,7 @@ require 'omf_common'
 
 OmfCommon::Auth::CertificateStore.init
 
-root = OmfCommon::Auth::Certificate.create(nil, 'omf_ca', 'ca', 'omf', 3600 * 365 * 10)
+root = OmfCommon::Auth::Certificate.create(nil, 'omf_ca', 'ca', 'omf', nil, Time.now, 3600 * 365 * 10)
 
 ec_key = OpenSSL::PKey::RSA.new(2048)
 rc_key = OpenSSL::PKey::RSA.new(2048)

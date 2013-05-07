@@ -88,6 +88,11 @@ class XML
               return nil
             end
           end
+        else
+          if self.authenticate?
+            debug "Message not signed: '#{xml}'"
+            return nil
+          end
         end
 
         parsed_msg = self.create(xml_node.name.to_sym).tap do |message|
