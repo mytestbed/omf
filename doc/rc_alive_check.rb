@@ -7,7 +7,7 @@ require 'omf_common'
 
 unless ARGV[0] && ARGV[1]
   puts "Missing argument: The credential to connect to your XMPP(Openfire) server and id of your Resource Controller"
-  puts "usage: rc_alice_check.rb <credential xmpp://user:password@localhost> <id of resource proxy>"
+  puts "usage: #{$0} <credential xmpp://user:password@localhost> <id of resource proxy>"
   exit 2
 end
 
