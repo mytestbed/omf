@@ -13,6 +13,7 @@ module OmfCommon
       }
     }
     @@instance = nil
+    @@on_stop_proc = []
     
     #
     # opts:
@@ -76,13 +77,20 @@ module OmfCommon
     end
     
     def stop()
-      raise "Missing implementation 'stop'"      
+      @@on_stop_proc.each do |block|
+        begin
+          block.call()
+        rescue  => ex
+          error "Exception '#{ex}'"
+          debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
+        end
+      end
     end      
     
     # Calling 'block' before stopping eventloop
     #
     def on_stop(&block)
-      warn "Missing implementation 'on_stop'" 
+      @@on_stop_proc << block
     end
     
     # Calling 'block' when having trapped an INT signal

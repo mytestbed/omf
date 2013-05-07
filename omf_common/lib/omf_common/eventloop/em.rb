@@ -17,10 +17,17 @@ module OmfCommon
       # @param [Float] delay in sec
       def after(delay_sec, &block)
         if EM.reactor_running?
-          EM.add_timer(delay_sec, &block)
+          EM.add_timer(delay_sec) do
+            begin
+              block.call()
+            rescue  => ex
+              error "Exception '#{ex}'"
+              debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
+            end
+          end
         else
           @deferred << lambda do
-            EM.add_timer(delay_sec, &block)
+            after(delay_sec, &block)
           end
         end
       end
@@ -82,7 +89,8 @@ module OmfCommon
       end
 
       def stop()
-        EM.stop
+        super
+        EM.next_tick { EM.stop }
       end
     end # class
   end
