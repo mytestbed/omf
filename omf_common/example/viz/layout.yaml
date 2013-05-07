@@ -1,0 +1,44 @@
+
+
+# 
+#
+
+widget:
+  id: overview
+  name: Overview
+  top_level: true
+  priority: 900
+  type: layout/two_columns/50_50
+  chrome: false  # don't show title
+  widgets:
+    left:
+      - type: moustache
+        text: '<img src="/resource/image/garage.png">'
+        context:
+
+      - type: data/gauge
+        title: Engine
+        data_source:
+          name: engine
+          dynamic: 1  # check once a second
+        mapping:
+          id: source
+          value: rpm
+    right:
+      - type: data/table2
+        title: Events
+        data_source:
+          name: events
+          dynamic: 1  # check once a second
+        # topts: 
+          # enableCellNavigation: true
+        margin:
+          left: 5
+  
+      - type: data/table2
+        title: Engine
+        data_source:
+          name: engine
+          dynamic: 1  # check once a second
+        margin:
+          left: 5
