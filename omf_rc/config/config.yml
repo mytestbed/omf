@@ -6,8 +6,3 @@
 :uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
 :environment: production
 :debug: false
-
-:auth:
-  :root_cert_dir: /tmp/keys/root
-  :entity_cert: /tmp/keys/rc.pem
-  :entity_key: /tmp/keys/rc_key.pem

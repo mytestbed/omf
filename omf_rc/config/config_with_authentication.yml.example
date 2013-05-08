@@ -8,6 +8,6 @@
 :debug: false
 
 :auth:
-  :root_cert: /path_to_root_cert
+  :root_cert_dir: /path_to_folder_contains_root_certs
   :entity_cert: /path_to_cert_used_by_this_rc
   :entity_key: /path_to_private_key_used_by_this_rc
