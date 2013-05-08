@@ -119,7 +119,7 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   OmfCommon.comm.on_connected do |comm|
     info "Connected using #{comm.conn_info}"
 
-    if options[:auth][:root_cert_dir]
+    if options[:auth] && options[:auth][:root_cert_dir]
       OmfCommon::Auth::CertificateStore.instance.register_default_certs(options[:auth][:root_cert_dir])
     end
     OmfCommon::Auth::CertificateStore.instance.register(entity) if entity
