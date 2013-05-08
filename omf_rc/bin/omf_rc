@@ -9,7 +9,6 @@ require 'socket'
 require 'omf_rc'
 require 'omf_rc/resource_factory'
 
-
 $stdout.sync = true
 options = {}
 executable_name = File.basename($PROGRAM_NAME)
@@ -106,27 +105,24 @@ if options[:factories]
 end
 
 if options[:auth]
-  if File.exist?(options[:auth][:root_cert])
-    root = OmfCommon::Auth::Certificate.create_from_x509(File.read(options[:auth][:root_cert]))
-  end
-
   if File.exist?(options[:auth][:entity_cert]) && File.exist?(options[:auth][:entity_key])
     entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(options[:auth][:entity_cert]),
                                                            File.read(options[:auth][:entity_key]))
   end
 end
 
-common_options[:communication][:auth] = { certs: [ root.to_pem_compact ] } if root
+common_options[:communication][:auth] = {} if entity
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
-
-    OmfCommon::Auth::CertificateStore.instance.register(root) if root
-    OmfCommon::Auth::CertificateStore.instance.register(entity) if entity
-
     info "Connected using #{comm.conn_info}"
+
+    if options[:auth][:root_cert_dir]
+      OmfCommon::Auth::CertificateStore.instance.register_default_certs(options[:auth][:root_cert_dir])
+    end
+    OmfCommon::Auth::CertificateStore.instance.register(entity) if entity
 
     options[:resources].each do |res_opts|
       rtype = res_opts.delete(:type)
