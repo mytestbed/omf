@@ -168,7 +168,7 @@ class XML
           #end
           ['text/xml', @envelope]
         else
-          error "Missing cert for #{src}"
+          error "Missing cert for #{src}. Auth turned on but could not locate a proper cert."
           ['text/xml', nil]
         end
       else

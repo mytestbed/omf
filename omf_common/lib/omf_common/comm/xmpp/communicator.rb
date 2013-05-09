@@ -161,6 +161,10 @@ class Comm
         raise StandardError, "Invalid message" unless message.valid?
 
         message = message.marshall[1] unless message.kind_of? String
+        if message.nil?
+          debug "Cannot publish empty message, using authentication and not providing a proper cert?"
+          return nil
+        end
 
         new_block = proc do |stanza|
           published_messages << OpenSSL::Digest::SHA1.new(message.to_s)
