@@ -1,4 +1,5 @@
 require 'openssl'
+require 'monitor'
 
 require 'omf_common/auth'
 
@@ -7,7 +8,7 @@ module OmfCommon::Auth
   class MissingPrivateKeyException < AuthException; end
 
   class CertificateStore
-
+    include MonitorMixin
 
     @@instance = nil
 
@@ -24,20 +25,26 @@ module OmfCommon::Auth
     end
 
     def register(certificate, address = nil)
-      if address ||= certificate.address
-        @certs[address] = certificate if address
-      else
-        warn "Register certificate without address - #{certificate}"
-      end
-      @certs[certificate.subject] = certificate
-      begin
-        @x509_store.add_cert(certificate.to_x509)
-      rescue OpenSSL::X509::StoreError => e
-        if e.message == "cert already in hash table"
-          warn "X509 cert already register in X509 store"
-        else
-          raise e
+      @@instance.synchronize do
+        begin
+          @x509_store.add_cert(certificate.to_x509) if @certs[address].nil? && @certs[certificate.subject].nil?
+        rescue OpenSSL::X509::StoreError => e
+          if e.message == "cert already in hash table"
+            raise "X509 cert '#{address}' already registered in X509 store"
+          else
+            raise e
+          end
         end
+
+        address ||= certificate.address
+
+        if address
+          @certs[address] ||= certificate
+        else
+          debug "Register certificate without address - #{certificate}, is it a CA cert?"
+        end
+
+        @certs[certificate.subject] ||= certificate
       end
     end
 
@@ -82,6 +89,8 @@ module OmfCommon::Auth
         @store = {private: {}, public: {}}
       end
       @serial = 0
+
+      super()
     end
   end # class
 
