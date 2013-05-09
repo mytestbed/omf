@@ -85,7 +85,7 @@ describe OmfCommon::Comm::Topic do
         lambda { @topic.send(m_name) }.must_raise ArgumentError
         cbk = proc {}
         @topic.send(m_name, &(cbk))
-        @topic.handlers[name].must_include cbk
+        @topic.handlers[name].values.must_include cbk
       end
 
       @topic.class_eval do
