@@ -94,22 +94,35 @@ module OmfCommon
         define_method(mname) do |*args, &message_block|
           warn_deprecation(mname, :on_message, :on_inform)
 
-          add_message_handler(itype, &message_block)
+          add_message_handler(itype, args.first, &message_block)
         end
       end
 
-      def on_message(*args, &message_block)
-        add_message_handler(:message, &message_block)
+      def on_message(key = nil, &message_block)
+        add_message_handler(:message, key, &message_block)
       end
 
-      def on_inform(*args, &message_block)
-        add_message_handler(:inform, &message_block)
+      def on_inform(key = nil, &message_block)
+        add_message_handler(:inform, key, &message_block)
       end
 
-      # Unsubscribe from the underlying comms layer
+      # Remove all registered callbacks for 'key'. Will also unsubscribe from the underlying 
+      # comms layer if no callbacks remain.
       #
-      def unsubscribe()
-
+      def unsubscribe(key)
+        @lock.synchronize do
+          @handlers.each do |name, cbks|
+            if cbks.delete(key)
+              # remove altogether if no callback left
+              if cbks.empty?
+                @handlers.delete(name)
+              end
+            end
+          end
+          if @handlers.empty?
+            warn "Should unsubscribe '#{id}'"
+          end
+        end
       end
 
       def on_subscribed(&block)
@@ -178,7 +191,7 @@ module OmfCommon
         end
 
         debug "(#{id}) Message type '#{htypes.inspect}' (#{msg.class}:#{msg.cid})"
-        hs = htypes.map { |ht| @handlers[ht] }.compact.flatten
+        hs = htypes.map { |ht| (@handlers[ht] || {}).values }.compact.flatten
         debug "(#{id}) Distributing message to '#{hs.inspect}'"
         hs.each do |block|
           block.call msg
@@ -190,11 +203,12 @@ module OmfCommon
         end
       end
 
-      def add_message_handler(handler_name, &message_block)
+      def add_message_handler(handler_name, key, &message_block)
         raise ArgumentError, 'Missing message callback' if message_block.nil?
         debug "(#{id}) register handler for '#{handler_name}'"
         @lock.synchronize do
-          (@handlers[handler_name] ||= []) << message_block
+          key ||= SecureRandom.uuid
+          (@handlers[handler_name] ||= {})[key] = message_block
         end
         self
       end

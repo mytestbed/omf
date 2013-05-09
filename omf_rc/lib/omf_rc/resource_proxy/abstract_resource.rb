@@ -98,7 +98,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
         t.inform(:creation_ok, cprops, copts)
 
-        t.on_message(nil, @uid) do |imsg|
+        t.on_message(@uid) do |imsg|
           process_omf_message(imsg, t)
         end
       end
@@ -189,14 +189,14 @@ class OmfRc::ResourceProxy::AbstractResource
 
     # clean up topics
     @topics.each do |t|
-      t.unsubscribe
+      t.unsubscribe(@uid)
     end
 
     @membership_topics.each_value do |t|
       if t.respond_to? :delete_on_message_cbk_by_id
         t.delete_on_message_cbk_by_id(@uid)
       end
-      t.unsubscribe
+      t.unsubscribe(@uid)
     end
 
     true
@@ -272,7 +272,7 @@ class OmfRc::ResourceProxy::AbstractResource
               self.inform(:status, { membership: @membership }, t)
             end
 
-            t.on_message(nil, @uid) do |imsg|
+            t.on_message(@uid) do |imsg|
               process_omf_message(imsg, t)
             end
           end
