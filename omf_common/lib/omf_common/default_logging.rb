@@ -14,28 +14,35 @@ module OmfCommon
     Logging.logger.root.level = :info
 
     # Alias logging method using default logger
+    #
+    # @example
+    #
+    #   info 'Information'
+    #   # Additional logger name will generate a new child logger in the context of default logger
+    #   info 'Information', 'logger name'
+    #
     def info(*args, &block)
-      logger.info(*args, &block)
+      get_logger(args[1]).info(args[0], &block)
     end
 
     # @see #info
     def debug(*args, &block)
-      logger.debug(*args, &block)
+      get_logger(args[1]).debug(args[0], &block)
     end
 
     # @see #info
     def error(*args, &block)
-      logger.error(*args, &block)
+      get_logger(args[1]).error(args[0], &block)
     end
 
     # @see #info
     def fatal(*args, &block)
-      logger.fatal(*args, &block)
+      get_logger(args[1]).fatal(args[0], &block)
     end
 
     # @see #info
     def warn(*args, &block)
-      logger.warn(*args, &block)
+      get_logger(args[1]).warn(args[0], &block)
     end
 
     # Log a warning message for deprecated methods
@@ -47,6 +54,12 @@ module OmfCommon
       define_method(deprecated_name) do |*args, &block|
         logger.warn "[DEPRECATION] '#{deprecated_name}' is deprecated and not supported. Please do not use it."
       end
+    end
+
+    private
+
+    def get_logger(name = nil)
+      name.nil? ? logger : Logging::Logger["#{logger.name}::#{name.to_s}"]
     end
   end
 end
