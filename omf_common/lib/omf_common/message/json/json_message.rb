@@ -173,7 +173,7 @@ module OmfCommon
           #puts "MARSHALL: #{@content.inspect} - #{@properties.to_hash.inspect}"
           raise "Missing SRC declaration in #{@content}" unless @content[:src]
           if @content[:src].is_a? OmfCommon::Comm::Topic
-            @content[:src] = @content[:src].id
+            @content[:src] = @content[:src].address
           end
           #raise 'local/local' if @content[:src].id.match 'local:/local'
           #puts @content.inspect
