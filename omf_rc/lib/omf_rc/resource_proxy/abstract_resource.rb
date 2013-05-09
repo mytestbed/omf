@@ -373,6 +373,7 @@ class OmfRc::ResourceProxy::AbstractResource
     props = {}
     copts = {}
     mprops.each do |k, v|
+      k = k.to_sym
       if exclude.include?(k)
         copts[k] = v
       else
