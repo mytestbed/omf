@@ -106,7 +106,7 @@ module OmfCommon
         add_message_handler(:inform, key, &message_block)
       end
 
-      # Remove all registered callbacks for 'key'. Will also unsubscribe from the underlying 
+      # Remove all registered callbacks for 'key'. Will also unsubscribe from the underlying
       # comms layer if no callbacks remain.
       #
       def unsubscribe(key)
@@ -170,8 +170,7 @@ module OmfCommon
       # Process a message received from this topic.
       #
       # @param [OmfCommon::Message] msg Message received
-      # @param [Hash] auth_info Authentication information
-      # @option auth_info [Symbol] :signer Id
+      #
       def on_incoming_message(msg)
         type = msg.operation
         debug "(#{id}) Deliver message '#{type}': #{msg.inspect}"

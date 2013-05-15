@@ -122,7 +122,7 @@ module OmfCommon
 
     # Returning connection information
     #
-    # @retun [Hash] connection information hash, with type, user and domain.
+    # @return [Hash] connection information hash, with type, user and domain.
     def conn_info
       { proto: nil, user: nil, domain: nil }
     end

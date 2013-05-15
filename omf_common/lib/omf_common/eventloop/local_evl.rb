@@ -5,32 +5,30 @@ module OmfCommon
     # Implements a simple eventloop which only deals with timer events
     #
     class Local < Eventloop
-      
+
       def initialize(opts = {}, &block)
         super
         @tasks =  []
         @running = false
         after(0, &block) if block
       end
-      
+
       # Execute block after some time
       #
-      # @param [float] delay in sec
-      # @param [block] block to execute
+      # @param [Float] delay_sec in sec
       #
       def after(delay_sec, &block)
         @tasks << [Time.now + delay_sec, block]
       end
-      
+
       # Periodically call block every interval_sec
       #
-      # @param [float] interval in sec
-      # @param [block] block to execute
+      # @param [Float] interval_sec in sec
       #
       def every(interval_sec, &block)
         @tasks << [Time.now + interval_sec, block, :periodic => interval_sec]
       end
-      
+
       # Call 'block' in the context of a separate thread.
       #
       def defer(&block)
@@ -44,17 +42,17 @@ module OmfCommon
           end
         end
       end
-      
-      
-      def stop 
+
+
+      def stop
         @running = false
       end
-      
+
       def run(&block)
         after(0, &block) if block
         return if @running
         @running = true
-              
+
         while @running do
           now = Time.now
           @tasks = @tasks.sort
@@ -86,8 +84,8 @@ module OmfCommon
             end
           end
         end
-      end      
+      end
     end # class
   end
 end
-      
+

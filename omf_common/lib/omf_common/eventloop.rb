@@ -1,7 +1,7 @@
 module OmfCommon
   # Providing event loop support.
   class Eventloop
-    
+
     @@providers = {
       em: {
         require: 'omf_common/eventloop/em',
@@ -14,7 +14,7 @@ module OmfCommon
     }
     @@instance = nil
     @@on_stop_proc = []
-    
+
     #
     # opts:
     #   :type - eventloop provider
@@ -44,38 +44,36 @@ module OmfCommon
       @@instance = inst
       inst
     end
-    
+
     def self.instance
       @@instance
     end
-    
+
     # Execute block after some time
     #
-    # @param [float] delay in sec
-    # @param [block] block to execute
+    # @param [Float] delay_sec in sec
     #
     def after(delay_sec, &block)
       raise "Missing implementation 'after'"
     end
-    
+
     # Periodically call block every interval_sec
     #
-    # @param [float] interval in sec
-    # @param [block] block to execute
+    # @param [Float] interval_sec in sec
     #
     def every(interval_sec, &block)
       raise "Missing implementation 'every'"
     end
-    
+
     # Block calling thread until eventloop exits
     def join()
       raise "Missing implementation 'join'"
     end
-    
+
     def run()
-      raise "Missing implementation 'run'"      
+      raise "Missing implementation 'run'"
     end
-    
+
     def stop()
       @@on_stop_proc.each do |block|
         begin
@@ -85,32 +83,32 @@ module OmfCommon
           debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
         end
       end
-    end      
-    
+    end
+
     # Calling 'block' before stopping eventloop
     #
     def on_stop(&block)
       @@on_stop_proc << block
     end
-    
+
     # Calling 'block' when having trapped an INT signal
     #
     def on_int_signal(&block)
       # trap(:INT)
-      warn "Missing implementation 'on_int_signal'" 
+      warn "Missing implementation 'on_int_signal'"
     end
 
     # Calling 'block' when having trapped a TERM signal
     #
     def on_term_signal(&block)
       # trap(:TERM) {}
-      warn "Missing implementation 'on_term_signal'" 
+      warn "Missing implementation 'on_term_signal'"
     end
-       
+
     private
     def initialize(opts = {}, &block)
       #run(&block) if block
     end
-    
+
   end
 end

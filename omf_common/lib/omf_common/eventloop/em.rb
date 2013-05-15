@@ -14,7 +14,7 @@ module OmfCommon
 
       # Execute block after some time
       #
-      # @param [Float] delay in sec
+      # @param [Float] delay_sec in sec
       def after(delay_sec, &block)
         if EM.reactor_running?
           EM.add_timer(delay_sec) do
@@ -48,7 +48,7 @@ module OmfCommon
 
       # Periodically call block every interval_sec
       #
-      # @param [Float] interval in sec
+      # @param [Float] interval_sec in sec
       def every(interval_sec, &block)
         # to allow canceling the periodic timer we need to
         # hand back a reference to it which responds to 'cancel'

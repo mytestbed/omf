@@ -338,7 +338,7 @@ class XML
 
     # Reconstruct xml node into Ruby object
     #
-    # @param [Niceogiri::XML::Node] property xml node
+    # @param [Niceogiri::XML::Node] node xml node
     # @return [Object] the content of the property, as string, integer, float, or mash(hash with indifferent access)
     def reconstruct_data(node, data_binding = nil)
       node_type =  node.attr('type')
