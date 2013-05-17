@@ -1,15 +1,13 @@
 # OMF_VERSIONS = 6.0
 #
 
-def_property('name', 'garage', 'Name of garage')
-
-garage = prop.name
+def_property('garage', 'garage', 'Name of garage')
 
 defEvent :engine_created do |state|
-  # state holds list of resources, and automatically updated once OMF inform messages received.
+  # state is an array holds list of resources, and automatically updated once OMF inform messages received.
   state.find_all do |v|
-    v[:type] == 'engine'
-  end.size >= 1
+    v[:type] == 'engine' && !v[:membership].empty?
+  end.size > 0
 end
 
 defEvent :rpm_reached_4000 do |state|
@@ -19,34 +17,34 @@ defEvent :rpm_reached_4000 do |state|
 end
 
 # Define a group and add garages to it.
-defGroup('garages', garage)
+defGroup('garages', prop.garage)
 
 # :ALL_UP is a pre-defined event,
 # triggered when all resources set to be part of groups are available and configured as members of the associated groups.
 onEvent :ALL_UP do
   group('garages') do |g|
-    g.create_resource('primary_engine', type: 'engine', sn: rand(1000))
+    g.create_resource('my_engine', type: 'engine')
 
     onEvent :engine_created do
       info ">>> Accelerating all engines"
-      g.resources[type: 'engine'][name: 'primary_engine'].throttle = 50
+      g.resources[type: 'engine'].throttle = 50
 
-      g.resources[type: 'engine'][name: 'primary_engine'].sn
-      g.resources[type: 'engine'][name: 'primary_engine'].membership
+      # We periodically check engine RPM
+      every 2.second do
+        g.resources[type: 'engine'].rpm
+      end
     end
 
     onEvent :rpm_reached_4000 do
       info ">>> Engine RPM reached 4000"
-
       info ">>> Reduce engine throttle"
       g.resources[type: 'engine'].throttle = 0
+    end
 
-      after 7.seconds do
-        info ">>> Release engines"
-        g.resources[type: 'engine'].release
-
-        done!
-      end
+    after 20.seconds do
+      info ">>> Release engines"
+      g.resources[type: 'engine'].release
+      done!
     end
   end
 end
