@@ -79,7 +79,7 @@ describe OmfRc::ResourceProxyDSL do
           OmfRc::ResourceProxy::MockProxy.method_defined?(m.to_sym).must_equal true
         end
 
-        mock_proxy = OmfRc::ResourceFactory.new(:mock_proxy)
+        mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy)
         mock_proxy.request_alpha.must_equal mock_proxy.uid
         mock_proxy.request_delta.must_equal "printing"
         mock_proxy.request_charlie.must_equal "working on printing"
@@ -111,17 +111,17 @@ describe OmfRc::ResourceProxyDSL do
     it "must check new proxy's create_by option when ask a proxy create a new proxy" do
       OmfCommon.stub :comm, @xmpp do
         @xmpp.expect(:subscribe, true, [String])
-        OmfRc::ResourceFactory.new(:mock_root_proxy).create(:mock_proxy)
+        OmfRc::ResourceFactory.create(:mock_root_proxy).create(:mock_proxy)
         2.times { @xmpp.expect(:subscribe, true, [String]) }
-        OmfRc::ResourceFactory.new(:mock_root_proxy).create(:useless_proxy)
+        OmfRc::ResourceFactory.create(:mock_root_proxy).create(:useless_proxy)
         2.times { @xmpp.expect(:subscribe, true, [String]) }
-        lambda { OmfRc::ResourceFactory.new(:useless_proxy).create(:mock_proxy) }.must_raise StandardError
+        lambda { OmfRc::ResourceFactory.create(:useless_proxy).create(:mock_proxy) }.must_raise StandardError
       end
     end
 
     it "must be able to define property with default vlaue" do
       OmfCommon.stub :comm, @xmpp do
-        mock_proxy = OmfRc::ResourceFactory.new(:mock_proxy)
+        mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy)
         mock_proxy.property.mock_prop.must_equal 1
       end
     end

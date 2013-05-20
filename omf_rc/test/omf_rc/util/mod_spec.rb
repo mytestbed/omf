@@ -18,10 +18,10 @@ describe OmfRc::Util::Mod do
       OmfCommon.stub :comm, @xmpp do
         Cocaine::CommandLine.stub(:new, @command) do
           @command.expect(:run, fixture("lsmod"))
-          OmfRc::ResourceFactory.new(:mod_test).request_modules.must_include "kvm"
+          OmfRc::ResourceFactory.create(:mod_test).request_modules.must_include "kvm"
           @command.expect(:run, fixture("lsmod"))
           @xmpp.expect(:subscribe, true, [String])
-          OmfRc::ResourceFactory.new(:mod_test).request_modules.wont_include "Module"
+          OmfRc::ResourceFactory.create(:mod_test).request_modules.wont_include "Module"
           @command.verify
         end
       end
@@ -31,7 +31,7 @@ describe OmfRc::Util::Mod do
       OmfCommon.stub :comm, @xmpp do
         Cocaine::CommandLine.stub(:new, @command) do
           @command.expect(:run, true)
-          OmfRc::ResourceFactory.new(:mod_test).configure_load_module(name: 'magic_module').must_equal "magic_module loaded"
+          OmfRc::ResourceFactory.create(:mod_test).configure_load_module(name: 'magic_module').must_equal "magic_module loaded"
           @command.verify
         end
       end

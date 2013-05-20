@@ -13,7 +13,7 @@ describe OmfRc::Util::Mock do
       @xmpp = MiniTest::Mock.new
       @xmpp.expect(:subscribe, true, [String])
       OmfCommon.stub :comm, @xmpp do
-        @mock = OmfRc::ResourceFactory.new(:mock_test)
+        @mock = OmfRc::ResourceFactory.create(:mock_test)
       end
     end
 

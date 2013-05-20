@@ -15,15 +15,20 @@ Cocaine::CommandLine.stub(:new, @command) do
 
         module OmfRc::ResourceProxy::IwTest
           include OmfRc::ResourceProxyDSL
+
           register_proxy :iw_test
+
           utility :iw
+
+          property :if_name
+          property :phy
         end
 
         @xmpp = MiniTest::Mock.new
         @xmpp.expect(:subscribe, true, [String])
 
         OmfCommon.stub :comm, @xmpp do
-          @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })
+          @wlan00 = OmfRc::ResourceFactory.create(:iw_test, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })
         end
       end
 

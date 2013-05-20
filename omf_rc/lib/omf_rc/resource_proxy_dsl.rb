@@ -8,6 +8,14 @@ module OmfRc::ResourceProxyDSL
 
   DEF_ACCESS = [:configure, :request]
 
+  # Calling a hook within a given resource context
+  #
+  # @param [Symbol] hook_name
+  # @param [Symbol] context in which resource this hook will be called
+  def call_hook(hook_name, context, *params)
+    context.send(hook_name, *params) if context.respond_to? hook_name
+  end
+
   # When this module included, methods defined under ClassMethods will be available in resource definition files
   #
   def self.included(base)
@@ -125,6 +133,11 @@ module OmfRc::ResourceProxyDSL
       define_method(name) do |*args, &block|
         register_block.call(self, *args, block) if register_block
       end
+    end
+
+    # @see OmfRc::ResourceProxyDSL.call_hook
+    def call_hook(hook_name, context, *params)
+      context.send(hook_name, *params) if context.respond_to? hook_name
     end
 
     # Include the utility by providing a name

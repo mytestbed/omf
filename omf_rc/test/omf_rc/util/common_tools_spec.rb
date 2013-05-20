@@ -17,7 +17,7 @@ describe OmfRc::Util::CommonTools do
 
     it "must be able to log and inform error/warn messages" do
       OmfCommon.stub :comm, @xmpp do
-        @test = OmfRc::ResourceFactory.new(:test)
+        @test = OmfRc::ResourceFactory.create(:test)
         2.times { @xmpp.expect(:publish, true, [String, OmfCommon::Message]) }
         @test.log_inform_error "bob"
         @test.log_inform_warn "bob"

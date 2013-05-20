@@ -26,6 +26,7 @@ end
 
 class OmfRc::ResourceProxy::AbstractResource
   include MonitorMixin
+  include OmfRc::ResourceProxyDSL
 
   # Time to wait before shutting down event loop, wait for deleting pubsub topics
   DISCONNECT_WAIT = 5
@@ -70,8 +71,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @topics = []
     @membership_topics ||= {}
 
-    @property = @opts.property || Hashie::Mash.new
-    @property.merge!(@opts.except([:uid, :hrn, :property, :instrument]))
+    @property = Hashie::Mash.new(@opts.property)
 
     OmfCommon.comm.subscribe(@uid) do |t|
       @topics << t
@@ -132,9 +132,15 @@ class OmfRc::ResourceProxy::AbstractResource
 
     opts[:parent_certificate] = @certificate if @certificate
     opts[:parent] = self
-    before_create(type, opts) if respond_to? :before_create
+
+    call_hook(:before_create, self, type, opts)
+
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
-    after_create(new_resource) if respond_to? :after_create
+
+    new_props = opts.reject { |k| [:type, :name, :uid, :hrn, :property, :instrument].include?(k.to_sym) }
+    init_configure(new_resource, new_props)
+
+    call_hook(:after_create, self, new_resource)
 
     self.synchronize do
       children << new_resource
@@ -180,7 +186,9 @@ class OmfRc::ResourceProxy::AbstractResource
     return false unless children.empty?
 
     info "Releasing hrn: #{hrn}, uid: #{uid}"
-    self.before_release if self.respond_to? :before_release
+
+    call_hook(:before_release, self)
+
     props = {
       res_id: resource_address
     }
@@ -368,44 +376,23 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def handle_create_message(message, obj, response)
     new_name = message[:name] || message[:hrn]
-    mprops = message.properties.merge({ hrn: new_name })
-    exclude = [:type, :hrn, :name, :uid]
-    props = {}
-    copts = {}
-    mprops.each do |k, v|
-      k = k.to_sym
-      if exclude.include?(k)
-        copts[k] = v
-      else
-        props[k] = v
-      end
-    end
-    new_obj = obj.create(message[:type], copts, &lambda do |new_obj|
+    msg_props = message.properties.merge({ hrn: new_name })
+
+    new_obj = obj.create(message[:type], msg_opts, &lambda do |new_obj|
       begin
         response[:res_id] = new_obj.resource_address
 
-        props.each do |key, value|
-          method_name = "configure_#{key}"
-
-          if new_obj.respond_to? method_name
-            response[key] = new_obj.__send__(method_name, value)
-          elsif new_obj.respond_to? "request_#{key}"
-            # For read only props, they won't have "configure" method defined,
-            # we can still set them directly during this creation.
-            new_obj.property[key] = value
-            response[key] = value
+        msg_props.each do |key, value|
+          if new_obj.respond_to? "request_#{key}"
+            response[key] = new_obj.__send__("request_#{key}")
+          elsif new_obj.respond_to? key
+            response[key] = new_obj.__send__(key)
           end
         end
 
-        response[:hrn] = new_obj.hrn
-        response[:uid] = new_obj.uid
-        response[:type] = new_obj.type
 				if (cred = new_obj.certificate)
           response[:cert] = cred.to_pem_compact
         end
-
-        new_obj.after_initial_configured if new_obj.respond_to? :after_initial_configured
-
         # self here is the parent
         self.inform(:creation_ok, response)
       rescue  => ex
@@ -543,5 +530,19 @@ class OmfRc::ResourceProxy::AbstractResource
         end
       end
     end
+  end
+
+  def init_configure(res_ctx, props)
+    props.each do |key, value|
+      if res_ctx.respond_to? "configure_#{key}"
+        res_ctx.__send__("configure_#{key}", value)
+      elsif res_ctx.respond_to? "request_#{key}"
+        # For read only props, they won't have "configure" method defined,
+        # we can still set them directly during this creation.
+        res_ctx.property[key] = value
+      end
+    end
+
+    call_hook(:after_initial_configured, res_ctx)
   end
 end

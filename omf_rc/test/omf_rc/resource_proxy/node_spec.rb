@@ -7,7 +7,7 @@ describe OmfRc::ResourceProxy::Node do
     @xmpp.expect(:subscribe, true, [String])
 
     OmfCommon.stub :comm, @xmpp do
-      @node = OmfRc::ResourceFactory.new(:node, hrn: 'node_test')
+      @node = OmfRc::ResourceFactory.create(:node, hrn: 'node_test')
     end
   end
 

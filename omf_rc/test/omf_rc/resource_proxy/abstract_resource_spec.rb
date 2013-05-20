@@ -35,7 +35,7 @@ describe AbstractResource do
     @xmpp = MiniTest::Mock.new
     @xmpp.expect(:subscribe, true, [String])
     OmfCommon.stub :comm, @xmpp do
-      @node = OmfRc::ResourceFactory.new(:node, { hrn: 'default_node' }, { create_children_resources: true })
+      @node = OmfRc::ResourceFactory.create(:node, { hrn: 'default_node' }, { create_children_resources: true })
     end
   end
 
@@ -141,7 +141,7 @@ describe AbstractResource do
       skip
       Blather::Client.stub :new, @client do
         Blather::Stream::Client.stub(:start, @client) do
-          @node = OmfRc::ResourceFactory.new(:node, { hrn: 'default_node', user: 'bob', password: 'pw', server: 'example.com'}, @xmpp)
+          @node = OmfRc::ResourceFactory.create(:node, { hrn: 'default_node', user: 'bob', password: 'pw', server: 'example.com'}, @xmpp)
           @client.stub(:connected?, true) do
             @node.connect
             @node.comm.conn_info.must_equal({proto: :xmpp, user: 'bob', doamin: 'example.com'})

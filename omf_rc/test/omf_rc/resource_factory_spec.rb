@@ -16,7 +16,7 @@ describe OmfRc::ResourceFactory do
     it "must be able to create new resource proxy" do
       OmfCommon.stub :comm, @xmpp do
         OmfRc::ResourceFactory.load_default_resource_proxies
-        mock = OmfRc::ResourceFactory.new(:mock)
+        mock = OmfRc::ResourceFactory.create(:mock)
         mock.must_be_kind_of OmfRc::ResourceProxy::AbstractResource
         mock.must_respond_to :request_nothing
         mock.request_nothing.must_equal mock.uid

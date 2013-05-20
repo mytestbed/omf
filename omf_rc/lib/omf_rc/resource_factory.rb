@@ -6,6 +6,8 @@ require 'omf_rc/resource_proxy/abstract_resource'
 # Factory class for managing available proxies and creating new resource proxy instances
 #
 class OmfRc::ResourceFactory
+  include OmfRc::ResourceProxyDSL
+
   # List of registered resource proxies
   @@proxy_list = Hashie::Mash.new
 
@@ -29,7 +31,8 @@ class OmfRc::ResourceFactory
         resource.__send__(m) if m =~ /def_property_(.+)/
       end
       # Execute resource before_ready hook if any
-      resource.before_ready if resource.respond_to? :before_ready
+      call_hook(:before_ready, resource)
+
       resource
     end
 

@@ -10,7 +10,7 @@ describe OmfRc::ResourceProxy::Application do
     @xmpp.expect(:publish, true, [String, OmfCommon::Message])
 
     OmfCommon.stub :comm, @xmpp do
-      @app_test = OmfRc::ResourceFactory.new(:application, { hrn: 'an_application' })
+      @app_test = OmfRc::ResourceFactory.create(:application, { hrn: 'an_application' })
     end
   end
 

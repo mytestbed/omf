@@ -18,7 +18,7 @@ describe OmfRc::Util::Ip do
       @command = MiniTest::Mock.new
 
       OmfCommon.stub :comm, @xmpp do
-        @wlan00 = OmfRc::ResourceFactory.new(:ip_test, hrn: 'wlan00')
+        @wlan00 = OmfRc::ResourceFactory.create(:ip_test, hrn: 'wlan00')
       end
     end
 
