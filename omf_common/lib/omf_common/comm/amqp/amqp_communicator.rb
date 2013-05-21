@@ -28,6 +28,7 @@ module OmfCommon
               connection.close
             end
           end
+          #AMQP::Session#on_skipped_heartbeats callback that can be used to handle skipped heartbeats
           super
         end
 

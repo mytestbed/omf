@@ -2,14 +2,14 @@
 require 'omf_common'
 require 'omf_common/auth/certificate'
 
-root_cert = OmfCommon::Auth::Certificate.create('sa', 'authority')
+#root_cert = OmfCommon::Auth::Certificate.create(nil, 'sa', 'authority')
 opts = {
   communication: {
     auth: {
       #store: 'amqp://localhost',
-      certs: [
-        root_cert.to_pem_compact
-      ]
+      # certs: [
+        # root_cert.to_pem_compact
+      # ]
     }
   }
 }
@@ -17,7 +17,7 @@ opts = {
 
 OmfCommon.init(:local, opts)
 # Create a certificate for this controller
-root_cert.create_for(:controller, :controller, OmfCommon.comm.local_address())
+#root_cert.create_for(:controller, :controller, OmfCommon.comm.local_address())
 
 
 def create_engine(garage)
@@ -111,8 +111,9 @@ OmfCommon.eventloop.run do |el|
 
     # Create garage proxy
     load File.join(File.dirname(__FILE__), '..', '..', 'omf_rc', 'example', 'garage_controller.rb')
-    garage_cert = root_cert.create_for(:garage1, :garage)
-    garage_inst = OmfRc::ResourceFactory.create(:garage, uid: :garage_1, certificate: garage_cert)
+    #garage_cert = root_cert.create_for(:garage1, :garage)
+    #garage_inst = OmfRc::ResourceFactory.create(:garage, uid: :garage_1, certificate: garage_cert)
+    garage_inst = OmfRc::ResourceFactory.create(:garage, uid: :garage_1)
 
     # Get handle on existing entity
     comm.subscribe('garage_1') do |garage|

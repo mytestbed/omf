@@ -66,7 +66,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @hrn = @opts.hrn && @opts.hrn.to_s
 
     @children ||= []
-    @membership ||= []
+    @membership = []
     @topics = []
     @membership_topics ||= {}
 
@@ -103,6 +103,7 @@ class OmfRc::ResourceProxy::AbstractResource
         end
       end
     end
+    configure_membership(@opts.membership) if @opts.membership
 
     super()
   end
