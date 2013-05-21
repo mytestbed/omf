@@ -1,9 +1,10 @@
 --title OMF
 --private
---load yard_extension.rb
 --asset doc/images:images
 -o documentation
-omf_*/lib/**/*.rb
+omf_common/lib/**/*.rb
+omf_rc/lib/**/*.rb
+omf_ec/lib/**/*.rb
 -
 doc/**/*.mkd
 doc/**/*.rb

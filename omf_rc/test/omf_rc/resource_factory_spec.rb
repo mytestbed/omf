@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'test_helper'
 require 'omf_rc/resource_factory'
 
@@ -16,7 +21,7 @@ describe OmfRc::ResourceFactory do
     it "must be able to create new resource proxy" do
       OmfCommon.stub :comm, @xmpp do
         OmfRc::ResourceFactory.load_default_resource_proxies
-        mock = OmfRc::ResourceFactory.new(:mock)
+        mock = OmfRc::ResourceFactory.create(:mock)
         mock.must_be_kind_of OmfRc::ResourceProxy::AbstractResource
         mock.must_respond_to :request_nothing
         mock.request_nothing.must_equal mock.uid

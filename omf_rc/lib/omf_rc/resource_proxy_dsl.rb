@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 # DSL contains some helper methods to ease the process defining resource proxies
 #
 # DSL methods are defined under {OmfRc::ResourceProxyDSL::ClassMethods}
@@ -7,6 +12,14 @@ module OmfRc::ResourceProxyDSL
   UTIL_DIR = "omf_rc/util"
 
   DEF_ACCESS = [:configure, :request]
+
+  # Calling a hook within a given resource context
+  #
+  # @param [Symbol] hook_name
+  # @param [Symbol] context in which resource this hook will be called
+  def call_hook(hook_name, context, *params)
+    context.send(hook_name, *params) if context.respond_to? hook_name
+  end
 
   # When this module included, methods defined under ClassMethods will be available in resource definition files
   #
@@ -125,6 +138,11 @@ module OmfRc::ResourceProxyDSL
       define_method(name) do |*args, &block|
         register_block.call(self, *args, block) if register_block
       end
+    end
+
+    # @see OmfRc::ResourceProxyDSL.call_hook
+    def call_hook(hook_name, context, *params)
+      context.send(hook_name, *params) if context.respond_to? hook_name
     end
 
     # Include the utility by providing a name

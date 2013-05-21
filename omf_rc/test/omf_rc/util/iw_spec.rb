@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'minitest/mock'
 require 'test_helper'
 require 'cocaine'
@@ -15,15 +20,20 @@ Cocaine::CommandLine.stub(:new, @command) do
 
         module OmfRc::ResourceProxy::IwTest
           include OmfRc::ResourceProxyDSL
+
           register_proxy :iw_test
+
           utility :iw
+
+          property :if_name
+          property :phy
         end
 
         @xmpp = MiniTest::Mock.new
         @xmpp.expect(:subscribe, true, [String])
 
         OmfCommon.stub :comm, @xmpp do
-          @wlan00 = OmfRc::ResourceFactory.new(:iw_test, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })
+          @wlan00 = OmfRc::ResourceFactory.create(:iw_test, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })
         end
       end
 

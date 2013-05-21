@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'securerandom'
 require 'hashie'
 require 'omf_rc/resource_proxy_dsl'
@@ -6,6 +11,8 @@ require 'omf_rc/resource_proxy/abstract_resource'
 # Factory class for managing available proxies and creating new resource proxy instances
 #
 class OmfRc::ResourceFactory
+  include OmfRc::ResourceProxyDSL
+
   # List of registered resource proxies
   @@proxy_list = Hashie::Mash.new
 
@@ -29,7 +36,8 @@ class OmfRc::ResourceFactory
         resource.__send__(m) if m =~ /def_property_(.+)/
       end
       # Execute resource before_ready hook if any
-      resource.before_ready if resource.respond_to? :before_ready
+      call_hook(:before_ready, resource)
+
       resource
     end
 

@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'monitor'
 require 'securerandom'
 
@@ -106,7 +111,7 @@ module OmfCommon
         add_message_handler(:inform, key, &message_block)
       end
 
-      # Remove all registered callbacks for 'key'. Will also unsubscribe from the underlying 
+      # Remove all registered callbacks for 'key'. Will also unsubscribe from the underlying
       # comms layer if no callbacks remain.
       #
       def unsubscribe(key)
@@ -170,8 +175,7 @@ module OmfCommon
       # Process a message received from this topic.
       #
       # @param [OmfCommon::Message] msg Message received
-      # @param [Hash] auth_info Authentication information
-      # @option auth_info [Symbol] :signer Id
+      #
       def on_incoming_message(msg)
         type = msg.operation
         debug "(#{id}) Deliver message '#{type}': #{msg.inspect}"

@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'test_helper'
 require 'omf_rc/resource_proxy_dsl'
 
@@ -79,7 +84,7 @@ describe OmfRc::ResourceProxyDSL do
           OmfRc::ResourceProxy::MockProxy.method_defined?(m.to_sym).must_equal true
         end
 
-        mock_proxy = OmfRc::ResourceFactory.new(:mock_proxy)
+        mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy)
         mock_proxy.request_alpha.must_equal mock_proxy.uid
         mock_proxy.request_delta.must_equal "printing"
         mock_proxy.request_charlie.must_equal "working on printing"
@@ -111,17 +116,17 @@ describe OmfRc::ResourceProxyDSL do
     it "must check new proxy's create_by option when ask a proxy create a new proxy" do
       OmfCommon.stub :comm, @xmpp do
         @xmpp.expect(:subscribe, true, [String])
-        OmfRc::ResourceFactory.new(:mock_root_proxy).create(:mock_proxy)
+        OmfRc::ResourceFactory.create(:mock_root_proxy).create(:mock_proxy)
         2.times { @xmpp.expect(:subscribe, true, [String]) }
-        OmfRc::ResourceFactory.new(:mock_root_proxy).create(:useless_proxy)
+        OmfRc::ResourceFactory.create(:mock_root_proxy).create(:useless_proxy)
         2.times { @xmpp.expect(:subscribe, true, [String]) }
-        lambda { OmfRc::ResourceFactory.new(:useless_proxy).create(:mock_proxy) }.must_raise StandardError
+        lambda { OmfRc::ResourceFactory.create(:useless_proxy).create(:mock_proxy) }.must_raise StandardError
       end
     end
 
     it "must be able to define property with default vlaue" do
       OmfCommon.stub :comm, @xmpp do
-        mock_proxy = OmfRc::ResourceFactory.new(:mock_proxy)
+        mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy)
         mock_proxy.property.mock_prop.must_equal 1
       end
     end

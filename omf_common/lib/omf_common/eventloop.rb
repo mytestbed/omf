@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 module OmfCommon
   # Providing event loop support.
   class Eventloop
@@ -51,8 +56,7 @@ module OmfCommon
 
     # Execute block after some time
     #
-    # @param [float] delay in sec
-    # @param [block] block to execute
+    # @param [Float] delay_sec in sec
     #
     def after(delay_sec, &block)
       raise "Missing implementation 'after'"
@@ -60,8 +64,7 @@ module OmfCommon
 
     # Periodically call block every interval_sec
     #
-    # @param [float] interval in sec
-    # @param [block] block to execute
+    # @param [Float] interval_sec in sec
     #
     def every(interval_sec, &block)
       raise "Missing implementation 'every'"

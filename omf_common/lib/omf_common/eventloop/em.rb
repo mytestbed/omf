@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'eventmachine'
 
 module OmfCommon
@@ -14,7 +19,7 @@ module OmfCommon
 
       # Execute block after some time
       #
-      # @param [Float] delay in sec
+      # @param [Float] delay_sec in sec
       def after(delay_sec, &block)
         if EM.reactor_running?
           EM.add_timer(delay_sec) do
@@ -48,7 +53,7 @@ module OmfCommon
 
       # Periodically call block every interval_sec
       #
-      # @param [Float] interval in sec
+      # @param [Float] interval_sec in sec
       def every(interval_sec, &block)
         # to allow canceling the periodic timer we need to
         # hand back a reference to it which responds to 'cancel'

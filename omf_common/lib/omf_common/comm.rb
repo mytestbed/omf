@@ -1,3 +1,8 @@
+# Copyright (c) 2012 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
 require 'omf_common/comm/topic'
 
 module OmfCommon
@@ -122,7 +127,7 @@ module OmfCommon
 
     # Returning connection information
     #
-    # @retun [Hash] connection information hash, with type, user and domain.
+    # @return [Hash] connection information hash, with type, user and domain.
     def conn_info
       { proto: nil, user: nil, domain: nil }
     end
