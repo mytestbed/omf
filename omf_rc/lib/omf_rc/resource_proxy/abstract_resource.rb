@@ -381,6 +381,7 @@ class OmfRc::ResourceProxy::AbstractResource
     new_obj = obj.create(message[:type], msg_opts, &lambda do |new_obj|
       begin
         response[:res_id] = new_obj.resource_address
+        response[:uid] = new_obj.uid
 
         msg_props.each do |key, value|
           if new_obj.respond_to? "request_#{key}"
