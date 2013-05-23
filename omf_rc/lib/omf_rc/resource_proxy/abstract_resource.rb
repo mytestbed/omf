@@ -3,7 +3,6 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-#require 'omf_rc/deferred_process'
 require 'omf_rc/omf_error'
 require 'securerandom'
 require 'hashie'
@@ -29,12 +28,16 @@ class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   param :mid, :type => :string # Unique ID this message
 end
 
+# The abstract resource proxy class, which handles incoming FRCP messages.
+#
+# When using resource factory to create new resources, this abstract class will be initialised and then extended by one of the specific resource proxy modules.
+#
+# @see OmfRc::ResourceFactory
+#
 class OmfRc::ResourceProxy::AbstractResource
   include MonitorMixin
   include OmfRc::ResourceProxyDSL
 
-  # Time to wait before shutting down event loop, wait for deleting pubsub topics
-  DISCONNECT_WAIT = 5
   # Time to wait before releasing resource, wait for deleting pubsub topics
   RELEASE_WAIT = 5
 
@@ -43,8 +46,6 @@ class OmfRc::ResourceProxy::AbstractResource
     create_children_resources: true
   }
 
-  # @!attribute property
-  #   @return [String] the resource's internal meta data storage
   attr_accessor :uid, :hrn, :type, :comm, :property, :certificate
   attr_reader :opts, :children, :membership, :creation_opts, :membership_topics
 
@@ -113,17 +114,17 @@ class OmfRc::ResourceProxy::AbstractResource
     super()
   end
 
-  # Return the public 'routable'  address for this resource
-  #
+  # Return the public 'routable' address for this resource
   def resource_address()
     @topics[0].address
   end
 
+  # Get binding of current object, used for ERB eval
   def get_binding
     binding
   end
 
-  # Try to clean up pubsub topics, and wait for DISCONNECT_WAIT seconds, then shutdown event machine loop
+  # Disconnect using communicator
   def disconnect
     OmfCommon.comm.disconnect
   end
@@ -131,6 +132,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # Create a new resource in the context of this resource. This resource becomes parent, and newly created resource becomes child
   #
   # @param (see #initialize)
+  # @return [AbstractResource] new resource has been created
   def create(type, opts = {}, creation_opts = {}, &creation_callback)
     unless request_supported_children_type.include?(type.to_sym)
       raise StandardError, "Resource #{type} is not designed to be created by #{self.type}"
@@ -156,8 +158,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Release a child resource
   #
-  # @return [AbstractResource] Relsead child or nil if error
-  #
+  # @return [AbstractResource] Released child or nil if error
   def release(res_id)
     if (child = children.find { |v| v.uid.to_s == res_id.to_s })
       if child.release_self()
@@ -177,8 +178,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Release this resource. Should ONLY be called by parent resource.
   #
-  # Return true if successful
-  #
+  # @return [Boolean] true if successful
   def release_self
     # Release children resource recursively
     children.each do |c|
@@ -216,6 +216,8 @@ class OmfRc::ResourceProxy::AbstractResource
     true
   end
 
+  # @!macro group_request
+  #
   def request_supported_children_type(*args)
     OmfRc::ResourceFactory.proxy_list.reject { |v| v == @type.to_s }.find_all do |k, v|
       (v.create_by && v.create_by.include?(@type.to_sym)) || v.create_by.nil?
@@ -241,10 +243,6 @@ class OmfRc::ResourceProxy::AbstractResource
     type
   end
 
-  def configure_type(*args)
-    @type = type
-  end
-
   # Make hrn accessible through pubsub interface
   def request_hrn(*args)
     hrn
@@ -252,22 +250,28 @@ class OmfRc::ResourceProxy::AbstractResource
 
   alias_method :request_name, :request_hrn
   alias_method :name, :hrn
+  alias_method :name=, :hrn=
 
-  # Make hrn configurable through pubsub interface
-  def configure_hrn(hrn)
-    self.synchronize do
-      @hrn = hrn
-    end
-    @hrn
+  # Query resource's membership
+  def request_membership(*args)
+    @membership
   end
 
-  alias_method :configure_name, :configure_hrn
-  alias_method :name=, :hrn=
+  # Request child resources
+  #
+  # @return [Hashie::Mash] child resource mash with uid and hrn
+  def request_child_resources(*args)
+    #children.map { |c| Hashie::Mash.new({ uid: c.uid, name: c.hrn }) }
+    children.map { |c| c.to_hash }
+  end
+
+  # @!endgroup
+  #
+  # @!macro group_configure
 
   # Make resource part of the group topic, it will overwrite existing membership array
   #
-  # @param [String] name of group topic
-  # @param [Array] name of group topics
+  # @param [String|Array] args name of group topic/topics
   def configure_membership(*args)
     new_membership = [args[0]].flatten
 
@@ -296,22 +300,12 @@ class OmfRc::ResourceProxy::AbstractResource
     @membership
   end
 
-  # Query resource's membership
-  def request_membership(*args)
-    @membership
-  end
-
-  # Request child resources
-  # @return [Hashie::Mash] child resource mash with uid and hrn
-  def request_child_resources(*args)
-    #children.map { |c| Hashie::Mash.new({ uid: c.uid, name: c.hrn }) }
-    children.map { |c| c.to_hash }
-  end
+  # @!endgroup
 
   # Parse omf message and execute as instructed by the message
   #
-  # @param [OmfCommon::Message]
-  # @param [OmfCommon::Comm::Topic]
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfCommon::Comm::Topic] topic subscribed to
   def process_omf_message(message, topic)
     return unless check_guard(message)
 
@@ -331,6 +325,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  # Execute operation based on the type of the message
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
+  # @param [OmfCommon::Comm::Topic] topic subscribed to
   def execute_omf_operation(message, obj, topic)
     begin
       response_h = handle_message(message, obj)
@@ -356,6 +355,9 @@ class OmfRc::ResourceProxy::AbstractResource
   end
 
   # Handling all messages, then delegate them to individual handler
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
   def handle_message(message, obj)
     response = message.create_inform_reply_message(nil, {}, src: resource_address)
     response.replyto replyto_address(obj, message.replyto)
@@ -380,11 +382,15 @@ class OmfRc::ResourceProxy::AbstractResource
     response
   end
 
+  # Create message handler
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
   def handle_create_message(message, obj, response)
     new_name = message[:name] || message[:hrn]
     msg_props = message.properties.merge({ hrn: new_name })
 
-    new_obj = obj.create(message[:type], msg_opts, &lambda do |new_obj|
+    new_obj = obj.create(message[:type], msg_props, &lambda do |new_obj|
       begin
         response[:res_id] = new_obj.resource_address
         response[:uid] = new_obj.uid

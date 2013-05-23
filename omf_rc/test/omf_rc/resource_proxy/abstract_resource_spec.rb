@@ -103,12 +103,6 @@ describe AbstractResource do
       @node.request_available_properties.configure.must_include :name
       @node.request_available_properties.request.must_include :name
     end
-
-    it "must be able to request and configure some common properties" do
-      @node.request_hrn.must_equal 'default_node'
-      @node.configure_hrn('bob')
-      @node.request_hrn.must_equal 'bob'
-    end
   end
 
   describe "when interacted with communication layer" do
