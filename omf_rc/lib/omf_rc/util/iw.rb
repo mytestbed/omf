@@ -6,11 +6,18 @@
 require 'hashie'
 require 'cocaine'
 
+# Utility for executing command 'iw'
 module OmfRc::Util::Iw
   include OmfRc::ResourceProxyDSL
+
   include Cocaine
   include Hashie
 
+  # @!macro extend_dsl
+  #
+  # @!parse include OmfRc::Util::Ip
+  # @!parse include OmfRc::Util::Wpa
+  # @!parse include OmfRc::Util::Hostapd
   utility :ip
   utility :wpa
   utility :hostapd
@@ -31,8 +38,18 @@ module OmfRc::Util::Iw
     logger.warn "Command iw not found"
   end
 
+  # @!macro group_request
+  #
   # Parse iw link command output and return as a mash
   #
+  # @example return value
+  #
+  #   { ssid: 'ap', freq: '2412', signal: '-67 dBm' }
+  #
+  # @return [Mash]
+  #
+  # @!method request_link
+  # @!macro request
   request :link do |device|
     known_properties = Mash.new
 
@@ -49,6 +66,13 @@ module OmfRc::Util::Iw
 
   # Parse iw info command output and return as a mash
   #
+  # @example return value
+  #
+  #   { ifindex: '3', type: 'managed', wiphy: '0' }
+  #
+  # @return [Mash]
+  # @!method request_info
+  # @!macro request
   request :info do |device|
     known_properties = Mash.new
 
@@ -63,63 +87,42 @@ module OmfRc::Util::Iw
     known_properties
   end
 
-  # Delete current interface, clean up
+  # @!endgroup
+
+  # @!macro group_configure
   #
-  work :delete_interface do |device|
-    CommandLine.new("iw", "dev :dev del", :dev => device.property.if_name).run
-  end
-
-  # Add interface to device
+  # Configure the interface with mode: managed, master, adhoc or monitor
   #
-  work :add_interface do |device, type|
-    CommandLine.new("iw", "phy :phy interface add :dev type :type",
-                    :phy => device.property.phy,
-                    :dev => device.property.if_name,
-                    :type => type.to_s).run
-  end
-
-  # Set up or join a ibss network
+  # @example Sample opts for mode property
+  #   # Master
+  #   { mode: :master, hw_mode: 'a', channel: 1, essid: 'bob' }
   #
-  work :join_ibss do |device|
-    CommandLine.new("iw", "dev :device ibss join :essid :frequency",
-                      :device => device.property.if_name.to_s,
-                      :essid => device.property.essid.to_s,
-                      :frequency => device.property.frequency.to_s).run
-  end
-
-  # Validate internal properties based on interface mode
+  #   # Managed
+  #   { mode: :managed, essid: 'bob' }
   #
-  work :validate_iw_properties do |device|
-    raise ArgumentError, "Missing phyical device name" if device.property.phy.nil?
-
-    unless %w(master managed adhoc monitor).include? device.property.mode
-      raise ArgumentError, "Mode must be master, managed, adhoc, or monitor, got #{device.property.mode}"
-    end
-
-    case device.property.mode.to_sym
-    when :master
-      unless %w(a b g n).include? device.property.hw_mode
-        raise ArgumentError, "Hardware mode must be a, b, g, or n, got #{device.property.hw_mode}"
-      end
-      %w(channel essid).each do |p|
-        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
-      end
-    when :managed
-      %w(essid).each do |p|
-        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
-      end
-    when :adhoc
-      %w(essid frequency).each do |p|
-        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
-      end
-    end
-  end
-
-  # Configure the interface with mode managed, master, adhoc or monitor
+  #   # Ad-hoc
+  #   { mode: :adhoc, essid: 'bob', frequency: 2412 }
   #
-  configure :mode do |device, value|
-    # capture value hash and store internally
-    device.property.update(value)
+  #   # Monitor
+  #   { mode: :monitor }
+  #
+  # @param [Hash] opts the hash to set up mode of wireless interface
+  #
+  # @option opts [Symbol] :mode wireless connection mode (:master, :managed, :adhoc)
+  # @option opts [Symbol] :hw_mode wireless connection hardware mode ('a', 'b', 'g', 'n')
+  # @option opts [Symbol] :essid
+  # @option opts [Symbol] :channel
+  # @option opts [Symbol] :frequency
+  #
+  # @raise [ArgumentError] if wifi device specified cannot be found on the system
+  #
+  # @return [String] ip address of the device if configured properly
+  #
+  # @!method configure_mode(opts)
+  # @!macro configure
+  configure :mode do |device, opts|
+    # capture opts hash and store internally
+    device.property.update(opts)
 
     if device.property.phy && device.property.phy =~ /^%(\d+)%$/
       wlan_phy_device = device.request_wlan_devices[$1.to_i]
@@ -154,4 +157,72 @@ module OmfRc::Util::Iw
 
     device.configure_ip_addr(device.property.ip_addr) if device.property.ip_addr
   end
+
+  # @!endgroup
+  #
+  # @!macro group_work
+  #
+  # Delete current interface, clean up
+  #
+  # @return [String] iw command output
+  # @!macro work
+  work :delete_interface do |device|
+    CommandLine.new("iw", "dev :dev del", :dev => device.property.if_name).run
+  end
+
+  # Add interface to device
+  #
+  # @return [String] iw command output
+  # @!macro work
+  work :add_interface do |device, type|
+    CommandLine.new("iw", "phy :phy interface add :dev type :type",
+                    :phy => device.property.phy,
+                    :dev => device.property.if_name,
+                    :type => type.to_s).run
+  end
+
+  # Set up or join a ibss network
+  #
+  # @return [String] iw command output
+  # @!macro work
+  work :join_ibss do |device|
+    CommandLine.new("iw", "dev :device ibss join :essid :frequency",
+                      :device => device.property.if_name.to_s,
+                      :essid => device.property.essid.to_s,
+                      :frequency => device.property.frequency.to_s).run
+  end
+
+  # Validate internal properties based on interface mode
+  #
+  # @raise [ArgumentError] if validation failed
+  #
+  # @return [nil]
+  # @!macro work
+  work :validate_iw_properties do |device|
+    raise ArgumentError, "Missing phyical device name" if device.property.phy.nil?
+
+    unless %w(master managed adhoc monitor).include? device.property.mode
+      raise ArgumentError, "Mode must be master, managed, adhoc, or monitor, got #{device.property.mode}"
+    end
+
+    case device.property.mode.to_sym
+    when :master
+      unless %w(a b g n).include? device.property.hw_mode
+        raise ArgumentError, "Hardware mode must be a, b, g, or n, got #{device.property.hw_mode}"
+      end
+      %w(channel essid).each do |p|
+        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
+      end
+    when :managed
+      %w(essid).each do |p|
+        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
+      end
+    when :adhoc
+      %w(essid frequency).each do |p|
+        raise ArgumentError, "#{p} must not be nil" if device.property.send(p).nil?
+      end
+    end
+  end
+
+  # @!endgroup
 end

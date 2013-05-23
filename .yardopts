@@ -2,6 +2,7 @@
 --private
 --asset doc/images:images
 -o documentation
+yard_macro
 omf_common/lib/**/*.rb
 omf_rc/lib/**/*.rb
 omf_ec/lib/**/*.rb

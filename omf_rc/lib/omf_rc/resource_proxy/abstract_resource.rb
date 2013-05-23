@@ -218,6 +218,9 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # @!macro group_request
   #
+  # Return a list of child resources this resource can create
+  #
+  # @return [Array<Symbol>]
   def request_supported_children_type(*args)
     OmfRc::ResourceFactory.proxy_list.reject { |v| v == @type.to_s }.find_all do |k, v|
       (v.create_by && v.create_by.include?(@type.to_sym)) || v.create_by.nil?
@@ -226,6 +229,10 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Return a list of all properties can be requested and configured
   #
+  # @example
+  #   { request: [:ip_addr, :frequency], configure: [:ip_address] }
+  #
+  # @return [Hashie::Mash]
   def request_available_properties(*args)
     Hashie::Mash.new(request: [], configure: []).tap do |mash|
       methods.each do |m|
@@ -239,6 +246,7 @@ class OmfRc::ResourceProxy::AbstractResource
     uid
   end
 
+  # Make type accessible through pubsub interface
   def request_type(*args)
     type
   end
@@ -366,7 +374,7 @@ class OmfRc::ResourceProxy::AbstractResource
     when :create
       handle_create_message(message, obj, response)
     when :request
-      response = handle_request_message(message, obj, response)
+      handle_request_message(message, obj, response)
     when :configure
       handle_configure_message(message, obj, response)
     when :release
@@ -382,15 +390,16 @@ class OmfRc::ResourceProxy::AbstractResource
     response
   end
 
-  # Create message handler
+  # FRCP CREATE message handler
   #
   # @param [OmfCommon::Message] message FRCP message
   # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
+  # @param [OmfCommon::Message] response initialised FRCP INFORM message object
   def handle_create_message(message, obj, response)
     new_name = message[:name] || message[:hrn]
     msg_props = message.properties.merge({ hrn: new_name })
 
-    new_obj = obj.create(message[:type], msg_props, &lambda do |new_obj|
+    obj.create(message[:type], msg_props, &lambda do |new_obj|
       begin
         response[:res_id] = new_obj.resource_address
         response[:uid] = new_obj.uid
@@ -419,6 +428,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end)
   end
 
+  # FRCP CONFIGURE message handler
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
+  # @param [OmfCommon::Message] response initialised FRCP INFORM message object
   def handle_configure_message(message, obj, response)
     message.each_property do |key, value|
       method_name =  "#{message.operation.to_s}_#{key}"
@@ -427,6 +441,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  # FRCP REQUEST message handler
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
+  # @param [OmfCommon::Message] response initialised FRCP INFORM message object
   def handle_request_message(message, obj, response)
     request_props = if message.has_properties?
                       message.properties.keys.map(&:to_sym) & obj.request_available_properties.request
@@ -440,10 +459,13 @@ class OmfRc::ResourceProxy::AbstractResource
       value = obj.__send__(method_name)
       response[p_name] = value if value
     end
-
-    response
   end
 
+  # FRCP RELEASE message handler
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
+  # @param [OmfCommon::Message] response initialised FRCP INFORM message object
   def handle_release_message(message, obj, response)
     res_id = message.res_id
     released_obj = obj.release(res_id)
@@ -509,13 +531,18 @@ class OmfRc::ResourceProxy::AbstractResource
   end
 
   # Return a hash describing a reference to this object
-  def to_hash(options={})
+  #
+  # @return [Hash]
+  def to_hash
     { uid: @uid, address: resource_address() }
   end
 
   private
 
-  # Find resource object based on topic name
+  # To deal with FRCP messages published to a group topic, we need to find out what resources belongs to that topic.
+  #
+  # @param [String] name of the topic
+  # @return [Array<OmfRc::ResourceProxy::AbstractResource>]
   def objects_by_topic(name)
     if name == uid || membership.include?(name)
       objs = [self]
@@ -524,10 +551,18 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  # Retrieve replyto address
+  #
+  # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
+  # @param [String] replyto address where reply should send to
   def replyto_address(obj, replyto = nil)
     replyto || obj.uid
   end
 
+  # Checking if current object met the condition set by message guard section
+  #
+  # @param [OmfCommon::Message] message FRCP message
+  # @return [Boolean]
   def check_guard(message)
     guard = message.guard
 
@@ -545,6 +580,10 @@ class OmfRc::ResourceProxy::AbstractResource
     end
   end
 
+  # Used for setting properties came with FRCP CREATE message.
+  #
+  # @param [OmfRc::ResourceProxy::AbstractResource] res_ctx resource object it applies to
+  # @param [Hash] props a set of key value pair of properties configuration
   def init_configure(res_ctx, props)
     props.each do |key, value|
       if res_ctx.respond_to? "configure_#{key}"

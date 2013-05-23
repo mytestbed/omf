@@ -26,11 +26,13 @@ class OmfRc::ResourceFactory
       unless @@proxy_list.include?(type)
         raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       end
+      # Get relevant module identified by type
+      emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize
       # Create a new instance of abstract resource
       resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts, &creation_callback)
-      # Then extend this instance with relevant module identified by type
-      emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize
+      # Extend newly created resource with proxy module
       resource.extend(emodule)
+
       # Initiate property hash
       resource.methods.each do |m|
         resource.__send__(m) if m =~ /def_property_(.+)/
@@ -58,13 +60,15 @@ class OmfRc::ResourceFactory
     end
 
     # Require files from default resource proxy library folder
-    #
     def load_default_resource_proxies
       Dir["#{File.dirname(__FILE__)}/resource_proxy/*.rb"].each do |file|
         require "omf_rc/resource_proxy/#{File.basename(file).gsub(/\.rb/, '')}"
       end
     end
 
+    # Require files from a folder contains resource proxy definition files
+    #
+    # @param [String] folder contains resource proxy definition files
     def load_additional_resource_proxies(folder)
       Dir["#{folder}/*.rb"].each do |file|
         require "#{folder}/#{File.basename(file).gsub(/\.rb/, '')}"

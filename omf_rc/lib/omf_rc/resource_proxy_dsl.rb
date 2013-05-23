@@ -6,9 +6,10 @@
 # DSL contains some helper methods to ease the process defining resource proxies
 #
 # DSL methods are defined under {OmfRc::ResourceProxyDSL::ClassMethods}
-#
 module OmfRc::ResourceProxyDSL
+  # Default directory contains proxy definition files
   PROXY_DIR = "omf_rc/resource_proxy"
+  # Default directory contains utility definition files
   UTIL_DIR = "omf_rc/util"
 
   DEF_ACCESS = [:configure, :request]
@@ -140,7 +141,7 @@ module OmfRc::ResourceProxyDSL
       end
     end
 
-    # @see OmfRc::ResourceProxyDSL.call_hook
+    # @see ResourceProxyDSL#call_hook
     def call_hook(hook_name, context, *params)
       context.send(hook_name, *params) if context.respond_to? hook_name
     end
@@ -158,6 +159,7 @@ module OmfRc::ResourceProxyDSL
     #     # Simply include this util module
     #     utility :iw
     #   end
+    #
     def utility(name)
       name = name.to_s
       begin
@@ -210,7 +212,6 @@ module OmfRc::ResourceProxyDSL
     #       end
     #     end
     #   end
-    #
     def configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
         args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
@@ -237,6 +238,7 @@ module OmfRc::ResourceProxyDSL
     #       end
     #     end
     #   end
+    #
     def request(name, &register_block)
       define_method("request_#{name.to_s}") do |*args, &block|
         args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
@@ -368,12 +370,10 @@ module OmfRc::ResourceProxyDSL
           define_method("configure_#{name}") do |val|
             self.property[name] = val
           end
-
         when :request
           define_method("request_#{name}") do
             self.property[name]
           end
-
         else
           raise "Unnown access type '#{a}'"
         end
