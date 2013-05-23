@@ -90,7 +90,7 @@ class NodeAgent < MObject
     comm[:hrn] = @agentName
     comm[:comms_name] = "#{@agentSlice}-#{@agentName}"
     comm[:handler] = self
-    comm[:createflag] = false
+    comm[:createflag] = true
     comm[:config] = @config[:communicator]
     comm[:sliceID] = @agentSlice
     comm[:domain] = @agentDomain 

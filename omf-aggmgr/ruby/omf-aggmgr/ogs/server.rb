@@ -418,18 +418,28 @@ class XmppAggmgrServer < AggmgrServer
       domain.request_subscriptions(nil, true)
       # Add the system node and the nodes for each default slice
       nlist = @default_slices
-      nlist.each do |node|
+      nlist.each do |slice|
         begin
-          make_dispatcher(domain, "#{SLICE_PREFIX}/#{node}/#{SLICE_SUFFIX}")
+          make_dispatcher(domain, "#{SLICE_PREFIX}/#{slice}/#{SLICE_SUFFIX}")
         rescue Exception => e
-          puts "'#{e.message}'"
+          warn "'#{e.message}'"
           if e.message == "item-not-found: " then
-            domain.create_node("#{SLICE_PREFIX}/#{node}/#{SLICE_SUFFIX}")
-            make_dispatcher(domain, "#{SLICE_PREFIX}/#{node}/#{SLICE_SUFFIX}")
+            info "Pubsub node doesn't exist yet. Creating it and recreating the dispatcher."
+            domain.create_node("#{SLICE_PREFIX}/#{slice}/#{SLICE_SUFFIX}")
+            make_dispatcher(domain, "#{SLICE_PREFIX}/#{slice}/#{SLICE_SUFFIX}")
           end
         end
       end
-      make_dispatcher(domain, "#{SLICE_PREFIX}/system")
+      begin
+        make_dispatcher(domain, "#{SLICE_PREFIX}/system")
+      rescue Exception => e
+        warn "'#{e.message}'"
+        if e.message == "item-not-found: " then
+          info "Pubsub node doesn't exist yet. Creating it and recreating the dispatcher."
+          domain.create_node("#{SLICE_PREFIX}/system")
+          make_dispatcher(domain, "#{SLICE_PREFIX}/system")
+        end
+      end
     end
   end
 

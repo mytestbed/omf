@@ -1,3 +1,9 @@
+omf-resctl-5.4 (5.4.2-ubuntu12) precise; urgency=low
+
+  * No more need to create PubSub nodes, all components now create them automatically 
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 23 May 2013 18:26:05 +1000
+
 omf-resctl-5.4 (5.4.2-ubuntu11) precise; urgency=low
 
   * Bring package version in line with other OMF components

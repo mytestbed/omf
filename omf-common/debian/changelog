@@ -1,3 +1,9 @@
+omf-common-5.4 (5.4.2-ubuntu12) precise; urgency=low
+
+  * No more need to create PubSub nodes, all components now create them automatically
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 23 May 2013 18:39:39 +1000
+
 omf-common-5.4 (5.4.2-ubuntu11) precise; urgency=low
 
   * do not attempt to send XMPP messages when the Pubsub Transport has been shut down

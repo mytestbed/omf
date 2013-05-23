@@ -142,7 +142,9 @@ class OMFPubSubTransport < MObject
             process_queue(event, &block)
           end
         rescue Exception => ex
-          error "While processing queue; #{ex}"
+          error "While processing queue"
+          bt = ex.backtrace.join("\n\t")
+          error "Exception: #{ex} (#{ex.class})\n\t#{bt}"
         end
       }
       @@qcounter += 1
