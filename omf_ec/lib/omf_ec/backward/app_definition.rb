@@ -44,8 +44,23 @@ module OmfEc
         define_parameter(Hash[name,opts])
       end
 
-      def defMetric(name,type)
-        @fields << {:field => name, :type => type}
+      # Define metrics to measure
+      #
+      # @param [String] name of the metric
+      # @param [Symbol] type of the metric data
+      # @param [Hash] opts additional options
+      #
+      # @option opts [String] :unit unit of measure of the metric
+      # @option opts [String] :description of the metric
+      # @option opts [Float] :precision precision of the metric value
+      # @option opts [Range] :range value range of the metric
+      #
+      # @example OEDL
+      #   app.defMeasurement("power") do |mp|
+      #     mp.defMetric('power', :double, unit: "W", precision: 0.1, description: 'Power')
+      #   end
+      def defMetric(name,type, opts = {})
+        @fields << {:field => name, :type => type}.merge(opts)
       end
 
       # XXX: This should be provided by the omf-oml glue.
@@ -53,7 +68,7 @@ module OmfEc
         mp = {:mp => name, :fields => []}
         @fields = []
         # call the block with ourserlves to process its 'defMetric' statements
-        block.call(self) if block 
+        block.call(self) if block
         @fields.each { |f| mp[:fields] << f }
         define_measurement_point(mp)
       end
