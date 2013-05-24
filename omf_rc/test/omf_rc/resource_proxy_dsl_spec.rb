@@ -14,7 +14,9 @@ describe OmfRc::ResourceProxyDSL do
     module OmfRc::Util::MockUtility
       include OmfRc::ResourceProxyDSL
 
-      property :mock_prop, :default => 1
+      property :mock_prop, default: 1
+      property :read_only_prop, default: 1, access: :read_only
+      property :init_only_prop, default: 1, access: :init_only
 
       configure :alpha
 
@@ -128,6 +130,24 @@ describe OmfRc::ResourceProxyDSL do
       OmfCommon.stub :comm, @xmpp do
         mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy)
         mock_proxy.property.mock_prop.must_equal 1
+        mock_proxy.request_mock_prop.must_equal 1
+        mock_proxy.configure_mock_prop(2)
+        mock_proxy.request_mock_prop.must_equal 2
+      end
+    end
+
+
+    it "must define associate methods when access option given to property definition" do
+      OmfCommon.stub :comm, @xmpp do
+        mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy)
+        # Ready only
+        mock_proxy.request_read_only_prop.must_equal 1
+        lambda { mock_proxy.init_read_only_prop }.must_raise NoMethodError
+        lambda { mock_proxy.configure_read_only_prop }.must_raise NoMethodError
+        # Init only
+        mock_proxy.request_init_only_prop.must_equal 1
+        lambda { mock_proxy.init_init_only_prop }.must_raise NoMethodError
+        lambda { mock_proxy.configure_init_only_prop }.must_raise NoMethodError
       end
     end
   end

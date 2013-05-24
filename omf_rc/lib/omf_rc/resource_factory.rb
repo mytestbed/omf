@@ -35,7 +35,7 @@ class OmfRc::ResourceFactory
 
       # Initiate property hash
       resource.methods.each do |m|
-        resource.__send__(m) if m =~ /def_property_(.+)/
+        resource.__send__(m) if m =~ /default_property_(.+)/
       end
       # Execute resource before_ready hook if any
       call_hook(:before_ready, resource)

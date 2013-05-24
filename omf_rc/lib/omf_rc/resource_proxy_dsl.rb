@@ -12,7 +12,8 @@ module OmfRc::ResourceProxyDSL
   # Default directory contains utility definition files
   UTIL_DIR = "omf_rc/util"
 
-  DEF_ACCESS = [:configure, :request]
+  # Default property access rights through FRCP
+  DEFAULT_PROP_ACCESS = [:configure, :request]
 
   # Calling a hook within a given resource context
   #
@@ -345,29 +346,56 @@ module OmfRc::ResourceProxyDSL
       alias_method "orig_request_#{request_name}", "request_#{request_name}"
     end
 
-    # Define internal property
+    # Define internal property. Refer to options section to see supported options.
     #
     # @param [Symbol] name of the property
     #
     # @option opts [Object] :default default value of the property
-    # @option opts [Array] :access defines access to the property, default is [:configure, :request]
+    # @option opts [Array<Symbol>, Symbol] :access defines access to the property
+    #   it could be defined as an array, listing access rights, which by default is [:configure, :request]
+    #   or it could be defined as one of the predefined symbols :configure, :read_only, or :init_only
     #
-    # @example define a request-only property
+    # @example
+    #   # Read-only property, i.e. could not be modified through FRCP protocol
+    #   property :bob, default: 1, access: :configure
     #
-    #   property :bob, default: 1, access: [:request]
+    #   # Read & Write property, i.e. could be modified through FRCP protocol
+    #   property :bob, default: 1, access: :read_only
     #
+    #   # Read & could be modified ONLY through FRCP CREATE message
+    #   property :bob, default: 1, access: :init_only
     def property(name, opts = {})
       opts = Hashie::Mash.new(opts)
 
-      define_method("def_property_#{name}") do |*args, &block|
+      define_method("default_property_#{name}") do |*args, &block|
         self.property[name] ||= opts[:default]
       end
 
-      access = opts.access || DEF_ACCESS
+      if opts.access.instance_of? Array
+        access = opts.access
+      elsif opts.access.instance_of? Symbol
+        access = case opts.access
+                 when :configure
+                   [:configure, :request]
+                 when :init_only
+                   [:init, :request]
+                 when :read_only
+                   [:request]
+                 else
+                   raise ArgumentError, "Unknown property access mode '#{opts.access}'"
+                 end
+      end
+
+      access ||= DEFAULT_PROP_ACCESS
+
       access.each do |a|
         case a
         when :configure
           define_method("configure_#{name}") do |val|
+            self.property[name] = val
+          end
+        when :init
+          define_method("initialise_#{name}") do |val|
             self.property[name] = val
           end
         when :request
@@ -375,7 +403,7 @@ module OmfRc::ResourceProxyDSL
             self.property[name]
           end
         else
-          raise "Unnown access type '#{a}'"
+          raise ArgumentError, "Unnown access type '#{a}'"
         end
       end
     end

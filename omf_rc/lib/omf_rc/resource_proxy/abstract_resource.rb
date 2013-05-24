@@ -588,10 +588,10 @@ class OmfRc::ResourceProxy::AbstractResource
     props.each do |key, value|
       if res_ctx.respond_to? "configure_#{key}"
         res_ctx.__send__("configure_#{key}", value)
-      elsif res_ctx.respond_to? "request_#{key}"
+      elsif res_ctx.respond_to? "initialise_#{key}"
         # For read only props, they won't have "configure" method defined,
         # we can still set them directly during this creation.
-        res_ctx.property[key] = value
+        res_ctx.__send__("initialise_#{key}", value)
       end
     end
 
