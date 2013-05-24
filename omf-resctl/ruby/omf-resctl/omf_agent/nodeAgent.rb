@@ -378,6 +378,11 @@ class NodeAgent < MObject
     # substitute hostname or mac addr, if required
     @config[:agent][:name].gsub!(/%hostname%/, `hostname`.chomp)
     @config[:agent][:name].gsub!(/%fqdn%/, `hostname --fqdn`.chomp)
+    @config[:agent][:name].gsub!(/%domain%/, `hostname --domain`.chomp)
+
+    @config[:agent][:slice].gsub!(/%hostname%/, `hostname`.chomp)
+    @config[:agent][:slice].gsub!(/%fqdn%/, `hostname --fqdn`.chomp)
+    @config[:agent][:slice].gsub!(/%domain%/, `hostname --domain`.chomp)
     
     @agentName = @config[:agent][:name] 
     @agentSlice =  @config[:agent][:slice] 
