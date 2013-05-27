@@ -16,23 +16,24 @@ module OmfCommon
           # # ignore arguments
         # end
 
+        attr_reader :channel
+
         # Initialize comms layer
         #
         def init(opts = {})
-          unless (@url = opts[:url])
+          @opts = {
+            #:ssl (Hash) Ñ TLS (SSL) parameters to use.
+            heartbeat: 20, # (Fixnum) Ñ default: 0 Ñ Connection heartbeat, in seconds. 0 means no heartbeat. Can also be configured server-side starting with RabbitMQ 3.0.
+            #:on_tcp_connection_failure (#call) Ñ A callable object that will be run if connection to server fails
+            #:on_possible_authentication_failure (#call) Ñ A callable object that will be run if authentication fails (see Authentication failure section)
+            reconnect_delay: 20 # (Fixnum) Delay in seconds before attempting reconnect on detected failure
+          }.merge(opts)
+
+          unless (@url = @opts.delete(:url))
             raise "Missing 'url' option for AQMP layer"
           end
           @address_prefix = @url + '/'
-          ::AMQP.connect(@url) do |connection|
-            @channel  = ::AMQP::Channel.new(connection)
-            @on_connected_procs.each do |proc|
-              proc.arity == 1 ? proc.call(self) : proc.call
-            end
-
-            OmfCommon.eventloop.on_stop do
-              connection.close
-            end
-          end
+          _connect()
           #AMQP::Session#on_skipped_heartbeats callback that can be used to handle skipped heartbeats
           super
         end
@@ -50,13 +51,25 @@ module OmfCommon
           @on_connected_procs << block
         end
 
+        # register callbacks to be called when the underlying AMQP layer
+        # needs to reconnect to the AMQP server. This may require some additional
+        # repairs. If 'block' is nil, the callback is removed
+        #
+        def on_reconnect(key, &block)
+          if block.nil?
+            @on_reconnect.delete(key)
+          else
+            @on_reconnect[key] = block
+          end
+        end
+
         # Create a new pubsub topic with additional configuration
         #
         # @param [String] topic Pubsub topic name
         def create_topic(topic, opts = {})
           raise "Topic can't be nil or empty" if topic.nil? || topic.empty?
           opts = opts.dup
-          opts[:channel] = @channel
+          opts[:communicator] = self
           topic = topic.to_s
           if topic.start_with? 'amqp:'
             # absolute address
@@ -101,8 +114,65 @@ module OmfCommon
         private
         def initialize(opts = {})
           @on_connected_procs = []
+          @on_reconnect = {}
           super
         end
+
+        def _connect()
+          last_reported_timestamp = nil
+          @session = ::AMQP.connect(@url, @opts) do |connection|
+            connection.on_tcp_connection_loss do |conn, settings|
+              now = Time.now
+              if last_reported_timestamp == nil || (now - last_reported_timestamp) > 60
+                warn "Lost connectivity. Trying to reconnect..."
+                last_reported_timestamp = now
+              end
+              conn.reconnect(false, 2)
+            end
+            @channel  = ::AMQP::Channel.new(connection)
+            @channel.auto_recovery = true
+
+
+            @on_connected_procs.each do |proc|
+              proc.arity == 1 ? proc.call(self) : proc.call
+            end
+
+            OmfCommon.eventloop.on_stop do
+              connection.close
+            end
+          end
+
+          rec_delay = @opts[:reconnect_delay]
+          @session.on_tcp_connection_failure do
+            warn "Cannot connect to AMQP server '#{@url}'. Attempt to retry in #{rec_delay} sec"
+            @session = nil
+            OmfCommon.eventloop.after(rec_delay) do
+              info 'Retrying'
+              _connect
+            end
+          end
+          # @session.on_tcp_connection_loss do
+            # _reconnect "Appear to have lost tcp connection. Attempt to reconnect in #{rec_delay} sec"
+          # end
+          # @session.on_skipped_heartbeats do
+            # _reconnect "Appear to have lost heartbeat. Attempt to reconnect in #{rec_delay} sec"
+          # end
+          @session.on_recovery do
+            info 'Recovered!'
+            last_reported_timestamp = nil
+            @on_reconnect.values.each do |block|
+              block.call()
+            end
+          end
+        end
+
+        # def _reconnect(warn_message = nil)
+          # warn(warn_message) if warn_message
+          # OmfCommon.eventloop.after(@opts[:reconnect_delay]) do
+            # info 'Reconnecting'
+            # @session.reconnect
+          # end
+        # end
       end
     end
   end

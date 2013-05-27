@@ -13,17 +13,17 @@ module OmfCommon
         def to_s
           "AMQP::Topic<#{id}>"
         end
-        
+
         def address
           @address
         end
-        
+
         # Call 'block' when topic is subscribed to underlying messaging
-        # infrastructure. 
+        # infrastructure.
         #
         def on_subscribed(&block)
           return unless block
-          
+
           call_now = false
           @lock.synchronize do
             if @subscribed
@@ -35,24 +35,35 @@ module OmfCommon
           if call_now
             after(0, &block)
           end
-        end  
-        
-        
+        end
+
+
         private
-        
+
         def initialize(id, opts = {})
-          unless channel = opts.delete(:channel)
-            raise "Missing :channel option"
+          unless @communicator = opts.delete(:communicator)
+            raise "Missing :communicator option"
           end
           super
           @address = opts[:address]
-          @exchange = channel.topic(id, :auto_delete => true)
           @lock = Monitor.new
           @subscribed = false
           @on_subscribed_handlers = []
-          
-          # Subscribe as well
-          #puts "QQ0(#{id})"
+
+          # @communicator.on_reconnect(self) do
+            # info "Resubscribe '#{self}'"
+            # _init_amqp
+          # end
+          _init_amqp
+        end
+
+        def _init_amqp()
+          channel = @communicator.channel
+          @exchange = channel.topic(id, :auto_delete => true)
+          # @exchange.on_connection_interruption do |ex|
+            # warn "Exchange #{ex.name} detected connection interruption"
+            # @exchange = nil
+          # end
           channel.queue("", :exclusive => true) do |queue|
             #puts "QQ1(#{id}): #{queue}"
             queue.bind(@exchange)
@@ -75,15 +86,18 @@ module OmfCommon
             end
           end
         end
-        
-        
+
         def _send_message(msg, block = nil)
           super
           content_type, content = msg.marshall(self)
           debug "(#{id}) Send message (#{content_type}) #{msg.inspect}"
-          @exchange.publish(content, content_type: content_type, message_id: msg.mid)
+          if @exchange
+            @exchange.publish(content, content_type: content_type, message_id: msg.mid)
+          else
+            warn "Unavailable AMQP channel. Dropping message '#{msg}'"
+          end
         end
       end # class
-    end # module 
+    end # module
   end # module
 end # module
