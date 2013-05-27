@@ -136,9 +136,9 @@ module OMF
         #
         # - name = name for this metric
         # - type = type for this metric
-        # - description = some text describing this metric
+        # - opts = additional options
         #
-        def defMetric(name = nil, type = nil, description = nil)
+        def defMetric(name = nil, type = nil, opts = {})
           raise OEDLMissingArgumentException.new(:defMetric, :name) unless name
           raise OEDLMissingArgumentException.new(:defMetric, :type) unless type
           
@@ -147,7 +147,9 @@ module OMF
           end
           type = type.to_s
           type = @@conversion[type] if !(type =~ /xsd:/) and @@conversion.key?(type)
-          @metrics[name] = {:type => type, :description => description, :seqNo => @metrics.length}
+          # the third parameter used to be a description string
+          opts = {:description => opts} if opts.class!=Hash
+          @metrics[name] = opts.merge({:type => type, :seqNo => @metrics.length})
         end
       
         #
