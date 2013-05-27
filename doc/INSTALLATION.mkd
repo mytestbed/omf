@@ -47,6 +47,7 @@ Type following in your console as root:
 Type following in your console:
 
     sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel
+    sudo yum update -y audit
 
 #### Mac OS X
 

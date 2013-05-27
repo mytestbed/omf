@@ -23,8 +23,8 @@ flag [:u, :uri]
 desc "Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)."
 switch [:x, :xmpp]
 
-desc "Directory contains root certificates"
-arg_name "cert", :optional
+desc "Directory containing root certificates"
+arg_name "directory", :optional
 flag [:root_cert_dir]
 
 desc "Your certificate"

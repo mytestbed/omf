@@ -60,6 +60,8 @@ module OmfEc
       #     mp.defMetric('power', :double, unit: "W", precision: 0.1, description: 'Power')
       #   end
       def defMetric(name,type, opts = {})
+        # the third parameter used to be a description string
+        opts = {:description => opts} if opts.class!=Hash
         @fields << {:field => name, :type => type}.merge(opts)
       end
 
