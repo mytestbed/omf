@@ -116,7 +116,11 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Return the public 'routable' address for this resource
   def resource_address()
-    @topics[0].address
+    if t = @topics[0]
+      t.address
+    else
+      nil # TODO: should we raise Excaption
+    end
   end
 
   # Get binding of current object, used for ERB eval
@@ -484,6 +488,14 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [String] topic Name of topic to send it. :ALL means to uid as well s all members
   #
   def inform(itype, inform_data, topic = nil)
+    unless address = resource_address
+      OmfCommon.eventloop.after(1) do
+        # try again in a bit and see if address has been set by then
+        inform(itype, inform_data, topic = nil)
+      end
+      warn "INFORM message delayed as resource's address is not known yet"
+      return
+    end
     if topic == :ALL
       inform(itype, inform_data)
       membership_topics.each {|m| inform(itype, inform_data, m[1])}
@@ -495,7 +507,7 @@ class OmfRc::ResourceProxy::AbstractResource
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
       #idata = inform_data.dup
       idata = {
-        src: @topics.first.address,
+        src: address,
         type: self.type  # NOTE: Should we add the object's type as well???
       }
       message = OmfCommon::Message.create_inform_message(itype.to_s.upcase, inform_data, idata)
