@@ -114,7 +114,8 @@ class OmfRc::ResourceProxy::AbstractResource
     super()
   end
 
-  # Return the public 'routable' address for this resource
+  # Return the public 'routable' address for this resource or nil if not known yet.
+  #
   def resource_address()
     if t = @topics[0]
       t.address
@@ -488,6 +489,7 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [String] topic Name of topic to send it. :ALL means to uid as well s all members
   #
   def inform(itype, inform_data, topic = nil)
+    inform_data = inform_data.dup # better make a copy
     unless address = resource_address
       OmfCommon.eventloop.after(1) do
         # try again in a bit and see if address has been set by then
