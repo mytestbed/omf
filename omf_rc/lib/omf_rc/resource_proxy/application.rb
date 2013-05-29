@@ -3,28 +3,6 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-#
-# Copyright (c) 2012 National ICT Australia (NICTA), Australia
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-#
 # This module defines a Resource Proxy (RP) for an Application.
 # For a detailed usage tutorial see {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}
 #
@@ -94,6 +72,8 @@
 #
 module OmfRc::ResourceProxy::Application
   include OmfRc::ResourceProxyDSL
+  # @!macro extend_dsl
+
   require 'omf_common/exec_app'
 
   register_proxy :application
@@ -170,8 +150,8 @@ module OmfRc::ResourceProxy::Application
                     seq: res.property.event_sequence,
                     uid: res.uid
                   }, :ALL)
-      
-      
+
+
 
       res.property.event_sequence += 1
       res.property.installed = true if app_id.include?("_INSTALL") &&

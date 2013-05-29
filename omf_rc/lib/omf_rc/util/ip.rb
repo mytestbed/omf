@@ -9,16 +9,40 @@ module OmfRc::Util::Ip
   include OmfRc::ResourceProxyDSL
   include Cocaine
 
+  # @!macro extend_dsl
+
+  # @!macro group_request
+  # Retrieve IP address
+  #
+  # @return [String] IP address
+  # @!macro request
+  # @!method request_ip_addr
   request :ip_addr do |resource|
     addr = CommandLine.new("ip", "addr show dev :device", :device => resource.property.if_name).run
     addr && addr.chomp.match(/inet ([[0-9]\:\/\.]+)/) && $1
   end
 
+  # Retrieve MAC address
+  #
+  # @return [String] MAC address
+  # @!macro request
+  # @!method request_mac_addr
   request :mac_addr do |resource|
     addr = CommandLine.new("ip", "addr show dev :device", :device => resource.property.if_name).run
     addr && addr.chomp.match(/link\/ether ([\d[a-f][A-F]\:]+)/) && $1
   end
+  # @!endgroup
 
+  # @!macro group_configure
+  # Configure IP address
+  #
+  # @param value value of IP address, it should have netmask. (e.g. 0.0.0.0/24)
+  #
+  # @raise [ArgumentError] if provided no IP address or incorrect format
+  #
+  # @return [String] IP address
+  # @!macro configure
+  # @!method configure_ip_addr
   configure :ip_addr do |resource, value|
     if value.nil? || value.split('/')[1].nil?
       raise ArgumentError, "You need to provide an IP address with netmask. E.g. 0.0.0.0/24. Got #{value}."
@@ -32,13 +56,23 @@ module OmfRc::Util::Ip
     resource.interface_up
     resource.request_ip_addr
   end
+  # @!endgroup
 
+  # @!macro group_work
+  # Bring up network interface
+  # @!macro work
+  # @!method interface_up
   work :interface_up do |resource|
     CommandLine.new("ip", "link set :dev up", :dev => resource.property.if_name).run
   end
 
+  # Remove IP addresses associated with the interface
+  #
+  # @!macro work
+  # @!method flush_ip_addrs
   work :flush_ip_addrs do |resource|
     CommandLine.new("ip",  "addr flush dev :device",
                     :device => resource.property.if_name).run
   end
+  # @!endgroup
 end
