@@ -4,12 +4,13 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfEc::Context
+  # Holds application configuration
   class AppContext
     attr_accessor :name, :app_def, :param_values, :oml_collections
 
     # Keep track of contexts for each app, i.e. multiple contexts can share
-    # the same app def. This happens for example when a group can have the 
-    # same applications added to it many times, but with different parameter 
+    # the same app def. This happens for example when a group can have the
+    # same applications added to it many times, but with different parameter
     # values for each. Thus we need to distinguish these different context
     @@context_count = Hash.new
 
@@ -66,11 +67,11 @@ module OmfEc::Context
 
     def properties
       # deep copy the properties from the app definition
-      original = Marshal.load(Marshal.dump(app_def.properties)) 
+      original = Marshal.load(Marshal.dump(app_def.properties))
       # now build the properties for this context
       # - use the properties from app definition as the base
-      # - if this context's param_values has a property which also exists in 
-      #   the app def and if that property has an assigned value, then 
+      # - if this context's param_values has a property which also exists in
+      #   the app def and if that property has an assigned value, then
       #   use that value for the properties of this context
       p = original.merge({:type => 'application'})
       @param_values.each do |k,v|
@@ -82,9 +83,9 @@ module OmfEc::Context
         p[:use_oml] = true
         p[:oml][:id] = @name
         p[:oml][:experiment] = OmfEc.experiment.id
-        p[:oml][:collection] = @oml_collections      
+        p[:oml][:collection] = @oml_collections
       end
       p
-    end    
+    end
   end
 end
