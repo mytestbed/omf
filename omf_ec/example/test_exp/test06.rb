@@ -67,7 +67,7 @@ def check_outcome
   match2 = match1.grep(/AgentCommands/)
   result1 = (match2.length == 1) ? true : false
   # 2)
-  match1 = lines.grep(/DONE\.OK/)
+  match1 = lines.grep(/EXIT/)
   match2 = match1.grep(/AgentCommands/)
   result2 = (match2.length >= 2) ? true : false
 
