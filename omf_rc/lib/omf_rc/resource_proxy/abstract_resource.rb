@@ -65,6 +65,8 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option creation_opts [Boolean] :create_children_resources Immediately create 'known' children resources, such as interfaces on nodes
   #
   def initialize(type, opts = {}, creation_opts = {}, &creation_callback)
+    super()
+
     @opts = Hashie::Mash.new(opts)
     @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
 
@@ -110,8 +112,6 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     configure_membership(@opts.membership) if @opts.membership
-
-    super()
   end
 
   # Return the public 'routable' address for this resource or nil if not known yet.
