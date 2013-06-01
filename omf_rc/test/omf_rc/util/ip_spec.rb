@@ -49,8 +49,9 @@ describe OmfRc::Util::Ip do
       end
     end
 
-    it "could configure the device's prorperty" do
-      lambda { @wlan00.configure_ip_addr("192.168.1.124/24") }.must_raise Cocaine::ExitStatusError
+    it "could configure the device's property" do
+      # cdw: disabled this call since it actually tried to run "ip" on my system !?
+      # lambda { @wlan00.configure_ip_addr("192.168.1.124/24") }.must_raise Cocaine::ExitStatusError
       Cocaine::CommandLine.stub(:new, @command) do
         3.times do
           @command.expect(:run, "")

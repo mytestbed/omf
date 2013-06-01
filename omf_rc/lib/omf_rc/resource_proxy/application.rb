@@ -126,7 +126,7 @@ module OmfRc::ResourceProxy::Application
   #
   # @param [AbstractResource] res this RP
   # @param [String] event_type the type of event from the app instance
-  #                 (STARTED, DONE.OK, DONE.ERROR, STDOUT, STDERR)
+  #                 (STARTED, EXIT, STDOUT, STDERR)
   # @param [String] app_id the id of the app instance
   # @param [String] msg the message carried by the event
   #
@@ -134,28 +134,32 @@ module OmfRc::ResourceProxy::Application
       logger.info "App Event from '#{app_id}' "+
                   "(##{res.property.event_sequence}) - "+
                   "#{event_type}: '#{msg}'"
-      if event_type.to_s.include?('DONE')
-        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
-        res.inform(:status, {
-                        state: res.property.state,
-                        uid: res.uid # do we really need this? SHould be identical to 'src'
-                      }, :ALL)
-      end
-
-      res.inform(:status, {
-                    status_type: 'APP_EVENT',
-                    event: event_type.to_s.upcase,
-                    app: app_id,
-                    msg: msg,
-                    seq: res.property.event_sequence,
-                    uid: res.uid
-                  }, :ALL)
-
-
-
       res.property.event_sequence += 1
       res.property.installed = true if app_id.include?("_INSTALL") &&
-                                       event_type.to_s.include?('DONE.OK')
+                                       event_type.to_s.include?('EXIT') &&
+                                       msg == "0"
+      if event_type. == 'EXIT'
+        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
+        res.inform(:status, {
+                        status_type: 'APP_EVENT',
+                        event: event_type.to_s.upcase,
+                        app: app_id,
+                        exit_code: msg,
+                        msg: msg,
+                        state: res.property.state,
+                        seq: res.property.event_sequence,
+                        uid: res.uid # do we really need this? Should be identical to 'src'
+                      }, :ALL)
+      else
+        res.inform(:status, {
+                      status_type: 'APP_EVENT',
+                      event: event_type.to_s.upcase,
+                      app: app_id,
+                      msg: msg,
+                      seq: res.property.event_sequence,
+                      uid: res.uid
+                    }, :ALL)
+      end
   end
 
   # Request the platform property of this Application RP
@@ -220,7 +224,7 @@ module OmfRc::ResourceProxy::Application
   # stopped, running, paused, installing. The semantic of each states are:
   #
   # - stopped: the initial state for an Application RP
-  # - completed: the final state for an applicaiton RP. When the application
+  # - completed: the final state for an application RP. When the application
   #   has been executed and its execution is finished, it enters this state.
   #   When the application is completed it cannot change state again
   #   TODO: maybe in future OMF, we could consider allowing an app to be reset?
@@ -286,7 +290,7 @@ module OmfRc::ResourceProxy::Application
     end
   end
 
-  # Swich this Application RP into the 'stopped' state
+  # Switch this Application RP into the 'stopped' state
   # (see the description of configure :state)
   #
   work('switch_to_stopped') do |res|

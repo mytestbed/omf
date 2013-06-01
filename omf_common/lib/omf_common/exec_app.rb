@@ -145,7 +145,6 @@ class ExecApp
       if (@exit_status == 0) || @clean_exit
         logger.debug "Application '#{@id}' finished"
       else
-        
         logger.debug "Application '#{@id}' failed (code=#{@exit_status})"
       end
     end
@@ -154,14 +153,7 @@ class ExecApp
     # wait for done in yet another thread
     Thread.new do
       @threads.each {|t| t.join }
-      if (@exit_status == 0) || @clean_exit
-        s = "OK"
-      else
-        s = "ERROR"
-      end
-      #@observer.call("DONE.#{s}", @id, "status: #{@exit_status}")
-      call_observer("DONE.#{s}", "status: #{@exit_status}")
-
+      call_observer("EXIT", @exit_status)
     end
     logger.debug "Application is running with PID #{@pid}"
   end
