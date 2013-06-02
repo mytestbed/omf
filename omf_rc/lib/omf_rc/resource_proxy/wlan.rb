@@ -5,6 +5,18 @@
 
 # Proxy module for managing wifi devices
 #
+# Wlan resources can be created as children of {OmfRc::ResourceProxy::Node}.
+#
+# It is important to set if_name (interface_name) and phy (physical device name) as they are used as identifier for executing iw and ip commands.
+#
+# @example Set up a wifi interface wlan0 as managed mode
+#   wlan0 = node.create(:wlan, if_name: 'wlan0', phy: 'phy0')
+#   wlan0.configure_mode(mode: :master, hw_mode: 'g', channel: 1, essid: 'bob')
+#
+# @example Configure IP address of interface wlan0
+#   wlan0.conifgure_ip_addr("192.168.1.100/24")
+#
+# @see OmfRc::Util::Iw
 module OmfRc::ResourceProxy::Wlan
   include OmfRc::ResourceProxyDSL
   # @!macro extend_dsl
@@ -21,10 +33,12 @@ module OmfRc::ResourceProxy::Wlan
   # @!macro group_prop
   #
   # @!attribute [rw] if_name
-  #   Interface name
+  #   Interface name, default is 'wlan0'
+  #   @!macro prop
   property :if_name, :default => "wlan0"
   # @!attribute [rw] phy
   #   Device's physical name
+  #   @!macro prop
   property :phy
 
   # @!endgroup

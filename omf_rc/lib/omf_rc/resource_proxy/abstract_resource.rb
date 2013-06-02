@@ -32,6 +32,16 @@ end
 #
 # When using resource factory to create new resources, this abstract class will be initialised and then extended by one of the specific resource proxy modules.
 #
+# Currently official OMF RC package shipped with following resource proxies:
+#
+# * {OmfRc::ResourceProxy::Node Node}
+# * {OmfRc::ResourceProxy::Application Application}
+# * {OmfRc::ResourceProxy::Net Net}
+# * {OmfRc::ResourceProxy::Wlan Wlan}
+# * {OmfRc::ResourceProxy::Package Package}
+# * {OmfRc::ResourceProxy::VirtualMachineFactory VirtualMachineFactory}
+# * {OmfRc::ResourceProxy::VirtualMachine VirtualMachine}
+#
 # @see OmfRc::ResourceFactory
 #
 class OmfRc::ResourceProxy::AbstractResource

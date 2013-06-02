@@ -4,6 +4,17 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 # Resource proxy for PC type node
+#
+# This is the proxy used in standard resource proxy start up script. It is normally started during the bootstrap process by directly using {OmfRc::ResourceFactory}.
+#
+# Resources like application, net, or wlan can be created as children of node resources, by sending FRCP create messages to the node's pubsub topic.
+#
+# @example
+#   OmfRc::ResourceFactory.create(:node, uid: 'node01')
+#
+# @see OmfRc::ResourceProxy::Application
+# @see OmfRc::ResourceProxy::Net
+# @see OmfRc::ResourceProxy::Wlan
 module OmfRc::ResourceProxy::Node
   include OmfRc::ResourceProxyDSL
   # @!macro extend_dsl

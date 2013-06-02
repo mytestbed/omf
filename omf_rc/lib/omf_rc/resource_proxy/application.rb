@@ -77,6 +77,8 @@ module OmfRc::ResourceProxy::Application
   require 'omf_common/exec_app'
 
   register_proxy :application
+  # @!parse include OmfRc::Util::PlatformTools
+  # @!parse include OmfRc::Util::CommonTools
   utility :platform_tools
   utility :common_tools
 
@@ -104,10 +106,14 @@ module OmfRc::ResourceProxy::Application
   property :oml_logfile, :default => nil
   property :oml_loglevel, :default => nil
 
+  # @!macro group_hook
+  #
   # hook :before_ready do |res|
     # define_method("on_app_event") { |*args| process_event(self, *args) }
   # end
 
+  # @!macro hook
+  # @!method after_initial_configured
   hook :after_initial_configured do |res|
     # if state was set to running or installing from the create we need
     # to make sure that this happens!
@@ -120,6 +126,8 @@ module OmfRc::ResourceProxy::Application
     end
   end
 
+  # @!endgroup
+
   # This method processes an event coming from the application instance, which
   # was started by this Resource Proxy (RP). It is a callback, which is usually
   # called by the ExecApp class in OMF
@@ -129,7 +137,6 @@ module OmfRc::ResourceProxy::Application
   #                 (STARTED, EXIT, STDOUT, STDERR)
   # @param [String] app_id the id of the app instance
   # @param [String] msg the message carried by the event
-  #
   def process_event(res, event_type, app_id, msg)
       logger.info "App Event from '#{app_id}' "+
                   "(##{res.property.event_sequence}) - "+
@@ -162,17 +169,28 @@ module OmfRc::ResourceProxy::Application
       end
   end
 
+  # @!macro group_request
+  #
   # Request the platform property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
+  # @!macro request
+  # @!method request_platform
   request :platform do |res|
     res.property.platform = detect_platform if res.property.platform.nil?
     res.property.platform.to_s
   end
 
+  # @!endgroup
+  # @!macro group_configure
+
   # Configure the environments and oml property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
+  #
+  # @!macro configure
+  # @!method conifgure_environments
+  # @!method conifgure_oml
   %w(environments oml).each do |prop|
     configure(prop) do |res, value|
       if value.kind_of? Hash
@@ -186,7 +204,10 @@ module OmfRc::ResourceProxy::Application
   end
 
   # Configure the parameters property of this Application RP
+  #
+  # @!macro configure
   # @see OmfRc::ResourceProxy::Application
+  # @!method configure_parameters
   #
   configure :parameters do |res, params|
     if params.kind_of? Hash
@@ -246,8 +267,9 @@ module OmfRc::ResourceProxy::Application
   #   only when the installatio is done. Supported install methods are: Tarball,
   #   Ubuntu, and Fedora
   #
-  # @yieldparam [String] value the state to set this app into
-  #
+  # @param [String] value the state to set this app into
+  # @!macro configure
+  # @!method configure_state
   configure :state do |res, value|
     OmfCommon.eventloop.after(0) do
       case value.to_s.downcase.to_sym
@@ -262,9 +284,14 @@ module OmfRc::ResourceProxy::Application
     res.property.state
   end
 
+  # @!endgroup
+
+  # @!macro group_work
+  #
   # Swich this Application RP into the 'installing' state
   # (see the description of configure :state)
-  #
+  # @!macro work
+  # @!method switch_to_installing
   work('switch_to_installing') do |res|
     if res.property.state.to_sym == :stopped
       if res.property.installed
@@ -293,6 +320,8 @@ module OmfRc::ResourceProxy::Application
   # Switch this Application RP into the 'stopped' state
   # (see the description of configure :state)
   #
+  # @!macro work
+  # @!method switch_to_stopped
   work('switch_to_stopped') do |res|
     if res.property.state == :running || res.property.state == :paused
       id = res.property.app_id
@@ -321,6 +350,8 @@ module OmfRc::ResourceProxy::Application
   # Switch this Application RP into the 'running' state
   # (see the description of configure :state)
   #
+  # @!macro work
+  # @!method switch_to_running
   work('switch_to_running') do |res|
     if res.property.state == :stopped
       # start a new instance of this app
@@ -349,6 +380,8 @@ module OmfRc::ResourceProxy::Application
   # Swich this Application RP into the 'paused' state
   # (see the description of configure :state)
   #
+  # @!macro work
+  # @!method switch_to_paused
   work('switch_to_paused') do |res|
     if res.property.state == :running
       # pause this app
@@ -364,6 +397,8 @@ module OmfRc::ResourceProxy::Application
   # @yieldparam [Hash] att the Hash holding the parameter's attributs
   # @see OmfRc::ResourceProxy::Application
   #
+  # @!macro work
+  # @!method dynamic_parameter_update
   work('dynamic_parameter_update') do |res,name,att|
     # Only update a parameter if it is dynamic and the application is running
     dynamic = false
@@ -388,10 +423,10 @@ module OmfRc::ResourceProxy::Application
   # - third if no value is given but a default is given, then perform the same
   #   check as above but using the default in-place of the value
   #
-  # @yieldparam [Hash] att the Hash holding the parameter's attributs
+  # @param [Hash] att the Hash holding the parameter's attributs
   #
-  # [Boolean] true or false
-  #
+  # @return [Boolean] true or false
+  # @!macro work
   work('pass_type_checking?') do |res,att|
     passed = false
     unless att[:type].nil?
@@ -433,8 +468,8 @@ module OmfRc::ResourceProxy::Application
   # this Application Resource Proxy. If the 'use_oml' property is set, then
   # add to the command line the necessary oml parameters.
   #
-  # [String] the full command line
-  #
+  # @return [String] the full command line
+  # @!macro work
   work('build_command_line') do |res|
     cmd_line = "env -i " # Start with a 'clean' environments
     res.property.environments.each do |e,v|
@@ -498,10 +533,10 @@ module OmfRc::ResourceProxy::Application
   # the corresponsding 'oml_logfile' and 'oml_loglevel' properties are set for
   # this application resource.
   #
-  # @yieldparam [String] cmd the String to which OML parameters will be added
+  # @param [String] cmd the String to which OML parameters will be added
   #
-  # [String] the resulting command line
-  #
+  # @return [String] the resulting command line
+  # @!macro work
   work('build_oml_config') do |res, cmd|
     if !res.property.oml_configfile.nil?
       if File.exist?(res.property.oml_configfile)
