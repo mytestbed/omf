@@ -5,6 +5,7 @@
 
 require 'monitor'
 require 'securerandom'
+require 'openssl'
 
 module OmfCommon
   class Comm
@@ -211,7 +212,7 @@ module OmfCommon
         raise ArgumentError, 'Missing message callback' if message_block.nil?
         debug "(#{id}) register handler for '#{handler_name}'"
         @lock.synchronize do
-          key ||= SecureRandom.uuid
+          key ||= OpenSSL::Digest::SHA1.new(message_block.source_location.to_s).to_s
           (@handlers[handler_name] ||= {})[key] = message_block
         end
         self
