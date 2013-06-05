@@ -47,7 +47,7 @@ module OmfEc
       # Define metrics to measure
       #
       # @param [String] name of the metric
-      # @param [Symbol] type of the metric data
+      # @param [Symbol] type of the metric data. For all supporting metric data types, refers to http://oml.mytestbed.net/doc/oml/latest/oml2-scaffold.1.html#_mp_defmetric_name_type
       # @param [Hash] opts additional options
       #
       # @option opts [String] :unit unit of measure of the metric
