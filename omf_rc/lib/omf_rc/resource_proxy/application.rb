@@ -145,7 +145,7 @@ module OmfRc::ResourceProxy::Application
       res.property.installed = true if app_id.include?("_INSTALL") &&
                                        event_type.to_s.include?('EXIT') &&
                                        msg == "0"
-      if event_type. == 'EXIT'
+      if event_type == 'EXIT'
         res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
         res.inform(:status, {
                         status_type: 'APP_EVENT',

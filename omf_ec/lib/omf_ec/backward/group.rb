@@ -17,10 +17,12 @@ module OmfEc
       # Create an application for the group and start it
       #
       def exec(name)
+        self.synchronize do
+          self.execs << name
+        end
         create_resource(name, type: 'application', binary_path: name)
 
         e_uid = SecureRandom.uuid
-
         e_name = "#{self.name}_application_#{name}_created_#{e_uid}"
 
         resource_group_name = "#{self.id}_application"

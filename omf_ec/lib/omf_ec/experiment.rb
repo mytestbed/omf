@@ -19,6 +19,7 @@ module OmfEc
     attr_reader :groups, :sub_groups, :state
 
     def initialize
+      super
       @id = Time.now.utc.iso8601
       @state ||= [] #TODO: we need to keep history of all the events and not ovewrite them
       @groups ||= []
@@ -26,7 +27,6 @@ module OmfEc
       @app_definitions ||= Hash.new
       @sub_groups ||= []
       @cmdline_properties ||= Hash.new
-      super
     end
 
     def property
@@ -148,8 +148,8 @@ module OmfEc
       self.synchronize do
         @events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
           if event[:trigger].call(@state)
-            info "Event triggered: '#{event[:name]}'"
             @events.delete(event) if event[:consume_event]
+            info "Event triggered: '#{event[:name]}'"
 
             # Last in first serve callbacks
             event[:callbacks].reverse.each do |callback|
