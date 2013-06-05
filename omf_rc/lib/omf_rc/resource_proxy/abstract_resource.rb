@@ -28,21 +28,44 @@ class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   param :mid, :type => :string # Unique ID this message
 end
 
-# The abstract resource proxy class, which handles incoming FRCP messages.
+# @note Suppose you have read the {file:doc/DEVELOPERS.mkd DEVELOPERS GUIDE} which explains the basic the resource controller system.
 #
-# When using resource factory to create new resources, this abstract class will be initialised and then extended by one of the specific resource proxy modules.
+# This is the abstract resource proxy class, which provides the base of all proxy implementations. When creating new resource instances, this abstract class will always be initialised first and then extended by one of the specific resource proxy modules.
 #
-# Currently official OMF RC package shipped with following resource proxies:
+# Instead of initialise abstract resource directly, use {OmfRc::ResourceFactory Resource Factory}'s methods.
 #
+# @example Creating resource using factory method
+#   OmfRc::ResourceFactory.create(:node, uid: 'node01')
+#
+# Proxy documentation has grouped FRCP API methods for your convenience.
+#
+# We follow a simple naming convention for request/configure properties.
+#
+#   request_xxx() indicates property 'xxx' can be requested using FRCP REQUEST message.
+#
+#   configure_xxx(value) indicates property 'xxx' can be configured with 'value' using FRCP CONFIGURE message.
+#
+# Currently official OMF RC gem contains following resource proxies:
+#
+# Representing physical/virtual machine
 # * {OmfRc::ResourceProxy::Node Node}
+#
+# Executing OML enabled application and monitor output
 # * {OmfRc::ResourceProxy::Application Application}
+#
+# Configuring network interfaces
 # * {OmfRc::ResourceProxy::Net Net}
 # * {OmfRc::ResourceProxy::Wlan Wlan}
+#
+# Installing packages
 # * {OmfRc::ResourceProxy::Package Package}
+#
+# Creating virtual machines
 # * {OmfRc::ResourceProxy::VirtualMachineFactory VirtualMachineFactory}
 # * {OmfRc::ResourceProxy::VirtualMachine VirtualMachine}
 #
 # @see OmfRc::ResourceFactory
+# @see OmfRc::ResourceProxyDSL
 #
 class OmfRc::ResourceProxy::AbstractResource
   include MonitorMixin

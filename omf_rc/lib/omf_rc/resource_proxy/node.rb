@@ -3,14 +3,20 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-# Resource proxy for PC type node
+# This proxy represents physical/virtual machine node, and it is the proxy which standard RC start up script initialised.
 #
-# This is the proxy used in standard resource proxy start up script. It is normally started during the bootstrap process by directly using {OmfRc::ResourceFactory}.
+# Node proxy is more like a monitor proxy which monitors resource information on the node itself, it is usually created during the bootstrap process and provides an entry point for incoming FRCP messages.
 #
-# Resources like application, net, or wlan can be created as children of node resources, by sending FRCP create messages to the node's pubsub topic.
+# Resources like application, net, or wlan can be created as children of node resources by sending FRCP create messages to the node's pubsub topic.
 #
-# @example
-#   OmfRc::ResourceFactory.create(:node, uid: 'node01')
+# @example Creating an ethernet resource on an existing node 'node01' using communicator
+#   comm.subscribe('node01') do |node|
+#     node.create(:net, if_name: 'eth0')
+#   end
+#
+# @example Creating an ethernet resource on an existing node 'node01' directly
+#   node = OmfRc::ResourceFactory.create(:node)
+#   node.create(:net, if_name: 'eth0')
 #
 # @see OmfRc::ResourceProxy::Application
 # @see OmfRc::ResourceProxy::Net

@@ -7,17 +7,22 @@ require 'hashie'
 require 'cocaine'
 require 'tempfile'
 
+# Manage WPA instances
 module OmfRc::Util::Wpa
   include OmfRc::ResourceProxyDSL
   include Cocaine
+  # @!macro extend_dsl
 
+  # @!macro group_work
   # Initialise wpa related conf and pid location
   #
+  # @!method init_wpa_conf_pid
   work :init_wpa_conf_pid do |device|
     device.property.wpa_conf = Tempfile.new(["wpa.#{device.property.if_name}", ".conf"]).path
     device.property.wpa_pid = Tempfile.new(["wpa.#{device.property.if_name}", ".pid"]).path
   end
 
+  # @!method wpasup
   work :wpasup do |device|
     device.init_wpa_conf_pid
 
@@ -30,6 +35,7 @@ module OmfRc::Util::Wpa
                     :wpa_pid => device.property.wpa_pid).run
   end
 
+  # @!method stop_wpa
   work :stop_wpa do |device|
     begin
       File.open(device.property.wpa_pid,'r') do |f|
@@ -45,4 +51,5 @@ module OmfRc::Util::Wpa
       logger.warn e.message
     end
   end
+  # @!endgroup
 end

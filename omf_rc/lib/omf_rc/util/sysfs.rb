@@ -3,9 +3,19 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
+# Getting available hardware by browsing sysfs directories
 module OmfRc::Util::Sysfs
   include OmfRc::ResourceProxyDSL
+  # @!macro extend_dsl
 
+  # @!macro group_request
+  # @!macro request
+  # @!method request_devices
+  #
+  # @example Sample return value
+  #   [
+  #     { name: 'eth0', driver: 'e1000e', category: 'net', proxy: 'net' },
+  #     { name: 'phy0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' } ]
   request :devices do |resource|
     devices = []
     # Support net devices for now
@@ -23,16 +33,16 @@ module OmfRc::Util::Sysfs
           File.exist?("#{v}/operstate") && File.open("#{v}/operstate") do |fo|
             device[:op_state] = (fo.read || '').chomp
           end
-          # Let's see if the interface is already up 
+          # Let's see if the interface is already up
           # NOTE: THIS MAY NOT BE ROBUST
           s = `ifconfig #{File.basename(v)}`
           unless s.empty?
             if m = s.match(/inet addr:\s*([0-9.]+)/)
               device[:ip4] = m[1]
-            end 
+            end
             if m = s.match(/inet6 addr:\s*([0-9a-f.:\/]+)/)
               device[:ip6] = m[1]
-            end 
+            end
           end
           devices << device
         end
@@ -52,6 +62,11 @@ module OmfRc::Util::Sysfs
     devices
   end
 
+  # @!macro request
+  # @!method request_wlan_devices
+  #
+  # @example Sample return value
+  #   [ { name: 'phy0', driver: 'iwlwifi', category: 'net', subcategory: 'wlan', proxy: 'wlan' } ]
   request :wlan_devices do |resource|
     resource.request_devices.find_all { |v| v[:proxy] == 'wlan' }
   end

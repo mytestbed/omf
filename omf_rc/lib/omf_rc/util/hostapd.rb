@@ -7,18 +7,24 @@ require 'hashie'
 require 'cocaine'
 require 'tempfile'
 
+# Manage Hostapd instances
 module OmfRc::Util::Hostapd
   include OmfRc::ResourceProxyDSL
   include Cocaine
+  # @!macro extend_dsl
 
+  # @!macro group_work
   # Initialise access point conf and pid location
   #
+  # @!method init_ap_conf_pid
   work :init_ap_conf_pid do |device|
     device.property.ap_conf = Tempfile.new(["hostapd.#{device.property.if_name}", ".conf"]).path
     device.property.ap_pid = Tempfile.new(["hostapd.#{device.property.if_name}", ".pid"]).path
   end
+
   # Set up and run a hostapd instance
   #
+  # @!method hostapd
   work :hostapd do |device|
     device.init_ap_conf_pid
 
@@ -40,6 +46,7 @@ module OmfRc::Util::Hostapd
                     :ap_conf => device.property.ap_conf).run
   end
 
+  # @!method stop_hostapd
   work :stop_hostapd do |device|
     begin
       File.open(device.property.ap_pid,'r') do |f|
@@ -55,4 +62,5 @@ module OmfRc::Util::Hostapd
       logger.warn e.message
     end
   end
+  # @!endgroup
 end
