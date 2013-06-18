@@ -20,8 +20,7 @@ OP_MODE = :development
 opts = {
   communication: {
     #url: 'xmpp://srv.mytestbed.net',
-    auth: {}
-
+    #auth: {}
   },
   eventloop: { type: :em},
   logging: {
@@ -66,8 +65,8 @@ def observe(tname, comm)
       ts = Time.now.strftime('%H:%M:%S')
       puts "#{ts}  #{msg.type}(#{msg.itype})  #{$debug ? msg.inspect : ''}"
       #puts "  #{topic.id}"
-      if (src_topic = msg.src.id) == topic.id
-        puts "  #{topic.id}"        
+      if (src_topic = (msg.src.is_a?(OmfCommon::Comm::Topic) ? msg.src.id : msg.src)) == topic.id
+        puts "  #{topic.id}"
       else
         puts "  #{src_topic} via #{topic.id}"
       end
