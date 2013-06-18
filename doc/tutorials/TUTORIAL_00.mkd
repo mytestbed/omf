@@ -138,6 +138,7 @@ OMF Experiment Description Language (OEDL).
 The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial00.rb tutorial00.rb}. It is composed of 3 distinct
 parts, described in the following listing and subsections below.
 
+```ruby
 #Welcome to your first ruby OML2 application
 #This OML2 application is designed to ping a specified host and collect the output it recieves in a sq3 database
 
@@ -207,6 +208,9 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
     # Tell the Experiment Controller to terminate the experiment now
     Experiment.done
 end
+```
+
+
 ### 3a) Application Definition
 
 OMF entities need to learn about the applications that will be used in the
