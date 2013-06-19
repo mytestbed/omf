@@ -27,10 +27,10 @@ defApplication('ping_oml2') do |app|
 end
 
 #Section 2
-#Define recources and nodes used by oml2 application
+#Define resources and nodes used by oml2 application
 
 #Create the group 'Sender' with specified nodes
-defGroup('Sender', 'omf.nicta.node9') do |g|
+defGroup('Sender', 'omf.nicta.node8') do |g|
     
 	#Associate oml2 application to group (?)
 	g.addApplication("ping_oml2") do |app|
@@ -48,7 +48,7 @@ defGroup('Sender', 'omf.nicta.node9') do |g|
 end
 
 #Section  3
-#Execution of application
+#Execution of application events
 
 onEvent(:ALL_UP_AND_INSTALLED) do |event|
 	

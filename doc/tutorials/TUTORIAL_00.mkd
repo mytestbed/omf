@@ -171,7 +171,7 @@ end
 #Define recources and nodes used by oml2 application
 
 #Create the group 'Sender' with specified nodes
-defGroup('Sender', 'omf.nicta.node9') do |g|
+defGroup('Sender', 'omf.nicta.node8') do |g|
     
 	#Associate oml2 application to group (?)
 	g.addApplication("ping_oml2") do |app|
@@ -268,10 +268,10 @@ In this example, we define a single group named 'Sender', which contains a
 single resource 'omf6.nicta.node8'.
 
 > **IMPORTANT** When running this experiment using your own resource and testbed
-please change 'omf.nicta.node9' in the ED to the actual name of your
+please change 'omf.nicta.node8' in the ED to the actual name of your
 own resource.
 
-    defGroup('Sender', 'omf.nicta.node9') do |g|
+    defGroup('Sender', 'omf.nicta.node8') do |g|
       ...
     end
 
