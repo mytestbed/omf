@@ -16,7 +16,7 @@ defApplication('ping_oml2') do |app|
 	app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
     
 	
-	#DISABLED-Define measurement points that application will output
+	#Define measurement points that application will output
 	app.defMeasurement('ping') do |m|
         m.defMetric('dest_addr',:string)
         m.defMetric('ttl',:uint32)
