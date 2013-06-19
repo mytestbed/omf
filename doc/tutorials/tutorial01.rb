@@ -11,7 +11,7 @@ defApplication('otr2') do |a|
     
 	#Application description and binary path
     a.binary_path = "/usr/bin/otr2"
-    a.description = "OTG is a configurable traffic generator. It contains generators producing various forms of packet streams and port for sending these packets via various transports, such as TCP and UDP. This version 2 is compatible with OMLv2"
+    a.description = "otr is a configurable traffic sink that recieves packet streams"
     
     #Define configurable parameters of otr2
     a.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
@@ -33,7 +33,7 @@ defApplication('otg2') do |a|
     
     #Application description and binary path
     a.binary_path = "/usr/bin/otg2"
-    a.description = "OTG is a configurable traffic generator. It contains generators producing various forms of packet streams and port for sending these packets via various transports, such as TCP and UDP. This version 2 is compatible with OMLv2"
+    a.description = "otg is a configurable traffic generator that sends packet streams"
     
     #Define configurable parameters of otg2
     a.defProperty('generator', 'Type of packet generator to use (cbr or expo)', '-g', {:type => :string, :dynamic => false})
