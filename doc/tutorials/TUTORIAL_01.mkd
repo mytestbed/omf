@@ -238,7 +238,9 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
         info "Applications are stopping... Experiment Complete."
         Experiment.done
     end
-end```
+end
+
+```
 
 
 ### 3a) Application Definition
