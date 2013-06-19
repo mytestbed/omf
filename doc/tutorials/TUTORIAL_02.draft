@@ -116,37 +116,54 @@ experiment. An ED is written using the
 The ED describing this simple “Hello World” experiment is (download it
 here: attachment:hello-world.rb):
 
-    <code class="ruby">
-    defGroup('Sender', "omf.nicta.node2") do |node|
-      node.addApplication("test:app:otg2") do |app|
+```ruby
+
+#Welcome to 'Hello World' Wired
+#This script creates a simple wired networking experiment
+
+
+#Section 1
+#Define otg2 application
+#Define experiment parameters of 'Sender' and measurement points
+defGroup('Sender', "omf.nicta.node9") do |node|
+    node.addApplication("test:app:otg2") do |app|
         app.setProperty('udp:local_host', '192.168.0.2')
         app.setProperty('udp:dst_host', '192.168.0.3')
         app.setProperty('udp:dst_port', 3000)
         app.measure('udp_out', :samples => 1)
-      end
-      node.net.e0.ip = "192.168.0.2"
     end
+    node.net.e0.ip = "192.168.0.2"
+end
 
-    defGroup('Receiver', "omf.nicta.node3") do |node|
-      node.addApplication("test:app:otr2") do |app|
+
+#Section 2
+#Define otr2 application
+#Define experiment parameters of 'Reciever' and measurement points
+defGroup('Receiver', "omf.nicta.node10") do |node|
+    node.addApplication("test:app:otr2") do |app|
         app.setProperty('udp:local_host', '192.168.0.3')
         app.setProperty('udp:local_port', 3000)
         app.measure('udp_in', :samples => 1)
-      end
-      node.net.e0.ip = "192.168.0.3"
     end
+    node.net.e0.ip = "192.168.0.3"
+end
 
-    onEvent(:ALL_UP_AND_INSTALLED) do |event|
-      info "This is my first OMF experiment"
-      wait 10
-      allGroups.startApplications
-      info "All my Applications are started now..."
-      wait 30
-      allGroups.stopApplications
-      info "All my Applications are stopped now."
-      Experiment.done
-    end
-    </code>
+
+#Section  3
+#Execution of application events
+onEvent(:ALL_UP_AND_INSTALLED) do |event|
+    info "Starting OMF6 Experiment events"
+    after 10
+    allGroups.startApplications
+    info "All Applications have started..."
+    after 30
+    allGroups.stopApplications
+    info "Applications are stopping... Experiment Complete."
+    Experiment.done
+end
+    
+```
+
 
 ### 3.1 Resource Description and Configuration (Line 1 to 26)
 
