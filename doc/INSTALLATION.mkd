@@ -67,13 +67,15 @@ If you are missing some dependencies, RVM and/or OMF installation will fail with
 
 You most likely want to install RVM with local user permissions (no root access required). Run:
 
-    curl -L https://get.rvm.io | bash -s stable
+    \curl -L https://get.rvm.io | bash -s stable
     source $HOME/.rvm/scripts/rvm
 
 ### **OPERATORS**
 
-If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run the same command as above, but become root first. Then run:
+If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run:
 
+        sudo su -l
+        \curl -L https://get.rvm.io | bash -s stable
 	source /etc/profile.d/rvm.sh
 
 ### **Verify this step**
@@ -82,7 +84,7 @@ If you want to install the OMF Resource Controller on a PC, you would typically 
 
 should show the RVM version string, e.g.:
 
-	rvm 1.18.14 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
+	rvm 1.21.0 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
 
 ## Ruby installation
 
@@ -257,6 +259,7 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
 On a typical PC node, you can install the RC as root:
 
+    sudo su -l
     gem install omf_rc --no-ri --no-rdoc
 
 Now it's time to install an XMPP server. Follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation). Jump back here after you verified that Openfire is installed correctly.
