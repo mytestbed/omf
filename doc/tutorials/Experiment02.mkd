@@ -27,7 +27,7 @@ Description Language
 **Files**
 
 The experiment description (aka OEDL script) is: 
-{file:doc/tutorials/tutorial01.rb tutorial01.rb} 
+{file:doc/tutorials/experiment02.rb experiment02.rb}
 
 **Experiment Scenario**
 
@@ -118,7 +118,7 @@ of the resources involved in an experiment and the sets of actions to perform
 in order to execute that experiment. An ED is written using the
 OMF Experiment Description Language (OEDL), which is based on Ruby syntax.
 
-The ED describing this simple “Hello World” wireless experiment is {file:doc/tutorials/tutorial01.rb tutorial01.rb}:
+The ED describing this simple “Hello World” wireless experiment is {file:doc/tutorials/experiment02.rb experiment02.rb}:
 
 ```ruby
 #Welcome to 'Hello World' Wireless

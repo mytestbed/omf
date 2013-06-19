@@ -27,7 +27,7 @@ Description Language
 **Files**
 
 The experiment description (aka script) is:
-{file:doc/tutorials/tutorial00.rb tutorial00.rb}
+{file:doc/tutorials/experiment01.rb experiment01.rb}
 
 **Experiment Scenario**
 
@@ -135,7 +135,7 @@ of the resources involved in an experiment and the sets of actions to perform
 in order to realize that experiment. An ED is written using the
 OMF Experiment Description Language (OEDL).
 
-The ED describing this simple “Hello World” experiment is {file:doc/tutorials/tutorial00.rb tutorial00.rb}. It is composed of 3 distinct
+The ED describing this simple “Hello World” experiment is {file:doc/tutorials/experiment01.rb experiment01.rb}. It is composed of 3 distinct
 parts, described in the following listing and subsections below.
 
 ```ruby
@@ -265,7 +265,7 @@ Groups. A named Group can be itself viewed as a resource holding other
 resources. A given resource can belong to many groups at the same time, and
 a group itself may be part of another group.
 In this example, we define a single group named 'Sender', which contains a
-single resource 'omf6.nicta.node8'.
+single resource 'omf.nicta.node8'.
 
 > **IMPORTANT** When running this experiment using your own resource and testbed
 please change 'omf.nicta.node8' in the ED to the actual name of your
@@ -368,9 +368,9 @@ section 2, and that you have the EC software installed on your own computer,
 then to run your experiment you have to:
 
 - save its description in a file on your computer, thus either
-  - cut-and-paste the above ED listing into a new file named 'tutorial00.rb'
+  - cut-and-paste the above ED listing into a new file named 'experiment01.rb'
   - download the ED directly:
-{file:doc/tutorials/tutorial00.rb tutorial00.rb}
+{file:doc/tutorials/experiment01.rb experiment01.rb}
 
 - open a terminal and navigate to the folder/directory where you saved that file
 - start the EC software and tell it to execute the experiment described in your ED file, using the command line:
@@ -406,9 +406,9 @@ similar to this:
       INFO  Object: Connected
       INFO  Object: Start experiment: 2013-03-14T03:48:48Z
       INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
-      INFO  OmfEc: Subscribed to omf6.nicta.node8
-      INFO  OmfEc: Config omf6.nicta.node8 to join Sender
-      INFO  OmfEc: Newly discovered resource >> omf6dev.node8
+      INFO  OmfEc: Subscribed to omf.nicta.node8
+      INFO  OmfEc: Config omf.nicta.node8 to join Sender
+      INFO  OmfEc: Newly discovered resource >> omfdev.node8
       INFO  OmfEc: Event triggered: 'ALL_UP'
       INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
       INFO  OmfEc: Resource xmpp://bd9c68d5-1469-41a0-9a33-4bdba501f7b0@norbit.npc.nicta.com.au created
@@ -433,8 +433,8 @@ similar to this:
 
 The above screen output was optained when running the EC on the NICTA testbed,
 with the experiment described in
-{file:doc/tutorials/tutorial00.rb tutorial00.rb}
-and using the resource named 'omf6.nicta.node8'
+{file:doc/tutorials/experiment01.rb experiment01.rb}
+and using the resource named 'omf.nicta.node8'
 
 ### 4c) What does that screen output mean?
 
@@ -447,17 +447,17 @@ this experiment (ID, xmpp server used, resource used,...):
         INFO  Object: Connected
         INFO  Object: Start experiment: 2013-03-14T03:48:48Z
         ...
-        INFO  OmfEc: Subscribed to omf6.nicta.node8
-        INFO  OmfEc: Config omf6.nicta.node8 to join Sender
+        INFO  OmfEc: Subscribed to omf.nicta.node8
+        INFO  OmfEc: Config omf.nicta.node8 to join Sender
 
 - It also provides us some feedback about its communication with the xmpp
 server and other OMF entities:
 
         ...
         INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
-        INFO  OmfEc: Subscribed to omf6.nicta.node8
+        INFO  OmfEc: Subscribed to omf.nicta.node8
         ...
-        INFO  OmfEc: Newly discovered resource >> omf6dev.node8
+        INFO  OmfEc: Newly discovered resource >> omfdev.node8
         ...
         INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
         ...
@@ -545,7 +545,7 @@ use that tool, please refer to the [omf_web documentation]
 6. What should I do next?
 -------------------------
 
-We will soon release more tutorials on how to use all the features of OMF6
+We will soon release more tutorials on how to use all the features of omf
 from the experimenter's perspective.
 
 In the meantime, you may have a look at the OMF 5.4 documentation, which
