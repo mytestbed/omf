@@ -30,7 +30,7 @@ end
 #Define resources and nodes used by oml2 application
 
 #Create the group 'Sender' with specified nodes
-defGroup('Sender', 'omf.nicta.node8') do |g|
+defGroup('Sender', 'omf.nicta.node9') do |g|
     
 	#Associate oml2 application to group (?)
 	g.addApplication("ping_oml2") do |app|
