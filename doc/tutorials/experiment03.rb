@@ -52,7 +52,7 @@ defProperty('bitrate', 2048, "Bitrate (bit/s) from the sender node")
 defProperty('runtime', 40, "Time in second for the experiment is to run")
 defProperty('wifiType', "g", "The type of WIFI to use in this experiment")
 defProperty('channel', '6', "The WIFI channel to use in this experiment")
-defProperty('netid', "example2", "The ESSID to use in this experiment")
+defProperty('netid', "Hello World! Experiment03", "The ESSID to use in this experiment")
 
 ###############################################################################################
 ###############################################################################################

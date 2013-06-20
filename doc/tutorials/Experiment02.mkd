@@ -1,6 +1,6 @@
 # Experiment 02
 
-1. “Hello World” Wireless *Experiment Tutorial*
+2. “Hello World” Wireless *Experiment Tutorial*
 ---------------------------
 
 This simple tutorial presents all the basic steps to develop, run, and 
@@ -108,7 +108,7 @@ This tutorial assumes the latter, i.e. you have installed an EC on your
 machine and will use it to orchestrate your experiment
 
 
-3. Developing the “Hello World” Experiment
+3. Developing the Experiment Description (ED)
 ------------------------------------------------------
 
 To run an experiment with OMF, you first need to describe it into an

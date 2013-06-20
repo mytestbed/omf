@@ -1,20 +1,19 @@
-TUTORIAL
 # Experiment 03
 
 
-How to pass parameters to your experiment and change them at run-time
-=====================================================================
+3. Dynamic Properties *Experiment Tutorial*
+---------------------------
 
-1. Prerequisites
-----------------
+If you are a new OMF user (i.e. an experimenter), you may want to read
+the [OMF sytem overview]
+(http://omf.mytestbed.net/projects/omf/wiki/An_Introduction_to_OMF)
+or the [experimenter overview] 
+(http://omf.mytestbed.net/projects/omf/wiki/UsageOverview)
+pages
 
--   Make sure that you understand [[An\_Introduction\_to\_OMF|how OMF
-    works from a user’s point of view]].
--   Make sure that you have completed and understood the
-    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+**Objectives**
 
-2. Goal
--------
+After reading this tutorial you should be able to:
 
 -   This tutorial shows you how to define and use Experiment Properties
     within your experiment.
@@ -25,11 +24,10 @@ How to pass parameters to your experiment and change them at run-time
     -   change values of these parameters dynamically, while your
         experiment is running
 
-3. Scenario
------------
 
--   Here we are using the same simple scenario as in the
-    [[BasicTutorialStage0-5-4|basic “Hello World” tutorial]].
+**Experiment Scenario**
+
+-   Here we are using the same simple scenario as in Experiment02.
 
 -   We will modify this example, to allow us to:
     -   define some of the attributes of this experiment as parameters,
@@ -37,11 +35,68 @@ How to pass parameters to your experiment and change them at run-time
     -   assign values to these *properties*
     -   change these values at runtime, i.e. while the experiment is
         running
+        
+        
+2. Prerequisites
+--------------------------------------------------------------
+### 2a) Accessing/Provisioning Resources
 
-4. The New “Hello World” Experiment Description
+This tutorial assumes that you are using OMF-enabled resources with WLAN interfaces, which are
+provided by either a NICTA or ORBIT testbed. This section briefly describes
+the steps to reserve and provision resources on these testbeds.
+
+You can complete this tutorial with OMF-enabled resources which are provided
+by other testbeds. In such a case, please refer to these testbeds' specific 
+documentation for instructions on how to reserve/provision their resources with OMF.
+
+Alternatively you may also decide to install OMF on your own testbed, if
+so then please follow the instructions for testbed operators on our
+{file:doc/INSTALLATION.mkd OMF 6 Installation Guide}. Remember to install 802.11g compatible
+wireless cards (we use cards that support the ath5k or ath9k driver).
+
+**Accessing Resources at NICTA/ORBIT**
+
+- Are you using a testbed at NICTA? Please refer to the 
+[OMF at NICTA Getting Started page]
+(http://mytestbed.net/projects/omf/wiki/OMFatNICTA)
+- Are you using a testbed at ORBIT? Please refer to the 
+[OMF at ORBIT Getting Started page]
+(http://mytestbed.net/projects/omf/wiki/OMFatWINLAB)
+
+**Provisioning Resources at NICTA/ORBIT**
+
+The current version of OMF 6 does not yet have a complete process in place
+to provision a PC-type resource at NICTA or ORBIT. Such feature will be added
+in the next release. Provisioning in the context of PC-type resources at NICTA
+and ORBIT means having a specific user disk image loaded on the resource.
+
+In the meantime, please use the method described on 
+[the OMF 5.4 imaging page]
+(http://mytestbed.net/projects/omf54/wiki/BasicTutorialStage7-5-4)
+for instruction on how to provision/image resources at NICTA or ORBIT.
+
+Using these instructions, make sure that you load a disk image onto your resources
+that contains OMF 6 (normally the latest baseline.ndz image will do).
+
+### 2b) Installing the Experiment Controller
+
+
+The OMF Experiment Controller (EC) is the software that will interpret
+your Experiment Description (ED) and interact with the resources to 
+execute it accordingly. You can either:
+
+- use a pre-installed EC on the consoles of any NICTA or ORBIT testbeds
+- or install your own EC on your machine, by following the instructions
+for users on our {file:doc/INSTALLATION.mkd OMF 6 Installation Guide}
+
+This tutorial assumes the latter, i.e. you have installed an EC on your
+machine and will use it to orchestrate your experiment
+
+
+3. Developing the Experiment Description (ED)
 -----------------------------------------------
 
-The Experiment Description (ED) describing this simple experiment is:
+The ED describing this simple “Hello World” wireless experiment is {file:doc/tutorials/experiment02.rb experiment03.rb}:
 
 <pre class="code ruby"><code class="ruby">    
 #Welcome to the Dynamic Properties ED
@@ -98,7 +153,7 @@ defProperty('bitrate', 2048, "Bitrate (bit/s) from the sender node")
 defProperty('runtime', 40, "Time in second for the experiment is to run")
 defProperty('wifiType', "g", "The type of WIFI to use in this experiment")
 defProperty('channel', '6', "The WIFI channel to use in this experiment")
-defProperty('netid', "example2", "The ESSID to use in this experiment")
+defProperty('netid', "Hello World! Experiment03", "The ESSID to use in this experiment")
 
 ###############################################################################################
 ###############################################################################################
@@ -177,50 +232,11 @@ end
 </code>
 </pre>
 
-This ED is available for download here: attachment:dynamic-properties.rb
-
--   **Line 1-8**: define 8 Experiment Properties, i.e. parameters to the
-    experiment, and set their default values and descriptions
-    -   Line 1: defines a property named `theSender`, which has a
-        default value `omf.nicta.node1`. This parameter represents the
-        ID of the node to use as a sender in “Hello World”.
-    -   Line 3: defines the `packetsize` property, which has a default
-        integer value `128`. It represents the packet size in bytes
-        which the sender in “Hello World” will use to generates its UDP
-        traffic.
-    -   Line 7: we define the `channel` property, which as a default
-        string value `6`, i.e. the 802.11 channel to use in “Hello
-        World”
-    -   etc…
 
 
-5. Running the experiment
+
+4. Running the experiment
 -------------------------
-
-### 5.1. How to run it
-
-Please refer to the [[BasicTutorialStage0-5-4|basic “Hello World”
-tutorial]] and the [[GettingStarted|Getting Started page]] to find out
-how to run an experiment with OMF. Here we assume that you have the
-above ED saved in the file named `dynamic-properties.rb`.
-
-\* if you want to run the experiment using the default values for all
-the properties (as defined in line 1-8):\
-
-    omf-<version> exec dynamic-properties.rb
-
-\* if you want to pass your own initial values to some of the
-experiment’s properties via the command line:\
-
-    omf-<version> exec dynamic_properties.rb -- --theSender omf.nicta.node9 --theReceiver omf.nicta.node10
-
-    # OR
-
-    omf-<version> exec dynamic_properties.rb -- --runtime 80 --bitrate 1024
-
-    # ETC...
-
-### 5.2. What you should see on the console:
 
 -   You should see an output similar to the following:
 
@@ -243,17 +259,17 @@ experiment’s properties via the command line:\
      INFO property.runtime: runtime = 40 (Fixnum)
      INFO property.wifiType: wifiType = "g" (String)
      INFO property.channel: channel = "6" (String)
-     INFO property.netid: netid = "example2" (String)
+     INFO property.netid: netid = "Hello World! Experiment03" (String)
      INFO Topology: Loading topology 'omf.nicta.node9'.
      INFO Topology: Loading topology 'omf.nicta.node10'.
      INFO Experiment: Switching ON resources which are OFF
      INFO omf.nicta.node9: Device 'net/w0' reported Not-Associated
      INFO ALL_UP_AND_INSTALLED: Event triggered. Starting the associated tasks.
-     INFO exp: This is my first OMF experiment
+     INFO exp: Starting dynamic properties ED...
      INFO exp: Request from Experiment Script: Wait for 10s....
      INFO omf.nicta.node10: Device 'net/w0' reported Not-Associated
      INFO omf.nicta.node9: Device 'net/w0' reported 46:32:28:8A:DA:DD
-     INFO exp: All my Applications are started now...
+     INFO exp: Applications have started...
      INFO exp: Request from Experiment Script: Wait for 10s....
      INFO omf.nicta.node10: Device 'net/w0' reported 46:32:28:8A:DA:DD
      INFO property.packetsize: packetsize = 256 (Fixnum)
@@ -262,7 +278,7 @@ experiment’s properties via the command line:\
      INFO exp: Request from Experiment Script: Wait for 10s....
      INFO property.packetsize: packetsize = 1024 (Fixnum)
      INFO exp: Request from Experiment Script: Wait for 10s....
-     INFO exp: All my Applications are stopped now.
+     INFO exp: Applications are stopping... Experiment complete.        
      INFO EXPERIMENT_DONE: Event triggered. Starting the associated tasks.
      INFO NodeHandler: 
      INFO NodeHandler: Shutting down experiment, please wait...
@@ -270,76 +286,57 @@ experiment’s properties via the command line:\
      INFO run: Experiment default_slice-2013-03-06t16.52.50+11.00 finished after 1:3
     </code>
 
-6. The Results
+5. The Results
 --------------
 
--   Please refer to the [[BasicTutorialStage0-5-4|“Hello World”
-    tutorial]] to find out how to access and use your result database
-    -   you can download an example of a database produced by this
-        experiment here: attachment:myDatabase
+During the execution of the experiment, the OTG and OTR applications
+have collected some measurements, as we requested them to do, and sent them to
+the OML2 server that we selected (the --oml-uri option of the EC command line).
 
--   Following the same example as in the
-    [[BasicTutorialStage0-5-4|“Hello World” tutorial]], where you can
-    configure and run visualisation server for this experiment
+### How do you access the measurements?
 
--   To create a new widget to show packet size variation, simple add
-    following to the config yaml file.
+This depends on how the OML2 server which received your measurements is set up. It can be
+configured to use either a SQLite3 or a PostgreSQL database backend, moreover additional tools
+may have been put in place by your testbed operator to facilitate the access to the result database.
 
-<pre>
-<code class="text"> \
-- name: Incoming UDP packet size \
-type: line\_chart \
-data: otg2\_udp\_out \
-mapping: \
-x: oml\_seq \
-y: pkt\_length \
-group\_by: oml\_sender\_id
+For a detailed description of OML2 server's configuration modes, please
+refer to [the OML2 Documentation](http://mytestbed.net/projects/oml/wiki)
 
-</code>
+Here is a short example on how you would access your data on the NICTA testbed:
 
-</pre>
--   Once visualisation server started, the widget we just defined should
-    look like this:
+- assuming that the OML2 server was running on the host 'my_oml.com' and was configured to use SQLite3 and stores the result databases in `/var/lib/oml2/`
+- first you need to get access to a console on that host, assuming you have an account 'foo' with the password 'bar':
 
-![](/attachments/613/dynamic_properties.png) ![]()
+        ssh foo@my_oml.com  # then enter the password 'bar'
 
--   On this graph, we can see the packet size of the incoming UDP
-    traffic increasing in steps every 10 sec during our 40-sec
-    experiment.
+- then you use the sqlite3 command to dump your experiment database, which
+is in the file `/var/lib/oml2/your_experiment_id.sq3`. Thus assuming the experiment ID above
+(2013-03-06t16.52.50+11.00):
 
-7. What is Next?
-----------------
+        sqlite3 /var/lib/oml2/2013-03-06t16.52.50+11.00.sq3 .dump
 
-Now that you know how to use Experiment Properties, you may want to read
-the following basic OMF tutorials. Each one of them is introducing an
-OMF feature, using the simple “Hello World” experiment as a base. You do
-not need to follow them in the order suggested below.
+This will dump the database contents in SQL format to the console. For more information on SQLite3, please refer to its [documentation website]
+(http://www.sqlite.org/docs.html)
 
--   [[BasicTutorialStage0-5-4|How to describe and run a simple wireless
-    experiment]] - ([[BasicTutorialStage0-5-4|wired version]])
+### How do I display my measurements in some nice graphs?
 
--   [[BasicTutorialStage1-5-4|How to pass parameters to your experiment,
-    and change them at run-time]]
+We have a separate tool named [**omf_web**]
+(https://github.com/mytestbed/omf_web) which allows you to build
+some custom visualisation of the data collected within your experiment and
+display them within your web browser. For more information on how to
+use that tool, please refer to the [omf_web documentation]
+(https://github.com/mytestbed/omf_web)    
 
--   [[BasicTutorialStage2-5-3|How to configure or address all resources
-    within a defined group, and use simple substitutions]]
+6. What should I do next?
+-------------------------
 
--   [[BasicTutorialStage3-5-3|How to use your own or a 3rd party
-    application with OMF]]
+We will soon release more tutorials on how to use all the features of OMF6
+from the experimenter's perspective.
 
--   [[BasicTutorialStage4-5-3|How to use Measurement Filters to
-    customise your Measurement]]
+In the meantime, you may have a look at the OMF 5.4 documentation, which
+will not be completely accurate and applicable to OMF 6, but would still give you
+some ideas of the OMF features available for experimenters.
 
--   [[BasicTutorialStage5-5-3|How to use Prototypes to specify
-    particular Applications]]
-
--   [[BasicTutorialStage6-5-3|How to save a disk image]]
-
--   [[BasicTutorialStage7-5-3|How to load a disk image]]
-
-And finally, a “Conference Room” scenario which combines all of the
-above features:
-
--   [[BasicTutorialStage8-5-3|The Conference Room tutorial]]
-
-* * * * *
+Finally, if you have any questions on how to use OMF 6 or any problems running
+this 'Hello World' wireless tutorial, please join the [OMF Mailing List]
+(https://lists.nicta.com.au/wws/info/omf-user) and post your questions there.
