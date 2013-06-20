@@ -1,3 +1,6 @@
+#Welcome Experiment 04: Substitution
+#This ED allows then experimenter to configure or address all resources within a defined group using simple substitutions
+
 defGroup('Sender', "omf.nicta.node9") do |node|
     defApplication('otg2') do |app|
         app.binary_path = "/usr/bin/otg2"
@@ -15,6 +18,7 @@ defGroup('Sender', "omf.nicta.node9") do |node|
             m.defMetric('pkt_length',:long)
             m.defMetric('dst_host',:string)
             m.defMetric('dst_port',:long)
+        end
         
         #Set Properties
         app.setProperty('udp_local_host', '%net.w0.ip%')
@@ -31,6 +35,7 @@ defGroup('Receiver', "omf.nicta.node10,omf.nicta.node11") do |node|
         app.binary_path = "/usr/bin/otr2"
         app.description = "otr is a configurable traffic sink that recieves packet streams"
         
+        #Define properties
         app.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
         app.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
         app.defMeasurement('udp_in') do |m|
@@ -40,8 +45,9 @@ defGroup('Receiver', "omf.nicta.node10,omf.nicta.node11") do |node|
             m.defMetric('pkt_length',:long)
             m.defMetric('dst_host',:string)
             m.defMetric('dst_port',:long)
+            end
         
-        
+        #Set properties
         app.setProperty('udp_local_host', '192.168.255.255')
         app.setProperty('udp_local_port', 3000)
         app.measure('udp_in', :samples => 1)
@@ -52,21 +58,19 @@ allGroups.net.w0 do |interface|
     interface.mode = "adhoc"
     interface.type = 'g'
     interface.channel = "6"
-    interface.essid = "helloworld-tutorial04"
+    interface.essid = "helloworld-experiment04"
     interface.ip = "192.168.0.%index%"
 end
 
 onEvent(:ALL_UP_AND_INSTALLED) do |event|
-    wait 10
+    after 10
     group("Receiver").startApplications
-    wait 5
+    after 5
     group("Sender").startApplications
-    wait 30
+    after 30
     group("Sender").stopApplications
-    wait 5
+    after 5
     group("Receiver").stopApplications
     Experiment.done
+    
 end
-
-
-
