@@ -77,7 +77,7 @@ defGroup('Receiver', "omf.nicta.node10,omf.nicta.node11") do |node|
     end
 end
 
-#Currently not working in OMF6
+#Not implemented in OMF6 - New syntax required for experiment to work
 allGroups.net.w0 do |interface|
     interface.mode = "adhoc"
     interface.type = 'g'
