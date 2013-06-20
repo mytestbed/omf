@@ -2,7 +2,7 @@
 #This ED will allow the experimenter to use OMF Prototypes to specify the Application
 #A Prototype is a specialized version of your applicationwith preset parameters and measurement collection points
 
-defGroup('CBR_Sender', "omf.nicta.node0") do |node|
+defGroup('CBR_Sender', "omf.nicta.node9") do |node|
     options = { 'localHost' => '%net.w0.ip%',
         'destinationHost' => '192.168.255.255',
         'packetSize' => 256 }
