@@ -1,7 +1,7 @@
 defGroup('Sender', "omf.nicta.node9") do |node|
-    defApplication('otg2') do |a|
-        a.binary_path = "/usr/bin/otg2"
-        a.description = "otg is a configurable traffic generator that sends packet streams"
+    defApplication('otg2') do |app|
+        app.binary_path = "/usr/bin/otg2"
+        app.description = "otg is a configurable traffic generator that sends packet streams"
         app.setProperty('udp_local_host', '%net.w0.ip%')
         app.setProperty('udp_dst_host', '192.168.255.255')
         app.setProperty('udp_broadcast', 1)
@@ -10,10 +10,10 @@ defGroup('Sender', "omf.nicta.node9") do |node|
     end
 end
 
-defGroup('Receiver', "omf.nicta.node10") do |node|
-    defApplication('otr2') do |a|
-        a.binary_path = "/usr/bin/otr2"
-        a.description = "otr is a configurable traffic sink that recieves packet streams"
+defGroup('Receiver', "omf.nicta.node10,omf.nicta.node11") do |node|
+    defApplication('otr2') do |app|
+        app.binary_path = "/usr/bin/otr2"
+        app.description = "otr is a configurable traffic sink that recieves packet streams"
         app.setProperty('udp_local_host', '192.168.255.255')
         app.setProperty('udp_local_port', 3000)
         app.measure('udp_in', :samples => 1)

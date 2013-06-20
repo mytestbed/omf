@@ -14,14 +14,14 @@ defApplication('otg2') do |app|
 	app.binary_path = '/usr/bin/otg2'
     
 	#Configurable parameters of Experiment
-	a.defProperty('udp_local_host', 'IP address of this Source node', '--udp:local_host', {:type => :string, :dynamic => false})
-    a.defProperty('udp_dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
-    a.defProperty('udp_dst_port', 'Destination Port to send to', '--udp:dst_port', {:type => :integer, :dynamic => false})
-    a.defProperty("cbr_size", "Size of packet [bytes]", '--cbr:size', {:dynamic => true, :type => :integer})
-    a.defProperty("cbr_rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
+	app.defProperty('udp_local_host', 'IP address of this Source node', '--udp:local_host', {:type => :string, :dynamic => false})
+    app.defProperty('udp_dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
+    app.defProperty('udp_dst_port', 'Destination Port to send to', '--udp:dst_port', {:type => :integer, :dynamic => false})
+    app.defProperty("cbr_size", "Size of packet [bytes]", '--cbr:size', {:dynamic => true, :type => :integer})
+    app.defProperty("cbr_rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
 	
 	#Define measurement points that application will output
-    a.defMeasurement('udp_out') do |m|
+    app.defMeasurement('udp_out') do |m|
 
         
     end
@@ -35,12 +35,12 @@ defApplication('otr2') do |app|
 	app.binary_path = '/usr/bin/otr2'
     
 	#Configurable parameters of Experiment
-	a.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
-    a.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
+	app.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
+    app.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
     
 	
 	#Define measurement points that application will output
-    a.defMeasurement('udp_in') do |m|
+    app.defMeasurement('udp_in') do |m|
 
         
     end
@@ -123,13 +123,13 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
     allGroups.startApplications
     info "Applications have started..."
     
-    wait property.runtime / 4
+    after property.runtime / 4
     property.packetsize = 256
-    wait property.runtime / 4
+    after property.runtime / 4 *2
     property.packetsize = 512
-    wait property.runtime / 4
+    after property.runtime / 4 *3
     property.packetsize = 1024
-    wait property.runtime / 4
+    after property.runtime
     
     allGroups.stopApplications
     info "Applications are stopping... Experiment complete."
