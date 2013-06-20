@@ -22,11 +22,9 @@ defApplication('otg2') do |app|
 	
 	#Define measurement points that application will output
     app.defMeasurement('udp_out') do |m|
-
         
     end
 end
-
 
 defApplication('otr2') do |app|
     
@@ -37,15 +35,12 @@ defApplication('otr2') do |app|
 	#Configurable parameters of Experiment
 	app.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
     app.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
-    
 	
 	#Define measurement points that application will output
     app.defMeasurement('udp_in') do |m|
 
-        
     end
 end
-
 ###############################################################################################
 ###############################################################################################
 #Define dynamic properties to be changed by experimenter
@@ -108,8 +103,6 @@ defGroup('Reciever',property.theReceiver) do |node|
     node.net.w0.essid = "foo"+property.netid
     node.net.w0.ip = "192.168.0.3/24"
 end
-
-
 ###############################################################################################
 ###############################################################################################
 #Section  3
@@ -123,13 +116,13 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
     allGroups.startApplications
     info "Applications have started..."
     
-    after property.runtime / 4
+    wait property.runtime / 4
     property.packetsize = 256
-    after property.runtime / 4 *2
+    wait property.runtime / 4 *2
     property.packetsize = 512
-    after property.runtime / 4 *3
+    wait property.runtime / 4 *3
     property.packetsize = 1024
-    after property.runtime
+    wait property.runtime
     
     allGroups.stopApplications
     info "Applications are stopping... Experiment complete."
