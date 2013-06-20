@@ -1,4 +1,4 @@
-#Welcome to your first ruby OML2 application
+#Welcome to your first Experiment Description
 #This OML2 application is designed to ping a specified host and collect the output it recieves in a sq3 database
 
 #Section 1
