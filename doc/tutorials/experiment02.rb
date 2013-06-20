@@ -1,4 +1,4 @@
-#Welcome to 'Hello World' Wireless
+#Welcome to experiment 02: 'Hello World' Wireless
 #This script creates a simple wireless networking experiment
 
 
@@ -7,7 +7,6 @@
 #Define experiment parameters and measurement points
 
 defApplication('otr2') do |a|
-    
     
 	#Application description and binary path
     a.binary_path = "/usr/bin/otr2"
@@ -25,7 +24,6 @@ defApplication('otr2') do |a|
         m.defMetric('dst_port',:long)
     end
 end
-
 
 #Define otg2 application file-paths
 #Define experiment parameters and measurement points
@@ -61,13 +59,11 @@ defApplication('otg2') do |a|
     end
 end
 
-
-
 #Section 2
 #Define resources and nodes used by application
 
 #Define configuration of wireless 'sender'
-defGroup('Sender', "omf.nicta.node36") do |node|
+defGroup('Sender', "omf.nicta.node9") do |node|
     node.addApplication("otg2") do |app|
         app.setProperty('udp_local_host', '192.168.0.2')
         app.setProperty('udp_dst_host', '192.168.0.3')
@@ -82,9 +78,8 @@ defGroup('Sender', "omf.nicta.node36") do |node|
     node.net.w0.ip = "192.168.0.2/24"
 end
 
-
 #Define configuration of wireless 'reciever'
-defGroup('Receiver', "omf.nicta.node37") do |node|
+defGroup('Receiver', "omf.nicta.node10") do |node|
     node.addApplication("otr2") do |app|
         app.setProperty('udp_local_host', '192.168.0.3')
         app.setProperty('udp_local_port', 3000)
@@ -94,12 +89,9 @@ defGroup('Receiver', "omf.nicta.node37") do |node|
     node.net.w0.mode = "adhoc"
     node.net.w0.type = 'g'
     node.net.w0.channel = "6"
-    node.net.w0.essid = "Hello World!"
+    node.net.w0.essid = "Hello World! Experiment02"
     node.net.w0.ip = "192.168.0.3/24"
 end
-
-
-
 
 #Section 3
 #Execution of application events
