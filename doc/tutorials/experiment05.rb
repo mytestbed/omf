@@ -13,8 +13,8 @@ defApplication('otg2') do |app|
     app.description = "Programmable traffic generator v2"
     app.description = "OTG is a configurable traffic generator."
     
-    # Define the properties that can be configured for this application
-    # syntax: defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
+    #Define the properties that can be configured for this application
+    #syntax: defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
     app.defProperty('generator', 'Type of packet generator to use (cbr or expo)', '-g', {:type => :string, :dynamic => false})
     app.defProperty('udp:broadcast', 'Broadcast', '--udp:broadcast', {:type => :integer, :dynamic => false})
     app.defProperty('udp:dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
@@ -28,7 +28,7 @@ defApplication('otg2') do |app|
     app.defProperty("exp:ontime", "Average length of burst [msec]", '--exp:ontime', {:dynamic => true, :type => :integer})
     app.defProperty("exp:offtime", "Average length of idle time [msec]", '--exp:offtime', {:dynamic => true, :type => :integer})
     
-    # Define the Measurement Points and associated metrics that are available for this application
+    #Define the Measurement Points and associated metrics that are available for this application
     app.defMeasurement('udp_out') do |m|
         m.defMetric('ts',:float)
         m.defMetric('flow_id',:long)
