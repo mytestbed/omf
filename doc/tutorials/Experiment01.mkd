@@ -1,11 +1,10 @@
-TUTORIAL
 # Experiment 01
 
 
-1. "Hello World" Tutorial
+1. "Hello World" *Experiment Tutorial*
 ---------------------------
 
-This simple tutorial presents all the basic steps to develop, run, and
+This simple experiment tutorial presents all the basic steps to develop, run, and
 access the result of an experiment with OMF 6.
 Subsequent tutorials will build on this one to introduce further OMF
 features.
@@ -349,7 +348,7 @@ The set of consecutive tasks that we define are:
 
         info "Initializing first OMF experiment event"
         allGroups.startApplications
-        wait 5
+        after 5
         allGroups.stopApplications
 
 As OMF experiment are fully event driven, you have to explicitly tell the OMF
