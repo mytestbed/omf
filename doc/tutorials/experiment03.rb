@@ -21,9 +21,10 @@ defApplication('otg2') do |app|
     a.defProperty("cbr_rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
 	
 	#Define measurement points that application will output
-	
+    a.defMeasurement('udp_out') do |m|
+
         
-    #end
+    end
 end
 
 
@@ -36,13 +37,13 @@ defApplication('otr2') do |app|
 	#Configurable parameters of Experiment
 	a.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
     a.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
-    a.defMeasurement('udp_in') do |m|
     
 	
 	#Define measurement points that application will output
+    a.defMeasurement('udp_in') do |m|
 
         
-    #end
+    end
 end
 
 ###############################################################################################
@@ -61,7 +62,7 @@ defProperty('netid', "example2", "The ESSID to use in this experiment")
 ###############################################################################################
 ###############################################################################################
 #Section 2
-#Define resources and nodes used by oml2 application
+#Define resources and nodes used by application
 
 #Create the group 'Sender' associated to dynamic property
 defGroup('Sender',property.theSender) do |node|
@@ -134,5 +135,3 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
     info "Applications are stopping... Experiment complete."
     Experiment.done
 end
-
-
