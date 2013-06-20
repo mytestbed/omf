@@ -14,16 +14,14 @@ defApplication('otg2') do |app|
 	app.binary_path = '/usr/bin/otg2'
     
 	#Configurable parameters of Experiment
-	app.defProperty('target', 'Address to ping', '-a', {:type => :string})
-	app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
-    
+	a.defProperty('udp_local_host', 'IP address of this Source node', '--udp:local_host', {:type => :string, :dynamic => false})
+    a.defProperty('udp_dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
+    a.defProperty('udp_dst_port', 'Destination Port to send to', '--udp:dst_port', {:type => :integer, :dynamic => false})
+    a.defProperty("cbr_size", "Size of packet [bytes]", '--cbr:size', {:dynamic => true, :type => :integer})
+    a.defProperty("cbr_rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
 	
 	#Define measurement points that application will output
-	app.defMeasurement('ping') do |m|
-        m.defMetric('dest_addr',:string)
-        m.defMetric('ttl',:uint32)
-        m.defMetric('rtt',:double)
-        m.defMetric('rtt_unit',:string)
+	
         
     end
 end
@@ -36,23 +34,20 @@ defApplication('otr2') do |app|
 	app.binary_path = '/usr/bin/otr2'
     
 	#Configurable parameters of Experiment
-	app.defProperty('target', 'Address to ping', '-a', {:type => :string})
-	app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
+	a.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
+    a.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
+    a.defMeasurement('udp_in') do |m|
     
 	
 	#Define measurement points that application will output
-	app.defMeasurement('ping') do |m|
-        m.defMetric('dest_addr',:string)
-        m.defMetric('ttl',:uint32)
-        m.defMetric('rtt',:double)
-        m.defMetric('rtt_unit',:string)
+
         
     end
 end
 
 ###############################################################################################
 ###############################################################################################
-#Define dynamic properties
+#Define dynamic properties to be changed by experimenter
 
 defProperty('theSender', 'omf.nicta.node9', "ID of sender node")
 defProperty('theReceiver', 'omf.nicta.node10', "ID of receiver node")
@@ -71,7 +66,7 @@ defProperty('netid', "example2", "The ESSID to use in this experiment")
 #Create the group 'Sender' associated to dynamic property
 defGroup('Sender',property.theSender) do |node|
     
-	#Associate oml2 application to group (?)
+	#Associate application to group (?)
 	node.addApplication("otg2") do |app|
         
 		#Configure aplication
@@ -95,8 +90,8 @@ end
 #Create the group 'Reciever' associated to dynamic property
 defGroup('Reciever',property.theReceiver) do |node|
     
-	#Associate oml2 application to group (?)
-	node.addApplication("otg2") do |app|
+	#Associate application to group (?)
+	node.addApplication("otr2") do |app|
         
 		#Configure application
         app.setProperty('udp_local_host', '192.168.0.3')
