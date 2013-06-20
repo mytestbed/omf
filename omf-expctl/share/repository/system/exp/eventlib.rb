@@ -39,7 +39,8 @@
 defEvent(:ALL_UP_AND_INSTALLED) do |event|
   node_status = allGroups.state("status/@value")
   app_status = allGroups.state("apps/app/status/@value")
-  if allEqual(node_status, "UP") && allEqual(app_status, "INSTALLED.OK")
+  # also fire this event if there are no applications at all
+  if allEqual(node_status, "UP") and (allEqual(app_status, "INSTALLED.OK") or app_status.nil?)
     event.fire 
   end
 end
