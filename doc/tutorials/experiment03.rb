@@ -72,7 +72,7 @@ defProperty('netid', "example2", "The ESSID to use in this experiment")
 defGroup('Sender',property.theSender) do |node|
     
 	#Associate oml2 application to group (?)
-	g.addApplication("otg2") do |app|
+	node.addApplication("otg2") do |app|
         
 		#Configure aplication
         app.setProperty('udp_local_host', '192.168.0.2')
@@ -96,7 +96,7 @@ end
 defGroup('Reciever',property.theReceiver) do |node|
     
 	#Associate oml2 application to group (?)
-	g.addApplication("otg2") do |app|
+	node.addApplication("otg2") do |app|
         
 		#Configure application
         app.setProperty('udp_local_host', '192.168.0.3')
