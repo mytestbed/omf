@@ -1,5 +1,5 @@
-#Welcome to your first Experiment Description
-#This OML2 application is designed to ping a specified host and collect the output it recieves in a sq3 database
+#Welcome to Experiment 01
+#This ED allows experimenters to ping a specified host and collect the output it recieves as measurement points
 
 #Section 1
 #Define oml2 application file-paths
@@ -30,13 +30,13 @@ end
 #Define resources and nodes used by oml2 application
 
 #Create the group 'Sender' with specified nodes
-defGroup('Sender', 'omf.nicta.node8') do |g|
+defGroup('Sender', 'omf.nicta.node9') do |g|
     
 	#Associate oml2 application to group (?)
 	g.addApplication("ping_oml2") do |app|
         
 		#Configure target of application (Ping target)
-		app.setProperty('target', 'www.nicta.com.au')
+		app.setProperty('target', 'www.extant.me')
 		
 		#Configure amount of times to ping host
 		app.setProperty('count', 3)
