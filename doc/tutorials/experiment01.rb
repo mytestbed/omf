@@ -1,6 +1,7 @@
 #Welcome to Experiment 01
 #This ED allows experimenters to ping a specified host and collect the output it recieves as measurement points
 
+
 #Section 1
 #Define oml2 application file-paths
 #Define experiment parameters and measurement points
@@ -36,7 +37,7 @@ defGroup('Sender', 'omf.nicta.node9') do |g|
 	g.addApplication("ping_oml2") do |app|
         
 		#Configure target of application (Ping target)
-		app.setProperty('target', 'www.extant.me')
+		app.setProperty('target', 'www.nicta.com.au')
 		
 		#Configure amount of times to ping host
 		app.setProperty('count', 3)

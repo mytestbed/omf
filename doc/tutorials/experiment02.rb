@@ -1,7 +1,6 @@
 #Welcome to experiment 02: 'Hello World' Wireless
 #This script creates a simple wireless networking experiment
 
-
 #Section 1
 #Define otr2 application file-paths
 #Define experiment parameters and measurement points

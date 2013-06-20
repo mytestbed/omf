@@ -44,8 +44,55 @@ How to pass parameters to your experiment and change them at run-time
 The Experiment Description (ED) describing this simple experiment is:
 
     <code class="ruby">
-    defProperty('theSender', 'omf.nicta.node1', "ID of sender node")
-    defProperty('theReceiver', 'omf.nicta.node2', "ID of receiver node")
+    #Welcome to the Dynamic Properties ED
+    #This ED allows the experimenter to pass parameters to the experiment and change them at run-time
+
+    ###############################################################################################
+    ###############################################################################################
+    #Section 1
+    #Define application file-paths
+    #Define experiment parameters and measurement points
+
+    defApplication('otg2') do |app|
+        
+        #Application description and binary path
+        app.description = 'otg2 is a configurable traffic generator'
+        app.binary_path = '/usr/bin/otg2'
+        
+        #Configurable parameters of Experiment
+        app.defProperty('udp_local_host', 'IP address of this Source node', '--udp:local_host', {:type => :string, :dynamic => false})
+        app.defProperty('udp_dst_host', 'IP address of the Destination', '--udp:dst_host', {:type => :string, :dynamic => false})
+        app.defProperty('udp_dst_port', 'Destination Port to send to', '--udp:dst_port', {:type => :integer, :dynamic => false})
+        app.defProperty("cbr_size", "Size of packet [bytes]", '--cbr:size', {:dynamic => true, :type => :integer})
+        app.defProperty("cbr_rate", "Data rate of the flow [kbps]", '--cbr:rate', {:dynamic => true, :type => :integer})
+        
+        #Define measurement points that application will output
+        app.defMeasurement('udp_out') do |m|
+            
+        end
+    end
+
+    defApplication('otr2') do |app|
+        
+        #Application description and binary path
+        app.description = 'otr2 is a configurable traffic reciever'
+        app.binary_path = '/usr/bin/otr2'
+        
+        #Configurable parameters of Experiment
+        app.defProperty('udp_local_host', 'IP address of this Destination node', '--udp:local_host', {:type => :string, :dynamic => false})
+        app.defProperty('udp_local_port', 'Receiving Port of this Destination node', '--udp:local_port', {:type => :integer, :dynamic => false})
+        
+        #Define measurement points that application will output
+        app.defMeasurement('udp_in') do |m|
+
+        end
+    end
+    ###############################################################################################
+    ###############################################################################################
+    #Define dynamic properties to be changed by experimenter
+
+    defProperty('theSender', 'omf.nicta.node9', "ID of sender node")
+    defProperty('theReceiver', 'omf.nicta.node10', "ID of receiver node")
     defProperty('packetsize', 128, "Packet size (byte) from the sender node")
     defProperty('bitrate', 2048, "Bitrate (bit/s) from the sender node")
     defProperty('runtime', 40, "Time in second for the experiment is to run")
@@ -53,50 +100,79 @@ The Experiment Description (ED) describing this simple experiment is:
     defProperty('channel', '6', "The WIFI channel to use in this experiment")
     defProperty('netid', "example2", "The ESSID to use in this experiment")
 
+    ###############################################################################################
+    ###############################################################################################
+    #Section 2
+    #Define resources and nodes used by application
+
+    #Create the group 'Sender' associated to dynamic property
     defGroup('Sender',property.theSender) do |node|
-      node.addApplication("test:app:otg2") do |app|
-        app.setProperty('udp:local_host', '192.168.0.2')
-        app.setProperty('udp:dst_host', '192.168.0.3')
-        app.setProperty('udp:dst_port', 3000)
-        app.setProperty('cbr:size', property.packetsize)
-        app.setProperty('cbr:rate', property.bitrate * 2)
-        app.measure('udp_out', :samples => 1)
-      end
-      node.net.w0.mode = "adhoc"
-      node.net.w0.type = property.wifiType
-      node.net.w0.channel = property.channel
-      node.net.w0.essid = "foo"+property.netid
-      node.net.w0.ip = "192.168.0.2"
+        
+        #Associate application to group (?)
+        node.addApplication("otg2") do |app|
+            
+            #Configure aplication
+            app.setProperty('udp_local_host', '192.168.0.2')
+            app.setProperty('udp_dst_host', '192.168.0.3')
+            app.setProperty('udp_dst_port', 3000)
+            app.setProperty('cbr_size', property.packetsize)
+            app.setProperty('cbr_rate', property.bitrate * 2)
+            
+            #Request application to collect measurement point output data
+            app.measure('udp_out', :samples => 1)
+            
+        end
+        node.net.w0.mode = "adhoc"
+        node.net.w0.type = property.wifiType
+        node.net.w0.channel = property.channel
+        node.net.w0.essid = "foo"+property.netid
+        node.net.w0.ip = "192.168.0.2/24"
     end
 
-    defGroup('Receiver',property.theReceiver) do |node|
-      node.addApplication("test:app:otr2") do |app|
-        app.setProperty('udp:local_host', '192.168.0.3')
-        app.setProperty('udp:local_port', 3000)
-        app.measure('udp_in', :samples => 1)
-      end
-      node.net.w0.mode = "adhoc"
-      node.net.w0.type = property.wifiType
-      node.net.w0.channel = property.channel
-      node.net.w0.essid = "foo"+property.netid
-      node.net.w0.ip = "192.168.0.3"
+    #Create the group 'Reciever' associated to dynamic property
+    defGroup('Reciever',property.theReceiver) do |node|
+        
+        #Associate application to group (?)
+        node.addApplication("otr2") do |app|
+            
+            #Configure application
+            app.setProperty('udp_local_host', '192.168.0.3')
+            app.setProperty('udp_local_port', 3000)
+            
+            #Request application to collect measurement point output data
+            app.measure('udp_in', :samples => 1)
+
+        end
+        node.net.w0.mode = "adhoc"
+        node.net.w0.type = property.wifiType
+        node.net.w0.channel = property.channel
+        node.net.w0.essid = "foo"+property.netid
+        node.net.w0.ip = "192.168.0.3/24"
     end
+    ###############################################################################################
+    ###############################################################################################
+    #Section  3
+    #Execution of application events
 
     onEvent(:ALL_UP_AND_INSTALLED) do |event|
-      info "This is my first OMF experiment"
-      wait 10
-      allGroups.startApplications
-      info "All my Applications are started now..."
-      wait property.runtime / 4
-      property.packetsize = 256
-      wait property.runtime / 4
-      property.packetsize = 512
-      wait property.runtime / 4
-      property.packetsize = 1024
-      wait property.runtime / 4
-      allGroups.stopApplications
-      info "All my Applications are stopped now."
-      Experiment.done
+        
+        info "Starting dynamic properties ED..."
+        wait 10
+        
+        allGroups.startApplications
+        info "Applications have started..."
+        
+        wait property.runtime / 4
+        property.packetsize = 256
+        wait property.runtime / 4 *2
+        property.packetsize = 512
+        wait property.runtime / 4 *3
+        property.packetsize = 1024
+        wait property.runtime
+        
+        allGroups.stopApplications
+        info "Applications are stopping... Experiment complete."
+        Experiment.done
     end
     </code>
 
@@ -116,61 +192,6 @@ This ED is available for download here: attachment:dynamic-properties.rb
         World”
     -   etc…
 
-\* **Line 10-24**: we use these Experiment Properties in our definition
-and configuration of the `Sender` group. These lines show you multiple
-examples on how to use Experiment Properties. For example:\
-**\* we use the syntax: `property.name` to access the value of the
-property called `name` \
-**\* we use the same syntax to assign an Experiment Property to an
-application parameter (e.g. Line 15)\
-**\* we use operations with Experiment Properties as arguments\
-****\* Line 22: the addition of a property to a string returns this
-string concatenated with the string representation of that property.\
-****\* Line 16: arithmetic operations involving a properties and an
-integer/float are allowed .
-\
-** **Line 39-54**: we dynamically change the value of the `packetsize`
-property during the execution of the experiment.\
-**\* Line 44: we let the experiment run for a quarter of the time with
-the initial “packetsize” value\
-**\* Line 45: we change the value of the “packetsize” property\
-**\* Line 46: we let the experiment run for another quarter of the time\
-**\* etc…
-
--   **How does the dynamic update of a property work?**
-    -   First you assign an Experiment Property to an application
-        parameters (line 15)
-    -   Later, when you change the value of that property (line 45), a
-        string line is sent to the Standard-In input of that application
-    -   Here for example, line 45 triggers the string line “cbr:size
-        256” to be written to the Standard-In input of the application
-        otg2 used by the “Sender” group
-    -   Prerequisites for this to work:
-        -   Your application (otg2 in this example) needs to be able to
-            received and interprets strings on its Standard-In input,
-            while it is running. This should be easy to implement in
-            your own applications.
-        -   This mechanism **only** works when you assign directly the
-            Experiment Property as the application parameter as in Line
-            15!
-        -   If you use an operation as part of this assignment (e.g.line
-            16), then your application parameter will be assigned the
-            resulting value of that operation. Thus, any change in the
-            used Experiment Property **will not** result in a dynamic
-            application parameter change
-            -   for example, calling `property.bitrate = 1024` in the
-                tasks declaration (line 39-54) will not result in the
-                dynamic update of the application’s bitrate parameter.
-
--   **Important**
-    -   There are a few reserved names that are used by the EC or Ruby,
-        and which **cannot** be used to name Experiment Properties
-    -   A list of these names can be found on [[ReservedKeywords|the
-        reserved names and keywords list]].
-
--   **Finally…** Please refer to the [[BasicTutorialStage0-5-4|basic
-    “Hello World” tutorial]] if you do not understand the remaining
-    lines of the above ED.
 
 5. Running the experiment
 -------------------------
@@ -190,7 +211,7 @@ the properties (as defined in line 1-8):\
 \* if you want to pass your own initial values to some of the
 experiment’s properties via the command line:\
 
-    omf-<version> exec dynamic_properties.rb -- --theSender omf.nicta.node36 --theReceiver omf.nicta.node37
+    omf-<version> exec dynamic_properties.rb -- --theSender omf.nicta.node9 --theReceiver omf.nicta.node10
 
     # OR
 
@@ -214,26 +235,26 @@ experiment’s properties via the command line:\
      INFO property.resetTries: resetTries = 1 (Fixnum)
      INFO Experiment: load system:exp:eventlib
      INFO Experiment: load dynamic-properties.rb
-     INFO property.theSender: theSender = "omf.nicta.node36" (String)
-     INFO property.theReceiver: theReceiver = "omf.nicta.node37" (String)
+     INFO property.theSender: theSender = "omf.nicta.node9" (String)
+     INFO property.theReceiver: theReceiver = "omf.nicta.node10" (String)
      INFO property.packetsize: packetsize = 128 (Fixnum)
      INFO property.bitrate: bitrate = 2048 (Fixnum)
      INFO property.runtime: runtime = 40 (Fixnum)
      INFO property.wifiType: wifiType = "g" (String)
      INFO property.channel: channel = "6" (String)
      INFO property.netid: netid = "example2" (String)
-     INFO Topology: Loading topology 'omf.nicta.node36'.
-     INFO Topology: Loading topology 'omf.nicta.node37'.
+     INFO Topology: Loading topology 'omf.nicta.node9'.
+     INFO Topology: Loading topology 'omf.nicta.node10'.
      INFO Experiment: Switching ON resources which are OFF
-     INFO omf.nicta.node36: Device 'net/w0' reported Not-Associated
+     INFO omf.nicta.node9: Device 'net/w0' reported Not-Associated
      INFO ALL_UP_AND_INSTALLED: Event triggered. Starting the associated tasks.
      INFO exp: This is my first OMF experiment
      INFO exp: Request from Experiment Script: Wait for 10s....
-     INFO omf.nicta.node37: Device 'net/w0' reported Not-Associated
-     INFO omf.nicta.node36: Device 'net/w0' reported 46:32:28:8A:DA:DD
+     INFO omf.nicta.node10: Device 'net/w0' reported Not-Associated
+     INFO omf.nicta.node9: Device 'net/w0' reported 46:32:28:8A:DA:DD
      INFO exp: All my Applications are started now...
      INFO exp: Request from Experiment Script: Wait for 10s....
-     INFO omf.nicta.node37: Device 'net/w0' reported 46:32:28:8A:DA:DD
+     INFO omf.nicta.node10: Device 'net/w0' reported 46:32:28:8A:DA:DD
      INFO property.packetsize: packetsize = 256 (Fixnum)
      INFO exp: Request from Experiment Script: Wait for 10s....
      INFO property.packetsize: packetsize = 512 (Fixnum)

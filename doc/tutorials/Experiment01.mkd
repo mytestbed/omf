@@ -140,77 +140,79 @@ OMF Experiment Description Language (OEDL).
 The ED describing this simple “Hello World” experiment is {file:doc/tutorials/experiment01.rb experiment01.rb}. It is composed of 3 distinct
 parts, described in the following listing and subsections below.
 
+    
     <code class="ruby">
-    #Welcome to your first ruby OML2 application
-    #This OML2 application is designed to ping a specified host and collect the output it recieves in a sq3 database
+    #Welcome to Experiment 01
+    #This ED allows experimenters to ping a specified host and collect the output it recieves as measurement points
 
     #Section 1
     #Define oml2 application file-paths
     #Define experiment parameters and measurement points
 
     defApplication('ping_oml2') do |app|
-
-    #Application description and binary path
-    app.description = 'Simple definition of ping-oml2 application'
-    app.binary_path = '/usr/bin/ping-oml2'
-
-    #Configurable parameters of Experiment
-    app.defProperty('target', 'Address to ping', '-a', {:type => :string})
-    app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
-
-
-    #DISABLED-Define measurement points that application will output
-    app.defMeasurement('ping') do |m|
-    m.defMetric('dest_addr',:string)
-    m.defMetric('ttl',:uint32)
-    m.defMetric('rtt',:double)
-    m.defMetric('rtt_unit',:string)
-
-    end
+        
+        #Application description and binary path
+        app.description = 'Simple definition of ping-oml2 application'
+        app.binary_path = '/usr/bin/ping-oml2'
+        
+        #Configurable parameters of Experiment
+        app.defProperty('target', 'Address to ping', '-a', {:type => :string})
+        app.defProperty('count', 'Number of times to ping', '-c', {:type => :integer})
+        
+        
+        #Define measurement points that application will output
+        app.defMeasurement('ping') do |m|
+            m.defMetric('dest_addr',:string)
+            m.defMetric('ttl',:uint32)
+            m.defMetric('rtt',:double)
+            m.defMetric('rtt_unit',:string)
+            
+        end
     end
 
     #Section 2
-    #Define recources and nodes used by oml2 application
+    #Define resources and nodes used by oml2 application
 
     #Create the group 'Sender' with specified nodes
-    defGroup('Sender', 'omf.nicta.node8') do |g|
-
-    #Associate oml2 application to group (?)
-    g.addApplication("ping_oml2") do |app|
-
-    #Configure target of application (Ping target)
-    app.setProperty('target', 'www.nicta.com.au')
-
-    #Configure amount of times to ping host
-    app.setProperty('count', 3)
-
-    #Request application to collect measurement point output data
-    app.measure('ping', :samples => 1)
-
-    end
+    defGroup('Sender', 'omf.nicta.node9') do |g|
+        
+        #Associate oml2 application to group (?)
+        g.addApplication("ping_oml2") do |app|
+            
+            #Configure target of application (Ping target)
+            app.setProperty('target', 'www.nicta.com.au')
+            
+            #Configure amount of times to ping host
+            app.setProperty('count', 3)
+            
+            #Request application to collect measurement point output data
+            app.measure('ping', :samples => 1)
+            
+        end
     end
 
     #Section  3
-    #Execution of application
+    #Execution of application events
 
     onEvent(:ALL_UP_AND_INSTALLED) do |event|
-
-    # Print information message on commandline
-    info "Initializing first OMF experiment event"
-
-    # Start all the Applications associated to all the Group
-    allGroups.startApplications
-
-    # Wait for 5 sec (allowing time for 3 pings)
-    after 5
-
-    # Stop all the Applications associated to all the Groups
-    allGroups.stopApplications
-
-    # Tell the Experiment Controller to terminate the experiment now
-    Experiment.done
+        
+        # Print information message on commandline
+        info "Initializing first OMF experiment event"
+        
+        # Start all the Applications associated to all the Group
+        allGroups.startApplications
+        
+        # Wait for 5 sec (allowing time for 3 pings)
+        after 5
+        
+        # Stop all the Applications associated to all the Groups
+        allGroups.stopApplications
+        
+        # Tell the Experiment Controller to terminate the experiment now
+        Experiment.done
     end
     </code>
+        
 
 
 
@@ -268,13 +270,13 @@ Groups. A named Group can be itself viewed as a resource holding other
 resources. A given resource can belong to many groups at the same time, and
 a group itself may be part of another group.
 In this example, we define a single group named 'Sender', which contains a
-single resource 'omf.nicta.node8'.
+single resource 'omf.nicta.node9'.
 
 > **IMPORTANT** When running this experiment using your own resource and testbed
-please change 'omf.nicta.node8' in the ED to the actual name of your
+please change 'omf.nicta.node9' in the ED to the actual name of your
 own resource.
 
-    defGroup('Sender', 'omf.nicta.node8') do |g|
+    defGroup('Sender', 'omf.nicta.node9') do |g|
       ...
     end
 
@@ -409,9 +411,9 @@ similar to this:
       INFO  Object: Connected
       INFO  Object: Start experiment: 2013-03-14T03:48:48Z
       INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
-      INFO  OmfEc: Subscribed to omf.nicta.node8
-      INFO  OmfEc: Config omf.nicta.node8 to join Sender
-      INFO  OmfEc: Newly discovered resource >> omfdev.node8
+      INFO  OmfEc: Subscribed to omf.nicta.node9
+      INFO  OmfEc: Config omf.nicta.node9 to join Sender
+      INFO  OmfEc: Newly discovered resource >> omfdev.node9
       INFO  OmfEc: Event triggered: 'ALL_UP'
       INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
       INFO  OmfEc: Resource xmpp://bd9c68d5-1469-41a0-9a33-4bdba501f7b0@norbit.npc.nicta.com.au created
@@ -437,7 +439,7 @@ similar to this:
 The above screen output was optained when running the EC on the NICTA testbed,
 with the experiment described in
 {file:doc/tutorials/experiment01.rb experiment01.rb}
-and using the resource named 'omf.nicta.node8'
+and using the resource named 'omf.nicta.node9'
 
 ### 4c) What does that screen output mean?
 
@@ -450,17 +452,17 @@ this experiment (ID, xmpp server used, resource used,...):
         INFO  Object: Connected
         INFO  Object: Start experiment: 2013-03-14T03:48:48Z
         ...
-        INFO  OmfEc: Subscribed to omf.nicta.node8
-        INFO  OmfEc: Config omf.nicta.node8 to join Sender
+        INFO  OmfEc: Subscribed to omf.nicta.node9
+        INFO  OmfEc: Config omf.nicta.node9 to join Sender
 
 - It also provides us some feedback about its communication with the xmpp
 server and other OMF entities:
 
         ...
         INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
-        INFO  OmfEc: Subscribed to omf.nicta.node8
+        INFO  OmfEc: Subscribed to omf.nicta.node9
         ...
-        INFO  OmfEc: Newly discovered resource >> omfdev.node8
+        INFO  OmfEc: Newly discovered resource >> omfdev.node9
         ...
         INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
         ...
