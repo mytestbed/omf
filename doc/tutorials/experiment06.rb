@@ -6,7 +6,6 @@
 
 defApplication('otr2') do |a|
     
-    
 	#Application description and binary path
     a.binary_path = "/usr/bin/otr2"
     a.description = "otr is a configurable traffic sink that recieves packet streams"
@@ -60,12 +59,10 @@ end
 
 #Section 2
 #Define resources and nodes used by application
-
 defProperty('theSender', 'omf.nicta.node9', "ID of sender node")
 defProperty('theReceiver', 'omf.nicta.node10', "ID of receiver node")
 defProperty('packetsize', 256, "Packet size (byte) from the sender node")
 defProperty('runtime', 30, "Time in second for the experiment is to run")
-
 
 defGroup('Sender',property.theSender) do |node|
     node.addApplication("otg2") do |app|
