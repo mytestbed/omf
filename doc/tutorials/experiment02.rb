@@ -103,7 +103,6 @@ end
 
 #Section 3
 #Execution of application events
-
 onEvent(:ALL_UP_AND_INSTALLED) do |event|
     info "Starting WiFi OMF6 Experiment events"
     
