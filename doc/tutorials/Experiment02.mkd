@@ -1,7 +1,6 @@
-TUTORIAL
 # Experiment 02
 
-1. “Hello World” - Wireless
+1. “Hello World” Wireless *Experiment Tutorial*
 ---------------------------
 
 This simple tutorial presents all the basic steps to develop, run, and 
@@ -34,7 +33,7 @@ The experiment description (aka OEDL script) is:
 
 The following figure shows the simple experiment scenario for this tutorial:
 
-![Figure 1. Simple experiment scenario](images/tutorial01-fig1.png)
+![Figure 1. Simple experiment scenario](images/experiment01-fig1.png)
 
 - This experiment involves two resources of type PC with wireless capabilities:
 Node 1 and Node 2
@@ -417,13 +416,13 @@ Assuming that you have checked all the prerequisite points in the above
 section 2, to run your experiment you have to:
 
 - save the experiment description in a file on your computer, thus either
-  - cut-and-paste the above ED listing into a new file named 'tutorial01.rb'
-  - download the ED directly: {file:doc/tutorials/tutorial01.rb tutorial01.rb}
+  - cut-and-paste the above ED listing into a new file named 'experiment02.rb'
+  - download the ED directly: {file:doc/tutorials/experiment02.rb experiment02.rb}
 
 - open a terminal and navigate to the directory where you saved that file
 - start the EC software and tell it to execute the experiment described in your ED file, using the command line:
 
-        omf_ec -u xmpp://my_xmpp.com exec --oml_uri tcp:my_oml.com:port tutorial01.rb
+        omf_ec -u xmpp://my_xmpp.com exec --oml_uri tcp:my_oml.com:port experiment02.rb
 
   - **replace** *my_xmpp.com* with the hostname of the
   XMPP server that is used to communicate with the resources. This is usually provided by your testbed.
@@ -435,7 +434,7 @@ and you want to use the OML2 server at 'my_oml.com with port
 3003 to collect the measurements from your experiment, then you would use the
 command line:
 
-        omf_ec -u xmpp://my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 tutorial01.rb
+        omf_ec -u xmpp://my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 experiment02.rb
 
 If you would like to know more about the other options of the OMF EC software, please run:
 
@@ -467,9 +466,9 @@ similar to this:
 	18:15:40 INFO  OmfEc: Newly discovered resource >> bbfba05b-c8ed-458b-8841-c6694135e99e
 	18:15:42 INFO  OmfEc: Newly discovered resource >> 65e5bf73-4085-4d46-b790-2c2e4b719b70
 	18:15:42 INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
-	18:15:42 INFO  Object: This is my first OMF experiment
+	18:15:42 INFO  Object: Starting WiFi OMF6 Experiment events
 	18:15:42 INFO  OmfEc: Newly discovered resource >> 4b8644d3-9a45-4091-a147-651c55f4f15b
-	18:15:52 INFO  Object: All my Applications are started now...
+	18:15:52 INFO  Object: All Applications have started...
 	18:15:52 INFO  OmfEc: APP_EVENT STARTED from app otg2_cxt_0 - msg: env -i /usr/bin/otg2 --udp:dst_host 192.168.0.3 --udp:dst_port 3000 --udp:local_host 192.168.0.2 --oml-config /tmp/65e5bf73-4085-4d46-b790-2c2e4b719b70-1366272953.xml
 	18:15:53 INFO  OmfEc: APP_EVENT STARTED from app otr2_cxt_0 - msg: env -i /usr/bin/otr2 --udp:local_host 192.168.0.3 --udp:local_port 3000 --oml-config /tmp/bb4c0edf-7167-4c64-9cbe-c9681332749f-1366272953.xml
 	18:15:53 INFO  OmfEc: APP_EVENT STDERR from app otr2_cxt_0 - msg: INFO   OTG2 Traffic Sink 2.9.0-dirty
@@ -478,7 +477,7 @@ similar to this:
 	18:15:54 INFO  OmfEc: APP_EVENT STDERR from app otr2_cxt_0 - msg: INFO   OML Client V2.9.0 [Protocol V3] Copyright 2007-2012, NICTA
 	18:15:56 INFO  OmfEc: APP_EVENT STDERR from app otg2_cxt_0 - msg: INFO   Net_stream: attempting to connect to server at tcp://norbit.npc.nicta.com.au:3003
 	18:15:56 INFO  OmfEc: APP_EVENT STDERR from app otr2_cxt_0 - msg: INFO   Net_stream: attempting to connect to server at tcp://norbit.npc.nicta.com.au:3003
-	18:16:22 INFO  Object: All my Applications are stopped now.
+	18:16:22 INFO  Object: Applications are stopping... Experiment Complete.
 	18:16:22 INFO  OmfEc: Exit in up to 15 seconds...
 	18:16:22 INFO  OmfEc: APP_EVENT DONE.OK from app otr2_cxt_0 - msg: status: pid 1469 exit 0
 	18:16:22 INFO  OmfEc: APP_EVENT DONE.OK from app otg2_cxt_0 - msg: status: pid 1705 exit 0
@@ -486,7 +485,7 @@ similar to this:
 	18:16:37 INFO  XMPP::Communicator: Disconnecting ...
 
 The above screen output was obtained when running the EC on the NICTA testbed,
-with the experiment described in {file:doc/tutorials/tutorial01.rb tutorial01.rb}
+with the experiment described in {file:doc/tutorials/experiment02.rb experiment02.rb}
 and using the resources named 'omf.nicta.node9' and 'omf.nicta.node10'.
 
 ### 4c) What does that screen output mean?
@@ -540,9 +539,9 @@ results/outputs:
 
         ...
 		18:15:42 INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
-		18:15:42 INFO  Object: This is my first OMF experiment
+		18:15:42 INFO  Object: Starting WiFi OMF6 Experiment events
 		18:15:42 INFO  OmfEc: Newly discovered resource >> 4b8644d3-9a45-4091-a147-651c55f4f15b
-		18:15:52 INFO  Object: All my Applications are started now...
+		18:15:52 INFO  Object: All Applications have started...
 		18:15:52 INFO  OmfEc: APP_EVENT STARTED from app otg2_cxt_0 - msg: env -i /usr/bin/otg2 --udp:dst_host 192.168.0.3 --udp:dst_port 3000 --udp:local_host 192.168.0.2 --oml-config /tmp/65e5bf73-4085-4d46-b790-2c2e4b719b70-1366272953.xml
 		18:15:53 INFO  OmfEc: APP_EVENT STARTED from app otr2_cxt_0 - msg: env -i /usr/bin/otr2 --udp:local_host 192.168.0.3 --udp:local_port 3000 --oml-config /tmp/bb4c0edf-7167-4c64-9cbe-c9681332749f-1366272953.xml
 		18:15:53 INFO  OmfEc: APP_EVENT STDERR from app otr2_cxt_0 - msg: INFO   OTG2 Traffic Sink 2.9.0-dirty
@@ -551,7 +550,7 @@ results/outputs:
 		18:15:54 INFO  OmfEc: APP_EVENT STDERR from app otr2_cxt_0 - msg: INFO   OML Client V2.9.0 [Protocol V3] Copyright 2007-2012, NICTA
 		18:15:56 INFO  OmfEc: APP_EVENT STDERR from app otg2_cxt_0 - msg: INFO   Net_stream: attempting to connect to server at tcp://norbit.npc.nicta.com.au:3003
 		18:15:56 INFO  OmfEc: APP_EVENT STDERR from app otr2_cxt_0 - msg: INFO   Net_stream: attempting to connect to server at tcp://norbit.npc.nicta.com.au:3003
-		18:16:22 INFO  Object: All my Applications are stopped now.
+		18:16:22 INFO  Object: Applications are stopping... Experiment Complete.
 		18:16:22 INFO  OmfEc: Exit in up to 15 seconds...
 		18:16:22 INFO  OmfEc: APP_EVENT DONE.OK from app otr2_cxt_0 - msg: status: pid 1469 exit 0
 		18:16:22 INFO  OmfEc: APP_EVENT DONE.OK from app otg2_cxt_0 - msg: status: pid 1705 exit 0

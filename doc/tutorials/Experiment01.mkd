@@ -419,7 +419,7 @@ similar to this:
       INFO  OmfEc: Resource xmpp://bd9c68d5-1469-41a0-9a33-4bdba501f7b0@norbit.npc.nicta.com.au created
       INFO  OmfEc: Newly discovered resource >> bd9c68d5-1469-41a0-9a33-4bdba501f7b0
       INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
-      INFO  Object: This is my first OMF experiment
+      INFO  Object: Initializing first OMF experiment event
       INFO  Object: Request from Experiment Script: Wait for 10s....
       WARN  Object: Calling 'wait' or 'sleep' will block entire EC event loop. Please try 'after' or 'every'
       INFO  OmfEc: APP_EVENT STARTED from app ping_oml2_cxt_0 - msg: env -i /usr/bin/ping-oml2 -a www.nicta.com.au -c 3 --oml-config /tmp/bd9c68d5.xml
@@ -486,7 +486,7 @@ results/outputs:
 
         ...
         INFO  OmfEc: Event triggered: 'ALL_UP_AND_INSTALLED'
-        INFO  Object: This is my first OMF experiment
+        INFO  Object: Initializing first OMF experiment event
         INFO  Object: Request from Experiment Script: Wait for 10s....
         WARN  Object: Calling 'wait' or 'sleep' will block entire ...
         INFO  OmfEc: APP_EVENT STARTED from app ping_oml2_cxt_0 - ...
