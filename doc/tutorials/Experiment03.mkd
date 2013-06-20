@@ -27,7 +27,7 @@ After reading this tutorial you should be able to:
 
 **Experiment Scenario**
 
--   Here we are using the same simple scenario as in Experiment02.
+-   Here we are using the same simple scenario as in {file:doc/tutorials/experiment03.rb Experiment02.mkd}
 
 -   We will modify this example, to allow us to:
     -   define some of the attributes of this experiment as parameters,
@@ -96,7 +96,7 @@ machine and will use it to orchestrate your experiment
 3. Developing the Experiment Description (ED)
 -----------------------------------------------
 
-The ED describing this simple “Hello World” wireless experiment is {file:doc/tutorials/experiment02.rb experiment03.rb}:
+The ED describing this simple “Hello World” wireless experiment is {file:doc/tutorials/experiment03.rb experiment03.rb}:
 
 <pre class="code ruby"><code class="ruby">    
 #Welcome to the Dynamic Properties ED
