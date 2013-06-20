@@ -167,9 +167,9 @@ parts, described in the following listing and subsections below.
 
     # B. Define a group of resources which will run the ping-oml2 application
     # Here we define only one group (Sender), which has only one resource in it
-    # (omf6.nicta.node8)
+    # (omf.nicta.node8)
     #
-    defGroup('Sender', 'omf6.nicta.node8') do |g|
+    defGroup('Sender', 'omf.nicta.node8') do |g|
       # Associate the application ping_oml2 defined above to each resources
       # in this group
       g.addApplication("ping_oml2") do |app|
@@ -253,13 +253,13 @@ Groups. A named Group can be itself viewed as a resource holding other
 resources. A given resource can belong to many groups at the same time, and
 a group itself may be part of another group.
 In this example, we define a single group named 'Sender', which contains a
-single resource 'omf6.nicta.node8'.
+single resource 'omf.nicta.node8'.
 
 > **IMPORTANT** When running this experiment using your own resource and testbed
-please change 'omf6.nicta.node8' in the ED to the actual name of your
+please change 'omf.nicta.node8' in the ED to the actual name of your
 own resource.
 
-    defGroup('Sender', 'omf6.nicta.node8') do |g|
+    defGroup('Sender', 'omf.nicta.node8') do |g|
       ...
     end
 
@@ -394,9 +394,9 @@ similar to this:
       INFO  Object: Connected
       INFO  Object: Start experiment: 2013-03-14T03:48:48Z
       INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
-      INFO  OmfEc: Subscribed to omf6.nicta.node8
-      INFO  OmfEc: Config omf6.nicta.node8 to join Sender
-      INFO  OmfEc: Newly discovered resource >> omf6dev.node8
+      INFO  OmfEc: Subscribed to omf.nicta.node8
+      INFO  OmfEc: Config omf.nicta.node8 to join Sender
+      INFO  OmfEc: Newly discovered resource >> omf.nicta.node8
       INFO  OmfEc: Event triggered: 'ALL_UP'
       INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
       INFO  OmfEc: Resource xmpp://bd9c68d5-1469-41a0-9a33-4bdba501f7b0@norbit.npc.nicta.com.au created
@@ -422,7 +422,7 @@ similar to this:
 The above screen output was optained when running the EC on the NICTA testbed,
 with the experiment described in
 {file:doc/tutorials/tutorial00.rb tutorial00.rb}
-and using the resource named 'omf6.nicta.node8'
+and using the resource named 'omf.nicta.node8'
 
 ### 4c) What does that screen output mean?
 
@@ -435,17 +435,17 @@ this experiment (ID, xmpp server used, resource used,...):
         INFO  Object: Connected
         INFO  Object: Start experiment: 2013-03-14T03:48:48Z
         ...
-        INFO  OmfEc: Subscribed to omf6.nicta.node8
-        INFO  OmfEc: Config omf6.nicta.node8 to join Sender
+        INFO  OmfEc: Subscribed to omf.nicta.node8
+        INFO  OmfEc: Config omf.nicta.node8 to join Sender
 
 - It also provides us some feedback about its communication with the xmpp
 server and other OMF entities:
 
         ...
         INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a
-        INFO  OmfEc: Subscribed to omf6.nicta.node8
+        INFO  OmfEc: Subscribed to omf.nicta.node8
         ...
-        INFO  OmfEc: Newly discovered resource >> omf6dev.node8
+        INFO  OmfEc: Newly discovered resource >> omf.nicta.node8
         ...
         INFO  OmfEc: Subscribed to 856de74b-6cf7-4de7-aaad-6c842eea209a_application
         ...
