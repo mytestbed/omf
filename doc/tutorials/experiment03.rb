@@ -23,7 +23,7 @@ defApplication('otg2') do |app|
 	#Define measurement points that application will output
 	
         
-    end
+    #end
 end
 
 
@@ -42,7 +42,7 @@ defApplication('otr2') do |app|
 	#Define measurement points that application will output
 
         
-    end
+    #end
 end
 
 ###############################################################################################
