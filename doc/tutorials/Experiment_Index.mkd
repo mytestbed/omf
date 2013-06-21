@@ -1,5 +1,20 @@
 # Tutorials
 
-{file:doc/tutorials/TUTORIAL_00.mkd Tutorial 00}
+{file:doc/tutorials/Experiment01.mkd Experiment 01}
 
-{file:doc/tutorials/TUTORIAL_01.mkd Tutorial 01}
+{file:doc/tutorials/Experiment02.mkd Experiment 02}
+
+{file:doc/tutorials/Experiment03.mkd Experiment 03}
+
+---------------------------
+
+*{file:doc/tutorials/Experiment04.mkd Experiment 04}*
+
+*{file:doc/tutorials/Experiment05.mkd Experiment 05}*
+
+*{file:doc/tutorials/Experiment06.mkd Experiment 06}*
+
+*{file:doc/tutorials/Experiment07.mkd Experiment 07}*
+
+*{file:doc/tutorials/Experiment08.mkd Experiment 08}*
+

@@ -311,7 +311,7 @@ triggered
 For example, your experiment might involve 2 events:
 
 - 'when my PC node is ready' and
-- 'when my application has finished running'. You would then a
+- 'when my application has finished running'.
 
 You would then associate the following tasks to each of these events:
 
@@ -380,7 +380,7 @@ then to run your experiment you have to:
 - open a terminal and navigate to the folder/directory where you saved that file
 - start the EC software and tell it to execute the experiment described in your ED file, using the command line:
 
-        omf_ec -u xmpp://usr:pwd@my_xmpp.com exec --oml_uri tcp:srv:port tutorial00.rb
+        omf_ec -u xmpp://usr:pwd@my_xmpp.com exec --oml_uri tcp:srv:port experiment01.rb
 
   - **replace** *xmpp://usr:pwd@srv* with the credentials for your user on the
   xmpp pubsub server that is used to communicate with the resources
@@ -393,7 +393,7 @@ furthermore want to use the OML2 server with hostname 'my_oml.com at port
 3003 to collect the measurement of your experiment, then you would use the
 command:
 
-        omf_ec -u xmpp://foo:bar@my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 tutorial00.rb
+        omf_ec -u xmpp://foo:bar@my_xmpp.com exec --oml_uri tcp:my_oml.com:3003 experiment01.rb
 
 If you would like to know more about the other options of the OMF EC software
 please run the commands:
