@@ -57,7 +57,7 @@ module OmfEc
       #
       # @example OEDL
       #   app.defMeasurement("power") do |mp|
-      #     mp.defMetric('power', :double, unit: "W", precision: 0.1, description: 'Power')
+      #     mp.defMetric('power', :double, :unit => "W", :precision => 0.1, :description => 'Power')
       #   end
       def defMetric(name,type, opts = {})
         # the third parameter used to be a description string
