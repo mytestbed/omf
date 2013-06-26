@@ -4,5 +4,5 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfEc
-  VERSION = "6.0.2"
+  VERSION = "6.0.3"
 end
