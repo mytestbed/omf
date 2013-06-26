@@ -59,6 +59,7 @@ module OmfEc::Context
     # For now this follows v5.4 syntax...
     # We have not yet finalised an OML syntax inside OEDL for v6
     def measure(mp,filters)
+      warn "No OML URI configured, don't know where to send measurements (add option 'oml_uri')" if OmfEc.experiment.oml_uri.nil?
       collection = {:url => OmfEc.experiment.oml_uri, :streams => [] }
       stream = { :mp => mp , :filters => [] }.merge(filters)
       collection[:streams] << stream
