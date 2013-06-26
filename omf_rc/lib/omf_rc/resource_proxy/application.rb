@@ -112,6 +112,10 @@ module OmfRc::ResourceProxy::Application
     # define_method("on_app_event") { |*args| process_event(self, *args) }
   # end
 
+  hook :before_release do |app|
+    app.configure_state(:stopped)
+  end
+
   # @!macro hook
   # @!method after_initial_configured
   hook :after_initial_configured do |res|

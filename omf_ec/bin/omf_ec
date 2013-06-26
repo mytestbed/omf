@@ -288,7 +288,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
           error e.backtrace.join("\n")
         end
 
-        comm.on_interrupted { comm.disconnect }
+        comm.on_interrupted { OmfEc::Experiment.done }
       end
     end
   rescue => e
