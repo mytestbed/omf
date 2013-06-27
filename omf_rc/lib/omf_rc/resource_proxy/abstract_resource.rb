@@ -591,11 +591,12 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [String] name of the topic
   # @return [Array<OmfRc::ResourceProxy::AbstractResource>]
   def objects_by_topic(name)
-    if name == uid || membership.include?(name)
+    if name == uid || membership.any? { |m| m.include?(name) }
       objs = [self]
     else
-      objs = children.find_all { |v| v.uid == name || v.membership.include?(name)}
+      objs = children.find_all { |v| v.uid == name || v.membership.any? { |m| m.include?(name) } }
     end
+    objs
   end
 
   # Retrieve replyto address

@@ -14,7 +14,8 @@ class XMPP
 #    end
 
     def address
-      "xmpp://#{id.to_s}@#{OmfCommon.comm.jid.domain}"
+      #"xmpp://#{id.to_s}@#{OmfCommon.comm.jid.domain}"
+      "xmpp://#{id.to_s}@#{@pubsub_domain}"
     end
 
     def on_subscribed(&block)
@@ -27,8 +28,16 @@ class XMPP
 
     private
 
+    def pubsub_domain_addr
+      "pubsub.#{@pubsub_domain}"
+    end
+
     def initialize(id, opts = {}, &block)
-      id = $1 if id =~ /^xmpp:\/\/(.+)@.+$/
+      id, @pubsub_domain = id.to_s.split("@")
+      if id =~ /^xmpp:\/\/(.+)$/
+        id = $1
+      end
+      @pubsub_domain ||= OmfCommon.comm.jid.domain
 
       super
 
@@ -50,17 +59,17 @@ class XMPP
 
       # Create xmpp pubsub topic, then subscribe to it
       #
-      OmfCommon.comm._create(id.to_s) do |stanza|
+      OmfCommon.comm._create(id.to_s, pubsub_domain_addr) do |stanza|
         if stanza.error?
           e_stanza = Blather::StanzaError.import(stanza)
           if e_stanza.name == :conflict
             # Topic exists, just subscribe to it.
-            OmfCommon.comm._subscribe(id.to_s, &topic_block)
+            OmfCommon.comm._subscribe(id.to_s, pubsub_domain_addr, &topic_block)
           else
             block.call(stanza) if block
           end
         else
-          OmfCommon.comm._subscribe(id.to_s, &topic_block)
+          OmfCommon.comm._subscribe(id.to_s, pubsub_domain_addr, &topic_block)
         end
       end
 
@@ -75,7 +84,7 @@ class XMPP
 
     def _send_message(msg, block)
       super
-      OmfCommon.comm.publish(self.id, msg)
+      OmfCommon.comm.publish(self.id, msg, pubsub_domain_addr)
     end
 
     def valid_guard?(guard_proc)

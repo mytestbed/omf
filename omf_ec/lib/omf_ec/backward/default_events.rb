@@ -14,10 +14,10 @@ module OmfEc
             def_event :ALL_UP do |state|
               all_groups? do |g|
                 plan = g.members.uniq.sort
-                actual = state.find_all { |v| v.joined?(g.id) }.map { |v| v[:address] }.sort
+                actual = state.find_all { |v| v.joined?(g.address) }.map { |v| v[:address] }.sort
 
-                debug "Planned: #{g.name}(#{g.id}): #{plan}"
-                debug "Actual: #{g.name}(#{g.id}): #{actual}"
+                debug "Planned: #{g.name}(#{g.address}): #{plan}"
+                debug "Actual: #{g.name}(#{g.address}): #{actual}"
 
                 plan == actual
               end
@@ -52,7 +52,7 @@ module OmfEc
             def_event :ALL_INTERFACE_UP do |state|
               all_groups? do |g|
                 plan = g.net_ifs.map { |v| v.conf[:if_name] }.uniq.size * g.members.uniq.size
-                actual = state.count { |v| v.joined?("#{g.id}_wlan", "#{g.id}_net") }
+                actual = state.count { |v| v.joined?(g.address("wlan"), g.address("net")) }
                 plan == actual
               end
             end
@@ -60,7 +60,7 @@ module OmfEc
             def_event :ALL_UP_AND_INSTALLED do |state|
               all_groups? do |g|
                 plan = g.app_contexts.size * g.members.uniq.size
-                actual = state.count { |v| v.joined?("#{g.id}_application") }
+                actual = state.count { |v| v.joined?(g.address("application")) }
                 plan == actual
               end
             end
@@ -68,7 +68,7 @@ module OmfEc
             def_event :ALL_APPS_DONE do |state|
               all_groups? do |g|
                 plan = (g.execs.size + g.app_contexts.size) * g.members.uniq.size
-                actual = state.count { |v| v.joined?("#{g.id}_application") && v[:event] == 'EXIT' }
+                actual = state.count { |v| v.joined?(g.address("application")) && v[:event] == 'EXIT' }
                 plan == 0 ? false : plan == actual
               end
             end

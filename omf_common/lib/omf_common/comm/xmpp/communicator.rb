@@ -121,8 +121,8 @@ class Comm
       # Delete a pubsub topic
       #
       # @param [String] topic Pubsub topic name
-      def delete_topic(topic, &block)
-        pubsub.delete(topic, default_host, &callback_logging(__method__, topic, &block))
+      def delete_topic(topic, pubsub_host = default_host, &block)
+        pubsub.delete(topic, pubsub_host, &callback_logging(__method__, topic, &block))
       end
 
       # Subscribe to a pubsub topic
@@ -136,33 +136,33 @@ class Comm
         MPSubscription.inject(Time.now.to_f, jid, 'join', topic) if OmfCommon::Measure.enabled?
       end
 
-      def _subscribe(topic, &block)
-        pubsub.subscribe(topic, nil, default_host, &callback_logging(__method__, topic, &block))
+      def _subscribe(topic, pubsub_host = default_host, &block)
+        pubsub.subscribe(topic, nil, pubsub_host, &callback_logging(__method__, topic, &block))
       end
 
-      def _create(topic, &block)
-        pubsub.create(topic, default_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
+      def _create(topic, pubsub_host = default_host, &block)
+        pubsub.create(topic, pubsub_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
       end
 
       # Un-subscribe all existing subscriptions from all pubsub topics.
-      def unsubscribe
-        pubsub.subscriptions(default_host) do |m|
+      def unsubscribe(pubsub_host = default_host)
+        pubsub.subscriptions(pubsub_host) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
-            pubsub.unsubscribe(s[:node], nil, s[:subid], default_host, &callback_logging(__method__, s[:node], s[:subid]))
+            pubsub.unsubscribe(s[:node], nil, s[:subid], pubsub_host, &callback_logging(__method__, s[:node], s[:subid]))
             MPSubscription.inject(Time.now.to_f, jid, 'leave', s[:node]) if OmfCommon::Measure.enabled?
           end
         end
       end
 
-      def affiliations(&block)
-        pubsub.affiliations(default_host, &callback_logging(__method__, &block))
+      def affiliations(pubsub_host = default_host, &block)
+        pubsub.affiliations(pubsub_host, &callback_logging(__method__, &block))
       end
 
       # Publish to a pubsub topic
       #
       # @param [String] topic Pubsub topic name
       # @param [OmfCommon::Message] message Any XML fragment to be sent as payload
-      def publish(topic, message, &block)
+      def publish(topic, message, pubsub_host = default_host, &block)
         raise StandardError, "Invalid message" unless message.valid?
 
         message = message.marshall[1] unless message.kind_of? String
@@ -176,7 +176,7 @@ class Comm
           block.call(stanza) if block
         end
 
-        pubsub.publish(topic, message, default_host, &callback_logging(__method__, topic, &new_block))
+        pubsub.publish(topic, message, pubsub_host, &callback_logging(__method__, topic, &new_block))
         MPPublished.inject(Time.now.to_f, jid, topic, message.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled?
       end
 
