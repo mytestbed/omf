@@ -22,11 +22,11 @@ module OmfCommon
         #
         def init(opts = {})
           @opts = {
-            #:ssl (Hash) Ñ TLS (SSL) parameters to use.
-            heartbeat: 20, # (Fixnum) Ñ default: 0 Ñ Connection heartbeat, in seconds. 0 means no heartbeat. Can also be configured server-side starting with RabbitMQ 3.0.
-            #:on_tcp_connection_failure (#call) Ñ A callable object that will be run if connection to server fails
-            #:on_possible_authentication_failure (#call) Ñ A callable object that will be run if authentication fails (see Authentication failure section)
-            reconnect_delay: 20 # (Fixnum) Delay in seconds before attempting reconnect on detected failure
+            #:ssl (Hash) TLS (SSL) parameters to use.
+            heartbeat: 20, # (Fixnum) - default: 0 Connection heartbeat, in seconds. 0 means no heartbeat. Can also be configured server-side starting with RabbitMQ 3.0.
+            #:on_tcp_connection_failure (#call) - A callable object that will be run if connection to server fails
+            #:on_possible_authentication_failure (#call) - A callable object that will be run if authentication fails (see Authentication failure section)
+            reconnect_delay: 20 # (Fixnum) - Delay in seconds before attempting reconnect on detected failure
           }.merge(opts)
 
           unless (@url = @opts.delete(:url))
