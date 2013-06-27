@@ -23,6 +23,7 @@ end
 config_file = "/etc/omf_rc/config.yml"
 init_script = "/etc/init.d/omf_rc"
 csr = "/tmp/request.csr"
+cert_server = "http://srv.mytestbed.net:4567/ple/"
 
 # parse config file
 raise "could not find #{config_file}" unless File.exists?(config_file)
@@ -48,17 +49,17 @@ Dir.mkdir(root_cert_dir) unless File.directory?(root_cert_dir)
 check_cert(csr, "generate CSR")
 
 # fetch client cert
-`curl -F "csr=@#{csr}" -F "slice=#{slice}" -F "resource=#{host}" http://srv.mytestbed.net:4567/ple/resource/cert -o #{entity_cert}`
+`curl -F "csr=@#{csr}" -F "slice=#{slice}" -F "resource=#{host}" #{cert_server}resource/cert -o #{entity_cert}`
 check_cert(entity_cert, "fetch client cert")
 
 # fetch root cert
 root_cert = "#{root_cert_dir}/root.crt"
-`curl http://srv.mytestbed.net:4567/ple/root/cert -o #{root_cert}`
+`curl #{cert_server}root/cert -o #{root_cert}`
 check_cert(root_cert, "fetch root cert")
 
 # fetch intermediate cert
 intermediate_cert = "#{root_cert_dir}/intermediate.crt"
-`curl http://srv.mytestbed.net:4567/ple/intermediate/cert -o #{intermediate_cert}`
+`curl #{cert_server}intermediate/cert -o #{intermediate_cert}`
 check_cert(intermediate_cert, "fetch intermediate cert")
 
 # install the init script if it doesn't exist yet
