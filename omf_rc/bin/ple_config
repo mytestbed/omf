@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+
+# Copyright (c) 2013 National ICT Australia Limited (NICTA).
+# This software may be used and distributed solely under the terms of the MIT license (License).
+# You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
+# By downloading or using this software you accept the terms and the liability disclaimer in the License.
+
+# This script is intended to be run by the PLE Node Manager:
+# 1) after initial slice creation
+# 2) after slice renewal
+# to fetch the client, root and intermediate certificates for the OMF RC
+
+require 'yaml'
+
+raise "Please use Ruby 1.9.3 or higher" if RUBY_VERSION < "1.9.3"
+raise "You must run this script as root" unless Process.uid==0
+raise "You must switch to gemset 'omf' and install the omf_rc gem" unless system("which install_omf_rc")
+
+def check_cert(file, text)
+  raise "Failed to #{text} (#{file})" unless File.exists?(file) and File.size?(file) > 0
+end
+
+config_file = "/etc/omf_rc/config.yml"
+init_script = "/etc/init.d/omf_rc"
+csr = "/tmp/request.csr"
+
+# parse config file
+raise "could not find #{config_file}" unless File.exists?(config_file)
+config = YAML.load_file(config_file)
+raise ":uid missing in config file" unless config[:uid]
+slice, match, host = config[:uid].rpartition('@')
+raise "could not determine slice name from :uid" unless slice
+raise "could not determine host name from :uid" unless host
+root_cert_dir = config[:auth][:root_cert_dir]
+entity_cert = config[:auth][:entity_cert]
+entity_key = config[:auth][:entity_key]
+raise ":root_cert_dir missing in config file" unless root_cert_dir
+raise ":entity_cert missing in config file" unless entity_cert
+raise "cannot find private key at #{entity_key}" unless File.exists?(entity_key)
+Dir.mkdir(root_cert_dir) unless File.directory?(root_cert_dir)
+
+# stop the RC
+`#{init_script} stop` if File.exists?(init_script)
+`sleep 2; pkill -f omf_rc`
+
+# create CSR
+`openssl req -subj /CN=#{config[:uid]} -new -key #{entity_key} -out #{csr}`
+check_cert(csr, "generate CSR")
+
+# fetch client cert
+`curl -F "csr=@#{csr}" -F "slice=#{slice}" -F "resource=#{host}" http://srv.mytestbed.net:4567/ple/resource/cert -o #{entity_cert}`
+check_cert(entity_cert, "fetch client cert")
+
+# fetch root cert
+root_cert = "#{root_cert_dir}/root.crt"
+`curl http://srv.mytestbed.net:4567/ple/root/cert -o #{root_cert}`
+check_cert(root_cert, "fetch root cert")
+
+# fetch intermediate cert
+intermediate_cert = "#{root_cert_dir}/intermediate.crt"
+`curl http://srv.mytestbed.net:4567/ple/intermediate/cert -o #{intermediate_cert}`
+check_cert(intermediate_cert, "fetch intermediate cert")
+
+# install the init script if it doesn't exist yet
+`install_omf_rc -i` unless File.exists?(init_script)
+
+# start the RC
+`#{init_script} start`
