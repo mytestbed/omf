@@ -6,6 +6,6 @@
 rdp-rb-readline -v 0.2.0.1
 activesupport -v 3.0.0
 gratr -v 0.4.3
-oml4r --pre
+oml4r -v 2.9.1
 sequel -v 3.40.0
 json -v 1.7.5
