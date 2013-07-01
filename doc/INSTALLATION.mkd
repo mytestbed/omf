@@ -270,11 +270,11 @@ If you'd like to start the Resource Controller upon booting your node, please en
 
 This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
 
-    ---
-    :uid: <%= Socket.gethostname %>
-    :uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@<xmpp_hostname>
-    :environment: development
-    :debug: false
+	---
+	:uid: <%= Socket.gethostname %>
+	:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@<xmpp_hostname>
+	:environment: production
+	:debug: false
 
 The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/).
 
