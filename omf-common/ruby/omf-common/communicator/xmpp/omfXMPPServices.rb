@@ -328,10 +328,14 @@ class OmfXMPPServices < MObject
       service(domain).create_node(node,Jabber::PubSub::NodeConfig.new(nil,{
         "pubsub#title" => "#{node}",
         "pubsub#node_type" => "leaf",
-        "pubsub#persist_items" => "1",
-        "pubsub#max_items" => "1",
+        # turns off delayed message delivery and message caching
+        "pubsub#persist_items" => "0",
+        # has no effect, OF always sets this to 1
+        "pubsub#max_items" => "0",
         "pubsub#notify_retract" => "0",
-        "pubsub#publish_model" => "open"}))
+        "pubsub#publish_model" => "open",
+        # has not effect, will still deliver item in OF. Also deprecated in the spec.
+        "pubsub#send_item_subscribe" => "0"}))
     rescue Exception => ex
       # if the node exists we ignore the "conflict" exception
       return true if ("#{ex}" == "conflict: ")

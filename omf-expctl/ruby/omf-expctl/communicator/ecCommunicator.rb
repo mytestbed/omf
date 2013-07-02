@@ -117,10 +117,6 @@ class ECCommunicator < OmfCommunicator
   end
   
   def stop
-    # tell the world we are done
-    cmd = create_message(:cmdtype => :EXPERIMENT_DONE, :slice_id => @@sliceID,
-                          :experiment_id => @@expID, :address => @my_addr.generate_address(true))
-    send_message(@slice_addr, cmd)
     super
   end
 

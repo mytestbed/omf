@@ -47,11 +47,6 @@ module AgentCommands
     message = reply.message
     case okReason
       when 'ENROLLED'
-        # when we receive the first ENROLLED, send a NOOP message to the RC. 
-        # This is necessary since if RC is reset or restarted, it might
-        # receive the last ENROLL command again, depending on the kind of 
-        # transport being used. In any case, sending a NOOP would prevent this.
-        communicator.send_noop(reply.target) if !sender.isUp
         sender.enrolled(reply)
       when 'CONFIGURED'
 	# Reports the good news to our resource object

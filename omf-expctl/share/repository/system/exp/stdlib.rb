@@ -66,6 +66,8 @@ everyNS('*', 10) { |ns|
     ns.eachNode { |n|
       nodeCnt += 1
       if ! n.isUp
+        # re-send the ENROL message to the nodes that haven't signed in
+        n.send_enroll
         nodesDown << n
         poweredAt = n.poweredAt
         if (poweredAt.kind_of?(Time))
