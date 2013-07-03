@@ -19,7 +19,7 @@ module OmfEc
                 debug "Planned: #{g.name}(#{g.address}): #{plan}"
                 debug "Actual: #{g.name}(#{g.address}): #{actual}"
 
-                plan == actual
+                plan.empty? ? false : plan == actual
               end
             end
 
