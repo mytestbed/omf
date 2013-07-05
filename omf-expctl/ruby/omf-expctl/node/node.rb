@@ -38,6 +38,7 @@ require 'omf-common/arrayMD'
 require 'omf-common/servicecall'
 require 'observer'
 require 'date'
+require 'etc'
 
 #
 # This class defines an experimental Node on the testbed
@@ -331,11 +332,11 @@ class OMF::EC::Node < MObject
     if imgName == nil
       ts = DateTime.now.strftime("%F-%T")
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
-      imgName = ENV['USER']+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
+      imgName = Etc.getlogin+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
     end
     
     response = OMF::Services.saveimage.getAddress(:domain => "#{domain}", 
-      :img => "#{imgName}", :user => "#{ENV['USER']}")
+      :img => "#{imgName}", :user => Etc.getlogin)
     raise "Can't get netcat address/port" if response.elements[1].name != "OK"
     
     imgHost, imgPort = response.elements[1].text.split(':')

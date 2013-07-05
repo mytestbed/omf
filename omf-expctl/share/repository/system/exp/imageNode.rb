@@ -30,6 +30,8 @@
 # (In OMF, loading a disk image on a node is treated as an 'experiment' itself)
 #
 
+require 'etc'
+
 # Define the experiment properties
 Experiment.name = "imageNode"
 Experiment.project = "Orbit::Admin"
@@ -74,7 +76,7 @@ MESSAGES = {:checkinfailed => MSG_CHECKINFAILED, :imagefailed => MSG_IMAGEFAILED
 #
 #url = "#{OConfig[:ec_config][:frisbee][:url]}/checkImage?img=#{prop.image.value}&domain=#{prop.domain.value}"
 #response = NodeHandler.service_call(url, "Image does not exist")
-response = OMF::Services.frisbee.checkImage(:img => "#{prop.image.value}", :domain => "#{prop.domain.value}", :user => "#{ENV['USER']}")
+response = OMF::Services.frisbee.checkImage(:img => "#{prop.image.value}", :domain => "#{prop.domain.value}", :user => Etc.getlogin)
 if response.elements[1].name != "OK"
   Experiment.failed("Frisbee service reported: #{response.root.text}")
 end

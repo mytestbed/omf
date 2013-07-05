@@ -34,6 +34,7 @@ require 'omf-expctl/node/node'
 require 'omf-expctl/experiment'
 require 'omf-expctl/application/application'
 require 'observer'
+require 'etc'
 
 #
 # This abstract class represents a set of nodes on which
@@ -452,7 +453,7 @@ class NodeSet < MObject
       mcAddress = "Some_MC_address"
       mcPort = "Some_MC_port"
     else
-      response = OMF::Services.frisbee.getAddress(:domain => "#{domain}", :img => "#{image}", :user => "#{ENV['USER']}")
+      response = OMF::Services.frisbee.getAddress(:domain => "#{domain}", :img => "#{image}", :user => Etc.getlogin)
       raise "Can't get frisbee address" if response.elements[1].name != "OK"
       mcAddress, mcPort = response.elements[1].text.split(':')
     end
