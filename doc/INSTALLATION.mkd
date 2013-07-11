@@ -343,3 +343,35 @@ In order to install the gem dependencies, then build, install and test the OMF g
 
 If the rake task finishes without any errors, you've successfully installed OMF from source code. Head to the {file:doc/DEVELOPERS.mkd Developer Guide} to learn how to modify OMF to suit your needs.
 
+## Appendix: Advanced RC configuration
+
+The OMF RC has the "-a" flag and the "advanced\_configfile" option in its config file to specify the location of an additional, advanced configuration file. At present, this is mainly used to specify an alternative logging configuration. The RC has a few built-in logging configurations that can be selected by specifying the _environment_ on the command line or in the config file. The advanced config file is needed to override the built-in settings.
+
+Here are some example advanced configuration files with the built-in logging configurations:
+
+### "development" environment
+
+    ---
+    :logging:
+      :level:
+        :default: debug
+      :appenders:
+        :stdout:
+          :date_pattern: '%H:%M:%S'
+          :pattern: '%d %5l %c{2}: %m\n'
+          :color_scheme: default
+
+### "production" environment
+
+    ---
+    :logging:
+      :level:
+        :default: info
+      :appenders:
+        :file:
+          :log_file: omf_rc.log
+          :log_dir: /var/log
+          :date_pattern: '%F %T %z'
+          :pattern: '[%d] %-5l %c: %m\n
+
+If you want to customise the logging, please see the [Logging Gem documentation](http://rubydoc.info/gems/logging/frames).
