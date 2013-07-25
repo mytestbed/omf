@@ -28,10 +28,10 @@ cert_server = "http://srv.mytestbed.net:4567/ple/"
 # parse config file
 raise "could not find #{config_file}" unless File.exists?(config_file)
 config = YAML.load_file(config_file)
-raise ":uid missing in config file" unless config[:uid]
-slice, match, host = config[:uid].rpartition('@')
-raise "could not determine slice name from :uid" unless slice
-raise "could not determine host name from :uid" unless host
+host = config[:hostname]
+slice = config[:slicename]
+raise "could not determine host name" unless host
+raise "could not determine slice name" unless slice
 root_cert_dir = config[:auth][:root_cert_dir]
 entity_cert = config[:auth][:entity_cert]
 entity_key = config[:auth][:entity_key]
@@ -45,7 +45,7 @@ system "#{init_script} stop" if File.exists?(init_script)
 system "sleep 2; pkill -f /bin/omf_rc"
 
 # create CSR
-system "openssl req -subj /CN=#{config[:uid]} -new -key #{entity_key} -out #{csr}"
+system "openssl req -subj /CN=#{slice}%#{host} -new -key #{entity_key} -out #{csr}"
 check_cert(csr, "generate CSR")
 
 # fetch client cert
