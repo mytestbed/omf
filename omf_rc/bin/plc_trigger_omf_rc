@@ -41,29 +41,29 @@ raise "cannot find private key at #{entity_key}" unless File.exists?(entity_key)
 Dir.mkdir(root_cert_dir) unless File.directory?(root_cert_dir)
 
 # stop the RC
-`#{init_script} stop` if File.exists?(init_script)
-`sleep 2; pkill -f ^omf_rc$`
+system "#{init_script} stop" if File.exists?(init_script)
+system "sleep 2; pkill -f /bin/omf_rc"
 
 # create CSR
-`openssl req -subj /CN=#{config[:uid]} -new -key #{entity_key} -out #{csr}`
+system "openssl req -subj /CN=#{config[:uid]} -new -key #{entity_key} -out #{csr}"
 check_cert(csr, "generate CSR")
 
 # fetch client cert
-`curl -F "csr=@#{csr}" -F "slice=#{slice}" -F "resource=#{host}" #{cert_server}resource/cert -o #{entity_cert}`
+system "curl -F \"csr=@#{csr}\" -F \"slice=#{slice}\" -F \"resource=#{host}\" #{cert_server}resource/cert -o #{entity_cert}"
 check_cert(entity_cert, "fetch client cert")
 
 # fetch root cert
 root_cert = "#{root_cert_dir}/root.crt"
-`curl #{cert_server}root/cert -o #{root_cert}`
+system "curl #{cert_server}root/cert -o #{root_cert}"
 check_cert(root_cert, "fetch root cert")
 
 # fetch intermediate cert
 intermediate_cert = "#{root_cert_dir}/intermediate.crt"
-`curl #{cert_server}intermediate/cert -o #{intermediate_cert}`
+system "curl #{cert_server}intermediate/cert -o #{intermediate_cert}"
 check_cert(intermediate_cert, "fetch intermediate cert")
 
 # install the init script if it doesn't exist yet
-`install_omf_rc -i` unless File.exists?(init_script)
+system "install_omf_rc -i" unless File.exists?(init_script)
 
 # start the RC
-`#{init_script} start`
+system "#{init_script} start"
