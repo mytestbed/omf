@@ -14,7 +14,7 @@ require 'yaml'
 
 raise "Please use Ruby 1.9.3 or higher" if RUBY_VERSION < "1.9.3"
 raise "You must run this script as root" unless Process.uid==0
-raise "You must switch to gemset 'omf' and install the 'omf_rc' gem" unless system("which install_omf_rc")
+raise "You must switch to gemset 'omf' and install the 'omf_rc' gem" unless system("which install_omf_rc > /dev/null")
 
 def check_cert(file, text)
   raise "Failed to #{text} (#{file})" unless File.exists?(file) and File.size?(file) > 0
@@ -42,7 +42,7 @@ Dir.mkdir(root_cert_dir) unless File.directory?(root_cert_dir)
 
 # stop the RC
 `#{init_script} stop` if File.exists?(init_script)
-`sleep 2; pkill -f omf_rc`
+`sleep 2; pkill -f ^omf_rc$`
 
 # create CSR
 `openssl req -subj /CN=#{config[:uid]} -new -key #{entity_key} -out #{csr}`
