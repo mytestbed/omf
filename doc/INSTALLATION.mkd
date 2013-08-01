@@ -67,13 +67,15 @@ If you are missing some dependencies, RVM and/or OMF installation will fail with
 
 You most likely want to install RVM with local user permissions (no root access required). Run:
 
-    curl -L https://get.rvm.io | bash -s stable
+    \curl -L https://get.rvm.io | bash -s stable
     source $HOME/.rvm/scripts/rvm
 
 ### **OPERATORS**
 
-If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run the same command as above, but become root first. Then run:
+If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run:
 
+        sudo su -l
+        \curl -L https://get.rvm.io | bash -s stable
 	source /etc/profile.d/rvm.sh
 
 ### **Verify this step**
@@ -82,7 +84,7 @@ If you want to install the OMF Resource Controller on a PC, you would typically 
 
 should show the RVM version string, e.g.:
 
-	rvm 1.18.14 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
+	rvm 1.21.0 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
 
 ## Ruby installation
 
@@ -257,6 +259,7 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
 On a typical PC node, you can install the RC as root:
 
+    sudo su -l
     gem install omf_rc --no-ri --no-rdoc
 
 Now it's time to install an XMPP server. Follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation). Jump back here after you verified that Openfire is installed correctly.
@@ -267,11 +270,11 @@ If you'd like to start the Resource Controller upon booting your node, please en
 
 This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
 
-    ---
-    :uid: <%= Socket.gethostname %>
-    :uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@<xmpp_hostname>
-    :environment: development
-    :debug: false
+	---
+	:uid: <%= Socket.gethostname %>
+	:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@<xmpp_hostname>
+	:environment: production
+	:debug: false
 
 The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/).
 
@@ -340,3 +343,35 @@ In order to install the gem dependencies, then build, install and test the OMF g
 
 If the rake task finishes without any errors, you've successfully installed OMF from source code. Head to the {file:doc/DEVELOPERS.mkd Developer Guide} to learn how to modify OMF to suit your needs.
 
+## Appendix: Advanced RC configuration
+
+The OMF RC has the "-a" flag and the "advanced\_configfile" option in its config file to specify the location of an additional, advanced configuration file. At present, this is mainly used to specify an alternative logging configuration. The RC has a few built-in logging configurations that can be selected by specifying the _environment_ on the command line or in the config file. The advanced config file is needed to override the built-in settings.
+
+Here are some example advanced configuration files with the built-in logging configurations:
+
+### "development" environment
+
+    ---
+    :logging:
+      :level:
+        :default: debug
+      :appenders:
+        :stdout:
+          :date_pattern: '%H:%M:%S'
+          :pattern: '%d %5l %c{2}: %m\n'
+          :color_scheme: default
+
+### "production" environment
+
+    ---
+    :logging:
+      :level:
+        :default: info
+      :appenders:
+        :file:
+          :log_file: omf_rc.log
+          :log_dir: /var/log
+          :date_pattern: '%F %T %z'
+          :pattern: '[%d] %-5l %c: %m\n
+
+If you want to customise the logging, please see the [Logging Gem documentation](http://rubydoc.info/gems/logging/frames).

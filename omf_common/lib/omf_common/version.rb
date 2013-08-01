@@ -4,6 +4,6 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfCommon
-  VERSION = "6.0.2.pre.2"
+  VERSION = "6.0.3"
   PROTOCOL_VERSION = "6.0"
 end

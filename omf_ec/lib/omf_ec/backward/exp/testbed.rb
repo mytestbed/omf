@@ -15,7 +15,7 @@ def create_app(testbed)
           case m.itype
           when 'STATUS'
             if m[:status_type] == 'APP_EVENT'
-              after(2) { OmfCommon.comm.disconnect } if m[:event] =~ /DONE.(OK|ERROR)/
+              after(2) { OmfCommon.comm.disconnect } if m[:event] =~ /EXIT/
               info m[:msg] if m[:msg]
             else
               m.each_property do |k, v|

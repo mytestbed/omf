@@ -17,13 +17,15 @@ module OmfEc
       # Create an application for the group and start it
       #
       def exec(name)
+        self.synchronize do
+          self.execs << name
+        end
         create_resource(name, type: 'application', binary_path: name)
 
         e_uid = SecureRandom.uuid
-
         e_name = "#{self.name}_application_#{name}_created_#{e_uid}"
 
-        resource_group_name = "#{self.id}_application"
+        resource_group_name = self.address("application")
 
         def_event e_name do |state|
           state.find_all { |v| v[:hrn] == name && v[:membership] && v[:membership].include?(resource_group_name)}.size >= self.members.uniq.size

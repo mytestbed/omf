@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require "omf_common"
+require 'omf_ec/core_ext/hash'
 require 'omf_ec/backward/dsl'
 require 'omf_ec/backward/group'
 require 'omf_ec/backward/app_definition'

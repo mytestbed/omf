@@ -28,11 +28,44 @@ class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   param :mid, :type => :string # Unique ID this message
 end
 
-# The abstract resource proxy class, which handles incoming FRCP messages.
+# @note Suppose you have read the {file:doc/DEVELOPERS.mkd DEVELOPERS GUIDE} which explains the basic the resource controller system.
 #
-# When using resource factory to create new resources, this abstract class will be initialised and then extended by one of the specific resource proxy modules.
+# This is the abstract resource proxy class, which provides the base of all proxy implementations. When creating new resource instances, this abstract class will always be initialised first and then extended by one of the specific resource proxy modules.
+#
+# Instead of initialise abstract resource directly, use {OmfRc::ResourceFactory Resource Factory}'s methods.
+#
+# @example Creating resource using factory method
+#   OmfRc::ResourceFactory.create(:node, uid: 'node01')
+#
+# Proxy documentation has grouped FRCP API methods for your convenience.
+#
+# We follow a simple naming convention for request/configure properties.
+#
+#   request_xxx() indicates property 'xxx' can be requested using FRCP REQUEST message.
+#
+#   configure_xxx(value) indicates property 'xxx' can be configured with 'value' using FRCP CONFIGURE message.
+#
+# Currently official OMF RC gem contains following resource proxies:
+#
+# Representing physical/virtual machine
+# * {OmfRc::ResourceProxy::Node Node}
+#
+# Executing OML enabled application and monitor output
+# * {OmfRc::ResourceProxy::Application Application}
+#
+# Configuring network interfaces
+# * {OmfRc::ResourceProxy::Net Net}
+# * {OmfRc::ResourceProxy::Wlan Wlan}
+#
+# Installing packages
+# * {OmfRc::ResourceProxy::Package Package}
+#
+# Creating virtual machines
+# * {OmfRc::ResourceProxy::VirtualMachineFactory VirtualMachineFactory}
+# * {OmfRc::ResourceProxy::VirtualMachine VirtualMachine}
 #
 # @see OmfRc::ResourceFactory
+# @see OmfRc::ResourceProxyDSL
 #
 class OmfRc::ResourceProxy::AbstractResource
   include MonitorMixin
@@ -65,6 +98,8 @@ class OmfRc::ResourceProxy::AbstractResource
   # @option creation_opts [Boolean] :create_children_resources Immediately create 'known' children resources, such as interfaces on nodes
   #
   def initialize(type, opts = {}, creation_opts = {}, &creation_callback)
+    super()
+
     @opts = Hashie::Mash.new(opts)
     @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
 
@@ -110,8 +145,6 @@ class OmfRc::ResourceProxy::AbstractResource
       end
     end
     configure_membership(@opts.membership) if @opts.membership
-
-    super()
   end
 
   # Return the public 'routable' address for this resource or nil if not known yet.
@@ -558,11 +591,12 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [String] name of the topic
   # @return [Array<OmfRc::ResourceProxy::AbstractResource>]
   def objects_by_topic(name)
-    if name == uid || membership.include?(name)
+    if name == uid || membership.any? { |m| m.include?(name) }
       objs = [self]
     else
-      objs = children.find_all { |v| v.uid == name || v.membership.include?(name)}
+      objs = children.find_all { |v| v.uid == name || v.membership.any? { |m| m.include?(name) } }
     end
+    objs
   end
 
   # Retrieve replyto address

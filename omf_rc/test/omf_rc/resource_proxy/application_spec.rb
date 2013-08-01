@@ -191,27 +191,21 @@ describe OmfRc::ResourceProxy::Application do
       end
     end
 
-    it "must switch its state to :completed if the event is of a type 'DONE' and the application is not installing itself" do
+    it "must switch its state to :completed if the event is of a type 'EXIT' and the application is not installing itself" do
       skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
-          @app_test.on_app_event('DONE.OK', 'app_instance_id', 'Some text here')
-          @app_test.request_state.to_sym.must_equal :completed
-        end
-      end
-      OmfCommon.stub :comm, @xmpp do
-        @app_test.stub :inform, true do
-          @app_test.on_app_event('DONE.ERROR', 'app_instance_id', 'Some text here')
+          @app_test.on_app_event('EXIT', 'app_instance_id', 'Some text here')
           @app_test.request_state.to_sym.must_equal :completed
         end
       end
     end
 
-    it "must set installed property to true if the event is 'DONE.OK' and the application was installing itself" do
+    it "must set installed property to true if the event is 'EXIT' and the application was installing itself" do
       skip
       OmfCommon.stub :comm, @xmpp do
         @app_test.stub :inform, true do
-          @app_test.on_app_event('DONE.OK', 'app_instance_id_INSTALL', 'Some text here')
+          @app_test.on_app_event('EXIT', 'app_instance_id_INSTALL', 'Some text here')
           @app_test.request_state.to_sym.must_equal :stopped
           @app_test.request_installed.must_equal true
         end

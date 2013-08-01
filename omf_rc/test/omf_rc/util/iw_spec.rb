@@ -59,7 +59,7 @@ Cocaine::CommandLine.stub(:new, @command) do
         end
       end
 
-      it "could configure the device's prorperty" do
+      it "could configure the device's property" do
         Cocaine::CommandLine.stub(:new, @command) do
           @command.expect(:run, true)
           @wlan00.configure_power_save(true)
@@ -69,14 +69,14 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must could initialise wpa config/pid file path" do
         @wlan00.init_ap_conf_pid
-        @wlan00.property.ap_conf.must_match /tmp\/hostapd\.wlan1.+\.conf/
-        @wlan00.property.ap_pid.must_match /tmp\/hostapd\.wlan1.+\.pid/
+        @wlan00.property.ap_conf.must_match /\/hostapd\.wlan1.+\.conf/
+        @wlan00.property.ap_pid.must_match /\/hostapd\.wlan1.+\.pid/
       end
 
       it "must could initialise wpa config/pid file path" do
         @wlan00.init_wpa_conf_pid
-        @wlan00.property.wpa_conf.must_match /tmp\/wpa\.wlan1.+\.conf/
-        @wlan00.property.wpa_pid.must_match /tmp\/wpa\.wlan1.+\.pid/
+        @wlan00.property.wpa_conf.must_match /\/wpa\.wlan1.+\.conf/
+        @wlan00.property.wpa_pid.must_match /\/wpa\.wlan1.+\.pid/
       end
 
       it "could delete current interface" do

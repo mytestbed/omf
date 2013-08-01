@@ -2,7 +2,7 @@
 
 ## Before we could start
 
-Read the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}, and set up a testing environment as explained in the first section of that previous tutorial.
+Read the {file:doc/DEVELOPERS.mkd Resource Proxy tutorial}, and set up a testing environment as explained in the first section of that previous tutorial.
 
 ## Objectives
 
@@ -23,42 +23,36 @@ These are the two files used for this example:
 
 Firstly, we need a resource controller which will create an instance of an application proxy. In a typical use case, this resource controller may run on a remote machine where you would like to configure and run your application.
 
-This resource controller is essentially similar to the one used in the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}. It has the following code, which you may save as application\_controller.rb
+This resource controller is essentially similar to the one used in the {file:doc/DEVELOPERS.mkd Resource Proxy tutorial}. It has the following code, which you may save as application\_controller.rb
 
     #!/usr/bin/env ruby
 
     require 'omf_rc'
-    require 'omf_rc/resource_factory'
-    require 'omf_rc/resource_proxy/application.rb'
+    require 'omf_rc/resource_proxy/application'
     $stdout.sync = true
 
-    options = {
-      user: 'app_proxy_test',
-      password: '123',
-      server: 'localhost', # Pubsub server domain
-      uid: 'app_test', # Id of the resource
-    }
-
-    EM.run do
-      # Use resource factory method to initialise a new instance of the resource
-      my_application = OmfRc::ResourceFactory.new(:application, options)
-      # Make the resource connect to the Pubsub server
-      my_application.connect
-
-      # Disconnect the resource from Pubsub server, when these two signals received
-      trap(:INT) { my_application.disconnect }
-      trap(:TERM) { my_application.disconnect }
+    OmfCommon.init(:development,
+                   communication: { url: 'xmpp://localhost' },
+                   logging: { level: { default: 'info' } }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Application controller >> Connected to XMPP server as #{comm.conn_info}"
+        # Use resource factory method to initialise a new instance of the resource
+        app = OmfRc::ResourceFactory.create(:application, uid: 'app_test')
+        # Disconnect the resource from Pubsub server, when 'INT' signals received
+        comm.on_interrupted { app.disconnect }
+      end
     end
 
 Once you run the above controller code, you should see something similar to:
-    [2012-09-01 16:04:48] INFO  CONNECTED: app_proxy_test@localhost/e5c4d731
+
+    12:03:20  INFO Object: Application controoler >> Connected to XMPP server as {:proto=>:xmpp, :user=>"interlagos-5059", :domain=>"interlagos"}
 
 
 ### Interacting with the Application Proxy
 
-In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}.
+In a traditional OMF experiment, you would use an Experiment Controller to interact with the Proxies acting on behalf of the resources you would like to use. However in this simple tutorial, we will use a stand-alone tester script to interact with our Application Proxy, this tester script is similar to the Engine test script, which we used to interact with the Garage and Engines proxies in the {file:doc/DEVELOPERS.mkd Resource Proxy tutorial}.
 
-In the following simple tester script, we set the Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, we update the values of some parameters, and finally ask the proxy to re-start the application.
+In the following simple tester script, we set the Application Proxy to be the proxy to the ping application, we further define some configurable parameters for ping, then we ask the proxy to start the application, and some time later we ask the proxy to stop it.
 
 You may save the following tester code as application\_tester.rb.
 
@@ -67,130 +61,76 @@ You may save the following tester code as application\_tester.rb.
     require 'omf_common'
     $stdout.sync = true
 
-    include OmfCommon
-
-    options = {
-      user: 'app_proxy_tester',
-      password: '123',
-      server: 'localhost', # Pubsub pubsub server domain
-      uid: 'app_test' # Name of the application resource (see applicaiton_controller.rb)
-    }
-
-    app_id = options[:uid]
-
-    comm = Comm.new(:xmpp)
-
-    # Ask our communicator to give us the topic to which the Application
-    # Proxy is subscribed
-    app_topic = comm.get_topic(app_id)
-
-    # For any 'inform' message posted on that topic...
-    # if it is an event from the application, log it as information
-    # if it is an error/warning from the Application Proxy, log it accordingly
-    app_topic.on_message  do |m|
-      if m.operation == :inform
-        case m.read_content("itype")
+    def run_test(app)
+      # Set up inform message handler to print inform messages
+      app.on_inform do |m|
+        case m.itype
         when 'STATUS'
-          if m.read_property("status_type") == 'APP_EVENT'
-            logger.info "APP_EVENT #{m.read_property('event')} "+
-            "from app #{m.read_property("app")} - msg: #{m.read_property("msg")}"
+          if m[:status_type] == 'APP_EVENT'
+            info "APP_EVENT #{m[:event]} from app #{m[:app]} - msg: #{m[:msg]}"
           end
         when 'ERROR'
-          logger.error m.read_content('reason') if m.read_content("itype") == 'ERROR'
+          error m[:reason]
         when 'WARN'
-          logger.warn m.read_content('reason') if m.read_content("itype") == 'WARN'
+          warn m[:reason]
         end
       end
-    end
 
-    # Here we construct the different messages that we will publish later when we
-    # will interact with the Application proxy
-    msgs = {
-      # request the OS platform on which the App Proxy is running
-      req_platform: comm.request_message([:platform]),
-      # configure the 'binary_path' property of the App Proxy
-      conf_path: comm.configure_message([binary_path: "/bin/ping"]),
-      # configure the available parameters for the application handled by the App Proxy
-      conf_parameters: comm.configure_message([parameters: {
-        :timestamp => {:type => 'Boolean', :cmd => '-D', :mandatory => false},
-        :target => {:type => 'String', :cmd => '', :mandatory => true, :default => 'localhost', :order => 2},
-        :count => {:type => 'Numeric', :cmd => '-c', :mandatory => true, :default =>3, :order => 1},
-      }]),
-      # update the value of some parameters
-      update_param: comm.configure_message([parameters: {
-        :target => {:value => 'nicta.com.au'},
-        :timestamp => {:value => true}
-      }]),
-      # ask the App Proxy to run the application
-      run_application: comm.configure_message([state: :run])
-    }
+      # Configure the 'binary_path' and 'parameters' properties of the App Proxy
+      app.configure(binary_path: "/bin/ping",
+                    parameters: { :target => { :value => 'nicta.com.au' }})
 
-    # Register a block of commands to handle all 'inform' messages
-    # published as replies to our 'req_platform'
-    msgs[:req_platform].on_inform_status do |m|
-      m.each_property do |p|
-        logger.info "#{p.attr('key')} => #{p.content.strip}"
+      # Start the application 2 seconds later
+      OmfCommon.eventloop.after 2 do
+        app.configure(state: :running)
+      end
+
+      # Stop the application another 10 seconds later
+      OmfCommon.eventloop.after 12 do
+        app.configure(state: :stopped)
       end
     end
 
-    # Then we can register event handlers to the communicator
-    #
-    # Event triggered when connection is ready
-    comm.when_ready do
-      logger.info "CONNECTED: #{comm.jid.inspect}"
+    OmfCommon.init(:development,
+                   communication: { url: 'xmpp://localhost' },
+                   logging: { level: { default: 'info' } }) do
+      OmfCommon.comm.on_connected do |comm|
+        info "Test application >> Connected to XMPP as #{comm.conn_info}"
 
-      # We assume that an application resource proxy instance is up already,
-      # so we subscribe to its pubsub topic
-      app_topic.subscribe do
-        # If subscribed, we start publishing messages some messages
-        # to interact with our Application Proxy
-        msgs[:req_platform].publish app_topic.id
-        sleep 1
-        msgs[:conf_path].publish app_topic.id
-        sleep 1
-        msgs[:conf_parameters].publish app_topic.id
-        sleep 1
-        msgs[:run_application].publish app_topic.id
-        sleep 2
-        msgs[:update_param].publish app_topic.id
-        sleep 1
-        msgs[:run_application].publish app_topic.id
-        sleep 2
+        # Subscribe to the proxy topic
+        comm.subscribe('app_test') do |app|
+          if app.error?
+            error app.inspect
+          else
+            # Now subscribed, run the test
+            run_test(app)
+          end
+        end
+
+        comm.on_interrupted { comm.disconnect }
       end
     end
-
-    EM.run do
-      comm.connect(options[:user], options[:password], options[:server])
-      trap(:INT) { comm.disconnect }
-      trap(:TERM) { comm.disconnect }
-    end
-
 
 Once you run the above controller code, you should see something similar to:
-    [2012-09-01 16:04:55] INFO  CONNECTED: app_proxy_tester@localhost/15edc88e
-    [2012-09-01 16:04:55] INFO  platform => ubuntu
 
-    [2012-09-01 16:04:58] INFO  APP_EVENT STARTED from app app_test - msg: env -i /bin/ping -c 3  localhost
-    [2012-09-01 16:04:58] INFO  APP_EVENT STDOUT from app app_test - msg: PING localhost (127.0.0.1) 56(84) bytes of data.
-    [2012-09-01 16:04:58] INFO  APP_EVENT STDOUT from app app_test - msg: 64 bytes from localhost (127.0.0.1): icmp_req=1 ttl=64 time=0.068 ms
-    [2012-09-01 16:04:59] INFO  APP_EVENT STDOUT from app app_test - msg: 64 bytes from localhost (127.0.0.1): icmp_req=2 ttl=64 time=0.057 ms
-    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg: 64 bytes from localhost (127.0.0.1): icmp_req=3 ttl=64 time=0.057 ms
-    [2012-09-01 16:05:00] INFO  APP_EVENT DONE.OK from app app_test - msg: status: pid 1153 exit 0
-    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg:
-    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg: --- localhost ping statistics ---
-    [2012-09-01 16:05:00] INFO  APP_EVENT STDOUT from app app_test - msg: 3 packets transmitted, 3 received, 0% packet loss, time 1998ms
-    [2012-09-01 16:05:01] INFO  APP_EVENT STDOUT from app app_test - msg: rtt min/avg/max/mdev = 0.057/0.060/0.068/0.010 ms
+    13:08:06  INFO Object: APP_EVENT STARTED from app app_test - msg: env -i /bin/ping  nicta.com.au
+    13:08:07  INFO Object: APP_EVENT STDOUT from app app_test - msg: PING nicta.com.au (221.199.217.18) 56(84) bytes of data.
+    13:08:07  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=1 ttl=63 time=0.911 ms
+    13:08:07  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=2 ttl=63 time=1.17 ms
+    13:08:08  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=3 ttl=63 time=1.14 ms
+    13:08:09  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=4 ttl=63 time=1.13 ms
+    13:08:10  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=5 ttl=63 time=1.18 ms
+    13:08:11  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=6 ttl=63 time=2.02 ms
+    13:08:12  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=7 ttl=63 time=2.14 ms
+    13:08:13  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=8 ttl=63 time=2.84 ms
+    13:08:14  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=9 ttl=63 time=2.21 ms
+    13:08:15  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=10 ttl=63 time=2.13 ms
+    13:08:25  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=11 ttl=63 time=1.08 ms
+    13:08:25  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=12 ttl=63 time=1.46 ms
+    13:08:25  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=13 ttl=63 time=1.17 ms
+    13:08:25  INFO Object: APP_EVENT STDOUT from app app_test - msg: 64 bytes from atp-webproxy1.it.nicta.com.au (221.199.217.18): icmp_seq=14 ttl=63 time=2.15 ms
 
-    [2012-09-01 16:05:01] INFO  APP_EVENT STARTED from app app_test - msg: env -i /bin/ping -c 3  nicta.com.au -D
-    [2012-09-01 16:05:01] INFO  APP_EVENT STDOUT from app app_test - msg: PING nicta.com.au (221.199.217.18) 56(84) bytes of data.
-    [2012-09-01 16:05:01] INFO  APP_EVENT STDOUT from app app_test - msg: [1348639501.936964] 64 bytes from nicta.com.au (221.199.217.18): icmp_req=1 ttl=63 time=0.150 ms
-    [2012-09-01 16:05:02] INFO  APP_EVENT STDOUT from app app_test - msg: [1348639502.936231] 64 bytes from nicta.com.au (221.199.217.18): icmp_req=2 ttl=63 time=0.149 ms
-    [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg: [1348639503.936268] 64 bytes from nicta.com.au (221.199.217.18): icmp_req=3 ttl=63 time=0.154 ms
-    [2012-09-01 16:05:03] INFO  APP_EVENT DONE.OK from app app_test - msg: status: pid 1166 exit 0
-    [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg:
-    [2012-09-01 16:05:03] INFO  APP_EVENT STDOUT from app app_test - msg: --- nicta.com.au ping statistics ---
-    [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: 3 packets transmitted, 3 received, 0% packet loss, time 1999ms
-    [2012-09-01 16:05:04] INFO  APP_EVENT STDOUT from app app_test - msg: rtt min/avg/max/mdev = 0.149/0.151/0.154/0.002 ms
+
 ## Application Proxy - References
 
 In addition to the binary\_path, parameters, state properties which we configured in the previous simple example, the Application proxy as more properties which you can set/query, and which are described below.
@@ -208,6 +148,9 @@ In addition to the binary\_path, parameters, state properties which we configure
 
 
 ### State Property
+
+__This section needs to be updated. For latest documentation, please refer to http://mytestbed.net/doc/omf/OmfRc/ResourceProxy/Application.html#configure_state-instance_method__
+
 - state (String) the state of this Application Proxy (stop, run, pause, install)
 
 About the proxy's state:
@@ -282,9 +225,9 @@ The OML properties are based on the [libOML man page](http://omf.mytestbed.net/d
 - oml\_loglevel (Integer) set a specific OML log level (default unset)
 - oml\_logfile (String) set a specific path for OML log file (default unset)
 - oml\_configfile (String) path of the OML XML config file (optional)
-- oml (Hash) OML specific properties (optional), this Hash contains the 
+- oml (Hash) OML specific properties (optional), this Hash contains the
     following keys:
-      - :available_mps (Hash) list of available OML Measurement Points 
+      - :available_mps (Hash) list of available OML Measurement Points
       - :collection (Hash) list of required OML Measurement Stream to collect
           when this application is running, as defined at
           http://omf.mytestbed.net/doc/oml/html/liboml2.conf.html
@@ -298,21 +241,21 @@ Here is an example of valid configuration for the oml property:
 
     one_message = comm.configure_message([oml: {
       :available_mps => [
-        { :mp => 'radiotap', 
+        { :mp => 'radiotap',
           :fields => [
             {:field => 'sig_strength_dBm', :unit => 'dBm', :type => 'Fixnum'},
             {:field => 'noise_strength_dBm', :unit => 'dBm', :type => 'Fixnum'},
             {:field => 'power', :unit => 'mW', :type => 'Fixnum'}
           ]
         },
-        { :mp => 'udp', 
+        { :mp => 'udp',
           :fields => [
             {:field => 'pkt_len', :unit => 'Byte', :type => 'Fixnum'},
             {:field => 'source', :type => 'String'},
             {:field => 'target', :type => 'String'}
           ]
         },
-        { :mp => 'tcp', 
+        { :mp => 'tcp',
           :fields => [
             {:field => 'throughput', :unit => 'Byte/sec', :type => 'Fixnum'},
             {:field => 'rtt', :unit => 'ms', :type => 'Fixnum'},
@@ -328,7 +271,7 @@ Here is an example of valid configuration for the oml property:
       :collection => [
         { :url => 'tcp://10.0.0.200:3003',
           :streams => [
-            { :mp => 'radiotap', 
+            { :mp => 'radiotap',
               :interval => 2,
               :filters => [
                 {:field => 'sig_strength_dBm', :operation => 'avg'},

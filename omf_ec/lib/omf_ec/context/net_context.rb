@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfEc::Context
+  # Holds network related configuration
   class NetContext
     # Wifi frequency channel matching
     FREQUENCY= {
@@ -23,6 +24,11 @@ module OmfEc::Context
       self
     end
 
+    # Property assignment will simply update configuration
+    #
+    # @example OEDL
+    #   node.net.w0.mode = "adhoc"
+    #   node.net.w0.essid = "helloworld"
     def method_missing(name, *args, &block)
       if name =~ /(.+)=/
         net_prop = $1.to_sym
@@ -38,6 +44,7 @@ module OmfEc::Context
       end
     end
 
+    # Interchange channel and frequency value
     def map_channel_freq
       if self.conf[:channel] && self.conf[:frequency].nil?
         self.conf[:frequency] = FREQUENCY[self.conf[:channel].to_s.to_i]

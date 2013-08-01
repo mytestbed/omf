@@ -27,9 +27,9 @@ end
 
 # 2. Define a group of resources which will run the ping-oml2 application
 # Here we define only one group (Sender), which has only one resource in it 
-# (omf6.nicta.node8)
+# (omf.nicta.node8)
 #
-defGroup('Sender', 'omf6dev.node8') do |g|
+defGroup('Sender', 'omf.nicta.node8') do |g|
   # Associate the application ping_oml2 defined above to each resources
   # in this group
   g.addApplication("ping_oml2") do |app|

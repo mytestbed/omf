@@ -59,7 +59,7 @@ command :exec do |c|
 
   c.action do |global_options, options, args|
     help_now! "Missing experiment script" if args[0].nil?
-    help_now! "Experiment script not found" unless File.exist?(args[0])
+    help_now! "Experiment script not found" unless File.exist?(File.expand_path(args[0]))
 
     # User-provided command line values for Experiment Properties cannot be
     # set here as the propertties have not been defined yet by the experiment.
@@ -79,7 +79,7 @@ command :exec do |c|
     end
 
     # FIXME this loading script is way too simple
-    load_exp(args[0], global_options, options, properties)
+    load_exp(File.expand_path(args[0]), global_options, options, properties)
   end
 end
 
@@ -246,11 +246,11 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
-    if global_options[:cert] && File.exist?(global_options[:cert]) &&
-      global_options[:key] && File.exist?(global_options[:key])
+    if global_options[:cert] && File.exist?(File.expand_path(global_options[:cert])) &&
+      global_options[:key] && File.exist?(File.expand_path(global_options[:key]))
 
-      entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(global_options[:cert]),
-                                                             File.read(global_options[:key]))
+      entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(File.expand_path(global_options[:cert])),
+                                                             File.read(File.expand_path(global_options[:key])))
     end
 
     opts = {
@@ -271,13 +271,17 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
     opts[:communication][:auth] = {} if entity
 
     OmfCommon.init(:development, opts) do |el|
+
       setup_logging(global_options)
 
       OmfCommon.comm.on_connected do |comm|
+        info "OMF Experiment Controller #{OmfEc::VERSION}"
         info "Connected using #{comm.conn_info}"
-        info "Start experiment: #{OmfEc.experiment.id}"
+        info "Execute: #{exp_path}"
+        info "Properties: #{OmfEc.experiment.cmdline_properties}"
+        info "Experiment: #{OmfEc.experiment.id} starts"
 
-        OmfCommon::Auth::CertificateStore.instance.register_default_certs(global_options[:root_cert_dir]) if global_options[:root_cert_dir]
+        OmfCommon::Auth::CertificateStore.instance.register_default_certs(File.expand_path(global_options[:root_cert_dir])) if global_options[:root_cert_dir]
         OmfCommon::Auth::CertificateStore.instance.register(entity, OmfCommon.comm.local_address) if entity
 
         begin
@@ -288,7 +292,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
           error e.backtrace.join("\n")
         end
 
-        comm.on_interrupted { comm.disconnect }
+        comm.on_interrupted { OmfEc::Experiment.done }
       end
     end
   rescue => e

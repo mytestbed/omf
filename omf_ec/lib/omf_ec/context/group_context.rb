@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfEc::Context
+  # Holds group configuration
   class GroupContext
     attr_accessor :group
     attr_accessor :guard
@@ -15,11 +16,32 @@ module OmfEc::Context
       self
     end
 
+    # Supports OEDL 6 syntax [] for setting FRCP guard
+    #
+    # @param [Hash] opts option hash which sets constraints
+    #
+    # @example Reduce throttle to zero for  all resources of type 'engine' from group 'A'
+    #
+    #   group('A') do |g|
+    #     g.resources[type: 'engine'].throttle = 0
+    #   end
+    #
     def [](opts = {})
       self.guard.merge!(opts)
       self
     end
 
+    # Calling standard methods or assignments will simply trigger sending a FRCP message
+    #
+    # @example OEDL
+    #   # Will send FRCP CONFIGURE message
+    #   g.resources[type: 'engine'].throttle = 0
+    #
+    #   # Will send FRCP REQUEST message
+    #   g.resources[type: 'engine'].rpm
+    #
+    #   # Will send FRCP RELEASE message
+    #   g.resources[type: 'engine'].release
     def method_missing(name, *args, &block)
       if name =~ /(.+)=/
         self.operation = :configure
@@ -32,6 +54,10 @@ module OmfEc::Context
       send_message(name, *args, &block)
     end
 
+    # Send FRCP message
+    #
+    # @param [String] name of the property
+    # @param [Object] value of the property, for configuring
     def send_message(name, value = nil, &block)
       if self.guard[:type]
         topic = self.group.resource_topic(self.guard[:type])

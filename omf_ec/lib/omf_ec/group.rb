@@ -17,13 +17,14 @@ module OmfEc
   class Group
     include MonitorMixin
 
-    attr_accessor :name, :id, :net_ifs, :members, :app_contexts
+    attr_accessor :name, :id, :net_ifs, :members, :app_contexts, :execs
     attr_reader :topic
 
     # @param [String] name name of the group
     # @param [Hash] opts
     # @option opts [Boolean] :unique Should the group be unique or not, default is true
     def initialize(name, opts = {}, &block)
+      super()
       @opts = {unique: true}.merge!(opts)
       self.name = name
       self.id = @opts[:unique] ? SecureRandom.uuid : self.name
@@ -31,11 +32,16 @@ module OmfEc
       self.net_ifs = []
       self.members = []
       self.app_contexts = []
+      self.execs = []
 
       @resource_topics = {}
 
       OmfEc.subscribe_and_monitor(id, self, &block)
-      super()
+    end
+
+    def address(suffix = nil)
+      t_id = suffix ? "#{self.id}_#{suffix.to_s}" : self.id
+      "#{OmfCommon.comm.conn_info[:proto]}://#{t_id}@#{OmfCommon.comm.conn_info[:domain]}"
     end
 
     def associate_topic(topic)
@@ -69,7 +75,7 @@ module OmfEc
             OmfEc.subscribe_and_monitor(name) do |res|
               @members << res.address
               info "Config #{name} to join #{self.name}"
-              res.configure(membership: self.id)
+              res.configure(membership: self.address)
             end
           end
         end
@@ -92,7 +98,8 @@ module OmfEc
         end
 
         # Naming convention of child resource group
-        resource_group_name = "#{self.id}_#{opts[:type].to_s}"
+        #resource_group_name = "#{self.id}_#{opts[:type].to_s}"
+        resource_group_name = self.address(opts[:type])
 
         OmfEc.subscribe_and_monitor(resource_group_name) do |res_group|
           associate_resource_topic(opts[:type].to_s, res_group)

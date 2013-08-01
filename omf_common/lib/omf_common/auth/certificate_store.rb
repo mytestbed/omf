@@ -19,7 +19,7 @@ module OmfCommon::Auth
 
     def self.init(opts = {})
       if @@instance
-        raise "CertificateStore already iniitalised"
+        raise "CertificateStore already initialized"
       end
       @@instance = self.new(opts)
     end

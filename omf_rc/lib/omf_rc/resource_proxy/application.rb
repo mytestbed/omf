@@ -3,28 +3,6 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-#
-# Copyright (c) 2012 National ICT Australia (NICTA), Australia
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-#
 # This module defines a Resource Proxy (RP) for an Application.
 # For a detailed usage tutorial see {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}
 #
@@ -94,9 +72,13 @@
 #
 module OmfRc::ResourceProxy::Application
   include OmfRc::ResourceProxyDSL
+  # @!macro extend_dsl
+
   require 'omf_common/exec_app'
 
   register_proxy :application
+  # @!parse include OmfRc::Util::PlatformTools
+  # @!parse include OmfRc::Util::CommonTools
   utility :platform_tools
   utility :common_tools
 
@@ -124,10 +106,18 @@ module OmfRc::ResourceProxy::Application
   property :oml_logfile, :default => nil
   property :oml_loglevel, :default => nil
 
+  # @!macro group_hook
+  #
   # hook :before_ready do |res|
     # define_method("on_app_event") { |*args| process_event(self, *args) }
   # end
 
+  hook :before_release do |app|
+    app.configure_state(:stopped)
+  end
+
+  # @!macro hook
+  # @!method after_initial_configured
   hook :after_initial_configured do |res|
     # if state was set to running or installing from the create we need
     # to make sure that this happens!
@@ -140,55 +130,71 @@ module OmfRc::ResourceProxy::Application
     end
   end
 
+  # @!endgroup
+
   # This method processes an event coming from the application instance, which
   # was started by this Resource Proxy (RP). It is a callback, which is usually
   # called by the ExecApp class in OMF
   #
   # @param [AbstractResource] res this RP
   # @param [String] event_type the type of event from the app instance
-  #                 (STARTED, DONE.OK, DONE.ERROR, STDOUT, STDERR)
+  #                 (STARTED, EXIT, STDOUT, STDERR)
   # @param [String] app_id the id of the app instance
   # @param [String] msg the message carried by the event
-  #
   def process_event(res, event_type, app_id, msg)
       logger.info "App Event from '#{app_id}' "+
                   "(##{res.property.event_sequence}) - "+
                   "#{event_type}: '#{msg}'"
-      if event_type.to_s.include?('DONE')
-        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
-        res.inform(:status, {
-                        state: res.property.state,
-                        uid: res.uid # do we really need this? SHould be identical to 'src'
-                      }, :ALL)
-      end
-
-      res.inform(:status, {
-                    status_type: 'APP_EVENT',
-                    event: event_type.to_s.upcase,
-                    app: app_id,
-                    msg: msg,
-                    seq: res.property.event_sequence,
-                    uid: res.uid
-                  }, :ALL)
-      
-      
-
       res.property.event_sequence += 1
       res.property.installed = true if app_id.include?("_INSTALL") &&
-                                       event_type.to_s.include?('DONE.OK')
+                                       event_type.to_s.include?('EXIT') &&
+                                       msg == "0"
+      if event_type == 'EXIT'
+        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
+        res.inform(:status, {
+                        status_type: 'APP_EVENT',
+                        event: event_type.to_s.upcase,
+                        app: app_id,
+                        exit_code: msg,
+                        msg: msg,
+                        state: res.property.state,
+                        seq: res.property.event_sequence,
+                        uid: res.uid # do we really need this? Should be identical to 'src'
+                      }, :ALL)
+      else
+        res.inform(:status, {
+                      status_type: 'APP_EVENT',
+                      event: event_type.to_s.upcase,
+                      app: app_id,
+                      msg: msg,
+                      seq: res.property.event_sequence,
+                      uid: res.uid
+                    }, :ALL)
+      end
   end
 
+  # @!macro group_request
+  #
   # Request the platform property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
+  # @!macro request
+  # @!method request_platform
   request :platform do |res|
     res.property.platform = detect_platform if res.property.platform.nil?
     res.property.platform.to_s
   end
 
+  # @!endgroup
+  # @!macro group_configure
+
   # Configure the environments and oml property of this Application RP
   # @see OmfRc::ResourceProxy::Application
   #
+  #
+  # @!macro configure
+  # @!method conifgure_environments
+  # @!method conifgure_oml
   %w(environments oml).each do |prop|
     configure(prop) do |res, value|
       if value.kind_of? Hash
@@ -202,7 +208,10 @@ module OmfRc::ResourceProxy::Application
   end
 
   # Configure the parameters property of this Application RP
+  #
+  # @!macro configure
   # @see OmfRc::ResourceProxy::Application
+  # @!method configure_parameters
   #
   configure :parameters do |res, params|
     if params.kind_of? Hash
@@ -240,7 +249,7 @@ module OmfRc::ResourceProxy::Application
   # stopped, running, paused, installing. The semantic of each states are:
   #
   # - stopped: the initial state for an Application RP
-  # - completed: the final state for an applicaiton RP. When the application
+  # - completed: the final state for an application RP. When the application
   #   has been executed and its execution is finished, it enters this state.
   #   When the application is completed it cannot change state again
   #   TODO: maybe in future OMF, we could consider allowing an app to be reset?
@@ -262,8 +271,9 @@ module OmfRc::ResourceProxy::Application
   #   only when the installatio is done. Supported install methods are: Tarball,
   #   Ubuntu, and Fedora
   #
-  # @yieldparam [String] value the state to set this app into
-  #
+  # @param [String] value the state to set this app into
+  # @!macro configure
+  # @!method configure_state
   configure :state do |res, value|
     OmfCommon.eventloop.after(0) do
       case value.to_s.downcase.to_sym
@@ -278,9 +288,14 @@ module OmfRc::ResourceProxy::Application
     res.property.state
   end
 
+  # @!endgroup
+
+  # @!macro group_work
+  #
   # Swich this Application RP into the 'installing' state
   # (see the description of configure :state)
-  #
+  # @!macro work
+  # @!method switch_to_installing
   work('switch_to_installing') do |res|
     if res.property.state.to_sym == :stopped
       if res.property.installed
@@ -306,9 +321,11 @@ module OmfRc::ResourceProxy::Application
     end
   end
 
-  # Swich this Application RP into the 'stopped' state
+  # Switch this Application RP into the 'stopped' state
   # (see the description of configure :state)
   #
+  # @!macro work
+  # @!method switch_to_stopped
   work('switch_to_stopped') do |res|
     if res.property.state == :running || res.property.state == :paused
       id = res.property.app_id
@@ -337,6 +354,8 @@ module OmfRc::ResourceProxy::Application
   # Switch this Application RP into the 'running' state
   # (see the description of configure :state)
   #
+  # @!macro work
+  # @!method switch_to_running
   work('switch_to_running') do |res|
     if res.property.state == :stopped
       # start a new instance of this app
@@ -365,6 +384,8 @@ module OmfRc::ResourceProxy::Application
   # Swich this Application RP into the 'paused' state
   # (see the description of configure :state)
   #
+  # @!macro work
+  # @!method switch_to_paused
   work('switch_to_paused') do |res|
     if res.property.state == :running
       # pause this app
@@ -380,6 +401,8 @@ module OmfRc::ResourceProxy::Application
   # @yieldparam [Hash] att the Hash holding the parameter's attributs
   # @see OmfRc::ResourceProxy::Application
   #
+  # @!macro work
+  # @!method dynamic_parameter_update
   work('dynamic_parameter_update') do |res,name,att|
     # Only update a parameter if it is dynamic and the application is running
     dynamic = false
@@ -404,10 +427,10 @@ module OmfRc::ResourceProxy::Application
   # - third if no value is given but a default is given, then perform the same
   #   check as above but using the default in-place of the value
   #
-  # @yieldparam [Hash] att the Hash holding the parameter's attributs
+  # @param [Hash] att the Hash holding the parameter's attributs
   #
-  # [Boolean] true or false
-  #
+  # @return [Boolean] true or false
+  # @!macro work
   work('pass_type_checking?') do |res,att|
     passed = false
     unless att[:type].nil?
@@ -449,8 +472,8 @@ module OmfRc::ResourceProxy::Application
   # this Application Resource Proxy. If the 'use_oml' property is set, then
   # add to the command line the necessary oml parameters.
   #
-  # [String] the full command line
-  #
+  # @return [String] the full command line
+  # @!macro work
   work('build_command_line') do |res|
     cmd_line = "env -i " # Start with a 'clean' environments
     res.property.environments.each do |e,v|
@@ -514,10 +537,10 @@ module OmfRc::ResourceProxy::Application
   # the corresponsding 'oml_logfile' and 'oml_loglevel' properties are set for
   # this application resource.
   #
-  # @yieldparam [String] cmd the String to which OML parameters will be added
+  # @param [String] cmd the String to which OML parameters will be added
   #
-  # [String] the resulting command line
-  #
+  # @return [String] the resulting command line
+  # @!macro work
   work('build_oml_config') do |res, cmd|
     if !res.property.oml_configfile.nil?
       if File.exist?(res.property.oml_configfile)

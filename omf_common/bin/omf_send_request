@@ -22,7 +22,7 @@ opts = {
   eventloop: { type: :em},
   logging: {
     level: 'info'
-  }  
+  }
 }
 
 resource_url = nil
@@ -53,7 +53,7 @@ def print_prop(name, value, level = 0)
   if value.is_a? Hash
     puts ''
     value.each {|k, v| print_prop(k, v, level + 1)}
-  else 
+  else
     puts " #{value}"
   end
 end
@@ -62,8 +62,8 @@ OmfCommon.init(OP_MODE, opts) do |el|
   OmfCommon.comm.on_connected do |comm|
     comm.subscribe(resource) do |topic|
       topic.request(req_properties) do |msg|
-        if (src_topic = msg.src.id) == topic.id
-          puts "#{topic.id}"        
+        if (src_topic = (msg.src.is_a?(OmfCommon::Comm::Topic) ? msg.src.id : msg.src)) == topic.id
+          puts "#{topic.id}"
         else
           puts "#{src_topic} via #{topic.id}"
         end

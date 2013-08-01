@@ -51,12 +51,12 @@ describe OmfCommon::Message do
     it "must be able to pretty print an app_event message" do
       @message = OmfCommon::Message.create(:inform,
                      { status_type: 'APP_EVENT',
-                       event: 'DONE.OK',
+                       event: 'EXIT',
                        app: 'app100',
-                       msg: 'Everything will be OK',
+                       msg: '0',
                        seq: 1 },
                      { itype: 'STATUS' })
-      @message.print_app_event.must_equal "APP_EVENT (app100, #1, DONE.OK): Everything will be OK"
+      @message.print_app_event.must_equal "APP_EVENT (app100, #1, EXIT): 0"
     end
 
     it "must return inform type (itype), formatted" do
