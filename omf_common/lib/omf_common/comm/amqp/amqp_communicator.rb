@@ -34,7 +34,6 @@ module OmfCommon
           end
           @address_prefix = @url + '/'
           _connect()
-          #AMQP::Session#on_skipped_heartbeats callback that can be used to handle skipped heartbeats
           super
         end
 
@@ -119,60 +118,78 @@ module OmfCommon
         end
 
         def _connect()
-          last_reported_timestamp = nil
-          @session = ::AMQP.connect(@url, @opts) do |connection|
-            connection.on_tcp_connection_loss do |conn, settings|
-              now = Time.now
-              if last_reported_timestamp == nil || (now - last_reported_timestamp) > 60
-                warn "Lost connectivity. Trying to reconnect..."
-                last_reported_timestamp = now
-              end
-              conn.reconnect(false, 2)
-            end
-            @channel  = ::AMQP::Channel.new(connection)
-            @channel.auto_recovery = true
-
-
-            @on_connected_procs.each do |proc|
-              proc.arity == 1 ? proc.call(self) : proc.call
-            end
-
-            OmfCommon.eventloop.on_stop do
-              connection.close
-            end
-          end
-
-          rec_delay = @opts[:reconnect_delay]
-          @session.on_tcp_connection_failure do
-            warn "Cannot connect to AMQP server '#{@url}'. Attempt to retry in #{rec_delay} sec"
-            @session = nil
-            OmfCommon.eventloop.after(rec_delay) do
-              info 'Retrying'
-              _connect
-            end
-          end
-          # @session.on_tcp_connection_loss do
-            # _reconnect "Appear to have lost tcp connection. Attempt to reconnect in #{rec_delay} sec"
-          # end
-          # @session.on_skipped_heartbeats do
-            # _reconnect "Appear to have lost heartbeat. Attempt to reconnect in #{rec_delay} sec"
-          # end
-          @session.on_recovery do
-            info 'Recovered!'
+          begin
             last_reported_timestamp = nil
-            @on_reconnect.values.each do |block|
-              block.call()
+            @session = ::AMQP.connect(@url, @opts) do |connection|
+              connection.on_tcp_connection_loss do |conn, settings|
+                now = Time.now
+                if last_reported_timestamp == nil || (now - last_reported_timestamp) > 60
+                  warn "Lost connectivity. Trying to reconnect..."
+                  last_reported_timestamp = now
+                end
+                _reconnect(conn)
+              end
+              @channel  = ::AMQP::Channel.new(connection)
+              @channel.auto_recovery = true
+
+              @on_connected_procs.each do |proc|
+                proc.arity == 1 ? proc.call(self) : proc.call
+              end
+
+              OmfCommon.eventloop.on_stop do
+                connection.close
+              end
+            end
+
+            rec_delay = @opts[:reconnect_delay]
+            @session.on_tcp_connection_failure do
+              warn "Cannot connect to AMQP server '#{@url}'. Attempt to retry in #{rec_delay} sec"
+              @session = nil
+              OmfCommon.eventloop.after(rec_delay) do
+                info 'Retrying'
+                _connect
+              end
+            end
+            # @session.on_tcp_connection_loss do
+              # _reconnect "Appear to have lost tcp connection. Attempt to reconnect in #{rec_delay} sec"
+            # end
+            @session.on_skipped_heartbeats do
+              info '... on_skipped_heartbeats!'
+              #_reconnect "Appear to have lost heartbeat. Attempt to reconnect in #{rec_delay} sec"
+            end
+            @session.on_recovery do
+              info 'Recovered!'
+              last_reported_timestamp = nil
+              @on_reconnect.values.each do |block|
+                block.call()
+              end
+            end
+            true
+          rescue Exception => ex
+            delay = @opts[:reconnect_delay]
+            warn "Connecting AMQP failed, will retry in #{delay} (#{ex})"
+            OmfCommon.eventloop.after(delay) do
+              if _connect
+                info 'Reconnection suceeded'
+              end
+            end
+            false
+          end
+        end
+
+        def _reconnect(conn)
+          begin
+            conn.reconnect(false, 2)
+          rescue Exception => ex
+            delay = @opts[:reconnect_delay]
+            warn "Reconnect AMQP failed, will retry in #{delay} (#{ex})"
+            OmfCommon.eventloop.after(delay) do
+              info 'Reconnecting'
+              _reconnect(conn)
             end
           end
         end
 
-        # def _reconnect(warn_message = nil)
-          # warn(warn_message) if warn_message
-          # OmfCommon.eventloop.after(@opts[:reconnect_delay]) do
-            # info 'Reconnecting'
-            # @session.reconnect
-          # end
-        # end
       end
     end
   end
