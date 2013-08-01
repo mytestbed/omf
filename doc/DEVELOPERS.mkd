@@ -671,6 +671,11 @@ That concludes our little tutorial for you.
 
 OMF RC has included some resource proxies to support network configuration and running OMF enabled applications. For more details, refer to {OmfRc::ResourceProxy::AbstractResource}.
 
+### Application Proxy
+
+Application proxy has been provided to set up and control applications. We include a separate guide explaining how it works. See {file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}. It is also a good example demonstrating how to write a non-trivial resource proxy.
+
+
 ## Advanced topics
 
 ### Organise resource proxy modules
