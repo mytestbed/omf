@@ -164,6 +164,7 @@ module OmfEc
     class << self
       # Disconnect communicator, try to delete any XMPP affiliations
       def done
+        info "Experiment: #{OmfEc.experiment.id} finished"
         info "Exit in up to 15 seconds..."
 
         OmfCommon.eventloop.after(10) do
