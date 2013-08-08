@@ -40,6 +40,10 @@ arg_name "directory"
 default_value "/tmp"
 flag [:log_file_dir]
 
+desc "Logging config file"
+arg_name "file"
+flag [:log_config]
+
 # the path given here is relative to the user's home directory
 config_file(".config/omf_ec.yml")
 
@@ -242,6 +246,8 @@ def setup_logging(global_options = {})
         :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
+
+  OmfCommon.load_logging_config(global_options[:log_config])
 end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})

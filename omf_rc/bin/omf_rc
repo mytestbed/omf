@@ -28,6 +28,10 @@ begin
       options[:advanced_configfile] = file
     end
 
+    opts.on("--log_config CONFIGFILE", "Logging Configuration File") do |file|
+      options[:logging_configfile] = file
+    end
+
     opts.on("-u URI", "Communication URI (xmpp://user:password@domain)") do |uri|
       options[:uri] = uri
     end
@@ -114,6 +118,9 @@ end
 common_options[:communication][:auth] = {} if entity
 
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
+  # Load a customised logging set up if provided
+  OmfCommon.load_logging_config(options[:logging_configfile])
+
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
   OmfCommon.comm.on_connected do |comm|
