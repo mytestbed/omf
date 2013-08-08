@@ -116,7 +116,7 @@ Following example will create log file on the daily basis, and only keep last 10
 
 ### Ruby
 
-Logging gem provides a set of DSL methods to configure logging options. If you place such DSL code into a separate file as your logging  config file, you could simply load the file as logging any Ruby files, using keyword load.
+Logging gem provides a set of DSL methods to configure logging options. If you place such DSL code into a separate file as your logging  config file, you could simply load the file as loading any Ruby files, using keyword load.
 
     load "path_logging_config_file_ruby_format"
 
@@ -194,6 +194,16 @@ The Yaml file (my_logging.yaml), describing the same options, shall look like th
             pattern: "[%d] %-5l %c: %m\n"
             date_pattern: "%F %T %z"
 
+
+## Tell external messaging libraries to use our logging set up
+
+Debugging communication at raw messages level is not a pleasure, but sometimes it will be the last resource. We could ask the messaging libraries to use our logging set up to control or customise their logging output.
+
+For example, to enable logging debug XMPP messages in Blather (XMPP messaging library):
+
+    Blather.logger = logger
+
+Then don't forget to set the logging level to :debug.
 
 
 ## Documentation from 'logging' gem

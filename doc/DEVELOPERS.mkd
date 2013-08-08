@@ -675,6 +675,11 @@ OMF RC has included some resource proxies to support network configuration and r
 
 Application proxy has been provided to set up and control applications. We include a separate guide explaining how it works. See {file:doc/APPLICATION\_PROXY.mkd How to use the Application Proxy}. It is also a good example demonstrating how to write a non-trivial resource proxy.
 
+## Logging
+
+Given controlling logging is important for developing and debugging, we created a dedicated guide.
+
+{file:doc/LOGGING.mkd Logging system in OMF 6}
 
 ## Advanced topics
 
