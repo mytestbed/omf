@@ -112,6 +112,90 @@ Following example will create log file on the daily basis, and only keep last 10
       )
     )
 
+## Configuration file support
+
+### Ruby
+
+Logging gem provides a set of DSL methods to configure logging options. If you place such DSL code into a separate file as your logging  config file, you could simply load the file as logging any Ruby files, using keyword load.
+
+    load "path_logging_config_file_ruby_format"
+
+_Please note that using config file support will clean up default appenders, layouts setting provided in OMF._
+
+Example:
+
+    Logging.configure do
+      # Default logging level should be debug, write to stdout & log file
+      logger(:root) do
+        level :debug
+        appenders %w(my_stdout my_file)
+      end
+
+      # But logger named Foo::C should only print :info messages
+      logger('Foo::C') do
+        level :info
+      end
+
+      # But we don't want to see :debug messages in stdout
+      appender('my_stdout') do
+        type 'Stdout'
+        level :info
+        layout do
+          type 'Basic'
+        end
+      end
+
+      # However log file should contain :debug messages, and we want some fancy pattern layout for the messages
+      appender('my_file') do
+        type 'File'
+        level :debug
+        filename '/tmp/bob'
+        truncate  true
+        layout do
+          type 'Pattern'
+          pattern "[%d] %-5l %c: %m\n"
+          date_pattern "%F %T %z"
+        end
+      end
+    end
+
+### Yaml
+
+Logging also supports Yaml files. To load, simply use YamlConfigurator:
+
+    Logging::Config::YamlConfigurator.load('my_logging.yaml')
+
+The Yaml file (my_logging.yaml), describing the same options, shall look like this:
+
+    logging_config:
+      loggers:
+        - name: root
+          level: :debug
+          appenders:
+            - my_stdout
+            - my_file
+        - name: Foo::C
+          level: :info
+
+      appenders:
+        - name: my_stdout
+          type: Stdout
+          level: :info
+          layout:
+            type: Basic
+
+        - name: my_file
+          type: File
+          level: :debug
+          filename: "/tmp/bob"
+          truncate: true
+          layout:
+            type: Pattern
+            pattern: "[%d] %-5l %c: %m\n"
+            date_pattern: "%F %T %z"
+
+
+
 ## Documentation from 'logging' gem
 
 For comprehensive options, please visit:
