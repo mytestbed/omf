@@ -9,10 +9,12 @@ require 'omf_ec/group'
 describe OmfEc::Group do
   before do
     OmfEc.stubs(:subscribe_and_monitor)
+    OmfEc::Group.any_instance.stubs(:address).returns("xmpp://g@bob.com")
   end
 
   after do
     OmfEc.unstub(:subscribe_and_monitor)
+    OmfEc::Group.any_instance.unstub(:address)
   end
 
   describe "when initialised" do
