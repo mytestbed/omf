@@ -137,7 +137,7 @@ class OmfRc::ResourceProxy::AbstractResource
         cprops = @property.reject { |k| [:parent_certificate, :parent].include?(k.to_sym) }
         cprops[:res_id] = self.resource_address
 
-        t.inform(:creation_ok, cprops, copts)
+        t.inform(:creation_ok, cprops, copts) unless creation_opts[:suppress_create_message]
 
         t.on_message(@uid) do |imsg|
           process_omf_message(imsg, t)
