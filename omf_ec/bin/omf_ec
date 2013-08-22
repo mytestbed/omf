@@ -239,10 +239,10 @@ def setup_logging(global_options = {})
   end
 
   # FIXME this should go to common setup
-  if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
+  if global_options[:log_file_dir] && File.exist?(File.expand_path(global_options[:log_file_dir]))
     Logging.logger.root.add_appenders(
       Logging.appenders.file(
-        "#{global_options[:log_file_dir]}/#{OmfEc.experiment.id}.log",
+        "#{File.expand_path(global_options[:log_file_dir])}/#{OmfEc.experiment.id}.log",
         :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
