@@ -231,7 +231,8 @@ class CmcNorbitService < GridService
   def self.openTelnet(hrn, domain)
     ip = getCmcIP(hrn, domain)
     begin
-      tn = Net::Telnet::new('Host' => ip, "Dump_log" => "/tmp/output_log", "Prompt" => /\> /n)
+      #tn = Net::Telnet::new('Host' => ip, "Dump_log" => "/tmp/output_log", "Prompt" => /\> /n)
+      tn = Net::Telnet::new('Host' => ip, "Prompt" => /\> /n)
     rescue
       MObject.debug("Failed to connect to CM2 at '#{ip}'")
       return false

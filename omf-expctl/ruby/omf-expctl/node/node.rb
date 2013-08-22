@@ -323,7 +323,6 @@ class OMF::EC::Node < MObject
   # 'ts' is a time stamp of the form 'YYYY-MM-DD-hh:mm:ss'.
   #
   def saveImage(imgName = nil, resize = nil)
-    
     begin
       disk = OMF::Services.inventory.getDefaultDisk(@nodeID, OConfig.domain).elements[1].text
     rescue

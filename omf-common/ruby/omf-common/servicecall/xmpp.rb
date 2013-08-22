@@ -25,7 +25,6 @@
 
 require 'rubygems'
 require 'time'
-require 'xmpp4r'
 require 'rexml/element'
 require 'omf-common/servicecall/endpoint'
 
