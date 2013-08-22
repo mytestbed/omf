@@ -78,7 +78,6 @@ module OmfCommon::Auth
     # @param [String] folder contains all the CA certs
     #
     def register_default_certs(folder)
-      folder = File.expand_path(folder)
       Dir["#{folder}/*"].each do |cert|
         register_x509(File.read(cert))
       end
