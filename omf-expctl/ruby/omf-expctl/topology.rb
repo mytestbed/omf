@@ -31,6 +31,7 @@
 #
 
 require 'rubygems'
+gem 'gratr'
 require 'gratr/import.rb'
 require 'gratr/dot.rb'
 

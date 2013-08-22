@@ -2,6 +2,7 @@
 
 # change this to the gembundler path later
 require "rubygems"
+gem 'xmpp4r'
 require "xmpp4r"
 require "xmpp4r/pubsub"
 require "socket"

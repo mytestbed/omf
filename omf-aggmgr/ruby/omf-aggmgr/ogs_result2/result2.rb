@@ -33,6 +33,7 @@ raise "The result2 service is currently unuseable. Please see ticket #838"
 
 require 'omf-aggmgr/ogs/legacyGridService'
 
+gem 'json'
 require 'json'
 require 'stringio'
 

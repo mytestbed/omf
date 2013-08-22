@@ -31,6 +31,7 @@
 #
 #
 
+gem 'oml4r'
 require "oml4r"
 
 APPNAME = 'measure_roundtrip'

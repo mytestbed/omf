@@ -27,6 +27,8 @@
 # This class describes a graph which can be displayed through the
 # web interface or any other defined graph visualizer.
 #
+gem 'sequel'
+gem 'json'
 require 'sequel'
 require 'json'
 

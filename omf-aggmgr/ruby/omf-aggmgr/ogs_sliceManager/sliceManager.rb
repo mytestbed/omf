@@ -34,6 +34,8 @@
 #
 
 require 'rubygems'
+gem 'dm-core'
+gem 'dm-migrations'
 require 'dm-core'
 require 'dm-migrations'
 

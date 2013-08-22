@@ -1,4 +1,5 @@
 require 'rubygems'
+gem 'oml4r'
 require 'oml4r'
 require 'log4r/outputter/outputter'
 

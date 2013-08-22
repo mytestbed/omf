@@ -23,6 +23,7 @@
 
 require 'rubygems'
 require 'rexml/document'
+gem 'wss4r'
 require 'wss4r/security/util/xmlcanonicalizer'
 
 module OMF

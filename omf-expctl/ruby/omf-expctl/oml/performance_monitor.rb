@@ -29,6 +29,7 @@
 #
 
 require 'omf-common/mobject'
+gem 'oml4r'
 require 'oml4r'
 
 module OMF; module EC; module OML; end end end

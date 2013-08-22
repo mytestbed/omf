@@ -1,3 +1,5 @@
+require 'rubygems'
+gem 'xmpp4r'
 require "xmpp4r"
 require "xmpp4r/pubsub"
 require "xmpp4r/pubsub/helper/servicehelper.rb"
