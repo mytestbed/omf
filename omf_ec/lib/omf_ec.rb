@@ -38,14 +38,14 @@ module OmfEc
       topic.on_inform do |msg|
         case msg.itype
         when 'CREATION.FAILED'
-          warn "RC reports creation.failed: '#{msg[:reason]}'"
-          debug msg
+          warn "RC reports creation.failed: '#{msg[:reason]}'", msg.src
+          debug msg, msg.src
         when 'ERROR'
-          warn "RC reports error: '#{msg[:reason]}'"
-          debug msg
+          warn "RC reports error: '#{msg[:reason]}'", msg.src
+          debug msg, msg.src
         when 'WARN'
-          warn "RC reports warning: '#{msg[:reason]}'"
-          debug msg
+          warn "RC reports warning: '#{msg[:reason]}'", msg.src
+          debug msg, msg.src
         when 'CREATION.OK'
           debug "Received CREATION.OK via #{topic.id}"
           info "Resource #{msg[:res_id]} #{msg.resource.address} created"

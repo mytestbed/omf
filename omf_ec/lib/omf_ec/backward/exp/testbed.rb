@@ -23,9 +23,9 @@ def create_app(testbed)
               end
             end
           when 'WARN'
-            warn m[:reason]
+            warn m[:reason], m.src
           when 'ERROR'
-            error m[:reason]
+            error m[:reason], m.src
           end
         end
       end

@@ -235,7 +235,7 @@ def setup_logging(global_options = {})
   end
 
   unless global_options[:debug]
-    Logging.consolidate 'OmfCommon', 'OmfEc', 'OmfRc'
+    Logging.consolidate 'OmfCommon', 'OmfRc'
   end
 
   # FIXME this should go to common setup
