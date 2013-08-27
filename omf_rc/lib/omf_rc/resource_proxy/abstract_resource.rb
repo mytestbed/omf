@@ -80,7 +80,7 @@ class OmfRc::ResourceProxy::AbstractResource
   }
 
   attr_accessor :uid, :hrn, :type, :comm, :property, :certificate
-  attr_reader :opts, :children, :membership, :creation_opts, :membership_topics
+  attr_reader :opts, :children, :membership, :creation_opts, :membership_topics, :topics
 
   # Initialisation
   #
@@ -121,26 +121,47 @@ class OmfRc::ResourceProxy::AbstractResource
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
         OmfCommon.comm.disconnect()
       else
-        if (@certificate = @opts.certificate)
-          OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
-        else
-          if (pcert = @opts.parent_certificate)
-            @certificate = pcert.create_for(resource_address, @type, t.address)
+        begin
+          # Extend resource with Resource Module, can be obtained from Factory
+          emodule = OmfRc::ResourceFactory.proxy_list[@type].proxy_module || "OmfRc::ResourceProxy::#{@type.camelize}".constantize
+          self.extend(emodule)
+          # Initiate property hash with default property values
+          self.methods.each do |m|
+            self.__send__(m) if m =~ /default_property_(.+)/
           end
-        end
+          # Bootstrap initial configure
+          init_configure(self, @opts)
+          # Execute resource before_ready hook if any
+          call_hook :before_ready, self
 
-        creation_callback.call(self) if creation_callback
+          # Setup authentication related properties
+          if (@certificate = @opts.certificate)
+            OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
+          else
+            if (pcert = @opts.parent_certificate)
+              @certificate = pcert.create_for(resource_address, @type, t.address)
+            end
+          end
+          copts = { src: self.resource_address }
+          copts[:cert] = @certificate.to_pem_compact if @certificate
 
-        copts = { src: self.resource_address }
-        copts[:cert] = @certificate.to_pem_compact if @certificate
+          cprops = @property.reject { |k| [:parent_certificate, :parent].include?(k.to_sym) }
+          cprops[:res_id] = self.resource_address
 
-        cprops = @property.reject { |k| [:parent_certificate, :parent].include?(k.to_sym) }
-        cprops[:res_id] = self.resource_address
+          # Then send inform message to itself, with all resource options' current values.
+          t.inform(:creation_ok, cprops, copts) unless creation_opts[:suppress_create_message]
 
-        t.inform(:creation_ok, cprops, copts) unless creation_opts[:suppress_create_message]
+          t.on_message(@uid) do |imsg|
+            process_omf_message(imsg, t)
+          end
 
-        t.on_message(@uid) do |imsg|
-          process_omf_message(imsg, t)
+          creation_callback.call(self) if creation_callback
+        rescue => e
+          error "Encountered exception: #{e.message}, returning ERROR message"
+          debug ex.backtrace.join("\n")
+          t.inform(:creation_failed,
+                   { reason: e.message },
+                   { src: self.resource_address })
         end
       end
     end

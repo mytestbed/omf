@@ -14,6 +14,7 @@ module OmfRc::ResourceProxy
     include OmfRc::ResourceProxyDSL
     register_proxy :parent
 
+    property :p0
     request :test_exception do
       raise StandardError
     end
@@ -33,51 +34,25 @@ end
 
 describe AbstractResource do
   before do
-    # Things we need to mock
-    # * communicator
-    # * topic
-    # * calling communicator callbacks
-    @comm = mock
-    @topics = {
-      parent: OmfCommon::Comm::Topic.create(:parent),
-      child:  OmfCommon::Comm::Topic.create(:child)
-    }
-    [:inform, :publish, :unsubscribe].each do |m_name|
-      OmfCommon::Comm::Topic.any_instance.stubs(m_name)
-    end
-
-    # Return child topic by default unless specified
-    @comm.stubs(:create_topic).returns(@topics[:child])
-
-    [:parent, :child].each do |t_name|
-      @topics[t_name].stubs(:address).returns("xmpp://localhost/#{t_name.to_s}")
-      @comm.stubs(:create_topic).with("xmpp://localhost/#{t_name}").returns(@topics[t_name])
-    end
-
-    @comm.class_eval do
-      define_method(:subscribe) do |*args, &block|
-        block.call(self.create_topic("xmpp://localhost/#{args[0]}"))
-      end
-    end
-
-    OmfCommon.stubs(:comm).returns(@comm)
+    mock_comm_in_res_proxy
+    mock_topics_in_res_proxy(resources: [:parent, :child], default: :child)
     @parent = OmfRc::ResourceFactory.create(:parent, { uid: :parent, hrn: 'default_node' }, { create_children_resources: true })
   end
 
   after do
-    @comm.class_eval do
-      undef_method(:subscribe)
-    end
-    OmfCommon.unstub(:comm)
-    [:inform, :publish, :unsubscribe].each do |m_name|
-      OmfCommon::Comm::Topic.any_instance.unstub(m_name)
-    end
+    unmock_comm_in_res_proxy
     @parent = nil
   end
 
   describe "when created itself (bootstrap)" do
     it "must have an unique id generated if not given" do
       OmfRc::ResourceFactory.create(:parent).uid.must_match /.{8}-.{4}-.{4}-.{4}-.{12}/
+    end
+
+    it "must be able to initialise properties" do
+      p = OmfRc::ResourceFactory.create(:parent, { p0: 'bob', uid: 'unique' })
+      p.request_p0.must_equal 'bob'
+      p.request_uid.must_equal 'unique'
     end
 
     it "must be able to keep state inside 'property' instnace variable" do
@@ -90,9 +65,9 @@ describe AbstractResource do
     end
 
     it "must returned all the properties can be requested & configured" do
-      @parent.request_available_properties.configure.must_equal [:membership]
+      @parent.request_available_properties.configure.must_equal [:p0, :membership]
       @parent.request_available_properties.request.must_equal(
-        [:test_exception, :supported_children_type, :uid, :type, :hrn, :name, :membership, :child_resources]
+        [:p0, :test_exception, :supported_children_type, :uid, :type, :hrn, :name, :membership, :child_resources]
       )
     end
 

@@ -15,30 +15,32 @@ describe OmfRc::Util::Mod do
         utility :mod
       end
       @command = MiniTest::Mock.new
-      @xmpp = MiniTest::Mock.new
-      @xmpp.expect(:subscribe, true, [String])
+
+      mock_comm_in_res_proxy
+      mock_topics_in_res_proxy(resources: [:mt0])
+      @mod_test = OmfRc::ResourceFactory.create(:mod_test, uid: :mt0)
+    end
+
+    after do
+      unmock_comm_in_res_proxy
+      @mod_test = nil
     end
 
     it "will find out a list of modules" do
-      OmfCommon.stub :comm, @xmpp do
-        Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, fixture("lsmod"))
-          OmfRc::ResourceFactory.create(:mod_test).request_modules.must_include "kvm"
-          @command.expect(:run, fixture("lsmod"))
-          @xmpp.expect(:subscribe, true, [String])
-          OmfRc::ResourceFactory.create(:mod_test).request_modules.wont_include "Module"
-          @command.verify
-        end
+      Cocaine::CommandLine.stub(:new, @command) do
+        @command.expect(:run, fixture("lsmod"))
+        @mod_test.request_modules.must_include "kvm"
+        @command.expect(:run, fixture("lsmod"))
+        @mod_test.request_modules.wont_include "Module"
+        @command.verify
       end
     end
 
     it "could load a module" do
-      OmfCommon.stub :comm, @xmpp do
-        Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, true)
-          OmfRc::ResourceFactory.create(:mod_test).configure_load_module(name: 'magic_module').must_equal "magic_module loaded"
-          @command.verify
-        end
+      Cocaine::CommandLine.stub(:new, @command) do
+        @command.expect(:run, true)
+        @mod_test.configure_load_module(name: 'magic_module').must_equal "magic_module loaded"
+        @command.verify
       end
     end
   end

@@ -41,11 +41,10 @@ module OmfRc::Util::CommonTools
   #
   %w(error warn).each do |type|
     work("log_inform_#{type}") do |res, msg|
-      logger.send(type, msg)
-      OmfCommon.comm.publish(
-        res.uid,
-        OmfCommon::Message.create(:inform, { reason: msg }, { itype: type.upcase })
-      )
+      res.send(type, msg, res.uid)
+      res.topics.first.inform(type.to_sym,
+                              { reason: msg },
+                              { src: res.resource_address })
     end
   end
 

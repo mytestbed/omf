@@ -91,23 +91,6 @@ unless common_options[:communication] && common_options[:communication][:url]
   exit(1)
 end
 
-if options[:add_default_factories] != false
-  OmfRc::ResourceFactory.load_default_resource_proxies
-end
-
-if options[:factories]
-  options[:factories].each do |f|
-    if (req = f[:require])
-      begin
-        info "Try to load resource module '#{req}'"
-        require(req)
-      rescue LoadError => e
-        error e.message
-      end
-    end
-  end
-end
-
 if options[:auth]
   if File.exist?(options[:auth][:entity_cert]) && File.exist?(options[:auth][:entity_key])
     entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(options[:auth][:entity_cert]),
@@ -120,6 +103,24 @@ common_options[:communication][:auth] = {} if entity
 OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   # Load a customised logging set up if provided
   OmfCommon.load_logging_config(options[:logging_configfile])
+
+  # Load extensions
+  if options[:add_default_factories] != false
+    OmfRc::ResourceFactory.load_default_resource_proxies
+  end
+
+  if options[:factories]
+    options[:factories].each do |f|
+      if (req = f[:require])
+        begin
+          info "Try to load resource module '#{req}'"
+          require(req)
+        rescue LoadError => e
+          error e.message
+        end
+      end
+    end
+  end
 
   info "Starting OMF Resource Controller version '#{gem_version}'"
 
@@ -144,3 +145,4 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
   end
 end
 info "Stopping OMF Resource Controller version '#{gem_version}'"
+
