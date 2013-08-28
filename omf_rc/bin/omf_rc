@@ -136,6 +136,7 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
       rtype = res_opts.delete(:type)
       res_creation_opts = res_opts.delete(:creation_opts)
       res_creation_opts ||= res_opts.delete(:create_opts)
+      res_creation_opts ||= {}
       res_opts[:certificate] = entity if entity
       begin
         OmfRc::ResourceFactory.create(rtype, res_opts, res_creation_opts)
