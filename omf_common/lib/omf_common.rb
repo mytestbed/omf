@@ -188,6 +188,10 @@ module OmfCommon
     Eventloop.instance
   end
 
+  class << self
+    alias_method :el, :eventloop
+  end
+
   # Load a YAML file and return it as hash.
   #
   # options:
