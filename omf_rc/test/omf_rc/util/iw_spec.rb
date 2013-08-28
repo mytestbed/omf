@@ -31,7 +31,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
         mock_comm_in_res_proxy
         mock_topics_in_res_proxy(resources: [:w00])
-        @wlan00 = OmfRc::ResourceFactory.create(:iw_test, uid: :w00, hrn: 'wlan00', property: { phy: 'phy00', if_name: 'wlan1' })
+        @wlan00 = OmfRc::ResourceFactory.create(:iw_test, uid: :w00, hrn: 'wlan00', phy: 'phy00', if_name: 'wlan1')
       end
 
       after do

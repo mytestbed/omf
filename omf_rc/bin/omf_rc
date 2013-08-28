@@ -134,9 +134,11 @@ OmfCommon.init(options[:environment].to_sym, common_options) do |el|
 
     options[:resources].each do |res_opts|
       rtype = res_opts.delete(:type)
+      res_creation_opts = res_opts.delete(:creation_opts)
+      res_creation_opts ||= res_opts.delete(:create_opts)
       res_opts[:certificate] = entity if entity
       begin
-        OmfRc::ResourceFactory.create(rtype, res_opts)
+        OmfRc::ResourceFactory.create(rtype, res_opts, res_creation_opts)
       rescue => e
         error "#{e.message}\n#{e.backtrace.join("\n")}"
       end

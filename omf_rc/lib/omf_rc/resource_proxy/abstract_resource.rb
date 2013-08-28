@@ -79,7 +79,7 @@ class OmfRc::ResourceProxy::AbstractResource
     create_children_resources: true
   }
 
-  attr_accessor :uid, :hrn, :type, :comm, :property, :certificate
+  attr_accessor :uid, :hrn, :type, :property, :certificate
   attr_reader :opts, :children, :membership, :creation_opts, :membership_topics, :topics
 
   # Initialisation
@@ -89,7 +89,6 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [Hash] opts options to be initialised
   # @option opts [String] :uid Unique identifier
   # @option opts [String] :hrn Human readable name
-  # @option opts [Hash] :property A hash for keeping internal state
   # @option opts [Hash] :instrument A hash for keeping instrumentation-related state
   # @option opts [OmfCommon::Auth::Certificate] :certificate The certificate for this resource
   #
@@ -104,15 +103,15 @@ class OmfRc::ResourceProxy::AbstractResource
     @creation_opts = Hashie::Mash.new(DEFAULT_CREATION_OPTS.merge(creation_opts))
 
     @type = type
-    @uid = (@opts.uid || SecureRandom.uuid).to_s
-    @hrn = @opts.hrn && @opts.hrn.to_s
+    @uid = (@opts.delete(:uid) || SecureRandom.uuid).to_s
+    @hrn = @opts.delete(:hrn)
+    @hrn = @hrn.to_s if @hrn
 
-    @children ||= []
+    @children = []
     @membership = []
     @topics = []
-    @membership_topics ||= {}
-
-    @property = Hashie::Mash.new(@opts.property)
+    @membership_topics = {}
+    @property = Hashie::Mash.new
 
     OmfCommon.comm.subscribe(@uid) do |t|
       @topics << t
@@ -122,6 +121,15 @@ class OmfRc::ResourceProxy::AbstractResource
         OmfCommon.comm.disconnect()
       else
         begin
+          # Setup authentication related properties
+          if (@certificate = @opts.delete(:certificate))
+            OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
+          else
+            if (pcert = @opts.delete(:parent_certificate))
+              @certificate = pcert.create_for(resource_address, @type, t.address)
+            end
+          end
+
           # Extend resource with Resource Module, can be obtained from Factory
           emodule = OmfRc::ResourceFactory.proxy_list[@type].proxy_module || "OmfRc::ResourceProxy::#{@type.camelize}".constantize
           self.extend(emodule)
@@ -129,24 +137,17 @@ class OmfRc::ResourceProxy::AbstractResource
           self.methods.each do |m|
             self.__send__(m) if m =~ /default_property_(.+)/
           end
-          # Bootstrap initial configure
+          # Bootstrap initial configure, this should handle membership too
           init_configure(self, @opts)
           # Execute resource before_ready hook if any
           call_hook :before_ready, self
 
-          # Setup authentication related properties
-          if (@certificate = @opts.certificate)
-            OmfCommon::Auth::CertificateStore.instance.register(@certificate, t.address)
-          else
-            if (pcert = @opts.parent_certificate)
-              @certificate = pcert.create_for(resource_address, @type, t.address)
-            end
-          end
+          # Prepare init :creation_ok message
           copts = { src: self.resource_address }
           copts[:cert] = @certificate.to_pem_compact if @certificate
-
-          cprops = @property.reject { |k| [:parent_certificate, :parent].include?(k.to_sym) }
+          cprops = @property
           cprops[:res_id] = self.resource_address
+          add_prop_status_to_response(self, @opts.keys, cprops)
 
           # Then send inform message to itself, with all resource options' current values.
           t.inform(:creation_ok, cprops, copts) unless creation_opts[:suppress_create_message]
@@ -158,24 +159,27 @@ class OmfRc::ResourceProxy::AbstractResource
           creation_callback.call(self) if creation_callback
         rescue => e
           error "Encountered exception: #{e.message}, returning ERROR message"
-          debug ex.backtrace.join("\n")
+          debug e.backtrace.join("\n")
           t.inform(:creation_failed,
                    { reason: e.message },
                    { src: self.resource_address })
         end
       end
     end
-    configure_membership(@opts.membership) if @opts.membership
+  end
+
+  # Return resource' pubsub topic it has subscribed.
+  def resource_topic
+    if @topics.empty?
+      raise TopicNotSubscribedError, "Resource '#{@uid}' has not subscribed to any topics"
+    end
+    @topics[0]
   end
 
   # Return the public 'routable' address for this resource or nil if not known yet.
   #
-  def resource_address()
-    if t = @topics[0]
-      t.address
-    else
-      nil # TODO: should we raise Excaption
-    end
+  def resource_address
+    resource_topic.address
   end
 
   # Get binding of current object, used for ERB eval
@@ -203,9 +207,6 @@ class OmfRc::ResourceProxy::AbstractResource
     call_hook(:before_create, self, type, opts)
 
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
-
-    new_props = opts.reject { |k| [:type, :name, :uid, :hrn, :property, :instrument].include?(k.to_sym) }
-    init_configure(new_resource, new_props)
 
     call_hook(:after_create, self, new_resource)
 
@@ -463,13 +464,8 @@ class OmfRc::ResourceProxy::AbstractResource
         response[:res_id] = new_obj.resource_address
         response[:uid] = new_obj.uid
 
-        msg_props.each do |key, value|
-          if new_obj.respond_to? "request_#{key}"
-            response[key] = new_obj.__send__("request_#{key}")
-          elsif new_obj.respond_to? key
-            response[key] = new_obj.__send__(key)
-          end
-        end
+        # Getting property status, for preparing inform msg
+        add_prop_status_to_response(new_obj, msg_props.keys, response)
 
 				if (cred = new_obj.certificate)
           response[:cert] = cred.to_pem_compact
@@ -552,13 +548,7 @@ class OmfRc::ResourceProxy::AbstractResource
       warn "INFORM message delayed as resource's address is not known yet"
       return
     end
-    if topic == :ALL
-      inform(itype, inform_data)
-      membership_topics.each {|m| inform(itype, inform_data, m[1])}
-      return
-    end
 
-    topic ||= @topics.first
     if inform_data.is_a? Hash
       inform_data = Hashie::Mash.new(inform_data) if inform_data.class == Hash
       #idata = inform_data.dup
@@ -573,12 +563,11 @@ class OmfRc::ResourceProxy::AbstractResource
 
     message.itype = itype
     unless itype == :released
-      #message[:uid] ||= self.uid
-      #message[:type] ||= self.type
       message[:hrn] ||= self.hrn if self.hrn
     end
 
-    topic.publish(message)
+    # Just send to all topics, including group membership
+    (membership_topics.map { |mt| mt[1] } + @topics).each { |t| t.publish(message) }
 
     OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
       self.uid, replyto, inform_message.mid) if OmfCommon::Measure.enabled?
@@ -590,12 +579,17 @@ class OmfRc::ResourceProxy::AbstractResource
 
   def inform_error(reason)
     error reason
-    inform :error, {reason: reason}
+    inform :error, { reason: reason }
+  end
+
+  def inform_creation_failed(reason)
+    error reason
+    inform :creation_failed, { reason: reason }
   end
 
   def inform_warn(reason)
     warn reason
-    inform :warn, {reason: reason}
+    inform :warn, { reason: reason }
   end
 
   # Return a hash describing a reference to this object
@@ -665,5 +659,21 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     call_hook(:after_initial_configured, res_ctx)
+  end
+
+  # Getting property status, adding them to inform message
+  #
+  # @param [OmfRc::ResourceProxy::AbstractResource] res_ctx resource object it applies to
+  # @param [Array] msg_props a set of property names coming via configure/create message
+  def add_prop_status_to_response(res_ctx, msg_props, response)
+    msg_props.each do |p|
+      # Property can either be defined as 'request' API call
+      # or just an internal variable, e.g. uid, hrn, etc.
+      if res_ctx.respond_to? "request_#{p}"
+        response[p] = res_ctx.__send__("request_#{p}")
+      elsif res_ctx.respond_to? p
+        response[p] = res_ctx.__send__(p)
+      end
+    end
   end
 end
