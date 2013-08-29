@@ -33,10 +33,10 @@ describe OmfEc::Group do
       @g_b = OmfEc::Group.new('g_b', unique: false)
     end
 
-    it "must init default context related arrasy" do
-      @group.net_ifs.must_equal []
-      @group.members.must_equal []
-      @group.app_contexts.must_equal []
+    it "must init default context related variables" do
+      @group.net_ifs.must_equal([])
+      @group.members.must_equal({})
+      @group.app_contexts.must_equal([])
     end
 
     it "must be capable of adding existing resources to group" do

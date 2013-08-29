@@ -91,7 +91,7 @@ module OmfEc
     # Find all groups a given resource belongs to
     #
     def groups_by_res(res_addr)
-      groups.find_all { |g| g.members.include?(res_addr) }
+      groups.find_all { |g| g.members.values.include?(res_addr) }
     end
 
     def sub_group(name)
@@ -165,19 +165,34 @@ module OmfEc
       # Disconnect communicator, try to delete any XMPP affiliations
       def done
         info "Experiment: #{OmfEc.experiment.id} finished"
-        info "Exit in up to 15 seconds..."
+        info "Release applications and network interfaces"
+        info "Exit in 15 seconds..."
 
-        OmfCommon.eventloop.after(10) do
-          info "Release applications and network interfaces"
-
+        OmfCommon.el.after(10) do
           allGroups do |g|
-            g.resources[type: 'application'].release
+            g.resources[type: 'application'].release unless g.app_contexts.empty?
             g.resources[type: 'net'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'net' }.empty?
             g.resources[type: 'wlan'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
           end
 
-          OmfCommon.eventloop.after(5) do
+          OmfCommon.el.after(5) do
             OmfCommon.comm.disconnect
+          end
+        end
+      end
+
+      def start
+        info "Experiment: #{OmfEc.experiment.id} starts"
+
+        allGroups do |g|
+          g.members.each do |key, value|
+            OmfEc.subscribe_and_monitor(key) do |res|
+              info "Configure '#{key}' to join '#{g.name}'"
+              g.synchronize do
+                g.members[key] = res.address
+              end
+              res.configure(membership: g.address)
+            end
           end
         end
       end

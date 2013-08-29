@@ -65,6 +65,16 @@ module OmfEc::Context
         topic = self.group.topic
       end
 
+      if topic.nil?
+        if self.guard[:type]
+          warn "Group '#{self.group.name}' has NO resources of type '#{self.guard[:type]}' ready. Could not send message."
+        else
+          warn "Group topic '#{self.group.name}' NOT subscribed. Could not send message."
+        end
+        return
+      end
+
+
       case self.operation
       when :configure
         topic.configure({ name => value }, { guard: self.guard })

@@ -285,7 +285,6 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         info "Connected using #{comm.conn_info}"
         info "Execute: #{exp_path}"
         info "Properties: #{OmfEc.experiment.cmdline_properties}"
-        info "Experiment: #{OmfEc.experiment.id} starts"
 
         OmfCommon::Auth::CertificateStore.instance.register_default_certs(File.expand_path(global_options[:root_cert_dir])) if global_options[:root_cert_dir]
         OmfCommon::Auth::CertificateStore.instance.register(entity, OmfCommon.comm.local_address) if entity
@@ -293,6 +292,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         begin
           include OmfEc::Backward::DefaultEvents
           load exp_path
+          OmfEc::Experiment.start
         rescue => e
           error e.message
           error e.backtrace.join("\n")
