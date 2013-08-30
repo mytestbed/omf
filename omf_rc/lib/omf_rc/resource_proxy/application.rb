@@ -4,7 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 # This module defines a Resource Proxy (RP) for an Application.
-# For a detailed usage tutorial see {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}
+# For a detailed usage tutorial see {file:doc/DEVELOPERS.mkd Resource Proxy tutorial}
 #
 # Utility dependencies: platform_toos, common_tools
 #
@@ -340,7 +340,6 @@ module OmfRc::ResourceProxy::Application
             # finally, try sending KILL signal
             ExecApp[id].signal('KILL') unless ExecApp[id].nil?
           end
-          res.log_inform_warn "Stopping"
           res.property.state = :stopped
         rescue => err
         end

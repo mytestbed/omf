@@ -2,11 +2,11 @@
 
 ## Before we could start
 
-Read the {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}, and set up a testing environment as explained in the first section of that previous tutorial.
+Read the {file:doc/DEVELOPERS.mkd Resource Proxy tutorial}, and set up a testing environment as explained in the first section of that previous tutorial.
 
 ## Objectives
 
-With OMF6, you can instrument any Resource Proxy so that during its runtime it will capture some measurements about itself and stream them to some collection end-points. 
+With OMF6, you can instrument any Resource Proxy so that during its runtime it will capture some measurements about itself and stream them to some collection end-points.
 
 This instrumentation feature is realised through the [OML/Mehua framework](http://oml.mytestbed.net/) and its Ruby library [OML4R](https://rubygems.org/gems/oml4r). In a nutshell, in the source code of your Resource Proxy, you define some *Measurement Points* (MP), then later in that code you capture the measurement to make and inject them to the OML4R library, which will take care of streaming them to an end-point for you. This requires that you earlier initialised the OML4R library (for example in the application which launch your proxy), basically telling it which end-point you would like to send the stream to. Most of the time, this end-point would be either a local file, or a remote OML server which will store these measurements in a database.
 
@@ -95,7 +95,7 @@ Thus we add the following code to the Resource Proxy's source code (see [abstrac
 
     class OmfRc::ResourceProxy::MPPublished < OML4R::MPBase
       name :proxy_published
-      param :time, :type => :double # Time (s) when this message was published 
+      param :time, :type => :double # Time (s) when this message was published
       param :uid, :type => :string # UID for this Resource Proxy
       param :topic, :type => :string # Pubsub topic to publish this message to
       param :mid, :type => :string # Unique ID this message
@@ -103,7 +103,7 @@ Thus we add the following code to the Resource Proxy's source code (see [abstrac
 
     class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
       name :proxy_received
-      param :time, :type => :double # Time (s) when this message was received 
+      param :time, :type => :double # Time (s) when this message was received
       param :uid, :type => :string # UID for this Resource Proxy
       param :topic, :type => :string # Pubsub topic where this message came from
       param :mid, :type => :string # Unique ID this message
@@ -122,7 +122,7 @@ In this example for the Abstract Resource Proxy, we capture, prepare and inject 
     @comm.publish(replyto, inform_message)
     if OmfCommon::Measure.enabled?
       # You may want to do more things here to prepare your measurement, in
-      # this simple example there is nothing more to do, so we just pass it 
+      # this simple example there is nothing more to do, so we just pass it
       # on to the MP
       OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f, self.uid, replyto, inform_message.mid)
     end
@@ -131,7 +131,7 @@ and
 
     # ...an incoming message was previously passed to us by the underlying communication stack...
     if OmfCommon::Measure.enabled?
-      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.mid) 
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.mid)
     end
     # now go on and process that message...
     execute_omf_operation(message, obj)
