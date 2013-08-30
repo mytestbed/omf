@@ -3,7 +3,6 @@
 abort "Please use Ruby 1.9.3 or higher" if RUBY_VERSION < "1.9.3"
 
 require 'optparse'
-require 'erb'
 require 'socket'
 
 require 'omf_rc'
@@ -62,7 +61,7 @@ rescue => e
 end
 
 if !options[:configfile].nil?
-  cfg_options = YAML.load(ERB.new(File.read(options[:configfile])).result)
+  cfg_options =  (OmfCommon.load_yaml(options[:configfile], symbolize_keys: true, erb_process: true))
   options = cfg_options.merge(options)
 end
 
@@ -82,7 +81,7 @@ else
 end
 
 if !options[:advanced_configfile].nil?
-  a_cfg_options = (YAML.load_file(options[:advanced_configfile]))
+  a_cfg_options =  (OmfCommon.load_yaml(options[:advanced_configfile], symbolize_keys: true, erb_process: true))
   common_options = a_cfg_options.merge(common_options)
 end
 
