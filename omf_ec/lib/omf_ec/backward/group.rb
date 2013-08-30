@@ -28,7 +28,7 @@ module OmfEc
         resource_group_name = self.address("application")
 
         def_event e_name do |state|
-          state.find_all { |v| v[:hrn] == name && v[:membership] && v[:membership].include?(resource_group_name)}.size >= self.members.uniq.size
+          state.find_all { |v| v[:hrn] == name && v[:membership] && v[:membership].include?(resource_group_name)}.size >= self.members.values.sort.uniq.size
         end
 
         on_event e_name do

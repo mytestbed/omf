@@ -26,21 +26,10 @@ class OmfRc::ResourceFactory
       unless @@proxy_list.include?(type)
         raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       end
-      # Get relevant module identified by type
-      emodule = @@proxy_list[type].proxy_module || "OmfRc::ResourceProxy::#{type.camelize}".constantize
-      # Create a new instance of abstract resource
-      resource = OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts, &creation_callback)
-      # Extend newly created resource with proxy module
-      resource.extend(emodule)
-
-      # Initiate property hash
-      resource.methods.each do |m|
-        resource.__send__(m) if m =~ /default_property_(.+)/
+      # Create a new instance of abstract resource and return it
+      OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts) do |res|
+        creation_callback.call(res) if creation_callback
       end
-      # Execute resource before_ready hook if any
-      call_hook(:before_ready, resource)
-
-      resource
     end
 
     alias :new :create

@@ -7,7 +7,7 @@ require 'test_helper'
 require 'omf_rc/util/common_tools'
 
 describe OmfRc::Util::CommonTools do
-  
+
   describe "when included in the resource proxy" do
     before do
       module OmfRc::ResourceProxy::Test
@@ -15,18 +15,19 @@ describe OmfRc::Util::CommonTools do
         register_proxy :test
         utility :common_tools
       end
+      mock_comm_in_res_proxy
+      mock_topics_in_res_proxy(resources: [:t0])
+      @test = OmfRc::ResourceFactory.create(:test, uid: :t0)
+    end
 
-      @xmpp = MiniTest::Mock.new
-      @xmpp.expect(:subscribe, true, [String])
+    after do
+      unmock_comm_in_res_proxy
+      @test = nil
     end
 
     it "must be able to log and inform error/warn messages" do
-      OmfCommon.stub :comm, @xmpp do
-        @test = OmfRc::ResourceFactory.create(:test)
-        2.times { @xmpp.expect(:publish, true, [String, OmfCommon::Message]) }
-        @test.log_inform_error "bob"
-        @test.log_inform_warn "bob"
-      end
+      @test.log_inform_error "bob"
+      @test.log_inform_warn "bob"
     end
   end
 end

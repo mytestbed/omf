@@ -40,6 +40,10 @@ arg_name "directory"
 default_value "/tmp"
 flag [:log_file_dir]
 
+desc "Logging config file"
+arg_name "file"
+flag [:log_config]
+
 # the path given here is relative to the user's home directory
 config_file(".config/omf_ec.yml")
 
@@ -231,17 +235,19 @@ def setup_logging(global_options = {})
   end
 
   unless global_options[:debug]
-    Logging.consolidate 'OmfCommon', 'OmfEc', 'OmfRc'
+    Logging.consolidate 'OmfCommon', 'OmfRc'
   end
 
   # FIXME this should go to common setup
-  if global_options[:log_file_dir] && File.exist?(global_options[:log_file_dir])
+  if global_options[:log_file_dir] && File.exist?(File.expand_path(global_options[:log_file_dir]))
     Logging.logger.root.add_appenders(
       Logging.appenders.file(
-        "#{global_options[:log_file_dir]}/#{OmfEc.experiment.id}.log",
+        "#{File.expand_path(global_options[:log_file_dir])}/#{OmfEc.experiment.id}.log",
         :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
+
+  OmfCommon.load_logging_config(global_options[:log_config])
 end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
@@ -279,7 +285,6 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         info "Connected using #{comm.conn_info}"
         info "Execute: #{exp_path}"
         info "Properties: #{OmfEc.experiment.cmdline_properties}"
-        info "Experiment: #{OmfEc.experiment.id} starts"
 
         OmfCommon::Auth::CertificateStore.instance.register_default_certs(File.expand_path(global_options[:root_cert_dir])) if global_options[:root_cert_dir]
         OmfCommon::Auth::CertificateStore.instance.register(entity, OmfCommon.comm.local_address) if entity
@@ -287,6 +292,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         begin
           include OmfEc::Backward::DefaultEvents
           load exp_path
+          OmfEc::Experiment.start
         rescue => e
           error e.message
           error e.backtrace.join("\n")

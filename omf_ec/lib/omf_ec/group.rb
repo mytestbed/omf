@@ -30,7 +30,7 @@ module OmfEc
       self.id = @opts[:unique] ? SecureRandom.uuid : self.name
       # Add empty holders for members, network interfaces, and apps
       self.net_ifs = []
-      self.members = []
+      self.members = {}
       self.app_contexts = []
       self.execs = []
 
@@ -64,23 +64,18 @@ module OmfEc
     #
     # Resources to be added could be a list of resources, groups, or the mixture of both.
     def add_resource(*names)
-      self.synchronize do
+      synchronize do
         # Recording membership first, used for ALL_UP event
         names.each do |name|
-          g = OmfEc.experiment.group(name)
-          if g # resource to add is a group
-            @members += g.members
-            self.add_resource(*g.members.uniq)
+          if (g = OmfEc.experiment.group(name))# resource to add is a group
+            @members.merge!(g.members)
           else
-            OmfEc.subscribe_and_monitor(name) do |res|
-              @members << res.address
-              info "Config #{name} to join #{self.name}"
-              res.configure(membership: self.address)
-            end
+            @members[name] = nil
           end
         end
       end
     end
+
 
     # Create a set of new resources and add them to the group
     #

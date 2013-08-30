@@ -9,10 +9,12 @@ require 'omf_ec/group'
 describe OmfEc::Group do
   before do
     OmfEc.stubs(:subscribe_and_monitor)
+    OmfEc::Group.any_instance.stubs(:address).returns("xmpp://g@bob.com")
   end
 
   after do
     OmfEc.unstub(:subscribe_and_monitor)
+    OmfEc::Group.any_instance.unstub(:address)
   end
 
   describe "when initialised" do
@@ -31,10 +33,10 @@ describe OmfEc::Group do
       @g_b = OmfEc::Group.new('g_b', unique: false)
     end
 
-    it "must init default context related arrasy" do
-      @group.net_ifs.must_equal []
-      @group.members.must_equal []
-      @group.app_contexts.must_equal []
+    it "must init default context related variables" do
+      @group.net_ifs.must_equal([])
+      @group.members.must_equal({})
+      @group.app_contexts.must_equal([])
     end
 
     it "must be capable of adding existing resources to group" do

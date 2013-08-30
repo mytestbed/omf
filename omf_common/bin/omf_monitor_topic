@@ -75,8 +75,7 @@ def observe(tname, comm)
       end
       puts "------"
 
-      if $follow_children && msg.itype == 'creation_ok'
-        #puts ">>>>>> #{msg}"
+      if $follow_children && msg.itype =~ /creation.ok/i
         observe(msg[:res_id], comm)
       end
     end

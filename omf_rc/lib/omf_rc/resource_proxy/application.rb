@@ -475,7 +475,7 @@ module OmfRc::ResourceProxy::Application
   # @return [String] the full command line
   # @!macro work
   work('build_command_line') do |res|
-    cmd_line = "env -i " # Start with a 'clean' environments
+    cmd_line = "env -i " # Start with a 'clean' environment
     res.property.environments.each do |e,v|
       val = v.kind_of?(String) ? "'#{v}'" : v
       cmd_line += "#{e.to_s.upcase}=#{val} "

@@ -14,6 +14,7 @@ module OmfRc::ResourceProxy
     include OmfRc::ResourceProxyDSL
     register_proxy :parent
 
+    property :p0
     request :test_exception do
       raise StandardError
     end
@@ -33,51 +34,25 @@ end
 
 describe AbstractResource do
   before do
-    # Things we need to mock
-    # * communicator
-    # * topic
-    # * calling communicator callbacks
-    @comm = mock
-    @topics = {
-      parent: OmfCommon::Comm::Topic.create(:parent),
-      child:  OmfCommon::Comm::Topic.create(:child)
-    }
-    [:inform, :publish, :unsubscribe].each do |m_name|
-      OmfCommon::Comm::Topic.any_instance.stubs(m_name)
-    end
-
-    # Return child topic by default unless specified
-    @comm.stubs(:create_topic).returns(@topics[:child])
-
-    [:parent, :child].each do |t_name|
-      @topics[t_name].stubs(:address).returns("xmpp://localhost/#{t_name.to_s}")
-      @comm.stubs(:create_topic).with("xmpp://localhost/#{t_name}").returns(@topics[t_name])
-    end
-
-    @comm.class_eval do
-      define_method(:subscribe) do |*args, &block|
-        block.call(self.create_topic("xmpp://localhost/#{args[0]}"))
-      end
-    end
-
-    OmfCommon.stubs(:comm).returns(@comm)
+    mock_comm_in_res_proxy
+    mock_topics_in_res_proxy(resources: [:parent, :child], default: :child)
     @parent = OmfRc::ResourceFactory.create(:parent, { uid: :parent, hrn: 'default_node' }, { create_children_resources: true })
   end
 
   after do
-    @comm.class_eval do
-      undef_method(:subscribe)
-    end
-    OmfCommon.unstub(:comm)
-    [:inform, :publish, :unsubscribe].each do |m_name|
-      OmfCommon::Comm::Topic.any_instance.unstub(m_name)
-    end
+    unmock_comm_in_res_proxy
     @parent = nil
   end
 
   describe "when created itself (bootstrap)" do
     it "must have an unique id generated if not given" do
       OmfRc::ResourceFactory.create(:parent).uid.must_match /.{8}-.{4}-.{4}-.{4}-.{12}/
+    end
+
+    it "must be able to initialise properties" do
+      p = OmfRc::ResourceFactory.create(:parent, { p0: 'bob', uid: 'unique' })
+      p.request_p0.must_equal 'bob'
+      p.request_uid.must_equal 'unique'
     end
 
     it "must be able to keep state inside 'property' instnace variable" do
@@ -90,9 +65,9 @@ describe AbstractResource do
     end
 
     it "must returned all the properties can be requested & configured" do
-      @parent.request_available_properties.configure.must_equal [:membership]
+      @parent.request_available_properties.configure.must_equal [:p0, :membership]
       @parent.request_available_properties.request.must_equal(
-        [:test_exception, :supported_children_type, :uid, :type, :hrn, :name, :membership, :child_resources]
+        [:p0, :test_exception, :supported_children_type, :uid, :type, :hrn, :name, :membership, :child_resources]
       )
     end
 
@@ -134,66 +109,29 @@ describe AbstractResource do
   end
 
   describe "when interacted with communication layer" do
-    #include EM::MiniTest::Spec
-
-    before do
-      #@client = Blather::Client.new
-      #@stream = MiniTest::Mock.new
-      #@stream.expect(:send, true, [Blather::Stanza])
-      #@client.post_init @stream, Blather::JID.new('n@d/r')
-      #@xmpp = OmfCommon::Comm::XMPP::Communicator.new
-    end
-
     it "must be able to send inform message" do
-      skip
-      # FIXME
-      @xmpp.stub :publish, proc { |replyto, message| message.valid?.must_equal true} do
-        @parent.inform(:creation_ok, res_id: 'bob', cid: 'id', replyto: 'topic')
-        @parent.inform(:released, res_id: 'bob', cid: 'id', replyto: 'topic')
-        @parent.inform(:status, status: { key: 'value' }, cid: 'id', replyto: 'topic')
-        @parent.inform(:creation_ok, res_id: 'bob', cid: 'id', replyto: 'topic')
-        @parent.inform(:warn, 'going to fail')
-        @parent.inform(:error, 'failed')
-        @parent.inform(:warn, Exception.new('going to fail'))
-        @parent.inform(:error, Exception.new('failed'))
-        @parent.inform(:creation_failed, Exception.new('failed'))
-      end
+      @parent.inform(:creation_ok, res_id: 'bob')
+      @parent.inform(:released, res_id: 'bob')
 
-      lambda { @parent.inform(:creation_failed, 'bob') }.must_raise ArgumentError
-      lambda { @parent.inform(:creation_ok, 'topic') }.must_raise ArgumentError
-      lambda { @parent.inform(:status, 'topic') }.must_raise ArgumentError
-    end
-
-    it "must be able to connect & disconnect" do
-      skip
-      Blather::Client.stub :new, @client do
-        Blather::Stream::Client.stub(:start, @client) do
-          @parent = OmfRc::ResourceFactory.create(:node, { hrn: 'default_node', user: 'bob', password: 'pw', server: 'example.com'}, @xmpp)
-          @client.stub(:connected?, true) do
-            @parent.connect
-            @parent.comm.conn_info.must_equal({proto: :xmpp, user: 'bob', doamin: 'example.com'})
-          end
-        end
-      end
+      @parent.inform_status(key: 'value')
+      @parent.inform_warn('going to fail')
+      @parent.inform_error('failed')
+      @parent.inform_creation_failed('failed')
     end
   end
 
-  describe "when request/configure property not pre-defined in proxy" do
-    it "must try property hash" do
-      skip
+  describe "when request/configure property not pre-defined in proxy (adhoc)" do
+    it "must try property hash for internal usage" do
       @parent.property[:bob] = "bob"
-      @parent.property[:false] = false
+      @parent.property[:boolean] = false
+      @parent.property.bob.must_equal "bob"
+      @parent.property.boolean.must_equal false
+    end
 
-      @parent.methods.must_include :request_bob
-      @parent.methods.must_include :configure_bob
-
-      @parent.request_bob.must_equal "bob"
-      @parent.request_false.must_equal false
-
-      @parent.configure_bob("not_bob")
-      @parent.request_bob.must_equal "not_bob"
-      proc { @parent.request_bobs_cousin }.must_raise OmfRc::UnknownPropertyError
-      proc { @parent.bobs_cousin }.must_raise NoMethodError
+    it "wont create request/configure method for such property" do
+      @parent.methods.wont_include :request_bob
+      @parent.methods.wont_include :configure_bob
+      proc { @parent.request_bob }.must_raise NoMethodError
     end
   end
 
@@ -209,7 +147,7 @@ describe AbstractResource do
       @parent.process_omf_message(@request_msg, @topics[:parent])
     end
 
-    it "must resuce exception if occured" do
+    it "must rescue exception if occurred" do
       @parent.process_omf_message(OmfCommon::Message.create(:request, { test_exception: nil }), @topics[:parent])
     end
 

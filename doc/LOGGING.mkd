@@ -1,0 +1,215 @@
+# Logging
+
+## Default loggers
+
+Include default\_logging module to use our default set up (stdout with colour formatted and :info as default level)
+
+To include, simply use the following code:
+
+    require 'omf_common/default_logging'
+
+    include OmfCommon::DefaultLogging
+
+It also provide logging support globally and some helper logging method (info, warn, debug) etc. Invoking such helper method will trigger logger[self] method from 'Logging' gem and return the appropriate logger for the current context.
+
+For example:
+
+    class Foo
+      def test_logging
+        info "Testing foo"
+      end
+    end
+
+    Foo.new.test_logging
+
+Would create a logger named "Foo" and use it to output info message.
+
+    [2013-08-02 14:22:13 +1000] INFO  Foo: Testing foo
+
+If object context contains namespace, it would automatically create hierarchical loggers based on the names.
+
+For example
+
+    class Foo::Bar
+      def test_logging
+        info "Testing foo bar"
+      end
+    end
+
+Would create logger "Foo" and "Foo::Bar" as parent and child. The root logger will always be the top level of the hierarchy.
+
+We could configure loggers at each level, or at root level.
+
+    # Set global logging level to :info
+    #
+    Logging.logger.root.level = :info
+
+    # But we want to debug all objects under namespace Foo.
+    #
+    Logging.logger['Foo'].level = :debug
+
+If sometimes there are too many child loggers created and we can avoid it by using consolidation.
+
+    # All logging messages under Foo should all go to Foo logger
+    #
+    Logging.consolidate 'Foo'
+
+If we want separate loggers within the same object context, we could invoke helper logging method with one more parameter which indicates the name of child logger.
+
+For example, we want each instance of Foo has its own logger, identified by name
+
+    require 'omf_common/default_logging'
+    include OmfCommon::DefaultLogging
+
+    class Foo
+      def initialize(name)
+        @name = name
+      end
+
+      def test_logging
+        info "Testing", @name
+      end
+    end
+
+    %w(A B C).each do |name|
+      Foo.new(name).test_logging
+    end
+
+This will produce:
+
+    [2013-08-02 14:42:27 +1000] INFO  Foo::A: Testing
+    [2013-08-02 14:42:27 +1000] INFO  Foo::B: Testing
+    [2013-08-02 14:42:27 +1000] INFO  Foo::C: Testing
+
+## Customise logging output
+
+### Clear existing default
+
+Default logging set up root logger with stdout appender, you can simply remove it by invoke:
+
+    Logging.logger.root.clear_appenders
+
+### To stdout
+
+    Logging.logger.root.add_appenders(Logging.appenders.stdout)
+
+### To file
+
+    Logging.logger.root.add_appenders(
+      Logging.appenders.file("/tmp/foo_development.log")
+    )
+
+### To rolling file
+
+Following example will create log file on the daily basis, and only keep last 10 days.
+
+    Logging.logger.root.add_appenders(
+      Logging.appenders.rolling_file(
+        "/tmp/foo_development.log",
+        roll_by: 'date',
+        age: 'daily',
+        keep: 10
+      )
+    )
+
+## Configuration file support
+
+### Ruby
+
+Logging gem provides a set of DSL methods to configure logging options. If you place such DSL code into a separate file as your logging  config file, you could simply load the file as loading any Ruby files, using keyword load.
+
+    load "path_logging_config_file_ruby_format"
+
+_Please note that using config file support will clean up default appenders, layouts setting provided in OMF._
+
+Example:
+
+    Logging.configure do
+      # Default logging level should be debug, write to stdout & log file
+      logger(:root) do
+        level :debug
+        appenders %w(my_stdout my_file)
+      end
+
+      # But logger named Foo::C should only print :info messages
+      logger('Foo::C') do
+        level :info
+      end
+
+      # But we don't want to see :debug messages in stdout
+      appender('my_stdout') do
+        type 'Stdout'
+        level :info
+        layout do
+          type 'Basic'
+        end
+      end
+
+      # However log file should contain :debug messages, and we want some fancy pattern layout for the messages
+      appender('my_file') do
+        type 'File'
+        level :debug
+        filename '/tmp/bob'
+        truncate  true
+        layout do
+          type 'Pattern'
+          pattern "[%d] %-5l %c: %m\n"
+          date_pattern "%F %T %z"
+        end
+      end
+    end
+
+### Yaml
+
+Logging also supports Yaml files. To load, simply use YamlConfigurator:
+
+    Logging::Config::YamlConfigurator.load('my_logging.yaml')
+
+The Yaml file (my_logging.yaml), describing the same options, shall look like this:
+
+    logging_config:
+      loggers:
+        - name: root
+          level: :debug
+          appenders:
+            - my_stdout
+            - my_file
+        - name: Foo::C
+          level: :info
+
+      appenders:
+        - name: my_stdout
+          type: Stdout
+          level: :info
+          layout:
+            type: Basic
+
+        - name: my_file
+          type: File
+          level: :debug
+          filename: "/tmp/bob"
+          truncate: true
+          layout:
+            type: Pattern
+            pattern: "[%d] %-5l %c: %m\n"
+            date_pattern: "%F %T %z"
+
+
+## Tell external messaging libraries to use our logging set up
+
+Debugging communication at raw messages level is not a pleasure, but sometimes it will be the last resource. We could ask the messaging libraries to use our logging set up to control or customise their logging output.
+
+For example, to enable logging debug XMPP messages in Blather (XMPP messaging library):
+
+    Blather.logger = logger
+
+Then don't forget to set the logging level to :debug.
+
+
+## Documentation from 'logging' gem
+
+For comprehensive options, please visit:
+
+__['logging' gem documentation on github](https://github.com/TwP/logging)__
+
+

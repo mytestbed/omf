@@ -12,6 +12,10 @@
 
 require 'yaml'
 
+curl="curl -s -m30"
+
+puts "Running OMF PLE trigger script"
+
 raise "Please use Ruby 1.9.3 or higher" if RUBY_VERSION < "1.9.3"
 raise "You must run this script as root" unless Process.uid==0
 raise "You must switch to gemset 'omf' and install the 'omf_rc' gem" unless system("which install_omf_rc > /dev/null")
@@ -45,25 +49,32 @@ system "#{init_script} stop" if File.exists?(init_script)
 system "sleep 2; pkill -f /bin/omf_rc"
 
 # create CSR
+puts "Generating CSR"
 system "openssl req -subj /CN=#{slice}%#{host} -new -key #{entity_key} -out #{csr}"
 check_cert(csr, "generate CSR")
 
 # fetch client cert
-system "curl -F \"csr=@#{csr}\" -F \"slice=#{slice}\" -F \"resource=#{host}\" #{cert_server}resource/cert -o #{entity_cert}"
+puts "Fetching client cert"
+system "#{curl} -F \"csr=@#{csr}\" -F \"slice=#{slice}\" -F \"resource=#{host}\" #{cert_server}resource/cert -o #{entity_cert}"
 check_cert(entity_cert, "fetch client cert")
 
 # fetch root cert
+puts "Fetching root cert"
 root_cert = "#{root_cert_dir}/root.crt"
-system "curl #{cert_server}root/cert -o #{root_cert}"
+system "#{curl} #{cert_server}root/cert -o #{root_cert}"
 check_cert(root_cert, "fetch root cert")
 
 # fetch intermediate cert
+puts "Fetching intermediate cert"
 intermediate_cert = "#{root_cert_dir}/intermediate.crt"
-system "curl #{cert_server}intermediate/cert -o #{intermediate_cert}"
+system "#{curl} #{cert_server}intermediate/cert -o #{intermediate_cert}"
 check_cert(intermediate_cert, "fetch intermediate cert")
 
 # install the init script if it doesn't exist yet
+puts "Installing OMF init script"
 system "install_omf_rc -i" unless File.exists?(init_script)
 
 # start the RC
 system "#{init_script} start"
+
+puts "OMF PLE trigger script operation finished"

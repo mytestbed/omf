@@ -38,25 +38,25 @@ module OmfEc
       topic.on_inform do |msg|
         case msg.itype
         when 'CREATION.FAILED'
-          warn "RC reports creation.failed: '#{msg[:reason]}'"
-          debug msg
+          warn "RC reports creation.failed: '#{msg[:reason]}'", msg.src
+          debug msg, msg.src
         when 'ERROR'
-          warn "RC reports error: '#{msg[:reason]}'"
-          debug msg
+          warn "RC reports error: '#{msg[:reason]}'", msg.src
+          debug msg, msg.src
         when 'WARN'
-          warn "RC reports warning: '#{msg[:reason]}'"
-          debug msg
+          warn "RC reports warning: '#{msg[:reason]}'", msg.src
+          debug msg, msg.src
         when 'CREATION.OK'
+          debug "Resource #{msg[:res_id]} #{msg.resource.address} created"
           debug "Received CREATION.OK via #{topic.id}"
-          info "Resource #{msg[:res_id]} #{msg.resource.address} created"
+          debug msg, msg.src
 
           OmfEc.experiment.add_or_update_resource_state(msg.resource.address, msg.properties)
-
           OmfEc.experiment.process_events
         when 'STATUS'
           props = []
           msg.each_property { |k, v| props << "#{k}: #{v}" }
-          debug "#{topic.id} >> inform: #{props.join(", ")}"
+          debug "Received INFORM via #{topic.id} >> #{props.join(", ")}", msg.src
 
           if msg[:status_type] == 'APP_EVENT'
             info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
@@ -76,7 +76,7 @@ module OmfEc
           if topic.error?
             error "Failed to subscribe #{topic_id}"
           else
-            info "Subscribed to #{topic_id}"
+            debug "Subscribed to #{topic_id}"
             context_obj.associate_topic(topic) if context_obj
             block.call(context_obj || topic) if block
             register_default_callback(topic)

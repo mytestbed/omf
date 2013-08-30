@@ -15,6 +15,8 @@ class OmfRc::MessageProcessError < StandardError
   end
 end
 
+class OmfRc::TopicNotSubscribedError < StandardError; end
+
 # No method error that caused by configure/request unknown property
 #
 class OmfRc::UnknownPropertyError < NoMethodError
