@@ -88,7 +88,7 @@ end
 module OMF::EC
   module Commands
 
-    DEPRECATED = ["whenAll", "whenAllUp", "whenAllEqual", "whenAllInstalled"]
+    OMF_DEPRECATED = ["whenAll", "whenAllUp", "whenAllEqual", "whenAllInstalled"]
 
     #
     # Display warnings about commands that we are not deprecating in this
@@ -618,15 +618,15 @@ module OMF::EC
     def info(*msg)
       MObject.info('exp', *msg)
     end
-    
+
     def error(*msg)
       MObject.error('exp', *msg)
     end
-    
+
     def warn(*msg)
       MObject.warn('exp', *msg)
     end
-    
+
     def debug(*msg)
       MObject.debug('exp', *msg)
     end
@@ -685,7 +685,7 @@ module OMF::EC
     end
 
     def help()
-      m = self.methods - Module.methods - DEPRECATED
+      m = self.methods - Module.methods - OMF_DEPRECATED
       m = m - ["warn", "info", "error"]
       m = m.select do |n| !n.start_with? '_' end
       m.sort.join(" ")

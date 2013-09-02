@@ -31,13 +31,13 @@
 #
 
 require 'rubygems'
-gem 'gratr'
+gem 'gratr19'
 require 'gratr/import.rb'
 require 'gratr/dot.rb'
 
 #
-# This class describes a topology which can be used by users/experimenters to 
-# describe the nodes used in their experiments. It also provides tools to 
+# This class describes a topology which can be used by users/experimenters to
+# describe the nodes used in their experiments. It also provides tools to
 # enable the topology requested.
 #
 class Topology < MObject
@@ -49,7 +49,7 @@ class Topology < MObject
   #
   # - uri = URI identifying the topology
   #
-  # [Return] a Topology instance, or raise 'Unknown topology' if 'uri' does 
+  # [Return] a Topology instance, or raise 'Unknown topology' if 'uri' does
   # not identify an existing topology
   #
   def self.[](uriRaw)
@@ -89,7 +89,7 @@ class Topology < MObject
   #
   # This method removes a node from ALL topologies
   #
-  # - node = the Node (object) to remove 
+  # - node = the Node (object) to remove
   #
   def self.removeNode(node)
     @@topologies.each_pair {|uri,top|
@@ -112,23 +112,23 @@ class Topology < MObject
     return true if (size == 0)
     return false
   end
-  
+
   #
   # This method is an alias for 'Topology[uri]'
   #
   # - uri = URI identifying the topology
-  # 
+  #
   def self.load(topoName)
     return Topology[topoName]
   end
 
-  
+
   # Return all nodes in this topology
-  # 
+  #
   def nodes()
     return @nodes.dup
   end
-  
+
   #
   # Return the number of nodes in this Topology
   #
@@ -139,7 +139,7 @@ class Topology < MObject
   #
   # Return the node in this Topology, which has the nodeName 'label'
   #
-  # - label = name of the node to return, as given by the user/experimenter 
+  # - label = name of the node to return, as given by the user/experimenter
   #           when it was added to this Topology
   #
   # [Return] the name of the resource with that label
@@ -147,7 +147,7 @@ class Topology < MObject
   def getNodeByLabel(label) return @mapping[label]; end
 
   #
-  # Return the ith node in this Topology (using the order in which the 
+  # Return the ith node in this Topology (using the order in which the
   # nodes were added to this Topology)
   #
   # - index = the index of the node to return
@@ -162,7 +162,7 @@ class Topology < MObject
     }
     return nil
   end
-  
+
   #
   # Return the first node that was added to this Topology
   #
@@ -185,9 +185,9 @@ class Topology < MObject
   def getRandomNode() r = rand(@nodes.size); getNodeByIndex(r); end
 
   #
-  # This method returns a random node that has not been previously drawn and 
-  # that will not be drawn again in subsequent calls of this method. This 
-  # method returns nil if there are no more available nodes (i.e. all 
+  # This method returns a random node that has not been previously drawn and
+  # that will not be drawn again in subsequent calls of this method. This
+  # method returns nil if there are no more available nodes (i.e. all
   # selected by previous calls of this method).
   #
   # [Return] the name of the resource
@@ -195,28 +195,28 @@ class Topology < MObject
   def getUniqueRandomNode
     if ((@randomCount < size()) && (size() > 0))
         r = getRandomNode
-        while @randomSet.include?(r)  
+        while @randomSet.include?(r)
           r = getRandomNode
-        end 
+        end
         @randomSet.add(r)
         @randomCount = @randomCount + 1
         return r
     else
       warn "Cannot draw any more random resource for the Topology: "+
-           "'#{@uri}'. No more available resources." 
+           "'#{@uri}'. No more available resources."
       return nil
     end
   end
 
   #
-  # This method removes a link between the nodes that have the nodeName 
+  # This method removes a link between the nodes that have the nodeName
   # 'srcName' and 'dstName' The removed link may symmetric or asymmetric.
   #
-  # - srcName = name of the source node (as given by user when node was added 
+  # - srcName = name of the source node (as given by user when node was added
   #             to the Topology)
-  # - dstName = name of the destination node (as given by user when node was 
+  # - dstName = name of the destination node (as given by user when node was
   #             added to the Topology)
-  # - spec = optional, a Hash with the unique option 
+  # - spec = optional, a Hash with the unique option
   #          { :asymmetric=> true/false } default='false'
   #
   def removeLink(srcName, dstName, spec = {})
@@ -239,7 +239,7 @@ class Topology < MObject
       }
     end
     # Check if this type of link is compatible with previously added links
-    # i.e. a graph can only contain either symmetric or asymmetric links, 
+    # i.e. a graph can only contain either symmetric or asymmetric links,
     # not both
     if (linkIsAsymmetric != @asymmetric)
       raise "Topology:removeLink() - Cannot remove link '#{srcName}' -> "+
@@ -252,17 +252,17 @@ class Topology < MObject
   end
 
   #
-  # This method adds a link between the nodes that have the nodeName 'srcName' 
+  # This method adds a link between the nodes that have the nodeName 'srcName'
   # and 'dstName'. The added link may have some specific parameters.
   #
-  # - srcName = name of the source node (as given by user when node was added 
+  # - srcName = name of the source node (as given by user when node was added
   #             to the Topology)
-  # - dstName = name of the destination node (as given by user when node was 
+  # - dstName = name of the destination node (as given by user when node was
   #             added to the Topology)
-  # - spec = optional, a Hash with the link options, such as 
-  #          { :portFilter => 5001 :delay => "54ms", :loss=>"10%", 
-  #            :bw => "50kbit" :asymmetric=>true }, 
-  #          by default links are symmetric  
+  # - spec = optional, a Hash with the link options, such as
+  #          { :portFilter => 5001 :delay => "54ms", :loss=>"10%",
+  #            :bw => "50kbit" :asymmetric=>true },
+  #          by default links are symmetric
   #
   def addLink(srcName, dstName, spec = {})
     debug "Adding link '#{srcName}' -> '#{dstName}' (specs '#{spec.to_s}')"
@@ -274,7 +274,7 @@ class Topology < MObject
       initGraph()
     end
     # Check if this type of link is compatible with previously added links
-    # i.e. a graph can only contain either symmetric or asymmetric links, 
+    # i.e. a graph can only contain either symmetric or asymmetric links,
     # not both
     raise "Topology:addLink() - Cannot add link '#{srcName}' -> "+
           "'#{dstName}'. Its specifications are incompatible with this "+
@@ -310,7 +310,7 @@ class Topology < MObject
         end
         if (isSpecificationCompatible(spec, linkSpec) == false)
           raise "Topology:addLink() - Link '#{srcName}' to '#{dstName}' is "+
-                "incompatible with previous links" 
+                "incompatible with previous links"
         end
       end
     }
@@ -324,21 +324,21 @@ class Topology < MObject
   end
 
   #
-  # This method selects nodes from this Topology that match a given feature 
+  # This method selects nodes from this Topology that match a given feature
   # set
   #
-  # - params = a Hash which contains the feature set to use for selection. 
+  # - params = a Hash which contains the feature set to use for selection.
   #
   # Current supported features are
   # - ':number' = number of node to select
-  # - ':name' = string pattern from which to derive each node's nodeName. 
+  # - ':name' = string pattern from which to derive each node's nodeName.
   #             Here %i% will be replaced by an increment count
-  # - ':method' = how to select the nodes among those with the required 
+  # - ':method' = how to select the nodes among those with the required
   #               feature (only 'random' supported so far)
-  # - ':features' = another Hash which contains the set of features for the 
+  # - ':features' = another Hash which contains the set of features for the
   #                 selection
   #
-  # [Return] a list of selected nodes in a Hash, where 'key' is the node name, 
+  # [Return] a list of selected nodes in a Hash, where 'key' is the node name,
   #          and 'value' is of the form [x,y]
   #
   def select(params = {})
@@ -359,7 +359,7 @@ class Topology < MObject
       # First generate a sub Topologoy which only has nodes having ':features'
       # Then select nodes from that sub Topology, but with ':feature=>nil'
       topoWithFeature =  subTopologyWithFeatures(features)
-      mapping = topoWithFeature.select(:number => number, :method => method, 
+      mapping = topoWithFeature.select(:number => number, :method => method,
                                        :name => namePattern )
     end
     return mapping
@@ -380,7 +380,7 @@ class Topology < MObject
   #
   # - &block = the block of commands to execute
   #
-  def each(&block) 
+  def each(&block)
     warn "Depreciated, use 'eachNode' instead"
     @nodes.each(&block)
   end
@@ -401,30 +401,30 @@ class Topology < MObject
   def inject(seed = nil, &block) @nodes.inject(seed, &block); end
 
   #
-  # This method adds a node to this topology. This method supports the 
+  # This method adds a node to this topology. This method supports the
   # following syntax option:
   # 'addNode("name")' will add node with the name 'name'
-  # 'addNode("label", "name")' will add node with name 'name' and give it an 
-  # alias 'label' 
+  # 'addNode("label", "name")' will add node with name 'name' and give it an
+  # alias 'label'
   # 'addNode(aNode)' will add the node in the object 'aNode' of type Node.
   #
-  # - *params = the definition of the node to add 
-  # 
+  # - *params = the definition of the node to add
+  #
   def addNode(*params)
     vertex = nil
     resource = nil
-    if (params.size == 2) 
+    if (params.size == 2)
       if params[0].kind_of?(String)
         vertex = params[0]
-        resource = params[1] if params[1].kind_of?(String)  
-        resource = params[1].value if params[1].kind_of?(ExperimentProperty)  
+        resource = params[1] if params[1].kind_of?(String)
+        resource = params[1].value if params[1].kind_of?(ExperimentProperty)
       else
         raise("Cannot add resource to topology '#{@uri}', wrong arguments "+
               "'#{params}'")
       end
-    elsif (params.size == 1) 
-      resource = params[0] if params[0].kind_of?(String)  
-      resource = params[0].value if params[0].kind_of?(ExperimentProperty)  
+    elsif (params.size == 1)
+      resource = params[0] if params[0].kind_of?(String)
+      resource = params[0].value if params[0].kind_of?(ExperimentProperty)
       resource = params[0].name if params[0].kind_of?(OMF::EC::Node)
       vertex = resource
     else
@@ -442,12 +442,12 @@ class Topology < MObject
 
   def addNodeByName(name)
     begin
-      # Check if EC is in 'Slave Mode' - If so, only add the node on which 
+      # Check if EC is in 'Slave Mode' - If so, only add the node on which
       # this EC is running as slave
       if NodeHandler.SLAVE
         if name != NodeHandler.NAME
           info "EC Slave on '#{NodeHandler.NAME}', thus ignoring node '#{name}'"
-          return 
+          return
         end
       end
       @nodes.push(OMF::EC::Node.at!(name))
@@ -465,7 +465,7 @@ class Topology < MObject
   #
   # This method removes a node at coordinates x and y
   #
-  # - node = the Node (object) to remove 
+  # - node = the Node (object) to remove
   #
   def removeNode(node)
     if @strict
@@ -473,25 +473,25 @@ class Topology < MObject
             "'#{uri}'. No topology change allowed (flag 'strict' set)"
     end
     if ((n = OMF::EC::Node[node.nodeID]) != nil)
-      @nodes.delete(n) 
+      @nodes.delete(n)
     end
   end
 
   #
   # This method adds a group of nodes to this topology.
   #
-  # - nodes = the group of nodes to add. It can be either: a Hash, 
-  #           which contains the mapping 'node name' to '[x,y]'. Each 
-  #           element of this Hash is of the form key="node name" 
-  #           and value="[x,y]" (with value as a String!). Or: an Array, 
+  # - nodes = the group of nodes to add. It can be either: a Hash,
+  #           which contains the mapping 'node name' to '[x,y]'. Each
+  #           element of this Hash is of the form key="node name"
+  #           and value="[x,y]" (with value as a String!). Or: an Array,
   #           which contains the declaration of a node or a group of nodes
-  # 
+  #
   def addNodes(nodes)
     if nodes.kind_of?(String)
       nodes.split(",").each {|n|
         addNode(n)
       }
-    elsif nodes.kind_of?(Hash) 
+    elsif nodes.kind_of?(Hash)
       nodes.each { |k,v|
         addNode(k,eval(v))
       }
@@ -506,33 +506,33 @@ class Topology < MObject
   end
 
   #
-  # Go through all the nodes in this topology and build the requested links 
-  # between each of them, according to the link definitions set in the 
+  # Go through all the nodes in this topology and build the requested links
+  # between each of them, according to the link definitions set in the
   # topology graph
   #
-  # - interface = is the interface for which the link should be set. Currently, 
-  #            we use the actual interface, e.g. "ath0". This will eventually 
-  #            be changed to be consistent with the device names used in the 
-  #            experiment definition e.g. "w0" 
+  # - interface = is the interface for which the link should be set. Currently,
+  #            we use the actual interface, e.g. "ath0". This will eventually
+  #            be changed to be consistent with the device names used in the
+  #            experiment definition e.g. "w0"
   #
   def build_links(interface)
     raise "Cannot build links for this topology '#{@uri}', no vertices "+
-          "and/or edges were defined" if !@graph 
-    @edges = getGraphEdges(@graph) 
+          "and/or edges were defined" if !@graph
+    @edges = getGraphEdges(@graph)
     @graph.vertices.each { |source|
       srcNode = OMF::EC::Node[source[1]]
       raise "Cannot configure link for unknown resource "+
             "'#{source[0]}'" if !srcNode
       @graph.adjacent(source).each { |destination|
         if @graph.edge?(source, destination)
-	  dstNode = OMF::EC::Node[destination[1]]  
+	  dstNode = OMF::EC::Node[destination[1]]
           raise "Cannot configure link of unknown resource "+
                 "'#{destination[0]}'" if !dstNode
           linkSpec = @edges[source+destination].label
           configure_link(srcNode, dstNode, interface, linkSpec)
-          #if !linkSpec[:asymmetric]  
+          #if !linkSpec[:asymmetric]
           #  configure_link(dstNode, srcNode, interface, linkSpec)
-	  #end 
+	  #end
         end
       }
     }
@@ -552,8 +552,8 @@ class Topology < MObject
       end
     when :netem
       spec[:targetIP] = dst.get_IP_address(interface)
-      spec[:interface] = interface 
-    #  
+      spec[:interface] = interface
+    #
     # else... Let the resource decide if it can act on this
     end
     # NOTE: when Node's and NodeSet's deferred queues will be moved to the
@@ -569,14 +569,14 @@ class Topology < MObject
   # - device = is the device to on which will be applied the rule
   #
   # Until now, the only tool available is NetEM/Tc
-  # values[] = values of parameters for the action : 
-  # values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange].  Value -1 = not set, 
-  #   except for portRange, 0 
-  #     
+  # values[] = values of parameters for the action :
+  # values = [ipDst,delay,delayvar,delayCor,loss,lossCor,bw,bwBuffer,bwLimit,corrupt,duplic,portDst,portRange].  Value -1 = not set,
+  #   except for portRange, 0
+  #
   #
   def buildTCList_OLD(device)
     raise "Cannot build Traffic Shaping list, no vertices and/or edges were "+
-          "defined in this topology '#{@uri}'" if !@graph 
+          "defined in this topology '#{@uri}'" if !@graph
     #if there is a link we read the spec and create an array with all values : values = [ipDst -1,delay -1,delayvar -1,delayCor -1,loss -1,lossCor -1,bw -1,bwBuffer -1,bwLimit -1,per -1, duplication -1,portDst -1,portRange 0,portProtocol,interface]
     edges = getGraphEdges(@graph)
     @graph.vertices.each { |source|
@@ -612,10 +612,10 @@ class Topology < MObject
 	        values[4] =  ["#{param[:loss].to_s}"]
 	        if param[:lossCor] != nil
 		  #loss + loss correlation
-		  values[5] = ["#{param[:lossCor].to_s}"] 
+		  values[5] = ["#{param[:lossCor].to_s}"]
 	        end
 	      end
-              if (param[:bw] != nil) 
+              if (param[:bw] != nil)
                 values[6] =  ["#{param[:bw].to_s}"]
 		if (param[:bwBuffer] != nil)
                   values[7] = ["#{param[:bwBuffer].to_s}"]
@@ -642,7 +642,7 @@ class Topology < MObject
 	      values[0]= ipDst
 	      #Port filtered
 	      if (param[:portFilter] != nil)
-	        values[11] = param[:portFilter] 
+	        values[11] = param[:portFilter]
                 if (param[:portRange] != nil)
                   values[12]=param[:portRange]
                 end
@@ -660,7 +660,7 @@ class Topology < MObject
                 nodeSrc.setTrafficRules(values)
 	      end
 	    end
-          }  
+          }
         end
       }
     }
@@ -678,7 +678,7 @@ attr_accessor :strict
   # Topology constructor
   #
   # - uri = URI refering to this Topology
-  # - nodeSelector = optional, nodes to add to this Topology (default = nil). 
+  # - nodeSelector = optional, nodes to add to this Topology (default = nil).
   #                  This should be an Array of the for[[a, b], or [[c..d], f]]
   #
   def initialize(uri, nodeSelector)
@@ -703,7 +703,7 @@ attr_accessor :strict
   #
   # Add the nodes described in 'selector' in this Topology.
   #
-  # - selector = description of nodes to add, see Constructor for more info 
+  # - selector = description of nodes to add, see Constructor for more info
   #
   def add(selector)
     if (selector.kind_of?(String))
@@ -723,7 +723,7 @@ attr_accessor :strict
   end
 
   #
-  # This method adds a mapping between a name and a set of coordinates to 
+  # This method adds a mapping between a name and a set of coordinates to
   # the graph (if any) associated with this topology
   #
   # - theCouple = an Array of 2 elements [ "nodeName", "[x,y]" ]
@@ -737,7 +737,7 @@ attr_accessor :strict
   end
 
   #
-  # This method creates a new GRATR graph and add the vertices currently 
+  # This method creates a new GRATR graph and add the vertices currently
   # present in the @mapping Hash (key='nodeName' and value='[x,y]')
   #
   # NOTE: nodeName is defined by the experiment, it is different
@@ -794,13 +794,13 @@ attr_accessor :strict
   #
   # - features = a Hash with the features required for the sub-topolgy
   #
-  # [Return] a new Topology instance 
+  # [Return] a new Topology instance
   #
   def subTopologyWithFeatures(features = {})
-    # FIXME: put here some code to create a new topology with nodes from 
+    # FIXME: put here some code to create a new topology with nodes from
     # this current topology which have the desired features.
     #subT = Topology.new("someArbitraryTopoName")
-    #self.each {|n| 
+    #self.each {|n|
     # #Here we check if this node 'n' has the required features
     # ...
     # #if so add this node to subT
@@ -811,13 +811,13 @@ attr_accessor :strict
   end
 
   #
-  # This method associates each element of 'source' with a unique 
-  # node from a given 'topo'. Each unique node is selected according to 
+  # This method associates each element of 'source' with a unique
+  # node from a given 'topo'. Each unique node is selected according to
   # 'method' and to the specified features 'feat'
   #
   # - source = a list of element (i.e. node names) to associate
   # - topo = the Topology containing the nodes to associate 'source' with
-  # - method = the method to use to perform the association 
+  # - method = the method to use to perform the association
   #            (only supported method now is ':random')
   #
   # [Return] a Hash of the form 'key'= source and 'value'= node from Topology

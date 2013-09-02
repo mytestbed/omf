@@ -3,9 +3,9 @@
 # optionally specify gem version using "-v"
 # don't remove the empty line at the end of this file
 
-rdp-rb-readline -v 0.2.0.1
-activesupport -v 3.0.0
-gratr -v 0.4.3
-oml4r -v 2.9.1
-sequel -v 3.40.0
+rdp-rb-readline
+activesupport
+gratr19
+oml4r -v 2.9.5
+sequel
 json -v 1.7.5

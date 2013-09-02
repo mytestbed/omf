@@ -59,7 +59,7 @@ class OMF::EC::Node < MObject
   STATUS_RESET = 'RESET'
   STATUS_AGENT_RESET = 'AGENT_RESET'
   REBOOT_TIME = 8 # in sec
-  
+
 
   @@nodes = Hash.new
   #@@nodes = ArrayMD.new
@@ -82,7 +82,7 @@ class OMF::EC::Node < MObject
   # Return the node called "name". If no node exists, create a new one.
   #  name - node name
   #
-  # [Return] an existing or a new Node object 
+  # [Return] an existing or a new Node object
   #
   def self.at! (name)
     n = @@nodes[name.to_s]
@@ -112,7 +112,7 @@ class OMF::EC::Node < MObject
 
   #
   # Execute a code-block for every created node
-  # 
+  #
   # - &block = the code-block to execute
   #
   def self.each(&block)
@@ -121,9 +121,9 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # Check if all nodes in this experiment are now reconnected to the 
-  # Experiment Controller (aka 'Node Handler'). This is only useful, when 
-  # running an experiment which allow nodes/resources to be temporary 
+  # Check if all nodes in this experiment are now reconnected to the
+  # Experiment Controller (aka 'Node Handler'). This is only useful, when
+  # running an experiment which allow nodes/resources to be temporary
   # disconnected
   #
   # [Return] true/false
@@ -143,7 +143,7 @@ class OMF::EC::Node < MObject
 
   # ID of shadow xml node
   attr_reader :nodeID
-  
+
   # Name of image to expect on node
   attr_reader :image
 
@@ -213,7 +213,7 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # An appliciation on this Node produced an event, log it and execute the 
+  # An appliciation on this Node produced an event, log it and execute the
   # corresponding code-block, if any.
   #
   # - eventName = Name of event
@@ -223,7 +223,7 @@ class OMF::EC::Node < MObject
   def onAppEvent(eventName, appId, message)
     appName, op = appId.split('/')
     if NodeHandler.SHOW_APP_OUTPUT &&
-       ((eventName.upcase == "STDOUT") || (eventName.upcase == "STDERR")) 
+       ((eventName.upcase == "STDOUT") || (eventName.upcase == "STDERR"))
        # When requested by user, print STDOUT & STDERR events on our own standard-out
        info("App '#{appId}' #{eventName.upcase}: '#{message}'")
     end
@@ -243,7 +243,7 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # Return 'true' if all the applications on this Node are 'ready', 
+  # Return 'true' if all the applications on this Node are 'ready',
   # i.e. they are all installed and ready to run
   #
   # [Return] true/false
@@ -260,25 +260,25 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # Add a name alias to this Resource, 
+  # Add a name alias to this Resource,
   # i.e. add this node to an additional group of resources
   #
   # - group = name of the group to add this resource to
   #
-  def addGroupName(group) 
+  def addGroupName(group)
     group = group.to_s
     if (group[0] == ?/)
       group = group[1..-1]
     end
     debug("Added to group '#{group}'")
-    @groups[group] = false 
+    @groups[group] = false
     TraceState.nodeAddGroup(self, group)
     # Send an ALIAS command to this resource
     send(ECCommunicator.instance.create_message(:cmdtype => :ALIAS,
                                                 :target => @nodeID,
                                                 :name => group))
     # Now listen for messages on that new ALIAS address
-    addr = ECCommunicator.instance.make_address(:name => group) 
+    addr = ECCommunicator.instance.make_address(:name => group)
     ECCommunicator.instance.listen(addr)
   end
 
@@ -303,7 +303,7 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # Set the name of the image, which will be reported by this Node at check-in 
+  # Set the name of the image, which will be reported by this Node at check-in
   # time.
   #
   # - imageName = name of the image to report
@@ -333,13 +333,13 @@ class OMF::EC::Node < MObject
       #imgName = "node-#{x}:#{y}-#{ts}.ndz"
       imgName = Etc.getlogin+"-node-#{@nodeID}-#{ts}.ndz".split(':').join('-')
     end
-    
-    response = OMF::Services.saveimage.getAddress(:domain => "#{domain}", 
+
+    response = OMF::Services.saveimage.getAddress(:domain => "#{domain}",
       :img => "#{imgName}", :user => Etc.getlogin)
     raise "Can't get netcat address/port" if response.elements[1].name != "OK"
-    
+
     imgHost, imgPort = response.elements[1].text.split(':')
-    
+
     TraceState.nodeSaveImage(self, imgName, imgPort, disk)
     info " "
     info("- Saving image of '#{disk}' on node '#{@nodeID}'")
@@ -381,7 +381,7 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # Send a message to the physical experiment Node, requesting the 
+  # Send a message to the physical experiment Node, requesting the
   # configuration of a link according to a set of parameters
   #
   # - parameters = a Hash with the configuration parameters of the link to set
@@ -393,7 +393,7 @@ class OMF::EC::Node < MObject
   def set_link(parameters = nil)
     return if !parameters
     message = ECCommunicator.instance.create_message(:cmdtype => :SET_LINK,
-                                                     :target => @nodeID) 
+                                                     :target => @nodeID)
     parameters.each { |k,v| message[k] = v }
     send(message)
   end
@@ -405,7 +405,7 @@ class OMF::EC::Node < MObject
   # - image = Name of image in repository
   # - opts = Operational parameters used to issue command
   #
-  def loadImage(image, resize, opts) 
+  def loadImage(image, resize, opts)
     TraceState.nodeLoadImage(self, image, resize, opts)
   end
 
@@ -413,26 +413,26 @@ class OMF::EC::Node < MObject
   # Power this Node on
   #
   def powerOn()
-    # Check that EC is NOT in 'Slave Mode' 
+    # Check that EC is NOT in 'Slave Mode'
     # - If so call CMC to switch node(s) ON
     CMC.nodeOn(@nodeID) if !NodeHandler.SLAVE && !@noam
     @poweredAt = Time.now
     #if !@isUp
     if @nodeStatus != STATUS_UP
-      setStatus(STATUS_POWERED_ON) 
+      setStatus(STATUS_POWERED_ON)
     end
   end
 
   #
   # Power this Node OFF
-  # By default the node is being powered off softly (asked nicely to 
-  # powerdown), but setting 'hard' to true the node is being powered 
+  # By default the node is being powered off softly (asked nicely to
+  # powerdown), but setting 'hard' to true the node is being powered
   # off immediately. Use the hard power down with caution.
   #
   # - hard = optional, default false
   #
   def powerOff(hard = false)
-    # Check that EC is NOT in 'Slave Mode' 
+    # Check that EC is NOT in 'Slave Mode'
     # - If so call CMC to switch node(s) OFF
     if !NodeHandler.SLAVE && !@noam
       if hard
@@ -451,7 +451,7 @@ class OMF::EC::Node < MObject
   def send_enroll()
     # Directly use the Communicator send method as this message needs to
     # be sent even if the resource is not in the "UP" state
-    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+    addr = ECCommunicator.instance.make_address(:name => @nodeID)
     addr.expID = nil # Same address as the resource but with no expID set
     desiredImage = @image.nil? ? "*" : @image
     cmd = ECCommunicator.instance.create_message(:cmdtype => :ENROLL,
@@ -470,7 +470,7 @@ class OMF::EC::Node < MObject
     @index = index
     # Send an ENROLL command to this resource
     # First self. for messages on that new resource address
-    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+    addr = ECCommunicator.instance.make_address(:name => @nodeID)
     ECCommunicator.instance.listen(addr)
     addr.expID = nil # Same address as the resource but with no expID set
     ECCommunicator.instance.listen(addr)
@@ -478,10 +478,10 @@ class OMF::EC::Node < MObject
     send_enroll
   end
 
-  # 
+  #
   # Send a 'SET_DISCONNECTION' message to the RC of this resource
   # nodes/resources involved in this experiment.
-  # This message provides the RC with all the information it needs to 
+  # This message provides the RC with all the information it needs to
   # runs this experiment in disconnected mode.
   #
   def set_disconnection
@@ -493,7 +493,7 @@ class OMF::EC::Node < MObject
             "error when opening the original experiment file '#{expFile}' "+
             "(error: '#{ex}')"
     end
-    addr = ECCommunicator.instance.make_address(:name => @nodeID) 
+    addr = ECCommunicator.instance.make_address(:name => @nodeID)
     cmd = ECCommunicator.instance.create_message(:cmdtype => :SET_DISCONNECTION,
                        :target => @nodeID,
                        :omlURL => OConfig[:ec_config][:omluri],
@@ -504,15 +504,15 @@ class OMF::EC::Node < MObject
   #
   # Reset this Node
   #
-  # If we are already in RESET state, and the last reset was less than 
-  # REBOOT_TIME ago, that means that the actual node is more likely still 
-  # rebooting, thus do nothing here. Once that node will be done rebooting, 
-  # either we will get in UP state or we will come back here and do a real 
-  # reset this time. This avoids us to send many resets 
+  # If we are already in RESET state, and the last reset was less than
+  # REBOOT_TIME ago, that means that the actual node is more likely still
+  # rebooting, thus do nothing here. Once that node will be done rebooting,
+  # either we will get in UP state or we will come back here and do a real
+  # reset this time. This avoids us to send many resets
   #
   def reset()
     return if (@nodeStatus == STATUS_REMOVED)
-    if (@nodeStatus == STATUS_RESET) && 
+    if (@nodeStatus == STATUS_RESET) &&
        ((Time.now.tv_sec - @poweredAt.tv_sec) < REBOOT_TIME)
       return
     else
@@ -529,7 +529,7 @@ class OMF::EC::Node < MObject
     end
   end
 
-  # 
+  #
   # Report a RESET event that happened on the NA for this Node
   #
   def reportAgentReset()
@@ -610,10 +610,10 @@ class OMF::EC::Node < MObject
     getProperty(name)
   end
 
-  # 
+  #
   # Process a received ENROLLED message from this Node
   #
-  # - groupArray = an Array with the names of all the groups within the 
+  # - groupArray = an Array with the names of all the groups within the
   #              original YOAURE/ALIAS message with which this NA has enrolled
   #
   def enrolled(cmdObj)
@@ -622,10 +622,10 @@ class OMF::EC::Node < MObject
     # and perform the associated tasks
     if @nodeStatus != STATUS_UP
       # Before proceeding, check if this ENROLLED correspond to the latest
-      # enroll request we sent, if not ignore it and resend an enroll with the 
+      # enroll request we sent, if not ignore it and resend an enroll with the
       # current key
       if cmdObj.enrollKey != @enrollKey.to_s
-        send_enroll 
+        send_enroll
         return
       end
       setStatus(STATUS_UP)
@@ -635,13 +635,13 @@ class OMF::EC::Node < MObject
       changed
       notify_observers(self, :node_is_up)
     end
-    
+
     # Now, if this ENROLL specifies a list of group this NA has enrolled to
     # then process them
     if cmdObj.name != nil
       cmdObj.name.split(' ').each { |group|
         if @groups.has_key?("#{group}")
-          if !@groups[group] 
+          if !@groups[group]
             @groups[group] = true
             debug "Node #{self} is Enrolled in group '#{group}'"
             changed
@@ -664,11 +664,11 @@ class OMF::EC::Node < MObject
       notify_observers(self, :node_is_up)
     end
   end
-  
+
   #
   # When a node is being removed from all topologies, the Topology
   # class calls this method to notify it. The removed node propagates
-  # this notification to the ECCommunicator.instance.instance and also to the 
+  # this notification to the ECCommunicator.instance.instance and also to the
   # NodeSets which it belongs to.
   #
   def notifyRemoved()
@@ -700,6 +700,8 @@ class OMF::EC::Node < MObject
     return "#{@nodeID}"
   end
 
+  alias_method :to_str, :to_s
+
   private
 
   #
@@ -728,9 +730,9 @@ class OMF::EC::Node < MObject
     @properties = Hash.new
     TraceState.nodeAdd(self, @nodeID)
     debug "Created node '#{name}'"
-     
-    # This flag is 'false' when this node is in a temporary disconnected (from 
-    # the Contorl Network) state, and is 'true' when this node reconnects to 
+
+    # This flag is 'false' when this node is in a temporary disconnected (from
+    # the Contorl Network) state, and is 'true' when this node reconnects to
     # the Control Network
     @reconnected = false
   end
@@ -765,7 +767,7 @@ class OMF::EC::Node < MObject
 
   #
   # Send all deferred messages if there are any and if all the nodes are up
-  # 
+  #
   def send_deferred()
     return if (@nodeStatus == STATUS_REMOVED)
     #if (@deferred.size > 0 && @isUp)
