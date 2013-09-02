@@ -4,7 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 # This module defines a Resource Proxy (RP) for an Application.
-# For a detailed usage tutorial see {file:doc/RESOURCE\_PROXY.mkd Resource Proxy tutorial}
+# For a detailed usage tutorial see {file:doc/DEVELOPERS.mkd Resource Proxy tutorial}
 #
 # Utility dependencies: platform_toos, common_tools
 #
@@ -15,7 +15,7 @@
 # - pkg_ubuntu (String) the name of the Ubuntu package for this app
 # - pkg_fedora (String) the name of the Fedora package for this app
 # - state (String) the state of this Application RP
-#   (stopped, running, paused, installed, completed)
+#   (stopped, running, paused, installed)
 # - installed (Boolean) is this application installed? (default false)
 # - force_tarball_install (Boolean) if true then force the installation
 #   from tarball even if other distribution-specific installation are
@@ -150,7 +150,7 @@ module OmfRc::ResourceProxy::Application
                                        event_type.to_s.include?('EXIT') &&
                                        msg == "0"
       if event_type == 'EXIT'
-        res.property.state = app_id.include?("_INSTALL") ? :stopped : :completed
+        res.property.state = :stopped
         res.inform(:status, {
                         status_type: 'APP_EVENT',
                         event: event_type.to_s.upcase,
@@ -249,10 +249,6 @@ module OmfRc::ResourceProxy::Application
   # stopped, running, paused, installing. The semantic of each states are:
   #
   # - stopped: the initial state for an Application RP
-  # - completed: the final state for an application RP. When the application
-  #   has been executed and its execution is finished, it enters this state.
-  #   When the application is completed it cannot change state again
-  #   TODO: maybe in future OMF, we could consider allowing an app to be reset?
   # - running: upon entering in this state, a new instance of the application is
   #   started, the Application RP stays in this state until the
   #   application instance is finished or paused. The Application RP can
@@ -342,9 +338,9 @@ module OmfRc::ResourceProxy::Application
             ExecApp[id].signal('TERM')
             sleep 4
             # finally, try sending KILL signal
-            ExecApp[id].kill('KILL') unless ExecApp[id].nil?
+            ExecApp[id].signal('KILL') unless ExecApp[id].nil?
           end
-          res.property.state = :completed
+          res.property.state = :stopped
         rescue => err
         end
       end
@@ -376,7 +372,7 @@ module OmfRc::ResourceProxy::Application
       res.property.state = :running
       # do more things here...
     else
-      # cannot run as we are still installing or already completed
+      # cannot run as we are still installing
       res.log_inform_warn "Cannot switch to running state as current state is '#{res.property.state}'"
     end
   end

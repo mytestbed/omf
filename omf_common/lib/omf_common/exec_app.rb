@@ -37,7 +37,7 @@ require 'fcntl'
 # Borrows from Open3
 #
 class ExecApp
-  
+
   # Holds the pids for all active apps
   @@all_apps = Hash.new
 
@@ -55,7 +55,7 @@ class ExecApp
   end
 
   attr_reader :pid, :clean_exit
-  
+
   # True if this active app is being killed by a proper
   # call to ExecApp.signal_all() or signal()
   # (i.e. when the caller of ExecApp decided to stop the application,
@@ -70,10 +70,10 @@ class ExecApp
   end
 
   def signal(signal = 'KILL')
+    logger.debug "Sending signal '#{signal}' to app '#{@id}' with pid #{@pid}"
     @clean_exit = true
     Process.kill(signal, -1 * @pid) # we are sending to the entire process group
   end
-
 
   #
   # Run an application 'cmd' in a separate thread and monitor
@@ -115,9 +115,9 @@ class ExecApp
       pe[1].close
 
       begin
-        pgid = Process.setsid # Create a new process group 
+        pgid = Process.setsid # Create a new process group
                               # which includes all potential child processes
-        STDOUT.puts "INTERNAL WARNING: Assuming process_group_id == pid" unless pgid == $$ 
+        STDOUT.puts "INTERNAL WARNING: Assuming process_group_id == pid" unless pgid == $$
         Dir.chdir working_directory if working_directory
         exec(cmd)
       rescue => ex
@@ -135,9 +135,10 @@ class ExecApp
     monitor_pipe(map_std_err_to_out ? :stdout : :stderr, pe[0])
     # Create thread which waits for application to exit
     @threads << Thread.new(id, @pid) do |id, pid|
-      ret = Process.waitpid(pid)
-      @exit_status = $?.exitstatus
-      if @exit_status > 127 
+      Process.waitpid(pid)
+      # Exit status is sometimes nil (OSX 10.8, ping)
+      @exit_status = $?.exitstatus || 0
+      if @exit_status > 127
         @exit_status = 128 - @exit_status
       end
       @@all_apps.delete(@id)
@@ -149,7 +150,7 @@ class ExecApp
       end
     end
     @stdin = pw[1]
-    
+
     # wait for done in yet another thread
     Thread.new do
       @threads.each {|t| t.join }
@@ -157,7 +158,7 @@ class ExecApp
     end
     logger.debug "Application is running with PID #{@pid}"
   end
-    
+
   private
 
   #
@@ -184,7 +185,7 @@ class ExecApp
       end
     end
   end
-  
+
   def call_observer(event_type, msg)
     return unless @observer
     begin
