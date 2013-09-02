@@ -10,6 +10,12 @@ Any additional command line arguments are interpreted as limiting the request
 to those, otherwise all properties are requested.
 }
 
+# The following is to work around a bug in activesupport triggered by
+# the JWT library which is used only in the AMQP transport, os it
+# fails quietly if that library is not installed in XMPP deployments
+begin; require 'json/jwt'; rescue Exception; end
+
+
 require 'omf_common'
 
 OP_MODE = :development

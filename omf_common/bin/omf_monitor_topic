@@ -12,6 +12,12 @@ that there will be a delay until the new monitors are in place which
 can result in missed messages.
 }
 
+# The following is to work around a bug in activesupport triggered by
+# the JWT library which is used only in the AMQP transport, os it
+# fails quietly if that library is not installed in XMPP deployments
+begin; require 'json/jwt'; rescue Exception; end
+
+
 require 'optparse'
 require 'omf_common'
 
