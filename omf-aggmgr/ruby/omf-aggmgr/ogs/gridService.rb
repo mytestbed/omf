@@ -42,14 +42,14 @@ class BadRequest < ServiceError; end
 # testbed and node related parameters from the HTTP request sent to the Service.
 #
 class GridService < AbstractService
-  
+
   # generate an XML fragment "<OK>msg</OK>" which is returned on success
   def self.return_ok(msg = nil)
     r = REXML::Element.new("OK")
     r.text = "#{msg}" if !msg.nil?
     r
   end
-  
+
   # generate an XML fragment "<ERROR>msg</ERROR>" which is returned on error
   def self.return_error(msg = nil)
     r = REXML::Element.new("ERROR")
@@ -98,7 +98,7 @@ class GridService < AbstractService
     # Parse the Reply to retrieve the control IP address
     ip = nil
     doc.root.elements.each("/CONTROL_IP") { |v|
-      ip = v.get_text.value if !v.get_text.nil?
+      ip = v.get_text.value[0] if !v.get_text.nil?
     }
     # If no IP address found in the reply... raise an error
     if (ip.nil?)
@@ -198,8 +198,8 @@ class GridService < AbstractService
     end
     return pxe
   end
-  
-  
+
+
   #
   # Return an Array of Human Readable Names (HRN's) of all resources in a testbed.
   #

@@ -106,6 +106,7 @@ class MySQLInventory < MObject
       # If so, then call the block of commands to process it
       if (reply.num_rows() > 0)
         reply.each() { |result|
+          result=result.first if result.class==Array
           debug "SQL Reply: '#{result.to_s}'"
           yield(result)
         }
@@ -142,7 +143,7 @@ CONTROL_QS
     }
     return addr
   end
-  
+
   #
   # Query the Inventory database for the CMC IP address of a specific node
   # on a testbed.
@@ -167,7 +168,7 @@ CMC_QS
       addr = ip
     }
     return addr
-  end  
+  end
 
   #
   # Query the Inventory database for the HRN of a specific node
@@ -219,8 +220,8 @@ DD_QS
       disk = d
     }
     return disk
-  end 
-  
+  end
+
   #
   # Query the Inventory database for the switch IP address and switch port of a specific node
   # on a testbed.
@@ -241,11 +242,11 @@ WHERE testbeds.name='#{domain}'
 SWITCH_QS
 
     addr = nil
-    runQuery(qs) { |ip, port| 
+    runQuery(qs) { |ip, port|
       addr = "#{ip}:#{port}" if !ip.empty? && !port.empty?
     }
     return addr
-  end  
+  end
 
   #
   # Query the Inventory database for the name of the PXE image being that should
@@ -356,7 +357,7 @@ ALLNODES_QS
     end
     return @my.affected_rows > 0
   end
-  
+
   def editTestbed(testbed, name)
     qs = "UPDATE testbeds SET name = '#{name}' WHERE name = '#{testbed}';"
     begin
@@ -368,7 +369,7 @@ ALLNODES_QS
     end
     return @my.affected_rows > 0
   end
-  
+
   def rmTestbed(testbed)
     qs = "DELETE FROM testbeds WHERE name = '#{testbed}';"
     begin
@@ -380,7 +381,7 @@ ALLNODES_QS
     end
     return @my.affected_rows > 0
   end
-  
+
   def addNode(node)
     qs = "INSERT INTO nodes (#{node.keys.join(',')}) VALUES ('#{node.values.join('\',\'')}');"
     MObject.debug(qs)
@@ -394,7 +395,7 @@ ALLNODES_QS
     end
     return @my.affected_rows > 0
   end
-  
+
   def rmNode(node,testbed)
     qs = "DELETE FROM nodes WHERE name = '#{node}';"
     begin
