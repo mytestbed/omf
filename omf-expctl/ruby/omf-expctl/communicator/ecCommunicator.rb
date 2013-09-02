@@ -43,10 +43,10 @@ require 'omf-expctl/agentCommands'
 #
 class ECCommunicator < OmfCommunicator
   include MonitorMixin
-  
+
   SEND_RETRY_INTERVAL = 5 # in sec
   ANNOUNCE_INTERVAL = 5 # in sec
-  
+
 
   def init(opts)
     super(opts)
@@ -85,8 +85,8 @@ class ECCommunicator < OmfCommunicator
   # Allow this communicator to retry sending when it failed to send a message
   # Failed messages are put in a queue, which is processed by a separate thread
   # This is because sending of messages can occur from different threads (e.g.
-  # a ExecApp thread running a user app) and we should not block that thread, 
-  # while we try to resend 
+  # a ExecApp thread running a user app) and we should not block that thread,
+  # while we try to resend
   #
   def allow_retry
     @@retrySending = true
@@ -96,26 +96,26 @@ class ECCommunicator < OmfCommunicator
         success = false
         while !success do
           success = parentSend(element[:addr], element[:msg])
-          if !success 
+          if !success
             warn "Failed to send message, retry in #{SEND_RETRY_INTERVAL}s "+
              "(msg: '#{message}')"
             sleep(SEND_RETRY_INTERVAL)
           end
         end
       end
-    } 
+    }
   end
- 
+
   def reset
     if @@retrySending
-      @@retryThread.kill!
+      @@retryThread.kill
       @@retryQueue = nil
       @@retrySending = false
     end
     @@announceThread.kill if @@announceThread
     super
   end
-  
+
   def stop
     super
   end
@@ -158,8 +158,8 @@ class ECCommunicator < OmfCommunicator
     return create_address(:sliceID => @@sliceID, :expID => @@expID,
                            :domain => @@domain, :name => name)
   end
-  
-  # list resources in the current slice 
+
+  # list resources in the current slice
   # that have a corresponding pubsub node on the XMPP server
   def list_resources
     resources = []
@@ -179,11 +179,11 @@ class ECCommunicator < OmfCommunicator
     cmd = create_message(msg.merge(:cmdtype => :LOGGING))
     send_message(@log_addr, cmd)
   end
-  
+
   private
-  
+
   #
-  # Send a message to the slice to announce the existence of 
+  # Send a message to the slice to announce the existence of
   # this experiment.
   #
   def send_experiment_announce()
@@ -196,9 +196,9 @@ class ECCommunicator < OmfCommunicator
       end
     end
   end
-  
 
-  
+
+
 
   def valid_message?(message)
     # 1 - Perform common validations amoung OMF entities
@@ -218,5 +218,5 @@ class ECCommunicator < OmfCommunicator
     # Accept this message
     return true
   end
-  
+
 end

@@ -225,7 +225,7 @@ class AppDefinition < MObject
         # This Property is a Dynamic Experiment Property...
         if value.kind_of?(ExperimentProperty)
           value.onChange { |v|
-            nodeSet.send(ECCommunicator.instance.create_message(
+            nodeSet.send_cmd(ECCommunicator.instance.create_message(
                                         :cmdtype => :STDIN,
                                         :appID => appId,
                                         :value => "#{prop.name} #{v}"))

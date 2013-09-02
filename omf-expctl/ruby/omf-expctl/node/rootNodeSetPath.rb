@@ -26,7 +26,7 @@
 #
 # == Description
 #
-# This file also defines the RootNodeSetPath class 
+# This file also defines the RootNodeSetPath class
 #
 #
 require 'omf-expctl/node/nodeSetPath'
@@ -41,7 +41,7 @@ class RootNodeSetPath < NodeSetPath
   # Add a new Prototype to the NodeSet associated with this Root Path
   #
   # - name = name of the Prototype to associate with the NodeSet of this Path
-  # - params = optional, a Hash with the bindings to be passed on to the 
+  # - params = optional, a Hash with the bindings to be passed on to the
   #            Prototype instance (see Prototype.instantiate)
   #
   def prototype(name, params = nil)
@@ -65,7 +65,7 @@ class RootNodeSetPath < NodeSetPath
   return result
   end
 
-  
+
   #
   # Add a new Application to the NodeSet associated with this Root Path
   #
@@ -99,7 +99,7 @@ class RootNodeSetPath < NodeSetPath
   # Set the disk image to boot the nodes in the NodeSet associated to this Root
   # Path.
   #
-  # - image = Image to boot from. If it is set to 'nil' then the nodes boot 
+  # - image = Image to boot from. If it is set to 'nil' then the nodes boot
   #           from their local disks.
   #
   def image=(image)
@@ -107,32 +107,32 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # Load an image onto the disk of each node in the NodeSet associated with 
-  # this Root Path. This assumed that the nodes previously booted via PXE over 
+  # Load an image onto the disk of each node in the NodeSet associated with
+  # this Root Path. This assumed that the nodes previously booted via PXE over
   # the network.
   #
-  # - image = name of the disk image to load onto the nodes 
-  # - domain = name of the domain of the nodes 
+  # - image = name of the disk image to load onto the nodes
+  # - domain = name of the domain of the nodes
   #
   def loadImage(image, resize, domain)
     @nodeSet.loadImage(image, resize, domain)
   end
-  
+
   #
-  # Stop an Image Server after loading an image onto the disks of each node 
-  # in the NodeSet of this Root Path. This assumed that the nodes previously 
+  # Stop an Image Server after loading an image onto the disks of each node
+  # in the NodeSet of this Root Path. This assumed that the nodes previously
   # booted via PXE over the network.
   #
-  # - image = name of the disk image that was loaded onto the nodes 
-  # - domain = name of the domain of the nodes 
+  # - image = name of the disk image that was loaded onto the nodes
+  # - domain = name of the domain of the nodes
   #
   def stopImageServer(image, domain)
     @nodeSet.stopImageServer(image, domain)
   end
 
   #
-  # When every nodes in the NodeSet associated to this Root Path are in 'UP' 
-  # state, then Execute a block of commands for everyone of them 
+  # When every nodes in the NodeSet associated to this Root Path are in 'UP'
+  # state, then Execute a block of commands for everyone of them
   #
   # - &block = the block of commands to execute
   #
@@ -141,7 +141,7 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # Execute a block of commands for every group in the NodeSet associated to 
+  # Execute a block of commands for every group in the NodeSet associated to
   # this Root Path.
   #
   # - &block = the block of commands to execute
@@ -151,9 +151,9 @@ class RootNodeSetPath < NodeSetPath
       block.call(RootNodeSetPath.new(g, nil, nil, nil))
     end
   end
-  
+
   #
-  # Execute a block of commands for every node in the NodeSet associated to 
+  # Execute a block of commands for every node in the NodeSet associated to
   # this Root Path.
   #
   # - &block = the block of commands to execute
@@ -165,7 +165,7 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method calls inject over the nodes contained in the NodeSet associated 
+  # This method calls inject over the nodes contained in the NodeSet associated
   # to this Root Path.
   #
   # - seed = the initial value for the inject 'result'
@@ -176,7 +176,7 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method starts all Applications associated to the nodes in the NodeSet 
+  # This method starts all Applications associated to the nodes in the NodeSet
   # of this Root Path.
   #
   def startApplications()
@@ -185,7 +185,7 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method start a given Application associated to the nodes in the 
+  # This method start a given Application associated to the nodes in the
   # NodeSet of this Root Path.
   #
   # - name = name of the Application to start
@@ -196,7 +196,7 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method stops all Applications associated to the nodes in the NodeSet 
+  # This method stops all Applications associated to the nodes in the NodeSet
   # of this Root Path.
   #
   def stopApplications()
@@ -215,21 +215,21 @@ class RootNodeSetPath < NodeSetPath
   end
 
   #
-  # This method sends a message on the STDIN of a given application, which is 
+  # This method sends a message on the STDIN of a given application, which is
   # running on the nodes in the NodeSet of this Root Path.
   #
-  # - name = the name of the application to send the message to 
+  # - name = the name of the application to send the message to
   # - *args = a sequence of arguments to send as a messages to this application
   #
   def sendMessage(name, *args)
-    @nodeSet.send(ECCommunicator.instance.create_message(:cmdtype => :STDIN,
+    @nodeSet.send_cmd(ECCommunicator.instance.create_message(:cmdtype => :STDIN,
                                                  :appID => name,
                                                  :value => "#{args.join(' ')}"))
 
   end
-  
+
   #
-  # This method enroll to the experiment all nodes in the NodeSet of this Root 
+  # This method enroll to the experiment all nodes in the NodeSet of this Root
   # Path.
   #
   def enroll()
@@ -237,7 +237,7 @@ class RootNodeSetPath < NodeSetPath
     eachNode { |n| n.enroll(index); index = index + 1 }
   end
 
-  def set_disconnection 
+  def set_disconnection
     eachNode { |n| n.set_disconnection }
   end
 
@@ -257,8 +257,8 @@ class RootNodeSetPath < NodeSetPath
 
   #
   # This method powers OFF all nodes in the NodeSet of this Root Path.
-  # By default the nodes are being powered off softly (asked nicely to 
-  # powerdown), but setting 'hard' to true the nodes are being powered 
+  # By default the nodes are being powered off softly (asked nicely to
+  # powerdown), but setting 'hard' to true the nodes are being powered
   # off immediately. Use the hard power down with caution.
   #
   # - hard = optional, default false
@@ -270,18 +270,18 @@ class RootNodeSetPath < NodeSetPath
   #
   # This method runs a command on all nodes in the NodeSet of this Root Path.
   #
-  # - cmdName = name of the executable to run. It should be a full OS path, 
-  #             unless it is in the default path of the Node Agents running on 
+  # - cmdName = name of the executable to run. It should be a full OS path,
+  #             unless it is in the default path of the Node Agents running on
   #             the nodes.
-  # - args = an optional array of arguments. If an argument starts with a '%', 
-  #             each node will replace placeholders such as %x, %y, or %n with 
-  #             their own local values. 
-  # - env = an optional Hash of environment variables and their respective 
+  # - args = an optional array of arguments. If an argument starts with a '%',
+  #             each node will replace placeholders such as %x, %y, or %n with
+  #             their own local values.
+  # - env = an optional Hash of environment variables and their respective
   #             values. This will be set before the command is executed. Again,
   #             '%' substitution will occur on these values.
   # - &block = an optional block of commands with arity 4, which will be called
   #             whenever a message is received from a node executing 'cmdName'.
-  #             The arguments for this block are 
+  #             The arguments for this block are
   #             |node, operation, eventName, message|.
   #
   def exec(cmdName, args = nil, env = nil, &block)

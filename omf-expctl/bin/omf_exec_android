@@ -29,4 +29,3 @@ ETC_D=$OMF_D/omf-expctl/etc/omf-expctl
 
 ruby -I $OMF_D/external/xmpp4r-0.4/lib -I $OMF_D/omf-common/ruby -I $OMF_D/omf-expctl/ruby omf-expctl.rb -c $ETC_D/nodehandler.yaml.android --log $ETC_D/nodehandler_log.xml -O $*
 
-#exec ruby1.8 -I$PDIR $PDIR/$APP $*

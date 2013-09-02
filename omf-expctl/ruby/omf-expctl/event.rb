@@ -41,7 +41,7 @@ class SynchronisedStack
 end
 
 #
-# This class implements an Event which can be used by users/experimenters 
+# This class implements an Event which can be used by users/experimenters
 # to describe a particular event to monitor for and to act upon
 #
 class Event < MObject
@@ -68,7 +68,7 @@ class Event < MObject
     return true
   end
 
-  
+
   #
   # Event constructor
   #
@@ -77,8 +77,8 @@ class Event < MObject
     @name = name
     @@events[@name] = {:instance => self, :interval => interval,
                        :running => false, :fired => false,
-                       :thread => nil, 
-                       :conditionBlock => block, 
+                       :thread => nil,
+                       :conditionBlock => block,
                        :actionBlocks => SynchronisedStack.new, :actionOptions => Hash.new}
   end
 
@@ -88,7 +88,7 @@ class Event < MObject
       @@events[@name][:running] = true
       #while Experiment.running?
       while true
-        begin 
+        begin
           conditionBlock = @@events[@name][:conditionBlock]
           conditionBlock.call(event)
           if @@events[@name][:fired]
@@ -100,7 +100,7 @@ class Event < MObject
                   break if block[:consumeEvent]
                 end
               else
-                info "No tasks associated to Event '#{name}'" 
+                info "No tasks associated to Event '#{name}'"
               end
             rescue SystemExit => ex
               raise ex
@@ -132,26 +132,26 @@ class Event < MObject
 
   def fire(options = nil)
     @@events[@name][:fired] = true
-    if (options && options.kind_of?(Hash)) 
-      @@events[@name][:actionOptions] = options 
+    if (options && options.kind_of?(Hash))
+      @@events[@name][:actionOptions] = options
     end
   end
 
   def Event.associate_tasks_to_event(name, consumeEvent = false, &block)
     return if !block
-    if !@@events[name] 
+    if !@@events[name]
       MObject.warn("Event","Event '#{name}' does not exist! Cannot associate "+
                    "a block of tasks to it!")
       return
     end
-    @@events[name][:actionBlocks].push({:consumeEvent => consumeEvent, 
+    @@events[name][:actionBlocks].push({:consumeEvent => consumeEvent,
                                         :block => block})
-    @@events[name][:instance].start if !@@events[name][:running] 
+    @@events[name][:instance].start if !@@events[name][:running]
   end
- 
+
   def Event.purge_all
     @@events.each { |name, attributes|
-      attributes[:thread].kill! if attributes[:running] && attributes[:thread]
+      attributes[:thread].kill if attributes[:running] && attributes[:thread]
     }
     @@events.clear
   end

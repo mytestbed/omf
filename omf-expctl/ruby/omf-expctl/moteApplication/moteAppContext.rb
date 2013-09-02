@@ -27,7 +27,7 @@
 # == Description
 #
 # This class defines a Mote Application Context.
-# It behaves exactly like an Application Context but it 
+# It behaves exactly like an Application Context but it
 # overrides the startApplication method to send a special
 # command to the Resource Controller
 #
@@ -38,9 +38,9 @@ class MoteAppContext < AppContext
 
   #
   # Start a mote Application on a given Node Set
-  # This method creates and sends the Command Object to start 
+  # This method creates and sends the Command Object to start
   # a mote application on a group of nodes (resources)
-  # 
+  #
   # - nodeSet = the group of nodes on which to start the application
   #
   def startApplication(nodeSet)
@@ -67,10 +67,10 @@ class MoteAppContext < AppContext
             + " not in '#{pdef.keys.join(', ')}'."
     end
     cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
-    # Ask the NodeSet to send the Command Object 
-    nodeSet.send(cmd)
+    # Ask the NodeSet to send the Command Object
+    nodeSet.send_cmd(cmd)
   end
-  
+
 end # ApplicationContext
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby1.8
+#!/usr/bin/env ruby
 #
 # Copyright (c) 2010 National ICT Australia (NICTA), Australia
 #
@@ -26,7 +26,7 @@
 # == Description
 #
 # This is a simple application opens a TCP connection to a remote echo server,
-# send a small packet, and then measures how long it takes to receive the 
+# send a small packet, and then measures how long it takes to receive the
 # reply.
 #
 #
@@ -55,11 +55,11 @@ class Worker
 
   #
   # Initialise a new Wrapper object
-  # - args = the command line argument which was given to this wrapper 
+  # - args = the command line argument which was given to this wrapper
   #          application
   #
   def initialize(args)
-    
+
     @address = nil
     @port = 4040
     @interval = 1
@@ -70,12 +70,12 @@ class Worker
     # and a block defining the arguments specific to this wrapper
     OML4R::init(args) { |argParser|
       argParser.banner = "\nPeriodically measure the roundtrip to a specific host.\n" +
-                         "Use -h or --help for a list of options\n\n" 
+                         "Use -h or --help for a list of options\n\n"
       argParser.on("-a", "--address HOST_ADDRESS", "Name of host to measure against") { |a| @address = a }
-      argParser.on("-s", "--sampling DURATION", "Interval in second between sample collection for OML [#{@interval}]") do |t| 
-        @interval = t 
+      argParser.on("-s", "--sampling DURATION", "Interval in second between sample collection for OML [#{@interval}]") do |t|
+        @interval = t
       end
-      argParser.on("-b", "--beacon-file BEACON_FILE", "File to write RTT values to [#{@rtt_proc}]") do |n| 
+      argParser.on("-b", "--beacon-file BEACON_FILE", "File to write RTT values to [#{@rtt_proc}]") do |n|
         @rtt_proc = n
       end
       argParser.on("-d", "--debug", "Print debugging messages") { @debug = true }
@@ -89,22 +89,22 @@ class Worker
     @socket = TCPSocket.open(@address, @port)
     puts "Opened socket to #{@address}:#{@port}: #{@socket}" if @debug
   end
-    
-  #  
+
+  #
   # Now measure
   #
   def start()
     # Start thread listening for echo replies
     Thread.start() do ||
       while @socket do
-        begin 
+        begin
           puts "Waiting" if @debug
           echo = @socket.gets
           ts = echo.to_f
           if ts > 0.0
             rtt = Time.now.to_f - ts
             puts "RTT: #{rtt}" if @debug
-            # Inject the measurements into OML 
+            # Inject the measurements into OML
             MyMeasurementPoint.inject(@address, rtt)
             File.open(@rtt_proc) do |f|
               f.puts((rtt * 1000).to_i)

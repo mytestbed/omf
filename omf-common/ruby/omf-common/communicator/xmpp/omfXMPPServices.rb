@@ -24,7 +24,7 @@
 #
 # == Description
 #
-# This file implements 
+# This file implements
 #
 # a Publish/Subscribe Service Helper.
 # This PubSub Service Helper is based on XMPP.
@@ -46,11 +46,11 @@ PING_INTERVAL = 60 # in sec
 PING_ATTEMPTS = 10 # in number of pings
 
 #
-# This class subclasses 'Jabber::PubSub::ServiceHelper' because its 
-# 'unsubscribe_from' method is broken. 
-# Indeed, as stated in the XMPP4R v0.4 API, it does NOT support the 'subid' 
-# field. However, the OpenFire v3.6 server (which we currently use as XMPP 
-# Server) requires the use of that field to process unsubsribe requests, 
+# This class subclasses 'Jabber::PubSub::ServiceHelper' because its
+# 'unsubscribe_from' method is broken.
+# Indeed, as stated in the XMPP4R v0.4 API, it does NOT support the 'subid'
+# field. However, the OpenFire v3.6 server (which we currently use as XMPP
+# Server) requires the use of that field to process unsubsribe requests,
 # otherwise it replies with a 'Bad request' error.
 # This class also implements a 'ping' back to the XMPP server, as defined
 # in http://xmpp.org/extensions/xep-0199.html#c2s
@@ -71,9 +71,9 @@ class OmfServiceHelper < Jabber::PubSub::ServiceHelper
     @stream.send_with_id(iq) do |reply|
       ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
     end # @stream.send_with_id(iq)
-    ret  
+    ret
   end
-  
+
   #
   # Send a ping to the PubSub server
   # implemented according to
@@ -88,7 +88,7 @@ class OmfServiceHelper < Jabber::PubSub::ServiceHelper
       ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
     end # @stream.send_with_id(iq)
   end
-  
+
   #
   # Another bug in XMPP4r
   # owner field is missing when purging items
@@ -108,7 +108,7 @@ class OmfServiceHelper < Jabber::PubSub::ServiceHelper
 end # END of OmfServiceHelper
 
 
-# 
+#
 # This class defines a XMPP Service Helper for OMF entities.
 # Following the PubSub communication paradigm, this class will be the
 # 'XMPP Client' which will talk to an 'XMPP Server'. So far, we have tested
@@ -116,7 +116,7 @@ end # END of OmfServiceHelper
 # This Service Helper will handle all messages to and from the XMPP Server.
 # Following the XMPP4R scheme, this class holds a single connection to a
 # main (or 'home') XMPP server, and potentially several 'service helpers'
-# which are used to access other XMPP servers via 'home' server and the 
+# which are used to access other XMPP servers via 'home' server and the
 # XMPP Server2Server capability.
 #
 class OmfXMPPServices < MObject
@@ -127,16 +127,16 @@ class OmfXMPPServices < MObject
   attr_reader :clientHelper
 
   #
-  # Create a new instance of XMPP Services 
+  # Create a new instance of XMPP Services
   # This instance will maintain a single connection to a 'home' XMPP server
-  # and will serve as an entry-point into the XMPP world to interact with 
+  # and will serve as an entry-point into the XMPP world to interact with
   # potentially multiple XMPP servers via Server2Server communication.
   # A 'service helper' will be required for each XMPP server we want to
   # interact with (see the 'add_service' method)
-  # 
-  # - user = [String] username to connect to the home XMPP server  
+  #
+  # - user = [String] username to connect to the home XMPP server
   # - password = [String], password to connect to the home XMPP server
-  # - host = [String] hostname of the home XMPP server   
+  # - host = [String] hostname of the home XMPP server
   # - port = [Fixnum] optional port number of the home XMPP server
   # - useDnsSrv = [Bool] optional flag to enable DNS SRV record resolution
   #
@@ -162,16 +162,16 @@ class OmfXMPPServices < MObject
   end
 
   def connect
-    # Only allow one connection attempt at a time! 
+    # Only allow one connection attempt at a time!
     @cSemaphore.synchronize {
-      return if @connecting 
+      return if @connecting
       @connecting = true
     }
     @connection_attempts = 1
     # In case "connect" was called even though we are already connected
     # try close the connection first.
     # Ignore any exception in doing so (e.g. if there is no previous connection)
-    begin 
+    begin
       @clientHelper.close if !@clientHelper.nil?
     rescue Exception => ex
       debug "Cannot close a previous (if any) connection to PubSub Gateway '#{@homeServer}'"
@@ -181,7 +181,7 @@ class OmfXMPPServices < MObject
     begin
       @connection_attempts+=1
       success = call_with_timeout("Timeout while connecting to "+
-                                  "PubSub Gateway '#{@homeServer}'") { 
+                                  "PubSub Gateway '#{@homeServer}'") {
                                     if @useDnsSrv
                                       # passing no hostname here will try to resolve a DNS
                                       # SRV record through the host part of the JID
@@ -197,7 +197,7 @@ class OmfXMPPServices < MObject
             "Retry in #{RECONNECT_INTERVAL}s ..."
       sleep RECONNECT_INTERVAL
       retry
-    end 
+    end
     # First, we try to register a new user at the server for this client
     # (assumes that the XMPP server is allowing in-band user registration)
     begin
@@ -221,17 +221,17 @@ class OmfXMPPServices < MObject
   end
 
   def call_with_timeout(message, &block)
-    callingThread = Thread.new(&block) 
-    success = callingThread.join(GATEWAY_TIMEOUT) 
+    callingThread = Thread.new(&block)
+    success = callingThread.join(GATEWAY_TIMEOUT)
     if !success
-      callingThread.kill!
+      callingThread.kill
       warn "#{message}"
     end
     return success
   end
 
   # Keep the connection to the PubSub server alive by sending a ping at
-  # regular intervals, otherwise clients will be listed as "offline" 
+  # regular intervals, otherwise clients will be listed as "offline"
   # by the PubSub server (e.g. Openfire) after a timeout
   # if PING_ATTEMPTS pings in a row fail, then try to reconnect
   def keep_alive
@@ -246,9 +246,9 @@ class OmfXMPPServices < MObject
             # Kill this ping Thread if too many ping failures
             @pingTries += 1 if !success
             @pingTries = 0 if success
-            if @pingTries >= PING_ATTEMPTS 
+            if @pingTries >= PING_ATTEMPTS
               debug "No reply to XMPP pings was received, attempting to reconnect..."
-              break 
+              break
             end
           end
         end # ping Thread
@@ -273,7 +273,7 @@ class OmfXMPPServices < MObject
   #
   def add_service(domain, &block)
     begin
-      @serviceHelpers[domain] = OmfServiceHelper.new(@clientHelper, 
+      @serviceHelpers[domain] = OmfServiceHelper.new(@clientHelper,
                                                      "pubsub.#{domain}")
     rescue  Exception => ex
       raise "OmfXMPPServices - Failed to create service to '#{domain}' "+
@@ -298,7 +298,7 @@ class OmfXMPPServices < MObject
   # [Return] a OmfServiceHelper object
   #
   def service(domain)
-    serv = @serviceHelpers[domain] 
+    serv = @serviceHelpers[domain]
     if !serv
       raise "OmfXMPPServices - Unknown domain '#{domain}'"
     end
@@ -306,20 +306,20 @@ class OmfXMPPServices < MObject
   end
 
   def service?(domain)
-    return true if @serviceHelpers[domain]    
+    return true if @serviceHelpers[domain]
     return false
   end
 
   #
   # Create a new PubSub node on the home or a remote XMPP server.
-  # Do nothing if the PubSub node already exists. Openfire automatically adds 
+  # Do nothing if the PubSub node already exists. Openfire automatically adds
   # the creator of the node to the subscriber list and does not allow it to
-  # unsubscribe. Ejabberd does not do that. To stay compatible with openfire, 
+  # unsubscribe. Ejabberd does not do that. To stay compatible with openfire,
   # we replicate its behaviour by subscribing to the node we create.
   #
   # - node = [String] name of the node to create
   # - domain = [String|Symbol] the domain for the the server on which
-  #               we want to create this node 
+  #               we want to create this node
   #
   # [Return] True/False
   #
@@ -349,7 +349,7 @@ class OmfXMPPServices < MObject
   #
   # Publish a new message (item) to a PubSub node
   #
-  # - node = [String] name of the PubSub node 
+  # - node = [String] name of the PubSub node
   # - item = [Jabber::item] the PubSub item to publish
   # - domain = [String|Symbol] the domain for the the server on which
   #               we want to publish to this node
@@ -359,7 +359,7 @@ class OmfXMPPServices < MObject
     begin
       add_service(domain) if !service?(domain)
       success = call_with_timeout("Timeout out while sending PubSub message to "+
-                        "'#{domain}'") { 
+                        "'#{domain}'") {
                         service(domain).publish_item_to(node, item) }
       return false if !success
       return true
@@ -387,7 +387,7 @@ class OmfXMPPServices < MObject
   # Subscribe to a PubSub node
   # Do nothing if the node does not exist or if we are already subscribed
   #
-  # - node = [String] name of the PubSub node 
+  # - node = [String] name of the PubSub node
   # - domain = [String|Symbol] the domain for the the server on which
   #               we want to publish to this node
   #
@@ -408,7 +408,7 @@ class OmfXMPPServices < MObject
   end
 
   #
-  # Returns all subscriptions for a given service helper 
+  # Returns all subscriptions for a given service helper
   #
   # - domain = [String|Symbol] the domain for the the server on which
   #               we want to get the list of all subscribed nodes
@@ -431,7 +431,7 @@ class OmfXMPPServices < MObject
   #
   # Unsubscribe from a given PubSub node
   #
-  # - node = [String] name of the PubSub node 
+  # - node = [String] name of the PubSub node
   # - subid = the subscription ID for this PubSub node
   # - domain = [String|Symbol] the domain for the the server on which
   #               we want to unsubscribe from this node
@@ -439,13 +439,13 @@ class OmfXMPPServices < MObject
   def leave_node(node, subid = nil, domain = nil)
     @serviceHelpers.each { |dom, helper| leave_node(node, subid, dom) } if domain.nil?
     if subid.nil?
-      list_all_subscriptions(domain).each do |sub| 
-        leave_node(sub.node, sub.subid, domain) if sub.node == node 
+      list_all_subscriptions(domain).each do |sub|
+        leave_node(sub.node, sub.subid, domain) if sub.node == node
       end
     end
     begin
       call_with_timeout("Timeout out while leaving the PubSub node '#{node}'") do
-        service(domain).unsubscribe_from_fixed(node, subid) 
+        service(domain).unsubscribe_from_fixed(node, subid)
       end
     rescue Exception => ex
       if ("#{ex}" == "item-not-found: ")
@@ -477,7 +477,7 @@ class OmfXMPPServices < MObject
   end
 
   #
-  # Purge all items from a PubSub node. 
+  # Purge all items from a PubSub node.
   # Do nothing if the PubSub node doesn't exist
   #
   # - node = [String] name of the node to remove
@@ -501,7 +501,7 @@ class OmfXMPPServices < MObject
   end
 
   #
-  # Remove a PubSub node. 
+  # Remove a PubSub node.
   # Do nothing if the PubSub node doesn't exist
   #
   # - node = [String] name of the node to remove
@@ -567,9 +567,9 @@ class OmfXMPPServices < MObject
   def stop
     debug "Exiting!"
     begin
-      @keepAliveThread.kill! if @keepAliveThread
+      @keepAliveThread.kill if @keepAliveThread
       call_with_timeout("Timeout closing connection to the PubSub Gateway "+
-                        "'#{@homeServer}}'") { 
+                        "'#{@homeServer}}'") {
                         @clientHelper.remove_registration
                         @clientHelper.close
       }
@@ -578,7 +578,7 @@ class OmfXMPPServices < MObject
       warn "Failed to exit cleanly (error: '#{ex}')"
     end
   end
-  
+
   # returns all pubsub nodes a given XMPP domain
   def list_nodes(domain)
     nodes = []
@@ -589,5 +589,5 @@ class OmfXMPPServices < MObject
     end
     nodes
   end
-    
+
 end

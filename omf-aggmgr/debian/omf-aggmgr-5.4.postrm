@@ -21,9 +21,9 @@ VER=5.4
 
 case "$1" in
     purge|remove)
-	rm -rf /usr/share/omf-aggmgr-$VER/gems/1.8
+	rm -rf /usr/share/omf-aggmgr-$VER/gems
     ;;
-	
+
     upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
 

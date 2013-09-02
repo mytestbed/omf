@@ -2,11 +2,11 @@ Source: omf-aggmgr-5.4
 Section: science
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
-Build-Depends: debhelper (>= 5), rubygems1.8
+Build-Depends: debhelper (>= 5), rubygems
 Standards-Version: 3.7.2
 
 Package: omf-aggmgr-5.4
 Architecture: all
-Depends: frisbee, libmysql-ruby1.8, libldap-ruby1.8 (>=0.9.0-1), libsqlite3-ruby1.8, sqlite3, omf-common-5.4, psmisc, nmap, netcat-openbsd, libopenssl-ruby1.8, libmysqlclient-dev
+Depends: frisbee, libmysql-ruby, libldap-ruby, libsqlite3-ruby, sqlite3, omf-common-5.4, psmisc, nmap, netcat-openbsd, libopenssl-ruby, libmysqlclient-dev
 Description: OMF Aggregate Manager
  Provides various services for running experiments in OMF

@@ -26,7 +26,7 @@
 #
 # == Description
 #
-# This file defines the NodeSet class 
+# This file defines the NodeSet class
 #
 require 'set'
 require 'omf-common/mobject'
@@ -47,8 +47,8 @@ class NodeSet < MObject
   #
   # Return an existing NodeSet
   #
-  # - groupName = the name of the group of node to return, if '*' returns 
-  #               the Root NodeSet, i.e. the NodeSet with all the existing 
+  # - groupName = the name of the group of node to return, if '*' returns
+  #               the Root NodeSet, i.e. the NodeSet with all the existing
   #               NodeSets
   #
   # [Return] an instance of an existing NodeSet
@@ -79,10 +79,10 @@ class NodeSet < MObject
   end
 
   #
-  # Set the value of the 'frozen' flag. When set, no changes can be done to any 
-  # NodeSets. Basically, this is called at the end of the resource description 
-  # of an experiment, just before processing the execution steps of the 
-  # experiment. This prevent experimenters/operators to modify the set of 
+  # Set the value of the 'frozen' flag. When set, no changes can be done to any
+  # NodeSets. Basically, this is called at the end of the resource description
+  # of an experiment, just before processing the execution steps of the
+  # experiment. This prevent experimenters/operators to modify the set of
   # resources (e.g. nodes) allocated to an experiment, once its execution is
   # being staged.
   #
@@ -100,11 +100,11 @@ class NodeSet < MObject
     @@execsCount = 0
     @@is_frozen = false
   end
-  
+
   def each(&block)
     nodes.each(&block)
   end
-  
+
   #
   # This method calls inject over ALL the nodes in this node set
   #
@@ -133,8 +133,8 @@ class NodeSet < MObject
 
   #
   # Create a new instance of NodeSet.
-  # The additional 'groupName' parameter will associate a group name with this 
-  # node set. All the nodes defined by the selector can from then on be 
+  # The additional 'groupName' parameter will associate a group name with this
+  # node set. All the nodes defined by the selector can from then on be
   # addressed by the selector "/groupName/*".
   #
   # - groupName = Optional name for specific node sets
@@ -167,7 +167,7 @@ class NodeSet < MObject
       add_observer(NodeSet.ROOT)
       @@groups[@groupName] = self
     end
-    each { |n|     
+    each { |n|
       n.add_observer(self)
     }
   end
@@ -228,7 +228,7 @@ class NodeSet < MObject
     if (ctxt == nil)
       raise "Unknown application '#{name}' (#{@applications.keys.join(', ')})"
     end
-    send(ECCommunicator.instance.create_message(:cmdtype => :EXIT,
+    send_cmd(ECCommunicator.instance.create_message(:cmdtype => :EXIT,
                                                 :appID => name))
   end
 
@@ -246,15 +246,15 @@ class NodeSet < MObject
   # This method runs a command on all nodes within this set.
   #
   # - cmdName = the name of the executable. It should be a path if it is not
-  #          in the agents search path. 
-  # - args = is an optional array of arguments. If an argument starts with a '%' 
-  #   each node will replace the following string, such as %x, %y, or %n with 
-  #   the local corresponding values. 
-  # - env = is an optional Hash of environment variables and their repsective 
-  #   values which will be set before the command is executed. Again, '%' 
+  #          in the agents search path.
+  # - args = is an optional array of arguments. If an argument starts with a '%'
+  #   each node will replace the following string, such as %x, %y, or %n with
+  #   the local corresponding values.
+  # - env = is an optional Hash of environment variables and their repsective
+  #   values which will be set before the command is executed. Again, '%'
   #   substitution will occur on the values.
-  # - &block = an optional block with arity 4, which will be called whenever a 
-  #   message is received from a node executing this command. The arguments of 
+  # - &block = an optional block with arity 4, which will be called whenever a
+  #   message is received from a node executing this command. The arguments of
   #   the block are for 'node, operation, eventName, message'.
   #
   def exec(cmdName, args = nil, env = nil, &block)
@@ -271,14 +271,14 @@ class NodeSet < MObject
         when 'STDOUT'
           debug "Message (from #{prompt}):  #{message}"
         when 'STARTED'
-          # ignore 
+          # ignore
         else
           debug "Event #{eventName} (from #{prompt}): #{message}"
         end
       end
     end
     # TODO: check for blocks arity.
-    
+
     each { |n|
       n.exec(procName, cmdName, args, env, &block)
     }
@@ -301,7 +301,7 @@ class NodeSet < MObject
         end
       }
     end
-    send(cmd)
+    send_cmd(cmd)
   end
 
   #
@@ -344,7 +344,7 @@ class NodeSet < MObject
   # set to 'value'
   #
   # - path = Path to resource
-  # - value = New value (Nil or a String or a Hash) 
+  # - value = New value (Nil or a String or a Hash)
   #
   def configure(path, value)
     case value.class.to_s
@@ -353,16 +353,16 @@ class NodeSet < MObject
           configure(path, v)
         }
         valueToSend = value.value
-      when "String" 
+      when "String"
         valueToSend = value.to_s
-      when "Float" 
+      when "Float"
         valueToSend = value.to_s
-      when "Fixnum" 
+      when "Fixnum"
         valueToSend = value.to_s
       when "Hash"
         valueToSend = "{"
         value.each {|k,v|
-          valueToSend << ":#{k} => '#{v}', " 
+          valueToSend << ":#{k} => '#{v}', "
         }
         valueToSend << "}"
       else
@@ -373,11 +373,11 @@ class NodeSet < MObject
     each {|n|
       n.configure(path, value)
     }
-    # When this Experiment is in disconnection mode, do not send the 
-    # configure command to the RC, as this will be done locally by the 
+    # When this Experiment is in disconnection mode, do not send the
+    # configure command to the RC, as this will be done locally by the
     # slave EC and RC
-    return if Experiment.disconnection_allowed? 
-    send(ECCommunicator.instance.create_message(:cmdtype => :CONFIGURE,
+    return if Experiment.disconnection_allowed?
+    send_cmd(ECCommunicator.instance.create_message(:cmdtype => :CONFIGURE,
                                                 :path => path.join('/'),
                                                 :value => valueToSend.to_s))
   end
@@ -419,7 +419,7 @@ class NodeSet < MObject
   # node set. This assumed the node booted into a PXE image
   #
   # - image = Image to load onto node's disk
-  # - domain = testbed for this node (optional, default= default testbed for 
+  # - domain = testbed for this node (optional, default= default testbed for
   # this EC)
   # - disk = Disk drive to load (default is given by OConfig)
   #
@@ -435,7 +435,7 @@ class NodeSet < MObject
       rescue
         Topology.removeNode(n)
         error "Could not retrieve default disk of node '#{n.to_s}' from inventory. Removing it from the topology."
-      end      
+      end
     }
     disks.uniq!
     if disks.length > 1
@@ -446,7 +446,7 @@ class NodeSet < MObject
       error "All nodes in your nodeset have to have the same disk name configured in the inventory.
              In the current nodeset, mixed disk names were found: '#{disks.join(",")}'"
     end
-    
+
     domain = "#{OConfig.domain}" if !domain || domain == ''
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Prepare image #{image} for set #{self}"
@@ -462,7 +462,7 @@ class NodeSet < MObject
       n.loadImage(image, resize, opts)
     }
     debug "Loading image #{image} from multicast #{mcAddress}::#{mcPort}"
-    send(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
+    send_cmd(ECCommunicator.instance.create_message(:cmdtype => :LOAD_IMAGE,
                                                 :address => mcAddress,
                                                 :port => mcPort,
                                                 :disk => disks[0],
@@ -472,22 +472,22 @@ class NodeSet < MObject
   end
 
   #
-  # This method stops an Image Server once the image loading on each 
-  # node in the nodeSet is done. 
+  # This method stops an Image Server once the image loading on each
+  # node in the nodeSet is done.
   # This assumed the node booted into a PXE image
   #
   # - image = Image to load onto node's disk
-  # - domain = testbed for this node (optional, default= default testbed for 
+  # - domain = testbed for this node (optional, default= default testbed for
   #   this EC)
   #
   def stopImageServer(image, domain = nil)
-		     
+
     domain = "#{OConfig.domain}" if !domain
     if NodeHandler.JUST_PRINT
       puts ">> FRISBEE: Stop server of image #{image} for set #{self}"
     else
       # stop the frisbeed server on the Gridservice side
-      debug "Stop server of image #{image} for domain #{domain}"                       
+      debug "Stop server of image #{image} for domain #{domain}"
       OMF::Services.frisbee.stop(:domain => "#{domain}", :img => "#{image}")
     end
   end
@@ -508,21 +508,21 @@ class NodeSet < MObject
           "FTP server that is accessible from your nodes and specify the URL "+
           "using 'loadData' in your experiment."
       else
-        raise OEDLIllegalArgumentException.new(:group,:loadData,nil,"#{srcPath} is not a valid filename or URL") 
+        raise OEDLIllegalArgumentException.new(:group,:loadData,nil,"#{srcPath} is not a valid filename or URL")
       end
       # re-using the PM_INSTALL command here since
       # installing an app and uploading data does the same thing on the node
-      send(ECCommunicator.instance.create_message(:cmdtype => :PM_INSTALL,
+      send_cmd(ECCommunicator.instance.create_message(:cmdtype => :PM_INSTALL,
                                                 :appID => procName,
                                                 :image => url,
-                                                :path => dstPath))                                            
+                                                :path => dstPath))
 
       block = Proc.new do |node, op, eventName, message|
           case eventName
           when 'STDOUT'
             debug "Message (from #{prompt}):  #{message}"
           when 'STARTED'
-            # ignore 
+            # ignore
           else
             debug "Event '#{eventName}' (from loadData on '#{node}'): "+
                   "'#{message}'"
@@ -534,18 +534,18 @@ class NodeSet < MObject
   end
 
   #
-  # This method sends a command to all nodes in this nodeSet 
+  # This method sends a command to all nodes in this nodeSet
   #
   # - command = Command to send
   # - args = Array of parameters
   #
-  def send(cmdObj)
+  def send_cmd(cmdObj)
     notQueued = true
     target = @groupName == "_ALLGROUPS_" ? "*" : @nodeSelector.chomp(' ')
     cmdObj.target = target
     @mutex.synchronize do
       if (!up?)
-        debug "Deferred message ('#{target}') - '#{cmdObj.to_s}'" 
+        debug "Deferred message ('#{target}') - '#{cmdObj.to_s}'"
         @deferred << cmdObj
         notQueued = false
       end
@@ -604,7 +604,7 @@ class NodeSet < MObject
   end
 
   #
-  # This method sends all the deferred messages (if any) when 
+  # This method sends all the deferred messages (if any) when
   # all the nodes in this nodeSet are up
   #
   def send_deferred()
@@ -616,8 +616,8 @@ class NodeSet < MObject
       da = @deferred
       @deferred = []
       da.each { |cmdObj|
-	debug "send_deferred '#{cmdObj.to_s}'"
-        send(cmdObj)
+        debug "send_deferred '#{cmdObj.to_s}'"
+        send_cmd(cmdObj)
       }
     end
   end

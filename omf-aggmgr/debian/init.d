@@ -29,7 +29,7 @@ if [ ! -f $CFG ]; then
 	exit 0
 fi
 
-PORT=`ruby1.8 -e "require 'yaml';y = YAML.load_file('$CFG'); puts y[:http][:port]" 2>/dev/null`
+PORT=`ruby -e "require 'yaml';y = YAML.load_file('$CFG'); puts y[:http][:port]" 2>/dev/null`
 
 if [ $? -ne 0 ] || [ $PORT != ${PORT//[^0-9]/} ] || [ "$PORT" == "" ]; then
        echo "No '[:http][:port:]' number configured in '$CFG'. Exiting."
@@ -51,7 +51,7 @@ start(){
 		fi
 		sleep 1
 		let i++
-	done	
+	done
 	echo "."
 }
 
@@ -64,7 +64,7 @@ stop(){
 	#	start-stop-daemon --stop --signal 9 --oknodo --pidfile /var/run/$NAME.pid
 	pid=`cat /var/run/$NAME.pid`
 	sid=`ps -p $pid -o sid | awk 'NR==2'`
-	if [ ! -n "$sid" ]; then 
+	if [ ! -n "$sid" ]; then
 		echo -e "\nCould not find the '$NAME' process, '$NAME' might still be running."
 		return
 	fi
@@ -77,7 +77,7 @@ stop(){
 		fi
 		sleep 1
 		let i++
-	done	
+	done
 	echo "."
 }
 

@@ -27,12 +27,12 @@
 # == Description
 #
 #
-# This class defines an application for motes that can be 
+# This class defines an application for motes that can be
 # used within an OMF Experiment Description (ED).
 # It will refer to a moteAppDefinition for information on the
 # available parameters and measurment points.
 # It is a subclass of Application. Most attributes
-# and methods are used as in the Application class 
+# and methods are used as in the Application class
 
 require 'omf-expctl/application/application'
 require 'omf-expctl/moteApplication/moteAppDefinition'
@@ -61,7 +61,7 @@ class MoteApplication < Application
   # - context = hash with the values of the bindings for local parameters
   #
   def instantiate(nodeSet, context = {})
-    appCtxt = MoteAppContext.new(self, context)    
+    appCtxt = MoteAppContext.new(self, context)
     nodeSet.addApplicationContext(appCtxt)
     install(nodeSet, appCtxt.id)
     appCtxt
@@ -76,7 +76,7 @@ class MoteApplication < Application
   #
   def installable?
     d = appDefinition
-    return d.appPackage != nil 
+    return d.appPackage != nil
   end
 
   #
@@ -88,7 +88,7 @@ class MoteApplication < Application
 
     if (rep = @appDefinition.appPackage) != nil
 
-      # Install App from TAR archive using wget + tar 
+      # Install App from TAR archive using wget + tar
       if File.exists?(rep)
         # We first have to mount the local TAR file to a URL on our webserver
         #url_dir="/install/#{rep.gsub('/', '_')}"
@@ -104,7 +104,7 @@ class MoteApplication < Application
       else
         raise OEDLIllegalArgumentException.new(:defApplication,:appPackage,nil,"#{rep} is not a valid filename or URL")
       end
-      nodeSet.send(ECCommunicator.instance.create_message(
+      nodeSet.send_cmd(ECCommunicator.instance.create_message(
                                   :cmdtype => :MOTE_INSTALL,
                                   :appID => "#{appID}/install",
                                   :image => url,

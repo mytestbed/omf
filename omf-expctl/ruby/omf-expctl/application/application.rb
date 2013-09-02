@@ -62,10 +62,10 @@ class Application < MObject
 
   # Measurement points used and their configurations/filter
   attr_reader :measurements
-  
-  # The names for the tables in the OML database are constructed by 
-  # combining an application sepcific prefix and a measurement 
-  # stream specific identifier separated by '_' 
+
+  # The names for the tables in the OML database are constructed by
+  # combining an application sepcific prefix and a measurement
+  # stream specific identifier separated by '_'
   attr_accessor :omlPrefix
 
 
@@ -89,7 +89,7 @@ class Application < MObject
   # - context = hash with the values of the bindings for local parameters
   #
   def instantiate(nodeSet, context = {})
-    appCtxt = AppContext.new(self, context)    
+    appCtxt = AppContext.new(self, context)
     nodeSet.addApplicationContext(appCtxt)
     install(nodeSet, appCtxt.id)
     appCtxt
@@ -114,19 +114,19 @@ class Application < MObject
   #
   def install(nodeSet, appID)
     if (debPackage = @appDefinition.debPackage) != nil
-      # Install App from DEB package using apt-get 
-      nodeSet.send(ECCommunicator.instance.create_message(
+      # Install App from DEB package using apt-get
+      nodeSet.send_cmd(ECCommunicator.instance.create_message(
                                   :cmdtype => :APT_INSTALL,
                                   :appID => "#{appID}/install",
                                   :package => debPackage))
 
     elsif (rpmPackage = @appDefinition.rpmPackage) != nil
-      # Install App from RPM package using apt-get 
-      nodeSet.send(ECCommunicator.instance.create_message(
+      # Install App from RPM package using apt-get
+      nodeSet.send_cmd(ECCommunicator.instance.create_message(
                                   :cmdtype => :RPM_INSTALL,
                                   :appID => "#{appID}/install",
                                   :package => rpmPackage))
-                                  
+
     elsif (rep = @appDefinition.appPackage) != nil
       # Install App from TAR archive using wget + tar
       if !(rep =~ URI::regexp).nil?
@@ -142,9 +142,9 @@ class Application < MObject
           "FTP server that is accessible from your nodes and specify the URL "+
           "using 'app.appPackage' in your experiment."
       else
-        raise OEDLIllegalArgumentException.new(:defApplication,:appPackage,nil,"#{rep} is not a valid filename or URL") 
+        raise OEDLIllegalArgumentException.new(:defApplication,:appPackage,nil,"#{rep} is not a valid filename or URL")
       end
-      nodeSet.send(ECCommunicator.instance.create_message(
+      nodeSet.send_cmd(ECCommunicator.instance.create_message(
                                   :cmdtype => :PM_INSTALL,
                                   :appID => "#{appID}/install",
                                   :image => url,
@@ -153,7 +153,7 @@ class Application < MObject
   end
 
   #
-  # Return an existing Measurement Point (MP) for this application, 
+  # Return an existing Measurement Point (MP) for this application,
   # and execute a block of command on it
   #
   # Usage example:
@@ -212,12 +212,12 @@ class Application < MObject
   def to_s()
     @appRef
   end
-  
+
   #
   # _Deprecated_ - Use measure(...) instead
   #
   def addMeasurement(idRef, filterMode, properties = nil, metrics = nil)
-    raise OEDLIllegalCommandException.new(:addMeasurement) 
+    raise OEDLIllegalCommandException.new(:addMeasurement)
   end
 
 end

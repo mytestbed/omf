@@ -27,18 +27,18 @@
 # == Description
 #
 # This class defines an Application Context.
-# An Application Context holds the name, definition, bindings 
+# An Application Context holds the name, definition, bindings
 # and configurations of an application to be run on a node
-# during an experiment. 
+# during an experiment.
 #
 #
 require 'omf-common/mobject'
 
 #
 # This class defines an Application Context.
-# An Application Context holds the name, definition, bindings 
+# An Application Context holds the name, definition, bindings
 # and configurations of an application to be run on a node
-# during an experiment. 
+# during an experiment.
 #
 class AppContext < MObject
 
@@ -49,7 +49,7 @@ class AppContext < MObject
     @id = context[:id] ? context[:id] : @id = "#{app.appDefinition.id}##{instanceIndex}"
     @bindings = Hash.new
     @app = app
-    
+
     # Create property list
     app.properties.each {|p|
       # property :idref, :value, :unit, :bindingRef, :isBound
@@ -78,14 +78,14 @@ class AppContext < MObject
 #    puts ">>> OML PREFIX"
 #    @omlPrefix
 #  end
-  
+
   #
   # Return the OML Configuration associated with this Application Context
   #
   # - nodeSet = the Node Set use when building the OML Config
   #             (optional when this method is called by the Node's State tracing)
   #
-  # [Return] an XML representation of the OML configuration, or nil if no 
+  # [Return] an XML representation of the OML configuration, or nil if no
   #          measurement points are defined for this Application Context
   #
   def getOMLConfig(nodeSet = nil)
@@ -105,7 +105,7 @@ class AppContext < MObject
         # add mstream configurations
 	      el << m.to_xml
       end
-      omlXML.root << el 
+      omlXML.root << el
       return omlXML
     else
       return nil
@@ -134,9 +134,9 @@ class AppContext < MObject
 
   #
   # Start an Application on a given Node Set
-  # This method creates and sends the Command Object to start an application 
+  # This method creates and sends the Command Object to start an application
   # on a group of nodes (resources)
-  # 
+  #
   # - nodeSet = the group of nodes on which to start the application
   #
   def startApplication(nodeSet)
@@ -163,10 +163,10 @@ class AppContext < MObject
             + " not in '#{pdef.keys.join(', ')}'."
     end
     arguments = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
-    cmd.cmdLineArgs = substitute_values(arguments) 
+    cmd.cmdLineArgs = substitute_values(arguments)
     #cmd.cmdLineArgs = appDef.getCommandLineArgs(@bindings, @id, nodeSet).join(' ')
-    # Ask the NodeSet to send the Command Object 
-    nodeSet.send(cmd)
+    # Ask the NodeSet to send the Command Object
+    nodeSet.send_cmd(cmd)
   end
 
   ## NOTE: Instead of doing this, we should implement a subclass of experiment
@@ -188,7 +188,7 @@ class AppContext < MObject
     return result
   end
 
-  
+
 end # ApplicationContext
 
 # a = Application['foo']

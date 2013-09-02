@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby1.8
+#!/usr/bin/env ruby
 #
 # Copyright (c) 2010 National ICT Australia (NICTA), Australia
 #
@@ -25,7 +25,7 @@
 #
 # == Description
 #
-# This simple application waits for TCP connections and simply sends back 
+# This simple application waits for TCP connections and simply sends back
 # any message it receives until the remote side disconnects.
 #
 #
@@ -41,18 +41,18 @@ class Worker
 
   #
   # Initialise a new Worker object
-  # - args = the command line argument which was given to this wrapper 
+  # - args = the command line argument which was given to this wrapper
   #          application
   #
   def initialize(args)
-    
+
     @address = 'localhost'
     @port = 4040
     @debug = false
 
     argParser = OptionParser.new
     argParser.banner = "\nWait for TCP connections and echo any received line back to sender.\n" +
-                         "Use -h or --help for a list of options\n\n" 
+                         "Use -h or --help for a list of options\n\n"
     argParser.on("-a", "--address HOST_ADDRESS", "Name of host to measure against") { |a| @address = a }
     argParser.on_tail("-v", "--version", "Show the version\n") { |v| puts "Version: #{APPVERSION}"; exit }
     argParser.on("-d", "--debug", "Print debugging messages") { @debug = true }
@@ -62,15 +62,15 @@ class Worker
     @socket = TCPServer.open(@address, @port)
     puts "Opened socket #{@address}:#{@port}: #{@socket}" if @debug
   end
-    
-  #  
+
+  #
   # Now measure
   #
   def start()
     # Loop until the user interrupts us
     loop do
       Thread.start(@socket.accept) do |client|
-        begin 
+        begin
           puts "Received connection <#{client.inspect}>" if @debug
           loop do
             puts "Waiting" if @debug

@@ -1,4 +1,4 @@
-#!/usr/bin/ruby1.8
+#!/usr/bin/ruby
 
 # change this to the gembundler path later
 require "rubygems"
@@ -38,7 +38,7 @@ end
 user = (0...8).map{65.+(rand(25)).chr}.join
 pass = (0...8).map{65.+(rand(25)).chr}.join
 jid = "#{user}@#{host}"
-client = Client.new(jid) 
+client = Client.new(jid)
 
 puts "-> Connecting to XMPP server"
 begin
