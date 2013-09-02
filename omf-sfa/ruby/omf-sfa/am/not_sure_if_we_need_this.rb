@@ -75,19 +75,11 @@
     true
   end
 
-  private 
+  private
 
   # Throws exception if _credentials_ are *not* sufficient for _action_
   #
   def check_credentials(action, credentials)
-puts @request.env.keys.sort.join("\n")
-exit
-
+    puts @request.env.keys.sort.join("\n")
+    exit
   end
-
-  # Define public RPC interface
-  #
-#  rpc 'GetVersion' => :get_version
-#  rpc 'ListResources' => :list_resources
-
-end

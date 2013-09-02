@@ -24,7 +24,7 @@
 #
 # == Description
 #
-# This class describes a query on the experiments measurement streams to 
+# This class describes a query on the experiments measurement streams to
 # obtain a data set to be displayed in the associated graph.
 #
 require 'graph_query_result'
@@ -34,13 +34,13 @@ module OMF
     module Graph
 
       class GraphQueryException < Exception; end
-        
+
       class GraphQuery < MObject
         def initialize(block)
           super()
           block.call(self)
         end
-        
+
         def select=(select)
           if from.kind_of? Array
             @select = select.join(',')
@@ -58,12 +58,12 @@ module OMF
           end
           reset
         end
-        
+
         def format(format)
           @format = format
           reset()
         end
-        
+
         # Executes the query associated with this object and return a GraphQueryResult
         #
         def execute()
@@ -76,20 +76,21 @@ module OMF
           res = NodeHandler.service_call(url, "Can't query results '#{@serviceURL}'")
           GraphQueryResult.new(res, @format)
         end
-        
+
         private
-        
+
         def reset()
           @serviceURL= nil
         end
-        
+
         def queryTerm
           "select #{select} from #{@from};"
         end
       end
-      
-      
-    
+
+
+
     end # module Graph
   end # module EC
 end # OMF
+

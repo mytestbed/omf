@@ -30,9 +30,6 @@
 module OMF
   module EC
     module Graph
-      
-      class UnknownGraphResultFormat < Exception
-
       class GraphQueryResult < MObject
         attr_reader :result_s, :format
 
@@ -41,10 +38,10 @@ module OMF
           @result_s = result
           @format = format
         end
-        
+
         def each_row(&block)
           return nil unless block
-          
+
           case @format
           when 'csv'
             result_s.each_line do |l|
@@ -53,15 +50,10 @@ module OMF
           else
             raise UnknownGraphResultFormat(@format)
           end
-            
+
         end
       end # GraphQueryResult
 
     end # Graph
   end # EC
 end # OMF
-
-
-  
-      
-      
