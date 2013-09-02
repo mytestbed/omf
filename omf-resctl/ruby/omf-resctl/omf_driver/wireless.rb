@@ -102,7 +102,7 @@ class WirelessDevice < EthernetDevice
   # Return true if device has been activated and loaded
   #
   # [Return] true/false
-  #  
+  #
   def active?
     return @isActive && loaded?
   end

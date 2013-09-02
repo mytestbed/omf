@@ -26,7 +26,7 @@
 #
 # == Description
 #
-# This file defines the class Ath5kDevice which is a sub-class of 
+# This file defines the class Ath5kDevice which is a sub-class of
 # WirelessDevice.
 #
 require 'omf-resctl/omf_driver/wireless'
@@ -99,7 +99,7 @@ class Ath5kDevice < WirelessDevice
     end
     @type = @mode = @channel = @frequency = @essid = nil
   end
-  
+
   #
   # Create and set up a new Ath5kDevice instance
   #
@@ -115,8 +115,8 @@ class Ath5kDevice < WirelessDevice
     @wpapid = "/tmp/wpa.#{@deviceName}.pid"
     @type = @mode = @channel = @frequency = @essid = nil
     @baseDevice = case
-      when @deviceName == 'wlan0' : 'phy0'
-      when @deviceName == 'wlan1' : 'phy1'
+      when @deviceName == 'wlan0' then 'phy0'
+      when @deviceName == 'wlan1' then 'phy1'
     else
       raise "Unknown device name '#{@deviceName}'."
     end
@@ -132,7 +132,7 @@ class Ath5kDevice < WirelessDevice
         f = File.open(@apconf, "w")
         f << "driver=nl80211\ninterface=#{@deviceName}\nssid=#{@essid}\nchannel=#{@channel}\n"
         f << "hw_mode=#{@type}\n" if @type=='a' || @type=='b' || @type=='g'
-        f << "wmm_enabled=1\nieee80211n=1\nht_capab=[HT20-]\n" if @type=='n' 
+        f << "wmm_enabled=1\nieee80211n=1\nht_capab=[HT20-]\n" if @type=='n'
         f << "hw_mode=g\n" if @type=='n' && @channel.to_i<15
         f << "hw_mode=a\n" if @type=='n' && @channel.to_i>15
         f.close
@@ -166,8 +166,8 @@ class Ath5kDevice < WirelessDevice
   end
 
   #
-  # Return the specific command required to configure a given property of this 
-  # device. When a property does not exist for this device, check if it does 
+  # Return the specific command required to configure a given property of this
+  # device. When a property does not exist for this device, check if it does
   # for its super-class.
   #
   # - prop = the property to configure
@@ -187,11 +187,11 @@ class Ath5kDevice < WirelessDevice
 
       when "mode"
         @mode = case
-          when value.downcase == 'master' : :master
-          when value.downcase == 'managed' : :managed
-          when value.downcase == 'ad-hoc' : :adhoc
-          when value.downcase == 'adhoc' : :adhoc
-          when value.downcase == 'monitor' : :monitor
+          when value.downcase == 'master' then :master
+          when value.downcase == 'managed' then :managed
+          when value.downcase == 'ad-hoc' then :adhoc
+          when value.downcase == 'adhoc' then :adhoc
+          when value.downcase == 'monitor' then :monitor
           else
             raise "Unknown mode '#{value}'. Should be 'master', 'managed', "+
                   "'adhoc', or monitor."
@@ -217,7 +217,7 @@ class Ath5kDevice < WirelessDevice
 
      when "tx_power"
         # Note: 'iw' support txpower setting only in latest version
-        # however current version shipped with natty (0.9.19) does not 
+        # however current version shipped with natty (0.9.19) does not
         # suppot that so for now we use 'iwconfig'
         return "iwconfig #{@deviceName} txpower #{value}"
 
@@ -231,7 +231,7 @@ class Ath5kDevice < WirelessDevice
     # the system here to find out the real value of the property
     result = super(prop)
     result = @propertyList[prop] if !result
-    return result 
+    return result
   end
 
 

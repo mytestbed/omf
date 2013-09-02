@@ -119,7 +119,7 @@ class AppDefinition < MObject
     a.from_xml(appDefRoot)
     return a
   end
-  
+
   #
   # Forget all app definitions. This does not remove any applications already
   # instantiated using exisiting app definitions. This is primarily used by
@@ -170,10 +170,10 @@ class AppDefinition < MObject
 
   # Environment settings required for running this application
   attr_accessor :environment
-  
+
   # Prefix used for creating OML table names
   attr_accessor :omlPrefix
-  
+
   protected :initialize
 
   #
@@ -189,7 +189,7 @@ class AppDefinition < MObject
     @environment = Hash.new
     @instCounter = SynchronizedInteger.new
   end
-  
+
   #
   # Instruct this AppDefinition that another instance
   # of this application has been instantiated
@@ -203,7 +203,7 @@ class AppDefinition < MObject
   #
   # Return an array containing the command line arguments, which are required
   # to start this type of application. The bindings for these arguments are
-  # defined in 'bindings'. 
+  # defined in 'bindings'.
   #
   # - bindings = Bindings for the command line arguments
   # - appID = Name of the application
@@ -214,7 +214,7 @@ class AppDefinition < MObject
   def getCommandLineArgs(bindings, appId, nodeSet)
 
     cmd = []
-    # First sort the properties according to their order 
+    # First sort the properties according to their order
     # (if specified in their options Hash)
     sortedProperties = @properties.sort {|a,b| a[1] <=> b[1]}
     sortedProperties.each {|a|
@@ -234,7 +234,7 @@ class AppDefinition < MObject
             next # continue with the next property
           end
         end
-        # This Property is a Static Initialization Property 
+        # This Property is a Static Initialization Property
         # First, check if it has the correct type
         case type
         when :integer, :int
@@ -248,7 +248,7 @@ class AppDefinition < MObject
                   "(expecting String)"
           end
         when :boolean
-          if ((value != false) && (value != true)) 
+          if ((value != false) && (value != true))
             raise "Wrong type '#{value}' for Property '#{name}' "+
                   "(expecting Boolean)"
           end
@@ -324,12 +324,12 @@ class AppDefinition < MObject
     @name = appRoot.attributes['name']
     appRoot.elements.each { |el|
       case el.name
-      when 'url' : @uri = el.text
-      when 'name' : @name = el.text
-      when Version::VERSION_EL_NAME :  # @version = Version.from_xml(el)
-      when 'copyright' : @copyright = el.text;
-      when 'shortDescription' : @shortDescription = el.text;
-      when 'description' : @description = el.text;
+      when 'url' then @uri = el.text
+      when 'name' then @name = el.text
+      when Version::VERSION_EL_NAME then  # @version = Version.from_xml(el)
+      when 'copyright' then @copyright = el.text;
+      when 'shortDescription' then @shortDescription = el.text;
+      when 'description' then @description = el.text;
 
       when 'properties'
         el.elements.each { |el|
@@ -343,7 +343,7 @@ class AppDefinition < MObject
           @measurements[m.id] = m
         }
 
-      when 'path' : @path = el.text;
+      when 'path' then @path = el.text;
       else
         warn "Ignoring element '#{el.name}'"
       end
@@ -355,7 +355,7 @@ class AppDefinition < MObject
   #
   # - name = the name of the property
   # - description = some text describing this property
-  # - options = a list of options associated with this property 
+  # - options = a list of options associated with this property
   #
   # Currently, the following options are defined:
   #
@@ -389,8 +389,8 @@ class AppDefinition < MObject
   # Add a measurement point to this application.
   #
   # - id = identification of measurement point
-  # - description = some text describing this measurement point 
-  # - metrix = the metric to use 
+  # - description = some text describing this measurement point
+  # - metrix = the metric to use
   # - block = an optional block to execute with this measurement point
   #
   # [Return] the newly created measurement point.
@@ -417,14 +417,14 @@ class AppDefinition < MObject
   # _Deprecated_ - Use defMeasurement(...) instead
   #
   def addMeasurement(id, description, metrics)
-    raise OEDLIllegalCommandException.new(:addMeasurement) 
+    raise OEDLIllegalCommandException.new(:addMeasurement)
   end
 
   #
   # _Deprecated_ - Use defProperty(...) instead
   #
   def addProperty(name, description, mnemonic, type, isDynamic = false)
-    raise OEDLIllegalCommandException.new(:addProperty) 
+    raise OEDLIllegalCommandException.new(:addProperty)
   end
 
 end

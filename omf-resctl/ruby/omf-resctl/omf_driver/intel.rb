@@ -56,9 +56,9 @@ class IntelDevice < WirelessDevice
       when 'type'
         # 'value' defines type of operation
         type = case
-          when value == 'a' : 1
-          when value == 'b' : 2
-          when value == 'g' : 3
+          when value == 'a' then 1
+          when value == 'b' then 2
+          when value == 'g' then 3
           else
             raise "Unknown type. Should be 'a', 'b', or 'g'."
         end
@@ -67,13 +67,13 @@ class IntelDevice < WirelessDevice
       when "mode"
         # 'value' defines mode of operation
         mode = case
-          when value == 'Managed' : 'managed'
-          when value == 'managed' : 'managed'
-          when value == 'Master' : 'master'
-          when value == 'master' : 'master'
-          when value == 'ad-hoc' : 'ad-hoc'
-          when value == 'adhoc' : 'ad-hoc'
-          when value == 'monitor' : 'monitor'
+          when value == 'Managed' then 'managed'
+          when value == 'managed' then 'managed'
+          when value == 'Master' then 'master'
+          when value == 'master' then 'master'
+          when value == 'ad-hoc' then 'ad-hoc'
+          when value == 'adhoc' then 'ad-hoc'
+          when value == 'monitor' then 'monitor'
           else
             raise "Unknown mode '#{value}'. Should be 'managed', or 'ad-hoc'."
         end

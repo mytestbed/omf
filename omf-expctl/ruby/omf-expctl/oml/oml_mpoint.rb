@@ -38,7 +38,7 @@ module OMF
       # This class describes a measurement point used in an application definition
       #
       class MPoint
-      
+
         # Defines the available types for the metrics
         FLOAT = Float
         @@conversion = {
@@ -57,10 +57,10 @@ module OMF
           'short' => "xsd:short",
           'boolean' => "xsd:bool",
           'bool' => "xsd:bool",
-          'flag' => "xsd:bool"          
+          'flag' => "xsd:bool"
         }
-      
-      
+
+
         #
         # Unmarshall an instance from an XML tree.
         #
@@ -77,13 +77,13 @@ module OMF
           description = nil
           defRoot.elements.each { |el|
             case el.name
-            when 'description' : description = el.text
+            when 'description' then description = el.text
             when 'metric'
               name = type = description = nil
               el.attributes.each { |n, v|
                 case n
-                when 'id' : name = v
-                when 'type' : type = v
+                when 'id' then name = v
+                when 'type' then type = v
                 else
                   warn "Ignoring metric attribute '#{n}'"
                 end
@@ -97,16 +97,16 @@ module OMF
           m = self.new(id, description, metrics)
           return m
         end
-      
+
         # ID for this measurement point
         attr_reader :id
-      
+
         # Description of the measurement point
         attr_reader :description
-      
+
         # Hash holding the metrics associated with this measurement point
         attr_reader :metrics
-      
+
         #
         # Create a new measurement point (Mpoint) instance
         #
@@ -130,7 +130,7 @@ module OMF
             }
           end
         end
-      
+
         #
         # Add a metric to this measurement point
         #
@@ -141,7 +141,7 @@ module OMF
         def defMetric(name = nil, type = nil, opts = {})
           raise OEDLMissingArgumentException.new(:defMetric, :name) unless name
           raise OEDLMissingArgumentException.new(:defMetric, :type) unless type
-          
+
           if @metrics[name] != nil
             raise "Metric '" + name + "' already defined."
           end
@@ -151,10 +151,10 @@ module OMF
           opts = {:description => opts} if opts.class!=Hash
           @metrics[name] = opts.merge({:type => type, :seqNo => @metrics.length})
         end
-      
+
         #
         # Return the definition of this instance of measurement point as an XML element
-        # (does the reverse of 'from_xml') 
+        # (does the reverse of 'from_xml')
         #
         # [Return] an XML element (REXML::Element)
         #
@@ -174,16 +174,16 @@ module OMF
           }
           return a
         end
-      
+
         #
         # _Deprecated_ - Use defMetric(...) instead
         #
         def addMetric(name, type, description = nil)
-          raise OEDLIllegalCommandException.new(:addMetric) 
+          raise OEDLIllegalCommandException.new(:addMetric)
         end
 
       end # MPoint
     end # module OML
   end # module EC
-end # OMF      
-      
+end # OMF
+

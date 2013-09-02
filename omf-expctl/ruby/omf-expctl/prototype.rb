@@ -76,7 +76,7 @@ class Prototype
   def self.create(uri, name = uri)
     return Prototype.new(uri, name)
   end
-  
+
   #
   # Reset all class state. Specifically forget all prototype declarations.
   # This is primarily used by the test suite.
@@ -130,7 +130,7 @@ class Prototype
   # - bindings = a Hash with the bindings for local parameters
   #
   def instantiate(nodeSet, bindings)
-    if bindings == nil : bindings = Hash.new end
+    if bindings == nil then bindings = Hash.new end
     # check if bindings contain unknown properties
     if (diff = bindings.keys - @properties.keys) != []
       raise "Unknown parameters '#{diff.join(', ')}'" \
@@ -156,7 +156,7 @@ class Prototype
           value = getBoundValue(name, bindings)
           if value != nil
             p[key] = val = value
-          else 
+          else
             warn "No specific or default value found for Property '#{name}'. Prototype '#{@name}' will not use it!"
           end
 	end
@@ -174,7 +174,7 @@ class Prototype
   # Return the value of a given property 'name' within the
   # context of 'bindings'.
   #
-  # - name = name of the property to get the value from 
+  # - name = name of the property to get the value from
   # - bindings = context for this property
   #
   # [Return] The value of the property
@@ -248,7 +248,7 @@ class Prototype
   # a local property of this Prototype.
   #
   # - name = name of the local property
-  # 
+  #
   # [Return] a structure with connection info to the local property
   #
   def bindProperty(name)

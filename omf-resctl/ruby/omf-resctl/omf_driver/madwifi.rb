@@ -26,7 +26,7 @@
 #
 # == Description
 #
-# This file defines the class MadwifiDevice which is a sub-class of 
+# This file defines the class MadwifiDevice which is a sub-class of
 # WirelessDevice.
 #
 require 'omf-resctl/omf_driver/wireless'
@@ -53,7 +53,7 @@ class MadwifiDevice < WirelessDevice
 
   #
   # Return the version of the madwifi tools
-  # 
+  #
   # [Return] the versions of the madwifi tools
   #
   def getToolVersion()
@@ -70,8 +70,8 @@ class MadwifiDevice < WirelessDevice
   end
 
   #
-  # Return the specific command required to configure a given property of this 
-  # device. When a property does not exist for this device, check if it does 
+  # Return the specific command required to configure a given property of this
+  # device. When a property does not exist for this device, check if it does
   # for its super-class.
   #
   # - prop = the property to configure
@@ -84,9 +84,9 @@ class MadwifiDevice < WirelessDevice
       when 'type'
         # 'value' defines type of operation
         type = case
-          when value == 'a' : 1
-          when value == 'b' : 2
-          when value == 'g' : 3
+          when value == 'a' then 1
+          when value == 'b' then 2
+          when value == 'g' then 3
           else
             raise "Unknown type. Should be 'a', 'b', or 'g'."
         end
@@ -94,38 +94,38 @@ class MadwifiDevice < WirelessDevice
 
       when "mode"
         mode = case
-          when value == 'master' : 'ap'
-          when value == 'Master' : 'ap'
-          when value == 'managed' : 'sta'
-          when value == 'Managed' : 'sta'
-          when value == 'ad-hoc' : 'adhoc'
-          when value == 'Ad-Hoc' : 'adhoc'
-          when value == 'adhoc' : 'adhoc'
-          when value == 'AdHoc' : 'adhoc'
-          when value == 'monitor' : 'monitor'
-          when value == 'Monitor' : 'monitor'
+          when value == 'master' then 'ap'
+          when value == 'Master' then 'ap'
+          when value == 'managed' then 'sta'
+          when value == 'Managed' then 'sta'
+          when value == 'ad-hoc' then 'adhoc'
+          when value == 'Ad-Hoc' then 'adhoc'
+          when value == 'adhoc' then 'adhoc'
+          when value == 'AdHoc' then 'adhoc'
+          when value == 'monitor' then 'monitor'
+          when value == 'Monitor' then 'monitor'
           else
             raise "Unknown mode '#{value}'. Should be 'master', 'managed', or 'adhoc'."
         end
         # - Recent version of MADWIFI driver requires us to use 'wlanconfig' to
         # destroy and recreate the wireless device when changing its mode of
         # operation.
-        # - Also when there are more than one wireless card on the node, we 
+        # - Also when there are more than one wireless card on the node, we
 	# have to retrieve the 'base device' name of the card being used
-        # By default, the madwifi config file on the node agents at NICTA 
-	# assigns the device 'ath0' to the card 'wifi0', and 'ath1' to the 
-	# card 'wifi1' (This is set in '/etc/init.d/atheros'. If you modified 
-	# this config file on your on ORBIT deployment, the following lines 
+        # By default, the madwifi config file on the node agents at NICTA
+	# assigns the device 'ath0' to the card 'wifi0', and 'ath1' to the
+	# card 'wifi1' (This is set in '/etc/init.d/atheros'. If you modified
+	# this config file on your on ORBIT deployment, the following lines
 	# must be changed accordingly)
         baseDevice = case
-          when @deviceName == 'ath0' : 'wifi0'
-          when @deviceName == 'ath1' : 'wifi1'
+          when @deviceName == 'ath0' then 'wifi0'
+          when @deviceName == 'ath1' then 'wifi1'
           else
             raise "Unknown device name '#{@deviceName}'."
         end
 
         if (@toolVersion < DEFAULT_WIFI_TOOL_VERSION)
-          # Backward compatibility: NodeAgent will run with previous MADWIFI 
+          # Backward compatibility: NodeAgent will run with previous MADWIFI
 	  # drivers
           return "#{@iwconfig} #{@deviceName} mode #{mode}"
         else
@@ -162,7 +162,7 @@ class MadwifiDevice < WirelessDevice
     # the system here to find out the real value of the property
     result = super(prop)
     result = @propertyList[prop] if !result
-    return result 
+    return result
   end
 
 end

@@ -83,10 +83,10 @@ class AironetDevice < WirelessDevice
       when "bitrate"
         r = value.to_i
         br = case
-          when r == 1 : 2
-          when r == 2 : 4
-          when r == 5.5 : 11
-          when r == 11 : 22
+          when r == 1 then 2
+          when r == 2 then 4
+          when r == 5.5 then 11
+          when r == 11 then 22
           else
             raise "Unknown bitrate #{value}. Valid rates are 1, 2, 5.5, and 11."
         end

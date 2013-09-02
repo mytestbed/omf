@@ -37,10 +37,10 @@ class Property
   #
   # Unmarshall a Property instance from an XML tree.
   #
-  # - defRoot = the root of the XML tree describing the Property 
+  # - defRoot = the root of the XML tree describing the Property
   #
   # [Return] a new Property instance initialized with the information from the XML tree
-  # 
+  #
   def Property.from_xml(defRoot)
     if (defRoot.name != "property")
       raise "Property definition needs to start with an 'property' element"
@@ -60,7 +60,7 @@ class Property
         warn "Ignoring element '#{el.name}'"
       end
     }
-    if isBinding : warn "NOT IMPLEMENTED: Resolving bindings from XML streams" end
+    if isBinding then warn "NOT IMPLEMENTED: Resolving bindings from XML streams" end
     p = Property.new(idred, obj, unit, isBinding)
     return p
   end

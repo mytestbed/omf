@@ -30,7 +30,7 @@
 #
 
 class AppProperty
-  
+
   DEF_TYPE = :string
   DEF_LAST_ORDER = 999
 
@@ -49,9 +49,9 @@ class AppProperty
     description = parameter = nil
     defRoot.elements.each { |el|
       case el.name
-      when 'name' : name = el.text
-      when 'parameter' : parameter = el.text
-      when 'description' : description = el.text
+      when 'name' then name = el.text
+      when 'parameter' then parameter = el.text
+      when 'description' then description = el.text
       else
         warn "Ignoring element '#{el.name}'"
       end
@@ -60,11 +60,11 @@ class AppProperty
     return p
   end
 
-  # Name of this property 
+  # Name of this property
   attr_reader :name
 
   # Description of this property
-  attr_reader :description 
+  attr_reader :description
 
   # Parameter used for this property
   attr_reader :parameter
@@ -88,7 +88,7 @@ class AppProperty
   end
 
   #
-  # Return true if this AppProperty has its ':dynamic' option set. If true, 
+  # Return true if this AppProperty has its ':dynamic' option set. If true,
   # this property can be changed dynamically during the execution of the
   # application
   #
@@ -111,7 +111,7 @@ class AppProperty
   #
   # Return the value of the ':order' option for this AppProperty
   #
-  # [Return] 
+  # [Return]
   #
   def order()
     @options[:order] || DEF_LAST_ORDER
@@ -123,7 +123,7 @@ class AppProperty
 
   #
   # Return the definition of this instance of AppProperty as an XML element
-  # (does the reverse of 'from_xml') 
+  # (does the reverse of 'from_xml')
   #
   # [Return] an XML element
   #

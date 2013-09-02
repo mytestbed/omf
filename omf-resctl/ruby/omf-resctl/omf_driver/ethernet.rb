@@ -102,7 +102,7 @@ class EthernetDevice < Device
       }
       routeCMD << "dev #{@deviceName}"
     else
-      MObject.error "Route configuration - unknown operation: '#{operation}'" 
+      MObject.error "Route configuration - unknown operation: '#{operation}'"
       routeCMD = "route xxx" # This will raise an error in the calling method
     end
     return routeCMD
@@ -121,14 +121,14 @@ class EthernetDevice < Device
     param.each {|k,v|
     }
     case operation
-      when 'add' 
+      when 'add'
         filterCMD << "-A "
       when 'del'
         filterCMD << "-D "
       when 'clear'
         return filterCMD << "-F"
       else
-        MObject.error "Filter configuration - unknown operation: '#{operation}'" 
+        MObject.error "Filter configuration - unknown operation: '#{operation}'"
         return filterCMD
     end
     filterCMD << "#{param[:chain].upcase} -i #{@deviceName} "
