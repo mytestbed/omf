@@ -98,7 +98,7 @@ class GridService < AbstractService
     # Parse the Reply to retrieve the control IP address
     ip = nil
     doc.root.elements.each("/CONTROL_IP") { |v|
-      ip = v.get_text.value[0] if !v.get_text.nil?
+      ip = v.get_text.value if !v.get_text.nil?
     }
     # If no IP address found in the reply... raise an error
     if (ip.nil?)

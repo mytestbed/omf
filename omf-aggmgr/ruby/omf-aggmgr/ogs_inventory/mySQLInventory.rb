@@ -107,6 +107,7 @@ class MySQLInventory < MObject
       if (reply.num_rows() > 0)
         reply.each() { |result|
           result=result.first if result.class==Array
+          result=result.to_s
           debug "SQL Reply: '#{result.to_s}'"
           yield(result)
         }
