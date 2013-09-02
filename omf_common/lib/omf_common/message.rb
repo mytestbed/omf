@@ -32,6 +32,7 @@ module OmfCommon
     }
     @@message_class = nil
     @@authenticate_messages = false
+    @@authorisation_hook = nil
 
     def self.create(type, properties, body = {})
       @@message_class.create(type, properties || {}, body)
@@ -49,12 +50,16 @@ module OmfCommon
     end
 
     # Parse message from 'str' and pass it to 'block'.
-    # If authnetication is on, the message will only be handed
+    # If authentication is on, the message will only be handed
     # to 'block' if the source of the message can be authenticated.
     #
     def self.parse(str, content_type = nil, &block)
       raise ArgumentError, 'Need message handling block' unless block
-      @@message_class.parse(str, content_type, &block)
+      msg = @@message_class.parse(str, content_type)
+      if @@authorisation_hook
+        msg = @@authorisation_hook.authorise(msg)
+      end
+      block.call(msg) if msg
     end
 
     def self.init(opts = {})
@@ -76,6 +81,8 @@ module OmfCommon
         raise "Missing provider class info - :constructor"
       end
       @@authenticate_messages = opts[:authenticate] if opts[:authenticate]
+      # TODO: This most likely needs more work as we are expecting a lambda for the hook
+      @@authorisation_hook = opts[:authorisation_hook]
     end
 
     OMF_CORE_READ.each do |pname|
