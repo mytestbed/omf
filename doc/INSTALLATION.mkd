@@ -74,9 +74,9 @@ You most likely want to install RVM with local user permissions (no root access 
 
 If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run:
 
-        sudo su -l
-        \curl -L https://get.rvm.io | bash -s stable
-	source /etc/profile.d/rvm.sh
+    sudo su -l
+    /curl -L https://get.rvm.io | bash -s stable
+    source /etc/profile.d/rvm.sh
 
 ### **Verify this step**
 
@@ -129,14 +129,14 @@ For OMF, we recommend using Openfire. Other XMPP servers may work as well, but t
 * Openfire 3.8.1 requires Java, but has some issues with OpenJDK. Instead we recommend to install Oracle Java 7. Ubuntu users can follow [this guide](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html).
 * after installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
 
-        wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
-        dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
+    wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
+    dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
 
 * on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
 * check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
 * if openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA_HOME for your Java installation, e.g.:
 
-        JAVA_HOME=/usr/lib/jvm/java-7-oracle
+    JAVA_HOME=/usr/lib/jvm/java-7-oracle
 
 * direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
 * choose your language and click continue
@@ -230,7 +230,7 @@ Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replac
 	18:37:03 INFO  OmfEc: Resource xmpp://ccce4bf3-c8f7-4984-8e8e-1ade28d132a6@norbit.npc.nicta.com.au created
 	18:37:03 INFO  OmfEc: Newly discovered resource >> ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
 	18:37:03 INFO  OmfEc: Event triggered: 'Actor_application_/bin/date_created_ba8b4fad-8d47-4782-b12b-9c93dd215bf2'
-	18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date 
+	18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date
 	18:37:03 INFO  OmfEc: APP_EVENT STDOUT from app /bin/date - msg: Thu Mar  7 18:37:03 EST 2013
 	18:37:03 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/date - msg: status: pid 35135 exit 0
 	18:37:06 INFO  Object: TEST - group
@@ -238,7 +238,7 @@ Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replac
 	18:37:06 INFO  OmfEc: Newly discovered resource >> d3416b01-51d9-48d4-b6b5-442454e8e7fa
 	18:37:06 INFO  OmfEc: Resource xmpp://d3416b01-51d9-48d4-b6b5-442454e8e7fa@norbit.npc.nicta.com.au created
 	18:37:06 INFO  OmfEc: Event triggered: 'Actor_application_/bin/hostname -f_created_50da62ba-c8b5-49b1-8182-7632d68f312a'
-	18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f 
+	18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f
 	18:37:06 INFO  OmfEc: APP_EVENT STDOUT from app /bin/hostname -f - msg: y68.dynhost.nicta.com.au
 	18:37:06 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/hostname -f - msg: status: pid 35136 exit 0
 	18:37:09 INFO  OmfEc: Exit in up to 15 seconds...
@@ -306,7 +306,7 @@ To verify that your RC is responding correctly, we are providing a test script (
 
     omf_rc -u xmpp://<xmpp_hostname> -i test
 
-No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. For any other RC you might use, make sure it listens on the "test" topic on your XMPP server. Replace \<xmpp_hostname\> with the hostname of your Openfire server. 
+No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. For any other RC you might use, make sure it listens on the "test" topic on your XMPP server. Replace \<xmpp_hostname\> with the hostname of your Openfire server.
 
 Now open a new terminal and run:
 
@@ -321,7 +321,7 @@ using the same XMPP URI. Watch the output for any lines starting with ERROR. If 
 
 ## OMF Installation for DEVELOPERS
 
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. 
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF.
 
 ### Installing all gems from source
 
