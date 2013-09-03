@@ -1,7 +1,7 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          omf-rc
-# Required-Start:    $remote_fs $syslog
+# Required-Start:    $ALL
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
@@ -9,6 +9,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
+PATH=$PATH:/usr/local/bin
 DAEMON=/usr/local/bin/run_omf_rc.sh
 [ -x "$DAEMON" ] || exit 0
 NAME=omf_rc
