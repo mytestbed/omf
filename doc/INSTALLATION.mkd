@@ -75,7 +75,7 @@ You most likely want to install RVM with local user permissions (no root access 
 If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run:
 
     sudo su -l
-    /curl -L https://get.rvm.io | bash -s stable
+    \curl -L https://get.rvm.io | bash -s stable
     source /etc/profile.d/rvm.sh
 
 ### **Verify this step**
