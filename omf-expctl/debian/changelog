@@ -1,6 +1,6 @@
 omf-expctl-5.4 (5.4.3-ubuntu1) precise; urgency=low
 
-  * Ruby 1.9 compatiblity
+  * Ruby 1.9 compatibility
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 03 Sep 2013 14:22:52 +1000
 
@@ -12,7 +12,7 @@ omf-expctl-5.4 (5.4.2-ubuntu12) precise; urgency=low
 
 omf-expctl-5.4 (5.4.2-ubuntu11) precise; urgency=low
 
-  * Do not attempt to send XMPP messages when the Pubsub Transport has been shut down 
+  * Do not attempt to send XMPP messages when the Pubsub Transport has been shut down
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 30 Apr 2013 20:08:23 +1000
 
@@ -66,7 +66,7 @@ omf-expctl-5.4 (5.4-ubuntu5) oneiric; urgency=low
 
 omf-expctl-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
-  * 5.4.1 release 
+  * 5.4.1 release
 
  -- Jack C Hong <jack.hong@nicta.com.au>  Tue, 07 Feb 2012 00:04:55 +0000
 
@@ -78,7 +78,7 @@ omf-expctl-5.4 (5.4-ubuntu3) oneiric; urgency=low
 
 omf-expctl-5.4 (5.4-ubuntu2) oneiric; urgency=low
 
-  * pre-release for testing 
+  * pre-release for testing
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 12 Dec 2011 15:59:53 +1100
 
@@ -138,18 +138,18 @@ omf-expctl-5.3 (1ubuntu3) testing; urgency=low
 
 omf-expctl-5.3 (1ubuntu2) testing; urgency=low
 
-  * Development release of first sort-of stable version with support for federation 
+  * Development release of first sort-of stable version with support for federation
 
  -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Mon, 15 Feb 2010 11:36:24 +1100
 
 omf-expctl-5.3 (1ubuntu1) testing; urgency=low
 
-  * Testing new naming scheme and pubsub tree 
+  * Testing new naming scheme and pubsub tree
 
  -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 03 Feb 2010 15:25:44 +1100
 
 omf-expctl-5.3 (1) testing; urgency=low
 
   * Initial release.
-  
+
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 06 Nov 2009 16:41:16 +1100

@@ -706,8 +706,6 @@ module OMF::EC
   end
 end
 
-require 'omf-expctl/graph/graph2'
-
 #def _load(file)
 #  eval "require('#{file}')", self.binding
 #end

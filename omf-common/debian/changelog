@@ -1,6 +1,6 @@
 omf-common-5.4 (5.4.3-ubuntu1) precise; urgency=low
 
-  * Ruby 1.9 compatiblity
+  * Ruby 1.9 compatibility
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 03 Sep 2013 14:22:30 +1000
 
@@ -36,13 +36,13 @@ omf-common-5.4 (5.4.2-ubuntu5) precise; urgency=low
 
 omf-common-5.4 (5.4.2-ubuntu4) precise; urgency=low
 
-  * Fix bug #903, message signature now done using WSS4R instead of xmlcanonicalizer library 
+  * Fix bug #903, message signature now done using WSS4R instead of xmlcanonicalizer library
 
  -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Fri, 16 Nov 2012 12:57:06 +1100
 
 omf-common-5.4 (5.4.2-ubuntu3) precise; urgency=low
 
-  * explicitly use ruby1.8 
+  * explicitly use ruby1.8
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Fri, 26 Oct 2012 06:12:23 +1100
 
@@ -66,13 +66,13 @@ omf-common-5.4 (5.4-ubuntu5) oneiric; urgency=low
 
 omf-common-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
-  * 5.4.1 release  
+  * 5.4.1 release
 
  -- Jack C Hong <jack.hong@nicta.com.au>  Tue, 07 Feb 2012 00:04:14 +0000
 
 omf-common-5.4 (5.4-ubuntu3) oneiric; urgency=low
 
-  * 5.4 release 
+  * 5.4 release
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Thu, 15 Dec 2011 14:29:32 +1100
 
@@ -132,7 +132,7 @@ omf-common-5.3 (1ubuntu4) testing; urgency=low
 
 omf-common-5.3 (1ubuntu3) testing; urgency=low
 
-  * Dev release, testing federation 
+  * Dev release, testing federation
 
  -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 17 Feb 2010 13:24:17 +1100
 

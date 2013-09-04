@@ -1,6 +1,6 @@
 omf-aggmgr-5.4 (5.4.3-ubuntu1) precise; urgency=low
 
-  * Ruby 1.9 compatiblity
+  * Ruby 1.9 compatibility
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 03 Sep 2013 14:21:33 +1000
 
@@ -42,7 +42,7 @@ omf-aggmgr-5.4 (5.4.2-ubuntu1) precise; urgency=low
 
 omf-aggmgr-5.4 (5.4-ubuntu4) oneiric; urgency=low
 
-  * 5.4.1 release 
+  * 5.4.1 release
 
  -- Jack C Hong <jack.hong@nicta.com.au>  Tue, 07 Feb 2012 00:05:16 +0000
 
@@ -54,7 +54,7 @@ omf-aggmgr-5.4 (5.4-ubuntu3) oneiric; urgency=low
 
 omf-aggmgr-5.4 (5.4-ubuntu2) oneiric; urgency=low
 
-  * pre-release for testing 
+  * pre-release for testing
 
  -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Mon, 12 Dec 2011 15:57:30 +1100
 
@@ -96,13 +96,13 @@ omf-aggmgr-5.3 (1ubuntu4) testing; urgency=low
 
 omf-aggmgr-5.3 (1ubuntu3) testing; urgency=low
 
-  * Dev release, testing federation 
+  * Dev release, testing federation
 
  -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Wed, 17 Feb 2010 13:23:30 +1100
 
 omf-aggmgr-5.3 (1ubuntu2) testing; urgency=low
 
-  * Development release of first sort-of stable version with support for federation 
+  * Development release of first sort-of stable version with support for federation
 
  -- Thierry Rakotoarivelo <Thierry.Rakotoarivelo@nicta.com.au>  Mon, 15 Feb 2010 11:35:45 +1100
 
