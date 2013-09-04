@@ -17,14 +17,14 @@ $stdout.sync = true
 
 #
 # Class to start an OMF RC. The configuration parameters can be set
-# in decreasing priority through the command line,  configuration 
-# file and default settings (see @def_opts). 
+# in decreasing priority through the command line,  configuration
+# file and default settings (see @def_opts).
 #
 # For historic reasons and to make this implementation more interesting
 # there are two different config file formats. A 'normal' one inherited from
 # earlier version of OMF, and an 'advanced' one which is identical to the
 # format accepted by OmfCommon.init(). To maintain some level of sanity,
-# only one configuration file is accepted. 
+# only one configuration file is accepted.
 #
 # Having said that, there is one exception and that relates to the 'oml'
 # configuration which is stripped out first and handed to the OML4R library
@@ -36,9 +36,9 @@ class OmfRcRunner
     @executable_name = File.basename($PROGRAM_NAME)
     @oml_enabled = false
     @gem_version = Gem::Specification.find_by_name('omf_rc').version.to_s
-    
+
     @node_id = Socket.gethostname
-    
+
     @def_opts = {
       uid: @node_id,
       uri: "xmpp:#{@node_id}-#{Process.pid}:#{@node_id}-#{Process.pid}@localhost",
@@ -46,40 +46,40 @@ class OmfRcRunner
       debug: false
     }
     @copts = {}
-    
+
     @gopts = {
       config_file: nil,
       adv_config_file: nil,
       logging_configfile: nil,
       environment: nil
     }
-    
+
     @opts = {}
     @omlopts = {appName: @executable_name}
   end
-  
+
   def run()
     setup()
     OmfCommon::Measure.enable if @oml_enabled
-    
+
     OmfCommon.init(@gopts[:environment], @opts) do |el|
       # Load a customised logging set up if provided
       OmfCommon.load_logging_config(@gopts[:logging_configfile]) if @gopts[:logging_configfile]
-    
+
       info "Starting OMF Resource Controller version '#{@gem_version}'"
-      
+
       #el.on_int_signal do # Implementation missing
       Signal.trap("SIGINT") do
         # TODO: Should release resources first
-        info "Stopping ..." 
+        info "Stopping ..."
         el.stop
       end
-    
+
       # Load extensions
       if @opts[:add_default_factories] != false
         OmfRc::ResourceFactory.load_default_resource_proxies
       end
-    
+
       @opts[:factories].each do |f|
         if (req = f[:require])
           begin
@@ -90,15 +90,15 @@ class OmfRcRunner
           end
         end
       end
-      
+
       OmfCommon.comm.on_connected do |comm|
         info "Connected using #{comm.conn_info}"
-    
+
         #if @opts[:auth] && @optss[:auth][:root_cert_dir]
         #  OmfCommon::Auth::CertificateStore.instance.register_default_certs(@opts[:auth][:root_cert_dir])
         #end
         #OmfCommon::Auth::CertificateStore.instance.register(entity) if entity
-    
+
         @opts[:resources].each do |res_opts|
           rtype = res_opts.delete(:type)
           res_creation_opts = res_opts.delete(:creation_opts)
@@ -111,19 +111,19 @@ class OmfRcRunner
             error "#{e.message}\n#{e.backtrace.join("\n")}"
           end
         end
-    
+
       end
     end
     info "Stopping OMF Resource Controller version '#{@gem_version}'"
   end
-  
+
   def setup()
     oml_init() # calls parse_config_files()
     unless @opts[:communication][:url]
       puts "Error: Missing parameters to connect to a PubSub Server (see --help)"
       exit(1)
     end
-    
+
     opts = @opts
     # TODO: This needs to be fixed
     if opts[:auth]
@@ -134,7 +134,7 @@ class OmfRcRunner
     end
     opts[:communication][:auth] = {} if entity
   end
-  
+
   def parse_config_files()
     @opts = {communication: {}, resources: [], factories: [], add_default_factories: true}
     config_file = @gopts[:config_file]
@@ -143,7 +143,7 @@ class OmfRcRunner
       puts "To avoid any unexpected surprises, you should stick to one form of config file"
       exit(1)
     end
-    
+
     if config_file
       cfg_opts =  OmfCommon.load_yaml(config_file, symbolize_keys: true, erb_process: true)
       copts = @def_opts.merge(cfg_opts.merge(@copts))
@@ -156,7 +156,7 @@ class OmfRcRunner
       @gopts[:environment] ||= copts[:environment]
       @omlopts.merge(copts[:oml] || {}) {|k, v1, v2| v1 } # merge in place as OML may hold @omlopts
     end
-    
+
     if adv_config_file
       aopts =  OmfCommon.load_yaml(adv_config_file, symbolize_keys: true, erb_process: true)
       aenv = aopts.delete(:environment)
@@ -166,45 +166,45 @@ class OmfRcRunner
       @omlopts.merge!(@opts.delete(:oml) || {}) {|k, v1, v2| v1 || v2 } # merge in place as OML may hold @omlopts
     end
   end
-  
+
   def oml_init
     begin
       @omlopts[:afterParse] = lambda {|o| parse_config_files() }
       @oml_enabled = OML4R::init(ARGV, @omlopts) do |op|
         op.banner = "OMF Resource Controller version '#{@gem_version}'\n"
         op.banner += "Usage: #{@executable_name} [options]"
-    
+
         op.on("-c CONFIGFILE", "Configuration File") do |file|
           @gopts[:config_file] = file
         end
-    
+
         op.on("-a ADVANCED_CONFIGFILE", "Advanced Configuration File") do |file|
           @gopts[:adv_config_file] = file
         end
-    
+
         op.on("--log_config CONFIGFILE", "Logging Configuration File") do |file|
           @gopts[:logging_configfile] = file
         end
-    
+
         op.on("-u URI", "Communication URI [#{@def_opts[:uri]}") do |uri|
           @copts[:uri] = uri
         end
-    
+
         op.on("-e ENVIRONMENT", "Environment (development, production ...) [#{@def_opts[:environment]}]") do |e|
           @gopts[:environment] = e
         end
-    
+
         op.on("-i UID", "UID (and pubsub topic) of the resource, [#{@def_opts[:uid]}]") do |uid|
           @copts[:uid] = uid
         end
-    
+
         op.on("-v", "--version", "Show version") do
           puts "OMF Resource Controller version '#{@gem_version}'"
           exit
         end
-    
+
         op.on("-h", "--help", "Show this message") do
-          puts opts
+          puts op
           exit
         end
       end
