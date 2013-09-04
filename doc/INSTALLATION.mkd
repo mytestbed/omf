@@ -34,19 +34,19 @@ Here are some examples for different operating systems:
 
 Type following in your console:
 
-    sudo apt-get install build-essential libxml2-dev libxslt-dev
+    sudo apt-get install build-essential libxml2-dev libxslt-dev libssl-dev
 
 #### Debian
 
 Type following in your console as root:
 
-    apt-get install curl build-essential libxml2-dev libxslt-dev
+    apt-get install curl build-essential libxml2-dev libxslt-dev libssl-dev
 
 #### Fedora
 
 Type following in your console:
 
-    sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel
+    sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel openssl-devel
     sudo yum update -y audit
 
 #### Mac OS X
