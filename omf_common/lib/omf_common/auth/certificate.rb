@@ -10,45 +10,32 @@ require 'uuidtools'
 
 module OmfCommon::Auth
 
+  class CertificateNoLongerValidException < AuthException; end
+
   class Certificate
     DEF_DOMAIN_NAME = 'acme'
     DEF_DURATION = 3600
 
     BEGIN_CERT = "-----BEGIN CERTIFICATE-----\n"
     END_CERT = "\n-----END CERTIFICATE-----\n"
-    @@serial = 0
+    BEGIN_KEY = "-----BEGIN RSA PRIVATE KEY-----\n"
+    END_KEY = "\n-----END RSA PRIVATE KEY-----\n"
 
     @@def_x509_name_prefix = [['C', 'US'], ['ST', 'CA'], ['O', 'ACME'], ['OU', 'Roadrunner']]
     @@def_email_domain = 'acme.org'
     #
     def self.default_domain(country, state, organisation, org_unit)
       @@def_x509_name_prefix = [
-        ['C', country.upcase],
-        ['ST', state.upcase],
-        ['O', organisation],
-        ['OU', org_unit]
+        ['C', c = country.upcase],
+        ['ST', st = state.upcase],
+        ['O', o = organisation],
+        ['OU', ou = org_unit]
       ]
+      "/C=#{c}/ST=#{st}/O=#{o}/OU=#{ou}"
     end
 
     def self.default_email_domain(email_domain)
       @@def_email_domain = email_domain
-    end
-
-    # @param [String] name unique name of the entity (resource name)
-    # @param [String] type type of the entity (resource type)
-    # @param [String] domain of the resource
-    #
-    def self.create(address, name, type, domain = DEF_DOMAIN_NAME, issuer = nil, not_before = Time.now, duration = 3600, key = nil)
-      subject = _create_name(name, type, domain)
-      if key.nil?
-        key, digest = _create_key()
-      else
-        digest = _create_digest
-      end
-
-      c = _create_x509_cert(address, subject, key, digest, issuer, not_before, duration)
-      c[:address] = address if address
-      self.new c
     end
 
     # @param [String] name unique name of the entity (resource name)
@@ -78,7 +65,8 @@ module OmfCommon::Auth
 
       addresses = opts[:addresses] || []
       addresses << "URI:uuid:#{opts[:resource_uuid]}" if opts[:resource_uuid]
-      addresses << (opts[:geni_uri] || "URI:urn:publicid:IDN+#{@@def_email_domain}+#{resource_type}+#{resource_id}")
+      email_domain = opts[:email] ? opts[:email].split('@')[1] : @@def_email_domain
+      addresses << (opts[:geni_uri] || "URI:urn:publicid:IDN+#{email_domain}+#{resource_type}+#{resource_id}")
           # opts[:frcp_uri] || "URI:frcp:#{user_id}@#{opts[:frcp_domain] || @@def_email_domain}",
           # opts[:http_uri] || "URI:http://#{opts[:http_prefix] || @@def_email_domain}/users/#{user_id}"
       not_before = opts[:not_before] || Time.now
@@ -102,23 +90,50 @@ module OmfCommon::Auth
       cert
     end
 
-
-    # @param [String] pem is the content of existing x509 cert
-    # @param [OpenSSL::PKey::RSA|String] key is the private key which can be attached to the instance for signing.
-    def self.create_from_x509(pem, key = nil)
+    # Return  a newly create certificate with properties tqken from
+    # 'pem' encoded string.
+    #
+    # @param [String] pem is the PEM encoded content of existing x509 cert
+    # @return [Certificate] Certificate object
+    #
+    def self.create_from_pem(pem_s, key = nil)
+      state = :seeking
+      cert_pem = []
+      key_pem = []
+      end_regexp = /^-*END/
+      pem_s.each_line do |line|
+        state = :seeking if line.match(end_regexp)
+        case state
+        when :seeking
+          case line
+          when /^-*BEGIN CERTIFICATE/
+            state = :cert
+          when /^-*BEGIN RSA PRIVATE KEY/
+            state = :key
+          end
+        when :cert
+          cert_pem << line
+        when :key
+          key_pem << line
+        else
+          raise "BUG: Unknown state '#{state}'"
+        end
+      end
       # Some command list generated cert can use \r\n as newline char
-      unless pem =~ /^-----BEGIN CERTIFICATE-----/
-        pem = "#{BEGIN_CERT}#{pem}#{END_CERT}"
+      cert_pem = cert_pem.join()
+      unless cert_pem =~ /^-----BEGIN CERTIFICATE-----/
+        cert_pem = "#{BEGIN_CERT}#{cert_pem.chomp}#{END_CERT}"
       end
-
-      cert = OpenSSL::X509::Certificate.new(pem)
-
-      key = OpenSSL::PKey::RSA.new(key) if key && key.is_a?(String)
-
-      if key && !cert.check_private_key(key)
-        raise ArgumentError, "Private key provided could not match the public key of given certificate"
+      opts = {}
+      opts[:cert] = OpenSSL::X509::Certificate.new(cert_pem)
+      if key_pem.size > 0
+        key_pem = key_pem.join()
+        unless key_pem =~ /^-----BEGIN RSA PRIVATE KEY-----/
+          key_pem = "#{BEGIN_KEY}#{key_pem.chomp}#{END_KEY}"
+        end
+        opts[:key] = OpenSSL::PKey::RSA.new(key_pem)
       end
-      self.new({ cert: cert, key: key })
+      self.new(opts)
     end
 
     # Returns an array with a new RSA key and a SHA1 digest
@@ -131,13 +146,6 @@ module OmfCommon::Auth
       OpenSSL::Digest::SHA1.new
     end
 
-    # @param [String] name unique name of the entity (resource name)
-    # @param [String] type type of the entity (resource type)
-    #
-    # def self._create_name(name, type, domain = DEF_DOMAIN_NAME)
-      # OpenSSL::X509::Name.new [['CN', "frcp//#{domain}//frcp.#{type}.#{name}"]], {}
-    # end
-
     # Create a X509 certificate
     #
     # @param [String] address
@@ -148,25 +156,30 @@ module OmfCommon::Auth
     def self._create_x509_cert(subject, key, digest = nil,
                               issuer = nil, not_before = Time.now, duration = DEF_DURATION, addresses = [])
 
+      if key.nil?
+        key, digest = _create_key()
+      else
+        digest = _create_digest
+      end
+
       cert = OpenSSL::X509::Certificate.new
       cert.version = 2
       # TODO change serial to non-sequential secure random numbers for production use
-      cert.serial = UUIDTools::UUID.random_create.to_i #(@@serial += 1)
+      cert.serial = UUIDTools::UUID.random_create.to_i
       cert.subject = subject
       cert.public_key = key.public_key
       cert.not_before = not_before
       cert.not_after = not_before + duration
       #extensions << ["subjectAltName", "URI:http://foo.com/users/dc766130, URI:frcp:dc766130-c822-11e0-901e-000c29f89f7b@foo.com", false]
+
+      issuer_cert = issuer ? issuer.to_x509 : cert
+      ef = OpenSSL::X509::ExtensionFactory.new
+      ef.subject_certificate = cert
+      ef.issuer_certificate = issuer_cert
       unless addresses.empty?
-        issuer_cert = issuer ? issuer.to_x509 : cert
-        ef = OpenSSL::X509::ExtensionFactory.new
-        ef.subject_certificate = cert
-        ef.issuer_certificate = issuer_cert
         cert.add_extension(ef.create_extension("subjectAltName", addresses.join(','), false))
-        # extensions.each{|oid, value, critical|
-          # cert.add_extension(ef.create_extension(oid, value, critical))
-        # }
       end
+
       if issuer
         cert.issuer = issuer.subject
         cert.sign(issuer.key, issuer.digest)
@@ -174,6 +187,13 @@ module OmfCommon::Auth
         # self signed
         cert.issuer = subject
         cert.sign(key, digest)
+
+        # Not exactly sure if that's the right extensions to add. Copied from
+        # http://www.ruby-doc.org/stdlib-1.9.3/libdoc/openssl/rdoc/OpenSSL/X509/Certificate.html
+        cert.add_extension(ef.create_extension("basicConstraints", "CA:TRUE", true))
+        cert.add_extension(ef.create_extension("keyUsage", "keyCertSign, cRLSign", true))
+        cert.add_extension(ef.create_extension("subjectKeyIdentifier", "hash", false))
+        cert.add_extension(ef.create_extension("authorityKeyIdentifier", "keyid:always", false))
       end
       { cert: cert, key: key }
     end
@@ -186,47 +206,41 @@ module OmfCommon::Auth
         @subject = @cert.subject
       end
       _extract_addresses(@cert)
-      # unless @address = opts[:address]
-        # # try to see it it is in cert
-        # if @cert
-          # @cert.extensions.each do |ext|
-            # if ext.oid == 'subjectAltName'
-              # @address = ext.value[4 .. -1] # strip off 'URI:'
-            # end
-          # end
-        # end
-      # end
-      if @key = opts[:key]
-        @digest = opts[:digest] || self.class._create_digest
-      end
       unless @subject ||= opts[:subject]
         name = opts[:name]
         type = opts[:type]
         domain = opts[:domain]
         @subject = _create_name(name, type, domain)
       end
-      #@cert ||= _create_x509_cert(@address, @subject, @key, @digest)[:cert]
-      @cert ||= _create_x509_cert(@subject, @key, @digest)[:cert]
+      if key = opts[:key]
+        @digest = opts[:digest] || self.class._create_digest
+      end
+      if @cert
+        self.key = key # this verifies that key is the right one for this cert
+      else
+        #@cert ||= _create_x509_cert(@address, @subject, @key, @digest)[:cert]
+        @cert = self.class._create_x509_cert(@subject, key, @digest)[:cert]
+        @key = key
+      end
     end
 
-    # @param [OpenSSL::PKey::RSA|String] key is most likely the public key of the resource.
-    #
-    # def create_for(address, name, type, domain = DEF_DOMAIN_NAME, duration = 3600, key = nil)
-      # raise ArgumentError, "Address required" unless address
-#
-      # begin
-        # key = OpenSSL::PKey::RSA.new(key) if key && key.is_a?(String)
-      # rescue OpenSSL::PKey::RSAError
-        # # It might be a SSH pub key, try that
-        # key = OmfCommon::Auth::SSHPubKeyConvert.convert(key)
-      # end
-#
-      # cert = self.class.create(address, name, type, domain, self, Time.now, duration, key)
-      # CertificateStore.instance.register(cert, address)
-      # cert
-    # end
+    def valid?
+      now = Time.new
+      (@cert.not_before <= now && now <= @cert.not_after)
+    end
+
+    def key=(key)
+      if @cert && !@cert.check_private_key(key)
+        raise ArgumentError, "Private key provided could not match the public key of given certificate"
+      end
+      @key = key
+    end
 
     def create_for_resource(resource_id, resource_type, opts = {})
+      unless valid?
+        raise CertificateNoLongerValidException.new
+      end
+      resource_id ||= UUIDTools::UUID.random_create()
       unless opts[:resource_uuid]
         if resource_id.is_a? UUIDTools::UUID
           opts[:resource_uuid] = resource_id
@@ -245,6 +259,9 @@ module OmfCommon::Auth
 
     # See #create_for_resource for documentation on 'opts'
     def create_for_user(name, opts = {})
+      unless valid?
+        raise CertificateNoLongerValidException.new
+      end
       email = opts[:email] || "#{name}@#{@@def_email_domain}"
       user_id = opts[:user_id] || UUIDTools::UUID.sha1_create(UUIDTools::UUID_URL_NAMESPACE, email)
       opts[:cn] = "#{user_id}/emailAddress=#{email}"
@@ -254,19 +271,25 @@ module OmfCommon::Auth
       create_for_resource(user_id, :user, opts)
     end
 
-
-
     # Return the X509 certificate. If it hasn't been passed in, return a self-signed one
     def to_x509()
       @cert
     end
 
     def can_sign?
-      !@key.nil? && @key.private?
+      valid? && !@key.nil? && @key.private?
+    end
+
+    def root_ca?
+      subject == @cert.issuer
     end
 
     def to_pem
       to_x509.to_pem
+    end
+
+    def to_pem_with_key
+      to_x509.to_pem + @key.to_pem
     end
 
     def to_pem_compact
@@ -281,12 +304,28 @@ module OmfCommon::Auth
       end
     end
 
+    # Return a hash of some of the key properties of this cert.
+    # To get the full monty, use 'openssl x509 -in xxx.pem -text'
+    #
+    def describe
+      {
+        subject: subject,
+        issuer: @cert.issuer,
+        addresses: addresses,
+        can_sign: can_sign?,
+        root_ca: root_ca?,
+        valid: valid?,
+        valid_period: [@cert.not_before, @cert.not_after]
+      }
+      #(@cert.methods - Object.new.methods).sort
+    end
+
     # Will return one of the following
     #
     # :HS256, :HS384, :HS512, :RS256, :RS384, :RS512, :ES256, :ES384, :ES512
     #
     # def key_algorithm
-#
+    #
     # end
 
     def to_s
