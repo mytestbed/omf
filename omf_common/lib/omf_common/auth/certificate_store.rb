@@ -82,9 +82,6 @@ module OmfCommon::Auth
     end
 
     def cert_for(url)
-      # if url.is_a? String
-        # url = OpenSSL::X509::Name.new [['CN', url]]
-      # end
       unless cert = @certs[url]
         warn "Unknown cert '#{url}'"
         raise MissingCertificateException.new(url)
