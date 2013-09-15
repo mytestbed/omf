@@ -10,6 +10,18 @@ require 'omf_common/comm/xmpp/topic'
 require 'uri'
 require 'socket'
 
+module Blather
+  class Stream
+    def unbind
+      cleanup
+      raise NoConnection unless @inited
+      @state = :stopped
+      @client.receive_data @error if @error
+      @client.unbind
+    end
+  end
+end
+
 module OmfCommon
 class Comm
   class XMPP
@@ -19,6 +31,8 @@ class Comm
       attr_accessor :published_messages, :normal_shutdown_mode, :retry_counter
 
       HOST_PREFIX = 'pubsub'
+      RETRY_INTERVAL = 5
+      PING_INTERVAL = 5
 
       PUBSUB_CONFIGURE = Blather::Stanza::X.new({
         :type => :submit,
@@ -65,24 +79,35 @@ class Comm
 
         @retry_counter = 0
         @normal_shutdown_mode = false
+        @pong = true
 
         connect(username, password, server)
 
         when_ready do
-          @cbks[:connected].each { |cbk| cbk.call(self) }
+          @ping_alive_timer = OmfCommon.el.every(PING_INTERVAL) do
+            if @pong
+              ping_alive
+            else
+              warn "No connection..."
+              @ping_alive_timer.cancel
+              @not_initial_connection = true
+              OmfCommon.el.after(RETRY_INTERVAL) do
+                client.run
+              end
+            end
+          end
+          info "Reconnected" if @not_initial_connection
+          @cbks[:connected].each { |cbk| cbk.call(self) } unless @not_initial_connection
         end
 
         disconnected do
-          unless normal_shutdown_mode
-            unless retry_counter > 0
-              @retry_counter += 1
-              client.connect
-            else
-              error "Authentication failed."
-              OmfCommon.eventloop.stop
-            end
-          else
+          if normal_shutdown_mode
             shutdown
+          else
+            warn "No connection..."
+            OmfCommon.el.after(RETRY_INTERVAL) do
+              client.run
+            end
           end
         end
 
@@ -98,15 +123,21 @@ class Comm
         info "Connecting to '#{server}' ..."
         jid = "#{username}@#{server}"
         client.setup(jid, password)
-        client.run
-        MPConnection.inject(Time.now.to_f, jid, 'connect') if OmfCommon::Measure.enabled?
+        begin
+          client.run
+        rescue ::EventMachine::ConnectionError => e
+          warn "[#{e.class}] #{e}, try again..."
+          OmfCommon.el.after(RETRY_INTERVAL) do
+            connect(username, password, server)
+          end
+        end
       end
 
       # Shut down XMPP connection
       def disconnect(opts = {})
         # NOTE Do not clean up
-        info "Disconnecting ..."
         @normal_shutdown_mode = true
+        info "Disconnecting..."
         shutdown
         OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_f, jid, 'disconnect') if OmfCommon::Measure.enabled?
       end
@@ -227,6 +258,18 @@ class Comm
 
       def default_host
         @pubsub_host || "#{HOST_PREFIX}.#{jid.domain}"
+      end
+
+      def ping_alive
+        @pong = false
+        client.write_with_handler Blather::Stanza::Iq::Ping.new(:get, jid.domain) do |response|
+          @pong = true
+          begin
+            handle_error response if response.is_a? Blather::BlatherError
+          rescue ProtocolError => e
+            raise unless e.name == :feature_not_implemented
+          end
+        end
       end
     end
   end
