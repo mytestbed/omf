@@ -9,7 +9,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-PATH=$PATH:/usr/local/bin
+PATH=$PATH:/usr/bin:/usr/local/bin
 DAEMON=/usr/local/bin/run_omf_rc.sh
 [ -x "$DAEMON" ] || exit 0
 NAME=omf_rc
