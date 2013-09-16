@@ -4,5 +4,5 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfRc
-  VERSION = "6.0.5"
+  VERSION = "6.0.6"
 end
