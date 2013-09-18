@@ -121,6 +121,7 @@ class Comm
       #
       def connect(username, password, server)
         info "Connecting to '#{server}' ..."
+        username.downcase!
         jid = "#{username}@#{server}"
         client.setup(jid, password)
         begin
