@@ -144,6 +144,11 @@ class OmfRcRunner
       exit(1)
     end
 
+    if !config_file && !adv_config_file
+      puts "You must specify a config file"
+      exit(1)
+    end
+
     if config_file
       cfg_opts =  OmfCommon.load_yaml(config_file, symbolize_keys: true, erb_process: true)
       copts = @def_opts.merge(cfg_opts.merge(@copts))
@@ -186,17 +191,17 @@ class OmfRcRunner
           @gopts[:logging_configfile] = file
         end
 
-        op.on("-u URI", "Communication URI [#{@def_opts[:uri]}") do |uri|
-          @copts[:uri] = uri
-        end
+        # op.on("-u URI", "Communication URI [#{@def_opts[:uri]}") do |uri|
+        #   @copts[:uri] = uri
+        # end
 
         op.on("-e ENVIRONMENT", "Environment (development, production ...) [#{@def_opts[:environment]}]") do |e|
           @gopts[:environment] = e
         end
 
-        op.on("-i UID", "UID (and pubsub topic) of the resource, [#{@def_opts[:uid]}]") do |uid|
-          @copts[:uid] = uid
-        end
+        # op.on("-i UID", "UID (and pubsub topic) of the resource, [#{@def_opts[:uid]}]") do |uid|
+        #   @copts[:uid] = uid
+        # end
 
         op.on("-v", "--version", "Show version") do
           puts "OMF Resource Controller version '#{@gem_version}'"
