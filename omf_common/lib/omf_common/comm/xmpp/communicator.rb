@@ -3,12 +3,14 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
+require 'blather'
 require 'blather/client/dsl'
 
 require 'omf_common/comm/xmpp/xmpp_mp'
 require 'omf_common/comm/xmpp/topic'
 require 'uri'
 require 'socket'
+require 'monitor'
 
 module Blather
   class Stream
@@ -18,6 +20,12 @@ module Blather
       @state = :stopped
       @client.receive_data @error if @error
       @client.unbind
+    end
+  end
+
+  class Client
+    def state
+      @state
     end
   end
 end
@@ -31,8 +39,8 @@ class Comm
       attr_accessor :published_messages, :normal_shutdown_mode, :retry_counter
 
       HOST_PREFIX = 'pubsub'
-      RETRY_INTERVAL = 5
-      PING_INTERVAL = 5
+      RETRY_INTERVAL = 180
+      PING_INTERVAL = 1800
 
       PUBSUB_CONFIGURE = Blather::Stanza::X.new({
         :type => :submit,
@@ -61,6 +69,8 @@ class Comm
       # Set up XMPP options and start the Eventmachine, connect to XMPP server
       #
       def init(opts = {})
+        @lock = Monitor.new
+
         @pubsub_host = opts[:pubsub_domain]
         if opts[:url]
           url = URI(opts[:url])
@@ -79,34 +89,56 @@ class Comm
 
         @retry_counter = 0
         @normal_shutdown_mode = false
-        @pong = true
 
+        username.downcase!
+        jid = "#{username}@#{server}"
+        client.setup(jid, password)
         connect(username, password, server)
 
         when_ready do
-          @ping_alive_timer = OmfCommon.el.every(PING_INTERVAL) do
-            if @pong
-              ping_alive
-            else
-              warn "No connection..."
-              @ping_alive_timer.cancel
+          if @not_initial_connection
+            info "Reconnected"
+          else
+            info "Connected"
+            @cbks[:connected].each { |cbk| cbk.call(self) }
+            # It will be reconnection after this
+            @lock.synchronize do
               @not_initial_connection = true
-              OmfCommon.el.after(RETRY_INTERVAL) do
-                client.run
+            end
+          end
+
+          @lock.synchronize do
+            @pong = true
+            @ping_alive_timer = OmfCommon.el.every(PING_INTERVAL) do
+              if @pong
+                @lock.synchronize do
+                  @pong = false # Reset @pong
+                end
+                ping_alive
+              else
+                warn "No PONG. No connection..."
+                @lock.synchronize do
+                  @ping_alive_timer.cancel
+                end
+                connect(username, password, server)
               end
             end
           end
-          info "Reconnected" if @not_initial_connection
-          @cbks[:connected].each { |cbk| cbk.call(self) } unless @not_initial_connection
         end
 
         disconnected do
+          @lock.synchronize do
+            @pong = false # Reset @pong
+            @ping_alive_timer && @ping_alive_timer.cancel
+          end
+
           if normal_shutdown_mode
             shutdown
           else
-            warn "No connection..."
-            OmfCommon.el.after(RETRY_INTERVAL) do
-              client.run
+            warn "Disconnected... Last known state: #{client.state}"
+            retry_interval = client.state == :initializing ? 0 : RETRY_INTERVAL
+            OmfCommon.el.after(retry_interval) do
+              connect(username, password, server)
             end
           end
         end
@@ -121,12 +153,9 @@ class Comm
       #
       def connect(username, password, server)
         info "Connecting to '#{server}' ..."
-        username.downcase!
-        jid = "#{username}@#{server}"
-        client.setup(jid, password)
         begin
           client.run
-        rescue ::EventMachine::ConnectionError => e
+        rescue ::EventMachine::ConnectionError, Blather::Stream::ConnectionTimeout, Blather::Stream::NoConnection, Blather::Stream::ConnectionFailed => e
           warn "[#{e.class}] #{e}, try again..."
           OmfCommon.el.after(RETRY_INTERVAL) do
             connect(username, password, server)
@@ -137,7 +166,9 @@ class Comm
       # Shut down XMPP connection
       def disconnect(opts = {})
         # NOTE Do not clean up
-        @normal_shutdown_mode = true
+        @lock.synchronize do
+          @normal_shutdown_mode = true
+        end
         info "Disconnecting..."
         shutdown
         OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_f, jid, 'disconnect') if OmfCommon::Measure.enabled?
@@ -262,13 +293,10 @@ class Comm
       end
 
       def ping_alive
-        @pong = false
         client.write_with_handler Blather::Stanza::Iq::Ping.new(:get, jid.domain) do |response|
-          @pong = true
-          begin
-            handle_error response if response.is_a? Blather::BlatherError
-          rescue ProtocolError => e
-            raise unless e.name == :feature_not_implemented
+          info response
+          @lock.synchronize do
+            @pong = true
           end
         end
       end
