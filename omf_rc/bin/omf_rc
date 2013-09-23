@@ -72,7 +72,7 @@ class OmfRcRunner
       Signal.trap("SIGINT") do
         # TODO: Should release resources first
         info "Stopping ..."
-        el.stop
+        OmfCommon.comm.disconnect
       end
 
       # Load extensions
