@@ -174,6 +174,19 @@ module OmfEc
       end
     end
 
+    # Define a new graph widget showing experiment related measurements to be
+    # be used in a LabWiki column.
+    #
+    # The block is called with an instance of the 'LabWiki::OMFBridge::GraphDescription'
+    # class. See that classes' documentation on the methods supported.
+    #
+    # @param name short/easy to remember name for this graph
+    def def_graph(name = nil, &block)
+      gd = OmfEc::Graph::GraphDescription.create(name)
+      block.call(gd)
+      gd._report
+    end
+
     include OmfEc::Backward::DSL
   end
 end

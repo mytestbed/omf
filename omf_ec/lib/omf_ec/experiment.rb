@@ -160,6 +160,14 @@ module OmfEc
       end
     end
 
+    def mp_table_names
+      {}.tap do |m_t_n|
+        groups.map(&:app_contexts).flatten.map(&:mp_table_names).each do |v|
+          m_t_n.merge!(v)
+        end
+      end
+    end
+
     # Purely for backward compatibility
     class << self
       # Disconnect communicator, try to delete any XMPP affiliations

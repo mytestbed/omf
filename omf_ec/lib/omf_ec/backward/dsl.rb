@@ -15,6 +15,7 @@ module OmfEc
           v5_style(:onEvent, base)
           v5_style(:allGroups, base)
           v5_style(:allNodes!, base)
+          v5_style(:defGraph, base)
         end
 
         def v5_style(name, base)
