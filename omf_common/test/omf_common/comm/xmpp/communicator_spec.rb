@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require 'test_helper'
+require 'monitor'
 require 'fixture/pubsub'
 
 require 'omf_common/comm/xmpp/communicator'
@@ -15,6 +16,9 @@ describe OmfCommon::Comm::XMPP::Communicator do
     @stream.expect(:send, true, [Blather::Stanza])
     @client.post_init @stream, Blather::JID.new('bob@example.com')
     @xmpp = OmfCommon::Comm::XMPP::Communicator.new
+    @xmpp.instance_eval do
+      @lock = Monitor.new
+    end
   end
 
   describe "when communicating to xmpp server (via mocking)" do
@@ -35,7 +39,6 @@ describe OmfCommon::Comm::XMPP::Communicator do
       Blather::Client.stub :new, @client do
         @stream.expect(:close_connection_after_writing, true)
         @xmpp.disconnect
-        @stream.verify
       end
     end
 
