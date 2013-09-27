@@ -52,7 +52,11 @@ arg_name "path_to_script_file [-- --experiment_property value]"
 command :exec do |c|
   c.desc "Experiment name"
   c.arg_name "experiment_name"
-  c.flag [:e, :experiment]
+  c.flag [:e, :experiment, "experiment-id"]
+
+  c.desc "Slice name [Deprecated]"
+  c.arg_name "slice_name"
+  c.flag [:slice]
 
   c.desc "Default OML URI to use for collecting measurements"
   c.arg_name "uri"
