@@ -128,16 +128,12 @@ For OMF, we recommend using Openfire. Other XMPP servers may work as well, but t
 * make sure ports TCP 5222, 5269 and 9090 are open in your firewall
 * Openfire 3.8.1 requires Java, but has some issues with OpenJDK. Instead we recommend to install Oracle Java 7. Ubuntu users can follow [this guide](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html).
 * after installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
-
-	wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
-	dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
-
+<pre>wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
+dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb</pre>
 * on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
 * check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
 * if openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA_HOME for your Java installation, e.g.:
-
-    JAVA_HOME=/usr/lib/jvm/java-7-oracle
-
+<pre>JAVA_HOME=/usr/lib/jvm/java-7-oracle</pre>
 * direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
 * choose your language and click continue
 * enter the XMPP server's hostname (e.g. xmpp.domain.com or localhost) in the Domain field and click continue
