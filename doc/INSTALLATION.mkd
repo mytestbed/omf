@@ -129,8 +129,8 @@ For OMF, we recommend using Openfire. Other XMPP servers may work as well, but t
 * Openfire 3.8.1 requires Java, but has some issues with OpenJDK. Instead we recommend to install Oracle Java 7. Ubuntu users can follow [this guide](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html).
 * after installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
 
-    wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
-    dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
+	wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
+	dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
 
 * on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
 * check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
