@@ -50,7 +50,7 @@ module OmfEc
       def wait(duration)
         info "Request from Experiment Script: Wait for #{duration}s...."
         warn "Calling 'wait' or 'sleep' will block entire EC event loop. Please try 'after' or 'every'"
-        sleep duration
+        sleep duration.to_s.to_i
       end
     end
   end
