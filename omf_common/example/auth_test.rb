@@ -18,8 +18,8 @@ opts = {
     auth: {
       authenticate: true,
       pdp: {
-        require: 'omf_common/auth/pdp/rete_pdp',
-        constructor: 'OmfCommon::Auth::PDP::RetePDP'
+        require: 'omf_common/auth/pdp/test_pdp',
+        constructor: 'OmfCommon::Auth::PDP::TestPDP'
       }
     }
   }
