@@ -51,18 +51,21 @@ module OmfCommon
 
     # Parse message from 'str' and pass it to 'block'.
     # If authentication is on, the message will only be handed
-    # to 'block' if the source of the message can be authenticated.
+    # to 'block' if the source of the message can be authorized.
     #
     def self.parse(str, content_type = nil, &block)
       raise ArgumentError, 'Need message handling block' unless block
       msg = @@message_class.parse(str, content_type)
       if @@authorisation_hook
-        msg = @@authorisation_hook.authorise(msg)
+        # Hook will return message if it's authorized. Handing in
+        # dispatch block in case hook needs more time for authorization.
+        msg = @@authorisation_hook.authorize(msg, &block)
       end
       block.call(msg) if msg
     end
 
     def self.init(opts = {})
+      puts opts.inspect
       if @@message_class
         raise "Message provider already iniitalised"
       end
@@ -80,10 +83,20 @@ module OmfCommon
       else
         raise "Missing provider class info - :constructor"
       end
-      @@authenticate_messages = opts[:authenticate] if opts[:authenticate]
-      # TODO: This most likely needs more work as we are expecting a lambda for the hook
-      @@authorisation_hook = opts[:authorisation_hook]
+      aopts = opts[:authenticate] || {}
+      @@authenticate_messages = opts[:authenticate] && !(aopts[:authenticate] == false)
+      if pdp_opts = (opts[:authenticate] || {})[:pdp]
+        require pdp_opts.delete(:require) if pdp_opts[:require]
+        unless pdp_constructor = pdp_opts.delete(:constructor)
+          raise "Missing PDP provider declaration."
+        end
+
+        pdp_class = pdp_constructor.split('::').inject(Object) {|c,n| c.const_get(n) }
+        @@authorisation_hook = pdp_class.new(pdp_opts)
+      end
     end
+
+    attr_reader :issuer
 
     OMF_CORE_READ.each do |pname|
       define_method(pname.to_s) do |*args|
