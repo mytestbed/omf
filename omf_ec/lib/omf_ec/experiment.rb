@@ -140,7 +140,7 @@ module OmfEc
 
     # Unique experiment id
     def id
-      @name.nil? ? @id : "#{@name}-#{@id}"
+      @name.nil? ? @id : @name
     end
 
     # Parsing user defined events, checking conditions against internal state, and execute callbacks if triggered

@@ -22,7 +22,7 @@ module OmfEc::Context
         @@context_count[name] = 0 unless @@context_count.key?(name)
         id = @@context_count[name]
         @@context_count[name] += 1
-        self.name = "#{name}_cxt_#{id}"
+        self.name = name
         @group = group
         self
       else
