@@ -47,42 +47,25 @@ module OmfCommon::Auth
 
     def register(certificate)
       raise "Expected Certificate, but got '#{certificate.class}'" unless certificate.is_a? Certificate
-      @@instance.synchronize do
-        # begin
-          # @x509_store.add_cert(certificate.to_x509) if @certs[address].nil? && @certs[certificate.subject].nil?
-        # rescue OpenSSL::X509::StoreError => e
-          # if e.message == "cert already in hash table"
-            # raise "X509 cert '#{address}' already registered in X509 store"
-          # else
-            # raise e
-          # end
-        # end
 
-        # address ||= certificate.address
-#
-        # if address
-          # @certs[address] ||= certificate
-        # else
-          # debug "Register certificate without address - #{certificate}, is it a CA cert?"
-        # end
-        #puts "SUBJECT>> '#{certificate.subject.to_s}'::'#{certificate.subject.class}"
-        @certs[certificate.subject] = certificate
-        @certs[certificate.subject.to_s] = certificate
-        # certificate.addresses_raw do |addr|
-          # @certs[addr] = certificate
-        # end
+      debug "Registering certificate for '#{certificate.addresses}'"
+      @@instance.synchronize do
+        certificate.addresses.each do |type, name|
+          @certs[name] = certificate
+          @certs[name.to_s] = certificate
+        end
       end
     end
 
-    def register_x509(cert_pem, address = nil)
-      if (cert = Certificate.create_from_x509(cert_pem))
+    def register_x509(cert_pem)
+      if (cert = Certificate.create_from_pem(cert_pem))
         debug "REGISTERED #{cert}"
-        register(cert, address)
+        register(cert)
       end
     end
 
     def cert_for(url)
-      unless cert = @certs[url]
+      unless cert = @certs[url.to_s]
         warn "Unknown cert '#{url}'"
         raise MissingCertificateException.new(url)
       end

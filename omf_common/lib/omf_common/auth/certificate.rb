@@ -67,6 +67,12 @@ module OmfCommon::Auth
       addresses << "URI:uuid:#{opts[:resource_uuid]}" if opts[:resource_uuid]
       email_domain = opts[:email] ? opts[:email].split('@')[1] : @@def_email_domain
       addresses << (opts[:geni_uri] || "URI:urn:publicid:IDN+#{email_domain}+#{resource_type}+#{resource_id}")
+      if frcp_uri = opts[:frcp_uri]
+        unless frcp_uri.to_s.start_with? 'URI'
+          frcp_uri = "URI:frcp:#{frcp_uri}"
+        end
+        addresses << frcp_uri
+      end
           # opts[:frcp_uri] || "URI:frcp:#{user_id}@#{opts[:frcp_domain] || @@def_email_domain}",
           # opts[:http_uri] || "URI:http://#{opts[:http_prefix] || @@def_email_domain}/users/#{user_id}"
       not_before = opts[:not_before] || Time.now
@@ -216,7 +222,7 @@ module OmfCommon::Auth
         @digest = opts[:digest] || self.class._create_digest
       end
       if @cert
-        self.key = key # this verifies that key is the right one for this cert
+        self.key = key if key # this verifies that key is the right one for this cert
       else
         #@cert ||= _create_x509_cert(@address, @subject, @key, @digest)[:cert]
         @cert = self.class._create_x509_cert(@subject, key, @digest)[:cert]
@@ -329,7 +335,7 @@ module OmfCommon::Auth
     # end
 
     def to_s
-      "#<#{self.class} addr=#{@address} subj=#{@subject} can-sign=#{@key != nil}>"
+      "#<#{self.class} subj=#{@subject} can-sign=#{@key != nil}>"
     end
 
     def _extract_addresses(cert)
