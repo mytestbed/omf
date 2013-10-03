@@ -271,8 +271,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         appenders: {
           stdout: {
             date_pattern: '%H:%M:%S',
-            pattern: '%d %-5l %c{2}: %m\n',
-            color_scheme: 'default'
+            pattern: '%d %-5l %c{2}: %m\n'
           }
         }
       }

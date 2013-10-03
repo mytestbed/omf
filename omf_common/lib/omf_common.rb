@@ -35,7 +35,7 @@ module OmfCommon
           stdout: {
             date_pattern: '%H:%M:%S',
             pattern: '%d %5l %c{2}: %m\n',
-            color_scheme: 'default'
+            color_scheme: 'none'
           }
         }
       }
