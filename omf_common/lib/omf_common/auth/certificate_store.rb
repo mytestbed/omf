@@ -48,11 +48,14 @@ module OmfCommon::Auth
     def register(certificate)
       raise "Expected Certificate, but got '#{certificate.class}'" unless certificate.is_a? Certificate
 
-      debug "Registering certificate for '#{certificate.addresses}'"
+      debug "Registering certificate for '#{certificate.addresses}' - #{certificate.subject}"
       @@instance.synchronize do
+        _set(certificate.subject, certificate)
+        if rid = certificate.resource_id
+          _set(rid, certificate)
+        end
         certificate.addresses.each do |type, name|
-          @certs[name] = certificate
-          @certs[name.to_s] = certificate
+          _set(name, certificate)
         end
       end
     end
@@ -105,6 +108,17 @@ module OmfCommon::Auth
       @serial = 0
 
       super()
+    end
+
+    def _set(name, certificate)
+      if old = @certs[name]
+        return if old.to_pem == certificate.to_pem
+        warn "Overriding certificate '#{name}' - new: #{certificate.subject} old: #{old.subject}"
+      end
+      @certs[name] = certificate
+      unless name.is_a? String
+        _set(name.to_s, certificate)
+      end
     end
   end # class
 

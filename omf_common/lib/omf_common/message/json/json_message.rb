@@ -38,7 +38,8 @@ module OmfCommon
             mid: SecureRandom.uuid,
             props: properties
           })
-          self.new(content)
+          issuer = self.authenticate? ? (body[:issuer] || body[:src]) : nil
+          self.new(content, issuer)
         end
 
         def self.create_inform_message(itype = nil, properties = {}, body = {})
@@ -185,7 +186,9 @@ module OmfCommon
           #puts @content.inspect
           payload = @content.to_json
           if self.class.authenticate?
-             issuer = self.issuer || @content[:src]
+             unless issuer = self.issuer
+               raise "Missing ISSUER for '#{self}'"
+             end
              if issuer.is_a? OmfCommon::Auth::CertificateStore
                cert = issuer
                issuer = cert.subject
