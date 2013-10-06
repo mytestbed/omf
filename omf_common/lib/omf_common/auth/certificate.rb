@@ -204,13 +204,14 @@ module OmfCommon::Auth
       { cert: cert, key: key }
     end
 
-    attr_reader :addresses, :addresses_raw, :addresses_string
+    attr_reader :addresses, :resource_id # :addresses_raw, :addresses_string
     attr_reader :subject, :key, :digest
 
     def initialize(opts)
       if @cert = opts[:cert]
         @subject = @cert.subject
       end
+      @resource_id = opts[:resource_id]
       _extract_addresses(@cert)
       unless @subject ||= opts[:subject]
         name = opts[:name]
