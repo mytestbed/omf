@@ -32,10 +32,13 @@ $stdout.sync = true
 #
 class OmfRcRunner
   def initialize()
-    @options = {}
     @executable_name = File.basename($PROGRAM_NAME)
     @oml_enabled = false
-    @gem_version = Gem::Specification.find_by_name('omf_rc').version.to_s
+    begin
+      @gem_version = Gem::Specification.find_by_name('omf_rc').version.to_s
+    rescue Exception
+      @gem_version = 'Unknown'
+    end
     
     @node_id = Socket.gethostname
     
@@ -148,6 +151,9 @@ class OmfRcRunner
       cfg_opts =  OmfCommon.load_yaml(config_file, symbolize_keys: true, erb_process: true)
       copts = @def_opts.merge(cfg_opts.merge(@copts))
       @opts[:communication][:url] = copts[:uri]
+      if auth = copts[:auth]
+        @opts[:communication][:auth] = auth
+      end
       @opts[:resources] = copts[:resources] || [{ type: :node, uid: copts[:uid] }]
       @opts[:factories] = copts[:factories] if copts[:factories]
       if copts[:add_default_factories] == false
@@ -204,7 +210,7 @@ class OmfRcRunner
         end
     
         op.on("-h", "--help", "Show this message") do
-          puts opts
+          puts op
           exit
         end
       end
@@ -212,6 +218,7 @@ class OmfRcRunner
       puts "Warning: #{e.message} to instrument this RC, so it will run without instrumentation. (see --oml-help)"
     rescue => e
       puts e.message
+      #puts e.backtrace
       exit(1)
     end
   end
