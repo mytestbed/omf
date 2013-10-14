@@ -2,7 +2,7 @@ Source: omf-expctl-5.4
 Section: science
 Priority: extra
 Maintainer: Christoph Dwertmann <christoph.dwertmann@nicta.com.au>
-Build-Depends: debhelper (>= 5), rake
+Build-Depends: debhelper (>= 5), ruby1.9.1-dev
 Standards-Version: 3.7.2
 
 Package: omf-expctl-5.4

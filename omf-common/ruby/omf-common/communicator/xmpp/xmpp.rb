@@ -1,5 +1,5 @@
 require 'rubygems'
-gem 'xmpp4r', '=0.5'
+gem 'xmpp4r', '>=0.5'
 require 'xmpp4r'
 require 'omf-common/mobject'
 require 'omf-common/communicator/xmpp/omfXMPPServices'

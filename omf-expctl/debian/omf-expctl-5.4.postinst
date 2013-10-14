@@ -30,7 +30,7 @@ case "$1" in
 
     cd /usr/share/omf-expctl-$VER/gems
     echo "Installing gems for OMF to $PWD"
-    rake=/usr/bin/rake GEM_PATH=$PWD gem install --no-ri --no-rdoc -l -f -i . cache/*.gem
+    rake=/usr/bin/rake1.9.1 GEM_PATH=$PWD gem1.9.1 install --no-ri --no-rdoc -l -f -i . cache/*.gem
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

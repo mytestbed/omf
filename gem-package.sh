@@ -1,8 +1,8 @@
 #!/bin/bash
-export rake=/usr/bin/rake
+export rake=/usr/bin/rake1.9.1
 export GEM_PATH=$PWD/gems
 mkdir -p $GEM_PATH
-gem="gem install --no-rdoc --no-ri -i $GEM_PATH"
+gem="gem1.9.1 install --no-rdoc --no-ri -i $GEM_PATH"
 echo "Downloading ruby gems required for OMF. This may take a while..."
 
 # read Gemfile

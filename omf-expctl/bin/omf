@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby1.9.1
 #
 # Copyright (c) 2006-2010 National ICT Australia (NICTA), Australia
 #
@@ -173,7 +173,7 @@ def run(cmd)
      exit 1
   end
 
-  omf_command = "/usr/bin/env ruby -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
+  omf_command = "/usr/bin/env ruby1.9.1 -I#{@ec_path} -I/usr/share/omf-common#{@version} #{@ec_path}#{app} #{args.join(' ')}"
   puts "DEBUG: Executing '#{omf_command}'" if @options[:debug]
   ENV['GEM_PATH'] = @gempath
   exec omf_command

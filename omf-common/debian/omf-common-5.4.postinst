@@ -28,7 +28,7 @@ case "$1" in
 
     cd /usr/share/omf-common-$VER/gems
     echo "Installing gems for OMF to $PWD"
-    GEM_PATH=$PWD gem install --no-ri --no-rdoc -l -f -i . cache/*.gem
+    GEM_PATH=$PWD gem1.9.1 install --no-ri --no-rdoc -l -f -i . cache/*.gem
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
