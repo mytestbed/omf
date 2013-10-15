@@ -36,6 +36,14 @@ module OmfEc
         end
       end
 
+      def startApplication(app_name)
+        if self.app_contexts.find { |v| v.name == app_name }
+          resources[type: 'application', name: app_name].state = :running
+        else
+          warn "No application with name '#{app_name}' defined in group #{self.name}. Nothing to start"
+        end
+      end
+
       def startApplications
         if self.app_contexts.empty?
           warn "No applications defined in group #{self.name}. Nothing to start"
