@@ -549,7 +549,7 @@ module OmfRc::ResourceProxy::Application
       o = res.property.oml
       ofile = "/tmp/#{res.uid}-#{Time.now.to_i}.xml"
       of = File.open(ofile,'w')
-      of << "<omlc experiment='#{o.experiment}' id='#{o.id}'>\n"
+      of << "<omlc experiment='#{o.experiment}' id='#{o.id}_#{res.uid}'>\n"
       o.collection.each do |c|
         of << "  <collect url='#{c.url}'>\n"
         c.streams.each do |m|
