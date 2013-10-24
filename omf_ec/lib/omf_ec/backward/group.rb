@@ -91,6 +91,13 @@ module OmfEc
             self.net_ifs << net
           end
           net
+        elsif name =~ /t(\d+)/
+          net = self.net_ifs.find { |v| v.conf[:if_name] == "tel#{$1}" }
+          if net.nil?
+            net = OmfEc::Context::NetContext.new(:type => 'wimax', :if_name => "tel#{$1}", :index => $1)
+            self.net_ifs << net
+          end
+          net
         else
           super
         end
