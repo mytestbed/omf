@@ -55,13 +55,14 @@ module OmfCommon
     #
     def self.parse(str, content_type = nil, &block)
       raise ArgumentError, 'Need message handling block' unless block
-      msg = @@message_class.parse(str, content_type)
-      if @@authorisation_hook
-        # Hook will return message if it's authorized. Handing in
-        # dispatch block in case hook needs more time for authorization.
-        msg = @@authorisation_hook.authorize(msg, &block)
+      @@message_class.parse(str, content_type) do |msg|
+        if @@authorisation_hook
+          # Hook will return message if it's authorized. Handing in
+          # dispatch block in case hook needs more time for authorization.
+          msg = @@authorisation_hook.authorize(msg, &block)
+        end
+        block.call(msg) if msg
       end
-      block.call(msg) if msg
     end
 
     def self.init(opts = {})

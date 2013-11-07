@@ -47,7 +47,8 @@ module OmfCommon
           create(:inform, properties, body)
         end
 
-        # Create and return a message by parsing 'str'
+        # Create and authenticate, if necessary a message and pass it
+        # on to 'block' if parsing (and authentication) is successful.
         #
         def self.parse(str, content_type, &block)
           #puts "CT>> #{content_type}"
@@ -61,8 +62,10 @@ module OmfCommon
             warn "Received message with unknown content type '#{content_type}'"
           end
           #puts "CTTT>> #{content}::#{content.class}"
-          msg = content ? new(content, issuer) : nil
-          msg
+          if (content)
+            msg = new(content, issuer)
+            block.call(msg)
+          end
         end
 
         def self.parse_jwt(jwt_string)
