@@ -11,6 +11,7 @@ require 'omf_common/auth'
 module OmfCommon::Auth
 
   class MissingPrivateKeyException < AuthException; end
+  class MissingCertificateException < AuthException; end
 
   class CertificateStore
     include MonitorMixin
@@ -29,10 +30,10 @@ module OmfCommon::Auth
       @@instance
     end
 
-    def register(certificate, address = nil)
+    def register_trusted(certificate)
       @@instance.synchronize do
         begin
-          @x509_store.add_cert(certificate.to_x509) if @certs[address].nil? && @certs[certificate.subject].nil?
+          @x509_store.add_cert(certificate.to_x509)
         rescue OpenSSL::X509::StoreError => e
           if e.message == "cert already in hash table"
             raise "X509 cert '#{address}' already registered in X509 store"
@@ -40,33 +41,44 @@ module OmfCommon::Auth
             raise e
           end
         end
-
-        address ||= certificate.address
-
-        if address
-          @certs[address] ||= certificate
-        else
-          debug "Register certificate without address - #{certificate}, is it a CA cert?"
-        end
-
         @certs[certificate.subject] ||= certificate
       end
     end
 
-    def register_x509(cert_pem, address = nil)
-      if (cert = Certificate.create_from_x509(cert_pem))
+    def register(certificate)
+      raise "Expected Certificate, but got '#{certificate.class}'" unless certificate.is_a? Certificate
+
+      debug "Registering certificate for '#{certificate.addresses}' - #{certificate.subject}"
+      @@instance.synchronize do
+        _set(certificate.subject, certificate)
+        if rid = certificate.resource_id
+          _set(rid, certificate)
+        end
+        certificate.addresses.each do |type, name|
+          _set(name, certificate)
+        end
+      end
+    end
+
+    def register_x509(cert_pem)
+      if (cert = Certificate.create_from_pem(cert_pem))
         debug "REGISTERED #{cert}"
-        register(cert, address)
+        register(cert)
       end
     end
 
     def cert_for(url)
-      @certs[url]
+      unless cert = @certs[url.to_s]
+        warn "Unknown cert '#{url}'"
+        raise MissingCertificateException.new(url)
+      end
+      cert
     end
 
     # @param [OpenSSL::X509::Certificate] cert
     #
     def verify(cert)
+      #puts "VERIFY: #{cert}::#{cert.class}}"
       cert = cert.to_x509 if cert.kind_of? OmfCommon::Auth::Certificate
       v_result = @x509_store.verify(cert)
       warn "Cert verification failed: '#{@x509_store.error_string}'" unless v_result
@@ -96,6 +108,17 @@ module OmfCommon::Auth
       @serial = 0
 
       super()
+    end
+
+    def _set(name, certificate)
+      if old = @certs[name]
+        return if old.to_pem == certificate.to_pem
+        warn "Overriding certificate '#{name}' - new: #{certificate.subject} old: #{old.subject}"
+      end
+      @certs[name] = certificate
+      unless name.is_a? String
+        _set(name.to_s, certificate)
+      end
     end
   end # class
 
