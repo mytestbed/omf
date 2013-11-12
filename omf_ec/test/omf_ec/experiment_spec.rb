@@ -15,7 +15,7 @@ describe OmfEc::Experiment do
     @experiment.id.wont_be_nil
 
     @experiment.name = 'bob'
-    @experiment.id.must_match /bob/
+    @experiment.id.must_match /bob-/
   end
 
   it "must be able to add event" do

@@ -34,19 +34,19 @@ Here are some examples for different operating systems:
 
 Type following in your console:
 
-    sudo apt-get install build-essential libxml2-dev libxslt-dev libssl-dev
+    sudo apt-get install build-essential libxml2-dev libxslt-dev
 
 #### Debian
 
 Type following in your console as root:
 
-    apt-get install curl build-essential libxml2-dev libxslt-dev libssl-dev
+    apt-get install curl build-essential libxml2-dev libxslt-dev
 
 #### Fedora
 
 Type following in your console:
 
-    sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel openssl-devel
+    sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel
     sudo yum update -y audit
 
 #### Mac OS X
@@ -74,9 +74,9 @@ You most likely want to install RVM with local user permissions (no root access 
 
 If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run:
 
-    sudo su -l
-    \curl -L https://get.rvm.io | bash -s stable
-    source /etc/profile.d/rvm.sh
+        sudo su -l
+        \curl -L https://get.rvm.io | bash -s stable
+	source /etc/profile.d/rvm.sh
 
 ### **Verify this step**
 
@@ -129,28 +129,25 @@ For OMF, we recommend using Openfire. Other XMPP servers may work as well, but t
 * Openfire 3.8.1 requires Java, but has some issues with OpenJDK. Instead we recommend to install Oracle Java 7. Ubuntu users can follow [this guide](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html).
 * after installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
 
-<pre><code>wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
-dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
-</code></pre>
+        wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
+        dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
 
 * on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
 * check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
 * if openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA_HOME for your Java installation, e.g.:
 
-<pre>JAVA_HOME=/usr/lib/jvm/java-7-oracle</pre>
+        JAVA_HOME=/usr/lib/jvm/java-7-oracle
 
 * direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
 * choose your language and click continue
 * enter the XMPP server's hostname (e.g. xmpp.domain.com or localhost) in the Domain field and click continue
 * choose the embedded database. You can also use other database types, but you will need to install the database server first and manually create a user and a database for Openfire.
 * if you are using mySQL, you need to change the length of the Pubsub node names in the mySQL database. Basically you need to run the commands:
-
 <pre>mysql -u openfire -p
 use openfire;
 alter table ofPubsubNode modify name VARCHAR(100);
 quit;
 </pre>
-
 * choose the default profile and click continue
 * enter an admin password and click continue, then wait until the installation is finished
 * log on to the web GUI at [http://localhost:9090](http://localhost:9090) with the user/password you chose in the wizard
@@ -176,8 +173,6 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 ### Installing the Experiment Controller
 
     gem install omf_ec --no-ri --no-rdoc
-
-If you should get any SSL errors during the gem installation, please try [this workaround](http://stackoverflow.com/a/18130051/1223151).
 
 ### Configuring the Experiment Controller
 
@@ -235,7 +230,7 @@ Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replac
 	18:37:03 INFO  OmfEc: Resource xmpp://ccce4bf3-c8f7-4984-8e8e-1ade28d132a6@norbit.npc.nicta.com.au created
 	18:37:03 INFO  OmfEc: Newly discovered resource >> ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
 	18:37:03 INFO  OmfEc: Event triggered: 'Actor_application_/bin/date_created_ba8b4fad-8d47-4782-b12b-9c93dd215bf2'
-	18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date
+	18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date 
 	18:37:03 INFO  OmfEc: APP_EVENT STDOUT from app /bin/date - msg: Thu Mar  7 18:37:03 EST 2013
 	18:37:03 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/date - msg: status: pid 35135 exit 0
 	18:37:06 INFO  Object: TEST - group
@@ -243,7 +238,7 @@ Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replac
 	18:37:06 INFO  OmfEc: Newly discovered resource >> d3416b01-51d9-48d4-b6b5-442454e8e7fa
 	18:37:06 INFO  OmfEc: Resource xmpp://d3416b01-51d9-48d4-b6b5-442454e8e7fa@norbit.npc.nicta.com.au created
 	18:37:06 INFO  OmfEc: Event triggered: 'Actor_application_/bin/hostname -f_created_50da62ba-c8b5-49b1-8182-7632d68f312a'
-	18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f
+	18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f 
 	18:37:06 INFO  OmfEc: APP_EVENT STDOUT from app /bin/hostname -f - msg: y68.dynhost.nicta.com.au
 	18:37:06 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/hostname -f - msg: status: pid 35136 exit 0
 	18:37:09 INFO  OmfEc: Exit in up to 15 seconds...
@@ -266,8 +261,6 @@ On a typical PC node, you can install the RC as root:
 
     sudo su -l
     gem install omf_rc --no-ri --no-rdoc
-
-If you should get any SSL errors during the gem installation, please try [this workaround](http://stackoverflow.com/a/18130051/1223151).
 
 Now it's time to install an XMPP server. Follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation). Jump back here after you verified that Openfire is installed correctly.
 
@@ -307,14 +300,20 @@ Check for the RC process by running:
 
     ps aux | grep omf_rc
 
-If there is no "omf_rc" process, check the syslog for any errors that the startup script may have thrown. Also check `/var/log/omf_rc.log` for any errors.
+If there is no "omf_rc" process, check the syslog for any errors that the startup script may have thrown.
 
-To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). Open a new terminal and run:
+To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). If you are already running the RC as a daemon in the background, you can use that RC instead of starting a new one. Otherwise run:
+
+    omf_rc -u xmpp://<xmpp_hostname> -i test
+
+No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. For any other RC you might use, make sure it listens on the "test" topic on your XMPP server. Replace \<xmpp_hostname\> with the hostname of your Openfire server. 
+
+Now open a new terminal and run:
 
     curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
-    ruby rc_alive_check.rb xmpp://<xmpp_hostname> <your hostname>
+    ruby rc_alive_check.rb xmpp://<xmpp_hostname> test
 
-using the same XMPP URI as in the RC config file and your local machine's hostname (run `hostname` to find out), unless you changed the :uid: parameter in the RC config file to another name. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
+using the same XMPP URI. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments. If you use the daemonized RC, your default topic name would be your local hostname instead of "test", unless you changed the :uid: parameter in the RC config file to something else.
 
 ### Monitoring
 
@@ -322,7 +321,7 @@ using the same XMPP URI as in the RC config file and your local machine's hostna
 
 ## OMF Installation for DEVELOPERS
 
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF.
+After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. 
 
 ### Installing all gems from source
 
@@ -346,10 +345,8 @@ If the rake task finishes without any errors, you've successfully installed OMF 
 
 ## Appendix: Advanced RC configuration
 
-The OMF RC has the "-a" flag and the "advanced\_configfile" option in its config file to specify the location of an advanced configuration file. At present, this is mainly used to specify an alternative logging configuration. The RC has a few built-in logging configurations that can be selected by specifying the _environment_ on the command line or in the config file. The advanced config file is needed to override the built-in settings.
+The OMF RC has the "-a" flag and the "advanced\_configfile" option in its config file to specify the location of an additional, advanced configuration file. At present, this is mainly used to specify an alternative logging configuration. The RC has a few built-in logging configurations that can be selected by specifying the _environment_ on the command line or in the config file. The advanced config file is needed to override the built-in settings.
 
-<!---
-# Those are missing the URI and UID parameters:
 Here are some example advanced configuration files with the built-in logging configurations:
 
 ### "development" environment
@@ -376,6 +373,5 @@ Here are some example advanced configuration files with the built-in logging con
           :log_dir: /var/log
           :date_pattern: '%F %T %z'
           :pattern: '[%d] %-5l %c: %m\n
--->
 
 If you want to customise the logging, please see the [Logging Gem documentation](http://rubydoc.info/gems/logging/frames).
