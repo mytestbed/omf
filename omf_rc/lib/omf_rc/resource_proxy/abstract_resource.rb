@@ -494,9 +494,9 @@ class OmfRc::ResourceProxy::AbstractResource
       p_value = message[key]
 
       if namespaced_property?(key)
-        response[key, namespace] ||= obj.__send__(method_name, p_value)
+        response[key, namespace] = obj.__send__(method_name, p_value)
       else
-        response[key] ||= obj.__send__(method_name, p_value)
+        response[key] = obj.__send__(method_name, p_value)
       end
     end
   end
