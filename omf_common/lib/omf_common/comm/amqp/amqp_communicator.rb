@@ -41,8 +41,14 @@ module OmfCommon
           { proto: :amqp, user: ::AMQP.settings[:user], domain: ::AMQP.settings[:host] }
         end
 
+        def string_to_address(a_string)
+          @address_prefix+a_string 
+        end
+
         # Shut down comms layer
         def disconnect(opts = {})
+          info "Disconnecting..."
+          OmfCommon.eventloop.stop
         end
 
         # TODO: Should be thread safe and check if already connected
@@ -66,7 +72,7 @@ module OmfCommon
         #
         # @param [String] topic Pubsub topic name
         def create_topic(topic, opts = {})
-          raise "Topic can't be nil or empty" if topic.nil? || topic.empty?
+          raise "Topic can't be nil or empty" if topic.nil? || topic.to_s.empty?
           opts = opts.dup
           opts[:communicator] = self
           topic = topic.to_s

@@ -59,6 +59,9 @@ module OmfCommon
             warn "Received message with unknown content type '#{content_type}'"
           end
           #puts "CTTT>> #{content}::#{content.class}"
+          if OmfCommon::Measure.enabled? && content
+            MPMessage.inject(Time.now.to_f, content[:op].to_s, content[:mid], content[:cid], content.to_s)
+          end
           msg = content ? new(content) : nil
           block.call(msg) if msg
           msg
@@ -180,6 +183,7 @@ module OmfCommon
           if @content[:src].is_a? OmfCommon::Comm::Topic
             @content[:src] = @content[:src].address
           end
+@content[:itype] = self.itype(:frcp)
           #raise 'local/local' if @content[:src].id.match 'local:/local'
           #puts @content.inspect
           payload = @content.to_json

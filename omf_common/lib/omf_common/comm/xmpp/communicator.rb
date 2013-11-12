@@ -57,6 +57,10 @@ class Comm
         { proto: :xmpp, user: jid.node, domain: jid.domain }
       end
 
+      def string_to_address(a_string)
+        "xmpp://#{a_string}@#{jid.domain}"
+      end
+
       # Capture system :INT & :TERM signal
       def on_interrupted(&block)
         @cbks[:interpreted] << block

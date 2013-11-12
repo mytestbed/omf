@@ -3,7 +3,7 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-
+require 'omf_common/comm/amqp/amqp_mp'
 
 module OmfCommon
   class Comm
@@ -11,7 +11,7 @@ module OmfCommon
       class Topic < OmfCommon::Comm::Topic
 
         def to_s
-          "AMQP::Topic<#{id}>"
+          @address
         end
 
         def address
@@ -70,6 +70,7 @@ module OmfCommon
             queue.subscribe do |headers, payload|
               #puts "===(#{id}) Incoming message '#{headers.content_type}'"
               debug "Received message on #{@address}"
+              MPReceived.inject(Time.now.to_f, @address, payload.to_s[/mid\":\"(.{36})/, 1]) if OmfCommon::Measure.enabled?
               Message.parse(payload, headers.content_type) do |msg|
                 #puts "---(#{id}) Parsed message '#{msg}'"
                 on_incoming_message(msg)
@@ -93,6 +94,7 @@ module OmfCommon
           debug "(#{id}) Send message (#{content_type}) #{msg.inspect}"
           if @exchange
             @exchange.publish(content, content_type: content_type, message_id: msg.mid)
+            MPPublished.inject(Time.now.to_f, @address, msg.mid) if OmfCommon::Measure.enabled?
           else
             warn "Unavailable AMQP channel. Dropping message '#{msg}'"
           end
