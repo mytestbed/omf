@@ -45,34 +45,7 @@ RECONNECT_INTERVAL = 10 # in sec
 PING_INTERVAL = 60 # in sec
 PING_ATTEMPTS = 10 # in number of pings
 
-#
-# This class subclasses 'Jabber::PubSub::ServiceHelper' because its
-# 'unsubscribe_from' method is broken.
-# Indeed, as stated in the XMPP4R v0.4 API, it does NOT support the 'subid'
-# field. However, the OpenFire v3.6 server (which we currently use as XMPP
-# Server) requires the use of that field to process unsubsribe requests,
-# otherwise it replies with a 'Bad request' error.
-# This class also implements a 'ping' back to the XMPP server, as defined
-# in http://xmpp.org/extensions/xep-0199.html#c2s
-#
 class OmfServiceHelper < Jabber::PubSub::ServiceHelper
-
-  #
-  # Perform a 'unsubscribe_from' from scratch
-  #
-  def unsubscribe_from_fixed (node,subid)
-    iq = basic_pubsub_query(:set)
-    sub = REXML::Element.new('unsubscribe')
-    sub.attributes['node'] = node
-    sub.attributes['jid'] = @stream.jid.strip.to_s
-    sub.attributes['subid']=subid
-    iq.pubsub.add(sub)
-    ret = false
-    @stream.send_with_id(iq) do |reply|
-      ret = reply.kind_of?(Jabber::Iq) and reply.type == :result
-    end # @stream.send_with_id(iq)
-    ret
-  end
 
   #
   # Send a ping to the PubSub server
@@ -276,15 +249,13 @@ class OmfXMPPServices < MObject
       @serviceHelpers[domain] = OmfServiceHelper.new(@clientHelper,
                                                      "pubsub.#{domain}")
     rescue  Exception => ex
-      raise "OmfXMPPServices - Failed to create service to '#{domain}' "+
-	    "- Error: '#{ex}'"
+      raise "OmfXMPPServices - Failed to create service to '#{domain}' - Error: '#{ex}'"
     end
     leave_all_nodes(domain)
     begin
       @serviceHelpers[domain].add_event_callback(&block) if block
     rescue Exception => ex
-      raise "OmfXMPPServices - Failed to register event callback for domain "+
-            "'#{domain}' - Error: '#{ex}'"
+      raise "OmfXMPPServices - Failed to register event callback for domain '#{domain}' - Error: '#{ex}'"
     end
   end
 
@@ -437,19 +408,26 @@ class OmfXMPPServices < MObject
   #               we want to unsubscribe from this node
   #
   def leave_node(node, subid = nil, domain = nil)
-    @serviceHelpers.each { |dom, helper| leave_node(node, subid, dom) } if domain.nil?
+    if domain.nil?
+      @serviceHelpers.each do |dom, helper|
+        leave_node(node, subid, dom)
+      end
+      return
+    end
+    # subid = nil either means that we want to unsubscribe from all subscriptions to a node
+    # or it means that Openfire has the multiple subscription feature disabled
     if subid.nil?
       list_all_subscriptions(domain).each do |sub|
-        leave_node(sub.node, sub.subid, domain) if sub.node == node
+        leave_node(sub.node, sub.subid, domain) if sub.node == node and !sub.subid.nil?
       end
     end
     begin
       call_with_timeout("Timeout out while leaving the PubSub node '#{node}'") do
-        service(domain).unsubscribe_from_fixed(node, subid)
+        service(domain).unsubscribe_from(node, subid)
       end
     rescue Exception => ex
       if ("#{ex}" == "item-not-found: ")
-        debug "Failed unsubscribing to unknown node '#{node}' "+
+        debug "Failed unsubscribing from unknown node '#{node}' "+
               "on domain '#{domain}'"
       elsif ("#{ex}"=="unexpected-request: ")
         debug "leave_pubsub_node - Unsubscribing from node '#{node}' failed as there was no subscription."

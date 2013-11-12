@@ -1,3 +1,9 @@
+omf-expctl-5.4 (5.4.3-ubuntu3) precise; urgency=low
+
+  * Now works independently of 'xmpp.pubsub.multiple-subscriptions' property in Openfire
+
+ -- Christoph Dwertmann <christoph.dwertmann@nicta.com.au>  Tue, 12 Nov 2013 17:37:34 +1100
+
 omf-expctl-5.4 (5.4.3-ubuntu2) precise; urgency=low
 
   * Ruby 1.9 is now mandatory

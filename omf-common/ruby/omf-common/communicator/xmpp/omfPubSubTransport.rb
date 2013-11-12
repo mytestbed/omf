@@ -150,7 +150,7 @@ class OMFPubSubTransport < MObject
       @@qcounter += 1
     end
     subscribed = @@xmppServices.subscribe_to_node(node, domain) { |event|
-      @@queues[index] << event
+      @@queues[index] << event if !@@queues[index].nil?
     }
     if !subscribed && @@forceCreate
       if @@xmppServices.create_node(node, domain)
