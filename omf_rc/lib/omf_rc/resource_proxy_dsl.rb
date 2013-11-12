@@ -346,6 +346,14 @@ module OmfRc::ResourceProxyDSL
       alias_method "orig_request_#{request_name}", "request_#{request_name}"
     end
 
+    def namespace(ns_prefix, ns_href)
+      define_method("namespace") do
+        { ns_prefix => ns_href }
+      end
+    end
+
+    alias_method :ns, :namespace
+
     # Define internal property. Refer to options section to see supported options.
     #
     # @param [Symbol] name of the property
