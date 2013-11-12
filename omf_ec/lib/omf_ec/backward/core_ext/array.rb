@@ -16,6 +16,12 @@ class Array
     end
   end
 
+  def startApplication(app_name)
+    if !self.empty? && self.all? { |v| v.class == OmfEc::Group }
+      self.each { |g| g.startApplication(app_name) }
+    end
+  end
+
   def stopApplications
     if !self.empty? && self.all? { |v| v.class == OmfEc::Group }
       self.each { |g| g.stopApplications }

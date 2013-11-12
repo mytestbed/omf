@@ -21,17 +21,17 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  s.add_development_dependency "minitest", "~> 3.2"
+  s.add_development_dependency "minitest"
   s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "pry"
   s.add_development_dependency "mocha"
 
   s.add_runtime_dependency "eventmachine", "= 1.0.3"
-  s.add_runtime_dependency "blather", "= 0.8.4"
+  s.add_runtime_dependency "blather", "= 0.8.7"
   s.add_runtime_dependency "logging", "~> 1.7.1"
   s.add_runtime_dependency "hashie", "~> 1.2.0"
-  s.add_runtime_dependency "oml4r", "~> 2.9.1"
+  s.add_runtime_dependency "oml4r", "~> 2.9.5"
   s.add_runtime_dependency "json", "~> 1.7.7"
   #s.add_runtime_dependency "json-jwt", "~> 0.5.2"
   #s.add_runtime_dependency "amqp", "~> 1.0.1"

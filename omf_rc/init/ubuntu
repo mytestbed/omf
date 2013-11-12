@@ -6,4 +6,7 @@ stop on runlevel [!2345]
 
 env DAEMON=/usr/local/bin/run_omf_rc.sh
 
-exec $DAEMON 2>&1 | logger -t omf_rc
+script
+  PATH=$PATH:/usr/bin:/usr/local/bin
+  exec $DAEMON 2>&1 | logger -t omf_rc
+end script

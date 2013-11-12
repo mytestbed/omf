@@ -14,8 +14,6 @@ DAEMON=/usr/local/bin/run_omf_rc.sh
 [ -x "$DAEMON" ] || exit 0
 NAME=omf_rc
 PIDFILE=/var/run/$NAME.pid
-. /lib/init/vars.sh
-. /lib/lsb/init-functions
 
 start(){
         echo -n "Starting OMF Resource Controller: $NAME"
@@ -36,15 +34,12 @@ case "$1" in
   stop)
 	stop
 	;;
-  restart|force-reload)
+  restart)
  	stop
  	start
 	;;
-  status)
-	status_of_proc -p $PIDFILE "$DAEMON" "$NAME" && exit 0 || exit $?
-	;;
   *)
-	echo "Usage: $0 {start|stop|restart|force-reload|status}" >&2
+	echo "Usage: $0 {start|stop|restart}" >&2
 	exit 3
 	;;
 esac

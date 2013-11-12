@@ -29,7 +29,7 @@ module OmfCommon
             #properties = {select: properties}
             properties = {}
             req_props.each {|n| properties[n] = nil }
-
+            
           elsif not properties.kind_of?(Hash)
             raise "Expected hash, but got #{properties.class}"
           end
@@ -38,8 +38,7 @@ module OmfCommon
             mid: SecureRandom.uuid,
             props: properties
           })
-          issuer = self.authenticate? ? (body[:issuer] || body[:src]) : nil
-          self.new(content, issuer)
+          self.new(content)
         end
 
         def self.create_inform_message(itype = nil, properties = {}, body = {})
@@ -47,25 +46,22 @@ module OmfCommon
           create(:inform, properties, body)
         end
 
-        # Create and authenticate, if necessary a message and pass it
-        # on to 'block' if parsing (and authentication) is successful.
+        # Create and return a message by parsing 'str'
         #
         def self.parse(str, content_type, &block)
           #puts "CT>> #{content_type}"
-          issuer = nil
           case content_type.to_s
           when 'jwt'
-            content, issuer = parse_jwt(str, &block)
+            content = parse_jwt(str, &block)
           when 'text/json'
             content = JSON.parse(str, :symbolize_names => true)
           else
             warn "Received message with unknown content type '#{content_type}'"
           end
           #puts "CTTT>> #{content}::#{content.class}"
-          if (content)
-            msg = new(content, issuer)
-            block.call(msg)
-          end
+          msg = content ? new(content) : nil
+          block.call(msg) if msg
+          msg
         end
 
         def self.parse_jwt(jwt_string)
@@ -88,17 +84,16 @@ module OmfCommon
             # NOTE:
             #  Some JSON libraries generates wrong format of JSON (spaces between keys and values etc.)
             #  So we need to use raw base64 strings for signature verification.
-            unless issuer = claims[:iss]
+            unless src = claims[:iss]
               warn "JWT: Message is missing :iss element"
               return nil
             end
             if cert_pem = claims[:crt]
               # let's the credential store take care of it
-              pem = "#{OmfCommon::Auth::Certificate::BEGIN_CERT}#{cert_pem}#{OmfCommon::Auth::Certificate::END_CERT}"
-              OmfCommon::Auth::CertificateStore.instance.register_x509(pem)
+              OmfCommon::Auth::CertificateStore.instance.register_x509(cert_pem, src)
             end
-            unless cert = OmfCommon::Auth::CertificateStore.instance.cert_for(issuer)
-              warn "JWT: Can't find cert for issuer '#{issuer}'"
+            unless cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
+              warn "JWT: Can't find cert for issuer '#{src}'"
               return nil
             end
 
@@ -108,7 +103,7 @@ module OmfCommon
 
             #puts ">>> #{cert.to_x509.public_key}::#{signature_base_string}"
             jwt.verify signature_base_string, cert.to_x509.public_key #unless key_or_secret == :skip_verification
-            [JSON.parse(claims[:cnt], :symbolize_names => true), cert]
+            JSON.parse(claims[:cnt], :symbolize_names => true)
           else
             warn('JWT: Invalid Format. JWT should include 2 or 3 dots.')
             return nil
@@ -189,20 +184,13 @@ module OmfCommon
           #puts @content.inspect
           payload = @content.to_json
           if self.class.authenticate?
-             unless issuer = self.issuer
-               raise "Missing ISSUER for '#{self}'"
-             end
-             if issuer.is_a? OmfCommon::Auth::CertificateStore
-               cert = issuer
-               issuer = cert.subject
-             else
-               cert = OmfCommon::Auth::CertificateStore.instance.cert_for(issuer)
-             end
+             src = @content[:src]
+             cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
              if cert && cert.can_sign?
-               debug "Found cert for '#{issuer} - #{cert}"
-               msg = {cnt: payload, iss: issuer}
-               unless @certOnTopic[k = [topic, issuer]]
-                 # first time for this issuer on this topic, so let's send the cert along
+               debug "Found cert for '#{src} - #{cert}"
+               msg = {cnt: payload, iss: src}
+               unless @certOnTopic[k = [topic, src]]
+                 # first time for this src on this topic, so let's send the cert along
                  msg[:crt] = cert.to_pem_compact
                  #ALWAYS ADD CERT @certOnTopic[k] = Time.now
                end
@@ -216,13 +204,12 @@ module OmfCommon
         end
 
         private
-        def initialize(content, issuer = nil)
+        def initialize(content)
           debug "Create message: #{content.inspect}"
           unless op = content[:op]
             raise "Missing message type (:operation)"
           end
           @content = {}
-          @issuer = issuer
           content[:op] = op.to_sym # needs to be symbol
           if src = content[:src]
             content[:src] = OmfCommon.comm.create_topic(src)
