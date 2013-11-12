@@ -386,9 +386,8 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     objects_by_topic(topic.id.to_s).each do |obj|
-      if OmfCommon::Measure.enabled?
-        OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.mid)
-      end
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, 
+        topic.id.to_s, message.mid) if OmfCommon::Measure.enabled?
       execute_omf_operation(message, obj, topic)
     end
   end
@@ -578,10 +577,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     # Just send to all topics, including group membership
-    (membership_topics.map { |mt| mt[1] } + @topics).each { |t| t.publish(message) }
-
-    OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
-      self.uid, replyto, inform_message.mid) if OmfCommon::Measure.enabled?
+    (membership_topics.map { |mt| mt[1] } + @topics).each do |t| 
+      t.publish(message) 
+      OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
+        self.uid, t.id, message.mid) if OmfCommon::Measure.enabled?
+    end
   end
 
   def inform_status(props)

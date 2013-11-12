@@ -20,7 +20,7 @@ module OmfCommon
         param :time, :type => :double
         param :jid, :type => :string
         param :topic, :type => :string
-        param :xml_stanza, :type => :string
+        param :mid, :type => :string
       end
 
       class MPReceived < OML4R::MPBase
@@ -28,7 +28,7 @@ module OmfCommon
         param :time, :type => :double
         param :jid, :type => :string
         param :topic, :type => :string
-        param :xml_stanza, :type => :string
+        param :mid, :type => :string
       end
 
       class MPSubscription < OML4R::MPBase
