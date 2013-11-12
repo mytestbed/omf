@@ -112,9 +112,13 @@ class XML
 
             if el.name == 'props'
               message.read_element('props').first.element_children.each do |prop_node|
-                message.send(:_set_property,
-                             prop_node.element_name,
-                             message.reconstruct_data(prop_node))
+                e_name = prop_node.element_name
+
+                if (ns_prefix = prop_node.namespace.prefix)
+                  e_name = "#{ns_prefix}__#{e_name}"
+                end
+
+                message.send(:_set_property, e_name, message.reconstruct_data(prop_node))
               end
             end
 
@@ -194,7 +198,7 @@ class XML
       guard_node = Niceogiri::XML::Node.new(:guard)
 
       props_ns.each do |k, v|
-        props_node.add_namespace_definition(k.to_s, v.to_s)
+        props_node.add_namespace_definition(k, v.to_s)
       end
 
       @xml.add_child(props_node)
@@ -225,8 +229,8 @@ class XML
     #
     def add_property(key, value = nil, add_to = :props)
       key = escape_key(key)
-      if !default_props_ns.empty? && add_to == :props
-        key_node = Niceogiri::XML::Node.new(key, nil, default_props_ns)
+      if !props_ns.empty? && add_to == :props && key =~ /^(.+)__(.+)$/
+        key_node = Niceogiri::XML::Node.new($2, nil, { $1 => props_ns[$1] })
       else
         key_node = Niceogiri::XML::Node.new(key)
       end

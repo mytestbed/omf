@@ -109,7 +109,7 @@ module OmfCommon
       #raise if name.to_sym == :itype
       if ns
         @props_ns ||= {}
-        @props_ns.merge(ns)
+        @props_ns.merge!(ns)
       end
       _set_property(name.to_sym, value, ns)
     end
@@ -204,7 +204,7 @@ module OmfCommon
     # Get all property namespace defs
     def props_ns
       @props_ns ||= {}
-      default_props_ns.merge(@props_ns)
+      default_props_ns.merge(@props_ns).stringify_keys
     end
 
     private
