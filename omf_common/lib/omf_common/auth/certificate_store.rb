@@ -36,7 +36,7 @@ module OmfCommon::Auth
           @x509_store.add_cert(certificate.to_x509)
         rescue OpenSSL::X509::StoreError => e
           if e.message == "cert already in hash table"
-            raise "X509 cert '#{address}' already registered in X509 store"
+            warn "X509 cert '#{certificate.subject}' already registered in X509 store"
           else
             raise e
           end
