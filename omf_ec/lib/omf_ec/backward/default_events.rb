@@ -14,7 +14,7 @@ module OmfEc
             def_event :ALL_NODES_UP do |state|
               all_groups? do |g|
                 plan = g.members.values.uniq.sort
-                actual = state.find_all { |v| v.joined?(g.address) }.map { |v| v[:address] }.sort
+                actual = state.find_all { |v| v.joined?(g.address) }.map { |v| v[:address].to_s }.sort
 
                 debug "Planned: #{g.name}(#{g.address}): #{plan}"
                 debug "Actual: #{g.name}(#{g.address}): #{actual}"
@@ -22,6 +22,7 @@ module OmfEc
                 if plan.empty? && actual.empty?
                   warn "Group '#{g.name}' is empty"
                 end
+
                 plan.empty? ? true : plan == actual
               end
             end

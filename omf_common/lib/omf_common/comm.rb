@@ -132,6 +132,13 @@ module OmfCommon
       { proto: nil, user: nil, domain: nil }
     end
 
+    # Return a valid address for this type of communicator
+    # Must be implemented by subclasses
+    #
+    def string_to_address(a_string)
+      raise NotImplementedError
+    end
+
     # Subscribe to a pubsub topic
     #
     # @param [String, Array] topic_name Pubsub topic name

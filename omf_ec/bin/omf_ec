@@ -54,9 +54,21 @@ command :exec do |c|
   c.arg_name "experiment_name"
   c.flag [:e, :experiment]
 
-  c.desc "Default OML URI to use for collecting measurements"
+  c.desc "OML URI to use for collecting the experiment's measurements"
   c.arg_name "uri"
   c.flag [:oml_uri]
+
+  c.desc "OML URI to use for EC Instrumentation"
+  c.arg_name "uri"
+  c.flag [:inst_oml_uri]
+
+  c.desc "OML ID to use for EC Instrumentation"
+  c.arg_name "id"
+  c.flag [:inst_oml_id]
+
+  c.desc "OML Domain to use for EC Instrumentation"
+  c.arg_name "domain"
+  c.flag [:inst_oml_domain]
 
   c.desc "Check script version (you need to define OMF_VERSIONS in your script"
   c.switch "version_check"
@@ -252,6 +264,13 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
+   
+    if options[:inst_oml_uri] && options[:inst_oml_id] && options[:inst_oml_domain]
+      require 'oml4r'
+      instrument_ec = OML4R::init(nil, { collect: options[:inst_oml_uri], nodeID: options[:inst_oml_id], domain: options[:inst_oml_domain] , appName: File.basename($PROGRAM_NAME)} )
+      OmfCommon::Measure.enable if instrument_ec 
+    end
+
     if global_options[:cert] && File.exist?(File.expand_path(global_options[:cert])) &&
       global_options[:key] && File.exist?(File.expand_path(global_options[:key]))
 

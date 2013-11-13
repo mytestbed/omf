@@ -128,8 +128,9 @@ class XML
             end
           end
 
-          if OmfCommon::Measure.enabled? && !@@mid_list.include?(message.mid)
-            MPMessage.inject(Time.now.to_f, message.operation.to_s, message.mid, message.cid, message.to_s.gsub("\n",''))
+          if OmfCommon::Measure.enabled? 
+            MPMessage.inject(Time.now.to_f, message.content.operation.to_s, 
+              message.content.mid, message.content.cid, message.content.to_s.gsub("\n",''))
           end
         end
         block.call(parsed_msg)

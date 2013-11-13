@@ -19,6 +19,16 @@ require "omf_ec/context"
 require "omf_ec/dsl"
 
 module OmfEc
+
+# OML Measurement Point (MP)
+# This MP is for measurements about messages received by the Resource Proxy
+class OmfEc::MPReceived < OML4R::MPBase
+  name :ec_received
+  param :time, :type => :double # Time (s) when this message was received
+  param :topic, :type => :string # Pubsub topic where this message came from
+  param :mid, :type => :string # Unique ID this message
+end
+
   class << self
     # Experiment instance
     #
@@ -36,7 +46,8 @@ module OmfEc
 
     def register_default_callback(topic)
       topic.on_inform do |msg|
-        case msg.itype
+OmfEc::MPReceived.inject(Time.now.to_f, topic.id, msg.mid) if OmfCommon::Measure.enabled?
+        case msg.itype.upcase
         when 'CREATION.FAILED'
           warn "RC reports creation.failed: '#{msg[:reason]}'", msg.src
           debug msg, msg.src
