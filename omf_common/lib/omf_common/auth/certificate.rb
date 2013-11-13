@@ -38,7 +38,8 @@ module OmfCommon::Auth
       @@def_email_domain = email_domain
     end
 
-    # @param [String] name unique name of the entity (resource name)
+    # @param [String] resource_id unique id of the resource entity
+    # @param [String] resource_type type of the resource entity
     # @param [Certificate] Issuer
     # @param [Hash] options
     # @option [Time] :not_before Time the cert will be valid from [now]
@@ -192,7 +193,6 @@ module OmfCommon::Auth
       else
         # self signed
         cert.issuer = subject
-        cert.sign(key, digest)
 
         # Not exactly sure if that's the right extensions to add. Copied from
         # http://www.ruby-doc.org/stdlib-1.9.3/libdoc/openssl/rdoc/OpenSSL/X509/Certificate.html
@@ -200,6 +200,9 @@ module OmfCommon::Auth
         cert.add_extension(ef.create_extension("keyUsage", "keyCertSign, cRLSign", true))
         cert.add_extension(ef.create_extension("subjectKeyIdentifier", "hash", false))
         cert.add_extension(ef.create_extension("authorityKeyIdentifier", "keyid:always", false))
+
+        # Signing the cert should be ABSOLUTELY the last step
+        cert.sign(key, digest)
       end
       { cert: cert, key: key }
     end
