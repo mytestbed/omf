@@ -437,6 +437,7 @@ class XML
         @content.src = OmfCommon.comm.create_topic(src)
       end
       @issuer = issuer
+      @content.issuer = @issuer
       # keep track if we sent local certs on a topic. Should do this the first time
       @certOnTopic = {}
     end

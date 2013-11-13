@@ -97,13 +97,13 @@ module OmfCommon::Auth
       cert
     end
 
-    # Return  a newly create certificate with properties tqken from
+    # Return  a newly create certificate with properties token from
     # 'pem' encoded string.
     #
     # @param [String] pem is the PEM encoded content of existing x509 cert
     # @return [Certificate] Certificate object
     #
-    def self.create_from_pem(pem_s, key = nil)
+    def self.create_from_pem(pem_s)
       state = :seeking
       cert_pem = []
       key_pem = []
