@@ -68,11 +68,12 @@ module OmfCommon::Auth
     end
 
     def cert_for(url)
-      unless cert = @certs[url.to_s]
+      # The key of @certs could be a OpenSSL::X509::Name instance
+      unless (cert = @certs.find { |k, v| k.to_s == url.to_s })
         warn "Unknown cert '#{url}'"
         raise MissingCertificateException.new(url)
       end
-      cert
+      cert[1]
     end
 
     # @param [OpenSSL::X509::Certificate] cert
