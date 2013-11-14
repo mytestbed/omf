@@ -4,5 +4,5 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfRc
-  VERSION = "6.0.7"
+  VERSION = `git describe --tags`.gsub(/-/, '.') rescue Gem.loaded_specs['omf_rc'].version.to_s
 end
