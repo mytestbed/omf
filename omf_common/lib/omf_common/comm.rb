@@ -67,7 +67,7 @@ module OmfCommon
       end
       @@instance = inst
       mopts = provider[:message_provider]
-      mopts[:authenticate] = (opts[:auth] != nil)
+      mopts[:authenticate] = opts[:auth]
       Message.init(mopts)
 
       if aopts = opts[:auth]

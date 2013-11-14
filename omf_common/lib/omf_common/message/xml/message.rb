@@ -48,7 +48,9 @@ class XML
           properties: properties
         })
 
-        new(content)
+        issuer = self.authenticate? ? (core_elements[:issuer] || core_elements[:src]) : nil
+
+        new(content, issuer)
       end
 
       def parse(xml, content_type = "text/xml", &block)
@@ -67,14 +69,10 @@ class XML
           xml_node = xml_node.element_children.find { |v| v.element_name =~ /create|request|configure|release|inform/ }
 
           if self.authenticate?
-            existing_cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
+            pem = "#{OmfCommon::Auth::Certificate::BEGIN_CERT}#{cert}#{OmfCommon::Auth::Certificate::END_CERT}"
+            OmfCommon::Auth::CertificateStore.instance.register_x509(pem)
 
-            if existing_cert
-               cert = existing_cert
-            else
-              OmfCommon::Auth::CertificateStore.instance.register_x509(cert, iss)
-              cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
-            end
+            cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
 
             if cert.nil?
               warn "Missing certificate of '#{iss}'"
@@ -100,7 +98,7 @@ class XML
           end
         end
 
-        parsed_msg = self.create(xml_node.name.to_sym).tap do |message|
+        parsed_msg = self.create(xml_node.name.to_sym, {}, { issuer: cert }).tap do |message|
           message.xml = xml_node
 
           message.send(:_set_core, :mid, message.xml.attr('mid'))
@@ -150,8 +148,9 @@ class XML
 
       if self.class.authenticate?
         src = @content[:src]
+        issuer = @content[:issuer]
         src = src.address if src.is_a?(OmfCommon::Comm::Topic)
-        cert = OmfCommon::Auth::CertificateStore.instance.cert_for(src)
+        cert = OmfCommon::Auth::CertificateStore.instance.cert_for(issuer)
         if cert && cert.can_sign?
           debug "Found cert for '#{src} - #{cert}"
           signature_node = Niceogiri::XML::Node.new(:sig)
@@ -166,7 +165,7 @@ class XML
           @envelope.add_child(signature_node)
 
           iss_node = Niceogiri::XML::Node.new(:iss)
-          iss_node.add_child(src)
+          iss_node.add_child(issuer)
           @envelope.add_child(iss_node)
 
           #unless @certOnTopic[k = [topic, src]]
@@ -430,13 +429,15 @@ class XML
 
     private
 
-    def initialize(content = {})
+    def initialize(content = {}, issuer = nil)
       @content = content
       @content.mid = SecureRandom.uuid
       @content.ts = Time.now.utc.to_i
       if (src = content[:src])
         @content.src = OmfCommon.comm.create_topic(src)
       end
+      @issuer = issuer
+      @content.issuer = @issuer
       # keep track if we sent local certs on a topic. Should do this the first time
       @certOnTopic = {}
     end

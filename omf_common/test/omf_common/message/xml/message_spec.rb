@@ -153,8 +153,8 @@ describe OmfCommon::Message::XML::Message do
         OmfCommon.stubs(:comm).returns(comm)
         comm.expects(:create_topic).returns(topic)
 
-        cert = OmfCommon::Auth::Certificate.create(nil, 'sa', 'auth')
-        bob_cert = cert.create_for('bob', 'bob', 'bob')
+        root_cert = OmfCommon::Auth::Certificate.create_root
+        bob_cert = root_cert.create_for_resource('bob', :bob)
 
         message = Message::XML::Message.create(:create,
                                                 { type: 'bob', p1: 'p1_value'},
