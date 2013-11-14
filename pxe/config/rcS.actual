@@ -18,7 +18,7 @@ CONTROL=eth1
 
 UDHCPC_SCRIPT="/etc/udhcp.script"
 UDHCPC="/sbin/udhcpc"
-IP_CONFIG="/bin/ip"
+IP_CONFIG="/sbin/ip"
 VERSION="OMF_RELEASE"
 RC_CONFIG="/etc/omf-resctl-$VERSION/omf-resctl.yaml"
 

@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # ---
-# This has been tested with busybox-1.4.1 using /bin/ip. This script can
+# This has been tested with busybox-1.21 using /sbin/ip. This script can
 # be called by udhcp when run as:
 #
 # /usr/sbin/udhcpc -i eth1 -s $SCRIPT
@@ -26,7 +26,7 @@
 # environment variables. 
 
 SCRIPT="udhcp.script"
-IP_CONFIG="/bin/ip"
+IP_CONFIG="/sbin/ip"
 RESOLV_CONF="/etc/resolv.conf"
 bcast="+"
 
