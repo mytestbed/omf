@@ -1,0 +1,92 @@
+# EXISTING options
+
+# By default it loads node proxy, and this is its id
+uid: bob
+
+# How to connect to pubsub server
+uri: xmpp://remote
+
+# Which environment to use, the value is the one of pre-defined ones in omf_common
+environment: development
+
+# Load an external file contains Logging configuration
+logging_configfile: config/my_logging.rb
+
+# If load default type factories
+add_default_factories: true
+
+# Additional resources which can be created by this RC
+factories:
+  - require: omf_rc_openflow
+
+# Customise what proxy to load
+resources:
+  - type: my_resource
+    # Can initialise resource properties
+    uid: resource_1
+    my_prop: foo
+    membership:
+      - g1
+
+    # Can set resource creation options
+    creation_opts:
+      send_backtrace: true
+
+# END of EXISTING options
+
+
+# Option to be MODIFIED
+
+# This used to be called 'auth', but it is really about loading
+# credentials (certificates) during RC bootstrap. Name it 'credentials' makes more sense.
+
+credentials:
+  root_cert_dir: ~/omf_keys/root/
+  entity_cert: ~/omf_keys/rc.pem
+  entity_key: ~/omf_keys/rc_key.pem
+
+# END of Option to be MODIFIED
+
+# NEW options (used to be defined in 'advanced configuration file')
+
+# Basically everything that can be initialised using OmfCommon.init
+
+communication:
+  type: :xmpp
+  url: xmpp://localhost
+
+  auth:
+    authenticate: true
+    pdp:
+      constructor: TestPDP
+      trust:
+        - adam
+
+eventloop:
+  type: :em
+
+logging:
+
+  level:
+    default: debug
+
+  appenders:
+    stdout:
+      date_pattern: "%H:%M:%S"
+      pattern: "%d %5l %c{2}: %m\n"
+      color_scheme: none
+
+# END of NEW options
+
+# OML options
+
+instrumentation:
+  oml-id: id                 # Name to identify this app instance [undefined]
+  oml-domain: domain         # Name of experimental domain [undefined] *EXPERIMENTAL*
+  oml-collect: uri           # URI of server to send measurements to
+  oml-protocol: 4            # Protocol number [4]
+  oml-log-level: l           # Log level used (info: 1 .. debug: 0)
+  oml-noop:                  # Do not collect measurements
+  oml-config: file           # File holding OML configuration parameters
+
+# END of OML options

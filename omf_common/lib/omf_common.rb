@@ -294,7 +294,7 @@ module OmfCommon
     end
   end
 
-  # Recusively Symbolize keys of hash
+  # Recursively Symbolize keys of hash
   #
   def self._rec_sym_keys(hash)
     h = {}
@@ -323,6 +323,14 @@ module OmfCommon
       else
         warn "Invalid config file format for logging, please use Ruby or Yaml."
       end
+    end
+  end
+
+  def self.load_credentials(opts)
+    unless opts.nil?
+      OmfCommon::Auth::CertificateStore.instance.register_default_certs(opts[:root_cert_dir])
+      cert_and_priv_key = File.read(opts[:entity_cert]) << "\n" << File.read(opts[:entity_key])
+      OmfCommon::Auth::CertificateStore.instance.register_x509(cert_and_priv_key)
     end
   end
 end
