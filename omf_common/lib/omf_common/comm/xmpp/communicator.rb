@@ -57,6 +57,10 @@ class Comm
         { proto: :xmpp, user: jid.node, domain: jid.domain }
       end
 
+      def string_to_address(a_string)
+        "xmpp://#{a_string}@#{jid.domain}"
+      end
+
       # Capture system :INT & :TERM signal
       def on_interrupted(&block)
         @cbks[:interpreted] << block
@@ -100,6 +104,7 @@ class Comm
             info "Reconnected"
           else
             info "Connected"
+            OmfCommon::DSL::Xmpp::MPConnection.inject(Time.now.to_f, jid, 'connected') if OmfCommon::Measure.enabled?
             @cbks[:connected].each { |cbk| cbk.call(self) }
             # It will be reconnection after this
             @lock.synchronize do
@@ -196,7 +201,7 @@ class Comm
       def subscribe(topic, opts = {}, &block)
         topic = topic.first if topic.is_a? Array
         OmfCommon::Comm::XMPP::Topic.create(topic, &block)
-        MPSubscription.inject(Time.now.to_f, jid, 'join', topic) if OmfCommon::Measure.enabled?
+        OmfCommon::DSL::Xmpp::MPSubscription.inject(Time.now.to_f, jid, 'join', topic) if OmfCommon::Measure.enabled?
       end
 
       def _subscribe(topic, pubsub_host = default_host, &block)
@@ -212,7 +217,7 @@ class Comm
         pubsub.subscriptions(pubsub_host) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
             pubsub.unsubscribe(s[:node], nil, s[:subid], pubsub_host, &callback_logging(__method__, s[:node], s[:subid]))
-            MPSubscription.inject(Time.now.to_f, jid, 'leave', s[:node]) if OmfCommon::Measure.enabled?
+            OmfCommon::DSL::Xmpp::MPSubscription.inject(Time.now.to_f, jid, 'leave', s[:node]) if OmfCommon::Measure.enabled?
           end
         end
       end
@@ -240,7 +245,7 @@ class Comm
         end
 
         pubsub.publish(topic, message, pubsub_host, &callback_logging(__method__, topic, &new_block))
-        MPPublished.inject(Time.now.to_f, jid, topic, message.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled?
+        OmfCommon::DSL::Xmpp::MPPublished.inject(Time.now.to_f, jid, topic, message.to_s[/mid="(.{36})/, 1]) if OmfCommon::Measure.enabled?
       end
 
       # Event callback for pubsub topic event(item published)
@@ -250,15 +255,18 @@ class Comm
           passed = !event.delayed? && event.items? && !event.items.first.payload.nil? #&&
             #!published_messages.include?(OpenSSL::Digest::SHA1.new(event.items.first.payload))
 
-          MPReceived.inject(Time.now.to_f, jid, event.node, event.items.first.payload.to_s.gsub("\n",'')) if OmfCommon::Measure.enabled? && passed
-
           if additional_guard
             passed && additional_guard.call(event)
           else
             passed
           end
         end
-        pubsub_event(guard_block, &callback_logging(__method__, &block))
+
+        mblock = proc do |stanza|
+          OmfCommon::DSL::Xmpp::MPReceived.inject(Time.now.to_f, jid, stanza.node, stanza.to_s[/mid="(.{36})/, 1]) if OmfCommon::Measure.enabled? 
+          block.call(stanza) if block
+        end
+        pubsub_event(guard_block, &callback_logging(__method__, &mblock))
       end
 
       private

@@ -386,9 +386,8 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     objects_by_topic(topic.id.to_s).each do |obj|
-      if OmfCommon::Measure.enabled?
-        OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, topic, message.mid)
-      end
+      OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid, 
+        topic.id.to_s, message.mid) if OmfCommon::Measure.enabled?
       execute_omf_operation(message, obj, topic)
     end
   end
@@ -492,7 +491,12 @@ class OmfRc::ResourceProxy::AbstractResource
     message.each_property do |key, value|
       method_name =  "#{message.operation.to_s}_#{key}"
       p_value = message[key]
-      response[key] ||= obj.__send__(method_name, p_value)
+
+      if namespaced_property?(key)
+        response[key, namespace] = obj.__send__(method_name, p_value)
+      else
+        response[key] = obj.__send__(method_name, p_value)
+      end
     end
   end
 
@@ -512,7 +516,13 @@ class OmfRc::ResourceProxy::AbstractResource
     request_props.each do |p_name|
       method_name = "request_#{p_name.to_s}"
       value = obj.__send__(method_name)
-      response[p_name] = value if value
+      if value
+        if namespaced_property?(p_name)
+          response[p_name, namespace] = value
+        else
+          response[p_name] = value
+        end
+      end
     end
   end
 
@@ -567,10 +577,11 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     # Just send to all topics, including group membership
-    (membership_topics.map { |mt| mt[1] } + @topics).each { |t| t.publish(message) }
-
-    OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
-      self.uid, replyto, inform_message.mid) if OmfCommon::Measure.enabled?
+    (membership_topics.map { |mt| mt[1] } + @topics).each do |t| 
+      t.publish(message) 
+      OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
+        self.uid, t.id, message.mid) if OmfCommon::Measure.enabled?
+    end
   end
 
   def inform_status(props)
@@ -675,5 +686,12 @@ class OmfRc::ResourceProxy::AbstractResource
         response[p] = res_ctx.__send__(p)
       end
     end
+  end
+
+  # Check if a property has namespace associated
+  #
+  # @param [String] name of the property
+  def namespaced_property?(name)
+    respond_to?(:namespace) && name =~ /^(.+)__(.+)$/
   end
 end

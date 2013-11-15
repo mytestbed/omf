@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "pry"
   s.add_development_dependency "mocha"
 
-  s.add_runtime_dependency "omf_common", "~> 6.0.7"
+  s.add_runtime_dependency "omf_common", "= #{OmfCommon::VERSION}"
   s.add_runtime_dependency "gli", "~> 2.5.3"
   s.add_runtime_dependency "sequel"
 end

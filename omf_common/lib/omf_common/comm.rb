@@ -67,7 +67,7 @@ module OmfCommon
       end
       @@instance = inst
       mopts = provider[:message_provider]
-      mopts[:authenticate] = (opts[:auth] != nil)
+      mopts[:authenticate] = opts[:auth]
       Message.init(mopts)
 
       if aopts = opts[:auth]
@@ -130,6 +130,13 @@ module OmfCommon
     # @return [Hash] connection information hash, with type, user and domain.
     def conn_info
       { proto: nil, user: nil, domain: nil }
+    end
+
+    # Return a valid address for this type of communicator
+    # Must be implemented by subclasses
+    #
+    def string_to_address(a_string)
+      raise NotImplementedError
     end
 
     # Subscribe to a pubsub topic

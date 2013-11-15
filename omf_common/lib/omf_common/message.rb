@@ -32,6 +32,7 @@ module OmfCommon
     }
     @@message_class = nil
     @@authenticate_messages = false
+    @@authorisation_hook = nil
 
     def self.create(type, properties, body = {})
       @@message_class.create(type, properties || {}, body)
@@ -49,15 +50,23 @@ module OmfCommon
     end
 
     # Parse message from 'str' and pass it to 'block'.
-    # If authnetication is on, the message will only be handed
-    # to 'block' if the source of the message can be authenticated.
+    # If authentication is on, the message will only be handed
+    # to 'block' if the source of the message can be authorized.
     #
     def self.parse(str, content_type = nil, &block)
       raise ArgumentError, 'Need message handling block' unless block
-      @@message_class.parse(str, content_type, &block)
+      @@message_class.parse(str, content_type) do |msg|
+        if @@authorisation_hook
+          # Hook will return message if it's authorized. Handing in
+          # dispatch block in case hook needs more time for authorization.
+          msg = @@authorisation_hook.authorize(msg, &block)
+        end
+        block.call(msg) if msg
+      end
     end
 
     def self.init(opts = {})
+      puts opts.inspect
       if @@message_class
         raise "Message provider already iniitalised"
       end
@@ -75,8 +84,20 @@ module OmfCommon
       else
         raise "Missing provider class info - :constructor"
       end
-      @@authenticate_messages = opts[:authenticate] if opts[:authenticate]
+      aopts = opts[:authenticate] || {}
+      @@authenticate_messages = opts[:authenticate] && !(aopts[:authenticate] == false)
+      if pdp_opts = (opts[:authenticate] || {})[:pdp]
+        require pdp_opts.delete(:require) if pdp_opts[:require]
+        unless pdp_constructor = pdp_opts.delete(:constructor)
+          raise "Missing PDP provider declaration."
+        end
+
+        pdp_class = pdp_constructor.split('::').inject(Object) {|c,n| c.const_get(n) }
+        @@authorisation_hook = pdp_class.new(pdp_opts)
+      end
     end
+
+    attr_reader :issuer
 
     OMF_CORE_READ.each do |pname|
       define_method(pname.to_s) do |*args|
@@ -109,7 +130,7 @@ module OmfCommon
       #raise if name.to_sym == :itype
       if ns
         @props_ns ||= {}
-        @props_ns.merge(ns)
+        @props_ns.merge!(ns)
       end
       _set_property(name.to_sym, value, ns)
     end
@@ -204,7 +225,7 @@ module OmfCommon
     # Get all property namespace defs
     def props_ns
       @props_ns ||= {}
-      default_props_ns.merge(@props_ns)
+      default_props_ns.merge(@props_ns).stringify_keys
     end
 
     private

@@ -9,7 +9,7 @@ require 'omf_rc/resource_proxy_dsl'
 describe OmfRc::ResourceProxyDSL do
   before do
     mock_comm_in_res_proxy
-    mock_topics_in_res_proxy(resources: [:mp0, :mrp0, :up0])
+    mock_topics_in_res_proxy(resources: [:mp0, :mrp0, :up0, :f0])
 
     module OmfRc::Util::MockUtility
       include OmfRc::ResourceProxyDSL
@@ -68,6 +68,14 @@ describe OmfRc::ResourceProxyDSL do
       include OmfRc::ResourceProxyDSL
 
       register_proxy :useless_proxy
+    end
+
+    module OmfRc::ResourceProxy::Foo
+      include OmfRc::ResourceProxyDSL
+
+      register_proxy :foo
+
+      namespace :foo, "http://schema/foo"
     end
   end
 
@@ -142,6 +150,13 @@ describe OmfRc::ResourceProxyDSL do
       mock_proxy.request_init_only_prop.must_equal 1
       lambda { mock_proxy.init_init_only_prop }.must_raise NoMethodError
       lambda { mock_proxy.configure_init_only_prop }.must_raise NoMethodError
+    end
+  end
+
+  describe "when namespace specified" do
+    it "must define namespace in the resource proxy" do
+      foo = OmfRc::ResourceFactory.create(:foo, uid: :f0)
+      foo.namespace.must_equal({foo: "http://schema/foo"})
     end
   end
 end

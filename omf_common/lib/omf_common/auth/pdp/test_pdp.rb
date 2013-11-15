@@ -3,8 +3,19 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-require 'omf_common/version'
+require 'omf_common/auth'
 
-module OmfEc
-  VERSION = OmfCommon.version_of('omf_ec')
+module OmfCommon::Auth::PDP
+  class TestPDP
+
+    def initialize(opts = {})
+      puts "AUTH INIT>>> #{opts}"
+    end
+
+    def authorize(msg, &block)
+      puts "AUTH(#{msg.issuer})>>> #{msg}"
+      sender = msg.src.address
+      msg
+    end
+  end
 end

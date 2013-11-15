@@ -88,6 +88,7 @@ module OmfRc::ResourceProxy::Application
   property :app_id, :default => nil
   property :description, :default => ''
   property :binary_path, :default => nil
+  property :quiet, :default => false
   property :platform, :default => nil
   property :pkg_tarball, :default => nil
   property :tarball_install_path, :default => '/'
@@ -169,7 +170,7 @@ module OmfRc::ResourceProxy::Application
                       msg: msg,
                       seq: res.property.event_sequence,
                       uid: res.uid
-                    }, :ALL)
+                    }, :ALL) unless res.property.quiet
       end
   end
 
@@ -549,7 +550,7 @@ module OmfRc::ResourceProxy::Application
       o = res.property.oml
       ofile = "/tmp/#{res.uid}-#{Time.now.to_i}.xml"
       of = File.open(ofile,'w')
-      of << "<omlc experiment='#{o.experiment}' id='#{o.id}'>\n"
+      of << "<omlc experiment='#{o.experiment}' id='#{o.id}_#{res.uid}'>\n"
       o.collection.each do |c|
         of << "  <collect url='#{c.url}'>\n"
         c.streams.each do |m|
