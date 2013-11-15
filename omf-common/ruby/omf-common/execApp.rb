@@ -89,7 +89,7 @@ class ExecApp < MObject
     pe = IO::pipe
 
     debug "Starting application '#{id}' - cmd: '#{cmd}'"
-    @observer.onAppEvent('STARTED', @id)
+    @observer.onAppEvent('STARTED', @id, '')
     @pid = fork {
       # child will remap pipes to std and exec cmd
       pw[1].close

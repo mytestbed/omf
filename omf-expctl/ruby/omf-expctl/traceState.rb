@@ -26,17 +26,17 @@
 #
 # == Description
 #
-# This file defiles the TraceState, NodeElement, NodeBuiltin, ImageNodeApp, 
+# This file defiles the TraceState, NodeElement, NodeBuiltin, ImageNodeApp,
 # and NodeApp classes
 #
 
 require 'omf-expctl/nodeHandler'
 
 #
-# This class will log any changes in the internal state of the experiment 
+# This class will log any changes in the internal state of the experiment
 #
 class TraceState < MObject
-  
+
   # Use Singleton design pattern
   include Singleton
 
@@ -53,12 +53,12 @@ class TraceState < MObject
   # instance
   #
   # - name = name of the property to add or set the value
-  # - command = either ':new' to create a new property or ':set' to set the 
+  # - command = either ':new' to create a new property or ':set' to set the
   #             value of an existing one
-  # - option = a Hash with options. If command is ':new', options are ':id', 
+  # - option = a Hash with options. If command is ':new', options are ':id',
   #            ':description'. If command is ':set' option is 'value'
   #
-  # TODO: use ':value' instead of 'value' for the option key... 
+  # TODO: use ':value' instead of 'value' for the option key...
   # need to modify rest of codes...
   #
   def self.property(name, command, options = {})
@@ -77,12 +77,12 @@ class TraceState < MObject
   end
 
   #
-  # Log the value(s) of a tag of the TraceState instance status of the 
+  # Log the value(s) of a tag of the TraceState instance status of the
   # experiment. Create the tag if it does not exist yet.
   #
   # - arg = see description of 'command'
   # - command = if ':tags' then add new tags contained in 'arg'
-  #             else add a new tag with the name of 'command' 
+  #             else add a new tag with the name of 'command'
   #             and the values in 'arg'
   #
   def self.experiment(command, arg)
@@ -104,7 +104,7 @@ class TraceState < MObject
     end
   end
 
-  def self.getExperimentState 
+  def self.getExperimentState
     return @@expRoot
   end
 
@@ -133,7 +133,7 @@ class TraceState < MObject
   #
   # - node =  the node, which state should be returned
   #
-  # [Return] an XML tree with the node's state 
+  # [Return] an XML tree with the node's state
   #
   def self.getNodeState(node)
     self.instance.getNodeComponent(node, :root)
@@ -198,16 +198,16 @@ class TraceState < MObject
   #
   # Log the image loaded onto a Node
   #
-  # - node =  the node, which image should be logged 
+  # - node =  the node, which image should be logged
   # - imageName = the name of the image loaded on this node
-  # 
+  #
   def self.nodeImage(node, imageName)
     self.instance.getNodeComponent(node, :image).text = imageName
   end
 
   #
-  # Log a new Application to a Node 
-  # 
+  # Log a new Application to a Node
+  #
   # - node = the node running this application
   # - appCtxt = the Application Context (AppContext) to log
   #
@@ -235,7 +235,7 @@ class TraceState < MObject
   #
   # Log the process of a disk image loading for a given Node
   #
-  # - node = the node where the disk image is loaded to 
+  # - node = the node where the disk image is loaded to
   # - image = the name for the loaded disk image
   # - opts = options for this disk image loading
   #
@@ -257,8 +257,8 @@ class TraceState < MObject
   #
   def self.nodeOnAppEvent(node, eventName, appName, op, message)
     app = self.instance.getNodeComponent(node, appName)
-    if app 
-      app.onEvent(node, op, eventName, message) 
+    if app
+      app.onEvent(node, op, eventName, message)
     end
   end
 
@@ -375,9 +375,9 @@ class TraceState < MObject
     historyAttr['ts'] = NodeHandler.getTS()
     el.add_element('history', historyAttr)
   end
-  
+
   def setValueAttr(el, value)
-    
+
   end
 end
 
@@ -451,7 +451,7 @@ class NodeBuiltin < MObject
   def setStatus(status)
     TraceState.instance.setValue(@statusEl, status)
 #    @statusEl.text = status
-#    @statusEl.add_element('history', 
+#    @statusEl.add_element('history',
 #                          {'ts' => NodeHandler.getTS()}).text = status
   end
 
@@ -537,12 +537,11 @@ class ImageNodeApp < NodeBuiltin
     super(ioEl, message)
     # Check for message nil class
     # Otherwise error occurs if match on a nil class is attempted
-    if (message.nil?)
-      match = nil
-    else
+    match = nil
+    if !message.nil?
       match = message.match(/^Progress: ([0-9]*)/)
     end
-    if match != nil
+    if !match.nil?
       setProgress(match[1])
     end
   end
@@ -566,7 +565,7 @@ class NodeApp < NodeBuiltin
   # @param node Node this application belongs to
   # @param procEl 'apps' element in state tree
   #
-  #  appEl = NodeApp.new(appCtxt.app.appDefinition, appCtxt.id, 
+  #  appEl = NodeApp.new(appCtxt.app.appDefinition, appCtxt.id,
   #          appCtxt.bindings, appCtxt.env, self, procEl)
   #
   def initialize(appCtxt, node, procEl)

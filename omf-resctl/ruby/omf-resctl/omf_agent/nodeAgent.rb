@@ -29,7 +29,7 @@
 # This class defines the Node Agent (NA) entity, which is a daemon
 # running on an experimental node.The NA listens for commands
 # from the Node Handler, and executes them on the node.
-# The module AgentCommands contains the list of commands that the NA 
+# The module AgentCommands contains the list of commands that the NA
 # understands.
 #
 
@@ -42,7 +42,7 @@ require 'omf-resctl/omf_agent/agentCommands'
 # This class defines the Node Agent (NA) entity, which is a daemon
 # running on an experimental node.The NA listens for commands
 # from the Node Handler, and executes them on the node.
-# The module AgentCommands contains the list of commands that the NA 
+# The module AgentCommands contains the list of commands that the NA
 # understands.
 #
 class NodeAgent < MObject
@@ -53,14 +53,14 @@ class NodeAgent < MObject
   VERSION = OMF::Common::VERSION(__FILE__)
   OMF_MM_VERSION = OMF::Common::MM_VERSION()
   VERSION_STRING = "OMF Resource Controller #{VERSION}"
-  
+
   # File containing image name
   IMAGE_NAME_FILE = '/.omf_imageid'
 
   # This attribut refers to the unique class instance (Singleton pattern)
   @@instance = nil
 
-  attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport, 
+  attr_reader :agentName, :agentSlice, :config, :controlIP, :moteport,
     :motetype, :ar5xxx_driver
 
   attr_accessor :allowDisconnection, :enrolled, :index
@@ -93,7 +93,7 @@ class NodeAgent < MObject
     comm[:createflag] = true
     comm[:config] = @config[:communicator]
     comm[:sliceID] = @agentSlice
-    comm[:domain] = @agentDomain 
+    comm[:domain] = @agentDomain
     RCCommunicator.instance.init(comm)
     RCCommunicator.instance.join_slice
 
@@ -134,19 +134,19 @@ class NodeAgent < MObject
 
   #
   # Receive an event from one of the application that we have started.
-  # This method is normally called by ExecApp which monitors the applications 
+  # This method is normally called by ExecApp which monitors the applications
   # that we started. Applications are identified by 'id'.
   #
   # - eventName = a String with the name of event that occured
-  # - appID = a String with the ID of the application raising the event 
-  # - msg = a String with optional message from the application 
+  # - appID = a String with the ID of the application raising the event
+  # - msg = a String with optional message from the application
   #
-  def onAppEvent(eventName, appID, *msg)
+  def onAppEvent(eventName, appID, msg)
     event = :APP_EVENT
     debug("onAppEvent(event: #{eventName} - app: #{appID}) - '#{msg}'")
-    # If this NA allows disconnection, then check if the event is the Done 
+    # If this NA allows disconnection, then check if the event is the Done
     # message from the slave Experiment Controller
-    if @allowDisconnection && (appID.to_sym == :SLAVE_EC) 
+    if @allowDisconnection && (appID.to_sym == :SLAVE_EC)
        if eventName.split(".")[0] == "DONE"
          @expirementDone = true
          event = :END_EXPERIMENT
@@ -155,21 +155,21 @@ class NodeAgent < MObject
        end
     end
     # Send the event to our EC
-    RCCommunicator.instance.send_event(event, eventName.to_s.upcase, 
+    RCCommunicator.instance.send_event(event, eventName.to_s.upcase,
                                        appID, "#{msg}")
   end
 
   #
-  # Receive an event from one of the device that we configured. 
-  # This method is normally called by a Device instance reporting its state 
+  # Receive an event from one of the device that we configured.
+  # This method is normally called by a Device instance reporting its state
   #
   # - eventName = a String with the name of event that occured
-  # - deviceName = a String with the name of the device raising the event 
-  # - msg = a String with optional message from the device 
+  # - deviceName = a String with the name of the device raising the event
+  # - msg = a String with optional message from the device
   #
-  def onDevEvent(eventName, deviceName, *msg)
+  def onDevEvent(eventName, deviceName, msg)
     debug("onDevEvent(#{eventName}:#{deviceName}): '#{msg}'")
-    RCCommunicator.instance.send_event(:DEV_EVENT, eventName.to_s.upcase, 
+    RCCommunicator.instance.send_event(:DEV_EVENT, eventName.to_s.upcase,
                                        deviceName, "#{msg}")
   end
 
@@ -181,9 +181,9 @@ class NodeAgent < MObject
     if @allowDisconnection && (ExecApp[:OML_PROXY] != nil)
       ExecApp[:OML_PROXY].stdin('OMLPROXY-RESUME')
       # HACK! begin
-      # We need a way to find out when OML Proxy is done sending the 
+      # We need a way to find out when OML Proxy is done sending the
       # collected measurements to the OML Server!
-      sleep 30 
+      sleep 30
       # HACK! end
     end
     info "\n\n------------ RESET ------------\n"
@@ -196,7 +196,7 @@ class NodeAgent < MObject
     RCCommunicator.instance.reset
   end
 
-  # 
+  #
   # Reset all the internat states of this NA
   #
   def resetState
@@ -209,7 +209,7 @@ class NodeAgent < MObject
     info "Disconnection Support Disabled."
   end
 
-  # 
+  #
   # Make sure that we cleaning up before exiting...
   #
   def cleanUp
@@ -233,7 +233,7 @@ class NodeAgent < MObject
 
     @configFile = nil
     @interactive = false
-    @logConfigFile = ENV['NODE_AGENT_LOG'] || 
+    @logConfigFile = ENV['NODE_AGENT_LOG'] ||
                      "/etc/omf-resctl-#{OMF_MM_VERSION}/omf-resctl_log.xml"
     private_key = nil
     public_key_dir = nil
@@ -243,7 +243,7 @@ class NodeAgent < MObject
     @config = {:communicator => {}, :agent => {}}
     @config[:communicator] = {:xmpp => {}}
 
-    # Communication Options 
+    # Communication Options
     opts.on("--control-if IF",
     "Name of interface attached to the control and management network") {|name|
       @config[:communicator][:control_if] = name
@@ -276,7 +276,7 @@ class NodeAgent < MObject
       "set, RC will use the same server as the 'pubsub-gateway'") {|name|
         @config[:communicator][:xmpp][:pubsub_domain] = name
     }
-  
+
     # Instance Options
     opts.on('--name NAME',
       "Initial checkin name of agent (unique HRN for this resource)") {|name|
@@ -289,16 +289,16 @@ class NodeAgent < MObject
 
     # Signing/Verification Options
     opts.on("-p", "--private_key FILE", "Set your RSA/DSA SSH private key "+
-      "file location") { |file| 
-      @config[:communicator][:private_key] = file 
+      "file location") { |file|
+      @config[:communicator][:private_key] = file
     }
     opts.on("-P", "--public_key_dir DIRECTORY", "Set the directory holding "+
-      "the public keys of your OMF peers") { |dir| 
-      @config[:communicator][:public_key_dir] = dir 
-    }  
+      "the public keys of your OMF peers") { |dir|
+      @config[:communicator][:public_key_dir] = dir
+    }
     opts.on("-a", "--auth YES|NO", "Enable or disable signature checks and "+
       "message signing (default is no)") { |auth|
-      @config[:communicator][:authenticate_messages] = (auth.downcase == "yes") 
+      @config[:communicator][:authenticate_messages] = (auth.downcase == "yes")
     }
 
     # Mote-related Options
@@ -345,7 +345,7 @@ class NodeAgent < MObject
     # read optional config file
     if !@configFile
       name = "omf-resctl.yaml"
-      path = ["../etc/omf-resctl/#{name}", 
+      path = ["../etc/omf-resctl/#{name}",
               "/etc/omf-resctl-#{OMF_MM_VERSION}/#{name}"]
       @configFile = path.detect {|f|
         File.readable?(f)
@@ -358,7 +358,7 @@ class NodeAgent < MObject
       end
     end
     if !@configFile
-      raise "Can't find any configuration files in the default paths. "+ 
+      raise "Can't find any configuration files in the default paths. "+
       "Please create a config file at one of the default paths "+
       "(see install doc). Also, you may find an example configuration "+
       "file in '/usr/share/doc/omf-resctl-#{OMF_MM_VERSION}/examples'."
@@ -383,11 +383,11 @@ class NodeAgent < MObject
     @config[:agent][:slice].gsub!(/%hostname%/, `hostname`.chomp)
     @config[:agent][:slice].gsub!(/%fqdn%/, `hostname --fqdn`.chomp)
     @config[:agent][:slice].gsub!(/%domain%/, `hostname --domain`.chomp)
-    
-    @agentName = @config[:agent][:name] 
-    @agentSlice =  @config[:agent][:slice] 
+
+    @agentName = @config[:agent][:name]
+    @agentSlice =  @config[:agent][:slice]
     @ar5xxx_driver = @config[:agent][:ar5xxx_driver]
-    @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] || 
+    @agentDomain = @config[:communicator][:xmpp][:pubsub_domain] ||
                    @config[:communicator][:xmpp][:pubsub_gateway]
 
     if @config[:communicator][:control_if] != nil
@@ -483,7 +483,7 @@ class NodeAgent < MObject
       end
     end
   end
-  
+
   ################################################
   private
 
@@ -511,7 +511,7 @@ end
 
 
 #
-# Execution Entry point 
+# Execution Entry point
 #
 begin
   NodeAgent.instance.parseOptions(ARGV)

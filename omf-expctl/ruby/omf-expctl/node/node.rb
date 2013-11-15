@@ -213,7 +213,7 @@ class OMF::EC::Node < MObject
   end
 
   #
-  # An appliciation on this Node produced an event, log it and execute the
+  # An application on this Node produced an event, log it and execute the
   # corresponding code-block, if any.
   #
   # - eventName = Name of event
