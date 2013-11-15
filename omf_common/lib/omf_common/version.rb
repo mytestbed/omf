@@ -4,6 +4,13 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 module OmfCommon
-  VERSION = `git describe --tags`.gsub(/-/, '.') rescue Gem.loaded_specs['omf_common'].version.to_s
   PROTOCOL_VERSION = "6.0"
+
+  def self.version_of(name)
+    git_tag  = `git describe --tags 2> /dev/null`
+    gem_v = Gem.loaded_specs[name].version.to_s rescue '0.0.0'
+    git_tag.empty? ? gem_v : git_tag.gsub(/-/, '.')
+  end
+
+  VERSION = version_of('omf_common')
 end
