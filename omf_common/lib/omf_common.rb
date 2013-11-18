@@ -142,6 +142,8 @@ module OmfCommon
   # @param [Hash] opts
   #
   def self.init(op_mode, opts = {}, &block)
+    opts = _rec_sym_keys(opts)
+
     if op_mode && defs = DEFAULTS[op_mode.to_sym]
       opts = _rec_merge(defs, opts)
     end
@@ -157,6 +159,7 @@ module OmfCommon
     if lopts = opts[:logging]
       _init_logging(lopts) unless lopts.empty?
     end
+
     unless copts = opts[:communication]
       raise "Missing :communication description"
     end
@@ -328,9 +331,9 @@ module OmfCommon
 
   def self.load_credentials(opts)
     unless opts.nil?
-      OmfCommon::Auth::CertificateStore.instance.register_default_certs(opts[:root_cert_dir])
-      cert_and_priv_key = File.read(opts[:entity_cert]) << "\n" << File.read(opts[:entity_key])
-      OmfCommon::Auth::CertificateStore.instance.register_x509(cert_and_priv_key)
+      OmfCommon::Auth::CertificateStore.instance.register_default_certs(File.expand_path(opts[:root_cert_dir]))
+      cert_and_priv_key = File.read(File.expand_path(opts[:entity_cert])) << "\n" << File.read(File.expand_path(opts[:entity_key]))
+      OmfCommon::Auth::Certificate.create_from_pem(cert_and_priv_key)
     end
   end
 end

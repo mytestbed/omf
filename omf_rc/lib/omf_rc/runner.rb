@@ -35,7 +35,7 @@ module OmfRc
         environment: 'production',
         resources: [ { type: :node, uid: @node_id }],
         factories: [],
-        communication: { url: "xmpp:#{@node_id}-#{Process.pid}:#{@node_id}-#{Process.pid}@localhost" },
+        communication: { url: "xmpp://#{@node_id}-#{Process.pid}:#{@node_id}-#{Process.pid}@localhost" },
         add_default_factories: true,
       )
 
@@ -54,16 +54,16 @@ module OmfRc
     end
 
     def run()
-      setup()
+      oml_init() # calls parse_config_files()
+
       OmfCommon::Measure.enable if @oml_enabled
 
-      OmfCommon.init(@gopts[:environment], @opts) do |el|
+      OmfCommon.init(@opts[:environment], @opts.to_hash) do |el|
         # Load a customised logging set up if provided
-        OmfCommon.load_logging_config(@gopts[:logging_configfile]) if @gopts[:logging_configfile]
+        OmfCommon.load_logging_config(@opts[:logging_configfile])
 
         info "Starting OMF Resource Controller version '#{@gem_version}'"
 
-        #el.on_int_signal do # Implementation missing
         Signal.trap("SIGINT") do
           # TODO: Should release resources first
           info "Stopping ..."
@@ -89,14 +89,14 @@ module OmfRc
         OmfCommon.comm.on_connected do |comm|
           info "Connected using #{comm.conn_info}"
 
-          OmfCommon.load_credentials(@opts[:credentials])
+          rc_cert = OmfCommon.load_credentials(@opts[:credentials])
 
           @opts[:resources].each do |res_opts|
             rtype = res_opts.delete(:type)
             res_creation_opts = res_opts.delete(:creation_opts)
             res_creation_opts ||= res_opts.delete(:create_opts)
             res_creation_opts ||= {}
-            #res_opts[:certificate] = entity if entity
+            res_opts[:certificate] = rc_cert
             begin
               OmfRc::ResourceFactory.create(rtype, res_opts, res_creation_opts)
             rescue => e
@@ -109,24 +109,6 @@ module OmfRc
       info "Stopping OMF Resource Controller version '#{@gem_version}'"
     end
 
-    def setup()
-      oml_init() # calls parse_config_files()
-      unless @opts[:communication][:url]
-        puts "Error: Missing parameters to connect to a PubSub Server (see --help)"
-        exit(1)
-      end
-
-      opts = @opts
-      # TODO: This needs to be fixed
-      if opts[:auth]
-        if File.exist?(opts[:auth][:entity_cert]) && File.exist?(opts[:auth][:entity_key])
-          entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(opts[:auth][:entity_cert]),
-                                                                 File.read(opts[:auth][:entity_key]))
-        end
-      end
-      opts[:communication][:auth] = {} if entity
-    end
-
     def parse_config_files()
       config_file = @gopts[:config_file]
 
@@ -135,12 +117,12 @@ module OmfRc
         exit(1)
       else
         cfg_opts = Mash.new(OmfCommon.load_yaml(config_file, symbolize_keys: true, erb_process: true))
-        copts = @def_opts.merge(cfg_opts.merge(@copts))
 
-        @opts.merge!(copts)
+        @opts.merge!(@def_opts.merge(cfg_opts).merge(@copts))
 
-        @opts.each do |k, v|
-          case k
+        # Legacy support uri & uid opt could also configure comm & resource
+        cfg_opts.each do |k, v|
+          case k.to_sym
           when :uri
             @opts[:communication][:url] = v
           when :uid
@@ -151,7 +133,7 @@ module OmfRc
           end
         end
 
-        @gopts[:environment] ||= copts[:environment]
+        #@gopts[:environment] ||= copts[:environment]
         @omlopts.merge(copts[:oml] || {}) {|k, v1, v2| v1 } # merge in place as OML may hold @omlopts
       end
     end

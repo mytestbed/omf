@@ -128,8 +128,8 @@ class XML
             end
           end
 
-          if OmfCommon::Measure.enabled? 
-            MPMessage.inject(Time.now.to_f, message.content.operation.to_s, 
+          if OmfCommon::Measure.enabled?
+            MPMessage.inject(Time.now.to_f, message.content.operation.to_s,
               message.content.mid, message.content.cid, message.content.to_s.gsub("\n",''))
           end
         end

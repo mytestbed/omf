@@ -209,6 +209,7 @@ module OmfCommon::Auth
 
     attr_reader :addresses, :resource_id # :addresses_raw, :addresses_string
     attr_reader :subject, :key, :digest
+    attr_writer :resource_id
 
     def initialize(opts)
       if @cert = opts[:cert]
@@ -237,6 +238,11 @@ module OmfCommon::Auth
     def valid?
       now = Time.new
       (@cert.not_before <= now && now <= @cert.not_after)
+    end
+
+    def cert_expired?
+      debug "Certificate expired!" unless valid?
+      !valid?
     end
 
     def key=(key)
@@ -287,7 +293,7 @@ module OmfCommon::Auth
     end
 
     def can_sign?
-      valid? && !@key.nil? && @key.private?
+      !cert_expired? && !@key.nil? && @key.private?
     end
 
     def root_ca?
