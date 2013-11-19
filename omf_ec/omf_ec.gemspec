@@ -29,4 +29,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "omf_common", "= #{OmfCommon::VERSION}"
   s.add_runtime_dependency "gli"
+  s.add_runtime_dependency "sequel"
 end

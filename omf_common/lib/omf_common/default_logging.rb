@@ -13,8 +13,7 @@ module OmfCommon
     Logging.appenders.stdout(
       'default_stdout',
       :layout => Logging.layouts.pattern(:date_pattern => '%F %T %z',
-                                         :pattern => '[%d] %-5l %c: %m\n',
-                                         :color_scheme => 'default'))
+                                         :pattern => '[%d] %-5l %c: %m\n'))
     Logging.logger.root.appenders = 'default_stdout'
     Logging.logger.root.level = :info
 

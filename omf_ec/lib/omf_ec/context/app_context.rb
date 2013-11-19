@@ -88,5 +88,14 @@ module OmfEc::Context
       end
       p
     end
+
+    def mp_table_names
+      {}.tap do |m_t_n|
+        @oml_collections.map { |v| v[:streams] }.flatten.each do |s|
+          mp = s[:mp].to_s
+          m_t_n[mp] = "#{self.app_def.name}_#{mp}"
+        end
+      end
+    end
   end
 end

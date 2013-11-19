@@ -52,7 +52,11 @@ arg_name "path_to_script_file [-- --experiment_property value]"
 command :exec do |c|
   c.desc "Experiment name"
   c.arg_name "experiment_name"
-  c.flag [:e, :experiment]
+  c.flag [:e, :experiment, "experiment-id"]
+
+  c.desc "Slice name [Deprecated]"
+  c.arg_name "slice_name"
+  c.flag [:slice]
 
   c.desc "OML URI to use for collecting the experiment's measurements"
   c.arg_name "uri"
@@ -279,8 +283,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         appenders: {
           stdout: {
             date_pattern: '%H:%M:%S',
-            pattern: '%d %-5l %c{2}: %m\n',
-            color_scheme: 'default'
+            pattern: '%d %-5l %c{2}: %m\n'
           }
         }
       }
