@@ -39,8 +39,6 @@ module OmfRc
         add_default_factories: true,
       )
 
-      @copts = Mash.new
-
       @gopts = Mash.new(
         config_file: nil,
         adv_config_file: nil,
@@ -118,7 +116,7 @@ module OmfRc
       else
         cfg_opts = Mash.new(OmfCommon.load_yaml(config_file, symbolize_keys: true, erb_process: true))
 
-        @opts.merge!(@def_opts.merge(cfg_opts).merge(@copts))
+        @opts.merge!(@def_opts.merge(cfg_opts))
 
         # Legacy support uri & uid opt could also configure comm & resource
         cfg_opts.each do |k, v|
@@ -133,8 +131,7 @@ module OmfRc
           end
         end
 
-        #@gopts[:environment] ||= copts[:environment]
-        @omlopts.merge(copts[:oml] || {}) {|k, v1, v2| v1 } # merge in place as OML may hold @omlopts
+        @omlopts.merge(@opts[:instrumentation] || {}) { |k, v1, v2| v1 } # merge in place as OML may hold @omlopts
       end
     end
 
@@ -157,17 +154,9 @@ module OmfRc
             @gopts[:logging_configfile] = file
           end
 
-          # op.on("-u URI", "Communication URI [#{@def_opts[:uri]}") do |uri|
-          #   @copts[:uri] = uri
-          # end
-
           op.on("-e ENVIRONMENT", "Environment (development, production ...) [#{@def_opts[:environment]}]") do |e|
             @gopts[:environment] = e
           end
-
-          # op.on("-i UID", "UID (and pubsub topic) of the resource, [#{@def_opts[:uid]}]") do |uid|
-          #   @copts[:uid] = uid
-          # end
 
           op.on("-v", "--version", "Show version") do
             puts "OMF Resource Controller version '#{@gem_version}'"
