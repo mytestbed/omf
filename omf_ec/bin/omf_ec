@@ -264,18 +264,11 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
-   
+
     if options[:inst_oml_uri] && options[:inst_oml_id] && options[:inst_oml_domain]
       require 'oml4r'
       instrument_ec = OML4R::init(nil, { collect: options[:inst_oml_uri], nodeID: options[:inst_oml_id], domain: options[:inst_oml_domain] , appName: File.basename($PROGRAM_NAME)} )
-      OmfCommon::Measure.enable if instrument_ec 
-    end
-
-    if global_options[:cert] && File.exist?(File.expand_path(global_options[:cert])) &&
-      global_options[:key] && File.exist?(File.expand_path(global_options[:key]))
-
-      entity = OmfCommon::Auth::Certificate.create_from_x509(File.read(File.expand_path(global_options[:cert])),
-                                                             File.read(File.expand_path(global_options[:key])))
+      OmfCommon::Measure.enable if instrument_ec
     end
 
     opts = {
@@ -293,7 +286,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       }
     }
 
-    opts[:communication][:auth] = {} if entity
+    opts[:communication][:auth] = { authenticate: true } if global_options[:cert]
 
     OmfCommon.init(:development, opts) do |el|
 
@@ -305,8 +298,14 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         info "Execute: #{exp_path}"
         info "Properties: #{OmfEc.experiment.cmdline_properties}"
 
-        OmfCommon::Auth::CertificateStore.instance.register_default_certs(File.expand_path(global_options[:root_cert_dir])) if global_options[:root_cert_dir]
-        OmfCommon::Auth::CertificateStore.instance.register(entity, OmfCommon.comm.local_address) if entity
+        ec_cert = OmfCommon.load_credentials(
+          root_cert_dir: global_options[:root_cert_dir],
+          entity_cert: global_options[:cert],
+          entity_key: global_options[:key]
+        )
+
+        ec_cert.resource_id = OmfCommon.comm.local_address
+        OmfCommon::Auth::CertificateStore.instance.register(ec_cert)
 
         begin
           include OmfEc::Backward::DefaultEvents

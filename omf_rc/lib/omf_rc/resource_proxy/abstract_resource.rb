@@ -123,12 +123,13 @@ class OmfRc::ResourceProxy::AbstractResource
         begin
           # Setup authentication related properties
           if (@certificate = @opts.delete(:certificate))
+          elsif (pcert = @opts.delete(:parent_certificate))
+            @certificate = pcert.dup
+          end
+
+          if @certificate
             @certificate.resource_id = resource_address
             OmfCommon::Auth::CertificateStore.instance.register(@certificate)
-          else
-            if (pcert = @opts.delete(:parent_certificate))
-              @certificate = pcert.create_for_resource(resource_address, @type)
-            end
           end
 
           # Extend resource with Resource Module, can be obtained from Factory

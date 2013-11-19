@@ -92,7 +92,7 @@ module OmfCommon::Auth
     #
     def register_default_certs(folder)
       Dir["#{folder}/*"].each do |cert|
-        register_x509(File.read(cert))
+        register_trusted(Certificate.create_from_pem(File.read(cert)))
       end
     end
 

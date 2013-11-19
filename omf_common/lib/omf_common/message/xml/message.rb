@@ -70,9 +70,9 @@ class XML
 
           if self.authenticate?
             pem = "#{OmfCommon::Auth::Certificate::BEGIN_CERT}#{cert}#{OmfCommon::Auth::Certificate::END_CERT}"
-            OmfCommon::Auth::CertificateStore.instance.register_x509(pem)
-
-            cert = OmfCommon::Auth::CertificateStore.instance.cert_for(iss)
+            cert = OmfCommon::Auth::Certificate.create_from_pem(pem)
+            cert.resource_id = iss
+            OmfCommon::Auth::CertificateStore.instance.register(cert)
 
             if cert.nil?
               warn "Missing certificate of '#{iss}'"
