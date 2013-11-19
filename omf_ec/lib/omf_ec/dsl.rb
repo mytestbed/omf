@@ -182,9 +182,11 @@ module OmfEc
     #
     # @param name short/easy to remember name for this graph
     def def_graph(name = nil, &block)
-      gd = OmfEc::Graph::GraphDescription.create(name)
-      block.call(gd)
-      gd._report
+      if OmfEc.experiment.show_graph
+        gd = OmfEc::Graph::GraphDescription.create(name)
+        block.call(gd)
+        gd._report
+      end
     end
 
     include OmfEc::Backward::DSL

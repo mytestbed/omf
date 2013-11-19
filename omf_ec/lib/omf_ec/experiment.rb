@@ -15,7 +15,7 @@ module OmfEc
 
     include MonitorMixin
 
-    attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties
+    attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph
     attr_reader :groups, :sub_groups, :state
 
     def initialize
@@ -27,6 +27,7 @@ module OmfEc
       @app_definitions ||= Hash.new
       @sub_groups ||= []
       @cmdline_properties ||= Hash.new
+      @show_graph = false
     end
 
     def property
