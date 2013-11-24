@@ -129,13 +129,13 @@ module OmfEc
     end
 
     def event(name)
-      @events.find { |v| v[:name] == name }
+      @events.find { |v| v[:name] == name || v[:aliases].include?(name) }
     end
 
     def add_event(name, trigger)
       self.synchronize do
         raise RuntimeError, "Event '#{name}' has already been defined" if event(name)
-        @events << { name: name, trigger: trigger }
+        @events << { name: name, trigger: trigger, aliases: [] }
       end
     end
 
@@ -150,7 +150,8 @@ module OmfEc
         @events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
           if event[:trigger].call(@state)
             @events.delete(event) if event[:consume_event]
-            info "Event triggered: '#{event[:name]}'"
+            event_names = ([event[:name]] + event[:aliases]).join(', ')
+            info "Event triggered: '#{event_names}'"
 
             # Last in first serve callbacks
             event[:callbacks].reverse.each do |callback|

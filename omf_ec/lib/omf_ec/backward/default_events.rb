@@ -11,7 +11,7 @@ module OmfEc
         def included(base)
           base.instance_eval do
 
-            def_event :ALL_NODES_UP do |state|
+            def all_nodes_up?(state)
               all_groups? do |g|
                 plan = g.members.values.uniq.sort
                 actual = state.find_all { |v| v.joined?(g.address) }.map { |v| v[:address].to_s }.sort
@@ -27,7 +27,23 @@ module OmfEc
               end
             end
 
-            on_event :ALL_NODES_UP do
+            def all_interfaces_ready?(state)
+              all_groups? do |g|
+                plan = g.net_ifs.map { |v| v.conf[:if_name] }.uniq.size * g.members.values.uniq.size
+                actual = state.count { |v| v.joined?(g.address("wlan"), g.address("net")) }
+                plan == 0 ? false : plan == actual
+              end
+            end
+
+            def all_apps_ready?(state)
+              all_groups? do |g|
+                plan = g.app_contexts.size * g.members.values.uniq.size
+                actual = state.count { |v| v.joined?(g.address("application")) }
+                plan == 0 ? false : plan == actual
+              end
+            end
+
+            def all_nodes_up_cbk
               all_groups do |group|
                 # Deal with brilliant net.w0.ip syntax...
                 group.net_ifs && group.net_ifs.each do |nif|
@@ -53,34 +69,30 @@ module OmfEc
               end
             end
 
-            def_event :ALL_UP do |state|
-              all_groups? do |g|
-                app_plan = g.app_contexts.size * g.members.values.uniq.size
-                app_actual = state.count { |v| v.joined?(g.address("application")) }
-                if_plan = g.net_ifs.map { |v| v.conf[:if_name] }.uniq.size * g.members.values.uniq.size
-                if_actual = state.count { |v| v.joined?(g.address("wlan"), g.address("net")) }
+            def_event :ALL_NODES_UP do |state|
+              all_nodes_up?(state)
+            end
 
-                if_plan == if_actual && app_plan == app_actual
-              end
+            alias_event :ALL_UP, :ALL_NODES_UP
+
+            on_event :ALL_NODES_UP do
+              all_nodes_up_cbk
+            end
+
+            def_event :ALL_RESOURCE_UP do |state|
+              all_nodes_up?(state) && all_interfaces_ready?(state) && all_apps_ready?(state)
             end
 
             def_event :ALL_INTERFACE_UP do |state|
-              all_groups? do |g|
-                plan = g.net_ifs.map { |v| v.conf[:if_name] }.uniq.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("wlan"), g.address("net")) }
-                plan == actual
-              end
+              all_nodes_up?(state) &&  all_interfaces_ready?(state)
             end
 
             def_event :ALL_UP_AND_INSTALLED do |state|
-              all_groups? do |g|
-                plan = g.app_contexts.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("application")) }
-                plan == actual
-              end
+              all_nodes_up?(state) && all_apps_ready?(state)
             end
 
             def_event :ALL_APPS_DONE do |state|
+              all_nodes_up?(state) &&
               all_groups? do |g|
                 plan = (g.execs.size + g.app_contexts.size) * g.members.values.uniq.size
                 actual = state.count { |v| v.joined?(g.address("application")) && v[:event] == 'EXIT' }

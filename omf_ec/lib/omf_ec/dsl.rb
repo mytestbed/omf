@@ -162,10 +162,18 @@ module OmfEc
       OmfEc.experiment.add_event(name, trigger)
     end
 
+    # Create an alias name of an event
+    def alias_event(new_name, name)
+      unless (event = OmfEc.experiment.event(name))
+        raise RuntimeError, "Can not create alias for Event '#{name}' which is not defined"
+      else
+        event[:aliases] << new_name
+      end
+    end
+
     # Define an event callback
     def on_event(name, consume_event = true, &callback)
-      event = OmfEc.experiment.event(name)
-      if event.nil?
+      unless (event = OmfEc.experiment.event(name))
         raise RuntimeError, "Event '#{name}' not defined"
       else
         event[:callbacks] ||= []

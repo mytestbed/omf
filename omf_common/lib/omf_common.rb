@@ -317,11 +317,11 @@ module OmfCommon
   # @param [String] file_path of the logging config file
   def self.load_logging_config(file_path)
     unless file_path.nil?
-      l_cfg_mime_type = `file --mime-type -b #{file_path}`.strip rescue nil
+      l_cfg_mime_type = File.extname(file_path)
       case l_cfg_mime_type
-      when /ruby/
+      when /rb/
         load file_path
-      when /plain/
+      when /yml|yaml/
         Logging::Config::YamlConfigurator.load(file_path)
       else
         warn "Invalid config file format for logging, please use Ruby or Yaml."
