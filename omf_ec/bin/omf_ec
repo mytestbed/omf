@@ -315,14 +315,16 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
         info "Execute: #{exp_path}"
         info "Properties: #{OmfEc.experiment.cmdline_properties}"
 
-        ec_cert = OmfCommon.load_credentials(
-          root_cert_dir: global_options[:root_cert_dir],
-          entity_cert: global_options[:cert],
-          entity_key: global_options[:key]
-        )
+        if opts[:communication][:auth] && opts[:communication][:auth][:authenticate]
+          ec_cert = OmfCommon.load_credentials(
+            root_cert_dir: global_options[:root_cert_dir],
+            entity_cert: global_options[:cert],
+            entity_key: global_options[:key]
+          )
 
-        ec_cert.resource_id = OmfCommon.comm.local_address
-        OmfCommon::Auth::CertificateStore.instance.register(ec_cert)
+          ec_cert.resource_id = OmfCommon.comm.local_address
+          OmfCommon::Auth::CertificateStore.instance.register(ec_cert)
+        end
 
         begin
           include OmfEc::Backward::DefaultEvents
