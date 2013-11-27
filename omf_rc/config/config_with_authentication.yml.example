@@ -2,12 +2,17 @@
 # default topic name is this machine's hostname
 # default xmpp user name/password is "hostname-pid"
 # this is to ensure that every RC has its own topic and XMPP account
-:uid: <%= Socket.gethostname %>
-:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
-:environment: production
-:debug: false
+uid: <%= Socket.gethostname %>
+uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
+environment: production
+debug: false
 
-:auth:
-  :root_cert_dir: /path_to_folder_contains_root_certs
-  :entity_cert: /path_to_cert_used_by_this_rc
-  :entity_key: /path_to_private_key_used_by_this_rc
+credentials:
+  root_cert_dir: /path_to_folder_contains_root_certs
+  entity_cert: /path_to_cert_used_by_this_rc
+  entity_key: /path_to_private_key_used_by_this_rc
+
+communication:
+  auth:
+    authenticate: true
+
