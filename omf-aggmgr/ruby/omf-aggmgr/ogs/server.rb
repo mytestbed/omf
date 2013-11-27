@@ -346,6 +346,10 @@ class XmppAggmgrServer < AggmgrServer
                   end
                 else
                   arguments = request.arguments
+                  # arguments are mandatory, yet we keep getting (duplicate) messages without them
+                  # from the listener queue since Ruby 1.9 / XMPP4r 0.5.5 upgrade
+                  return if arguments == {}
+
                   service_hash = @services[service]
 
                   # Ignore requests for unknown services -- another AM might be serving them.
