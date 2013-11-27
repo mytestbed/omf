@@ -140,7 +140,6 @@ class OmfXMPPServices < MObject
       return if @connecting
       @connecting = true
     }
-    @connection_attempts = 1
     # In case "connect" was called even though we are already connected
     # try close the connection first.
     # Ignore any exception in doing so (e.g. if there is no previous connection)

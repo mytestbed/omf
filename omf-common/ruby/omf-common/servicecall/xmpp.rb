@@ -151,7 +151,7 @@ module OMF
 
   module ServiceCall
 
-    SERVICE_CALL_TIMEOUT = 10  # seconds
+    SERVICE_CALL_TIMEOUT = 20  # seconds
 
     module XMPP
       class Message < REXML::Element
