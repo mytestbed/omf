@@ -2,6 +2,7 @@ default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
 start = (create | configure | request | release | inform | env)
 
+# Shared elements among all types of messages
 common_elements =
   # Message ID (optional)
   attribute mid { text }?
@@ -16,46 +17,36 @@ common_elements =
   # Guard with filtering properties (optional)
   & element guard { property * }?
 
-anything = ( text | element * { (attribute type { text })?, (text | anything) * })
-property = element * { (attribute type { text })?, anything * }
+property = element * { valid_content? }
 
-string_element = attribute type { "string" }
-  & text
-array_element = attribute type { "array" }
-  & attribute op { "assign" | "union" | "delete" }?
-  & element it { attribute type { text }, anything } *
-
-hash_element = attribute type { "hash" }
-  & attribute op { "assign" | "merge" | "delete" }?
+# Valid content type
+boolean_content = attribute type { "boolean" }, text
+integer_content = attribute type { "integer" }, text
+float_content = attribute type { "float" }, text
+string_content = attribute type { "string" }, text
+array_content = attribute type { "array" }
+  & attribute op { "assign" | "union" | "delete" } ?
+  & element it { valid_content? | property * } *
+hash_content = attribute type { "hash" }
+  & attribute op { "assign" | "merge" | "delete" } ?
   & property *
 
+valid_content = boolean_content | integer_content | float_content | string_content | array_content | hash_content
+
 # Core Resource Proxy Properties
-res_id = element res_id { string_element }
-reason = element reason { string_element }
-membership = element membership { array_element }
-uid = element uid { string_element }
-type = element type { string_element }
-hrn = element hrn { string_element }
-name = element name { string_element }
-child_resources= element child_resources { array_element }
-available_properties= element available_properties { hash_element }
-supported_children_type= element supported_children_type { array_element }
-certificate = element certificate { string_element }
+res_id = element res_id { string_content }
+reason = element reason { string_content }
+membership = element membership { array_content }
+uid = element uid { string_content }
+type = element type { string_content }
+hrn = element hrn { string_content }
+name = element name { string_content }
+child_resources= element child_resources { array_content }
+available_properties= element available_properties { hash_content }
+supported_children_type= element supported_children_type { array_content }
+certificate = element certificate { string_content }
 
-core_props = res_id?
-  & reason?
-  & membership?
-  & uid?
-  & type?
-  & hrn?
-  & name?
-  & child_resources?
-  & available_properties?
-  & supported_children_type?
-  & certificate?
-
-# End
-
+core_props = (res_id | reason | hrn | membership | uid | type | name | child_resources | available_properties | supported_children_type | certificate ) *
 
 # Create message
 create = element create {
@@ -64,19 +55,23 @@ create = element create {
   & element rtype { text }
 }
 
+# Configure message
 configure = element configure {
   common_elements
 }
 
+# Request message
 request = element request {
   common_elements
 }
 
+# Release message
 release = element release {
   common_elements
   & element res_id { text }?
 }
 
+# Inform message
 inform = element inform {
   common_elements
   & element cid { text }?
