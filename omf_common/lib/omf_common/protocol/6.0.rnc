@@ -2,19 +2,65 @@ default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
 start = (create | configure | request | release | inform | env)
 
-common_elements = attribute mid { text }?
+common_elements =
+  # Message ID (optional)
+  attribute mid { text }?
+  # Time stamp
   & element ts { text }
+  # Source (who sends it) (optional)
   & element src { text }?
+  # Reply address (who sends it) (optional)
   & element replyto { text }?
-  & element props { property * }?
+  # Resource properties (optional)
+  & element props { core_props, property * }?
+  # Guard with filtering properties (optional)
   & element guard { property * }?
 
 anything = ( text | element * { (attribute type { text })?, (text | anything) * })
-
 property = element * { (attribute type { text })?, anything * }
 
+string_element = attribute type { "string" }
+  & text
+array_element = attribute type { "array" }
+  & attribute op { "assign" | "union" | "delete" }?
+  & element it { attribute type { text }, anything } *
+
+hash_element = attribute type { "hash" }
+  & attribute op { "assign" | "merge" | "delete" }?
+  & property *
+
+# Core Resource Proxy Properties
+res_id = element res_id { string_element }
+reason = element reason { string_element }
+membership = element membership { array_element }
+uid = element uid { string_element }
+type = element type { string_element }
+hrn = element hrn { string_element }
+name = element name { string_element }
+child_resources= element child_resources { array_element }
+available_properties= element available_properties { hash_element }
+supported_children_type= element supported_children_type { array_element }
+certificate = element certificate { string_element }
+
+core_props = res_id?
+  & reason?
+  & membership?
+  & uid?
+  & type?
+  & hrn?
+  & name?
+  & child_resources?
+  & available_properties?
+  & supported_children_type?
+  & certificate?
+
+# End
+
+
+# Create message
 create = element create {
   common_elements
+  # Resource type is required
   & element rtype { text }
 }
 
@@ -37,6 +83,7 @@ inform = element inform {
   & element itype { "CREATION.OK" | "CREATION.FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN" }
 }
 
+# Message can be wrapped in env(elope)
 env = element env {
- create | configure | request | release | inform
+  create | configure | request | release | inform
 }
