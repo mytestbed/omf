@@ -132,10 +132,14 @@ module OmfCommon
       { proto: nil, user: nil, domain: nil }
     end
 
-    # Return a valid address for this type of communicator
+    # Take a string and use it to generate a valid topic address for this type of communicator
     # Must be implemented by subclasses
     #
-    def string_to_address(a_string)
+    # This may be used when we construct an FRCP Configure message, which requests some 
+    # resources to subscribe to a topic, which has not yet been created at the time of this 
+    # message's construction, but which will be created before this message is published. 
+    # (an example of such case can be found in OMF EC Group handling code)
+    def string_to_topic_address(a_string)
       raise NotImplementedError
     end
 

@@ -41,7 +41,7 @@ module OmfCommon
           { proto: :amqp, user: ::AMQP.settings[:user], domain: ::AMQP.settings[:host] }
         end
 
-        def string_to_address(a_string)
+        def string_to_topic_address(a_string)
           @address_prefix+a_string 
         end
 

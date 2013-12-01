@@ -57,7 +57,7 @@ class Comm
         { proto: :xmpp, user: jid.node, domain: jid.domain }
       end
 
-      def string_to_address(a_string)
+      def string_to_topic_address(a_string)
         "xmpp://#{a_string}@#{jid.domain}"
       end
 

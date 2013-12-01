@@ -41,7 +41,7 @@ module OmfEc
 
     def address(suffix = nil)
       t_id = suffix ? "#{self.id}_#{suffix.to_s}" : self.id
-      OmfCommon.comm.string_to_address(t_id)
+      OmfCommon.comm.string_to_topic_address(t_id)
     end
 
     def associate_topic(topic)
