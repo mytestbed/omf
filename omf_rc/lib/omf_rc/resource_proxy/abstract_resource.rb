@@ -118,7 +118,8 @@ class OmfRc::ResourceProxy::AbstractResource
 
       if t.error?
         warn "Could not create topic '#{uid}', will shutdown, trying to clean up old topics. Please start it again once it has been shutdown."
-        OmfCommon.comm.disconnect()
+        OmfCommon.comm.disconnect
+        OmfCommon.eventloop.stop
       else
         begin
           # Setup authentication related properties

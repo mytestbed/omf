@@ -66,6 +66,7 @@ module OmfRc
           # TODO: Should release resources first
           info "Stopping ..."
           OmfCommon.comm.disconnect
+          OmfCommon.eventloop.stop
         end
 
         # Load extensions

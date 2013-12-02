@@ -48,7 +48,6 @@ module OmfCommon
         # Shut down comms layer
         def disconnect(opts = {})
           info "Disconnecting..."
-          OmfCommon.eventloop.stop
         end
 
         # TODO: Should be thread safe and check if already connected

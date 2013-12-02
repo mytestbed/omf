@@ -187,6 +187,7 @@ module OmfEc
 
           OmfCommon.el.after(5) do
             OmfCommon.comm.disconnect
+            OmfCommon.eventloop.stop
           end
         end
       end
