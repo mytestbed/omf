@@ -192,6 +192,15 @@ module OmfEc
         end
       end
 
+      def disconnect
+        info "Disconnecting in 5 sec from experiment: #{OmfEc.experiment.id}"
+        info "Run the EC again to reattach"
+        OmfCommon.el.after(5) do
+          OmfCommon.comm.disconnect
+          OmfCommon.eventloop.stop
+        end
+      end
+
       def start
         info "Experiment: #{OmfEc.experiment.id} starts"
 
