@@ -78,14 +78,14 @@ rest.each do |s|
   sa = s.split(':')
   if sa.length == 2
     err_exit if key
-    resource_properties[sa[0]] = sa[1]
+    resource_properties[sa[0].to_sym] = sa[1]
   else
     if s.end_with?(':')
       err_exit if key
       key = s[0]
     else
       err_exit unless key
-      resource_properties[key] = s[0]
+      resource_properties[key.to_sym] = s[0]
       key = nil
     end
   end
