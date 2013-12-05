@@ -27,6 +27,7 @@ class OmfRc::ResourceFactory
         raise ArgumentError, "Resource type not found: #{type.to_s}" unless @@proxy_list.include?(type)
       end
       # Create a new instance of abstract resource and return it
+      debug "Create resource type: #{type} opts: #{opts} copts: #{creation_opts}"
       OmfRc::ResourceProxy::AbstractResource.new(type, opts, creation_opts) do |res|
         creation_callback.call(res) if creation_callback
       end
