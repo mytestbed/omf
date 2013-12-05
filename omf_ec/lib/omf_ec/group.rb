@@ -22,12 +22,10 @@ module OmfEc
 
     # @param [String] name name of the group
     # @param [Hash] opts
-    # @option opts [Boolean] :unique Should the group be unique or not, default is true
     def initialize(name, opts = {}, &block)
       super()
-      @opts = {unique: true}.merge!(opts)
       self.name = name
-      self.id = @opts[:unique] ? SecureRandom.uuid : self.name
+      self.id = "#{OmfEc.experiment.id}.#{self.name}"
       # Add empty holders for members, network interfaces, and apps
       self.net_ifs = []
       self.members = {}

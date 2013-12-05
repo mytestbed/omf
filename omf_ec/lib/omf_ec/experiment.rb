@@ -20,7 +20,7 @@ module OmfEc
 
     def initialize
       super
-      @id = Time.now.utc.iso8601
+      @id = Time.now.utc.iso8601(3)
       @state ||= [] #TODO: we need to keep history of all the events and not ovewrite them
       @groups ||= []
       @events ||= []

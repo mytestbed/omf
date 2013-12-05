@@ -17,20 +17,10 @@ describe OmfEc::Group do
     OmfEc::Group.any_instance.unstub(:address)
   end
 
-  describe "when initialised" do
-    it "must be generate unique id if :unique option is on" do
-      OmfEc::Group.new('bob').id.wont_equal 'bob'
-    end
-
-    it "must use name as id if :unique option is off" do
-      OmfEc::Group.new('bob', unique: false).id.must_equal 'bob'
-    end
-  end
-
   describe "when used to represent group resource" do
     before do
-      @group = OmfEc::Group.new('bob', unique: false)
-      @g_b = OmfEc::Group.new('g_b', unique: false)
+      @group = OmfEc::Group.new('bob')
+      @g_b = OmfEc::Group.new('g_b')
     end
 
     it "must init default context related variables" do
