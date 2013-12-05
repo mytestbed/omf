@@ -64,7 +64,7 @@ module OmfCommon
             # warn "Exchange #{ex.name} detected connection interruption"
             # @exchange = nil
           # end
-          channel.queue("", :exclusive => true) do |queue|
+          channel.queue("", :exclusive => true, :auto_delete => true) do |queue|
             #puts "QQ1(#{id}): #{queue}"
             queue.bind(@exchange)
             queue.subscribe do |headers, payload|
