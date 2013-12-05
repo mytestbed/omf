@@ -32,7 +32,7 @@ module OmfCommon
           unless (@url = @opts.delete(:url))
             raise "Missing 'url' option for AQMP layer"
           end
-          @address_prefix = @url + '/'
+          @address_prefix = @url + '/frcp.'
           _connect()
           super
         end
@@ -42,7 +42,7 @@ module OmfCommon
         end
 
         def string_to_topic_address(a_string)
-          @address_prefix+a_string 
+          @address_prefix+a_string
         end
 
         # Shut down comms layer
