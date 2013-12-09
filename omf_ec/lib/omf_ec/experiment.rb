@@ -15,7 +15,7 @@ module OmfEc
 
     include MonitorMixin
 
-    attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph
+    attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
     attr_reader :groups, :sub_groups, :state
 
     def initialize
@@ -23,6 +23,7 @@ module OmfEc
       @id = Time.now.utc.iso8601(3)
       @state ||= [] #TODO: we need to keep history of all the events and not ovewrite them
       @groups ||= []
+      @nodes ||= []
       @events ||= []
       @app_definitions ||= Hash.new
       @sub_groups ||= []
@@ -211,7 +212,7 @@ module OmfEc
               g.synchronize do
                 g.members[key] = res.address
               end
-              res.configure(membership: g.address)
+              res.configure(membership: g.address, :node_index => OmfEc.experiment.nodes.index(key))
             end
           end
         end
