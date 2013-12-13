@@ -185,7 +185,7 @@ module OmfCommon
           if @content[:src].is_a? OmfCommon::Comm::Topic
             @content[:src] = @content[:src].address
           end
-          @content[:itype] = self.itype(:frcp)
+          @content[:itype] = self.itype(:frcp) unless self.itype(:frcp).nil?
 
           #raise 'local/local' if @content[:src].id.match 'local:/local'
           #puts @content.inspect
