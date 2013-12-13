@@ -80,7 +80,7 @@ module OmfEc
           unless planned_groups.empty?
             OmfEc.subscribe_and_monitor(name) do |res|
               info "Config #{name} to join #{planned_groups.map(&:name).join(', ')}"
-              res.configure(membership: planned_groups.map(&:address).join(', '))
+              res.configure(membership: planned_groups.map(&:address))
             end
           end
         end

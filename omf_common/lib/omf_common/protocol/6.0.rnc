@@ -25,10 +25,8 @@ integer_content = attribute type { "integer" }, text
 float_content = attribute type { "float" }, text
 string_content = attribute type { "string" }, text
 array_content = attribute type { "array" }
-  & attribute op { "assign" | "union" | "delete" } ?
   & element it { valid_content? | property * } *
 hash_content = attribute type { "hash" }
-  & attribute op { "assign" | "merge" | "delete" } ?
   & property *
 
 valid_content = boolean_content | integer_content | float_content | string_content | array_content | hash_content
@@ -36,7 +34,7 @@ valid_content = boolean_content | integer_content | float_content | string_conte
 # Core Resource Proxy Properties
 res_id = element res_id { string_content }
 reason = element reason { string_content }
-membership = element membership { array_content }
+membership = element membership { array_content | string_content }
 uid = element uid { string_content }
 type = element type { string_content }
 hrn = element hrn { string_content }

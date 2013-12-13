@@ -90,15 +90,6 @@
       <attribute name="type">
         <value>array</value>
       </attribute>
-      <optional>
-        <attribute name="op">
-          <choice>
-            <value>assign</value>
-            <value>union</value>
-            <value>delete</value>
-          </choice>
-        </attribute>
-      </optional>
       <zeroOrMore>
         <element name="it">
           <choice>
@@ -118,15 +109,6 @@
       <attribute name="type">
         <value>hash</value>
       </attribute>
-      <optional>
-        <attribute name="op">
-          <choice>
-            <value>assign</value>
-            <value>merge</value>
-            <value>delete</value>
-          </choice>
-        </attribute>
-      </optional>
       <zeroOrMore>
         <ref name="property"/>
       </zeroOrMore>
@@ -155,7 +137,10 @@
   </define>
   <define name="membership">
     <element name="membership">
-      <ref name="array_content"/>
+      <choice>
+        <ref name="array_content"/>
+        <ref name="string_content"/>
+      </choice>
     </element>
   </define>
   <define name="uid">
