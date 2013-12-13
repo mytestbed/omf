@@ -10,32 +10,40 @@
       <ref name="env"/>
     </choice>
   </start>
+  <!-- Shared elements among all types of messages -->
   <define name="common_elements">
     <interleave>
       <optional>
+        <!-- Message ID (optional) -->
         <attribute name="mid"/>
       </optional>
+      <!-- Time stamp -->
       <element name="ts">
         <text/>
       </element>
       <optional>
+        <!-- Source (who sends it) (optional) -->
         <element name="src">
           <text/>
         </element>
       </optional>
       <optional>
+        <!-- Reply address (who sends it) (optional) -->
         <element name="replyto">
           <text/>
         </element>
       </optional>
       <optional>
+        <!-- Resource properties (optional) -->
         <element name="props">
+          <ref name="core_props"/>
           <zeroOrMore>
             <ref name="property"/>
           </zeroOrMore>
         </element>
       </optional>
       <optional>
+        <!-- Guard with filtering properties (optional) -->
         <element name="guard">
           <zeroOrMore>
             <ref name="property"/>
@@ -44,54 +52,179 @@
       </optional>
     </interleave>
   </define>
-  <define name="anything">
-    <choice>
-      <text/>
-      <element>
-        <anyName/>
-        <optional>
-          <attribute name="type"/>
-        </optional>
-        <zeroOrMore>
-          <choice>
-            <text/>
-            <ref name="anything"/>
-          </choice>
-        </zeroOrMore>
-      </element>
-    </choice>
-  </define>
   <define name="property">
     <element>
       <anyName/>
       <optional>
-        <attribute name="type"/>
+        <ref name="valid_content"/>
       </optional>
-      <zeroOrMore>
-        <ref name="anything"/>
-      </zeroOrMore>
     </element>
   </define>
+  <!-- Valid content type -->
+  <define name="boolean_content">
+    <attribute name="type">
+      <value>boolean</value>
+    </attribute>
+    <text/>
+  </define>
+  <define name="integer_content">
+    <attribute name="type">
+      <value>integer</value>
+    </attribute>
+    <text/>
+  </define>
+  <define name="float_content">
+    <attribute name="type">
+      <value>float</value>
+    </attribute>
+    <text/>
+  </define>
+  <define name="string_content">
+    <attribute name="type">
+      <value>string</value>
+    </attribute>
+    <text/>
+  </define>
+  <define name="array_content">
+    <interleave>
+      <attribute name="type">
+        <value>array</value>
+      </attribute>
+      <zeroOrMore>
+        <element name="it">
+          <choice>
+            <optional>
+              <ref name="valid_content"/>
+            </optional>
+            <zeroOrMore>
+              <ref name="property"/>
+            </zeroOrMore>
+          </choice>
+        </element>
+      </zeroOrMore>
+    </interleave>
+  </define>
+  <define name="hash_content">
+    <interleave>
+      <attribute name="type">
+        <value>hash</value>
+      </attribute>
+      <zeroOrMore>
+        <ref name="property"/>
+      </zeroOrMore>
+    </interleave>
+  </define>
+  <define name="valid_content">
+    <choice>
+      <ref name="boolean_content"/>
+      <ref name="integer_content"/>
+      <ref name="float_content"/>
+      <ref name="string_content"/>
+      <ref name="array_content"/>
+      <ref name="hash_content"/>
+    </choice>
+  </define>
+  <!-- Core Resource Proxy Properties -->
+  <define name="res_id">
+    <element name="res_id">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="reason">
+    <element name="reason">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="membership">
+    <element name="membership">
+      <choice>
+        <ref name="array_content"/>
+        <ref name="string_content"/>
+      </choice>
+    </element>
+  </define>
+  <define name="uid">
+    <element name="uid">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="type">
+    <element name="type">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="hrn">
+    <element name="hrn">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="name">
+    <element name="name">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="child_resources">
+    <element name="child_resources">
+      <ref name="array_content"/>
+    </element>
+  </define>
+  <define name="available_properties">
+    <element name="available_properties">
+      <ref name="hash_content"/>
+    </element>
+  </define>
+  <define name="supported_children_type">
+    <element name="supported_children_type">
+      <ref name="array_content"/>
+    </element>
+  </define>
+  <define name="certificate">
+    <element name="certificate">
+      <ref name="string_content"/>
+    </element>
+  </define>
+  <define name="core_props">
+    <zeroOrMore>
+      <choice>
+        <ref name="res_id"/>
+        <ref name="reason"/>
+        <ref name="hrn"/>
+        <ref name="membership"/>
+        <ref name="uid"/>
+        <ref name="type"/>
+        <ref name="name"/>
+        <ref name="child_resources"/>
+        <ref name="available_properties"/>
+        <ref name="supported_children_type"/>
+        <ref name="certificate"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  <!-- Create message -->
   <define name="create">
     <element name="create">
       <interleave>
         <ref name="common_elements"/>
+        <!-- Resource type is required -->
         <element name="rtype">
           <text/>
         </element>
       </interleave>
     </element>
   </define>
+  <!-- Configure message -->
   <define name="configure">
     <element name="configure">
       <ref name="common_elements"/>
     </element>
   </define>
+  <!-- Request message -->
   <define name="request">
     <element name="request">
       <ref name="common_elements"/>
     </element>
   </define>
+  <!-- Release message -->
   <define name="release">
     <element name="release">
       <interleave>
@@ -104,6 +237,7 @@
       </interleave>
     </element>
   </define>
+  <!-- Inform message -->
   <define name="inform">
     <element name="inform">
       <interleave>
@@ -126,6 +260,7 @@
       </interleave>
     </element>
   </define>
+  <!-- Message can be wrapped in env(elope) -->
   <define name="env">
     <element name="env">
       <choice>

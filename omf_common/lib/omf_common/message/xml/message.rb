@@ -469,6 +469,8 @@ class XML
         'integer'
       when /hash|mash/
         'hash'
+      when /symbol/
+        'string'
       else
         v_type
       end
