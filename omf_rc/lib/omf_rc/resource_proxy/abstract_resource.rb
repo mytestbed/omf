@@ -343,18 +343,34 @@ class OmfRc::ResourceProxy::AbstractResource
 
   # Make resource part of the group topic, it will overwrite existing membership array
   #
-  # @param [String|Array] args name of group topic/topics
+  # @param [String|Array|Hash] args name of group topic/topics
+  #
+  # @example Explaining argument values
+  #
+  #   # Join a single group
+  #   "group_1"
+  #
+  #   # Join multiple group
+  #   ["group_1", "group_2"]
+  #
+  #   # Leave a single group or multiple groups
+  #   { leave: ["group_1", "group_2"] } or { leave: "group_1" }
   def configure_membership(*args)
-    new_membership = [args[0]].flatten
+    case args[0]
+    when Symbol, String, Array
+      new_membership = [args[0]].flatten.compact
+    when Hash
+      leave_membership = [args[0][:leave]].flatten.compact
+    end
 
-    new_membership.each do |new_m|
+    new_membership && new_membership.each do |new_m|
       unless @membership.include?(new_m)
         OmfCommon.comm.subscribe(new_m) do |t|
           if t.error?
             warn "Group #{new_m} disappeared"
-            #EM.next_tick do
-            #  @membership.delete(m)
-            #end
+            self.synchronize do
+              @membership.delete(m)
+            end
           else
             self.synchronize do
               @membership << new_m
@@ -369,6 +385,17 @@ class OmfRc::ResourceProxy::AbstractResource
         end
       end
     end
+
+    leave_membership && leave_membership.each do |leave_m|
+      if (leave_m_topic = @membership_topics[leave_m])
+        self.synchronize do
+          leave_m_topic.unsubscribe(leave_m)
+          @membership.delete(leave_m)
+          @membership_topics.delete_if { |k, v| k == leave_m }
+        end
+      end
+    end
+
     @membership
   end
 

@@ -217,6 +217,14 @@ module OmfEc
           end
         end
       end
+
+      # Ask the resources which joined the groups I created to leave
+      #
+      def leave_memberships
+        all_groups do |g|
+          g.resources.membership = { leave: g.address }
+        end
+      end
     end
   end
 end
