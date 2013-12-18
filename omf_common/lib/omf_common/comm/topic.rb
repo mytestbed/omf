@@ -128,6 +128,8 @@ module OmfCommon
           if @handlers.empty?
             warn "Should unsubscribe '#{id}'"
           end
+
+          @@name2inst.delete_if { |k, v| k == id.to_sym || k == address.to_sym}
         end
       end
 
