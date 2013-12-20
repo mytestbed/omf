@@ -26,6 +26,11 @@ class XMPP
       end
     end
 
+    def unsubscribe(key)
+      super
+      OmfCommon.comm._unsubscribe_one(self.id)
+    end
+
     private
 
     def pubsub_domain_addr

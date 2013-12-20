@@ -138,11 +138,6 @@ class XML
       end
     end
 
-    def resource
-      r_id = _get_property(:res_id)
-      OmfCommon::Comm::XMPP::Topic.create(r_id)
-    end
-
     def marshall
       build_xml
 

@@ -212,12 +212,25 @@ class Comm
         pubsub.create(topic, pubsub_host, PUBSUB_CONFIGURE, &callback_logging(__method__, topic, &block))
       end
 
-      # Un-subscribe all existing subscriptions from all pubsub topics.
+      # Un-subscribe all existing subscriptions from all pubsub topics
+      #
       def unsubscribe(pubsub_host = default_host)
         pubsub.subscriptions(pubsub_host) do |m|
           m[:subscribed] && m[:subscribed].each do |s|
             pubsub.unsubscribe(s[:node], nil, s[:subid], pubsub_host, &callback_logging(__method__, s[:node], s[:subid]))
             OmfCommon::DSL::Xmpp::MPSubscription.inject(Time.now.to_f, jid, 'leave', s[:node]) if OmfCommon::Measure.enabled?
+          end
+        end
+      end
+
+      # Un-subscribe one single topic by topic address
+      #
+      def _unsubscribe_one(topic_id, pubsub_host = default_host)
+        pubsub.subscriptions(pubsub_host) do |m|
+          m[:subscribed] && m[:subscribed].each do |s|
+            if s[:node] == topic_id.to_s
+              pubsub.unsubscribe(s[:node], nil, s[:subid], pubsub_host, &callback_logging(__method__, s[:node], s[:subid]))
+            end
           end
         end
       end
@@ -263,7 +276,7 @@ class Comm
         end
 
         mblock = proc do |stanza|
-          OmfCommon::DSL::Xmpp::MPReceived.inject(Time.now.to_f, jid, stanza.node, stanza.to_s[/mid="(.{36})/, 1]) if OmfCommon::Measure.enabled? 
+          OmfCommon::DSL::Xmpp::MPReceived.inject(Time.now.to_f, jid, stanza.node, stanza.to_s[/mid="(.{36})/, 1]) if OmfCommon::Measure.enabled?
           block.call(stanza) if block
         end
         pubsub_event(guard_block, &callback_logging(__method__, &mblock))
