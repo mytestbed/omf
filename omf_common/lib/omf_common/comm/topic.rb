@@ -117,18 +117,7 @@ module OmfCommon
       #
       def unsubscribe(key)
         @lock.synchronize do
-          @handlers.each do |name, cbks|
-            if cbks.delete(key)
-              # remove altogether if no callback left
-              if cbks.empty?
-                @handlers.delete(name)
-              end
-            end
-          end
-          if @handlers.empty?
-            warn "Should unsubscribe '#{id}'"
-          end
-
+          @handlers.clear
           @@name2inst.delete_if { |k, v| k == id.to_sym || k == address.to_sym}
         end
       end
