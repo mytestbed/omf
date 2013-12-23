@@ -78,7 +78,7 @@ module OmfCommon
           if topic.start_with? 'amqp:'
             # absolute address
             unless topic.start_with? @address_prefix
-              raise "Cannot subscribe to a topic from different domain (#{topic})"
+              raise "Cannot subscribe to a topic from different domain (#{topic}) - #{@address_prefix}"
             end
             opts[:address] = topic
             topic = topic.split(@address_prefix).last
