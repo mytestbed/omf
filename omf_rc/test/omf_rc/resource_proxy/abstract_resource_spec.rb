@@ -84,7 +84,17 @@ describe AbstractResource do
 
     it "must be able to configure membership (join group)" do
       @parent.configure_membership(:test_group)
+      @parent.configure_membership([:test_group, 'test_group_2'])
       @parent.request_membership.must_include :test_group
+      @parent.request_membership.must_include 'test_group_2'
+    end
+
+    it "must be able to configure membership (leave group)" do
+      @parent.configure_membership([:test_group, 'test_group_2'])
+      @parent.configure_membership({ leave: [:test_group] })
+      @parent.request_membership.must_equal ['test_group_2']
+      @parent.configure_membership({ leave: [:test_group, 'test_group_2'] })
+      @parent.request_membership.must_equal []
     end
   end
 

@@ -2,41 +2,81 @@ default namespace = "http://schema.mytestbed.net/omf/6.0/protocol"
 
 start = (create | configure | request | release | inform | env)
 
-common_elements = attribute mid { text }?
+# Shared elements among all types of messages
+common_elements =
+  # Message ID (optional)
+  attribute mid { text }?
+  # Time stamp
   & element ts { text }
+  # Source (who sends it) (optional)
   & element src { text }?
+  # Reply address (who sends it) (optional)
   & element replyto { text }?
-  & element props { property * }?
+  # Resource properties (optional)
+  & element props { core_props, property * }?
+  # Guard with filtering properties (optional)
   & element guard { property * }?
 
-anything = ( text | element * { (attribute type { text })?, (text | anything) * })
+property = element * { valid_content? }
 
-property = element * { (attribute type { text })?, anything * }
+# Valid content type
+boolean_content = attribute type { "boolean" }, text
+integer_content = attribute type { "integer" }, text
+float_content = attribute type { "float" }, text
+string_content = attribute type { "string" }, text
+array_content = attribute type { "array" }
+  & element it { valid_content? | property * } *
+hash_content = attribute type { "hash" }
+  & property *
 
+valid_content = boolean_content | integer_content | float_content | string_content | array_content | hash_content
+
+# Core Resource Proxy Properties
+res_id = element res_id { string_content }
+reason = element reason { string_content }
+membership = element membership { array_content | string_content }
+uid = element uid { string_content }
+type = element type { string_content }
+hrn = element hrn { string_content }
+name = element name { string_content }
+child_resources= element child_resources { array_content }
+available_properties= element available_properties { hash_content }
+supported_children_type= element supported_children_type { array_content }
+certificate = element certificate { string_content }
+
+core_props = (res_id | reason | hrn | membership | uid | type | name | child_resources | available_properties | supported_children_type | certificate ) *
+
+# Create message
 create = element create {
   common_elements
+  # Resource type is required
   & element rtype { text }
 }
 
+# Configure message
 configure = element configure {
   common_elements
 }
 
+# Request message
 request = element request {
   common_elements
 }
 
+# Release message
 release = element release {
   common_elements
   & element res_id { text }?
 }
 
+# Inform message
 inform = element inform {
   common_elements
   & element cid { text }?
   & element itype { "CREATION.OK" | "CREATION.FAILED" | "STATUS" | "RELEASED" | "ERROR" | "WARN" }
 }
 
+# Message can be wrapped in env(elope)
 env = element env {
- create | configure | request | release | inform
+  create | configure | request | release | inform
 }

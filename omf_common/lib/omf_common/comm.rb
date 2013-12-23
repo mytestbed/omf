@@ -135,9 +135,9 @@ module OmfCommon
     # Take a string and use it to generate a valid topic address for this type of communicator
     # Must be implemented by subclasses
     #
-    # This may be used when we construct an FRCP Configure message, which requests some 
-    # resources to subscribe to a topic, which has not yet been created at the time of this 
-    # message's construction, but which will be created before this message is published. 
+    # This may be used when we construct an FRCP Configure message, which requests some
+    # resources to subscribe to a topic, which has not yet been created at the time of this
+    # message's construction, but which will be created before this message is published.
     # (an example of such case can be found in OMF EC Group handling code)
     def string_to_topic_address(a_string)
       raise NotImplementedError

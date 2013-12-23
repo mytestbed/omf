@@ -68,6 +68,7 @@ module OmfEc
           if (g = OmfEc.experiment.group(name))# resource to add is a group
             @members.merge!(g.members)
           else
+            OmfEc.experiment.nodes << name unless OmfEc.experiment.nodes.include?(name)
             @members[name] = nil
           end
         end
