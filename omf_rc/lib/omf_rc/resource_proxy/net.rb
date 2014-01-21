@@ -11,7 +11,7 @@
 #
 # @example Bring up an Ethernet interface eth0 by setting an ip address
 #   eth0 = node.create(:wlan, if_name: 'eth0')
-#   eth0.conifgure_ip_addr("192.168.1.100/24")
+#   eth0.configure_ip_addr("192.168.1.100/24")
 #
 # @see OmfRc::Util::Ip
 module OmfRc::ResourceProxy::Net

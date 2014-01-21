@@ -6,7 +6,7 @@
 
 In an OMF testbed, everything is a resource. The entity that controls one or multiple resources is called **Resource Controller (RC)**. The RC can run directly on the resource (e.g. a PC), or run on a separate computer that can control the resources (e.g. a bunch of sensor nodes or an OpenFlow switch). OMF is designed to support many different types of resources, and additional RCs for those resources can make use of our OMF APIs.
 
-All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default OMF uses XMPP for that. Each OMF component must be able to talk to at least one XMPP server, although there can be multiple XMPP servers used in an experiment.
+All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default OMF uses XMPP for that, but other messaging layers such as AMQP are supported. Each OMF component must be able to talk to at least one PubSub server, although there can be multiple PubSub servers used in an experiment. The examples in this guide are using XMPP.
 
 The experimenter uses the **Experiment Controller (EC)** to run the experiment script and steer the resources. The EC can be installed on a user-facing machine inside the testbed, or alternatively on the user's own computer.
 
@@ -112,7 +112,9 @@ should show the currently used Ruby installation and the current gemset as well 
 	ruby-1.9.3-p286@omf
 	ruby 1.9.3p286 (2012-10-12 revision 37165)
 
-## Openfire Installation
+## XMPP Server (Openfire) Installation
+
+OMF6 currently supports XMPP and AMQP for its message transport. Only one message transport is required. If you want to use AMQP instead of XMPP, please skip this section and see the AMQP installation instructions below.
 
 ### **USERS**
 
@@ -169,6 +171,32 @@ To verify that Openfire has been set up correctly, we are providing a test scrip
 
 Watch the output for any lines starting with ERROR. Double check your Openfire settings as described above and re-run the test until you receive no more ERRORs.
 
+## AMQP server (rabbitmq) Installation
+
+OMF6 currently supports XMPP and AMQP for its message transport. Only one message transport is required. If you want to use XMPP instead of AMQP, please skip this section and see the XMPP server installation instructions above.
+
+### **USERS**
+
+Your testbed operator should provide the AMQP server. You can skip this step.
+
+### **OPERATORS & DEVELOPERS**
+
+**OPERATORS** need to install an AMQP server in their testbed. It should be reachable from the outside Internet if any of the testbed users are on the outside of your organisation or if you want to federate your testbed with another organisation over the public Internet. **DEVELOPERS** should run an AMQP server on their local machine for development.
+
+For OMF, we recommend using rabbitmq. Other AMQP servers may work as well, but have not been tested.
+
+* uninstall any other AMQP servers first
+* make sure port TCP 5762 is open in your firewall
+* install rabbitmq on Ubuntu / Debian:
+
+<pre>sudo apt-get install rabbitmq</pre>
+
+* [installation instructions for other operating systems](http://www.rabbitmq.com/download.html)
+
+### **Verify this step**
+
+If you want to verify that your rabbitmq server is responding, you can follow this ["Hello World" tutorial](http://www.rabbitmq.com/tutorials/tutorial-one-ruby.html).
+
 ## OMF Installation for USERS
 
 After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. You only need to install the Experiment Controller (EC), as the OMF testbed you are using provides nodes that already run the Resource Controller (RC).
@@ -206,11 +234,11 @@ will create a configuration file template in `~/.config/omf_ec.yml`. It's not ma
       :stat: {}
       :tell: {}
 
-The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/). The `:commands:` section can be used to pass parameters only to specific OMF subcommands, such as exec, load or save. The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account.
+The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/). The `:commands:` section can be used to pass parameters only to specific OMF subcommands, such as exec, load or save. The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. For AMQP, use *amqp://\<amqp_hostname\>*.
 
 ### Gaining access to an OMF testbed
 
-Contact an OMF testbed operator for an account. Make a resource reservation if required and gather the HRNs of the resources you'd like to use. Also find out what the testbed's XMPP server hostname is.
+Contact an OMF testbed operator for an account. Make a resource reservation if required and gather the HRNs of the resources you'd like to use. Also find out what the testbed's PubSub server hostname is.
 
 ### **Verify this step**
 
@@ -219,7 +247,7 @@ To verify that you can run experiments on the testbed, we are providing an exper
 	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
 	omf_ec -u xmpp://<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
 
-Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. If everything goes well, you should see an output like:
+Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server or AMQP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. If everything goes well, you should see an output like:
 
 	18:36:59 INFO  XMPP::Communicator: Connecting to '<xmpp_hostname>' ...
 	18:36:59 INFO  Object: Connected
@@ -269,7 +297,7 @@ On a typical PC node, you can install the RC as root:
 
 If you should get any SSL errors during the gem installation, please try [this workaround](http://stackoverflow.com/a/18130051/1223151).
 
-Now it's time to install an XMPP server. Follow the instructions in [Appendix A: Openfire Installation](#Appendix_A__Openfire_Installation). Jump back here after you verified that Openfire is installed correctly.
+Now it's time to install a PubSub server. Follow the instructions in above to either install an XMPP or AMQP server. Jump back here after you verified that the PubSub server is installed correctly.
 
 If you'd like to start the Resource Controller upon booting your node, please ensure you have a system-wide RVM installation and run as root:
 
@@ -285,7 +313,7 @@ This installs an init script for your distribution (currently supports Debian, U
 
 The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/).
 
-The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname.
+The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname. When using AMQP, the URI format is *amqp://\<amqp_hostname\>*.
 
 ### Installing other RCs
 
