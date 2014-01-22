@@ -152,7 +152,7 @@ module OmfCommon
     def subscribe(topic_name, opts = {}, &block)
       tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
       ta = tna.collect do |tn|
-        t = create_topic(tn)
+        t = create_topic(tn.to_s)
         if block
           t.on_subscribed do
             block.call(t)
