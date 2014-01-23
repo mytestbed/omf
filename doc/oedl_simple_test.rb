@@ -10,12 +10,12 @@ onEvent(:ALL_UP) do |event|
     info "TEST - allGroups"
     allGroups.exec("/bin/date")
   end
-  # 'after' is not blocking. This executes 6 seconds after :ALL_UP fired.  
+  # 'after' is not blocking. This executes 6 seconds after :ALL_UP fired.
   after 6 do
     info "TEST - group"
-    group("Actor").exec("/bin/hostname -f")
+    group("Actor").exec("/bin/hostname -A")
   end
-  # 'after' is not blocking. This executes 9 seconds after :ALL_UP fired.  
+  # 'after' is not blocking. This executes 9 seconds after :ALL_UP fired.
   after 9 do
     Experiment.done
   end

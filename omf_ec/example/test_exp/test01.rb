@@ -17,7 +17,7 @@ onEvent(:ALL_UP) do
   allGroups.exec("/bin/date")
 
   info "TEST - group"
-  group("Actor").exec("/bin/hostname -f")
+  group("Actor").exec("/bin/hostname -A")
 
   Experiment.done
 end
