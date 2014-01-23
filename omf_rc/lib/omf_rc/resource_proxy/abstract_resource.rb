@@ -106,7 +106,6 @@ class OmfRc::ResourceProxy::AbstractResource
     @uid = (@opts.delete(:uid) || SecureRandom.uuid).to_s
     @hrn = @opts.delete(:hrn)
     @hrn = @hrn.to_s if @hrn
-    @node_index = nil
 
     @children = []
     @membership = []
@@ -397,15 +396,6 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     @membership
-  end
-
-  # Set the node index, overwriting any previous index
-  # The index is a unique integer for each node in an experiment
-  # It's used e.g. to give each node an IP address such as x.x.x.node_index
-  #
-  # @param [String|Array] args name of group topic/topics
-  def configure_node_index(index)
-    @node_index = index
   end
 
   # @!endgroup

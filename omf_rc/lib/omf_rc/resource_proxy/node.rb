@@ -78,4 +78,13 @@ module OmfRc::ResourceProxy::Node
     end
   end
   # @!endgroup
+
+  # @!macro group_prop
+  #
+  # @!attribute [rw] node_index
+  #   Node Index
+  #   @!macro prop
+  property :node_index
+  # @!endgroup
+
 end
