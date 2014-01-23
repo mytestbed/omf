@@ -47,7 +47,7 @@ end
 
     def register_default_callback(topic)
       topic.on_inform do |msg|
-OmfEc::MPReceived.inject(Time.now.to_f, topic.id, msg.mid) if OmfCommon::Measure.enabled?
+        OmfEc::MPReceived.inject(Time.now.to_f, topic.id, msg.mid) if OmfCommon::Measure.enabled?
         case msg.itype.upcase
         when 'CREATION.FAILED'
           warn "RC reports creation.failed: '#{msg[:reason]}'", msg.src

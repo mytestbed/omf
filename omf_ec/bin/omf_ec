@@ -283,6 +283,11 @@ def setup_logging(global_options = {})
                                            :pattern => '[%d] %-5l %c: %m\n')))
   end
 
+  if OmfEc.experiment.oml_uri
+    require 'oml4r/logging/oml4r_appender'
+    Logging.logger.root.add_appenders(Logging.appenders.oml4r('oml4r', :appName => 'omf_ec_log', :domain => "#{OmfEc.experiment.id}", :collect => "#{OmfEc.experiment.oml_uri}"))
+  end
+
   OmfCommon.load_logging_config(global_options[:log_config])
 end
 
