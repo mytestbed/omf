@@ -53,8 +53,18 @@ flag [:log_config]
 desc "Add some colours to logging"
 switch [:colour]
 
+desc "EC config file"
+arg_name "file"
+flag [:c, :config]
+
+$config_file = ".config/omf_ec.yml"
+ARGV.each_index {|a|
+  if ARGV[a]=="-c" or ARGV[a]=="--config"
+    $config_file = ARGV[a+1] if not ARGV[a+1].nil?
+  end
+}
 # the path given here is relative to the user's home directory
-config_file(".config/omf_ec.yml")
+config_file($config_file)
 
 desc "Execute an experiment script"
 arg_name "path_to_script_file [-- --experiment_property value]"
@@ -184,7 +194,7 @@ desc "Return the status of the nodes"
 command :stat do |c|
   c.desc "use this testbed configuration in OMF 5 EC config file"
   c.arg_name "AGGREGATE"
-  c.flag [:c, :config], :default_value => "default"
+  c.flag [:C], :default_value => "default"
 
   c.desc "comma-separated list of nodes to image"
   c.arg_name "TOPOLOGY"
@@ -194,7 +204,7 @@ command :stat do |c|
   c.switch [:s, :summary]
 
   c.action do |global_options, options, args|
-    @cmd = "omf-5.4 stat -c #{options[:c]} -t #{options[:t]} "
+    @cmd = "omf-5.4 stat -c #{options[:C]} -t #{options[:t]} "
     @cmd += "-s" if options[:s]
     load_exp(@testbed_exp_path, global_options, options)
   end
