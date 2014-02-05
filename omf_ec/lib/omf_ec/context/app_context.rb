@@ -58,12 +58,20 @@ module OmfEc::Context
 
     # For now this follows v5.4 syntax...
     # We have not yet finalised an OML syntax inside OEDL for v6
-    def measure(mp,filters)
-      warn "No OML URI configured, don't know where to send measurements (add option 'oml_uri')" if OmfEc.experiment.oml_uri.nil?
-      collection = {:url => OmfEc.experiment.oml_uri, :streams => [] }
-      stream = { :mp => mp , :filters => [] }.merge(filters)
-      collection[:streams] << stream
-      @oml_collections << collection
+    # TODO: v6 currently does not support OML filters. Formerly in v5.x, these
+    # filters were defined in an optional block.
+    def measure(mp, opts, &block)
+      collect_point = opts.delete(:collect)
+      collect_point ||= OmfEc.experiment.oml_uri 
+      if collect_point.nil?
+        warn "No OML URI configured for measurement collection! "+
+             "(see option 'oml_uri'). Disabling OML Collection for '#{mp}'."
+        return
+      end
+      stream = { :mp => mp , :filters => [] }.merge(opts)
+      index = @oml_collections.find_index { |c| c[:url] == collect_point }
+      @oml_collections << {:url => collect_point, :streams => [stream] } if index.nil?
+      @oml_collections[index][:streams] << stream unless index.nil?
     end
 
     def properties
