@@ -5,6 +5,7 @@
 
 class String
   def ducktype
+    return self if self[0] == "0"
     Integer(self) rescue Float(self) rescue self
   end
 end
