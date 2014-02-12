@@ -331,7 +331,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       setup_logging(global_options)
 
       OmfCommon.comm.on_connected do |comm|
-        info "OMF Experiment Controller #{OmfEc::VERSION}"
+        info "OMF Experiment Controller #{OmfEc::VERSION} - Start"
         info "Connected using #{comm.conn_info}"
         info "Execute: #{exp_path}"
         info "Properties: #{OmfEc.experiment.cmdline_properties}"
