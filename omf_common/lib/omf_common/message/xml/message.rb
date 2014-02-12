@@ -249,17 +249,19 @@ class XML
       when Hash
         [].tap do |array|
           value.each_pair do |k, v|
-            k = escape_key(k)
-            n = Niceogiri::XML::Node.new(k, nil, OMF_NAMESPACE)
-            n.write_attr('type', ruby_type_2_prop_type(v.class))
+            unless v.nil?
+              k = escape_key(k)
+              n = Niceogiri::XML::Node.new(k, nil, OMF_NAMESPACE)
+              n.write_attr('type', ruby_type_2_prop_type(v.class))
 
-            c_node = value_node_set(v, k)
-            if c_node.class == Array
-              c_node.each { |c_n| n.add_child(c_n) }
-            else
-              n.add_child(c_node)
+              c_node = value_node_set(v, k)
+              if c_node.class == Array
+                c_node.each { |c_n| n.add_child(c_n) }
+              else
+                n.add_child(c_node)
+              end
+              array << n
             end
-            array << n
           end
         end
       when Array
