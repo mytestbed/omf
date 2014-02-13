@@ -160,6 +160,7 @@ module OmfEc
       @value = value
       info "#{name} = #{value.inspect} (#{value.class})"
       @change_observers.each { |proc| proc.call(value) }
+      OmfEc.experiment.log_metadata("prop_#{name}", value)
     end
 
     # Implicit conversion to String (required for + operator)

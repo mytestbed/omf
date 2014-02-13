@@ -18,6 +18,11 @@ module OmfEc
     attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
     attr_reader :groups, :sub_groups, :state
 
+    # MP only used for injecting metadata
+    class MetaData < OML4R::MPBase
+      name :meta_data
+    end
+
     def initialize
       super
       @id = Time.now.utc.iso8601(3)
@@ -171,6 +176,10 @@ module OmfEc
       end
     end
 
+    def log_metadata(key, value)
+      MetaData.inject_metadata(key.to_s, value.to_s)
+    end
+
     # Purely for backward compatibility
     class << self
       # Disconnect communicator, try to delete any XMPP affiliations
@@ -189,9 +198,10 @@ module OmfEc
           OmfCommon.el.after(5) do
             OmfCommon.comm.disconnect
             OmfCommon.eventloop.stop
-            info "OMF Experiment Controller #{OmfEc::VERSION} - Exit."
+            info "OMF Experiment Controller #{OmfEc::VERSION} - Exit"
           end
         end
+        OmfEc.experiment.log_metadata("state", "finished")
       end
 
       def disconnect
@@ -205,6 +215,7 @@ module OmfEc
 
       def start
         info "Experiment: #{OmfEc.experiment.id} starts"
+        OmfEc.experiment.log_metadata("state", "running")
 
         allGroups do |g|
           g.members.each do |key, value|
