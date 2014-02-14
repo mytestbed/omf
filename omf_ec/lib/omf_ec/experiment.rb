@@ -195,10 +195,12 @@ module OmfEc
             g.resources[type: 'wlan'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
           end
 
-          OmfCommon.el.after(5) do
-            OmfCommon.comm.disconnect
-            OmfCommon.eventloop.stop
-            info "OMF Experiment Controller #{OmfEc::VERSION} - Exit"
+          OmfCommon.el.after(4) do
+            info "OMF Experiment Controller #{OmfEc::VERSION} - Exit."
+            OmfCommon.el.after(1) do
+              OmfCommon.comm.disconnect
+              OmfCommon.eventloop.stop
+            end
           end
         end
         OmfEc.experiment.log_metadata("state", "finished")
