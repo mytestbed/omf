@@ -21,6 +21,11 @@ module OmfEc
     # MP only used for injecting metadata
     class MetaData < OML4R::MPBase
       name :meta_data
+
+      # TODO: Should we use the meta data functionality - not sure if it is working right now
+      param :domain, type: :string
+      param :key, type: :string
+      param :value, type: :string
     end
 
     def initialize
@@ -176,8 +181,9 @@ module OmfEc
       end
     end
 
-    def log_metadata(key, value)
-      MetaData.inject_metadata(key.to_s, value.to_s)
+    def log_metadata(key, value, domain = 'sys')
+      #MetaData.inject_metadata(key.to_s, value.to_s)
+      MetaData.inject(domain.to_s, key.to_s, value.to_s)
     end
 
     # Purely for backward compatibility
