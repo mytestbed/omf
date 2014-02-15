@@ -295,7 +295,7 @@ def setup_logging(global_options = {})
 
   if OmfEc.experiment.oml_uri
     require 'oml4r/logging/oml4r_appender'
-    Logging.logger.root.add_appenders(Logging.appenders.oml4r('oml4r', :appName => 'omf_ec_log', :domain => "#{OmfEc.experiment.id}", :collect => "#{OmfEc.experiment.oml_uri}"))
+    Logging.logger.root.add_appenders(Logging.appenders.oml4r('oml4r', :appName => 'omf_ec', :domain => "#{OmfEc.experiment.id}", :collect => "#{OmfEc.experiment.oml_uri}"))
   end
 
   OmfCommon.load_logging_config(global_options[:log_config])
@@ -355,6 +355,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
           load exp_path
           OmfEc::Experiment.start
         rescue => e
+          OmfEc.experiment.log_metadata("state", "error")
           error e.message
           error e.backtrace.join("\n")
         end
