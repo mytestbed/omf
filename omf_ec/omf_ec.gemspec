@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
+$:.push File.expand_path("../../omf_common/lib", __FILE__)
 require "omf_ec/version"
 
 Gem::Specification.new do |s|
