@@ -166,6 +166,10 @@ module OmfEc
     # Implicit conversion to String (required for + operator)
     def to_str() @value.to_s end
 
+    # More convenient conversion 
+    def to_f() @value.to_f end
+    def to_i() @value.to_i end
+
     # Explicit conversion to String
     alias_method :to_s, :to_str
 
