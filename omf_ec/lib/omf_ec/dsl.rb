@@ -124,8 +124,9 @@ module OmfEc
     # @param name of property
     # @param default_value for this property
     # @param description short text description of this property
+    # @param type of property
     #
-    def def_property(name, default_value, description = nil)
+    def def_property(name, default_value, description = nil, type = nil)
       OmfEc.experiment.add_property(name, default_value, description)
     end
 
