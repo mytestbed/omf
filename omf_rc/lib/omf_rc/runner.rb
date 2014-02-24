@@ -21,7 +21,7 @@ module OmfRc
   class Runner
     include Hashie
 
-    attr_accessor :gopts, :copts, :def_opts
+    attr_accessor :gopts, :copts, :def_opts, :node_index
     attr_accessor :opts
 
     def initialize()
