@@ -232,7 +232,7 @@ module OmfEc
               g.synchronize do
                 g.members[key] = res.address
               end
-              res.configure(membership: g.address, :node_index => OmfEc.experiment.nodes.index(key))
+              res.configure(membership: g.address, :res_index => OmfEc.experiment.nodes.index(key))
             end
           end
         end

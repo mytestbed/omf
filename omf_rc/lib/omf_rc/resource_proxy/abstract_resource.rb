@@ -329,6 +329,11 @@ class OmfRc::ResourceProxy::AbstractResource
     @membership
   end
 
+  # Query resource's index number
+  def request_res_index(*args)
+    @res_index
+  end
+
   # Request child resources
   #
   # @return [Hashie::Mash] child resource mash with uid and hrn
@@ -399,13 +404,13 @@ class OmfRc::ResourceProxy::AbstractResource
     @membership
   end
 
-  # Set the node index, overwriting any previous index
-  # The index is a unique integer for each node in an experiment
-  # It's used e.g. to give each node an IP address such as x.x.x.node_index
+  # Set the resource index, overwriting any previous index
+  # The index is a unique integer for each resource in an experiment
+  # It's used e.g. to give each node an IP address such as x.x.x.res_index
   #
   # @param [String|Array] args name of group topic/topics
-  def configure_node_index(index)
-    @node_index = index
+  def configure_res_index(index)
+    @res_index = index
   end
 
   # @!endgroup
