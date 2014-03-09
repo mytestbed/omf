@@ -473,6 +473,10 @@ module OmfRc::ResourceProxy::Application
   # @!macro work
   work('build_command_line') do |res|
     cmd_line = "env -i " # Start with a 'clean' environment
+    if env = res.defaults(:env)
+      env = env.map {|k,v| "#{k.to_s.upcase}=#{v}"}.join(' ')
+      cmd_line += "#{env} "
+    end
     res.property.environments.each do |e,v|
       val = v.kind_of?(String) ? "'#{v}'" : v
       cmd_line += "#{e.to_s.upcase}=#{val} "
