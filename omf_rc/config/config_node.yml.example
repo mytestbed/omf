@@ -7,7 +7,7 @@ resources:
   - type: node
     uid: <%= Socket.gethostname %>
 
-add_default_factories: false ## Not loading default type factories
+add_default_factories: false # Not loading default type factories
 
 factories: # Additional resources which can be created by this RC
   load: [
