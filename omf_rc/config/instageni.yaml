@@ -1,6 +1,6 @@
 ---
 uri: <%= File.read("/var/omf/communication_url").strip %>
-environment: development
+environment: production
 debug: false
 
 resources:
