@@ -65,9 +65,9 @@ describe AbstractResource do
     end
 
     it "must returned all the properties can be requested & configured" do
-      @parent.request_available_properties.configure.must_equal [:p0, :membership]
+      @parent.request_available_properties.configure.must_equal [:p0, :membership, :res_index]
       @parent.request_available_properties.request.must_equal(
-        [:p0, :test_exception, :supported_children_type, :uid, :type, :hrn, :name, :membership, :child_resources]
+        [:p0, :test_exception, :supported_children_type, :uid, :type, :hrn, :name, :membership, :res_index, :child_resources]
       )
     end
 

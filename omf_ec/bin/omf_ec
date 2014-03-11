@@ -295,7 +295,7 @@ def setup_logging(global_options = {})
 
   if OmfEc.experiment.oml_uri
     require 'oml4r/logging/oml4r_appender'
-    Logging.logger.root.add_appenders(Logging.appenders.oml4r('oml4r', :appName => 'omf_ec_log', :domain => "#{OmfEc.experiment.id}", :collect => "#{OmfEc.experiment.oml_uri}"))
+    Logging.logger.root.add_appenders(Logging.appenders.oml4r('oml4r', :appName => 'omf_ec', :domain => "#{OmfEc.experiment.id}", :collect => "#{OmfEc.experiment.oml_uri}"))
   end
 
   OmfCommon.load_logging_config(global_options[:log_config])
@@ -303,7 +303,6 @@ end
 
 def load_exp(exp_path, global_options = {} , options = {}, properties = {})
   begin
-
     if options[:inst_oml_uri] && options[:inst_oml_id] && options[:inst_oml_domain]
       require 'oml4r'
       instrument_ec = OML4R::init(nil, { collect: options[:inst_oml_uri], nodeID: options[:inst_oml_id], domain: options[:inst_oml_domain] , appName: File.basename($PROGRAM_NAME)} )
@@ -331,7 +330,7 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
       setup_logging(global_options)
 
       OmfCommon.comm.on_connected do |comm|
-        info "OMF Experiment Controller #{OmfEc::VERSION}"
+        info "OMF Experiment Controller #{OmfEc::VERSION} - Start"
         info "Connected using #{comm.conn_info}"
         info "Execute: #{exp_path}"
         info "Properties: #{OmfEc.experiment.cmdline_properties}"
@@ -347,11 +346,16 @@ def load_exp(exp_path, global_options = {} , options = {}, properties = {})
           OmfCommon::Auth::CertificateStore.instance.register(ec_cert)
         end
 
+        OmfEc.experiment.log_metadata("ec_version", "#{OmfEc::VERSION}")
+        OmfEc.experiment.log_metadata("exp_path", exp_path)
+        OmfEc.experiment.log_metadata("ec_pid", "#{Process.pid}")
+
         begin
           include OmfEc::Backward::DefaultEvents
           load exp_path
           OmfEc::Experiment.start
         rescue => e
+          OmfEc.experiment.log_metadata("state", "error")
           error e.message
           error e.backtrace.join("\n")
         end

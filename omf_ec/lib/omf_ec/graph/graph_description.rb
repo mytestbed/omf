@@ -70,6 +70,7 @@ module OmfEc::Graph
     end
 
     def _report
+      _report_meta
       info "REPORT:START: #{@name}"
       info "REPORT:TYPE: #{@gtype}"
       info "REPORT:POSTFIX: #{URI.encode(@postfix)}" if @postfix
@@ -84,6 +85,26 @@ module OmfEc::Graph
       end
       info "REPORT:CAPTION: #{URI.encode(@caption)}" if @caption
       info "REPORT:STOP"
+    end
+
+    def _report_meta
+      h = {
+        type: @gtype,
+        mapping: @mapping,
+        caption: @caption
+      }
+      h[:postfix] = @postfix if @postfix
+      dss = h[:dss] = {}
+      @ms.each do |ctxt, a|
+        a.each do |ms|
+          dss[ctxt] = ms.sql
+        end
+      end
+      if @axis
+        h[:axis] = @axis
+      end
+      descr = h.to_json
+      OmfEc.experiment.log_metadata(@name, descr, :graph)
     end
 
     protected

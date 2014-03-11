@@ -18,6 +18,16 @@ module OmfEc
     attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
     attr_reader :groups, :sub_groups, :state
 
+    # MP only used for injecting metadata
+    class MetaData < OML4R::MPBase
+      name :meta_data
+
+      # TODO: Should we use the meta data functionality - not sure if it is working right now
+      param :domain, type: :string
+      param :key, type: :string
+      param :value, type: :string
+    end
+
     def initialize
       super
       @id = Time.now.utc.iso8601(3)
@@ -171,6 +181,11 @@ module OmfEc
       end
     end
 
+    def log_metadata(key, value, domain = 'sys')
+      #MetaData.inject_metadata(key.to_s, value.to_s)
+      MetaData.inject(domain.to_s, key.to_s, value.to_s)
+    end
+
     # Purely for backward compatibility
     class << self
       # Disconnect communicator, try to delete any XMPP affiliations
@@ -186,11 +201,15 @@ module OmfEc
             g.resources[type: 'wlan'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
           end
 
-          OmfCommon.el.after(5) do
-            OmfCommon.comm.disconnect
-            OmfCommon.eventloop.stop
+          OmfCommon.el.after(4) do
+            info "OMF Experiment Controller #{OmfEc::VERSION} - Exit."
+            OmfCommon.el.after(1) do
+              OmfCommon.comm.disconnect
+              OmfCommon.eventloop.stop
+            end
           end
         end
+        OmfEc.experiment.log_metadata("state", "finished")
       end
 
       def disconnect
@@ -204,6 +223,7 @@ module OmfEc
 
       def start
         info "Experiment: #{OmfEc.experiment.id} starts"
+        OmfEc.experiment.log_metadata("state", "running")
 
         allGroups do |g|
           g.members.each do |key, value|
@@ -212,7 +232,7 @@ module OmfEc
               g.synchronize do
                 g.members[key] = res.address
               end
-              res.configure(membership: g.address, :node_index => OmfEc.experiment.nodes.index(key))
+              res.configure(membership: g.address, :res_index => OmfEc.experiment.nodes.index(key))
             end
           end
         end

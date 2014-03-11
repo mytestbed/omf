@@ -160,10 +160,15 @@ module OmfEc
       @value = value
       info "#{name} = #{value.inspect} (#{value.class})"
       @change_observers.each { |proc| proc.call(value) }
+      OmfEc.experiment.log_metadata(name, value, :prop)
     end
 
     # Implicit conversion to String (required for + operator)
     def to_str() @value.to_s end
+
+    # More convenient conversion 
+    def to_f() @value.to_f end
+    def to_i() @value.to_i end
 
     # Explicit conversion to String
     alias_method :to_s, :to_str

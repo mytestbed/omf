@@ -106,6 +106,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @uid = (@opts.delete(:uid) || SecureRandom.uuid).to_s
     @hrn = @opts.delete(:hrn)
     @hrn = @hrn.to_s if @hrn
+    @node_index = nil
 
     @children = []
     @membership = []
@@ -328,6 +329,11 @@ class OmfRc::ResourceProxy::AbstractResource
     @membership
   end
 
+  # Query resource's index number
+  def request_res_index(*args)
+    @res_index
+  end
+
   # Request child resources
   #
   # @return [Hashie::Mash] child resource mash with uid and hrn
@@ -396,6 +402,15 @@ class OmfRc::ResourceProxy::AbstractResource
     end
 
     @membership
+  end
+
+  # Set the resource index, overwriting any previous index
+  # The index is a unique integer for each resource in an experiment
+  # It's used e.g. to give each node an IP address such as x.x.x.res_index
+  #
+  # @param [String|Array] args name of group topic/topics
+  def configure_res_index(index)
+    @res_index = index
   end
 
   # @!endgroup

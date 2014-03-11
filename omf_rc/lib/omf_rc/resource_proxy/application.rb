@@ -26,6 +26,7 @@
 # - environment (Hash) the environment variables to set prior to starting
 #   this app. { k1 => v1, ... } will result in "env -i K1=v1 ... "
 #   (with k1 being either a String or a Symbol)
+# - clean_env (Boolean) if true, application will be executed in a clean environment (env -i). Default is TRUE.
 # - use_oml (Boolean) if true enable OML for this application (default false)
 # - oml_loglevel (Integer) set a specific OML log level (default unset)
 # - oml_logfile (String) set a specific path for OML log file (default unset)
@@ -101,6 +102,7 @@ module OmfRc::ResourceProxy::Application
   property :event_sequence, :default => 0
   property :parameters, :default => Hashie::Mash.new
   property :environments, :default => Hashie::Mash.new
+  property :clean_env, :default => true
   property :use_oml, :default => false
   property :oml_configfile, :default => nil
   property :oml, :default => Hashie::Mash.new
@@ -472,7 +474,12 @@ module OmfRc::ResourceProxy::Application
   # @return [String] the full command line
   # @!macro work
   work('build_command_line') do |res|
-    cmd_line = "env -i " # Start with a 'clean' environment
+    if res.property.clean_env
+      cmd_line = "env -i " # Start with a 'clean' environment
+    else
+      cmd_line = ""
+    end
+
     res.property.environments.each do |e,v|
       val = v.kind_of?(String) ? "'#{v}'" : v
       cmd_line += "#{e.to_s.upcase}=#{val} "
