@@ -34,7 +34,7 @@ module OmfRc
       @def_opts = Mash.new(
         environment: 'production',
         resources: [ { type: :node, uid: @node_id }],
-        factories: [],
+        factories: {},
         communication: { url: "xmpp://#{@node_id}-#{Process.pid}:#{@node_id}-#{Process.pid}@localhost" },
         add_default_factories: true,
       )
@@ -73,14 +73,26 @@ module OmfRc
         if @opts[:add_default_factories] != false
           OmfRc::ResourceFactory.load_default_resource_proxies
         end
-
-        @opts[:factories].each do |f|
-          if (req = f[:require])
-            begin
-              info "Try to load resource module '#{req}'"
-              require(req)
-            rescue LoadError => e
-              error e.message
+        if f = @opts[:factories]
+          if (loads = f[:load])
+            loads.each do |m|
+              begin
+                info "Try to load proxy module '#{m}'"
+                require(m)
+              rescue LoadError => e
+                error e.message
+              end
+            end
+          end
+          if (inits = f[:defaults])
+            pl = OmfRc::ResourceFactory.proxy_list
+            inits.each do |m, v|
+              unless p = pl[m]
+                error "Can't find proxy '#{m}' to set defaults for"
+              end
+              info "Setting proxy defaults for '#{m}'"
+              debug "Setting proxy defaults for '#{m}' to '#{v}'"
+              OmfRc::ResourceProxy::AbstractResource.set_defaults(m, v)
             end
           end
         end

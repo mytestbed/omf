@@ -1,0 +1,23 @@
+---
+uri: <%= File.read("/var/omf/communication_url").strip %>
+environment: production
+debug: false
+
+resources:
+  - type: node
+    uid: <%= File.read("/var/omf/node_uri").strip  %>
+
+add_default_factories: false # Not loading default type factories
+
+factories: # Additional resources which can be created by this RC
+  load: [
+    'omf_rc/resource_proxy/node',
+    'omf_rc/resource_proxy/net',
+    'omf_rc/resource_proxy/application'
+  ]
+  defaults:
+    application:
+      env:
+        PATH: "<%= ENV["rvm_bin_path"] %>:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        GEM_HOME: "<%= ENV["GEM_HOME"] %>"
+        GEM_PATH: "<%= ENV["_ORIGINAL_GEM_PATH"] || ENV["GEM_PATH"] %>"

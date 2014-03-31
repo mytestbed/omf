@@ -79,6 +79,17 @@ class OmfRc::ResourceProxy::AbstractResource
     create_children_resources: true
   }
 
+  @@defaults = {}
+
+  # Set defaults for a particular resource class. Can be retrieved with 'defaults'
+  # in the instance.
+  #
+  # @param [Hash] defaults resource class defaults. Interpretation is up to proxy implementation.
+  #
+  def self.set_defaults(resource_type, defaults)
+    @@defaults[resource_type.to_sym] = defaults
+  end
+
   attr_accessor :uid, :hrn, :type, :property, :certificate
   attr_reader :opts, :children, :membership, :creation_opts, :membership_topics, :topics
 
@@ -170,6 +181,16 @@ class OmfRc::ResourceProxy::AbstractResource
         end
       end
     end
+  end
+
+  # Set defaults for a particular resource class. Can be retrieved with 'defaults'
+  # in the instance.
+  #
+  # @param [Hash] defaults resource class defaults. Interpretation is up to proxy implementation.
+  #
+  def defaults(key = nil)
+    d = @@defaults[@type] || {}
+    key ? d[key] : d
   end
 
   # Return resource' pubsub topic it has subscribed.
@@ -511,7 +532,7 @@ class OmfRc::ResourceProxy::AbstractResource
         # Getting property status, for preparing inform msg
         add_prop_status_to_response(new_obj, msg_props.keys, response)
 
-				if (cred = new_obj.certificate)
+        if (cred = new_obj.certificate)
           response[:cert] = cred.to_pem_compact
         end
         # self here is the parent
