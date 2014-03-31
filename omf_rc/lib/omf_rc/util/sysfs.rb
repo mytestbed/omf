@@ -36,7 +36,7 @@ module OmfRc::Util::Sysfs
           # Let's see if the interface is already up
           # NOTE: THIS MAY NOT BE ROBUST
           s = `ifconfig #{File.basename(v)}`
-          unless s.empty?
+          unless s.nil? || s.empty?
             if m = s.match(/inet addr:\s*([0-9.]+)/)
               device[:ip4] = m[1]
             end
