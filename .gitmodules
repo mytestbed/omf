@@ -1,9 +1,0 @@
-[submodule "omf_tools"]
-	path = omf_tools
-	url = https://github.com/mytestbed/omf_tools.git
-[submodule "omf_web"]
-	path = omf_web
-	url = https://github.com/mytestbed/omf_web.git
-[submodule "omf_sfa"]
-	path = omf_sfa
-	url = https://github.com/mytestbed/omf_sfa.git
