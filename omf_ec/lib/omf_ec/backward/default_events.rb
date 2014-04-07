@@ -6,11 +6,9 @@
 module OmfEc
   module Backward
     module DefaultEvents
-
       class << self
         def included(base)
-          base.instance_eval do
-
+          base.class_eval do
             def all_nodes_up?(state)
               all_groups? do |g|
                 plan = g.members.values.uniq.sort
@@ -93,13 +91,12 @@ module OmfEc
 
             def_event :ALL_APPS_DONE do |state|
               all_nodes_up?(state) &&
-              all_groups? do |g|
-                plan = (g.execs.size + g.app_contexts.size) * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("application")) && v[:event] == 'EXIT' }
-                plan == 0 ? false : plan == actual
-              end
+                all_groups? do |g|
+                  plan = (g.execs.size + g.app_contexts.size) * g.members.values.uniq.size
+                  actual = state.count { |v| v.joined?(g.address("application")) && v[:event] == 'EXIT' }
+                  plan == 0 ? false : plan == actual
+                end
             end
-
           end
         end
       end

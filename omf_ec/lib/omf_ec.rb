@@ -21,14 +21,14 @@ require "omf_ec/dsl"
 
 module OmfEc
 
-# OML Measurement Point (MP)
-# This MP is for measurements about messages received by the Resource Proxy
-class OmfEc::MPReceived < OML4R::MPBase
-  name :ec_received
-  param :time, :type => :double # Time (s) when this message was received
-  param :topic, :type => :string # Pubsub topic where this message came from
-  param :mid, :type => :string # Unique ID this message
-end
+  # OML Measurement Point (MP)
+  # This MP is for measurements about messages received by the Resource Proxy
+  class OmfEc::MPReceived < OML4R::MPBase
+    name :ec_received
+    param :time, :type => :double # Time (s) when this message was received
+    param :topic, :type => :string # Pubsub topic where this message came from
+    param :mid, :type => :string # Unique ID this message
+  end
 
   class << self
     # Experiment instance
@@ -101,3 +101,9 @@ end
     end
   end
 end
+
+include OmfEc::DSL
+include OmfEc::Backward::DSL
+include OmfEc::Backward::DefaultEvents
+
+Experiment = OmfEc::Experiment
