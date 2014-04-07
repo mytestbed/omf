@@ -36,6 +36,7 @@ module OmfRc
         resources: [ { type: :node, uid: @node_id }],
         factories: {},
         communication: { url: "xmpp://#{@node_id}-#{Process.pid}:#{@node_id}-#{Process.pid}@localhost" },
+        logging: {},
         add_default_factories: true,
       )
 
@@ -139,6 +140,8 @@ module OmfRc
           when :uid
             @opts[:resources][0][:type] = :node
             @opts[:resources][0][:uid] = v
+          when :debug
+            @opts[:logging][:level] = 'debug' if v
           else
             @opts[k] = v
           end
