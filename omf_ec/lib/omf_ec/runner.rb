@@ -71,11 +71,6 @@ module OmfEc
             remove_cmd_opts_from_argv("--key", key)
           end
 
-          op.on("--colour", "Add some colours to logging") do
-            @cmd_opts[:colour] = true
-            remove_cmd_opts_from_argv("--colour")
-          end
-
           op.on("--name", "--experiment EXPERIMENT_NAME", "Experiment name") do |e_name|
             @cmd_opts[:experiment_name] = e_name
             remove_cmd_opts_from_argv("--e", "--experiment", e_name)
@@ -205,12 +200,6 @@ module OmfEc
         Logging.logger.root.level = 'debug'
       else
         Logging.consolidate 'OmfCommon', 'OmfRc'
-      end
-
-      if @config_opts[:colour]
-        Logging.logger.root.appenders.first.layout = Logging.layouts.pattern(date_pattern: '%F %T %z',
-                                                                             color_scheme: 'default',
-                                                                             pattern: '[%d] %-5l %c: %m\n')
       end
 
       if OmfEc.experiment.oml_uri
