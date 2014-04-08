@@ -36,6 +36,7 @@ module OmfCommon
           content = body.merge({
             op: type,
             mid: SecureRandom.uuid,
+            ts: Time.now.to_i,
             props: properties
           })
           issuer = self.authenticate? ? (body[:issuer] || body[:src]) : nil
