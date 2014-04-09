@@ -3,6 +3,8 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
+require 'active_support'
+require 'active_support/deprecation'
 require 'active_support/core_ext'
 
 require 'omf_common/default_logging'
