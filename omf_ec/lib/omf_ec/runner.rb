@@ -167,6 +167,8 @@ module OmfEc
         OmfCommon::Measure.enable if instrument_ec
       end
 
+      remove_cmd_opts_from_argv("exec")
+
       @oedl_path = @argv[0] && File.expand_path(@argv[0])
 
       if @oedl_path.nil? || !File.exist?(@oedl_path)
