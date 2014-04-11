@@ -367,7 +367,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @!macro group_configure
 
-  # Make resource part of the group topic, it will overwrite existing membership array
+  # Make resource part of the group topic, it will alter existing membership array
   #
   # @param [String|Array|Hash] args name of group topic/topics
   #
@@ -381,12 +381,17 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   #   # Leave a single group or multiple groups
   #   { leave: ["group_1", "group_2"] } or { leave: "group_1" }
+  #
+  #   # Leave all groups except a selection of specific ones
+  #   { only: ["group_1", "group_2"] }  or { only: "group_1" }
+  #
   def configure_membership(*args)
     case args[0]
     when Symbol, String, Array
       new_membership = [args[0]].flatten.compact
     when Hash
       leave_membership = [args[0][:leave]].flatten.compact
+      only_membership = [args[0][:only]].flatten.compact
     end
 
     new_membership && new_membership.each do |new_m|
@@ -420,6 +425,11 @@ class OmfRc::ResourceProxy::AbstractResource
           @membership_topics.delete_if { |k, v| k == leave_m }
         end
       end
+    end
+
+    unless only_membership.nil? || only_membership.empty?
+      configure_membership({ leave: @membership })
+      configure_membership(only_membership)
     end
 
     @membership
