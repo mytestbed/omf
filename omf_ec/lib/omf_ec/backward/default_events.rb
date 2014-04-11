@@ -34,11 +34,13 @@ module OmfEc
             end
 
             def all_apps_ready?(state)
+              results = []
               all_groups? do |g|
                 plan = g.app_contexts.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("application")) }
-                plan == 0 ? false : plan == actual
+                actual = state.count { |v| v.joined?(g.address("application")) } 
+                results << (plan == actual) unless (plan == 0)
               end
+              !results.include?(false)
             end
 
             def all_nodes_up_cbk
