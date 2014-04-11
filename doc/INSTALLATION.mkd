@@ -373,11 +373,6 @@ We encourage developers to use the very latest OMF code from the master branch o
     git clone git://git.mytestbed.net/omf.git
     cd omf
 
-Some components are linked in OMF main repository as git submodules, if you want to use them, simply issue these commands inside the newly cloned repository:
-
-    git submodule init
-    git submodule update
-
 In order to install the gem dependencies, then build, install and test the OMF gems, run:
 
     rake
