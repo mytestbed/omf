@@ -14,7 +14,8 @@ module OmfEc::Context
     # values for each. Thus we need to distinguish these different context
     @@context_count = Hash.new
 
-    def initialize(name, group)
+    def initialize(name, location = nil, group)
+      load_oedl(location) unless location.nil?
       if OmfEc.experiment.app_definitions.key?(name)
         self.app_def = OmfEc.experiment.app_definitions[name]
         self.param_values = Hash.new
