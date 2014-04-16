@@ -365,10 +365,10 @@ module OmfRc::ResourceProxyDSL
     #
     # @example
     #   # Read-only property, i.e. could not be modified through FRCP protocol
-    #   property :bob, default: 1, access: :configure
+    #   property :bob, default: 1, access: :read_only
     #
     #   # Read & Write property, i.e. could be modified through FRCP protocol
-    #   property :bob, default: 1, access: :read_only
+    #   property :bob, default: 1, access: :configure
     #
     #   # Read & could be modified ONLY through FRCP CREATE message
     #   property :bob, default: 1, access: :init_only
