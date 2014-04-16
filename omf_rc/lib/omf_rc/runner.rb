@@ -8,12 +8,6 @@ module OmfRc
   # in decreasing priority through the command line,  configuration
   # file and default settings (see @def_opts).
   #
-  # For historic reasons and to make this implementation more interesting
-  # there are two different config file formats. A 'normal' one inherited from
-  # earlier version of OMF, and an 'advanced' one which is identical to the
-  # format accepted by OmfCommon.init(). To maintain some level of sanity,
-  # only one configuration file is accepted.
-  #
   # Having said that, there is one exception and that relates to the 'oml'
   # configuration which is stripped out first and handed to the OML4R library
   # during command line parsing.
@@ -42,7 +36,6 @@ module OmfRc
 
       @gopts = Mash.new(
         config_file: nil,
-        adv_config_file: nil,
         logging_configfile: nil,
         environment: nil
       )
@@ -65,9 +58,14 @@ module OmfRc
 
         Signal.trap("SIGINT") do
           # TODO: Should release resources first
-          info "Stopping ..."
-          OmfCommon.comm.disconnect
-          OmfCommon.eventloop.stop
+
+          # Workaround to EM issue under ruby v2
+          # https://github.com/eventmachine/eventmachine/issues/418
+          el.after(0) do
+            info "Stopping ..."
+            OmfCommon.comm.disconnect
+            el.stop
+          end
         end
 
         # Load extensions
@@ -122,7 +120,7 @@ module OmfRc
     end
 
     def parse_config_files()
-      config_file = @gopts[:config_file]
+      config_file = @gopts.delete(:config_file)
 
       if config_file.nil?
         puts "You must specify a config file"
@@ -147,6 +145,8 @@ module OmfRc
           end
         end
 
+        @opts.merge!(@gopts)
+
         @omlopts.merge(@opts[:instrumentation] || {}) { |k, v1, v2| v1 } # merge in place as OML may hold @omlopts
       end
     end
@@ -160,10 +160,6 @@ module OmfRc
 
           op.on("-c CONFIGFILE", "Configuration File") do |file|
             @gopts[:config_file] = file
-          end
-
-          op.on("-a ADVANCED_CONFIGFILE", "Advanced Configuration File") do |file|
-            @gopts[:adv_config_file] = file
           end
 
           op.on("--log_config CONFIGFILE", "Logging Configuration File") do |file|
