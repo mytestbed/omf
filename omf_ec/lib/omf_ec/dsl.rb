@@ -65,7 +65,7 @@ module OmfEc
       OmfCommon.eventloop.every(time, &block)
     end
 
-    def def_application(name,&block)
+    def def_application(name, &block)
       app_def = OmfEc::AppDefinition.new(name)
       OmfEc.experiment.app_definitions[name] = app_def
       block.call(app_def) if block
@@ -197,6 +197,44 @@ module OmfEc
         gd = OmfEc::Graph::GraphDescription.create(name)
         block.call(gd)
         gd._report
+      end
+    end
+
+    # Load an additional OEDL script 
+    #
+    # First try to load the script from the paths associated to this running 
+    # Ruby instance. This would allow the loading of scripts shipped with 
+    # the EC gem. If that fails, then look for the script in the local file
+    # system or at the given web URL.
+    #
+    # If an optional has of key/value is provided, then define an OMF
+    # Experiment Property for each keys and assigne them the values.
+    #
+    # @param location name, path or URL for the OEDL script to load
+    # @param opts optional hash of key/values for extra Experiment Property to define
+    #
+    def load_oedl(location, opts = {})
+      # Define the additional properties from opts
+      opts.each { |k,v| def_property(k, v,) } 
+      # Try to load OEDL Library as built-in then external
+      begin
+        require location
+        info "Loaded built-in OEDL library '#{location}'"
+      rescue LoadError
+        begin
+          require 'open-uri'
+          require 'tempfile'
+          file = Tempfile.new("oedl-#{Time.now.to_i}")
+          open(location) { |io| file.write(io.read) }
+          file.close
+          load(file.path) 
+          file.unlink
+          info "Loaded external OEDL library '#{location}'"
+        rescue Exception => e
+          error "Fail loading external OEDL library '#{location}': #{e}"
+        end
+      rescue Exception => e 
+        error "Fail loading built-in OEDL library '#{location}': #{e}"
       end
     end
 
