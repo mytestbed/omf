@@ -90,7 +90,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @@defaults[resource_type.to_sym] = defaults
   end
 
-  attr_accessor :uid, :hrn, :type, :property, :certificate
+  attr_accessor :uid, :hrn, :type, :property, :certificate, :state
   attr_reader :opts, :children, :membership, :creation_opts, :membership_topics, :topics
 
   # Initialisation
