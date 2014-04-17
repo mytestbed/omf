@@ -16,6 +16,8 @@ module OmfEc
           v5_style(:allGroups, base)
           v5_style(:allNodes!, base)
           v5_style(:defGraph, base)
+          v5_style(:loadOEDL, base)
+          v5_style(:ensureProperty, base)
         end
 
         def v5_style(name, base)
@@ -53,11 +55,6 @@ module OmfEc
         sleep duration.to_s.to_i
       end
 
-      # Just a v5-style wrapper around load_oedl()
-      def loadOEDL(location, opts = {})
-        load_oedl(location, opts) 
-      end
-	
     end
   end
 end

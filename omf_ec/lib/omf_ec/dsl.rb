@@ -137,6 +137,17 @@ module OmfEc
       return OmfEc.experiment.property
     end
 
+    # Check if a property exist, if not then define it
+    # Take the same parameter as def_property
+    #
+    def ensure_property(name, default_value, description = nil, type = nil)
+      begin 
+        property[name]
+      rescue
+        def_property(name, default_value, description, type)
+      end
+    end
+
     alias_method :prop, :property
 
     # Check if all elements in array equal the value provided

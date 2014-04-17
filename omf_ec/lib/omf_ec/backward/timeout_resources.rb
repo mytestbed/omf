@@ -18,12 +18,7 @@
 #   
 #  load_oedl('omf_ec/backward/timeout_resources', { oedl_timeout: 180 })
 #
-begin 
-  property.oedl_timeout
-rescue
-  defProperty('oedl_timeout',120,'default timeout in second')
-end
-
+ensureProperty('oedl_timeout',120,'default timeout in second')
 info "Waiting for all resources to join... (timeout set to #{property.oedl_timeout} s)"
 after property.oedl_timeout.to_i do
  unless all_nodes_up?(OmfEc.experiment.state) 
