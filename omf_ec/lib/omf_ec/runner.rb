@@ -73,7 +73,7 @@ module OmfEc
 
           op.on("--name", "--experiment EXPERIMENT_NAME", "Experiment name") do |e_name|
             @cmd_opts[:experiment_name] = e_name
-            remove_cmd_opts_from_argv("--e", "--experiment", e_name)
+            remove_cmd_opts_from_argv("--name", "--experiment", e_name)
           end
 
           op.on("--slice SLICE_NAME", "Slice name [Deprecated]") do |slice|
@@ -151,7 +151,7 @@ module OmfEc
     end
 
     def setup_experiment
-      OmfEc.experiment.name = @config_opts[:experiment] if @config_opts[:experiment]
+      OmfEc.experiment.name = @config_opts[:experiment_name] if @config_opts[:experiment_name]
       OmfEc.experiment.oml_uri = @config_opts[:oml_uri] if @config_opts[:oml_uri]
       OmfEc.experiment.show_graph = @config_opts['show-graph']
 
