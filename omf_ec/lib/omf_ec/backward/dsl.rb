@@ -52,6 +52,12 @@ module OmfEc
         warn "Calling 'wait' or 'sleep' will block entire EC event loop. Please try 'after' or 'every'"
         sleep duration.to_s.to_i
       end
+
+      # Just a v5-style wrapper around load_oedl()
+      def loadOEDL(location, opts = {})
+        load_oedl(location, opts) 
+      end
+	
     end
   end
 end
