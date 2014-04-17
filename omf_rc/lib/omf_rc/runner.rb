@@ -29,17 +29,12 @@ module OmfRc
         environment: 'production',
         resources: [ { type: :node, uid: @node_id }],
         factories: {},
-        communication: { url: "xmpp://#{@node_id}-#{Process.pid}:#{@node_id}-#{Process.pid}@localhost" },
+        communication: { url: "amqp://localhost" },
         logging: {},
         add_default_factories: true,
       )
 
-      @gopts = Mash.new(
-        config_file: nil,
-        logging_configfile: nil,
-        environment: nil
-      )
-
+      @gopts = Mash.new
       @opts = Mash.new
 
       @omlopts = {appName: @executable_name}
