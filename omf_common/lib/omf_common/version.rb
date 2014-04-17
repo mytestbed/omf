@@ -8,7 +8,7 @@ module OmfCommon
 
   def self.version_of(name)
     git_tag  = `git describe --tags 2> /dev/null`.chomp
-    git_root = `git root 2> /dev/null`.chomp
+    git_root = `git rev-parse --show-toplevel 2> /dev/null`.chomp
     gem_v = Gem.loaded_specs[name].version.to_s rescue '0.0.0'
 
     # Not in a development environment or git not present
