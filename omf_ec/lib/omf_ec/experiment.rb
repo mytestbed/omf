@@ -145,7 +145,8 @@ module OmfEc
 
     def add_event(name, trigger)
       self.synchronize do
-        raise RuntimeError, "Event '#{name}' has already been defined" if event(name)
+        warn "Event '#{name}' has already been defined. Overwriting it now." if event(name)
+        @events.delete_if { |e| e[:name] == name }
         @events << { name: name, trigger: trigger, aliases: [] }
       end
     end
