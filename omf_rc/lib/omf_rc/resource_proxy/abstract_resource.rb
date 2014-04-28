@@ -564,14 +564,27 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
   # @param [OmfCommon::Message] response initialised FRCP INFORM message object
   def handle_configure_message(message, obj, response)
-    message.each_property do |key, value|
-      method_name =  "#{message.operation.to_s}_#{key}"
-      p_value = message[key]
+    conf_properties = message.properties
+    conf_result = Hashie::Mash.new
 
+    call_hook(:pre_configure, obj, conf_properties, conf_result)
+
+    if obj.respond_to?(:configure_all)
+      obj.configure_all(conf_properties, conf_result)
+    else
+      conf_properties.each do |key, value|
+        method_name = "configure_#{key}"
+        conf_result[key] = obj.__send__(method_name, value)
+      end
+    end
+
+    call_hook(:post_configure, obj, conf_properties, conf_result)
+
+    conf_result.each do |key, value|
       if namespaced_property?(key)
-        response[key, namespace] = obj.__send__(method_name, p_value)
+        response[key, namespace] = value
       else
-        response[key] = obj.__send__(method_name, p_value)
+        response[key] = value
       end
     end
   end

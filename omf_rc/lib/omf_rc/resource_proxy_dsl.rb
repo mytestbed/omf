@@ -23,6 +23,10 @@ module OmfRc::ResourceProxyDSL
     context.send(hook_name, *params) if context.respond_to? hook_name
   end
 
+  def hook_defined?(hook_name, context)
+    context.respond_to? hook_name
+  end
+
   # When this module included, methods defined under ClassMethods will be available in resource definition files
   #
   def self.included(base)
@@ -216,6 +220,29 @@ module OmfRc::ResourceProxyDSL
     def configure(name, &register_block)
       define_method("configure_#{name.to_s}") do |*args, &block|
         args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
+        register_block.call(self, *args, block) if register_block
+      end
+    end
+
+    # Configure multiple properties when operations need to be completed in order, or the all operations are transactional
+    #
+    # @example
+    #
+    #   configure_all do |resource, configure_properties, result|
+    #     # Execute property one first, and make sure it is successful before attending property two
+    #     if resource.some_operation(configure_properties[:property_one])
+    #       if resource.other_operation(configure_properties[:property_two])
+    #         result[:property_one] = 'GOOD'
+    #         result[:property_two] = 'GREAT'
+    #       else
+    #         raise "Some errors"
+    #       end
+    #     else
+    #       raise "Some errors"
+    #     end
+    #   end
+    def configure_all(&register_block)
+      define_method("configure_all") do |*args, &block|
         register_block.call(self, *args, block) if register_block
       end
     end

@@ -71,4 +71,22 @@ module OmfRc::ResourceProxy::Wlan
     device.interface_down
   end
   # @!endgroup
+
+
+  configure_all do |res, conf_props, conf_result|
+    # Make sure to set up wifi mode first
+    if (mode = conf_props.delete(:mode))
+      res.configure_mode(mode)
+    end
+
+    # Then if everything goes well, configure the ip address
+    if (ip_addr = conf_props.delete(:ip_addr))
+      res.configure_ip_addr(ip_addr)
+    end
+
+    conf_result[:ip_addr] = res.request_ip_addr
+    conf_result[:state] = res.request_state
+
+    conf_props.each { |k, v| conf_result[k] = res.__send__("configure_#{k}", v) }
+  end
 end

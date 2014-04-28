@@ -39,7 +39,7 @@ module OmfRc::Util::Wpa
   work :stop_wpa do |device|
     begin
       File.open(device.property.wpa_pid,'r') do |f|
-        logger.debug "Stopping wpa supplicant at PID: #{device.property.wpa_pid}"
+        info "Stopping wpa supplicant at PID: #{device.property.wpa_pid}"
         CommandLine.new("kill", "-9 :pid", :pid => f.read.chomp).run
       end
 
