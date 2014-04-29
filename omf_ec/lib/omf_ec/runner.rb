@@ -81,6 +81,11 @@ module OmfEc
             remove_cmd_opts_from_argv("--slice", slice)
           end
 
+          op.on("--oml_uri URI", "URI for the OML data collection of experiment applications") do |uri|
+            @cmd_opts[:oml_uri] = uri
+            remove_cmd_opts_from_argv("--oml_uri", uri)
+          end
+
           op.on("--inst_oml_uri URI", "EC Instrumentation: OML URI to use") do |uri|
             @cmd_opts[:inst_oml_uri] = uri
             remove_cmd_opts_from_argv("--inst_oml_uri", uri)
