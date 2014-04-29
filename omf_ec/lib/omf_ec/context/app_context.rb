@@ -35,7 +35,7 @@ module OmfEc::Context
       app_def_param = app_def.properties.parameters
       raise OEDLUnknownProperty.new(key, "Unknown parameter '#{key}' for application "+
         "definition '#{app_def.name}'") if app_def_param.nil? || !app_def_param.key?(key)
-      if property_value.kind_of?(ExperimentProperty)
+      if property_value.kind_of?(OmfEc::ExperimentProperty)
         @param_values[key] = property_value.value
         # if this app parameter has its dynamic attribute set to true, then
         # we register a callback block to the ExperimentProperty, which will
@@ -86,7 +86,7 @@ module OmfEc::Context
       p = original.merge({:type => 'application'})
       @param_values.each do |k,v|
         if p[:parameters].key?(k)
-          p[:parameters][k][:value] = v.kind_of?(ExperimentProperty) ? v.value : v
+          p[:parameters][k][:value] = v.kind_of?(OmfEc::ExperimentProperty) ? v.value : v
         end
       end
       if @oml_collections.size > 0

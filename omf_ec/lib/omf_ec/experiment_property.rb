@@ -12,7 +12,7 @@ module OmfEc
   # Experiment Properties defined for a given experiment.
   # Most of this implementation is re-used from OMF 5.4
   #
-  class ExperimentProperty
+  class OmfEc::ExperimentProperty
 
     # Contains all the experiment properties
     @@properties = Hashie::Mash.new
