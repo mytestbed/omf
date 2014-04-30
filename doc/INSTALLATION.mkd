@@ -49,6 +49,10 @@ Type following in your console:
     sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel openssl-devel
     sudo yum update -y audit
 
+If you run into some errors When installing the OMF gem packages later on, you may have to install some extra development packages for Fedora. To do that, please type the following in your console:
+
+    sudo yum install -y ruby-devel make gcc gpp gcc-c++
+
 #### Mac OS X
 
 RVM will use the 'homebrew' package manager to install its dependencies. If you want to use a different package manager on OSX, please read the [RVM autolib instructions](https://rvm.io/rvm/autolibs).
