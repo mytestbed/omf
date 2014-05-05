@@ -22,29 +22,21 @@ Each of the following sections has specific instructions for each audience class
 
 ## Dependencies
 
-OMF requires Ruby 1.9. If your operating system provides a Ruby 1.9 package, you can install and use that. However we recommend using [RVM](https://rvm.io) instead. RVM is useful if your OS does not provide a binary ruby1.9 package, or if you do not have root permissions, or if you want multiple Ruby installations with isolated gemsets.
+OMF requires Ruby with minimal version 1.9.3.
 
-The [official RVM site](https://rvm.io) provides an extensive installation guide, but here are some short instructions. The first step is to satisfy RVM and OMF build dependencies.
+Please see [official ruby site](https://www.ruby-lang.org/en/downloads/) regarding installing ruby.
 
-### **USERS, OPERATORS & DEVELOPERS**
-
-Here are some examples for different operating systems:
+Additional packages might be required to compile some gem libraries with native C extensions, and they vary between different environments, examples are:
 
 #### Ubuntu
-
-Type following in your console:
 
     sudo apt-get install build-essential libxml2-dev libxslt-dev libssl-dev
 
 #### Debian
 
-Type following in your console as root:
-
-    apt-get install curl build-essential libxml2-dev libxslt-dev libssl-dev
+    sudo apt-get install curl build-essential libxml2-dev libxslt-dev libssl-dev
 
 #### Fedora
-
-Type following in your console:
 
     sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel openssl-devel
     sudo yum update -y audit
@@ -52,69 +44,6 @@ Type following in your console:
 If you run into some errors When installing the OMF gem packages later on, you may have to install some extra development packages for Fedora. To do that, please type the following in your console:
 
     sudo yum install -y ruby-devel make gcc gpp gcc-c++
-
-#### Mac OS X
-
-RVM will use the 'homebrew' package manager to install its dependencies. If you want to use a different package manager on OSX, please read the [RVM autolib instructions](https://rvm.io/rvm/autolibs).
-
-#### Other OS
-
-Please see the [RVM installation guide](https://rvm.io/rvm/install/). After installing RVM, you need to satisfy the dependencies of the gems that OMF uses. Currently, those are the development packages of **libxml2** and **libxslt**.
-
-### **Verify this step**
-
-If you are missing some dependencies, RVM and/or OMF installation will fail with a compilation error. Come back to this section and double check that you have all dependencies installed. Also refer to the [RVM user guide](https://rvm.io).
-
-## RVM installation
-
-### **USERS & DEVELOPERS**
-
-You most likely want to install RVM with local user permissions (no root access required). Run:
-
-    \curl -L https://get.rvm.io | bash -s stable
-    source $HOME/.rvm/scripts/rvm
-
-### **OPERATORS**
-
-If you want to install the OMF Resource Controller on a PC, you would typically have it run as a daemon on system boot. To allow the user to reconfigure the PC node (e.g. changing the network configuration), the OMF RC must be run as root. Run:
-
-    sudo su -l
-    \curl -L https://get.rvm.io | bash -s stable
-    source /etc/profile.d/rvm.sh
-
-### **Verify this step**
-
-	rvm -v
-
-should show the RVM version string, e.g.:
-
-	rvm 1.21.0 (stable) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> [https://rvm.io/]
-
-## Ruby installation
-
-**Note:** In this guide we mention a specific Ruby version and patchlevel. We have had problems with other Ruby versions and patchlevels before, so we only officially support this specific one. If you choose to use a different patchlevel, you may run into problems with OMF.
-
-### **USERS & DEVELOPERS**
-
-Install Ruby, create a gemset, set Ruby version and gemset as defaults:
-
-    rvm install ruby-1.9.3-p286 --autolibs=4
-    rvm use ruby-1.9.3-p286
-    rvm gemset create omf
-    rvm use ruby-1.9.3-p286@omf --default
-
-### **OPERATORS**
-
-Again, run the same command as above as root if your OMF RC requires root permissions. Otherwise, do everything as a regular user.
-
-### **Verify this step**
-
-	rvm current; ruby -v
-
-should show the currently used Ruby installation and the current gemset as well as the Ruby version string, e.g.
-
-	ruby-1.9.3-p286@omf
-	ruby 1.9.3p286 (2012-10-12 revision 37165)
 
 ## XMPP Server (Openfire) Installation
 
