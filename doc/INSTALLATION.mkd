@@ -213,44 +213,34 @@ If you should get any SSL errors during the gem installation, please try [this w
 
 ### Configuring the Experiment Controller
 
-    omf_ec initconfig
+Please run EC help page for available options
 
-will create a configuration file template in `~/.config/omf_ec.yml`. It's not mandatory to create this file, because all parameters for the EC can be specified on the command line. However if you prefer using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run:
+    omf_ec -h
 
-    ---
-    # URI for communication layer
-    :uri: xmpp://<xmpp_hostname>
+if you prefer using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run, and provide the configure file using '-c' option.
+
+Sample configure file:
+
+    environment: development
+
+    communication:
+      # URI for communication layer
+      url: <xmpp|amqp>://localhost
+
+    # OML server to use
+    oml_uri: tcp:localhost:3003
+
+    # Certs information for authentication
+
     # Directory containing root certificates
-    :root_cert_dir:
+    root_cert_dir:
     # Your certificate
-    :cert:
+    cert:
     # Your private key
-    :key:
-    # Log file directory
-    :log_file_dir: /tmp
+    key:
+
     # Debug mode
-    :debug: false
-    # Debug XMPP traffic mode (include XMPP debug logging messages under debug mode)
-    :xmpp: false
-    # Options for specific OMF commands
-    commands:
-      :exec:
-        # Address of OML server
-        :oml_uri: 'tcp:<oml_server_hostname>:<oml_server_port>'
-        # OML URI to use for EC Instrumentation"
-        :inst_oml_uri:
-        # OML ID to use for EC Instrumentation"
-        :inst_oml_id:
-        # OML Domain to use for EC Instrumentation"
-        :inst_oml_domain:
-        # Check script version (you need to define OMF_VERSIONS in your script"
-        :version_check:
-        # Parse graph definition to construct graph information in log output"
-        :show-graph:
-      :load: {}
-      :save: {}
-      :stat: {}
-      :tell: {}
+    debug: false
 
 The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/). The `:commands:` section can be used to pass parameters only to specific OMF subcommands, such as exec, load or save. The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. For AMQP, use *amqp://\<amqp_hostname\>*.
 
