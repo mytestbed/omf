@@ -152,7 +152,7 @@ module OmfEc
     end
 
     def remove_cmd_opts_from_argv(*args)
-      args.each { |v| @argv.delete(v) }
+      args.each { |v| @argv.slice!(@argv.index(v)) if @argv.index(v) }
     end
 
     def setup_experiment
@@ -173,6 +173,12 @@ module OmfEc
       end
 
       remove_cmd_opts_from_argv("exec")
+
+      @argv.in_groups_of(2) do |arg_g|
+        if arg_g[0] =~ /^--(.+)/ && !arg_g[1].nil?
+          remove_cmd_opts_from_argv(*arg_g)
+        end
+      end
 
       @oedl_path = @argv[0] && File.expand_path(@argv[0])
 
