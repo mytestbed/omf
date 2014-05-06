@@ -26,18 +26,20 @@ module OmfEc
             end
 
             def all_interfaces_ready?(state)
+              results = []
               all_groups? do |g|
                 plan = g.net_ifs.map { |v| v.conf[:if_name] }.uniq.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("wlan"), g.address("net")) }
-                plan == 0 ? false : plan == actual
+                actual = state.count { |v| v.joined?(g.address("wlan"), g.address("net")) && v[:state] == 'UP' }
+                results << (plan == actual) unless (plan == 0)
               end
+              !results.include?(false)
             end
 
             def all_apps_ready?(state)
               results = []
               all_groups? do |g|
                 plan = g.app_contexts.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("application")) } 
+                actual = state.count { |v| v.joined?(g.address("application")) }
                 results << (plan == actual) unless (plan == 0)
               end
               !results.include?(false)
