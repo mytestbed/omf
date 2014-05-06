@@ -92,6 +92,7 @@ module OmfCommon
         #
         # @param [String] topic Pubsub topic name
         def delete_topic(topic, &block)
+          # FIXME CommProvider?
           if t = OmfCommon::CommProvider::AMQP::Topic.find(topic)
             t.release
           else
