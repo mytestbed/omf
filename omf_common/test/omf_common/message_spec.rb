@@ -9,6 +9,8 @@ describe OmfCommon::Message do
   describe "when initialised" do
     before do
       @internal_attr = %w(type operation guard mid ts replyto cid itype)
+      # TODO Abstract message class does NOT provide most of method implementation
+      OmfCommon::Message.init(type: :xml)
       @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' }, { rtype: :bob })
     end
 
@@ -38,6 +40,7 @@ describe OmfCommon::Message do
     end
 
     it "must evaluate erb code when read property with evaluate option is true" do
+      # TODO need to find a way to pass remote eval expression
       skip
       @message[:p3] = "1 + 1 = <%= 1 + 1 %>"
       @message[:p4] = "1 + 1 = <%= two %>"

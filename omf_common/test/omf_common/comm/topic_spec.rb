@@ -46,6 +46,10 @@ describe OmfCommon::Comm::Topic do
   describe "when interact with topic instance" do
     before do
       @comm = mock
+
+      # TODO Again, can not create an abstract topic without init a message
+      OmfCommon::Message.init(type: :xml)
+
       OmfCommon.stubs(:comm).returns(@comm)
       @topic = OmfCommon::Comm::Topic.create(:bob)
       @comm.stubs(:local_address).returns(:bob_address)

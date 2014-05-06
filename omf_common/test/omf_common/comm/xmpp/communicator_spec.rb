@@ -7,21 +7,15 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require 'test_helper'
-#require 'fixture/pubsub'
-
 require 'omf_common/comm/xmpp/communicator'
 
 describe "Using XMPP communicator" do
   include EventedSpec::SpecHelper
 
   # XMPP requires more time
-  default_timeout 2.1
+  default_timeout 3.1
 
   before do
-    #@client = Blather::Client.new
-    #@stream = MiniTest::Mock.new
-    #@stream.expect(:send, true, [Blather::Stanza])
-    #@client.post_init @stream, Blather::JID.new('bob@example.com')
     @xmpp_comm = OmfCommon::Comm::XMPP::Communicator.new
     OmfCommon::Eventloop.init(type: :em)
     OmfCommon.stubs(:comm).returns(@xmpp_comm)
@@ -102,16 +96,6 @@ end
 #        end
 #      end
 #      wait!
-#    end
-#
-#    it "must be able to create topic & trigger callback when created" do
-#      skip
-#      Blather::Client.stub :new, @client do
-#        OmfCommon.stub :comm, @xmpp do
-#          @stream.expect(:send, true, [Blather::Stanza])
-#          @xmpp.create_topic('xmpp_topic').must_be_kind_of OmfCommon::Comm::XMPP::Topic
-#        end
-#      end
 #    end
 #
 #    it "must be able to delete topic & trigger callback when topic deleted" do

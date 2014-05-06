@@ -11,10 +11,9 @@ include OmfCommon
 describe OmfCommon::Message::XML::Message do
   describe "when create message initialised" do
     before do
-      # We will test prop value other than just strings
       @message = Message::XML::Message.create(:create,
-                                     { type: 'bob', p1: 'p1_value', p2: { unit: 'u', precision: 2 } },
-                                     { rtype: 'bob', guard: { p1: 'p1_value' } })
+                                              { type: 'bob', p1: 'p1_value', p2: { unit: 'u', precision: 2 } },
+                                              { rtype: 'bob', guard: { p1: 'p1_value' } })
     end
 
     it "must to be validated using relaxng schema" do

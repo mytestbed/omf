@@ -29,10 +29,6 @@ require 'omf_common'
 
 #require 'blather/client/dsl'
 
-#require 'singleton'
-
-#OmfCommon::Message.init(type: :xml)
-
 # Shut up all the loggers
 Logging.logger.root.clear_appenders
 
