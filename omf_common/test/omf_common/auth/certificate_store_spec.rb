@@ -26,18 +26,12 @@ describe OmfCommon::Auth::CertificateStore do
     # 2 level CAs
     cert_1 = OmfCommon::Auth::Certificate.create_from_pem(File.read "#{@private_folder}/1st_level.pem")
     cert_2 = OmfCommon::Auth::Certificate.create_from_pem(File.read "#{@private_folder}/2nd_level.pem")
-    cert_3 = OmfCommon::Auth::Certificate.create_from_pem(File.read "#{@private_folder}/3rd_level.pem")
 
     OmfCommon::Auth::CertificateStore.instance.verify(cert_2.to_x509).must_equal false
 
     OmfCommon::Auth::CertificateStore.instance.register_trusted(cert_1)
 
     OmfCommon::Auth::CertificateStore.instance.verify(cert_2.to_x509).must_equal true
-    OmfCommon::Auth::CertificateStore.instance.verify(cert_3.to_x509).must_equal false
-
-    OmfCommon::Auth::CertificateStore.instance.register_trusted(cert_2)
-
-    OmfCommon::Auth::CertificateStore.instance.verify(cert_3.to_x509).must_equal true
 
     # 1 level CA
     cert_4 = OmfCommon::Auth::Certificate.create_root
