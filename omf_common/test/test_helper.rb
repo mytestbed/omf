@@ -4,20 +4,29 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require 'simplecov'
+# Generate coverage
 SimpleCov.start { add_filter "/test" }
 
+# Setup MiniTest
 gem 'minitest'
+
 require 'minitest/autorun'
 require 'minitest/pride'
 require 'minitest/spec'
 require 'minitest/mock'
 
+# Spec helper to test async
 require 'evented-spec'
+
+# Use mocha for Mocking and Stubbing
 require 'mocha/setup'
+
+require 'securerandom'
 
 #require 'em/minitest/spec'
 
 require 'omf_common'
+
 #require 'blather/client/dsl'
 
 #require 'singleton'
