@@ -6,10 +6,54 @@
 require 'test_helper'
 #require 'fixture/pubsub'
 
-#require 'omf_common/comm/xmpp/communicator'
-#require 'omf_common/comm/xmpp/topic'
+require 'omf_common/comm/xmpp/communicator'
+require 'omf_common/comm/xmpp/topic'
 
-#describe OmfCommon::Comm::XMPP::Topic do
+describe OmfCommon::Comm::XMPP::Topic do
+  include EventedSpec::SpecHelper
+
+  # XMPP requires more time
+  default_timeout 3.1
+
+  before do
+    @xmpp_comm = OmfCommon::Comm::XMPP::Communicator.new
+    OmfCommon::Eventloop.init(type: :em)
+    OmfCommon.stubs(:comm).returns(@xmpp_comm)
+  end
+
+  after do
+    em do
+      @xmpp_comm.init(url: 'xmpp://srv.mytestbed.net')
+    end
+  end
+
+  it "must allow you to subscribe/unsubscribe to a new pubsub topic" do
+    @xmpp_comm.on_connected do |c|
+      t_name = SecureRandom.uuid.to_sym
+      c.subscribe(t_name) do |topic|
+        assert_kind_of OmfCommon::Comm::XMPP::Topic, topic
+        assert_match /xmpp:\/\/#{t_name}@/, topic.address
+
+        topic.unsubscribe(t_name)
+        done
+      end
+    end
+  end
+
+  it "must allow you to send and monitor messages" do
+    @xmpp_comm.on_connected do |c|
+      t_name = SecureRandom.uuid.to_sym
+      c.subscribe(t_name) do |topic|
+        topic.inform('STATUS', attr_1: 'xxx')
+
+        topic.on_message do |msg|
+          assert_equal 'xxx', msg[:attr_1]
+          done
+        end
+      end
+    end
+  end
+end
 #  before do
 #    @client = Blather::Client.new
 #    @stream = MiniTest::Mock.new
