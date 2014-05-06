@@ -11,15 +11,18 @@ require 'minitest/autorun'
 require 'minitest/pride'
 require 'minitest/spec'
 require 'minitest/mock'
-require 'em/minitest/spec'
+
+require 'evented-spec'
 require 'mocha/setup'
 
+#require 'em/minitest/spec'
+
 require 'omf_common'
-require 'blather/client/dsl'
+#require 'blather/client/dsl'
 
-require 'singleton'
+#require 'singleton'
 
-OmfCommon::Message.init(type: :xml)
+#OmfCommon::Message.init(type: :xml)
 
 # Shut up all the loggers
 Logging.logger.root.clear_appenders

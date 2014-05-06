@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest"
-  s.add_development_dependency "em-minitest-spec"
+  s.add_development_dependency "evented-spec", "~> 1.0.0.beta"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "pry"
   s.add_development_dependency "mocha"
