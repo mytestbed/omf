@@ -52,6 +52,9 @@ end
 op.on '--duration SEC', "Duration the cert will be valid for [#{OPTS[:duration]}]" do |secs|
   OPTS[:duration] = secs
 end
+op.on '--root cert', "Root Certificate" do |root|
+  OPTS[:root_cert] = root
+end
 op.on '--domain C:ST:O:OU', "Domain to us (components are ':' separated) [#{DEF_SUBJECT_PREFIX}]" do |domain|
   unless (p = domain.split(':')).length == 4
     $stderr.puts "ERROR: Domain needs to contain 4 parts separated by ':'\n"
@@ -125,13 +128,25 @@ when /^cre.*_root/
   write_cert cert
 
 when /^cre.*_user/
-  root = Certificate.create_root()
+  if !OPTS[:root_cert].nil?
+    file = File.expand_path(OPTS[:root_cert])
+    root = Certificate.create_from_pem(File.read(file))
+  else
+    root = Certificate.create_root()
+    File.open('root.pem', 'w') {|f| f.puts root.to_pem_with_key}
+  end
   require_opts(:user, :email)
   cert = root.create_for_user(OPTS[:user], OPTS)
   write_cert cert
 
 when /^cre.*_resource/
-  root = Certificate.create_root()
+  if !OPTS[:root_cert].nil?
+    file = File.expand_path(OPTS[:root_cert])
+    root = Certificate.create_from_pem(File.read(file))
+  else
+    root = Certificate.create_root()
+    File.open('root.pem', 'w') {|f| f.puts root.to_pem_with_key}
+  end
   require_opts(:resource_type)
   r_id = OPTS.delete(:resource_id)
   r_type = OPTS.delete(:resource_type)
