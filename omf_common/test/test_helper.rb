@@ -51,3 +51,9 @@ class OmfCommon::Auth::CertificateStore
     @@instance = nil
   end
 end
+
+class OmfCommon::Message
+  def self.reset
+    @@message_class = nil
+  end
+end

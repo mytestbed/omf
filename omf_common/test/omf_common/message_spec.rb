@@ -14,6 +14,10 @@ describe OmfCommon::Message do
       @message = OmfCommon::Message.create(:create, { p1: 'p1_value', p2: 'p2_value' }, { rtype: :bob })
     end
 
+    after do
+      OmfCommon::Message.reset
+    end
+
     it "must be able to query internal properties" do
       @message.type.must_equal :create
       @message.operation.must_equal :create

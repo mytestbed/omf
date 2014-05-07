@@ -18,6 +18,7 @@ describe OmfCommon::Comm::XMPP::Topic do
   before do
     @xmpp_comm = OmfCommon::Comm::XMPP::Communicator.new
     OmfCommon::Eventloop.init(type: :em)
+    OmfCommon::Message.init(type: :xml)
     OmfCommon.stubs(:comm).returns(@xmpp_comm)
   end
 
@@ -25,6 +26,7 @@ describe OmfCommon::Comm::XMPP::Topic do
     em do
       @xmpp_comm.init(url: 'xmpp://srv.mytestbed.net')
     end
+    OmfCommon::Message.reset
   end
 
   it "must allow you to subscribe/unsubscribe to a new pubsub topic" do
