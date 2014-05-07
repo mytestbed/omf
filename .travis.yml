@@ -1,15 +1,20 @@
 language: ruby
+
+cache:
+  directories:
+  - vendor/bundle
+
 rvm:
-  - 1.9.3
+- 1.9.3
 
 # Branch white list
 branches:
   only:
-    - master
+  - master
 
 notifications:
   email:
-    - jack.hong@nicta.com.au
+  - jack.hong@nicta.com.au
 
 services:
-  - rabbitmq
+- rabbitmq
