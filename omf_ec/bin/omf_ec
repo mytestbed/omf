@@ -4,4 +4,6 @@ require 'omf_ec'
 require 'omf_ec/runner'
 $stdout.sync = true
 
-OmfEc::Runner.new.run
+runner = OmfEc::Runner.new
+runner.init
+runner.run

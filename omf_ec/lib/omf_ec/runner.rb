@@ -9,6 +9,8 @@ module OmfEc
   class Runner
     include Hashie
 
+    attr_reader :oedl_path
+
     def initialize
       @gem_version = OmfEc::VERSION
       @oml_enabled = false
@@ -268,9 +270,13 @@ module OmfEc
       end
     end
 
-    def run
+    def init
       oml_init
       setup_experiment
+      #load_experiment
+    end
+
+    def run
       load_experiment
     end
   end
