@@ -9,8 +9,8 @@ desc "Run test task for all projects"
 task :test_all do
   PROJECTS.each do |project|
     system("cd #{project} && bundle install --path #{BUNDLE_LOCATION} && bundle update") || errors << project
-    system("cd #{project} && rake install") || errors << project
-    system("cd #{project} && rake test") || errors << project
+    system("cd #{project} && bundle exec rake install") || errors << project
+    system("cd #{project} && bundle exec rake test") || errors << project
   end
   fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
@@ -19,7 +19,7 @@ desc "Build and install gems for all projects"
 task :install_all do
   PROJECTS.each do |project|
     system("cd #{project} && bundle install --path #{BUNDLE_LOCATION} && bundle update") || errors << project
-    system("cd #{project} && rake install") || errors << project
+    system("cd #{project} && bundle exec rake install") || errors << project
   end
   fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
@@ -33,7 +33,7 @@ task :release_all do
 
   if STDIN.gets.chomp =~ /^y|Y$/
     PROJECTS.each do |project|
-      system("cd #{project} && rake build && gem push pkg/#{project}-#{version}.gem") || errors << project
+      system("cd #{project} && bundle exec rake build && gem push pkg/#{project}-#{version}.gem") || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end

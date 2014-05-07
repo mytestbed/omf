@@ -10,3 +10,6 @@ branches:
 notifications:
   email:
     - jack.hong@nicta.com.au
+
+services:
+  - rabbitmq
