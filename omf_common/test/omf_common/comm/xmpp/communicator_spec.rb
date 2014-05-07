@@ -13,7 +13,7 @@ describe "Using XMPP communicator" do
   include EventedSpec::SpecHelper
 
   # XMPP requires more time
-  default_timeout 3.1
+  default_timeout 10.1
 
   before do
     @xmpp_comm = OmfCommon::Comm::XMPP::Communicator.new
