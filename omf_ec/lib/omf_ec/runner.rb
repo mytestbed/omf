@@ -247,6 +247,7 @@ module OmfEc
             OmfEc.experiment.log_metadata("ec_version", "#{OmfEc::VERSION}")
             OmfEc.experiment.log_metadata("exp_path", @oedl_path)
             OmfEc.experiment.log_metadata("ec_pid", "#{Process.pid}")
+            OmfEc.experiment.archive_oedl(@oedl_path)
 
             begin
               load @oedl_path

@@ -141,7 +141,7 @@ module OmfEc
     # Take the same parameter as def_property
     #
     def ensure_property(name, default_value, description = nil, type = nil)
-      begin 
+      begin
         property[name]
       rescue
         def_property(name, default_value, description, type)
@@ -211,10 +211,10 @@ module OmfEc
       end
     end
 
-    # Load an additional OEDL script 
+    # Load an additional OEDL script
     #
-    # First try to load the script from the paths associated to this running 
-    # Ruby instance. This would allow the loading of scripts shipped with 
+    # First try to load the script from the paths associated to this running
+    # Ruby instance. This would allow the loading of scripts shipped with
     # the EC gem. If that fails, then look for the script in the local file
     # system or at the given web URL.
     #
@@ -226,7 +226,7 @@ module OmfEc
     #
     def load_oedl(location, opts = {})
       # Define the additional properties from opts
-      opts.each { |k,v| def_property(k, v,) } 
+      opts.each { |k,v| def_property(k, v,) }
       # Try to load OEDL Library as built-in then external
       begin
         require location
@@ -238,13 +238,14 @@ module OmfEc
           file = Tempfile.new("oedl-#{Time.now.to_i}")
           open(location) { |io| file.write(io.read) }
           file.close
-          load(file.path) 
+          OmfEc.experiment.archive_oedl(file.path)
+          load(file.path)
           file.unlink
           info "Loaded external OEDL library '#{location}'"
         rescue Exception => e
           error "Fail loading external OEDL library '#{location}': #{e}"
         end
-      rescue Exception => e 
+      rescue Exception => e
         error "Fail loading built-in OEDL library '#{location}': #{e}"
       end
     end
