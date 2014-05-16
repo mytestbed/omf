@@ -77,7 +77,7 @@ module OmfCommon::Auth
           # opts[:frcp_uri] || "URI:frcp:#{user_id}@#{opts[:frcp_domain] || @@def_email_domain}",
           # opts[:http_uri] || "URI:http://#{opts[:http_prefix] || @@def_email_domain}/users/#{user_id}"
       not_before = opts[:not_before] || Time.now
-      duration = opts[:duration] = 3600
+      duration = opts[:duration] || 3600
       c = _create_x509_cert(subject, key, digest, issuer, not_before, duration, addresses)
       c[:addresses] = addresses
       c[:resource_id] = resource_id
