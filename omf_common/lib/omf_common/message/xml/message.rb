@@ -72,7 +72,6 @@ class XML
             pem = "#{OmfCommon::Auth::Certificate::BEGIN_CERT}#{cert}#{OmfCommon::Auth::Certificate::END_CERT}"
             cert = OmfCommon::Auth::Certificate.create_from_pem(pem)
             cert.resource_id = iss
-            OmfCommon::Auth::CertificateStore.instance.register(cert)
 
             if cert.nil?
               warn "Missing certificate of '#{iss}'"
@@ -83,6 +82,8 @@ class XML
               warn "Invalid certificate '#{cert.to_s}', NOT signed by CA certs, or its CA cert NOT loaded into cert store."
               return nil
             end
+
+            OmfCommon::Auth::CertificateStore.instance.register(cert)
 
             canonicalised_xml_node = fix_canonicalised_xml(xml_node.canonicalize)
 
