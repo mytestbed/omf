@@ -298,7 +298,9 @@ We encourage developers to use the very latest OMF code from the master branch o
 
 In order to install the gem dependencies, then build, install and test the OMF gems, run:
 
-    rake
+    rake install_all
+
+For all rake tasks, run 'rake -T' and refer to the options.
 
 ### **Verify this step**
 
