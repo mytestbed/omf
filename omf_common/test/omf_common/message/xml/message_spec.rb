@@ -164,6 +164,7 @@ describe OmfCommon::Message::XML::Message do
         message.valid?.must_equal true
 
         OmfCommon.comm.unstub(:comm)
+        OmfCommon::Auth::CertificateStore.reset
       end
     end
   end

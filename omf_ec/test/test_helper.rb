@@ -33,11 +33,13 @@ end
 class OmfEc::Experiment
   def self.reset
     Singleton.__init__(self)
+    self
   end
 end
 
 class OmfEc::ExperimentProperty
   def self.reset
-    Singleton.__init__(self)
+    @@properties = Hashie::Mash.new
+    @@creation_observers = []
   end
 end

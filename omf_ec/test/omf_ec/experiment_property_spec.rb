@@ -9,6 +9,14 @@ require 'omf_ec/dsl'
 include OmfEc::DSL
 
 describe OmfEc::ExperimentProperty do
+  before do
+    OmfEc::ExperimentProperty.reset
+  end
+
+  after do
+    OmfEc::ExperimentProperty.reset
+  end
+
   describe "when a new ExperimentProperty is created" do
     it "must raise an error if it is given an invalid name" do
       created_properties = 0
@@ -54,8 +62,6 @@ describe OmfEc::ExperimentProperty do
 
   describe "when a the Class ExperimentProperty is creating a new property" do
     it "must inform all of its observers" do
-      OmfEc::ExperimentProperty.reset
-
       size_before = OmfEc::ExperimentProperty.length
       OmfEc::ExperimentProperty.add_observer do |c,p|
         c.must_equal :create
@@ -70,8 +76,6 @@ describe OmfEc::ExperimentProperty do
 
   describe "when an operation involves an ExperimentProperty" do
     it "must return the expected result" do
-      OmfEc::ExperimentProperty.reset
-
       OmfEc::ExperimentProperty.create('foo', 1, 'abc')
       OmfEc::ExperimentProperty.create('bar','b')
 
