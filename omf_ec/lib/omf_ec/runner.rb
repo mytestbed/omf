@@ -176,7 +176,9 @@ module OmfEc
 
       remove_cmd_opts_from_argv("exec")
 
-      @argv.in_groups_of(2) do |arg_g|
+      index_of_dividing_hyphen = @argv.index("--")
+
+      @argv[0..index_of_dividing_hyphen || -1].in_groups_of(2) do |arg_g|
         if arg_g[0] =~ /^--(.+)/ && !arg_g[1].nil?
           remove_cmd_opts_from_argv(*arg_g)
         end
@@ -189,19 +191,23 @@ module OmfEc
         exit(1)
       end
 
+      @argv.slice!(0)
+
       # User-provided command line values for Experiment Properties cannot be
       # set here as the properties have not been defined yet by the experiment.
       # Thus just pass them to the experiment, which will be responsible
       # for setting them later
       properties = {}
-      if @argv.size > 1 && @argv[1] == "--"
-        exp_properties = @argv[2..-1]
+      if index_of_dividing_hyphen
+        remove_cmd_opts_from_argv("--")
+        exp_properties = @argv
         exp_properties.in_groups_of(2) do |p|
           unless p[0] =~ /^--(.+)/ && !p[1].nil?
             puts "Malformatted properties '#{exp_properties.join(' ')}'"
             exit(1)
           else
             properties[$1.to_sym] = p[1].ducktype
+            remove_cmd_opts_from_argv(*p)
           end
         end
         OmfEc.experiment.cmdline_properties = properties
