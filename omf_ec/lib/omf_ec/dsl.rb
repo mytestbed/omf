@@ -7,6 +7,9 @@ require 'active_support'
 require 'active_support/deprecation'
 require 'active_support/core_ext'
 require 'eventmachine'
+require 'uri'
+require 'open-uri'
+require 'tempfile'
 
 module OmfEc
   # DSL methods to be used for OEDL scripts
@@ -211,23 +214,68 @@ module OmfEc
       end
     end
 
-    # Load an additional OEDL script
+    # Load an additional OEDL script referenced by a URI
     #
-    # First try to load the script from the paths associated to this running
-    # Ruby instance. This would allow the loading of scripts shipped with
-    # the EC gem. If that fails, then look for the script in the local file
-    # system or at the given web URL.
+    # The supported URI schemes are:
+    # - file:///foo/bar.rb , which loads the file located at '/foo/bar.rb' on the local filesystem
+    # - system:///foo/bar.rb , which loads the file located at 'foo/bar.rb' in the default Ruby path of this EC
+    # - http://foo/bar.rb , which loads the file located at the URL 'http://foo/bar.rb'
     #
     # If an optional has of key/value is provided, then define an OMF
     # Experiment Property for each keys and assigne them the values.
     #
-    # @param location name, path or URL for the OEDL script to load
+    # @param uri URI for the OEDL script to load
     # @param opts optional hash of key/values for extra Experiment Property to define
     #
     def load_oedl(location, opts = {})
+      begin
+        u = URI(location.downcase)
+      rescue Exception => e
+        warn "Unsupported OEDL library location '#{location}'"
+        return
+      end
+
       # Define the additional properties from opts
       opts.each { |k,v| def_property(k, v,) }
-      # Try to load OEDL Library as built-in then external
+
+      # Keep the old syntax around for a while, warn users to use the new URI syntax
+      # TODO: remove this in a couple of EC versions
+      if u.scheme.nil? || u.scheme.empty?
+        deprecated_load_oedl(location)
+        return
+      end
+
+      # Find out which type of location this is and deal with it accordingly
+      case u.scheme.downcase.to_sym
+      when :system
+        begin
+          u.path[0]='' # get rid of first '/'
+          require u.path
+          info "Loaded built-in OEDL library '#{location}'"
+        rescue Exception => e
+          error "Fail loading built-in OEDL library '#{location}': #{e}"
+        end
+      when :file, :http 
+        begin
+          file = Tempfile.new("oedl-#{Time.now.to_i}")
+          # see: http://stackoverflow.com/questions/7578898
+          open(u.to_s.sub(%r{^file:}, '')) { |io| file.write(io.read) }
+          file.close
+          OmfEc.experiment.archive_oedl(file.path)
+          load(file.path)
+          file.unlink
+          info "Loaded external OEDL library '#{location}'"
+        rescue Exception => e
+          error "Fail loading external OEDL library '#{location}': #{e}"
+        end
+      else
+        warn "Unsupported scheme for OEDL library location '#{location}'"
+        return
+      end
+    end
+
+    def deprecated_load_oedl(location)
+      warn "Loading OEDL Library using DEPRECATED syntax. Please use proper URI syntax"
       begin
         require location
         info "Loaded built-in OEDL library '#{location}'"
