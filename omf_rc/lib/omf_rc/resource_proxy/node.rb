@@ -31,6 +31,7 @@ module OmfRc::ResourceProxy::Node
   # @!parse include OmfRc::Util::Sysfs
   utility :mod
   utility :sysfs
+  utility :topology
 
   # @!macro group_request
   #
@@ -78,4 +79,12 @@ module OmfRc::ResourceProxy::Node
     end
   end
   # @!endgroup
+
+  # If a path to a topology file was given in the config file attribute
+  # 'topo_file', then check the connectivity towards the resources in
+  # referenced in that file. The result is sent to an OML database.
+  hook :before_ready do |res|
+    next if res.defaults(:topo_file).nil? || res.defaults(:topo_file).empty?
+    check_topology(res.uid, res.defaults(:topo_file))    
+  end
 end

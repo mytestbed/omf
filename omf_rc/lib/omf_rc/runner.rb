@@ -21,6 +21,7 @@ module OmfRc
     def initialize()
       @executable_name = File.basename($PROGRAM_NAME)
       @oml_enabled = false
+      @instrument = false
       @gem_version = OmfCommon.version_of('omf_common')
 
       @node_id = Socket.gethostname
@@ -43,7 +44,7 @@ module OmfRc
     def run()
       oml_init() # calls parse_config_files()
 
-      OmfCommon::Measure.enable if @oml_enabled
+      OmfCommon::Measure.enable if @oml_enabled && @instrument
 
       OmfCommon.init(@opts[:environment], @opts.to_hash) do |el|
         # Load a customised logging set up if provided
@@ -163,6 +164,10 @@ module OmfRc
 
           op.on("-e ENVIRONMENT", "Environment (development, production ...) [#{@def_opts[:environment]}]") do |e|
             @gopts[:environment] = e
+          end
+
+          op.on("-i", "--instrument", "Turn on self instrumentation, OML parameters must be set!") do
+            @instrument = true
           end
 
           op.on("-v", "--version", "Show version") do
