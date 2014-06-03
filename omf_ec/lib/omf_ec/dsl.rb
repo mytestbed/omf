@@ -219,7 +219,7 @@ module OmfEc
     # The supported URI schemes are:
     # - file:///foo/bar.rb , which loads the file located at '/foo/bar.rb' on the local filesystem
     # - system:///foo/bar.rb , which loads the file located at 'foo/bar.rb' in the default Ruby path of this EC
-    # - http://foo/bar.rb , which loads the file located at the URL 'http://foo/bar.rb'
+    # - http://foo.com/bar.rb , which loads the file located at the URL 'http://foo.com/bar.rb'
     #
     # If an optional has of key/value is provided, then define an OMF
     # Experiment Property for each keys and assigne them the values.
@@ -281,8 +281,6 @@ module OmfEc
         info "Loaded built-in OEDL library '#{location}'"
       rescue LoadError
         begin
-          require 'open-uri'
-          require 'tempfile'
           file = Tempfile.new("oedl-#{Time.now.to_i}")
           open(location) { |io| file.write(io.read) }
           file.close
