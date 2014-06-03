@@ -79,7 +79,7 @@ class OmfRc::ResourceProxy::AbstractResource
     create_children_resources: true
   }
 
-  @@defaults = {}
+  @@defaults = Hashie::Mash.new
 
   # Set defaults for a particular resource class. Can be retrieved with 'defaults'
   # in the instance.
