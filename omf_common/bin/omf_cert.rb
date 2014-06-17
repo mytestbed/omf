@@ -63,6 +63,9 @@ op.on '--domain C:ST:O:OU', "Domain to us (components are ':' separated) [#{DEF_
   c, st, o, ou = p
   Certificate.default_domain(c, st, o, ou)
 end
+op.on '--geni_uri URI:urn:publicid:IDN+domain+user+username', "Geni URI that dedscribes the user/resource." do |uri|
+  OPTS[:geni_uri] = uri
+end
 
 op.on_tail('-v', "--verbose", "Print summary of created cert (Surpressed when writing cert to stdout)") do
   OPTS[:verbose] = true
