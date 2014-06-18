@@ -66,34 +66,32 @@ module OmfCommon
     end
 
     def self.init(opts = {})
-      puts opts.inspect
-      if @@message_class
-        raise "Message provider already iniitalised"
-      end
-      unless provider = opts[:provider]
-        provider = @@providers[opts[:type]]
-      end
-      unless provider
-        raise "Missing Message provider declaration. Either define 'type' or 'provider'"
-      end
-
-      require provider[:require] if provider[:require]
-
-      if class_name = provider[:constructor]
-        @@message_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
-      else
-        raise "Missing provider class info - :constructor"
-      end
-      aopts = opts[:authenticate] || {}
-      @@authenticate_messages = opts[:authenticate] && !(aopts[:authenticate] == false)
-      if pdp_opts = (opts[:authenticate] || {})[:pdp]
-        require pdp_opts.delete(:require) if pdp_opts[:require]
-        unless pdp_constructor = pdp_opts.delete(:constructor)
-          raise "Missing PDP provider declaration."
+      unless @@message_class
+        unless provider = opts[:provider]
+          provider = @@providers[opts[:type]]
+        end
+        unless provider
+          raise "Missing Message provider declaration. Either define 'type' or 'provider'"
         end
 
-        pdp_class = pdp_constructor.split('::').inject(Object) {|c,n| c.const_get(n) }
-        @@authorisation_hook = pdp_class.new(pdp_opts)
+        require provider[:require] if provider[:require]
+
+        if class_name = provider[:constructor]
+          @@message_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+        else
+          raise "Missing provider class info - :constructor"
+        end
+        aopts = opts[:authenticate] || {}
+        @@authenticate_messages = opts[:authenticate] && !(aopts[:authenticate] == false)
+        if pdp_opts = (opts[:authenticate] || {})[:pdp]
+          require pdp_opts.delete(:require) if pdp_opts[:require]
+          unless pdp_constructor = pdp_opts.delete(:constructor)
+            raise "Missing PDP provider declaration."
+          end
+
+          pdp_class = pdp_constructor.split('::').inject(Object) {|c,n| c.const_get(n) }
+          @@authorisation_hook = pdp_class.new(pdp_opts)
+        end
       end
     end
 

@@ -31,6 +31,12 @@ module OmfRc::Util::Ip
     addr = CommandLine.new("ip", "addr show dev :device", :device => resource.property.if_name).run
     addr && addr.chomp.match(/link\/ether ([\d[a-f][A-F]\:]+)/) && $1
   end
+
+  request :state do |device|
+    link = CommandLine.new("ip", "link show :device", :device => device.property.if_name).run
+    link && link.chomp.match(/state (\w+) /) && $1
+  end
+
   # @!endgroup
 
   # @!macro group_configure
@@ -64,6 +70,10 @@ module OmfRc::Util::Ip
   # @!method interface_up
   work :interface_up do |resource|
     CommandLine.new("ip", "link set :dev up", :dev => resource.property.if_name).run
+  end
+
+  work :interface_down do |device|
+    CommandLine.new("ip", "link set :dev down", :dev => device.property.if_name).run
   end
 
   # Remove IP addresses associated with the interface

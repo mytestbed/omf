@@ -4,7 +4,6 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require 'test_helper'
-require 'em/minitest/spec'
 require 'omf_rc/resource_factory'
 
 include OmfRc::ResourceProxy

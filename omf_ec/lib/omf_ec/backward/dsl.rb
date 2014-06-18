@@ -16,6 +16,8 @@ module OmfEc
           v5_style(:allGroups, base)
           v5_style(:allNodes!, base)
           v5_style(:defGraph, base)
+          v5_style(:loadOEDL, base)
+          v5_style(:ensureProperty, base)
         end
 
         def v5_style(name, base)
@@ -52,6 +54,7 @@ module OmfEc
         warn "Calling 'wait' or 'sleep' will block entire EC event loop. Please try 'after' or 'every'"
         sleep duration.to_s.to_i
       end
+
     end
   end
 end

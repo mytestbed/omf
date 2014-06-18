@@ -46,6 +46,10 @@ describe OmfCommon::Comm::Topic do
   describe "when interact with topic instance" do
     before do
       @comm = mock
+
+      # TODO Again, can not create an abstract topic without init a message
+      OmfCommon::Message.init(type: :json)
+
       OmfCommon.stubs(:comm).returns(@comm)
       @topic = OmfCommon::Comm::Topic.create(:bob)
       @comm.stubs(:local_address).returns(:bob_address)
@@ -54,8 +58,10 @@ describe OmfCommon::Comm::Topic do
 
     after do
       OmfCommon::Comm.reset
+      OmfCommon::Message.reset
       OmfCommon.unstub(:comm)
-      OmfCommon::Message::XML::Message.any_instance.unstub(:mid)
+      #OmfCommon::Message::XML::Message.any_instance.unstub(:mid)
+      OmfCommon::Message::Json::Message.any_instance.unstub(:mid)
     end
 
     it "must create and send frcp create message" do
@@ -136,7 +142,7 @@ describe OmfCommon::Comm::Topic do
       msg.stubs(:itype).with(:ruby).returns('creation_ok')
       msg.stubs(:cid).returns(:bob_id)
 
-      OmfCommon::Message::XML::Message.any_instance.stubs(:mid).returns(:bob_id)
+      OmfCommon::Message::Json::Message.any_instance.stubs(:mid).returns(:bob_id)
 
       cbk_called = [false, false, false, false]
 

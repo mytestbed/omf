@@ -1,0 +1,21 @@
+---
+uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
+environment: development
+debug: false
+
+resources:
+  - type: node
+    uid: <%= Socket.gethostname %>
+
+add_default_factories: false # Not loading default type factories
+
+factories: # Additional resources which can be created by this RC
+  load: [
+    'omf_rc/resource_proxy/node',
+    'omf_rc/resource_proxy/net',
+    'omf_rc/resource_proxy/wlan',
+    'omf_rc/resource_proxy/application'
+  ]
+  defaults:
+    node:
+      topo_file: '/etc/topology.txt'

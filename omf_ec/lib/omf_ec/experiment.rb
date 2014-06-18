@@ -5,6 +5,7 @@
 
 require 'hashie'
 require 'singleton'
+require 'zlib'
 require 'monitor'
 
 module OmfEc
@@ -145,7 +146,8 @@ module OmfEc
 
     def add_event(name, trigger)
       self.synchronize do
-        raise RuntimeError, "Event '#{name}' has already been defined" if event(name)
+        warn "Event '#{name}' has already been defined. Overwriting it now." if event(name)
+        @events.delete_if { |e| e[:name] == name }
         @events << { name: name, trigger: trigger, aliases: [] }
       end
     end
@@ -184,6 +186,15 @@ module OmfEc
     def log_metadata(key, value, domain = 'sys')
       #MetaData.inject_metadata(key.to_s, value.to_s)
       MetaData.inject(domain.to_s, key.to_s, value.to_s)
+    end
+
+    # Archive OEDL content to OML db
+    def archive_oedl(script_name)
+      log_metadata(
+        script_name,
+        Base64.encode64(Zlib::Deflate.deflate(File.read(script_name))),
+        "oedl_content"
+      )
     end
 
     # Purely for backward compatibility

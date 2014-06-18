@@ -24,3 +24,20 @@ class OmfRc::UnknownPropertyError < NoMethodError
     super(msg)
   end
 end
+
+# Customised errors for resource controller (Proposing)
+#
+class OmfRc::Error < StandardError; end
+
+class OmfRc::Error
+  class UnknownProperty < OmfRc::Error; end
+  # Try to create a resource with type not known to resource controller
+  class UnknownResourceType < OmfRc::Error; end
+  # Try to access a child resource provided by identifier but can not be found
+  class UnknownChildResource < OmfRc::Error; end
+  # Ask a parent to create a child but failed due to parent's proxy definition
+  class InvalidResourceTypeToCreate < OmfRc::Error; end
+  # Try to access a property but access specified in proxy definition would not allow.
+  # e.g. configure when its init_only
+  class PropertyAccessDenied < OmfRc::Error; end
+end

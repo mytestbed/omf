@@ -68,14 +68,15 @@ module OmfCommon
             # EM.add_periodic_timer(interval_sec, &block)
           # end
         # end
-        EM.add_periodic_timer(interval_sec) do
+        t = EM.add_periodic_timer(interval_sec) do
           begin
-            block.call()
+            block.call(t)
           rescue  => ex
             error "Exception '#{ex}'"
             debug "#{ex}\n\t#{ex.backtrace.join("\n\t")}"
           end
         end
+        t
       end
 
       def run(&block)

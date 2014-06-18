@@ -31,5 +31,19 @@ module OmfRc::ResourceProxy::Net
   #   Interface name, default is 'eth0'.
   #   @!macro prop
   property :if_name, :default => "eth0"
+
+  property :timer
+  # @!endgroup
+
+  # @!macro group_hook
+  hook :before_ready do |device|
+    device.property.timer = OmfCommon.el.every(5) do |timer|
+      net_state = device.request_state
+      if net_state == 'UP'
+        device.inform(:status, { state: net_state })
+        timer.cancel
+      end
+    end
+  end
   # @!endgroup
 end

@@ -23,6 +23,10 @@ module OmfRc::ResourceProxyDSL
     context.send(hook_name, *params) if context.respond_to? hook_name
   end
 
+  def hook_defined?(hook_name, context)
+    context.respond_to? hook_name
+  end
+
   # When this module included, methods defined under ClassMethods will be available in resource definition files
   #
   def self.included(base)
@@ -220,6 +224,29 @@ module OmfRc::ResourceProxyDSL
       end
     end
 
+    # Configure multiple properties when operations need to be completed in order, or the all operations are transactional
+    #
+    # @example
+    #
+    #   configure_all do |resource, configure_properties, result|
+    #     # Execute property one first, and make sure it is successful before attending property two
+    #     if resource.some_operation(configure_properties[:property_one])
+    #       if resource.other_operation(configure_properties[:property_two])
+    #         result[:property_one] = 'GOOD'
+    #         result[:property_two] = 'GREAT'
+    #       else
+    #         raise "Some errors"
+    #       end
+    #     else
+    #       raise "Some errors"
+    #     end
+    #   end
+    def configure_all(&register_block)
+      define_method("configure_all") do |*args, &block|
+        register_block.call(self, *args, block) if register_block
+      end
+    end
+
     # Register a property that could be requested
     #
     # @param (see #configure)
@@ -365,10 +392,10 @@ module OmfRc::ResourceProxyDSL
     #
     # @example
     #   # Read-only property, i.e. could not be modified through FRCP protocol
-    #   property :bob, default: 1, access: :configure
+    #   property :bob, default: 1, access: :read_only
     #
     #   # Read & Write property, i.e. could be modified through FRCP protocol
-    #   property :bob, default: 1, access: :read_only
+    #   property :bob, default: 1, access: :configure
     #
     #   # Read & could be modified ONLY through FRCP CREATE message
     #   property :bob, default: 1, access: :init_only

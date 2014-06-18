@@ -22,13 +22,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  s.add_development_dependency "minitest", "~> 3.2"
-  s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
+  s.add_development_dependency "minitest"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "pry"
   s.add_development_dependency "mocha"
+  s.add_development_dependency "evented-spec"
 
   s.add_runtime_dependency "omf_common", "= #{OmfCommon::VERSION}"
-  s.add_runtime_dependency "gli"
   s.add_runtime_dependency "sequel"
 end

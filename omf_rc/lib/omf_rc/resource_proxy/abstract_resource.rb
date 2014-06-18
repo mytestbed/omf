@@ -79,7 +79,7 @@ class OmfRc::ResourceProxy::AbstractResource
     create_children_resources: true
   }
 
-  @@defaults = {}
+  @@defaults = Hashie::Mash.new
 
   # Set defaults for a particular resource class. Can be retrieved with 'defaults'
   # in the instance.
@@ -90,7 +90,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @@defaults[resource_type.to_sym] = defaults
   end
 
-  attr_accessor :uid, :hrn, :type, :property, :certificate
+  attr_accessor :uid, :hrn, :type, :property, :certificate, :state
   attr_reader :opts, :children, :membership, :creation_opts, :membership_topics, :topics
 
   # Initialisation
@@ -367,7 +367,7 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   # @!macro group_configure
 
-  # Make resource part of the group topic, it will overwrite existing membership array
+  # Make resource part of the group topic, it will alter existing membership array
   #
   # @param [String|Array|Hash] args name of group topic/topics
   #
@@ -381,12 +381,17 @@ class OmfRc::ResourceProxy::AbstractResource
   #
   #   # Leave a single group or multiple groups
   #   { leave: ["group_1", "group_2"] } or { leave: "group_1" }
+  #
+  #   # Leave all groups except a selection of specific ones
+  #   { only: ["group_1", "group_2"] }  or { only: "group_1" }
+  #
   def configure_membership(*args)
     case args[0]
     when Symbol, String, Array
       new_membership = [args[0]].flatten.compact
     when Hash
       leave_membership = [args[0][:leave]].flatten.compact
+      only_membership = [args[0][:only]].flatten.compact
     end
 
     new_membership && new_membership.each do |new_m|
@@ -420,6 +425,11 @@ class OmfRc::ResourceProxy::AbstractResource
           @membership_topics.delete_if { |k, v| k == leave_m }
         end
       end
+    end
+
+    unless only_membership.nil? || only_membership.empty?
+      configure_membership({ leave: @membership })
+      configure_membership(only_membership)
     end
 
     @membership
@@ -554,14 +564,27 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
   # @param [OmfCommon::Message] response initialised FRCP INFORM message object
   def handle_configure_message(message, obj, response)
-    message.each_property do |key, value|
-      method_name =  "#{message.operation.to_s}_#{key}"
-      p_value = message[key]
+    conf_properties = message.properties
+    conf_result = Hashie::Mash.new
 
+    call_hook(:pre_configure, obj, conf_properties, conf_result)
+
+    if obj.respond_to?(:configure_all)
+      obj.configure_all(conf_properties, conf_result)
+    else
+      conf_properties.each do |key, value|
+        method_name = "configure_#{key}"
+        conf_result[key] = obj.__send__(method_name, value)
+      end
+    end
+
+    call_hook(:post_configure, obj, conf_properties, conf_result)
+
+    conf_result.each do |key, value|
       if namespaced_property?(key)
-        response[key, namespace] = obj.__send__(method_name, p_value)
+        response[key, namespace] = value
       else
-        response[key] = obj.__send__(method_name, p_value)
+        response[key] = value
       end
     end
   end

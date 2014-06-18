@@ -4,22 +4,30 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require 'simplecov'
+# Generate coverage
 SimpleCov.start { add_filter "/test" }
 
+# Setup MiniTest
 gem 'minitest'
+
 require 'minitest/autorun'
 require 'minitest/pride'
 require 'minitest/spec'
 require 'minitest/mock'
-require 'em/minitest/spec'
+
+# Spec helper to test async
+require 'evented-spec'
+
+# Use mocha for Mocking and Stubbing
 require 'mocha/setup'
 
+require 'securerandom'
+
+#require 'em/minitest/spec'
+
 require 'omf_common'
-require 'blather/client/dsl'
 
-require 'singleton'
-
-OmfCommon::Message.init(type: :xml)
+#require 'blather/client/dsl'
 
 # Shut up all the loggers
 Logging.logger.root.clear_appenders
@@ -41,5 +49,11 @@ end
 class OmfCommon::Auth::CertificateStore
   def self.reset
     @@instance = nil
+  end
+end
+
+class OmfCommon::Message
+  def self.reset
+    @@message_class = nil
   end
 end

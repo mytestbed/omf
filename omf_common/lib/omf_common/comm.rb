@@ -42,40 +42,39 @@ module OmfCommon
     #     :constructor - Class implementing provider
     #
     def self.init(opts)
-      if @@instance
-        raise "Comms layer already initialised"
-      end
-      unless provider = opts[:provider]
-        unless type = opts[:type]
-          if url = opts[:url]
-            type = url.split(':')[0].to_sym
+      unless @@instance
+        unless provider = opts[:provider]
+          unless type = opts[:type]
+            if url = opts[:url]
+              type = url.split(':')[0].to_sym
+            end
           end
+          provider = @@providers[type]
         end
-        provider = @@providers[type]
-      end
-      unless provider
-        raise ArgumentError, "Missing Comm provider declaration. Either define 'type', 'provider', or 'url'"
-      end
+        unless provider
+          raise ArgumentError, "Missing Comm provider declaration. Either define 'type', 'provider', or 'url'"
+        end
 
-      require provider[:require] if provider[:require]
+        require provider[:require] if provider[:require]
 
-      if class_name = provider[:constructor]
-        provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
-        inst = provider_class.new(opts)
-      else
-        raise ArgumentError, "Missing communicator creation info - :constructor"
+        if class_name = provider[:constructor]
+          provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+          inst = provider_class.new(opts)
+        else
+          raise ArgumentError, "Missing communicator creation info - :constructor"
+        end
+        @@instance = inst
+        mopts = provider[:message_provider]
+        mopts[:authenticate] = opts[:auth]
+        Message.init(mopts)
+
+        if aopts = opts[:auth]
+          require 'omf_common/auth'
+          OmfCommon::Auth.init(aopts)
+        end
+
+        inst.init(opts)
       end
-      @@instance = inst
-      mopts = provider[:message_provider]
-      mopts[:authenticate] = opts[:auth]
-      Message.init(mopts)
-
-      if aopts = opts[:auth]
-        require 'omf_common/auth'
-        OmfCommon::Auth.init(aopts)
-      end
-
-      inst.init(opts)
     end
 
     def self.instance

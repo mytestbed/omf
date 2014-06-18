@@ -7,6 +7,9 @@ require 'active_support'
 require 'active_support/deprecation'
 require 'active_support/core_ext'
 require 'eventmachine'
+require 'uri'
+require 'open-uri'
+require 'tempfile'
 
 module OmfEc
   # DSL methods to be used for OEDL scripts
@@ -65,7 +68,7 @@ module OmfEc
       OmfCommon.eventloop.every(time, &block)
     end
 
-    def def_application(name,&block)
+    def def_application(name, &block)
       app_def = OmfEc::AppDefinition.new(name)
       OmfEc.experiment.app_definitions[name] = app_def
       block.call(app_def) if block
@@ -137,6 +140,17 @@ module OmfEc
       return OmfEc.experiment.property
     end
 
+    # Check if a property exist, if not then define it
+    # Take the same parameter as def_property
+    #
+    def ensure_property(name, default_value, description = nil, type = nil)
+      begin
+        property[name]
+      rescue
+        def_property(name, default_value, description, type)
+      end
+    end
+
     alias_method :prop, :property
 
     # Check if all elements in array equal the value provided
@@ -197,6 +211,88 @@ module OmfEc
         gd = OmfEc::Graph::GraphDescription.create(name)
         block.call(gd)
         gd._report
+      end
+    end
+
+    # Load an additional OEDL script referenced by a URI
+    #
+    # The supported URI schemes are:
+    # - file:///foo/bar.rb , which loads the file located at '/foo/bar.rb' on the local filesystem
+    # - system:///foo/bar.rb , which loads the file located at 'foo/bar.rb' in the default Ruby path of this EC
+    # - http://foo.com/bar.rb , which loads the file located at the URL 'http://foo.com/bar.rb'
+    #
+    # If an optional has of key/value is provided, then define an OMF
+    # Experiment Property for each keys and assigne them the values.
+    #
+    # @param uri URI for the OEDL script to load
+    # @param opts optional hash of key/values for extra Experiment Property to define
+    #
+    def load_oedl(location, opts = {})
+      begin
+        u = URI(location.downcase)
+      rescue Exception => e
+        warn "Unsupported OEDL library location '#{location}'"
+        return
+      end
+
+      # Define the additional properties from opts
+      opts.each { |k,v| def_property(k, v,) }
+
+      # Keep the old syntax around for a while, warn users to use the new URI syntax
+      # TODO: remove this in a couple of EC versions
+      if u.scheme.nil? || u.scheme.empty?
+        deprecated_load_oedl(location)
+        return
+      end
+
+      # Find out which type of location this is and deal with it accordingly
+      case u.scheme.downcase.to_sym
+      when :system
+        begin
+          u.path[0]='' # get rid of first '/'
+          require u.path
+          info "Loaded built-in OEDL library '#{location}'"
+        rescue Exception => e
+          error "Fail loading built-in OEDL library '#{location}': #{e}"
+        end
+      when :file, :http 
+        begin
+          file = Tempfile.new("oedl-#{Time.now.to_i}")
+          # see: http://stackoverflow.com/questions/7578898
+          open(u.to_s.sub(%r{^file:}, '')) { |io| file.write(io.read) }
+          file.close
+          OmfEc.experiment.archive_oedl(file.path)
+          load(file.path)
+          file.unlink
+          info "Loaded external OEDL library '#{location}'"
+        rescue Exception => e
+          error "Fail loading external OEDL library '#{location}': #{e}"
+        end
+      else
+        warn "Unsupported scheme for OEDL library location '#{location}'"
+        return
+      end
+    end
+
+    def deprecated_load_oedl(location)
+      warn "Loading OEDL Library using DEPRECATED syntax. Please use proper URI syntax"
+      begin
+        require location
+        info "Loaded built-in OEDL library '#{location}'"
+      rescue LoadError
+        begin
+          file = Tempfile.new("oedl-#{Time.now.to_i}")
+          open(location) { |io| file.write(io.read) }
+          file.close
+          OmfEc.experiment.archive_oedl(file.path)
+          load(file.path)
+          file.unlink
+          info "Loaded external OEDL library '#{location}'"
+        rescue Exception => e
+          error "Fail loading external OEDL library '#{location}': #{e}"
+        end
+      rescue Exception => e
+        error "Fail loading built-in OEDL library '#{location}': #{e}"
       end
     end
 

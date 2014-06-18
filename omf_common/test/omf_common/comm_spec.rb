@@ -57,14 +57,12 @@ describe OmfCommon::Comm do
       lambda { OmfCommon::Comm.init(provider: { constructor: {}, require: {} }) }.must_raise TypeError
     end
 
-    it 'must fail if already initialised' do
+    it 'wont fail if already initialised' do
       OmfCommon::Comm::Local::Communicator.any_instance.stubs(:on_connected)
       OmfCommon::Message.stubs(:init)
-      error = lambda do
-        OmfCommon::Comm.init(type: :local)
-        OmfCommon::Comm.init(type: :local)
-      end.call rescue $!
-      error.message.must_match /Comms layer already initialised/
+
+      OmfCommon::Comm.init(type: :local)
+      OmfCommon::Comm.init(type: :local)
     end
 
     it 'must handle auth options and be able to return singleton instance' do

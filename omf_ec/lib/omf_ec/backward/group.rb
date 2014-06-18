@@ -69,8 +69,8 @@ module OmfEc
         end
       end
 
-      def addApplication(name, &block)
-        app_cxt = OmfEc::Context::AppContext.new(name,self)
+      def addApplication(name, location = nil, &block)
+        app_cxt = OmfEc::Context::AppContext.new(name,location,self)
         block.call(app_cxt) if block
         self.app_contexts << app_cxt
       end

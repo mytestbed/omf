@@ -9,6 +9,8 @@ module OmfEc
   class Runner
     include Hashie
 
+    attr_reader :oedl_path
+
     def initialize
       @gem_version = OmfEc::VERSION
       @oml_enabled = false
@@ -73,12 +75,17 @@ module OmfEc
 
           op.on("--name", "--experiment EXPERIMENT_NAME", "Experiment name") do |e_name|
             @cmd_opts[:experiment_name] = e_name
-            remove_cmd_opts_from_argv("--e", "--experiment", e_name)
+            remove_cmd_opts_from_argv("--name", "--experiment", e_name)
           end
 
           op.on("--slice SLICE_NAME", "Slice name [Deprecated]") do |slice|
             @cmd_opts[:slice] = slice
             remove_cmd_opts_from_argv("--slice", slice)
+          end
+
+          op.on("--oml_uri URI", "URI for the OML data collection of experiment applications") do |uri|
+            @cmd_opts[:oml_uri] = uri
+            remove_cmd_opts_from_argv("--oml_uri", uri)
           end
 
           op.on("--inst_oml_uri URI", "EC Instrumentation: OML URI to use") do |uri|
@@ -147,11 +154,11 @@ module OmfEc
     end
 
     def remove_cmd_opts_from_argv(*args)
-      args.each { |v| @argv.delete(v) }
+      args.each { |v| @argv.slice!(@argv.index(v)) if @argv.index(v) }
     end
 
     def setup_experiment
-      OmfEc.experiment.name = @config_opts[:experiment] if @config_opts[:experiment]
+      OmfEc.experiment.name = @config_opts[:experiment_name] if @config_opts[:experiment_name]
       OmfEc.experiment.oml_uri = @config_opts[:oml_uri] if @config_opts[:oml_uri]
       OmfEc.experiment.show_graph = @config_opts['show-graph']
 
@@ -169,6 +176,14 @@ module OmfEc
 
       remove_cmd_opts_from_argv("exec")
 
+      index_of_dividing_hyphen = @argv.index("--")
+
+      @argv[0..index_of_dividing_hyphen || -1].in_groups_of(2) do |arg_g|
+        if arg_g[0] =~ /^--(.+)/ && !arg_g[1].nil?
+          remove_cmd_opts_from_argv(*arg_g)
+        end
+      end
+
       @oedl_path = @argv[0] && File.expand_path(@argv[0])
 
       if @oedl_path.nil? || !File.exist?(@oedl_path)
@@ -176,19 +191,23 @@ module OmfEc
         exit(1)
       end
 
+      @argv.slice!(0)
+
       # User-provided command line values for Experiment Properties cannot be
       # set here as the properties have not been defined yet by the experiment.
       # Thus just pass them to the experiment, which will be responsible
       # for setting them later
       properties = {}
-      if @argv.size > 1 && @argv[1] == "--"
-        exp_properties = @argv[2..-1]
+      if index_of_dividing_hyphen
+        remove_cmd_opts_from_argv("--")
+        exp_properties = @argv
         exp_properties.in_groups_of(2) do |p|
           unless p[0] =~ /^--(.+)/ && !p[1].nil?
             puts "Malformatted properties '#{exp_properties.join(' ')}'"
             exit(1)
           else
             properties[$1.to_sym] = p[1].ducktype
+            remove_cmd_opts_from_argv(*p)
           end
         end
         OmfEc.experiment.cmdline_properties = properties
@@ -234,6 +253,7 @@ module OmfEc
             OmfEc.experiment.log_metadata("ec_version", "#{OmfEc::VERSION}")
             OmfEc.experiment.log_metadata("exp_path", @oedl_path)
             OmfEc.experiment.log_metadata("ec_pid", "#{Process.pid}")
+            OmfEc.experiment.archive_oedl(@oedl_path)
 
             begin
               load @oedl_path
@@ -257,9 +277,13 @@ module OmfEc
       end
     end
 
-    def run
+    def init
       oml_init
       setup_experiment
+      #load_experiment
+    end
+
+    def run
       load_experiment
     end
   end

@@ -28,26 +28,25 @@ module OmfCommon
     #     :constructor - Class implementing provider
     #
     def self.init(opts, &block)
-      if @@instance
-        raise "Eventloop provider already iniitalised"
-      end
-      unless provider = opts[:provider]
-        provider = @@providers[opts[:type].to_sym]
-      end
-      unless provider
-        raise "Missing Eventloop provider declaration. Either define 'type' or 'provider'"
-      end
+      unless @@instance
+        unless provider = opts[:provider]
+          provider = @@providers[opts[:type].to_sym]
+        end
+        unless provider
+          raise "Missing Eventloop provider declaration. Either define 'type' or 'provider'"
+        end
 
-      require provider[:require] if provider[:require]
+        require provider[:require] if provider[:require]
 
-      if class_name = provider[:constructor]
-        provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
-        inst = provider_class.new(opts, &block)
-      else
-        raise "Missing provider creation info - :constructor"
+        if class_name = provider[:constructor]
+          provider_class = class_name.split('::').inject(Object) {|c,n| c.const_get(n) }
+          inst = provider_class.new(opts, &block)
+        else
+          raise "Missing provider creation info - :constructor"
+        end
+        @@instance = inst
       end
-      @@instance = inst
-      inst
+      @@instance
     end
 
     def self.instance
