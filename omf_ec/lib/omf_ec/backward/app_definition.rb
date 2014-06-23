@@ -37,9 +37,13 @@ module OmfEc
       def defProperty(name = :mandatory, description = nil, parameter = nil, options = {})
         opts = {:description => description, :cmd => parameter}
         # Map old OMF5 types to OMF6
-        options[:type] = 'Numeric' if options[:type] == :integer
-        options[:type] = 'String' if options[:type] == :string
-        options[:type] = 'Boolean' if options[:type] == :boolean
+        # Map OMF app property types to Ruby types
+        options[:type] = case options[:type]
+                         when :integer, :int then 'Numeric'
+                         when :string then 'String'
+                         when :boolean then 'Boolean'
+                         when :double then 'Float'
+                         end
         opts = opts.merge(options)
         define_parameter(Hash[name,opts])
       end
