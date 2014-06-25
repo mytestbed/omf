@@ -70,3 +70,4 @@ end
 
 OmfCommon::Message.init(type: :xml)
 
+OmfRc::ResourceFactory.load_default_resource_proxies
