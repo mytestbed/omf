@@ -293,7 +293,7 @@ After you've successfully installed RVM, Ruby 1.9 and the development packages o
 
 We encourage developers to use the very latest OMF code from the master branch of our git repository. Ensure you have git installed and run
 
-    git clone git://git.mytestbed.net/omf.git
+    git clone https://github.com/mytestbed/omf.git
     cd omf
 
 In order to install the gem dependencies, then build, install and test the OMF gems, run:
