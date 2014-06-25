@@ -23,9 +23,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
 
-#
 # This module defines a Utility with some common work blocks that handle the
 # installation of software on a given OS platform
 #
@@ -33,6 +31,7 @@ module OmfRc::Util::PlatformTools
   include OmfRc::ResourceProxyDSL
 
   utility :common_tools
+  utility :fact
 
   # This utility block logs attempts to detect the OS platform on which it is
   # currently running. Right now it can recognise the following platform:
@@ -43,12 +42,13 @@ module OmfRc::Util::PlatformTools
   #
   # [Symbol] either :unknown | :ubuntu | :fedora
   #
-  work('detect_platform') do
-    r = `cat /etc/*release`.upcase
-    platform = :unknown
-    platform = :ubuntu if r.include?('UBUNTU')
-    platform = :fedora if r.include?('FEDORA')
-    platform
+  work('detect_platform') do |res|
+    os = res.request_fact_osfamily
+    case os
+    when 'RedHat' then :fedora
+    when 'Debian' then :ubuntu
+    else :unknown
+    end
   end
 
   # This utility block logs attempts to validate if a given package name is

@@ -25,7 +25,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency "minitest"
   s.add_development_dependency "pry"
   s.add_development_dependency "simplecov"
+  s.add_development_dependency "mocha"
   s.add_runtime_dependency "omf_common", "= #{OmfCommon::VERSION}"
   s.add_runtime_dependency "cocaine"
-  s.add_runtime_dependency "mocha"
+  s.add_runtime_dependency "facter"
 end
