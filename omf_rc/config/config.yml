@@ -1,8 +1,6 @@
 ---
 # default topic name is this machine's hostname
-# default xmpp user name/password is "hostname-pid"
-# this is to ensure that every RC has its own topic and XMPP account
+# this is to ensure that every RC has its own topic and AMQP account
 :uid: <%= Socket.gethostname %>
-:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@localhost
+:uri: amqp://localhost
 :environment: production
-:debug: false
