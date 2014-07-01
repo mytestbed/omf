@@ -62,6 +62,7 @@ module OmfEc
     #
     # Resources to be added could be a list of resources, groups, or the mixture of both.
     def add_resource(*names)
+      names.flatten!
       synchronize do
         # Recording membership first, used for ALL_UP event
         names.each do |name|
@@ -74,7 +75,6 @@ module OmfEc
         end
       end
     end
-
 
     # Create a set of new resources and add them to the group
     #

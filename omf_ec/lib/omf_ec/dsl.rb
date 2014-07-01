@@ -49,7 +49,6 @@ module OmfEc
       end
     end
 
-
     # Use EM timer to execute after certain time
     #
     # @example do something after 2 seconds
@@ -78,16 +77,32 @@ module OmfEc
     #
     # @param [String] name name of the group
     #
-    # @example add resource 'a' to group 'bob'
-    #   def_group('bob') do |g|
-    #     g.add_resource('a')
+    # @example add resource 'a', 'b' to group 'My_Pinger'
+    #
+    #   defGroup('My_Pinger', 'a', 'b') do |g|
+    #     g.addApplication("ping") do |app|
+    #       app.setProperty('target', 'mytestbed.net')
+    #       app.setProperty('count', 3)
+    #     end
     #   end
     #
-    # @see OmfEc::Backward::DSL#defGroup
-    def def_group(name, &block)
-      group = OmfEc::Group.new(name, &block)
+    #   # Or pass resources as an array
+    #
+    #   res_array = ['a', 'b']
+    #
+    #   defGroup('My_Pinger', res_array) do |g|
+    #     g.addApplication("ping") do |app|
+    #       app.setProperty('target', 'mytestbed.net')
+    #       app.setProperty('count', 3)
+    #     end
+    #   end
+    #
+    def def_group(name, *members, &block)
+      group = OmfEc::Group.new(name)
       OmfEc.experiment.add_group(group)
-      group
+      group.add_resource(*members)
+
+      block.call(group) if block
     end
 
     # Get a group instance
@@ -255,7 +270,7 @@ module OmfEc
         rescue Exception => e
           error "Fail loading built-in OEDL library '#{location}': #{e}"
         end
-      when :file, :http 
+      when :file, :http
         begin
           file = Tempfile.new("oedl-#{Time.now.to_i}")
           # see: http://stackoverflow.com/questions/7578898

@@ -16,6 +16,7 @@ module OmfEc
           v5_style(:allGroups, base)
           v5_style(:allNodes!, base)
           v5_style(:defGraph, base)
+          v5_style(:defGroup, base)
           v5_style(:loadOEDL, base)
           v5_style(:ensureProperty, base)
         end
@@ -35,14 +36,6 @@ module OmfEc
         # do nothing with it in OMF6
         name = uri if name.nil?
         def_application(name,&block)
-      end
-
-      def defGroup(name, *members, &block)
-        group = OmfEc::Group.new(name)
-        OmfEc.experiment.add_group(group)
-        group.add_resource(*members)
-
-        block.call(group) if block
       end
 
       # Wait for some time before issuing more commands
