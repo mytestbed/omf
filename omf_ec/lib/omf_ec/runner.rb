@@ -131,7 +131,7 @@ module OmfEc
             exit
           end
 
-          op.on("-d", "--debug", "Debug mode (printing debug logging messages)") do
+          op.on("-d", "--debug", "Debug mode (Set logging level in Stdout to :debug)") do
             @cmd_opts[:debug] = true
             remove_cmd_opts_from_argv("-d", "--debug")
           end
@@ -237,6 +237,8 @@ module OmfEc
 
       if @config_opts[:debug]
         Logging.logger.root.level = 'debug'
+        stdout_appender = Logging.logger.root.appenders.find { |a| a.class == Logging::Appenders::Stdout }
+        stdout_appender.level = 'debug' if stdout_appender
       else
         Logging.consolidate 'OmfCommon', 'OmfRc'
       end
@@ -298,7 +300,6 @@ module OmfEc
     def init
       oml_init
       setup_experiment
-      #load_experiment
     end
 
     def run
