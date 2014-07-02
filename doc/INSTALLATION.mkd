@@ -195,7 +195,7 @@ https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/default.yml
 
 You could customise logging by describing level, appenders, layout etc.
 
-https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/with_custom\logging.yml
+https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/with_custom_logging.yml
 
 
 ### Gaining access to an OMF testbed
