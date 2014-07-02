@@ -1,29 +1,6 @@
-# All the option values here are identical to OmfEc default
-#
-# By default, OmfEC will:
-#
-# Connect to amqp server on localhost
-# Write info level log messages to standout
-# Write all log messages to rolling file in /var/tmp/ as omf_ec.log
-#
 communication:
+  # Connect to AMQP server at localhost
   url: amqp://localhost
 
-logging:
-  level:
-    default: debug
-  appenders:
-    stdout:
-      level: info
-      date_pattern: "%H:%M:%S"
-      pattern: "%d %5l %c{2}: %m\n"
-      color_schema: default
-    rolling_file:
-      level: all
-      log_dir: /var/tmp
-      # max 50mb of each log file
-      size: 52428800
-      # keep a 5 logs in total
-      keep: 5
-      date_pattern: "%F %T %z"
-      pattern: "[%d] %-5l %c: %m\n"
+# Use OML server located at localhost port 3003
+oml_uri: tcp:localhost:3003

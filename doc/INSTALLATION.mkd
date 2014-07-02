@@ -6,7 +6,7 @@
 
 In an OMF testbed, everything is a resource. The entity that controls one or multiple resources is called **Resource Controller (RC)**. The RC can run directly on the resource (e.g. a PC), or run on a separate computer that can control the resources (e.g. a bunch of sensor nodes or an OpenFlow switch). OMF is designed to support many different types of resources, and additional RCs for those resources can make use of our OMF APIs.
 
-All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default OMF uses XMPP for that, but other messaging layers such as AMQP are supported. Each OMF component must be able to talk to at least one PubSub server, although there can be multiple PubSub servers used in an experiment. The examples in this guide are using XMPP.
+All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default OMF uses AMQP for that, but other messaging layers such as XMPP are supported. Each OMF component must be able to talk to at least one PubSub server, although there can be multiple PubSub servers used in an experiment. The examples in this guide are using XMPP.
 
 The experimenter uses the **Experiment Controller (EC)** to run the experiment script and steer the resources. The EC can be installed on a user-facing machine inside the testbed, or alternatively on the user's own computer.
 
@@ -134,44 +134,69 @@ If you want to verify that your rabbitmq server is responding, you can follow th
 
 After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. You only need to install the Experiment Controller (EC), as the OMF testbed you are using provides nodes that already run the Resource Controller (RC).
 
-### Installing the Experiment Controller
+### Installing Experiment Controller
 
     gem install omf_ec --no-ri --no-rdoc
 
 If you should get any SSL errors during the gem installation, please try [this workaround](http://stackoverflow.com/a/18130051/1223151).
 
-### Configuring the Experiment Controller
+### Run Experiment Controller
 
-Please run EC help page for available options
+    omf_ec <PATH_TO_YOUR_OEDL_FILE>
+
+This, without any parameters will use built in default values. It will:
+
+* Connect to amqp server on localhost
+* Write info level log messages to STDOUT
+* Write all log messages to rolling log files in /var/tmp/ as omf\_ec.<number>.log
+
+### Configuring Experiment Controller
+
+You could use command line options or configuration file to set up your experiment controller.
+
+It is always useful to run EC help page for available options
 
     omf_ec -h
 
-if you prefer using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run, and provide the configure file using '-c' option.
+Some common command line options are:
 
-Sample configure file:
+* Use another AQMP server
 
-    environment: development
+    omf_ec -u amqp://another_amqp_server <PATH_TO_YOUR_OEDL_FILE>
+
+* Use OML server at localhost:3003
+
+    omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 <PATH_TO_YOUR_OEDL_FILE>
+
+* Show :debug log message in STDOUT
+
+    omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 -d <PATH_TO_YOUR_OEDL_FILE>
+
+Options can also be set by using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run, and provide the configure file using '-c' option. For example:
 
     communication:
-      # URI for communication layer
-      url: <xmpp|amqp>://localhost
+      url: amqp://localhost
 
-    # OML server to use
     oml_uri: tcp:localhost:3003
 
-    # Certs information for authentication
+Save the file as my\_ec.yml for example and then start experiment controller by:
 
-    # Directory containing root certificates
-    root_cert_dir:
-    # Your certificate
-    cert:
-    # Your private key
-    key:
+    omf_ec -c my\_ec.yml <PATH_TO_YOUR_OEDL_FILE>
 
-    # Debug mode
-    debug: false
+_The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/)_.
 
-The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/). The `:commands:` section can be used to pass parameters only to specific OMF subcommands, such as exec, load or save. The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. For AMQP, use *amqp://\<amqp_hostname\>*.
+There are example config files can be found under https://github.com/mytestbed/omf/tree/master/omf\_ec/example/config
+
+* Simple
+
+https://github.com/mytestbed/omf/tree/master/omf\_ec/example/config/default.yml
+
+* Customise Logging
+
+You could customise logging by describing level, appenders, layout etc.
+
+https://github.com/mytestbed/omf/tree/master/omf\_ec/example/config/with\_custom\_logging.yml
+
 
 ### Gaining access to an OMF testbed
 
