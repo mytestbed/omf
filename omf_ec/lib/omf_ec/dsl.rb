@@ -270,7 +270,7 @@ module OmfEc
         rescue Exception => e
           error "Fail loading built-in OEDL library '#{location}': #{e}"
         end
-      when :file, :http
+      when :file, :http, :https
         begin
           file = Tempfile.new("oedl-#{Time.now.to_i}")
           # see: http://stackoverflow.com/questions/7578898
