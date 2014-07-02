@@ -1,5 +1,13 @@
+# All the option values here are identical to OmfEc default
+#
+# By default, OmfEC will:
+#
+# Connect to amqp server on localhost
+# Write info level log messages to standout
+# Write all log messages to rolling file in /var/tmp/ as omf_ec.log
+#
 communication:
-  url: amqp://srv.mytestbed.net
+  url: amqp://localhost
 
 logging:
   level:
@@ -12,7 +20,7 @@ logging:
       color_schema: default
     rolling_file:
       level: all
-      log_dir: /tmp
+      log_dir: /var/tmp
       # max 50mb of each log file
       size: 52428800
       # keep a 5 logs in total
