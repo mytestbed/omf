@@ -210,6 +210,7 @@ module OmfEc
             g.resources[type: 'application'].release unless g.app_contexts.empty?
             g.resources[type: 'net'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'net' }.empty?
             g.resources[type: 'wlan'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
+            g.resources.membership = { leave: g.address }
           end
 
           OmfCommon.el.after(4) do
