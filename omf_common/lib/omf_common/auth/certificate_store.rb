@@ -50,6 +50,11 @@ module OmfCommon::Auth
 
       debug "Registering certificate for '#{certificate.addresses}' - #{certificate.subject}"
       @@instance.synchronize do
+        begin
+          @intermediate_store.add_cert(certificate.to_x509)
+        rescue OpenSSL::X509::StoreError => e
+          raise e unless e.message == "cert already in hash table"
+        end
         _set(certificate.subject, certificate)
         if rid = certificate.resource_id
           _set(rid, certificate)
@@ -81,7 +86,7 @@ module OmfCommon::Auth
     def verify(cert)
       #puts "VERIFY: #{cert}::#{cert.class}}"
       cert = cert.to_x509 if cert.kind_of? OmfCommon::Auth::Certificate
-      v_result = @x509_store.verify(cert)
+      v_result = @x509_store.verify(cert) || @intermediate_store.verify(cert)
       warn "Cert verification failed: '#{@x509_store.error_string}'" unless v_result
       v_result
     end
@@ -100,6 +105,7 @@ module OmfCommon::Auth
 
     def initialize(opts)
       @x509_store = OpenSSL::X509::Store.new
+      @intermediate_store = OpenSSL::X509::Store.new
 
       @certs = {}
       if store = opts[:store]

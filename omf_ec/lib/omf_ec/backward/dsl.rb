@@ -16,6 +16,9 @@ module OmfEc
           v5_style(:allGroups, base)
           v5_style(:allNodes!, base)
           v5_style(:defGraph, base)
+          v5_style(:defGroup, base)
+          v5_style(:loadOEDL, base)
+          v5_style(:ensureProperty, base)
         end
 
         def v5_style(name, base)
@@ -35,14 +38,6 @@ module OmfEc
         def_application(name,&block)
       end
 
-      def defGroup(name, *members, &block)
-        group = OmfEc::Group.new(name)
-        OmfEc.experiment.add_group(group)
-        group.add_resource(*members)
-
-        block.call(group) if block
-      end
-
       # Wait for some time before issuing more commands
       #
       # @param [Fixnum] duration Time to wait in seconds (can be
@@ -52,6 +47,7 @@ module OmfEc
         warn "Calling 'wait' or 'sleep' will block entire EC event loop. Please try 'after' or 'every'"
         sleep duration.to_s.to_i
       end
+
     end
   end
 end

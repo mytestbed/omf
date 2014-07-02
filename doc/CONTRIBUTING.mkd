@@ -2,10 +2,6 @@
 
 ## Getting the source
 
-From mytestbed.net:
-
-    git clone git://git.mytestbed.net/omf.git
-
 From github:
 
     git clone https://github.com/mytestbed/omf.git

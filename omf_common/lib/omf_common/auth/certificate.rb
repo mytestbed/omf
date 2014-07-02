@@ -77,7 +77,7 @@ module OmfCommon::Auth
           # opts[:frcp_uri] || "URI:frcp:#{user_id}@#{opts[:frcp_domain] || @@def_email_domain}",
           # opts[:http_uri] || "URI:http://#{opts[:http_prefix] || @@def_email_domain}/users/#{user_id}"
       not_before = opts[:not_before] || Time.now
-      duration = opts[:duration] = 3600
+      duration = opts[:duration] || 3600
       c = _create_x509_cert(subject, key, digest, issuer, not_before, duration, addresses)
       c[:addresses] = addresses
       c[:resource_id] = resource_id
@@ -176,7 +176,7 @@ module OmfCommon::Auth
       cert.subject = subject
       cert.public_key = key.public_key
       cert.not_before = not_before
-      cert.not_after = not_before + duration
+      cert.not_after = not_before + duration.to_i
       #extensions << ["subjectAltName", "URI:http://foo.com/users/dc766130, URI:frcp:dc766130-c822-11e0-901e-000c29f89f7b@foo.com", false]
 
       issuer_cert = issuer ? issuer.to_x509 : cert

@@ -20,6 +20,24 @@ describe OmfEc::DSL do
     OmfEc.unstub(:subscribe_and_monitor)
   end
 
+  describe "when calling defGroup" do
+    it "must be able to accept a list of arguments" do
+      @dsl.defGroup('bob', 'a', 'b') do |g|
+        g.members.keys.must_include 'a'
+        g.members.keys.must_include 'b'
+        g.must_be_kind_of OmfEc::Group
+      end
+    end
+
+    it "must be able to accept array as arguments" do
+      array = %w(c d)
+      @dsl.defGroup('bob', array) do |g|
+        g.members.keys.must_include 'c'
+        g.members.keys.must_include 'd'
+        g.must_be_kind_of OmfEc::Group
+      end
+    end
+  end
 
   describe "when included" do
     it "must respond to after and every" do
@@ -44,11 +62,6 @@ describe OmfEc::DSL do
       g = mock
       OmfEc.experiment.stubs(:group).returns(g)
       @dsl.group('bob').must_equal g
-    end
-
-    it "must respond to def_group" do
-      block = proc { 1 }
-      @dsl.def_group('bob', &block).must_be_kind_of OmfEc::Group
     end
 
     it "must respond to all_groups iterator" do

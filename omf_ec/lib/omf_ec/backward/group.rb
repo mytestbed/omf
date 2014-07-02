@@ -16,14 +16,15 @@ module OmfEc
 
       # Create an application for the group and start it
       #
-      def exec(name)
+      def exec(command)
+        name = SecureRandom.uuid
+
         self.synchronize do
           self.execs << name
         end
-        create_resource(name, type: 'application', binary_path: name)
+        create_resource(name, type: 'application', binary_path: command)
 
-        e_uid = SecureRandom.uuid
-        e_name = "#{self.name}_application_#{name}_created_#{e_uid}"
+        e_name = "#{self.name}_application_#{name}_created"
 
         resource_group_name = self.address("application")
 
@@ -68,8 +69,8 @@ module OmfEc
         end
       end
 
-      def addApplication(name, &block)
-        app_cxt = OmfEc::Context::AppContext.new(name,self)
+      def addApplication(name, location = nil, &block)
+        app_cxt = OmfEc::Context::AppContext.new(name,location,self)
         block.call(app_cxt) if block
         self.app_contexts << app_cxt
       end

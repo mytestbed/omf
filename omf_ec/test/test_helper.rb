@@ -11,17 +11,17 @@ require 'minitest/autorun'
 require 'minitest/pride'
 require 'mocha/setup'
 
-require 'omf_ec'
+require 'evented-spec'
 
-# Default fixture directory
-FIXTURE_DIR = "#{File.dirname(__FILE__)}/fixture"
+require 'omf_ec'
 
 # Shut up all the loggers
 Logging.logger.root.clear_appenders
 
-# Reading fixture file
-def fixture(name)
-  File.read("#{FIXTURE_DIR}/#{name.to_s}")
+def uninit
+  OmfEc::Experiment.reset
+  OmfEc::ExperimentProperty.reset
+  OmfCommon::Eventloop.reset
 end
 
 class OmfCommon::Eventloop
@@ -32,13 +32,8 @@ end
 
 class OmfEc::Experiment
   def self.reset
-    instance.instance_eval do
-      @groups = []
-      @events = []
-      @app_definitions = Hashie::Mash.new
-      @sub_groups = Hashie::Mash.new
-      @cmdline_properties = Hashie::Mash.new
-    end
+    Singleton.__init__(self)
+    self
   end
 end
 
@@ -48,5 +43,3 @@ class OmfEc::ExperimentProperty
     @@creation_observers = []
   end
 end
-
-

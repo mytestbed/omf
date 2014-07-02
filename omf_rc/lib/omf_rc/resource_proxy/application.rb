@@ -476,6 +476,10 @@ module OmfRc::ResourceProxy::Application
   work('build_command_line') do |res|
     if res.property.clean_env
       cmd_line = "env -i " # Start with a 'clean' environment
+      if env = res.defaults(:env)
+        env = env.map {|k,v| "#{k.to_s.upcase}=#{v}"}.join(' ')
+        cmd_line += "#{env} "
+      end
     else
       cmd_line = ""
     end

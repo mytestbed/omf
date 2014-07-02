@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
+$:.push File.expand_path("../../omf_common/lib", __FILE__)
 require "omf_rc/version"
 
 Gem::Specification.new do |s|
@@ -21,11 +22,11 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  s.add_development_dependency "minitest", "~> 3.2"
-  s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
+  s.add_development_dependency "minitest"
   s.add_development_dependency "pry"
   s.add_development_dependency "simplecov"
+  s.add_development_dependency "mocha"
   s.add_runtime_dependency "omf_common", "= #{OmfCommon::VERSION}"
-  s.add_runtime_dependency "cocaine", "~> 0.3.0"
-  s.add_runtime_dependency "mocha"
+  s.add_runtime_dependency "cocaine"
+  s.add_runtime_dependency "facter"
 end

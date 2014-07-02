@@ -17,19 +17,19 @@ Gem::Specification.new do |s|
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = ["omf_monitor_topic","omf_send_request", "omf_send_create"]
+  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
   s.add_development_dependency "minitest"
-  s.add_development_dependency "em-minitest-spec", "~> 1.1.1"
+  s.add_development_dependency "evented-spec", "~> 1.0.0.beta"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "pry"
   s.add_development_dependency "mocha"
 
-  s.add_runtime_dependency "eventmachine", "= 1.0.3"
-  s.add_runtime_dependency "blather", "= 0.8.8"
-  s.add_runtime_dependency "logging", "~> 1.7.1"
+  s.add_runtime_dependency "eventmachine"
+  s.add_runtime_dependency "blather"
+  s.add_runtime_dependency "logging"
   s.add_runtime_dependency "hashie"
   s.add_runtime_dependency "oml4r", "~> 2.10.1"
   s.add_runtime_dependency "json"
