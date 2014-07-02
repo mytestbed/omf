@@ -25,6 +25,24 @@ module OmfEc
       @config_opts = Mash.new(
         environment: 'development',
         communication: { url: "amqp://localhost" },
+        logging: {
+          level: { default: 'debug' },
+          appenders: {
+            stdout: {
+              level: :info,
+              date_pattern: '%H:%M:%S',
+              pattern: '%d %5l %c{2}: %m\n'
+            },
+            rolling_file: {
+              level: :debug,
+              log_dir: '/var/tmp',
+              size: 1024*1024*50, # max 50mb of each log file
+              keep: 5, # keep a 5 logs in total
+              date_pattern: '%F %T %z',
+              pattern: '[%d] %-5l %c: %m\n'
+            },
+          }
+        }
       )
 
       @cmd_opts = Mash.new

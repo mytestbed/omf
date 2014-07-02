@@ -249,30 +249,7 @@ module OmfCommon
   #
   def self._init_logging(opts = {})
     logger = Logging.logger.root
-    if appenders = opts[:appenders]
-      logger.clear_appenders
-      appenders.each do |type, topts|
-        case type.to_sym
-        when :stdout
-          $stdout.sync = true
-          logger.add_appenders(
-            Logging.appenders.stdout('custom',
-              :layout => Logging.layouts.pattern(topts)
-          ))
 
-        when :file
-          dir_name = topts.delete(:log_dir) || DEF_LOG_DIR
-          file_name = topts.delete(:log_file) || "#{File.basename($0, File.extname($0))}.log"
-          path = File.join(dir_name, file_name)
-          logger.add_appenders(
-            Logging.appenders.file(path,
-              :layout => Logging.layouts.pattern(topts)
-          ))
-        else
-          raise "Unknown logging appender type '#{type}'"
-        end
-      end
-    end
     if level = opts[:level]
       if level.is_a? Hash
         # package level settings
@@ -285,6 +262,33 @@ module OmfCommon
         end
       else
         logger.level = level.to_sym
+      end
+    end
+
+    if appenders = opts[:appenders]
+      logger.clear_appenders
+      appenders.each do |type, topts|
+        pattern_opts = {
+          pattern:  topts.delete(:pattern),
+          date_pattern: topts.delete(:date_pattern),
+          color_scheme: topts.delete(:color_scheme),
+          date_method: topts.delete(:date_method)
+        }
+
+        appender_opts = topts.merge(layout: Logging.layouts.pattern(pattern_opts))
+
+        case type.to_sym
+        when :stdout
+          $stdout.sync = true
+          logger.add_appenders(Logging.appenders.stdout('custom_stdout', appender_opts))
+        when :file, :rolling_file
+          dir_name = topts.delete(:log_dir) || DEF_LOG_DIR
+          file_name = topts.delete(:log_file) || "#{File.basename($0, File.extname($0))}.log"
+          path = File.join(dir_name, file_name)
+          logger.add_appenders(Logging.appenders.send(type, path, appender_opts))
+        else
+          raise "Unknown logging appender type '#{type}'"
+        end
       end
     end
   end

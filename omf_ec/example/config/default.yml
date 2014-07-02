@@ -1,0 +1,21 @@
+communication:
+  url: amqp://srv.mytestbed.net
+
+logging:
+  level:
+    default: debug
+  appenders:
+    stdout:
+      level: info
+      date_pattern: "%H:%M:%S"
+      pattern: "%d %5l %c{2}: %m\n"
+      color_schema: default
+    rolling_file:
+      level: all
+      log_dir: /tmp
+      # max 50mb of each log file
+      size: 52428800
+      # keep a 5 logs in total
+      keep: 5
+      date_pattern: "%F %T %z"
+      pattern: "[%d] %-5l %c: %m\n"
