@@ -160,15 +160,15 @@ It is always useful to run EC help page for available options
 
 Some common command line options are:
 
-* Use another AQMP server
+_Use another AQMP server_
 
     omf_ec -u amqp://another_amqp_server <PATH_TO_YOUR_OEDL_FILE>
 
-* Use OML server at localhost:3003
+_Use OML server at localhost:3003_
 
     omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 <PATH_TO_YOUR_OEDL_FILE>
 
-* Show :debug log message in STDOUT
+_Show :debug log message in STDOUT_
 
     omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 -d <PATH_TO_YOUR_OEDL_FILE>
 
@@ -179,23 +179,23 @@ Options can also be set by using a configuration file, you can store options lik
 
     oml_uri: tcp:localhost:3003
 
-Save the file as my\_ec.yml for example and then start experiment controller by:
+Save the file as my_ec.yml for example and then start experiment controller by:
 
-    omf_ec -c my\_ec.yml <PATH_TO_YOUR_OEDL_FILE>
+    omf_ec -c my_ec.yml <PATH_TO_YOUR_OEDL_FILE>
 
 _The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/)_.
 
-There are example config files can be found under https://github.com/mytestbed/omf/tree/master/omf\_ec/example/config
+There are example config files can be found under https://github.com/mytestbed/omf/tree/master/omf_ec/example/config
 
 * Simple
 
-https://github.com/mytestbed/omf/tree/master/omf\_ec/example/config/default.yml
+https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/default.yml
 
 * Customise Logging
 
 You could customise logging by describing level, appenders, layout etc.
 
-https://github.com/mytestbed/omf/tree/master/omf\_ec/example/config/with\_custom\_logging.yml
+https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/with_custom\logging.yml
 
 
 ### Gaining access to an OMF testbed
