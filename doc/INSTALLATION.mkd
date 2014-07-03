@@ -119,10 +119,10 @@ Your testbed operator should provide the AMQP server. You can skip this step.
 For OMF, we recommend using rabbitmq. Other AMQP servers may work as well, but have not been tested.
 
 * uninstall any other AMQP servers first
-* make sure port TCP 5762 is open in your firewall
+* make sure port TCP 5672 is open in your firewall
 * install rabbitmq on Ubuntu / Debian:
 
-<pre>sudo apt-get install rabbitmq</pre>
+<pre>sudo apt-get install rabbitmq-server</pre>
 
 * [installation instructions for other operating systems](http://www.rabbitmq.com/download.html)
 
