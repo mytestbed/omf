@@ -1,0 +1,36 @@
+communication:
+  url: amqp://localhost
+
+# This setup will silent STDOUT,
+# send info messages to OML SERVER,
+# and everything to ROLLING LOG FILES
+#
+# In this example, these setting are identical to EC default
+logging:
+  level:
+    default: debug
+  appenders:
+    # Turn off STDOUT
+    stdout:
+      level: :info
+    # To Rolling log file, and log everything
+    rolling_file:
+      level: all
+      log_dir: /var/tmp
+      # max 50mb of each log file
+      size: 52428800
+      # keep a 5 logs in total
+      keep: 5
+      date_pattern: "%F %T %z"
+      pattern: "[%d] %-5l %c: %m\n"
+    # To OML is enabled by default when oml_uri option is SET
+    # Uncomment this if you need to change the default
+    #
+    # oml4r:
+    #   level: info
+    #   appName: 'omf_ec'
+    #   domain: '<%= OmfEc.experiment.id %>'
+    #   collect: tcp:some_other_oml_server:3003
+
+# Use OML server located at localhost port 3003
+oml_uri: tcp:localhost:3003

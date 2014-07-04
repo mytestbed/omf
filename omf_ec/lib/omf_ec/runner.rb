@@ -40,7 +40,7 @@ module OmfEc
               keep: 5, # keep a 5 logs in total
               date_pattern: '%F %T %z',
               pattern: '[%d] %-5l %c: %m\n'
-            },
+            }
           }
         }
       )
@@ -93,6 +93,7 @@ module OmfEc
 
           op.on("--name", "--experiment EXPERIMENT_NAME", "Experiment name") do |e_name|
             @cmd_opts[:experiment_name] = e_name
+            OmfEc.experiment.name = e_name
             remove_cmd_opts_from_argv("--name", "--experiment", e_name)
           end
 
@@ -157,13 +158,25 @@ module OmfEc
       uri = @cmd_opts.delete(:uri)
       @config_opts[:communication][:url] = uri if uri
       @config_opts[:communication][:auth] = { authenticate: true } if @cmd_opts[:cert]
+
+
       @config_opts.merge!(@cmd_opts)
+
+      if @config_opts[:oml_uri]
+        # Only change default if they are not set in config file
+        @config_opts[:logging][:appenders][:oml4r] ||= {
+          level: :info,
+          appName: 'omf_ec',
+          domain: OmfEc.experiment.id,
+          collect: @config_opts[:oml_uri]
+        }
+      end
     end
 
     def parse_config_file
       if (config_file = @cmd_opts.delete(:config_file))
         if File.exist?(config_file)
-          @config_opts.merge!(OmfCommon.load_yaml(config_file))
+          @config_opts.merge!(OmfCommon.load_yaml(config_file, erb_process: true))
         else
           puts "Config file '#{config_file}' doesn't exist"
           exit(1)
@@ -176,7 +189,6 @@ module OmfEc
     end
 
     def setup_experiment
-      OmfEc.experiment.name = @config_opts[:experiment_name] if @config_opts[:experiment_name]
       OmfEc.experiment.oml_uri = @config_opts[:oml_uri] if @config_opts[:oml_uri]
       OmfEc.experiment.show_graph = @config_opts['show-graph']
 
@@ -241,11 +253,6 @@ module OmfEc
         stdout_appender.level = 'debug' if stdout_appender
       else
         Logging.consolidate 'OmfCommon', 'OmfRc'
-      end
-
-      if OmfEc.experiment.oml_uri
-        require 'oml4r/logging/oml4r_appender'
-        Logging.logger.root.add_appenders(Logging.appenders.oml4r('oml4r', :appName => 'omf_ec', :domain => "#{OmfEc.experiment.id}", :collect => "#{OmfEc.experiment.oml_uri}"))
       end
     end
 
