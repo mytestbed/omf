@@ -17,6 +17,8 @@ require 'omf_common/auth'
 require 'omf_common/core_ext/string'
 require 'omf_common/eventloop'
 
+require 'oml4r/logging/oml4r_appender'
+
 include OmfCommon::DefaultLogging
 
 # Set the default encoding to UTF8
@@ -132,15 +134,54 @@ module OmfCommon
     }
   }
 
+  # Initialise the OMF runtime.
   #
-  # Initialize the OMF runtime.
-  # Options are:
-  #    :communication
-  #      :type
-  #      ... specific opts
-  #    :eventloop
-  #      :type {:em|:local...}
+  # The options here can be customised via EC or RC's configuration files.
   #
+  # Given the following example EC configuration file (YAML format):
+  #
+  #   environment: development
+  #   communication:
+  #     url: amqp://localhost
+  #
+  # OMF runtime will be configured as:
+  #
+  #   OmfCommon.init(:development, { communication: { url: "amqp://localhost" }})
+  #
+  #
+  # @example Use AMQP for communication in :development mode
+  #
+  #   OmfCommon.init(:development, { communication: { url: "amqp://localhost" }})
+  #
+  # @example Change Logging configuration
+  #
+  #   options = {
+  #     communication: { url: "amqp://localhost" },
+  #     logging: {
+  #       level: { default: 'debug' },
+  #         appenders: {
+  #           stdout: {
+  #             level: :info,
+  #             date_pattern: '%H:%M:%S',
+  #             pattern: '%d %5l %c{2}: %m\n'
+  #           },
+  #           rolling_file: {
+  #             level: :debug,
+  #             log_dir: '/var/tmp',
+  #             size: 1024*1024*50, # max 50mb of each log file
+  #             keep: 5, # keep a 5 logs in total
+  #             date_pattern: '%F %T %z',
+  #             pattern: '[%d] %-5l %c: %m\n'
+  #           },
+  #         }
+  #      }
+  #   }
+  #
+  #   OmfCommon.init(:development, options)
+  #
+  # @see _init_logging
+  #
+  # @param [Symbol] op_mode
   # @param [Hash] opts
   #
   def self.init(op_mode, opts = {}, &block)
@@ -245,8 +286,49 @@ module OmfCommon
     yh
   end
 
-  # DO NOT CALL DIRECTLY
+  # DO NOT CALL THIS METHOD DIRECTLY
   #
+  # By providing logging section via init method, you could custom how logging messages could be written.
+  #
+  # @example Change default logging level to :default, but :info under OmfEc namespace
+  #
+  #   {
+  #     logging: {
+  #       level: { default: 'debug', 'OmfEc' => 'info' }
+  #     }
+  #   }
+  #
+  # @example Write logging message to STDOUT, OML, and ROLLING_FILE
+  #   {
+  #     logging: {
+  #       level: { default: 'debug' }, # root logger set to level :debug
+  #       appenders: {
+  #         stdout: {
+  #           level: :info,
+  #           date_pattern: '%H:%M:%S', # show hours, mintues, seconds
+  #           pattern: '%d %5l %c{2}: %m\n' # show date time, logging level, namespace/class
+  #         },
+  #         rolling_file: {
+  #           level: :debug,
+  #           log_dir: '/var/tmp', # files go to /var/tmp
+  #           log_file: 'bob', # name of file
+  #           size: 1024*1024*50, # max 50mb of each log file
+  #           keep: 5, # keep a 5 logs in total
+  #           date_pattern: '%F %T %z', # shows date, time, timezone
+  #           pattern: '[%d] %-5l %c: %m\n'
+  #         },
+  #         oml4r: {
+  #           appName: 'bob', # OML appName
+  #           domain: 'bob_2345', # OML domain (database name)
+  #           collect: 'tcp:localhost:3003' # OML server
+  #         }
+  #       }
+  #     }
+  #   }
+  #
+  # @note OmfCommon now ONLY provides support for STDOUT, OML, FILE, and ROLLING_FILE.
+  #
+  # @param [Hash] opts
   def self._init_logging(opts = {})
     logger = Logging.logger.root
 
@@ -275,7 +357,11 @@ module OmfCommon
           date_method: topts.delete(:date_method)
         }
 
-        appender_opts = topts.merge(layout: Logging.layouts.pattern(pattern_opts))
+        if pattern_opts[:pattern]
+          appender_opts = topts.merge(layout: Logging.layouts.pattern(pattern_opts))
+        else
+          appender_opts = topts
+        end
 
         case type.to_sym
         when :stdout
@@ -286,6 +372,8 @@ module OmfCommon
           file_name = topts.delete(:log_file) || "#{File.basename($0, File.extname($0))}.log"
           path = File.join(dir_name, file_name)
           logger.add_appenders(Logging.appenders.send(type, path, appender_opts))
+        when :oml4r
+          logger.add_appenders(Logging.appenders.oml4r('oml4r', appender_opts))
         else
           raise "Unknown logging appender type '#{type}'"
         end
