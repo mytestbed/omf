@@ -28,7 +28,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "mocha"
 
   s.add_runtime_dependency "eventmachine"
-  s.add_runtime_dependency "blather"
   s.add_runtime_dependency "logging"
   s.add_runtime_dependency "hashie"
   s.add_runtime_dependency "oml4r", "~> 2.10.1"

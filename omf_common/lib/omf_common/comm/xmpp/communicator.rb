@@ -3,8 +3,21 @@
 # You should find a copy of the License in LICENSE.TXT or at http://opensource.org/licenses/MIT.
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
-require 'blather'
-require 'blather/client/dsl'
+begin
+  require 'blather'
+  require 'blather/client/dsl'
+rescue LoadError => e
+  error <<-ERR
+#{e.message}
+
+# Looks like you are trying to use XMPP as your communication protocol but you have not installed XMPP library 'blather'
+#
+# To correct this, install blather. E.g.
+#
+#   gem install blather
+  ERR
+  exit(1)
+end
 
 require 'omf_common/comm/xmpp/xmpp_mp'
 require 'omf_common/comm/xmpp/topic'
