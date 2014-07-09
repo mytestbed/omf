@@ -43,6 +43,8 @@ module OmfEc
                          when :string then 'String'
                          when :boolean then 'Boolean'
                          when :double then 'Float'
+                         # For type that we cannot understand, DON'T send it
+                         else nil
                          end
         opts = opts.merge(options)
         define_parameter(Hash[name,opts])
