@@ -74,8 +74,8 @@ module OmfEc
               res[key].uniq!
             elsif value.kind_of? Hash
               # Merge hash values
-              res[key] ||= {}
-              res[key].merge(value)
+              res[key] ||= Hashie::Mash.new
+              res[key].merge!(value)
             else
               # Overwrite otherwise
               res[key] = value
