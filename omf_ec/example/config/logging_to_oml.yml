@@ -27,7 +27,7 @@ logging:
     # Uncomment this if you need to change the default
     #
     # oml4r:
-    #   level: info
+    #   level: debug
     #   appName: 'omf_ec'
     #   domain: '<%= OmfEc.experiment.id %>'
     #   collect: tcp:some_other_oml_server:3003

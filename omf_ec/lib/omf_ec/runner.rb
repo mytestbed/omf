@@ -165,7 +165,7 @@ module OmfEc
       if @config_opts[:oml_uri]
         # Only change default if they are not set in config file
         @config_opts[:logging][:appenders][:oml4r] ||= {
-          level: :info,
+          level: :debug, # Log everything to OML
           appName: 'omf_ec',
           domain: OmfEc.experiment.id,
           collect: @config_opts[:oml_uri]
