@@ -126,23 +126,33 @@ For OMF, we recommend using rabbitmq. Other AMQP servers may work as well, but h
 
 * [installation instructions for other operating systems](http://www.rabbitmq.com/download.html)
 
-###  Allow the guest user to connect from a remote host
+### Common Issues when installing rabbitmq for OMF
 
-__READ https://www.rabbitmq.com/access-control.html__
+#### Allow the guest user to connect from a remote host
+
+>  __READ https://www.rabbitmq.com/access-control.html__
 
 > If you wish to allow the guest user to connect from a remote host, you should set the loopback_users configuration item to []. A complete rabbitmq.config which does this would look like:
 
 > [{rabbit, [{loopback_users, []}]}].
 
-### What PORTS should I open when using clustering setup
+#### Client (EC or RC) cannot connect to AMQP broker (aka rabbitmq-server)
 
-__READ https://www.rabbitmq.com/clustering.html#firewall__
+> __READ http://rubydoc.info/github/ruby-amqp/amqp/master/file/docs/Troubleshooting.textile#Inspecting_AMQP_broker_log_file__
+
+> When installing on old Ubuntu and some Debian distro, the default rabbitmq version you get may be old. For example on Debian 6 you will get rabbitmq version below 2. However, the AMQP library used by EC and RC expect a more recent version of rabbitmq. Follow the instruction here to upgrade your rabbitmq-server: http://www.rabbitmq.com/install-debian.html
+
+> After upgrading rabbitmq-server as mentioned above, you should clean any existing queue data from the previous version by removing all files under /var/lib/rabbitmq/mnesia/
+
+#### What PORTS should I open when using clustering setup
+
+> __READ https://www.rabbitmq.com/clustering.html#firewall__
 
 > In the most common configuration you will need to open ports 4369 and 25672 for clustering to work.
 
-### Troubleshooting other RabbitMQ issues
+#### Troubleshooting other RabbitMQ issues
 
-__READ http://www.rabbitmq.com/troubleshooting.html__
+> __READ http://www.rabbitmq.com/troubleshooting.html__
 
 
 ### **Verify this step**
