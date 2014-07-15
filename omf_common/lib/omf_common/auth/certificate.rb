@@ -176,7 +176,7 @@ module OmfCommon::Auth
       cert.subject = subject
       cert.public_key = key.public_key
       cert.not_before = not_before
-      cert.not_after = not_before + duration
+      cert.not_after = not_before + duration.to_i
       #extensions << ["subjectAltName", "URI:http://foo.com/users/dc766130, URI:frcp:dc766130-c822-11e0-901e-000c29f89f7b@foo.com", false]
 
       issuer_cert = issuer ? issuer.to_x509 : cert
