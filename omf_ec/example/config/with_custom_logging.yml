@@ -19,10 +19,10 @@ logging:
     rolling_file:
       level: all
       log_dir: /var/tmp
-      # max 50mb of each log file
-      size: 52428800
-      # keep a 5 logs in total
-      keep: 5
+      # max 10k of each log file
+      size: 10240
+      # keep 1 log in total
+      keep: 1
       date_pattern: "%F %T %z"
       pattern: "[%d] %-5l %c: %m\n"
 

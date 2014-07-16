@@ -36,8 +36,8 @@ module OmfEc
             rolling_file: {
               level: :debug,
               log_dir: '/var/tmp',
-              size: 1024*1024*50, # max 50mb of each log file
-              keep: 5, # keep a 5 logs in total
+              size: 1024*10, # max 510k of each log file
+              keep: 1, # keep 1 log in total
               date_pattern: '%F %T %z',
               pattern: '[%d] %-5l %c: %m\n'
             }
