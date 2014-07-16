@@ -53,9 +53,10 @@ module OmfCommon
           default: 'info'
         },
         appenders: {
-          file: {
+          rolling_file: {
             log_dir: '/var/log',
-            #log_file: 'foo.log',
+            size: 10240,
+            keep: 1,
             date_pattern: '%F %T %z',
             pattern: '[%d] %-5l %c: %m\n'
           }
