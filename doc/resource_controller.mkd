@@ -8,20 +8,24 @@ On a typical node, you could install the RC as root:
 
 If you'd like to start the Resource Controller upon booting your node, please run the following as root:
 
+**THIS COMMAND WILL OEVERWRITE /etc/omf_rc/config.yml if the file exists**
+
     install_omf_rc -i -c
 
-This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
+This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`.
+
+You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
 
     environment: production
 
     communication:
       url: amqp://localhost
 
-      resources:
-      - type: node
-        uid: <%= Socket.gethostname %>
+    resources:
+    - type: node
+      uid: <%= Socket.gethostname %>
 
-Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname. When using AMQP, the URI format is *amqp://\<amqp_hostname\>*.
+_Ruby's ERB syntax is used here to set the *UID* (topic name) to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them._
 
 ## Start RC
 
@@ -46,9 +50,32 @@ To verify that your RC is responding correctly, we are providing a test script (
     curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
     ruby rc_alive_check.rb xmpp://<xmpp_hostname> <your hostname>
 
-using the same XMPP URI as in the RC config file and your local machine's hostname (run `hostname` to find out), unless you changed the :uid: parameter in the RC config file to another name. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
+Using the same XMPP URI as in the RC config file and your local machine's hostname (run `hostname` to find out), unless you changed the :uid: parameter in the RC config file to another name. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
 
 ## Configure RC
 
-TBD
+RC could be configured via changing the configuration files. Examples can be found under https://github.com/mytestbed/omf/tree/master/omf_rc/config/
 
+* Only load certain resource proxies and set default property value
+
+https://github.com/mytestbed/omf/blob/master/omf_rc/config/config_node_topo_check.yml.example
+
+* Customise Logging
+
+https://github.com/mytestbed/omf/blob/master/omf_rc/config/with_custom_logging.yml
+
+**ALWAYS RESTART RC TO MAKE CHANGES EFFECTIVE**
+
+## Does My RC Work?
+
+To check if a particular resource controller responds to FRCP messages properly, simply send a FRCP REQUEST message to the resource, and expect an answer from it. OMF provides a tiny utility to do exactly this:
+
+    omf_send_request -r amqp://localhost/interlagos uid
+
+It basically asks a resource called 'interlagos' about its 'uid' property. If such RC runs properly, you would see:
+
+    interlagos
+      uid: interlagos
+    -----------------
+
+Otherwise you would see NOTHING.

@@ -19,7 +19,7 @@ Please visit our [official website](http://omf.mytestbed.net/projects/omf/wiki/I
 
 ##  Installation
 
-Users, testbed operators and developers should follow our detailed {file:doc/INSTALLATION.mkd Installation Guide}.
+Follow our detailed {file:doc/INSTALLATION.mkd Installation Guide}.
 
 ## Developers
 

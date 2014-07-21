@@ -12,7 +12,7 @@ The experimenter uses the **Experiment Controller (EC)** to run the experiment s
 
 ## Prepare Your Environment
 
-OMF could run under Ruby with version not earlier than 1.9.3. Your operating system most likely have this version available by the time of writing this documentation. If you do require information regarding installing Ruby, please see [official ruby site](https://www.ruby-lang.org/en/downloads/), or simply search for  it.
+OMF could run under Ruby with versions not earlier than 1.9.3. Your operating system most likely have this version available by the time of writing this documentation. If you do require information regarding installing Ruby, please see [official ruby site](https://www.ruby-lang.org/en/downloads/), or simply search for  it.
 
 Some additional packages shall be installed in order to compile native extensions for certain dependent libraries, for example 'Eventmachine':
 
