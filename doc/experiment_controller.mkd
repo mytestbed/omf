@@ -1,0 +1,113 @@
+# Experiment Controller (EC)
+
+## Install EC
+
+    gem install omf_ec --no-ri --no-rdoc
+
+## Run EC
+
+    omf_ec <PATH_TO_YOUR_OEDL_FILE>
+
+This, without any parameters will use built in default values. It will:
+
+* Connect to amqp server on localhost
+* Write info level log messages to STDOUT
+* Write all log messages to rolling log files in /var/tmp/ as omf\_ec.<number>.log
+
+## Configuring EC
+
+You could use command line options or configuration file to set up your experiment controller.
+
+It is always useful to run EC help page for available options
+
+    omf_ec -h
+
+Some common command line options are:
+
+_Use another AQMP server_
+
+    omf_ec -u amqp://another_amqp_server <PATH_TO_YOUR_OEDL_FILE>
+
+_Use OML server at localhost:3003_
+
+    omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 <PATH_TO_YOUR_OEDL_FILE>
+
+_Show :debug log message in STDOUT_
+
+    omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 -d <PATH_TO_YOUR_OEDL_FILE>
+
+Options can also be set by using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run, and provide the configure file using '-c' option. For example:
+
+    communication:
+      url: amqp://localhost
+
+    oml_uri: tcp:localhost:3003
+
+Save the file as my_ec.yml for example and then start experiment controller by:
+
+    omf_ec -c my_ec.yml <PATH_TO_YOUR_OEDL_FILE>
+
+
+There are example config files can be found under https://github.com/mytestbed/omf/tree/master/omf_ec/example/config
+
+* Simple
+
+https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/default.yml
+
+* Customise Logging
+
+You could customise logging by describing level, appenders, layout etc.
+
+https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/with_custom_logging.yml
+
+
+## Gaining access to an OMF testbed
+
+Contact an OMF testbed operator for an account. Make a resource reservation if required and gather the HRNs of the resources you'd like to use. Also find out what the testbed's PubSub server hostname is.
+
+## Does My EC Work?
+
+To verify that you can run experiments on the testbed, we are providing an experiment script ({file:doc/oedl\_simple\_test.rb also available here}). Run:
+
+    curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
+
+    omf_ec -u <xmpp|amqp>://<pubsub_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
+
+Replace \<pubsub_hostname\> with the hostname of the testbed's XMPP server or AMQP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname).
+
+    18:36:59 INFO  XMPP::Communicator: Connecting to '<xmpp_hostname>' ...
+    18:36:59 INFO  Object: Connected
+    18:36:59 INFO  Object: Start experiment: 2013-03-07T07:36:59Z
+    18:36:59 INFO  OmfEc: res1 = "test" (String)
+    18:36:59 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
+    18:36:59 INFO  OmfEc: Subscribed to test
+    18:36:59 INFO  OmfEc: Config test to join Actor
+    18:37:00 INFO  OmfEc: Newly discovered resource >> test
+    18:37:00 INFO  OmfEc: Event triggered: 'ALL_UP'
+    18:37:03 INFO  Object: TEST - allGroups
+    18:37:03 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db_application
+    18:37:03 INFO  OmfEc: Resource xmpp://ccce4bf3-c8f7-4984-8e8e-1ade28d132a6@norbit.npc.nicta.com.au created
+    18:37:03 INFO  OmfEc: Newly discovered resource >> ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
+    18:37:03 INFO  OmfEc: Event triggered: 'Actor_application_/bin/date_created_ba8b4fad-8d47-4782-b12b-9c93dd215bf2'
+    18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date
+    18:37:03 INFO  OmfEc: APP_EVENT STDOUT from app /bin/date - msg: Thu Mar  7 18:37:03 EST 2013
+    18:37:03 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/date - msg: status: pid 35135 exit 0
+    18:37:06 INFO  Object: TEST - group
+    18:37:06 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db_application
+    18:37:06 INFO  OmfEc: Newly discovered resource >> d3416b01-51d9-48d4-b6b5-442454e8e7fa
+    18:37:06 INFO  OmfEc: Resource xmpp://d3416b01-51d9-48d4-b6b5-442454e8e7fa@norbit.npc.nicta.com.au created
+    18:37:06 INFO  OmfEc: Event triggered: 'Actor_application_/bin/hostname -f_created_50da62ba-c8b5-49b1-8182-7632d68f312a'
+    18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f
+    18:37:06 INFO  OmfEc: APP_EVENT STDOUT from app /bin/hostname -f - msg: y68.dynhost.nicta.com.au
+    18:37:06 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/hostname -f - msg: status: pid 35136 exit 0
+    18:37:09 INFO  OmfEc: Exit in up to 15 seconds...
+    18:37:19 INFO  OmfEc: Release applications and network interfaces
+    18:37:19 INFO  OmfEc: Subscribed to ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
+    18:37:19 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
+    18:37:19 INFO  OmfEc: Subscribed to d3416b01-51d9-48d4-b6b5-442454e8e7fa
+    18:37:19 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
+    18:37:24 INFO  XMPP::Communicator: Disconnecting ...
+
+Congratulations, you've just run your first OMF experiment! Head over to the {file:doc/TUTORIALS.mkd Tutorials} to find out what you can do with OMF.
+
+

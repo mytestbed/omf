@@ -1,6 +1,4 @@
-# OMF 6 Installation Guide
-
-![OMF components](images/install_diagram.png)
+# Installation Guide
 
 ## Introduction
 
@@ -10,388 +8,38 @@ All communication in OMF is done via **Publish/Subscribe (PubSub)**. By default 
 
 The experimenter uses the **Experiment Controller (EC)** to run the experiment script and steer the resources. The EC can be installed on a user-facing machine inside the testbed, or alternatively on the user's own computer.
 
-## Roles
+![OMF components](images/OMF_system.jpg)
 
-This installation guide caters for three types of audiences: **USERS**, **OPERATORS** and **DEVELOPERS**. Before you start, you need to identify your own role:
+## Prepare Your Environment
 
-* **USERS** want to run experiments in an existing OMF 6 testbed, without having to set up the testbed and its resources themselves.
-* **OPERATORS** maintain a testbed and want to make its resources available to OMF 6 users.
-* **DEVELOPERS** want to modify or extend OMF 6 functionality, e.g. by adding a new resource proxy to the code. Testing happens on a local machine or in a OMF 6 testbed.
+OMF could run under Ruby with version not earlier than 1.9.3. Your operating system most likely have this version available by the time of writing this documentation. If you do require information regarding installing Ruby, please see [official ruby site](https://www.ruby-lang.org/en/downloads/), or simply search for  it.
 
-Each of the following sections has specific instructions for each audience class.
+Some additional packages shall be installed in order to compile native extensions for certain dependent libraries, for example 'Eventmachine':
 
-## Dependencies
+### Under Ubuntu/Debian
 
-OMF requires Ruby with minimal version 1.9.3.
+    sudo apt-get install ruby-dev build-essential libssl-dev
 
-Please see [official ruby site](https://www.ruby-lang.org/en/downloads/) regarding installing ruby.
+If you decided, for some particular reasons, to choose XMPP over AMQP as your communication layer, you also need additional libraries which handle XML parsing.
 
-Additional packages might be required to compile some gem libraries with native C extensions, and they vary between different environments, examples are:
+    sudo libxml2-dev libxslt-dev
 
-#### Ubuntu
 
-    sudo apt-get install build-essential libxml2-dev libxslt-dev libssl-dev
+### Under Fedora
 
-#### Debian
-
-    sudo apt-get install curl build-essential libxml2-dev libxslt-dev libssl-dev
-
-#### Fedora
-
-    sudo yum install -y tar libxml2 libxml2-devel libxslt libxslt-devel openssl-devel
     sudo yum update -y audit
 
-If you run into some errors When installing the OMF gem packages later on, you may have to install some extra development packages for Fedora. To do that, please type the following in your console:
+    sudo yum install -y ruby-devel make gcc gpp gcc-c++ openssl-devel
 
-    sudo yum install -y ruby-devel make gcc gpp gcc-c++
+Again, ONLY needed for XMPP and XML
 
-## XMPP Server (Openfire) Installation
+    sudo yum install -y libxml2 libxml2-devel libxslt libxslt-devel
 
-OMF6 currently supports XMPP and AMQP for its message transport. Only one message transport is required. If you want to use AMQP instead of XMPP, please skip this section and see the AMQP installation instructions below.
 
-### **USERS**
+## {file:doc/set_up_communication_server.mkd You Do Need A Pub/Sub Server}
 
-Your testbed operator should provide the XMPP server. You can skip this step.
+## {file:doc/resource_controller.mkd Setup Resource Controller (RC) To Control Resources}
 
-### **OPERATORS & DEVELOPERS**
+## {file:doc/experiment_controller.mkd Use Experiment Controller (EC) To Execute Experiments}
 
-**OPERATORS** need to install an XMPP server in their testbed. It should be reachable from the outside Internet if any of the testbed users are on the outside of your organisation or if you want to federate your testbed with another organisation over the public Internet. **DEVELOPERS** should run an XMPP server on their local machine for development.
 
-For OMF, we recommend using Openfire. Other XMPP servers may work as well, but this has not been extensively tested. Ejabberd is known to have some issues regarding node permissions and database cleanup. If are upgrading from an older Openfire release and you have trouble running OMF, please wipe your Openfire database and recreate the pubsub nodes.
-
-* uninstall any other XMPP servers first
-* make sure ports TCP 5222, 5269 and 9090 are open in your firewall
-* Openfire 3.8.1 requires Java, but has some issues with OpenJDK. Instead we recommend to install Oracle Java 7. Ubuntu users can follow [this guide](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html).
-* after installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
-
-<pre><code>wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
-dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
-</code></pre>
-
-* on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
-* check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
-* if openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA_HOME for your Java installation, e.g.:
-
-<pre>JAVA_HOME=/usr/lib/jvm/java-7-oracle</pre>
-
-* direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
-* choose your language and click continue
-* enter the XMPP server's hostname (e.g. xmpp.domain.com or localhost) in the Domain field and click continue
-* choose the embedded database. You can also use other database types, but you will need to install the database server first and manually create a user and a database for Openfire.
-* if you are using mySQL, you need to change the length of the Pubsub node names in the mySQL database. Basically you need to run the commands:
-
-<pre>mysql -u openfire -p
-use openfire;
-alter table ofPubsubNode modify name VARCHAR(100);
-quit;
-</pre>
-
-* choose the default profile and click continue
-* enter an admin password and click continue, then wait until the installation is finished
-* log on to the web GUI at [http://localhost:9090](http://localhost:9090) with the user/password you chose in the wizard
-* click 'Server', 'Server Settings', 'Registration & Login', enable 'Inband Account Registration' and disable 'Anonymous Login'
-* To avoid duplicate subscriptions to the same topic in order to reduce the volume of messages, we recommend turning the multiple subscriptions feature off. Inside the Openfire system properties panel, add *Property Name:* **xmpp.pubsub.multiple-subscriptions** *Property Value:* **false**
-* OPTIONAL: for server2server connectivity (used for testbed federation), you need to set up a DNS name "pubsub.yourhost.name" which can be resolved by public DNS servers. It can be an A record pointing to the same IP address as your host, or a CNAME pointing to the hostname. There is no need for a DNS SRV record. Learn more about S2S [here](http://omf.mytestbed.net/projects/omf/wiki/Openfire_s2s).
-* OPTIONAL: if your testbed consists of several hundred nodes, you may consider increasing the maximum open file descriptor limit for the "openfire" user. This can be done by editing `/etc/security/limits.conf` and adding the lines `root	soft nofile	100000` and `root hard nofile 100000`, which allows a maximum of 100K open sockets/files per process. The default in Ubuntu is 1024. If this is not increased you may run into a problem where openfire does not accept any more incoming TCP connections.
-* restart Openfire to apply any changes made: `/etc/init.d/openfire restart`
-
-### **Verify this step**
-
-To verify that Openfire has been set up correctly, we are providing a test script ({file:doc/openfire_test.rb also available here}). Run:
-
-	curl -O https://raw.github.com/mytestbed/omf/master/doc/openfire_test.rb
-	ruby openfire_test.rb <xmpp_hostname>
-
-Watch the output for any lines starting with ERROR. Double check your Openfire settings as described above and re-run the test until you receive no more ERRORs.
-
-## AMQP server (rabbitmq) Installation
-
-OMF6 currently supports XMPP and AMQP for its message transport. Only one message transport is required. If you want to use XMPP instead of AMQP, please skip this section and see the XMPP server installation instructions above.
-
-### **USERS**
-
-Your testbed operator should provide the AMQP server. You can skip this step.
-
-### **OPERATORS & DEVELOPERS**
-
-**OPERATORS** need to install an AMQP server in their testbed. It should be reachable from the outside Internet if any of the testbed users are on the outside of your organisation or if you want to federate your testbed with another organisation over the public Internet. **DEVELOPERS** should run an AMQP server on their local machine for development.
-
-For OMF, we recommend using rabbitmq. Other AMQP servers may work as well, but have not been tested.
-
-* uninstall any other AMQP servers first
-* make sure port TCP 5672 is open in your firewall
-* install rabbitmq on Ubuntu / Debian:
-
-<pre>sudo apt-get install rabbitmq-server</pre>
-
-* [installation instructions for other operating systems](http://www.rabbitmq.com/download.html)
-
-### Common Issues when installing rabbitmq for OMF
-
-#### Allow the guest user to connect from a remote host
-
->  __READ https://www.rabbitmq.com/access-control.html__
-
-> If you wish to allow the guest user to connect from a remote host, you should set the loopback_users configuration item to []. A complete rabbitmq.config which does this would look like:
-
-> [{rabbit, [{loopback_users, []}]}].
-
-#### Client (EC or RC) cannot connect to AMQP broker (aka rabbitmq-server)
-
-> __READ http://rubydoc.info/github/ruby-amqp/amqp/master/file/docs/Troubleshooting.textile#Inspecting_AMQP_broker_log_file__
-
-> When installing on old Ubuntu and some Debian distro, the default rabbitmq version you get may be old. For example on Debian 6 you will get rabbitmq version below 2. However, the AMQP library used by EC and RC expect a more recent version of rabbitmq. Follow the instruction here to upgrade your rabbitmq-server: http://www.rabbitmq.com/install-debian.html
-
-> After upgrading rabbitmq-server as mentioned above, you should clean any existing queue data from the previous version by removing all files under /var/lib/rabbitmq/mnesia/
-
-#### What PORTS should I open when using clustering setup
-
-> __READ https://www.rabbitmq.com/clustering.html#firewall__
-
-> In the most common configuration you will need to open ports 4369 and 25672 for clustering to work.
-
-#### Troubleshooting other RabbitMQ issues
-
-> __READ http://www.rabbitmq.com/troubleshooting.html__
-
-
-### **Verify this step**
-
-If you want to verify that your rabbitmq server is responding, you can follow this ["Hello World" tutorial](http://www.rabbitmq.com/tutorials/tutorial-one-ruby.html).
-
-## OMF Installation for USERS
-
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. You only need to install the Experiment Controller (EC), as the OMF testbed you are using provides nodes that already run the Resource Controller (RC).
-
-### Installing Experiment Controller
-
-    gem install omf_ec --no-ri --no-rdoc
-
-If you should get any SSL errors during the gem installation, please try [this workaround](http://stackoverflow.com/a/18130051/1223151).
-
-### Run Experiment Controller
-
-    omf_ec <PATH_TO_YOUR_OEDL_FILE>
-
-This, without any parameters will use built in default values. It will:
-
-* Connect to amqp server on localhost
-* Write info level log messages to STDOUT
-* Write all log messages to rolling log files in /var/tmp/ as omf\_ec.<number>.log
-
-### Configuring Experiment Controller
-
-You could use command line options or configuration file to set up your experiment controller.
-
-It is always useful to run EC help page for available options
-
-    omf_ec -h
-
-Some common command line options are:
-
-_Use another AQMP server_
-
-    omf_ec -u amqp://another_amqp_server <PATH_TO_YOUR_OEDL_FILE>
-
-_Use OML server at localhost:3003_
-
-    omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 <PATH_TO_YOUR_OEDL_FILE>
-
-_Show :debug log message in STDOUT_
-
-    omf_ec -u amqp://another_amqp_server --oml-uri tcp:localhost:3003 -d <PATH_TO_YOUR_OEDL_FILE>
-
-Options can also be set by using a configuration file, you can store options like the communication URI and the OML URI here to avoid entering them on every EC run, and provide the configure file using '-c' option. For example:
-
-    communication:
-      url: amqp://localhost
-
-    oml_uri: tcp:localhost:3003
-
-Save the file as my_ec.yml for example and then start experiment controller by:
-
-    omf_ec -c my_ec.yml <PATH_TO_YOUR_OEDL_FILE>
-
-_The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/)_.
-
-There are example config files can be found under https://github.com/mytestbed/omf/tree/master/omf_ec/example/config
-
-* Simple
-
-https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/default.yml
-
-* Customise Logging
-
-You could customise logging by describing level, appenders, layout etc.
-
-https://github.com/mytestbed/omf/tree/master/omf_ec/example/config/with_custom_logging.yml
-
-
-### Gaining access to an OMF testbed
-
-Contact an OMF testbed operator for an account. Make a resource reservation if required and gather the HRNs of the resources you'd like to use. Also find out what the testbed's PubSub server hostname is.
-
-### **Verify this step**
-
-To verify that you can run experiments on the testbed, we are providing an experiment script ({file:doc/oedl\_simple\_test.rb also available here}). Run:
-
-	curl -O https://raw.github.com/mytestbed/omf/master/doc/oedl_simple_test.rb
-	omf_ec -u xmpp://<xmpp_hostname> exec oedl_simple_test.rb -- --res1 <hrn>
-
-Replace \<xmpp_hostname\> with the hostname of the testbed's XMPP server or AMQP server. Replace \<hrn\> with the ID of a PC-style resource controller in the testbed (this is usually the testbed node's hostname). No XMPP user name/password is specified in this example, therefore OMF will use as default *hostname-pid* for both. If everything goes well, you should see an output like:
-
-	18:36:59 INFO  XMPP::Communicator: Connecting to '<xmpp_hostname>' ...
-	18:36:59 INFO  Object: Connected
-	18:36:59 INFO  Object: Start experiment: 2013-03-07T07:36:59Z
-	18:36:59 INFO  OmfEc: res1 = "test" (String)
-	18:36:59 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
-	18:36:59 INFO  OmfEc: Subscribed to test
-	18:36:59 INFO  OmfEc: Config test to join Actor
-	18:37:00 INFO  OmfEc: Newly discovered resource >> test
-	18:37:00 INFO  OmfEc: Event triggered: 'ALL_UP'
-	18:37:03 INFO  Object: TEST - allGroups
-	18:37:03 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db_application
-	18:37:03 INFO  OmfEc: Resource xmpp://ccce4bf3-c8f7-4984-8e8e-1ade28d132a6@norbit.npc.nicta.com.au created
-	18:37:03 INFO  OmfEc: Newly discovered resource >> ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
-	18:37:03 INFO  OmfEc: Event triggered: 'Actor_application_/bin/date_created_ba8b4fad-8d47-4782-b12b-9c93dd215bf2'
-	18:37:03 INFO  OmfEc: APP_EVENT STARTED from app /bin/date - msg: env -i /bin/date
-	18:37:03 INFO  OmfEc: APP_EVENT STDOUT from app /bin/date - msg: Thu Mar  7 18:37:03 EST 2013
-	18:37:03 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/date - msg: status: pid 35135 exit 0
-	18:37:06 INFO  Object: TEST - group
-	18:37:06 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db_application
-	18:37:06 INFO  OmfEc: Newly discovered resource >> d3416b01-51d9-48d4-b6b5-442454e8e7fa
-	18:37:06 INFO  OmfEc: Resource xmpp://d3416b01-51d9-48d4-b6b5-442454e8e7fa@norbit.npc.nicta.com.au created
-	18:37:06 INFO  OmfEc: Event triggered: 'Actor_application_/bin/hostname -f_created_50da62ba-c8b5-49b1-8182-7632d68f312a'
-	18:37:06 INFO  OmfEc: APP_EVENT STARTED from app /bin/hostname -f - msg: env -i /bin/hostname -f
-	18:37:06 INFO  OmfEc: APP_EVENT STDOUT from app /bin/hostname -f - msg: y68.dynhost.nicta.com.au
-	18:37:06 INFO  OmfEc: APP_EVENT DONE.OK from app /bin/hostname -f - msg: status: pid 35136 exit 0
-	18:37:09 INFO  OmfEc: Exit in up to 15 seconds...
-	18:37:19 INFO  OmfEc: Release applications and network interfaces
-	18:37:19 INFO  OmfEc: Subscribed to ccce4bf3-c8f7-4984-8e8e-1ade28d132a6
-	18:37:19 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
-	18:37:19 INFO  OmfEc: Subscribed to d3416b01-51d9-48d4-b6b5-442454e8e7fa
-	18:37:19 INFO  OmfEc: Subscribed to 249bf4cd-f799-4fe3-aee6-72f92af002db
-	18:37:24 INFO  XMPP::Communicator: Disconnecting ...
-
-Congratulations, you've just run your first OMF experiment! Head over to the {file:doc/TUTORIALS.mkd Tutorials} to find out what you can do with OMF.
-
-## OMF Installation for OPERATORS
-
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF. For the resources you want to make available to OMF experimenters, you need to run one or multiple OMF Resource Controllers (RC). The RC that ships with the omf_rc gem is the classic RC for PC-style hardware. It allows the experimenter to configure the network devices on the node and run applications. It typically runs on the node itself.
-
-### Installing the PC-type RC
-
-On a typical PC node, you can install the RC as root:
-
-    sudo su -l
-    gem install omf_rc --no-ri --no-rdoc
-
-If you should get any SSL errors during the gem installation, please try [this workaround](http://stackoverflow.com/a/18130051/1223151).
-
-Now it's time to install a PubSub server. Follow the instructions in above to either install an XMPP or AMQP server. Jump back here after you verified that the PubSub server is installed correctly.
-
-If you'd like to start the Resource Controller upon booting your node, please ensure you have a system-wide RVM installation and run as root:
-
-    install_omf_rc -i -c
-
-This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
-
-	---
-	:uid: <%= Socket.gethostname %>
-	:uri: xmpp://<%= "#{Socket.gethostname}-#{Process.pid}" %>:<%= "#{Socket.gethostname}-#{Process.pid}" %>@<xmpp_hostname>
-	:environment: production
-	:debug: false
-
-The file format is YAML, please remember to follow the correct [YAML syntax](http://www.yaml.org/).
-
-The format for the communication URI is *xmpp://\<username\>:\<password\>@\<xmpp_hostname\>*. If the username and password are omitted, OMF will choose a random combination and register a new XMPP account. Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname. When using AMQP, the URI format is *amqp://\<amqp_hostname\>*.
-
-### Installing other RCs
-
-If you want to make other resources available to OMF users ([such as OpenFlow switches](https://github.com/kohoumas/omf_rc_openflow), OpenStack instances etc.) please follow their respective installation guides.
-
-### **Verify this step**
-
-If you want to start the RC using an init script and you installed this script with the '-i' flag above, you can start the daemon like this:
-
-Ubuntu:
-
-    start omf_rc
-
-Debian & Fedora:
-
-    /etc/init.d/omf_rc start
-
-Check for the RC process by running:
-
-    ps aux | grep omf_rc
-
-If there is no "omf_rc" process, check the syslog for any errors that the startup script may have thrown. Also check `/var/log/omf_rc.log` for any errors.
-
-To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). Open a new terminal and run:
-
-    curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
-    ruby rc_alive_check.rb xmpp://<xmpp_hostname> <your hostname>
-
-using the same XMPP URI as in the RC config file and your local machine's hostname (run `hostname` to find out), unless you changed the :uid: parameter in the RC config file to another name. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
-
-### Monitoring
-
-(TODO: write section on monitoring OMF testbeds with Jenkins)
-
-## OMF Installation for DEVELOPERS
-
-After you've successfully installed RVM, Ruby 1.9 and the development packages of **libxml2** and **libxslt**, you are finally ready to install OMF.
-
-### Installing all gems from source
-
-We encourage developers to use the very latest OMF code from the master branch of our git repository. Ensure you have git installed and run
-
-    git clone https://github.com/mytestbed/omf.git
-    cd omf
-
-In order to install the gem dependencies, then build, install and test the OMF gems, run:
-
-    rake install_all
-
-For all rake tasks, run 'rake -T' and refer to the options.
-
-### **Verify this step**
-
-If the rake task finishes without any errors, you've successfully installed OMF from source code. Head to the {file:doc/DEVELOPERS.mkd Developer Guide} to learn how to modify OMF to suit your needs.
-
-## Appendix: Advanced RC configuration
-
-The OMF RC has the "-a" flag and the "advanced\_configfile" option in its config file to specify the location of an advanced configuration file. At present, this is mainly used to specify an alternative logging configuration. The RC has a few built-in logging configurations that can be selected by specifying the _environment_ on the command line or in the config file. The advanced config file is needed to override the built-in settings.
-
-<!---
-# Those are missing the URI and UID parameters:
-Here are some example advanced configuration files with the built-in logging configurations:
-
-### "development" environment
-
-    ---
-    :logging:
-      :level:
-        :default: debug
-      :appenders:
-        :stdout:
-          :date_pattern: '%H:%M:%S'
-          :pattern: '%d %5l %c{2}: %m\n'
-          :color_scheme: default
-
-### "production" environment
-
-    ---
-    :logging:
-      :level:
-        :default: info
-      :appenders:
-        :file:
-          :log_file: omf_rc.log
-          :log_dir: /var/log
-          :date_pattern: '%F %T %z'
-          :pattern: '[%d] %-5l %c: %m\n
--->
-
-If you want to customise the logging, please see the [Logging Gem documentation](http://rubydoc.info/gems/logging/frames).

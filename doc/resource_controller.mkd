@@ -1,0 +1,54 @@
+# Resource Controller (RC)
+
+## Install RC
+
+On a typical node, you could install the RC as root:
+
+    gem install omf_rc --no-ri --no-rdoc
+
+If you'd like to start the Resource Controller upon booting your node, please run the following as root:
+
+    install_omf_rc -i -c
+
+This installs an init script for your distribution (currently supports Debian, Ubuntu and Fedora) and installs a default RC configuration file at `/etc/omf_rc/config.yml`. You should edit this file and set the correct values for your testbed before you can run the RC successfully. Here's an example configuration file:
+
+    environment: production
+
+    communication:
+      url: amqp://localhost
+
+      resources:
+      - type: node
+        uid: <%= Socket.gethostname %>
+
+Ruby's ERB syntax is used here to set the *UID* (topic name) and *XMPP user name and password* to the output of the Ruby command *Socket.gethostname*. We assume that the host name of each node is unique (e.g. assigned via DHCP), so we can use the same configuration file for all of them. For the XMPP credentials, the process ID is added to ensure that no two OMF entities on the same machine use the same XMPP account. OMF automatically creates the XMPP account if it doesn't exist yet. Don't forget to replace *\<xmpp_hostname\>* with your XMPP server's hostname. When using AMQP, the URI format is *amqp://\<amqp_hostname\>*.
+
+## Start RC
+
+If you want to start the RC using an init script and you installed this script with the '-i' flag above, you can start the daemon like this:
+
+Ubuntu:
+
+    start omf_rc
+
+Debian & Fedora:
+
+    /etc/init.d/omf_rc start
+
+Check for the RC process by running:
+
+    ps aux | grep omf_rc
+
+If there is no "omf_rc" process, check the syslog for any errors that the startup script may have thrown. Also check `/var/log/omf_rc.log` for any errors.
+
+To verify that your RC is responding correctly, we are providing a test script ({file:doc/rc\_alive\_check.rb also available here}). Open a new terminal and run:
+
+    curl -O https://raw.github.com/mytestbed/omf/master/doc/rc_alive_check.rb
+    ruby rc_alive_check.rb xmpp://<xmpp_hostname> <your hostname>
+
+using the same XMPP URI as in the RC config file and your local machine's hostname (run `hostname` to find out), unless you changed the :uid: parameter in the RC config file to another name. Watch the output for any lines starting with ERROR. If the RC could be contacted successfully at the "test" topic, your resource is ready to run experiments.
+
+## Configure RC
+
+TBD
+
