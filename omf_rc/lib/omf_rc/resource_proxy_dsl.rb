@@ -217,10 +217,12 @@ module OmfRc::ResourceProxyDSL
     #       end
     #     end
     #   end
-    def configure(name, &register_block)
-      define_method("configure_#{name.to_s}") do |*args, &block|
-        args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
-        register_block.call(self, *args, block) if register_block
+    def configure(name, opts = {}, &register_block)
+      unless opts[:if] && !opts[:if].call
+        define_method("configure_#{name.to_s}") do |*args, &block|
+          args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
+          register_block.call(self, *args, block) if register_block
+        end
       end
     end
 
@@ -267,10 +269,12 @@ module OmfRc::ResourceProxyDSL
     #     end
     #   end
     #
-    def request(name, &register_block)
-      define_method("request_#{name.to_s}") do |*args, &block|
-        args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
-        register_block.call(self, *args, block) if register_block
+    def request(name, opts = {}, &register_block)
+      unless opts[:if] && !opts[:if].call
+        define_method("request_#{name.to_s}") do |*args, &block|
+          args[0] = Hashie::Mash.new(args[0]) if args[0].class == Hash
+          register_block.call(self, *args, block) if register_block
+        end
       end
     end
 

@@ -13,10 +13,12 @@ module OmfRc::Util::Mod
   include Hashie
   # @!macro extend_dsl
 
+  utility :common_tools
+
   # @!macro group_request
   # @!macro request
   # @!method request_modules
-  request :modules do
+  request :modules, if: proc { cmd_exists?('lsmod') } do
     CommandLine.new('lsmod').run.split("\n").map do |v|
       v.match(/^(\w+).+$/) && $1
     end.compact.tap { |ary| ary.shift }
@@ -30,7 +32,7 @@ module OmfRc::Util::Mod
   # @param value name of the module to load
   # @!macro configure
   # @!method configure_load_module
-  configure :load_module do |resource, value|
+  configure :load_module, if: proc { cmd_exists?('modprobe') } do |resource, value|
     raise ArgumentError, "Please provide at least module name" if value.name.nil?
 
     flags_string = nil

@@ -34,16 +34,10 @@ module OmfRc::Util::Sysfs
             device[:op_state] = (fo.read || '').chomp
           end
           # Let's see if the interface is already up
-          # NOTE: THIS MAY NOT BE ROBUST
-          s = `ifconfig #{File.basename(v)}`
-          unless s.nil? || s.empty?
-            if m = s.match(/inet addr:\s*([0-9.]+)/)
-              device[:ip4] = m[1]
-            end
-            if m = s.match(/inet6 addr:\s*([0-9a-f.:\/]+)/)
-              device[:ip6] = m[1]
-            end
-          end
+          ip = Facter.value("ipaddress_#{File.basename(v)}")
+          ip_v6 = Facter.value("ipaddress6_#{File.basename(v)}")
+          device[:ip4] = ip if ip
+          device[:ip6] = ip_v6 if ip_v6
           devices << device
         end
       end

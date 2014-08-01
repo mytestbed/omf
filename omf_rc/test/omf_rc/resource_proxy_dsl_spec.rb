@@ -35,6 +35,10 @@ describe OmfRc::ResourceProxyDSL do
       request :zulu do |resource, options|
         "You called zulu with: #{options.keys.join('|')}"
       end
+
+      request :xray, if: proc { false } do
+        "This property would NOT be registered"
+      end
     end
 
     module OmfRc::ResourceProxy::MockRootProxy
@@ -106,6 +110,16 @@ describe OmfRc::ResourceProxyDSL do
       end
       mock_proxy.bravo("something", "something else").must_equal "something"
       mock_proxy.request_zulu(country: 'uk').must_equal "You called zulu with: country"
+    end
+
+    it "wont define methods when restriction provided and failed to meet" do
+      begin
+        mock_proxy = OmfRc::ResourceFactory.create(:mock_proxy, uid: :mp0)
+        mock_proxy.request_xray
+      rescue => e
+        e.must_be_kind_of NoMethodError
+        e.message.must_match /request_xray/
+      end
     end
 
     it "must be able to include utility" do
