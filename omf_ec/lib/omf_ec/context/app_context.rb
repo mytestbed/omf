@@ -63,7 +63,7 @@ module OmfEc::Context
     # filters were defined in an optional block.
     def measure(mp, opts, &block)
       collect_point = opts.delete(:collect)
-      collect_point ||= OmfEc.experiment.oml_uri 
+      collect_point ||= OmfEc.experiment.oml_uri
       if collect_point.nil?
         warn "No OML URI configured for measurement collection! "+
              "(see option 'oml_uri'). Disabling OML Collection for '#{mp}'."
@@ -83,7 +83,7 @@ module OmfEc::Context
       # - if this context's param_values has a property which also exists in
       #   the app def and if that property has an assigned value, then
       #   use that value for the properties of this context
-      p = original.merge({:type => 'application'})
+      p = original.merge({type: 'application', state: 'stopped'})
       @param_values.each do |k,v|
         if p[:parameters].key?(k)
           p[:parameters][k][:value] = v.kind_of?(OmfEc::ExperimentProperty) ? v.value : v

@@ -39,7 +39,7 @@ module OmfEc
               results = []
               all_groups? do |g|
                 plan = g.app_contexts.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("application")) }
+                actual = state.count { |v| v.joined?(g.address("application")) && v[:state] == "stopped" }
                 results << (plan == actual) unless (plan == 0)
               end
               !results.include?(false)
@@ -89,9 +89,11 @@ module OmfEc
               all_nodes_up?(state) &&  all_interfaces_ready?(state)
             end
 
-            def_event :ALL_UP_AND_INSTALLED do |state|
+            def_event :ALL_APPS_UP do |state|
               all_nodes_up?(state) && all_apps_ready?(state)
             end
+
+            alias_event :ALL_UP_AND_INSTALLED, :ALL_APPS_UP
 
             def_event :ALL_APPS_DONE do |state|
               all_nodes_up?(state) &&
