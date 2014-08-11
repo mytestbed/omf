@@ -311,5 +311,14 @@ module OmfEc
       end
     end
 
+    # Define a new prototype. The supplied block is executed with the new Prototype instance as a single argument.
+    #
+    # @param refName reference name for this property
+    # @param name optional, short/easy to remember name for this property
+    def defPrototype(refName, name = nil, &block)
+      p = Prototype.create(refName)
+      p.name = name
+      block.call(p)
+    end
   end
 end

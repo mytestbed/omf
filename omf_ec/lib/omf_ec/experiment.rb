@@ -157,6 +157,11 @@ module OmfEc
       @name || @id
     end
 
+    # Unique experiment id (Class method)
+    def self.ID
+      instance.id
+    end
+
     # Parsing user defined events, checking conditions against internal state, and execute callbacks if triggered
     def process_events
       self.synchronize do

@@ -17,6 +17,7 @@ require "omf_ec/group"
 require "omf_ec/app_definition"
 require "omf_ec/context"
 require "omf_ec/graph"
+require "omf_ec/prototype"
 require "omf_ec/dsl"
 
 module OmfEc
