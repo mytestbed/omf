@@ -109,6 +109,24 @@ module OmfEc
       OmfEc::Context::GroupContext.new(group: self)
     end
 
+    # Add a new Prototype to the NodeSet associated with this Root Path
+    #
+    # - name = name of the Prototype to associate with the NodeSet of this Path
+    # - params = optional, a Hash with the bindings to be passed on to the
+    #
+    # Prototype instance (see Prototype.instantiate)
+    def addPrototype(name, params = nil)
+      debug "Use prototype #{name}."
+      p = OmfEc::Prototype[name]
+      if p.nil?
+        error "Unknown prototype '#{name}'"
+        return
+      end
+      p.instantiate(self, params)
+    end
+
+    alias_method :prototype, :addPrototype
+
     include OmfEc::Backward::Group
   end
 end

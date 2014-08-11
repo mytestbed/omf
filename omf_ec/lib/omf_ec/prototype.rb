@@ -4,12 +4,8 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 #
 # Copyright (c) 2004-2009 WINLAB, Rutgers University, USA
-#require "omf-common/omfVersion.rb"
+
 require "omf_ec/parameter"
-#require "omf-expctl/application/application.rb"
-#require "omf-expctl/moteApplication/moteApplication.rb"
-#require "omf-expctl/oml/oml_mpoint.rb"
-#require "rexml/document"
 
 module OmfEc
   # This class describes a prototype which can be used to access applications within an Experiment.
@@ -25,7 +21,7 @@ module OmfEc
     def self.[](uri)
       proto = @@prototypes[uri]
       if proto == nil
-        MObject.debug('Prototype: ', 'Loading prototype "', uri, '".')
+        debug "Loading prototype '#{uri}'"
         str, type = OConfig.load(uri, true)
         #MObject.debug('Prototype: ', 'str: "', str, '".')
         if type == "text/xml"
@@ -38,7 +34,8 @@ module OmfEc
           raise "Unknown prototype '#{uri}'."
         end
       end
-      return proto
+
+      proto
     end
 
     # Create a new Prototype instance.
@@ -83,7 +80,7 @@ module OmfEc
     #
     def initialize(uri, name = uri)
       if @@prototypes.has_key? uri
-        raise "prototype with name '" + uri + "' already exists."
+        raise StandardError, "Prototype with name '#{uri}' already exists."
       end
       @@prototypes[uri] = self
 
@@ -94,13 +91,12 @@ module OmfEc
       @applications = Array.new
     end
 
-    #
     # Instantiate this prototype for a particular node set.
     #
-    # - nodeSet = NodeSet to configure according to this prototype
+    # - group = Group to configure according to this prototype
     # - bindings = a Hash with the bindings for local parameters
     #
-    def instantiate(nodeSet, bindings)
+    def instantiate(group, bindings)
       if bindings == nil then bindings = Hash.new end
       # check if bindings contain unknown properties
       if (diff = bindings.keys - @properties.keys) != []
@@ -109,7 +105,7 @@ module OmfEc
       end
       # merge bindings with properties declaration
       context = Hash.new
-      @properties.each {|name, param|
+      @properties.each do |name, param|
         #puts "A>> #{name}"
         value = getBoundValue(name, bindings)
         if value != nil
@@ -117,11 +113,12 @@ module OmfEc
         else
           warn "No specific or default value found for Property '#{name}'. Prototype '#{@name}' will not use it!"
         end
-      }
-      @incPrototypes.each {|name, params|
+      end
+
+      @incPrototypes.each do |name, params|
         proto = Prototype[name]
         p = params.clone
-        p.each { |key, val|
+        p.each do |key, val|
           if val.kind_of?(@@bindStruct)
             #puts "B>> #{val.name}:#{key}"
             value = getBoundValue(name, bindings)
@@ -132,16 +129,16 @@ module OmfEc
             end
           end
           #debug "recursive bindings: #{key}=>#{val}"
-        }
-        proto.instantiate(nodeSet, p)
-      }
+        end
+        proto.instantiate(group, p)
+      end
 
-      @applications.each {|app|
-        app.instantiate(nodeSet, context)
-      }
+      @applications.each do |app|
+        name, location, block = *app
+        group.addApplication(name, location, &block)
+      end
     end
 
-    #
     # Return the value of a given property 'name' within the
     # context of 'bindings'.
     #
@@ -163,43 +160,6 @@ module OmfEc
     end
     private :getBoundValue
 
-    #
-    # Return the definition of this Prototype as a XML element
-    #
-    # [Return] a XML element with the definition of this Prototype
-    #
-    def to_xml
-      a = REXML::Element.new("prototype")
-      a.add_attribute("id", @uri)
-      a.add_element("name").text = name != nil ? name : uri
-
-      if (version != nil)
-        a.add_element(version.to_xml)
-      end
-      a.add_element("description").text = description
-
-      if @properties.length > 0
-        pe = a.add_element("properties")
-        @properties.each_value {|p|
-          pe.add_element(p.to_xml)
-        }
-      end
-
-      if @incProperties.length > 0
-        ie = a.add_element("properties")
-        ie.text = NOT_IMPLEMENTED
-      end
-
-      if @applications.length > 0
-        ae = a.add_element("applications")
-        @applications.each {|app|
-          ae.add_element(app.to_xml)
-        }
-      end
-      return a
-    end
-
-    #
     # Define a property for this prototype
     #
     # - id = ID of parameter, also used as name
@@ -210,11 +170,10 @@ module OmfEc
       if @properties[id] != nil
         raise "Property '" + id + "' already defined."
       end
-      param = Parameter.new(id, id, description, default)
+      param = OmfEc::Parameter.new(id, id, description, default)
       @properties[id] = param
     end
 
-    #
     # Returns an object which maintains the connection to a
     # a local property of this Prototype.
     #
@@ -226,7 +185,6 @@ module OmfEc
       @@bindStruct.new(name)
     end
 
-    #
     # Set the version number for this Prototype
     #
     # - major = major version number
@@ -234,10 +192,10 @@ module OmfEc
     # - revision = revision version number
     #
     def setVersion(major = 0, minor = 0, revision = 0)
-      @currentVersion = MutableVersion.new(major, minor, revision)
+      #TODO Needs new implementation
+      #@currentVersion = MutableVersion.new(major, minor, revision)
     end
 
-    #
     # Add a nested Prototype which should be instantiated when
     # this Prototype is instantiated.
     #
@@ -251,23 +209,10 @@ module OmfEc
       @incPrototypes[name] = param
     end
 
-    #
     # Add an Application which should be installed on this prototype.
     #
-    # - idRef = URI of application to add
-    # - opts = Optional options, see +Application#initialize+
-    #
-    # [Return] The newly create application object
-    #
-    def addApplication(idRef, opts = {}, &block)
-
-      #if @applications.has_key? idRef
-      #  raise "Prototype already has an application '" + name + "'."
-      #end
-      app = Application.new(idRef, opts, &block)
-      @applications << app
-      return app
+    def addApplication(name, location = nil, &block)
+      @applications << [name, location, block]
     end
-
   end
 end
