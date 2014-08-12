@@ -12,7 +12,7 @@ module OmfEc
   # Experiment Properties defined for a given experiment.
   # Most of this implementation is re-used from OMF 5.4
   #
-  class OmfEc::ExperimentProperty
+  class ExperimentProperty
 
     # Contains all the experiment properties
     @@properties = Hashie::Mash.new
@@ -166,7 +166,7 @@ module OmfEc
     # Implicit conversion to String (required for + operator)
     def to_str() @value.to_s end
 
-    # More convenient conversion 
+    # More convenient conversion
     def to_f() @value.to_f end
     def to_i() @value.to_i end
 
