@@ -86,7 +86,7 @@ module OmfEc
 
       @uri = uri
       @name = name
-      @properties = Hash.new
+      @properties = Hashie::Mash.new
       @incPrototypes = Hash.new
       @applications = Array.new
     end
@@ -97,7 +97,7 @@ module OmfEc
     # - bindings = a Hash with the bindings for local parameters
     #
     def instantiate(group, bindings)
-      if bindings == nil then bindings = Hash.new end
+      bindings = Hashie::Mash.new(bindings)
       # check if bindings contain unknown properties
       if (diff = bindings.keys - @properties.keys) != []
         raise "Unknown parameters '#{diff.join(', ')}'" \
@@ -135,7 +135,21 @@ module OmfEc
 
       @applications.each do |app|
         name, location, block = *app
-        group.addApplication(name, location, &block)
+
+        if block
+          block_with_binding_props = proc do |app_ctx|
+            block.call(app_ctx)
+            app_ctx.proto_props.each do |p_name, p_ref|
+              app_ctx.setProperty(p_name, context[p_ref]) if context[p_ref]
+            end
+          end
+        end
+
+        if block_with_binding_props
+          group.addApplication(name, location, &block_with_binding_props)
+        else
+          group.addApplication(name, location)
+        end
       end
     end
 

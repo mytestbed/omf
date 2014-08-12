@@ -6,7 +6,7 @@
 module OmfEc::Context
   # Holds application configuration
   class AppContext
-    attr_accessor :name, :app_def, :param_values, :oml_collections
+    attr_accessor :name, :app_def, :param_values, :oml_collections, :proto_props
 
     # Keep track of contexts for each app, i.e. multiple contexts can share
     # the same app def. This happens for example when a group can have the
@@ -55,6 +55,11 @@ module OmfEc::Context
         @param_values[key] = property_value
       end
       self
+    end
+
+    def bindProperty(prop_name, prop_ref = prop_name)
+      @proto_props ||= Hashie::Mash.new
+      @proto_props[prop_name] = prop_ref
     end
 
     # For now this follows v5.4 syntax...
