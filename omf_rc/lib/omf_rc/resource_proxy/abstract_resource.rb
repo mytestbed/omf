@@ -28,6 +28,16 @@ class OmfRc::ResourceProxy::MPReceived < OML4R::MPBase
   param :mid, :type => :string # Unique ID this message
 end
 
+# TODO This should probably go to common, together with same functionality from EC
+# MP only used for injecting metadata
+class OmfRc::MetaData < OML4R::MPBase
+  name :meta_data
+
+  param :domain, type: :string
+  param :key, type: :string
+  param :value, type: :string
+end
+
 # @note Suppose you have read the {file:doc/DEVELOPERS.mkd DEVELOPERS GUIDE} which explains the basic the resource controller system.
 #
 # This is the abstract resource proxy class, which provides the base of all proxy implementations. When creating new resource instances, this abstract class will always be initialised first and then extended by one of the specific resource proxy modules.
@@ -232,6 +242,8 @@ class OmfRc::ResourceProxy::AbstractResource
     call_hook(:before_create, self, type, opts)
 
     new_resource = OmfRc::ResourceFactory.create(type.to_sym, opts, creation_opts, &creation_callback)
+
+    log_metadata(self.uid, new_resource.uid, :create)
 
     call_hook(:after_create, self, new_resource)
 
@@ -782,5 +794,9 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [String] name of the property
   def namespaced_property?(name)
     respond_to?(:namespace) && name =~ /^(.+)__(.+)$/
+  end
+
+  def log_metadata(key, value, domain)
+    OmfRc::MetaData.inject(domain.to_s, key.to_s, value.to_s)
   end
 end
