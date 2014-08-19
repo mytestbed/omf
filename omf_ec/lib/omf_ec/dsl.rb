@@ -73,11 +73,6 @@ module OmfEc
       block.call(app_def) if block
     end
 
-    def defPrototype(name, &block)
-      p = Prototype.new(name)
-      block.call(p) if block
-    end
-
     # Define a group, create a pubsub topic for the group
     #
     # @param [String] name name of the group
