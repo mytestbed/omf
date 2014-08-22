@@ -93,7 +93,7 @@ module OmfCommon
               warn "JWT: Message is missing :iss element"
               return nil
             end
-            if ceat_pem = claims[:crt]
+            if cert_pem = claims[:crt]
               # let's the credential store take care of it
               pem = "#{OmfCommon::Auth::Certificate::BEGIN_CERT}#{cert_pem}#{OmfCommon::Auth::Certificate::END_CERT}"
               OmfCommon::Auth::CertificateStore.instance.register_x509(pem)
