@@ -96,8 +96,11 @@ module OmfCommon
             if cert_pem = claims[:crt]
               # let's the credential store take care of it
               pem = "#{OmfCommon::Auth::Certificate::BEGIN_CERT}#{cert_pem}#{OmfCommon::Auth::Certificate::END_CERT}"
-              OmfCommon::Auth::CertificateStore.instance.register_x509(pem)
+              cert = OmfCommon::Auth::Certificate.create_from_pem(pem)
+              cert.resource_id = issuer
+              OmfCommon::Auth::CertificateStore.instance.register(cert)
             end
+
             unless cert = OmfCommon::Auth::CertificateStore.instance.cert_for(issuer)
               warn "JWT: Can't find cert for issuer '#{issuer}'"
               return nil
@@ -105,6 +108,7 @@ module OmfCommon
 
             unless OmfCommon::Auth::CertificateStore.instance.verify(cert)
               warn "JWT: Invalid certificate '#{cert.to_s}', NOT signed by CA certs, or its CA cert NOT loaded into cert store."
+              return nil
             end
 
             #puts ">>> #{cert.to_x509.public_key}::#{signature_base_string}"
