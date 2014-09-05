@@ -363,7 +363,7 @@ module OmfCommon::Auth
           addr[:email] = parts[1]
         when 'URI'
           if parts[1] == 'urn'
-            addr[:geni] = parts[3][4 .. -1]
+            parts[2] == 'publicid' ? addr[:geni] = parts[3][4 .. -1] : addr[parts[2].to_sym] = parts[3]
           else
             addr[parts[1].to_sym] = parts[2]
           end
