@@ -79,10 +79,10 @@ else
   fi
 fi
 
-RC=`which omf_rc`
+rc=`which omf_rc`
 if [[ $? != 0 ]] ; then
-  die "could not find omf_rc executable"
+  rc=/usr/local/bin/omf_rc
 fi
 
 echo "Running OMF6 RC"
-exec /usr/bin/env ruby$RUBY_BIN_SUFFIX $RC -c /etc/omf_rc/config.yml $@
+exec /usr/bin/env ruby$RUBY_BIN_SUFFIX $rc -c /etc/omf_rc/config.yml $@
