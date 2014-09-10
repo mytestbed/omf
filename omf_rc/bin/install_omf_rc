@@ -49,24 +49,25 @@ if options[:init]
     abort "Unknown or unsupported operating system. Cannot install init script."
   end
   issue = File.read("/etc/issue")
-  if issue.include? "Ubuntu"
+  case issue
+  when /Ubuntu/
     FileUtils.cp "#{gem_root}/init/ubuntu", "/etc/init/omf_rc.conf"
     puts "Upstart script for Ubuntu has been installed. Execute 'start omf_rc' to run the daemon."
-  elsif issue.include? "Debian"
+  when /Debian/
     FileUtils.cp "#{gem_root}/init/debian", "/etc/init.d/omf_rc"
     `update-rc.d omf_rc defaults`
     puts "Init script for Debian has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
-  elsif issue.include? "Angstrom"
+  when /Angstrom/
     FileUtils.cp "#{gem_root}/init/angstrom", "/etc/init.d/omf_rc"
     `update-rc.d omf_rc defaults`
     puts "Init script for Angstrom has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
-  elsif issue.include? "Fedora"
+  when /Fedora|CentOS/
      FileUtils.cp "#{gem_root}/init/fedora", "/etc/init.d/omf_rc"
     `chkconfig --add omf_rc`
     # older Fedora's don't use systemd
     `systemctl --system daemon-reload` if File.exist?("/bin/systemctl")
     puts "Init script for Fedora has been installed. Execute '/etc/init.d/omf_rc start' to run the daemon."
   else
-    abort "OS '#{os}' is not supported. Cannot install init script."
+    abort "OS '#{issue}' is not supported. Cannot install init script."
   end
 end
