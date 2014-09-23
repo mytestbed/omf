@@ -24,6 +24,11 @@ module OmfEc::Context
       end
     end
 
+    def bindProperty(key, property_value)
+      warn_deprecation :bindProperty, :setProperty
+      setProperty(key, property_value)
+    end
+
     def setProperty(key, property_value)
       app_def_param = app_def.properties.parameters
       raise OEDLUnknownProperty.new(key, "Unknown parameter '#{key}' for application "+
