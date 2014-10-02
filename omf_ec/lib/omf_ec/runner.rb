@@ -97,8 +97,9 @@ module OmfEc
             remove_cmd_opts_from_argv("--name", "--experiment", e_name)
           end
 
-          op.on("--slice SLICE_NAME", "Slice name [Deprecated]") do |slice|
+          op.on("--slice SLICE_NAME", "Slice name [optional]") do |slice|
             @cmd_opts[:slice] = slice
+            OmfEc.experiment.sliceID = slice
             remove_cmd_opts_from_argv("--slice", slice)
           end
 
