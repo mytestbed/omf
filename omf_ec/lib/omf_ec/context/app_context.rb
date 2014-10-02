@@ -88,7 +88,7 @@ module OmfEc::Context
       # - if this context's param_values has a property which also exists in
       #   the app def and if that property has an assigned value, then
       #   use that value for the properties of this context
-      p = original.merge({type: 'application', state: 'stopped'})
+      p = original.merge({type: 'application', state: 'created'})
       @param_values.each do |k,v|
         if p[:parameters].key?(k)
           p[:parameters][k][:value] = v.kind_of?(OmfEc::ExperimentProperty) ? v.value : v

@@ -96,7 +96,7 @@ module OmfRc::ResourceProxy::Application
   property :force_tarball_install, :default => false
   property :pkg_ubuntu, :default => nil
   property :pkg_fedora, :default => nil
-  property :state, :default => :stopped
+  property :state, :default => :created
   property :installed, :default => false
   property :map_err_to_out, :default => false
   property :event_sequence, :default => 0
@@ -125,10 +125,10 @@ module OmfRc::ResourceProxy::Application
     # if state was set to running or installing from the create we need
     # to make sure that this happens!
     if res.property.state.to_s.downcase.to_sym == :running
-      res.property.state = :stopped
+      res.property.state = :created
       res.switch_to_running
     elsif res.property.state.to_s.downcase.to_sym == :installing
-      res.property.state = :stopped
+      res.property.state = :created
       res.switch_to_installing
     end
   end
@@ -251,7 +251,8 @@ module OmfRc::ResourceProxy::Application
   # Configure the state of this Application RP. The valid states are
   # stopped, running, paused, installing. The semantic of each states are:
   #
-  # - stopped: the initial state for an Application RP
+  # - created: the initial state for an Application RP
+  # - stopped: when an Application RP was running, and requested to stop
   # - running: upon entering in this state, a new instance of the application is
   #   started, the Application RP stays in this state until the
   #   application instance is finished or paused. The Application RP can
@@ -265,8 +266,8 @@ module OmfRc::ResourceProxy::Application
   # - installing: upon entering in this state, a new installation of the
   #   application will be performed by the Application RP, which will
   #   stay in this state until the installation is done. The
-  #   Application RP can only enter this state from a previous stopped
-  #   state. Furthermore it can only exit this state to enter the stopped state
+  #   Application RP can only enter this state from a previous created
+  #   state. Furthermore it can only exit this state to enter the created state
   #   only when the installatio is done. Supported install methods are: Tarball,
   #   Ubuntu, and Fedora
   #
@@ -296,7 +297,7 @@ module OmfRc::ResourceProxy::Application
   # @!macro work
   # @!method switch_to_installing
   work('switch_to_installing') do |res|
-    if res.property.state.to_sym == :stopped
+    if res.property.state.to_sym == :created
       if res.property.installed
         res.log_inform_warn "The application is already installed"
       else
@@ -312,11 +313,11 @@ module OmfRc::ResourceProxy::Application
         elsif res.property.platform == :fedora
           installing = res.install_fedora(res.property.pkg_fedora)
         end
-        res.property.state = :stopped unless installing
+        res.property.state = :created unless installing
       end
     else
-      # cannot install as we are not stopped
-      res.log_inform_warn "Not in stopped state. Cannot switch to installing state!"
+      # cannot install as we have not just been created
+      res.log_inform_warn "Not in created state. Cannot switch to installing state!"
     end
   end
 
@@ -356,7 +357,7 @@ module OmfRc::ResourceProxy::Application
   # @!macro work
   # @!method switch_to_running
   work('switch_to_running') do |res|
-    if res.property.state == :stopped
+    if res.property.state == :created || res.property.state == :stopped
       # start a new instance of this app
       res.property.app_id = res.hrn.nil? ? res.uid : res.hrn
       # we need at least a defined binary path to run an app...

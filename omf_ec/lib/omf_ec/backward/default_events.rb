@@ -39,7 +39,7 @@ module OmfEc
               results = []
               all_groups? do |g|
                 plan = g.app_contexts.size * g.members.values.uniq.size
-                actual = state.count { |v| v.joined?(g.address("application")) && v[:state] == "stopped" }
+                actual = state.count { |v| v.joined?(g.address("application")) && v[:state] == "created" }
                 results << (plan == actual) unless (plan == 0)
               end
               !results.include?(false)
