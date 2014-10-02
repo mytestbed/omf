@@ -150,12 +150,17 @@ module OmfEc
         warn "Event '#{name}' has already been defined. Overwriting it now." if event(name)
         @events.delete_if { |e| e[:name] == name }
         @events << { name: name, trigger: trigger, aliases: [] }.merge(opts)
-        periodic_events(event(name)) if opts[:every]
+        add_periodic_event(event(name)) if opts[:every]
       end
     end
 
     def clear_events
-      self.synchronize { @events = [] }
+      self.synchronize do
+        @events.each do |e|
+          e[:periodic_timer].cancel if e[:periodic_timer]
+        end
+        @events = []
+      end
     end
 
     # Unique experiment id
@@ -182,7 +187,7 @@ module OmfEc
       end
     end
 
-    def periodic_events(event)
+    def add_periodic_event(event)
       event[:periodic_timer] = OmfCommon.el.every(event[:every]) do
         self.synchronize do
           eval_trigger(event)
