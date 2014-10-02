@@ -20,7 +20,7 @@ describe OmfEc::Experiment do
 
   it "must be able to add event" do
     trigger = proc { 1 }
-    @experiment.add_event('bob', trigger)
+    @experiment.add_event('bob', {}, trigger)
     @experiment.event('bob')[:name].must_equal "bob"
     @experiment.event('bob')[:trigger].call.must_equal 1
   end
