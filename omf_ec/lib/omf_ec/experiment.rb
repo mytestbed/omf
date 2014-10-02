@@ -153,6 +153,10 @@ module OmfEc
       end
     end
 
+    def clear_events
+      self.synchronize { @events = [] }
+    end
+
     # Unique experiment id
     def id
       @name || @id
@@ -215,6 +219,9 @@ module OmfEc
         info "Experiment: #{OmfEc.experiment.id} finished"
         info "Release applications and network interfaces"
         info "Exit in 15 seconds..."
+
+        # Make sure that all defined events are removed
+        OmfEc.experiment.clear_events
 
         OmfCommon.el.after(10) do
           allGroups do |g|
