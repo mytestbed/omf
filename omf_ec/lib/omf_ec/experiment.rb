@@ -145,11 +145,12 @@ module OmfEc
       @events.find { |v| v[:name] == name || v[:aliases].include?(name) }
     end
 
-    def add_event(name, trigger)
+    def add_event(name, opts, trigger)
       self.synchronize do
         warn "Event '#{name}' has already been defined. Overwriting it now." if event(name)
         @events.delete_if { |e| e[:name] == name }
-        @events << { name: name, trigger: trigger, aliases: [] }
+        @events << { name: name, trigger: trigger, aliases: [] }.merge(opts)
+        periodic_events(event(name)) if opts[:every]
       end
     end
 
@@ -175,17 +176,32 @@ module OmfEc
     # Parsing user defined events, checking conditions against internal state, and execute callbacks if triggered
     def process_events
       self.synchronize do
-        @events.find_all { |v| v[:callbacks] && !v[:callbacks].empty? }.each do |event|
-          if event[:trigger].call(@state)
-            @events.delete(event) if event[:consume_event]
-            event_names = ([event[:name]] + event[:aliases]).join(', ')
-            info "Event triggered: '#{event_names}'"
+        @events.find_all { |v| v[:every].nil? }.each do |event|
+          eval_trigger(event)
+        end
+      end
+    end
 
-            # Last in first serve callbacks
-            event[:callbacks].reverse.each do |callback|
-              callback.call
-            end
-          end
+    def periodic_events(event)
+      event[:periodic_timer] = OmfCommon.el.every(event[:every]) do
+        self.synchronize do
+          eval_trigger(event)
+        end
+      end
+    end
+
+    def eval_trigger(event)
+      if event[:callbacks] && !event[:callbacks].empty? && event[:trigger].call(@state)
+        # Periodic check event
+        event[:periodic_timer].cancel if event[:periodic_timer]
+
+        @events.delete(event) if event[:consume_event]
+        event_names = ([event[:name]] + event[:aliases]).join(', ')
+        info "Event triggered: '#{event_names}'"
+
+        # Last in first serve callbacks
+        event[:callbacks].reverse.each do |callback|
+          callback.call
         end
       end
     end

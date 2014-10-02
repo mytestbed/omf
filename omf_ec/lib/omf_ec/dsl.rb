@@ -189,9 +189,14 @@ module OmfEc
     end
 
     # Define an event
-    def def_event(name, &trigger)
+    #
+    # @param [Symbol] name of the event
+    #
+    # @param [Hash] opts additional options
+    # @option opts [Fixnum] :every indicates non-reactive style event checking, i.e. trigger will be evaluated periodically with :every as interval
+    def def_event(name, opts = {}, &trigger)
       raise ArgumentError, 'Need a trigger callback' if trigger.nil?
-      OmfEc.experiment.add_event(name, trigger)
+      OmfEc.experiment.add_event(name, opts, trigger)
     end
 
     # Create an alias name of an event
