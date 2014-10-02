@@ -16,7 +16,7 @@ module OmfEc
 
     include MonitorMixin
 
-    attr_accessor :name, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
+    attr_accessor :name, :sliceID, :oml_uri, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
     attr_reader :groups, :sub_groups, :state
 
     # MP only used for injecting metadata
@@ -32,6 +32,7 @@ module OmfEc
     def initialize
       super
       @id = Time.now.utc.iso8601(3)
+      @sliceID = nil
       @state ||= [] #TODO: we need to keep history of all the events and not ovewrite them
       @groups ||= []
       @nodes ||= []
@@ -162,6 +163,11 @@ module OmfEc
       instance.id
     end
 
+    # Unique slice id (Class method)
+    def self.sliceID
+      instance.sliceID
+    end
+
     # Parsing user defined events, checking conditions against internal state, and execute callbacks if triggered
     def process_events
       self.synchronize do
@@ -240,6 +246,7 @@ module OmfEc
 
       def start
         info "Experiment: #{OmfEc.experiment.id} starts"
+        info "Slice: #{OmfEc.experiment.sliceID}" unless OmfEc.experiment.sliceID.nil?
         OmfEc.experiment.log_metadata("state", "running")
 
         allGroups do |g|
