@@ -37,36 +37,34 @@ module OmfEc
         end
       end
 
+      # Start ONE application by name
       def startApplication(app_name)
         if self.app_contexts.find { |v| v.name == app_name }
           resources[type: 'application', name: app_name].state = :running
         else
           warn "No application with name '#{app_name}' defined in group #{self.name}. Nothing to start"
         end
+        forward_method_to_aliases(__method__, app_name)
       end
 
-      def startApplication(app_name)
-        if self.app_contexts.find { |v| v.name == app_name }
-          resources[type: 'application', name: app_name].state = :running
-        else
-          warn "No application with name '#{app_name}' defined in group #{self.name}. Nothing to start"
-        end
-      end
-
+      # Start ALL applications in the group
       def startApplications
         if self.app_contexts.empty?
           warn "No applications defined in group #{self.name}. Nothing to start"
         else
           resources[type: 'application'].state = :running
         end
+        forward_method_to_aliases(__method__)
       end
 
+      # Stop ALL applications in the group
       def stopApplications
         if self.app_contexts.empty?
           warn "No applications defined in group #{self.name}. Nothing to stop"
         else
           resources[type: 'application'].state = :stopped
         end
+        forward_method_to_aliases(__method__)
       end
 
       def addApplication(name, location = nil, &block)

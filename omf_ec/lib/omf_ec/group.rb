@@ -18,7 +18,7 @@ module OmfEc
     include MonitorMixin
 
     attr_accessor :name, :id, :net_ifs, :members, :app_contexts, :execs
-    attr_reader :topic
+    attr_reader :topic, :g_aliases
 
     # @param [String] name name of the group
     # @param [Hash] opts
@@ -31,6 +31,8 @@ module OmfEc
       self.members = {}
       self.app_contexts = []
       self.execs = []
+      # To record group 2 group relationship
+      @g_aliases = []
 
       @resource_topics = {}
 
@@ -68,6 +70,7 @@ module OmfEc
         names.each do |name|
           if (g = OmfEc.experiment.group(name))# resource to add is a group
             @members.merge!(g.members)
+            @g_aliases << g
           else
             OmfEc.experiment.nodes << name unless OmfEc.experiment.nodes.include?(name)
             @members[name] = nil
@@ -126,6 +129,10 @@ module OmfEc
     end
 
     alias_method :prototype, :addPrototype
+
+    def forward_method_to_aliases(method, *args)
+      self.g_aliases.each { |g| g.send(method, *args) }
+    end
 
     include OmfEc::Backward::Group
   end
