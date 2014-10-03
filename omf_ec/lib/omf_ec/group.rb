@@ -5,8 +5,10 @@
 
 require 'securerandom'
 require 'monitor'
+require 'omf_ec/group_ext'
 
 module OmfEc
+
   # Group instance used in experiment script
   #
   # @!attribute name [String] name of the resource
@@ -16,9 +18,12 @@ module OmfEc
   # @!attribute apps [Array] holding applications to be added to group
   class Group
     include MonitorMixin
+    extend GroupExt
 
     attr_accessor :name, :id, :net_ifs, :members, :app_contexts, :execs
     attr_reader :topic, :g_aliases
+
+    fwd_method_to_aliases :startApplications, :stopApplications, :startApplication
 
     # @param [String] name name of the group
     # @param [Hash] opts
@@ -130,10 +135,94 @@ module OmfEc
 
     alias_method :prototype, :addPrototype
 
-    def forward_method_to_aliases(method, *args)
-      self.g_aliases.each { |g| g.send(method, *args) }
+    def resource_group(type)
+      "#{self.id}_#{type.to_s}"
     end
 
-    include OmfEc::Backward::Group
+    # Create an application for the group and start it
+    #
+    def exec(command)
+      name = SecureRandom.uuid
+
+      self.synchronize do
+        self.execs << name
+      end
+      create_resource(name, type: 'application', binary_path: command)
+
+      e_name = "#{self.name}_application_#{name}_created"
+
+      resource_group_name = self.address("application")
+
+      def_event e_name do |state|
+        state.find_all { |v| v[:hrn] == name && v[:membership] && v[:membership].include?(resource_group_name)}.size >= self.members.values.sort.uniq.size
+      end
+
+      on_event e_name do
+        resources[type: 'application', name: name].state = :running
+      end
+    end
+
+    # Start ONE application by name
+    def startApplication(app_name)
+      if self.app_contexts.find { |v| v.name == app_name }
+        resources[type: 'application', name: app_name].state = :running
+      else
+        warn "No application with name '#{app_name}' defined in group #{self.name}. Nothing to start"
+      end
+    end
+
+    # Start ALL applications in the group
+    def startApplications
+      if self.app_contexts.empty?
+        warn "No applications defined in group #{self.name}. Nothing to start"
+      else
+        resources[type: 'application'].state = :running
+      end
+    end
+
+    # Stop ALL applications in the group
+    def stopApplications
+      if self.app_contexts.empty?
+        warn "No applications defined in group #{self.name}. Nothing to stop"
+      else
+        resources[type: 'application'].state = :stopped
+      end
+    end
+
+    def addApplication(name, location = nil, &block)
+      app_cxt = OmfEc::Context::AppContext.new(name,location,self)
+      block.call(app_cxt) if block
+      self.app_contexts << app_cxt
+    end
+
+    # @example
+    #   group('actor', 'node1', 'node2') do |g|
+    #     g.net.w0.ip = '0.0.0.0'
+    #     g.net.e0.ip = '0.0.0.1'
+    #   end
+    def net
+      self.net_ifs ||= []
+      self
+    end
+
+    def method_missing(name, *args, &block)
+      if name =~ /w(\d+)/
+        net = self.net_ifs.find { |v| v.conf[:if_name] == "wlan#{$1}" }
+        if net.nil?
+          net = OmfEc::Context::NetContext.new(:type => 'wlan', :if_name => "wlan#{$1}", :index => $1)
+          self.net_ifs << net
+        end
+        net
+      elsif name =~ /e(\d+)/
+        net = self.net_ifs.find { |v| v.conf[:if_name] == "eth#{$1}" }
+        if net.nil?
+          net = OmfEc::Context::NetContext.new(:type => 'net', :if_name => "eth#{$1}", :index => $1)
+          self.net_ifs << net
+        end
+        net
+      else
+        super
+      end
+    end
   end
 end

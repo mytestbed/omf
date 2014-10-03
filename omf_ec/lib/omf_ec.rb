@@ -6,7 +6,6 @@
 require "omf_common"
 require 'omf_ec/core_ext/hash'
 require 'omf_ec/backward/dsl'
-require 'omf_ec/backward/group'
 require 'omf_ec/backward/app_definition'
 require 'omf_ec/backward/default_events'
 require 'omf_ec/backward/core_ext/array'
