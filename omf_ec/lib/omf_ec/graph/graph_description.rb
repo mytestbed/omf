@@ -45,6 +45,21 @@ module OmfEc::Graph
       msb
     end
 
+    # Define the measurement stream to be visualized in
+    # the graph through a raw SQL query string.
+    # The optional 'context' parameter defines
+    # the context in which the stream is used in the graph. This
+    # is necessary for graphs, such as 'networks' which need
+    # more than one MS to describe the visualization.
+    #
+    # @param sql
+    # @param context
+    #
+    def sql(raw_sql, context = :default)
+      @ms[context] = raw_sql
+      raw_sql
+    end
+
     # Defines the mapping of columns in the measurement tuples to properties
     # of the visualization.
     #
@@ -76,7 +91,8 @@ module OmfEc::Graph
       info "REPORT:POSTFIX: #{URI.encode(@postfix)}" if @postfix
       @ms.each do |ctxt, a|
         a.each do |ms|
-          info "REPORT:MS:#{ctxt}: #{URI.encode(ms.sql)}"
+          sql = ms.is_a?(String) ? ms : ms.sql
+          info "REPORT:MS:#{ctxt}: #{URI.encode(sql)}"
         end
       end
       info "REPORT:MAPPING: #{URI.encode(@mapping.to_json)}"
