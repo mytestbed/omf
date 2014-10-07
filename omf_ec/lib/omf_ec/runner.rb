@@ -103,6 +103,11 @@ module OmfEc
             remove_cmd_opts_from_argv("--slice", slice)
           end
 
+          op.on("--job_service URL", "URL to the JobService [optional]") do |url|
+            OmfEc.experiment.js_url = url
+            remove_cmd_opts_from_argv("--jobservice", url)
+          end
+
           op.on("--oml_uri URI", "URI for the OML data collection of experiment applications") do |uri|
             @cmd_opts[:oml_uri] = uri
             remove_cmd_opts_from_argv("--oml_uri", uri)
