@@ -16,7 +16,7 @@ module OmfEc
 
     include MonitorMixin
 
-    attr_accessor :name, :sliceID, :oml_uri, :js_url, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
+    attr_accessor :name, :sliceID, :oml_uri, :js_url, :job_url, :job_mps, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
     attr_reader :groups, :sub_groups, :state
 
     # MP only used for injecting metadata
@@ -41,6 +41,9 @@ module OmfEc
       @sub_groups ||= []
       @cmdline_properties ||= Hash.new
       @show_graph = false
+      @js_url = nil
+      @job_url = nil
+      @job_mps = {}
     end
 
     def property
@@ -198,7 +201,7 @@ module OmfEc
     def eval_trigger(event)
       if event[:callbacks] && !event[:callbacks].empty? && event[:trigger].call(@state)
         # Periodic check event
-        event[:periodic_timer].cancel if event[:periodic_timer]
+        event[:periodic_timer].cancel if event[:periodic_timer] && event[:consume_event]
 
         @events.delete(event) if event[:consume_event]
         event_names = ([event[:name]] + event[:aliases]).join(', ')
@@ -231,6 +234,30 @@ module OmfEc
         Base64.encode64(Zlib::Deflate.deflate(File.read(script_name))),
         "oedl_content"
       )
+    end
+
+    # If EC is launched with --job-service setup, then it needs to 
+    # create a job entry for this experiment trial
+    # Do nothing if:
+    # - a JobService URL has not been provided, i.e. EC runs without needs to contact JS
+    # - we already have a Job URL, i.e. the job entry has already been created
+    def create_job
+      return unless @job_url.nil?
+      return if @js_url.nil?
+      require 'json'
+      require 'net/http'
+      begin
+        job = { name: self.id }
+        u = URI.parse(@js_url+'/jobs')
+        req = Net::HTTP::Post.new(u.path, {'Content-Type' =>'application/json'})
+        req.body = JSON.pretty_generate(job)
+        res = Net::HTTP.new(u.host, u.port).start {|http| http.request(req) }
+        raise "Could not create a job for this experiment trial\n"+
+              "Response #{res.code} #{res.message}:\n#{res.body}" unless res.kind_of? Net::HTTPSuccess
+        job = JSON.parse(res.body)
+        raise "No valid URL received for the created job for this experiment trial" if job['href'].nil?
+        @job_url = job['href']
+      end
     end
 
     # Purely for backward compatibility

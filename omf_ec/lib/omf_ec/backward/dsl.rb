@@ -19,6 +19,7 @@ module OmfEc
           v5_style(:defGroup, base)
           v5_style(:loadOEDL, base)
           v5_style(:ensureProperty, base)
+          v5_style(:defQuery, base)
         end
 
         def v5_style(name, base)

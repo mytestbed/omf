@@ -103,9 +103,14 @@ module OmfEc
             remove_cmd_opts_from_argv("--slice", slice)
           end
 
-          op.on("--job_service URL", "URL to the JobService [optional]") do |url|
+          op.on("--job-service URL", "URL to the JobService [optional]") do |url|
             OmfEc.experiment.js_url = url
-            remove_cmd_opts_from_argv("--job_service", url)
+            remove_cmd_opts_from_argv("--job-service", url)
+          end
+
+          op.on("--job-url URL", "URL to the Job for this experiment trial [optional]") do |url|
+            OmfEc.experiment.job_url = url
+            remove_cmd_opts_from_argv("--job-url", url)
           end
 
           op.on("--oml_uri URI", "URI for the OML data collection of experiment applications") do |uri|
@@ -287,6 +292,7 @@ module OmfEc
             OmfEc.experiment.log_metadata("exp_path", @oedl_path)
             OmfEc.experiment.log_metadata("ec_pid", "#{Process.pid}")
             OmfEc.experiment.archive_oedl(@oedl_path)
+            OmfEc.experiment.create_job
 
             begin
               load @oedl_path
