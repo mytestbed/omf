@@ -341,6 +341,7 @@ module OmfEc
       require 'json'
       require 'net/http'
       begin
+        query = query.sql if query.kind_of? OmfEc::Graph::MSBuilder
         # Create a Measurement Point for that Job item
         unless OmfEc.experiment.job_mps.include?(query)
           mp = { name: "#{Time.now.to_i}", sql: query }
@@ -368,7 +369,9 @@ module OmfEc
         end
         return data
       rescue Exception => ex
-        error "def_query - #{ex}"
+        return nil if ex.kind_of? EOFError
+        error "def_query - #{ex} (#{ex.class})"
+        error "def_query - #{ex.backtrace.join("\n\t")}"
         return nil
       end
     end
@@ -390,9 +393,8 @@ module OmfEc
       else
         warn "Measurement point '#{ms_name}' NOT defined"
       end
-      def_query(msb.sql)
+      msb
     end
-
 
   end
 end
