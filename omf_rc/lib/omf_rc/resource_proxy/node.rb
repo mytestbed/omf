@@ -85,6 +85,7 @@ module OmfRc::ResourceProxy::Node
   # referenced in that file. The result is sent to an OML database.
   hook :before_ready do |res|
     next if res.defaults(:topo_file).nil? || res.defaults(:topo_file).empty?
-    check_topology(res.uid, res.defaults(:topo_file))    
+    timeout = res.defaults(:topo_check_timeout) || 600
+    check_topology(res.uid, res.defaults(:topo_file), timeout)
   end
 end

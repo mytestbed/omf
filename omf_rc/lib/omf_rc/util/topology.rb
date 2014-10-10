@@ -29,13 +29,18 @@ module OmfRc::Util::Topology
   # @yieldparam [Object] from the id or name of this Node Proxy
   # @yieldparam [Object] topo_path the file with the host addresses
   #
-  work :check_topology do |res,from,topo_path|
-    info "Checking topology from file: '#{topo_path}'"
-    File.foreach(topo_path) do |v|
-      target = v.chomp
-      reachable = `ping -c 1 #{target}`.include?('bytes from')
-      info "Checked link to #{target}: #{reachable}"
-      OmfRc::Util::Topology::MPEdges.inject(Time.now.to_i, from, target, reachable)
+  work :check_topology do |res, from, topo_path, timeout|
+    timeout ||= 600 # Stop checking after 10 minutes
+    t = OmfCommon.el.every(10) do
+      info "Checking topology from file: '#{topo_path}'"
+      File.foreach(topo_path) do |v|
+        target = v.chomp
+        reachable = `ping -c 1 #{target}`.include?('bytes from')
+        info "Checked link to #{target}: #{reachable}"
+        OmfRc::Util::Topology::MPEdges.inject(Time.now.to_i, from, target, reachable)
+      end
     end
+
+    OmfCommon.el.after(timeout) { t.cancel }
   end
 end
