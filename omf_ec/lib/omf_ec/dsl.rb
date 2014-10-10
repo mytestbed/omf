@@ -10,6 +10,8 @@ require 'eventmachine'
 require 'uri'
 require 'open-uri'
 require 'tempfile'
+require 'json'
+require 'net/http'
 
 module OmfEc
   # DSL methods to be used for OEDL scripts
@@ -338,8 +340,6 @@ module OmfEc
     #
     def def_query(query)
       raise "No valid URL to connect to the Job Service!" if OmfEc.experiment.job_url.nil?
-      require 'json'
-      require 'net/http'
       begin
         query = query.sql if query.kind_of? OmfEc::Graph::MSBuilder
         # Create a Measurement Point for that Job item
@@ -359,11 +359,11 @@ module OmfEc
         u = URI.parse(OmfEc.experiment.job_mps[query]+'/data')
         res = Net::HTTP.get(u)
         raise "No valid data from the service providing measurements" if res.nil? || res.empty? || !(res.kind_of? String)
-        resjon = JSON.parse(res)
-        metrics = resjon['schema'].map { |e| e[0] }
+        resjson = JSON.parse(res)
+        metrics = resjson['schema'].map { |e| e[0] }
         data = []
-        resjon['data'].each do |a|
-          row = {}
+        resjson['data'].each do |a|
+          row = Hashie::Mash.new
           a.each_index { |i| row[metrics[i].downcase.to_sym] = a[i] }
           data << row
         end
@@ -371,7 +371,7 @@ module OmfEc
       rescue Exception => ex
         return nil if ex.kind_of? EOFError
         error "def_query - #{ex} (#{ex.class})"
-        error "def_query - #{ex.backtrace.join("\n\t")}"
+        #error "def_query - #{ex.backtrace.join("\n\t")}"
         return nil
       end
     end
@@ -394,6 +394,28 @@ module OmfEc
         warn "Measurement point '#{ms_name}' NOT defined"
       end
       msb
+    end
+
+    # Query a Slice Service to get back the list of resources which were 
+    # previously provisioned for the slice within which this EC is operating.
+    # Return either an empty array or an array of Hash (actually Hashie::Mash)
+    # Require that the EC was provided an URL to a slice service (option
+    # --slice-service) and the name of the slice (option --slice).
+    #
+    def get_resources
+      begin
+        #slice_url = "http://bleeding.mytestbed.net:8006/slices/"
+        raise "No slice service URL, use '--slice-service' option" if OmfEc.experiment.ss_url.nil?
+        raise "No slice name, use '--slice' option" if OmfEc.experiment.sliceID.nil?
+        u = URI.parse(OmfEc.experiment.ss_url+'/'+OmfEc.experiment.sliceID+'/resources')
+        res = Net::HTTP.get(u)
+        raise "Could not retrieve a valid list of resources from '#{u}'" if res.nil? || res.empty? || !(res.kind_of? String)
+        Hashie::Mash.new(JSON.parse(res)).values
+      rescue Exception => ex
+        error "get_resources - #{ex} (#{ex.class}) - URI: '#{u}'"
+        #error "get_resources - #{ex.backtrace.join("\n\t")}"
+        return []
+      end
     end
 
   end
