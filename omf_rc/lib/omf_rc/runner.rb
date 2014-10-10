@@ -142,8 +142,9 @@ module OmfRc
         end
 
         @opts.merge!(@gopts)
-
-        @omlopts.merge(@opts[:instrumentation] || {}) { |k, v1, v2| v1 } # merge in place as OML may hold @omlopts
+        # Merge in place as OML may hold @omlopts
+        in_place_oml_opts = (@opts[:oml] || @opts[:instrumentation] || Mash.new).to_hash(symbolize_keys: true)
+        @omlopts.merge!(in_place_oml_opts)
       end
     end
 

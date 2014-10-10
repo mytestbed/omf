@@ -14,13 +14,13 @@ module OmfRc::Util::Topology
   # This MP is reporting if a 'to' host is reachable from a 'from' host
   class OmfRc::Util::Topology::MPEdges < OML4R::MPBase
     name :edges
-    param :timestamp, :type => :double # Time (s) 
+    param :timestamp, :type => :double # Time (s)
     param :from, :type => :string # ID/Name for this Resource Proxy
     param :to, :type => :string # Address/Name of remote host
     param :reachable, :type => :string # Is the remote host reachable?
   end
 
-  # Check if a list of hosts from a local file are reachable from the host 
+  # Check if a list of hosts from a local file are reachable from the host
   # running this Node Proxy. The input topology file must simply contain one
   # line per host, i.e. its IP address of hostname.
   # The results of this check are send to the OML server and database set
@@ -31,10 +31,10 @@ module OmfRc::Util::Topology
   #
   work :check_topology do |res,from,topo_path|
     info "Checking topology from file: '#{topo_path}'"
-    File.foreach(topo_path) do |v| 
+    File.foreach(topo_path) do |v|
       target = v.chomp
       reachable = `ping -c 1 #{target}`.include?('bytes from')
-      info "Checked link to #{target}: #{reachable}" 
+      info "Checked link to #{target}: #{reachable}"
       OmfRc::Util::Topology::MPEdges.inject(Time.now.to_i, from, target, reachable)
     end
   end
