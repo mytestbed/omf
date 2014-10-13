@@ -33,6 +33,12 @@ module OmfRc::Util::Topology
     timeout ||= 600 # Stop checking after 10 minutes
     t = OmfCommon.el.every(10) do
       info "Checking topology from file: '#{topo_path}'"
+
+      if !File.exist?(topo_path)
+        warn "Topology file missing: '#{topo_path}'"
+        t.cancel
+      end
+
       File.foreach(topo_path) do |v|
         target = v.chomp
         reachable = `ping -c 1 #{target}`.include?('bytes from')
