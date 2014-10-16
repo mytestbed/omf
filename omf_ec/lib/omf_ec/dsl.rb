@@ -412,7 +412,7 @@ module OmfEc
         #slice_url = "http://bleeding.mytestbed.net:8006/slices/"
         raise "No slice service URL, use '--slice-service' option" if OmfEc.experiment.ss_url.nil?
         raise "No slice name, use '--slice' option" if OmfEc.experiment.sliceID.nil?
-        u = URI.parse(OmfEc.experiment.ss_url+'/'+OmfEc.experiment.sliceID+'/resources')
+        u = URI.parse(OmfEc.experiment.ss_url+'/slices/'+OmfEc.experiment.sliceID+'/resources')
         res = Net::HTTP.get(u)
         raise "Could not retrieve a valid list of resources from '#{u}'" if res.nil? || res.empty? || !(res.kind_of? String)
         Hashie::Mash.new(JSON.parse(res)).values
