@@ -241,7 +241,7 @@ module OmfCommon::Auth
     end
 
     def cert_expired?
-      debug "Certificate expired!" unless valid?
+      error "Certificate expired!" unless valid?
       !valid?
     end
 
