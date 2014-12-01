@@ -191,12 +191,14 @@ parts, described in the following listing and subsections below.
       info "This is my first OMF experiment"
       # Start all the Applications associated to all the Groups
       allGroups.startApplications
-      # Wait for 5 sec
-      wait 5
-      # Stop all the Applications associated to all the Groups
-      allGroups.stopApplications
-      # Tell the Experiment Controller to terminate the experiment now
-      Experiment.done
+
+      # After 5 sec
+      after 5 do
+        # Stop all the Applications associated to all the Groups
+        allGroups.stopApplications
+        # Tell the Experiment Controller to terminate the experiment now
+        Experiment.done
+      end
     end
 
 ### 3a) Application Definition
