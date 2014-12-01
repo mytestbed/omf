@@ -9,7 +9,7 @@ defApplication('ping_oml2') do |app|
   # Define the path to the binary executable for this application
   app.binary_path = '/usr/bin/ping-oml2'
   # Define the configurable parameters for this application
-  # For example if target is set to foo.com and count is set to 2, then the 
+  # For example if target is set to foo.com and count is set to 2, then the
   # application will be started with the command line:
   # /usr/bin/ping-oml2 -a foo.com -c 2
   app.defProperty('target', 'Address to ping', '-a', {:type => :string})
@@ -26,7 +26,7 @@ defApplication('ping_oml2') do |app|
 end
 
 # 2. Define a group of resources which will run the ping-oml2 application
-# Here we define only one group (Sender), which has only one resource in it 
+# Here we define only one group (Sender), which has only one resource in it
 # (omf.nicta.node8)
 #
 defGroup('Sender', 'omf.nicta.node8') do |g|
@@ -51,10 +51,11 @@ onEvent(:ALL_UP_AND_INSTALLED) do |event|
   info "This is my first OMF experiment"
   # Start all the Applications associated to all the Groups
   allGroups.startApplications
-  # Wait for 5 sec
-  wait 5
-  # Stop all the Applications associated to all the Groups
-  allGroups.stopApplications
-  # Tell the Experiment Controller to terminate the experiment now
-  Experiment.done
+  # After 5 sec
+  after 5 do
+    # Stop all the Applications associated to all the Groups
+    allGroups.stopApplications
+    # Tell the Experiment Controller to terminate the experiment now
+    Experiment.done
+  end
 end
