@@ -47,7 +47,7 @@ For OMF, we RECOMMEND using RabbitMQ. Other AMQP servers may work as well, but h
 > __READ http://www.rabbitmq.com/troubleshooting.html__
 
 
-### **Verify this step**
+### __Verify this step__
 
 If you want to verify that your RabbitMQ server is responding, you can follow this ["Hello World" tutorial](http://www.rabbitmq.com/tutorials/tutorial-one-ruby.html).
 
@@ -56,43 +56,53 @@ If you want to verify that your RabbitMQ server is responding, you can follow th
 
 For OMF, we recommend using Openfire. Other XMPP servers may work as well, but this has not been extensively tested. Ejabberd is known to have some issues regarding node permissions and database cleanup. If are upgrading from an older Openfire release and you have trouble running OMF, please wipe your Openfire database and recreate the pubsub nodes.
 
-* uninstall any other XMPP servers first
-* make sure ports TCP 5222, 5269 and 9090 are open in your firewall
+* Uninstall any other XMPP servers first
+
+* Make sure ports TCP 5222, 5269 and 9090 are open in your firewall
+
 * Openfire 3.8.1 requires Java, but has some issues with OpenJDK. Instead we recommend to install Oracle Java 7. Ubuntu users can follow [this guide](http://www.webupd8.org/2012/01/install-oracle-java-jdk-7-in-ubuntu-via.html).
-* after installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
 
-<pre><code>wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
+* After installing Java, on Ubuntu 12.04 or higher, run the following commands as root:
+
+<pre>
+wget http://www.igniterealtime.org/downloadServlet?filename=openfire/openfire_3.8.1_all.deb
 dpkg -i downloadServlet\?filename\=openfire%2Fopenfire_3.8.1_all.deb
-</code></pre>
+</pre>
 
-* on any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
-* check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
-* if openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA_HOME for your Java installation, e.g.:
+* On any other OS, [download Openfire](http://www.igniterealtime.org/projects/openfire/) and install it alongside the Oracle Java JRE
 
-<pre>JAVA_HOME=/usr/lib/jvm/java-7-oracle</pre>
+* Check if openfire is running: `ps aux | grep openfire` . Startup can take a while, please be patient.
 
-* direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
-* choose your language and click continue
-* enter the XMPP server's hostname (e.g. xmpp.domain.com or localhost) in the Domain field and click continue
-* choose the embedded database. You can also use other database types, but you will need to install the database server first and manually create a user and a database for Openfire.
-* if you are using mySQL, you need to change the length of the Pubsub node names in the mySQL database. Basically you need to run the commands:
+* If openfire failed to start, you may need to edit `/etc/init.d/openfire` and set the correct JAVA\_HOME for your Java installation, e.g.:
 
-<pre>mysql -u openfire -p
+<pre>
+JAVA_HOME=/usr/lib/jvm/java-7-oracle
+</pre>
+
+* Direct your web browser to [http://localhost:9090](http://localhost:9090) and begin the setup wizard
+* Choose your language and click continue
+* Enter the XMPP server's hostname (e.g. xmpp.domain.com or localhost) in the Domain field and click continue
+* Choose the embedded database. You can also use other database types, but you will need to install the database server first and manually create a user and a database for Openfire.
+
+* If you are using mySQL, you need to change the length of the Pubsub node names in the mySQL database. Basically you need to run the commands:
+
+<pre>
+mysql -u openfire -p
 use openfire;
 alter table ofPubsubNode modify name VARCHAR(100);
 quit;
 </pre>
 
-* choose the default profile and click continue
-* enter an admin password and click continue, then wait until the installation is finished
-* log on to the web GUI at [http://localhost:9090](http://localhost:9090) with the user/password you chose in the wizard
-* click 'Server', 'Server Settings', 'Registration & Login', enable 'Inband Account Registration' and disable 'Anonymous Login'
+* Choose the default profile and click continue
+* Enter an admin password and click continue, then wait until the installation is finished
+* Log on to the web GUI at [http://localhost:9090](http://localhost:9090) with the user/password you chose in the wizard
+* Click 'Server', 'Server Settings', 'Registration & Login', enable 'Inband Account Registration' and disable 'Anonymous Login'
 * To avoid duplicate subscriptions to the same topic in order to reduce the volume of messages, we recommend turning the multiple subscriptions feature off. Inside the Openfire system properties panel, add *Property Name:* **xmpp.pubsub.multiple-subscriptions** *Property Value:* **false**
 * OPTIONAL: for server2server connectivity (used for testbed federation), you need to set up a DNS name "pubsub.yourhost.name" which can be resolved by public DNS servers. It can be an A record pointing to the same IP address as your host, or a CNAME pointing to the hostname. There is no need for a DNS SRV record. Learn more about S2S [here](http://omf.mytestbed.net/projects/omf/wiki/Openfire_s2s).
 * OPTIONAL: if your testbed consists of several hundred nodes, you may consider increasing the maximum open file descriptor limit for the "openfire" user. This can be done by editing `/etc/security/limits.conf` and adding the lines `root	soft nofile	100000` and `root hard nofile 100000`, which allows a maximum of 100K open sockets/files per process. The default in Ubuntu is 1024. If this is not increased you may run into a problem where openfire does not accept any more incoming TCP connections.
-* restart Openfire to apply any changes made: `/etc/init.d/openfire restart`
+* Restart Openfire to apply any changes made: `/etc/init.d/openfire restart`
 
-### **Verify this step**
+### __Verify this step__
 
 To verify that Openfire has been set up correctly, we are providing a test script ({file:doc/openfire_test.rb also available here}). Run:
 
