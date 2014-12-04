@@ -11,18 +11,27 @@ module OmfCommon::Auth::PDP
     def authorize(msg, &block)
       debug "Assertion: #{msg.assert}"
 
-      assert = OmfCommon::Auth::Assertion.new(msg.asesrt)
-
-      unless assert.verify
+      if msg.assert.nil?
+        warn 'No assertion found, drop it'
         return nil
       end
 
+      assert = OmfCommon::Auth::Assertion.new(msg.assert)
+
+      unless assert.verify
+        return nil
+      else
+        info "#{msg.src.address} tells >> #{assert.iss} says >> #{assert.content}"
+      end
+
       # Check current slice with slice specified in assertion
-      if assert.content =~ /(.+) can use slice (.+)/
-        && $1 == msg.src.address
-        && $2 == @slice
+      if assert.content =~ /(.+) can use slice (.+)/ &&
+        $1 == msg.src.id.to_s &&
+        $2 == @slice.to_s
+        info 'Deliver this message'
         return msg
       else
+        warn 'Drop it'
         return nil
       end
     end
