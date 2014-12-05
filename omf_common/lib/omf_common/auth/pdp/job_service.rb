@@ -28,7 +28,10 @@ module OmfCommon::Auth::PDP
       if assert.content =~ /(.+) can use slice (.+)/ &&
         $1 == msg.src.id.to_s &&
         $2 == @slice.to_s
+
         info 'Deliver this message'
+
+        block.call(msg) if block
         return msg
       else
         warn 'Drop it'
