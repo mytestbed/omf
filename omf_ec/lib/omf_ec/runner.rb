@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License
 
 require 'hashie'
+require 'omf_common/auth/assertion'
 
 module OmfEc
   class Runner
@@ -207,6 +208,15 @@ module OmfEc
     def setup_experiment
       OmfEc.experiment.oml_uri = @config_opts[:oml_uri] if @config_opts[:oml_uri]
       OmfEc.experiment.show_graph = @config_opts['show-graph']
+
+      # Parse assertion JSON if provided
+      #
+      # It is specified in config file as JSON string but
+      # OmfCommon.load_yaml will turn it to hash (mash)
+      if @config_opts['assertion'] && @config_opts['assertion'].kind_of?(Hash)
+        assert = @config_opts['assertion'].to_json
+        OmfEc.experiment.assertion = OmfCommon::Auth::Assertion.parse(assert)
+      end
 
       # Instrument EC
       if @config_opts[:inst_oml_uri] && @config_opts[:inst_oml_id] && @config_opts[:inst_oml_domain]

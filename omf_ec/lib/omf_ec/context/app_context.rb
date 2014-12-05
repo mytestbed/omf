@@ -47,7 +47,7 @@ module OmfEc::Context
             OmfEc.subscribe_and_monitor(@group.resource_group(:application)) do |topic|
               p = properties
               p[:parameters][key.to_sym][:value] = property_value.value
-              topic.configure(p, { guard: { hrn: @name} } )
+              topic.configure(p, { guard: { hrn: @name}, assert: OmfEc.experiment.assertion } )
             end
           end
         end

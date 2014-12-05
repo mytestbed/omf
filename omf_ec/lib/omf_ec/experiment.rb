@@ -16,7 +16,7 @@ module OmfEc
 
     include MonitorMixin
 
-    attr_accessor :name, :sliceID, :oml_uri, :js_url, :ss_url, :job_url, :job_mps, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes
+    attr_accessor :name, :sliceID, :oml_uri, :js_url, :ss_url, :job_url, :job_mps, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes, :assertion
     attr_reader :groups, :sub_groups, :state
 
     # MP only used for injecting metadata
@@ -97,7 +97,7 @@ module OmfEc
           unless planned_groups.empty?
             OmfEc.subscribe_and_monitor(name) do |res|
               info "Config #{name} to join #{planned_groups.map(&:name).join(', ')}"
-              res.configure(membership: planned_groups.map(&:address))
+              res.configure({ membership: planned_groups.map(&:address) }, { assert: OmfEc.experiment.assertion } )
             end
           end
         end
@@ -237,7 +237,7 @@ module OmfEc
       )
     end
 
-    # If EC is launched with --job-service setup, then it needs to 
+    # If EC is launched with --job-service setup, then it needs to
     # create a job entry for this experiment trial
     # Do nothing if:
     # - a JobService URL has not been provided, i.e. EC runs without needs to contact JS
@@ -312,7 +312,7 @@ module OmfEc
               g.synchronize do
                 g.members[key] = res.address
               end
-              res.configure(membership: g.address, :res_index => OmfEc.experiment.nodes.index(key))
+              res.configure({ membership: g.address, res_index: OmfEc.experiment.nodes.index(key) }, { assert: OmfEc.experiment.assertion })
             end
           end
         end
