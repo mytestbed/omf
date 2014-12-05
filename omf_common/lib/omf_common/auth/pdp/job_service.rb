@@ -9,8 +9,6 @@ module OmfCommon::Auth::PDP
     end
 
     def authorize(msg, &block)
-      debug "Assertion: #{msg.assert}"
-
       if msg.assert.nil?
         warn 'No assertion found, drop it'
         return nil
@@ -29,8 +27,6 @@ module OmfCommon::Auth::PDP
         $1 == msg.src.id.to_s &&
         $2 == @slice.to_s
 
-        info 'Deliver this message'
-
         block.call(msg) if block
         return msg
       else
@@ -38,5 +34,6 @@ module OmfCommon::Auth::PDP
         return nil
       end
     end
+
   end
 end

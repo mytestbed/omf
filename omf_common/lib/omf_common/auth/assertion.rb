@@ -32,8 +32,11 @@ module OmfCommon::Auth
     # Verify cert and sig validity
     #
     def verify
-      cert = OmfCommon::Auth::CertificateStore.instance.cert_for(@iss)
-
+      begin
+        cert = OmfCommon::Auth::CertificateStore.instance.cert_for(@iss)
+      rescue MissingCertificateException => e
+        return false
+      end
       # Verify cert
       #
       unless OmfCommon::Auth::CertificateStore.instance.verify(cert)
