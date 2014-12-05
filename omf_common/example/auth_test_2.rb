@@ -37,6 +37,7 @@ env_opts = {
 def init_auth_store
   root_ca = OmfCommon::Auth::Certificate.create_root
 
+  root_ca.create_for_resource 'god', :authoriser
   root_ca.create_for_resource 'adam', :requester
   root_ca.create_for_resource 'eve', :requester
 end
@@ -46,10 +47,8 @@ OmfCommon.init(:development, env_opts) do |event_loop|
   OmfCommon.comm.on_connected do |comm|
     init_auth_store
 
-    assert = OmfCommon::Auth::Assertion.new(
-      type: 'json',
-      iss: 'vip',
-      content: 'adam can use slice slice_a'
+    assert = OmfCommon::Auth::Assertion.generate(
+      'adam can use slice slice_a', iss: 'god'
     )
 
     comm.subscribe(:test) do |topic|
