@@ -47,9 +47,15 @@ OmfCommon.init(:development, env_opts) do |event_loop|
   OmfCommon.comm.on_connected do |comm|
     init_auth_store
 
-    assert = OmfCommon::Auth::Assertion.generate(
+    # Can generate a new assertion
+    #
+    assert_str = OmfCommon::Auth::Assertion.generate(
       'adam can use slice slice_a', iss: 'god'
-    )
+    ).to_s
+
+    # OR parse from an existing one
+    #
+    assert = OmfCommon::Auth::Assertion.parse(assert_str)
 
     comm.subscribe(:test) do |topic|
       topic.on_message do |msg|
