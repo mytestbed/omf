@@ -107,7 +107,8 @@ module OmfEc
           associate_resource_topic(opts[:type].to_s, res_group)
           # Send create message to group
           r_type = opts.delete(:type)
-          @topic.create(r_type, opts.merge(membership: resource_group_name))
+          @topic.create(r_type, opts.merge(membership: resource_group_name),
+                        assert: OmfEc.experiment.assertion)
         end
       end
     end

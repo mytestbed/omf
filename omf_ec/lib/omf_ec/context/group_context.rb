@@ -77,9 +77,11 @@ module OmfEc::Context
 
       case self.operation
       when :configure
-        topic.configure({ name => value }, { guard: self.guard })
+        topic.configure({ name => value },
+                        { guard: self.guard, assert: OmfEc.experiment.assertion })
       when :request
-        topic.request([:uid, :hrn, name], { guard: self.guard })
+        topic.request([:uid, :hrn, name],
+                      { guard: self.guard, assert: OmfEc.experiment.assertion })
       when :release
         topics_to_release = OmfEc.experiment.state.find_all do |res_state|
           all_equal(self.guard.keys) do |k|
@@ -90,7 +92,7 @@ module OmfEc::Context
         topics_to_release.each do |res_state|
           OmfEc.subscribe_and_monitor(res_state.uid) do |child_topic|
             OmfEc.subscribe_and_monitor(self.group.id) do |group_topic|
-              group_topic.release(child_topic) if child_topic
+              group_topic.release(child_topic, { assert: OmfEc.experiment.assertion }) if child_topic
             end
           end
         end

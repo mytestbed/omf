@@ -74,7 +74,7 @@ module OmfCommon
       end
 
       def create_message_and_publish(type, props = {}, core_props = {}, block = nil)
-        debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}"
+        debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}: #{core_props.inspect}"
         core_props[:src] ||= OmfCommon.comm.local_address
         msg = OmfCommon::Message.create(type, props, core_props)
         publish(msg, &block)

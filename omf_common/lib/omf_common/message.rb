@@ -17,8 +17,8 @@ module OmfCommon
   class Message
 
     OMF_NAMESPACE = "http://schema.mytestbed.net/omf/#{OmfCommon::PROTOCOL_VERSION}/protocol"
-    OMF_CORE_READ = [:operation, :ts, :src, :mid, :replyto, :cid, :itype, :rtype, :guard, :res_id]
-    OMF_CORE_WRITE = [:replyto, :itype, :guard]
+    OMF_CORE_READ = [:operation, :ts, :src, :mid, :replyto, :cid, :itype, :rtype, :guard, :res_id, :assert]
+    OMF_CORE_WRITE = [:replyto, :itype, :guard, :assert]
 
     @@providers = {
       xml: {

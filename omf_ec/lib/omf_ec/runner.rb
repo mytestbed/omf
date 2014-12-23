@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License
 
 require 'hashie'
+require 'omf_common/auth/assertion'
 
 module OmfEc
   class Runner
@@ -89,6 +90,11 @@ module OmfEc
           op.on("--key KEY", "Your private key") do |key|
             @cmd_opts[:key] = key
             remove_cmd_opts_from_argv("--key", key)
+          end
+
+          op.on("--assertion PATH_TO_ASSERTION_FILE", "Assertion") do |assertion|
+            @cmd_opts[:assertion] = assertion
+            remove_cmd_opts_from_argv("--assertion", assertion)
           end
 
           op.on("--name", "--experiment EXPERIMENT_NAME", "Experiment name") do |e_name|
@@ -207,6 +213,24 @@ module OmfEc
     def setup_experiment
       OmfEc.experiment.oml_uri = @config_opts[:oml_uri] if @config_opts[:oml_uri]
       OmfEc.experiment.show_graph = @config_opts['show-graph']
+
+      # Parse assertion JSON if provided
+      #
+      # It is specified in config file as JSON string but
+      # OmfCommon.load_yaml will turn it to hash (mash)
+      #
+      # OR provided via command line as path to the assertion JSON file
+      #
+      if @config_opts['assertion']
+        case @config_opts['assertion']
+        when Hash
+          assert = @config_opts['assertion'].to_json
+        when String
+          assert = File.read(File.expand_path(@config_opts['assertion']))
+        end
+
+        OmfEc.experiment.assertion = OmfCommon::Auth::Assertion.parse(assert)
+      end
 
       # Instrument EC
       if @config_opts[:inst_oml_uri] && @config_opts[:inst_oml_id] && @config_opts[:inst_oml_domain]
