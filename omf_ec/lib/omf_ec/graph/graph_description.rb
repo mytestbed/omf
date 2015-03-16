@@ -84,6 +84,10 @@ module OmfEc::Graph
       @caption = text
     end
 
+    def opts(additional_opts = {})
+      @opts = additional_opts
+    end
+
     def _report
       _report_meta
       info "REPORT:START: #{@name}"
@@ -100,6 +104,7 @@ module OmfEc::Graph
         info "REPORT:AXIS: #{URI.encode(@axis.to_json)}"
       end
       info "REPORT:CAPTION: #{URI.encode(@caption)}" if @caption
+      info "REPORT:OPTS: #{URI.encode(@opts.to_json)}" if @opts
       info "REPORT:STOP"
     end
 
@@ -119,6 +124,9 @@ module OmfEc::Graph
       if @axis
         h[:axis] = @axis
       end
+
+      h[:opts] = @opts if @opts
+
       descr = h.to_json
       OmfEc.experiment.log_metadata(@name, descr, :graph)
     end
