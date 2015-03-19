@@ -72,7 +72,7 @@ module OmfEc
       names.flatten!
 
       # When names is array of resource hash
-      if !names.empty? && names[0].kind_of(Hash)
+      if !names.empty? && names[0].kind_of?(Hash)
         names.map! { |v| v['omf_id'] if v['type'] == 'node' }.compact!
       end
 
