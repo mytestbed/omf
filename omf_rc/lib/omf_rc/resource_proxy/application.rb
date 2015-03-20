@@ -90,6 +90,7 @@ module OmfRc::ResourceProxy::Application
   property :description, :default => ''
   property :binary_path, :default => nil
   property :quiet, :default => false
+  property :silent, :default => false
   property :platform, :default => nil
   property :pkg_tarball, :default => nil
   property :tarball_install_path, :default => '/'
@@ -163,7 +164,7 @@ module OmfRc::ResourceProxy::Application
                         state: res.property.state,
                         seq: res.property.event_sequence,
                         uid: res.uid # do we really need this? Should be identical to 'src'
-                      }, :ALL)
+                      }, :ALL) unless res.property.silent
       else
         res.inform(:status, {
                       status_type: 'APP_EVENT',
