@@ -28,11 +28,13 @@ Gem::Specification.new do |s|
   s.add_development_dependency "mocha"
 
   s.add_runtime_dependency "eventmachine"
-  s.add_runtime_dependency "logging"
+  s.add_runtime_dependency "logging", "~> 1.8.2"
   s.add_runtime_dependency "hashie"
   s.add_runtime_dependency "oml4r", "~> 2.10.1"
-  s.add_runtime_dependency "json"
-  s.add_runtime_dependency "json-jwt"
   s.add_runtime_dependency "amqp"
   s.add_runtime_dependency "uuidtools"
+
+  s.add_runtime_dependency "oj"
+  s.add_runtime_dependency "oj_mimic_json"
+  s.add_runtime_dependency "json-jwt"
 end
