@@ -68,14 +68,14 @@ module OmfEc
         when 'STATUS'
           props = []
           msg.each_property { |k, v| props << "#{k}: #{v}" }
-          debug "Received INFORM via #{topic.id} >> #{props.join(", ")}", msg.src
+          #debug "Received INFORM via #{topic.id} >> #{props.join(", ")}", msg.src
 
           if msg[:status_type] == 'APP_EVENT'
             info "APP_EVENT #{msg[:event]} from app #{msg[:app]} - msg: #{msg[:msg]}"
           end
 
           OmfEc.experiment.add_or_update_resource_state(msg.src, msg.properties)
-          OmfEc.experiment.process_events
+          #OmfEc.experiment.process_events
         end
       end
     end
