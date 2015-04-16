@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  s.add_development_dependency "minitest"
+  s.add_development_dependency "minitest", "~> 5.5.1"
   s.add_development_dependency "evented-spec", "~> 1.0.0.beta"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "pry"

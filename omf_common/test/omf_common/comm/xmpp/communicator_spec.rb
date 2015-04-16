@@ -28,6 +28,7 @@ describe "Using XMPP communicator" do
   end
 
   it "must allow you to connect" do
+    skip
     @xmpp_comm.on_connected do |c|
       assert_equal :xmpp, c.conn_info[:proto]
       assert_match /#{Socket.gethostname}/, c.conn_info[:user]
@@ -37,6 +38,7 @@ describe "Using XMPP communicator" do
   end
 
   it "must construct topic address string" do
+    skip
     @xmpp_comm.on_connected do |c|
       t_name = SecureRandom.uuid
       # TODO This format is different to AMQP
@@ -46,6 +48,7 @@ describe "Using XMPP communicator" do
   end
 
   it "must allow you to create a new pubsub topic" do
+    skip
     @xmpp_comm.on_connected do |c|
       t_name = SecureRandom.uuid.to_sym
       c.create_topic(t_name)

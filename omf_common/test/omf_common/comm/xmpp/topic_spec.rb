@@ -30,6 +30,7 @@ describe OmfCommon::Comm::XMPP::Topic do
   end
 
   it "must allow you to subscribe/unsubscribe to a new pubsub topic" do
+    skip
     @xmpp_comm.on_connected do |c|
       t_name = SecureRandom.uuid.to_sym
       c.subscribe(t_name) do |topic|
@@ -43,6 +44,7 @@ describe OmfCommon::Comm::XMPP::Topic do
   end
 
   it "must allow you to send and monitor messages" do
+    skip
     @xmpp_comm.on_connected do |c|
       t_name = SecureRandom.uuid.to_sym
       c.subscribe(t_name) do |topic|

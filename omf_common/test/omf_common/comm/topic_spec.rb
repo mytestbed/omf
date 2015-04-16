@@ -4,6 +4,7 @@
 # By downloading or using this software you accept the terms and the liability disclaimer in the License.
 
 require 'test_helper'
+require 'omf_common/message/json/json_message'
 
 describe OmfCommon::Comm::Topic do
   describe "when using factory method to initialise" do
