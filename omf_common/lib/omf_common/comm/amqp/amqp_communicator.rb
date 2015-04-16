@@ -5,7 +5,18 @@
 
 require 'amqp'
 require 'omf_common/comm/amqp/amqp_topic'
-#require 'omf_common/comm/monkey_patches'
+
+module AMQP
+  class Channel
+    def queues
+      @queues
+    end
+
+    def exchanges
+      @exchanges
+    end
+  end
+end
 
 module OmfCommon
   class Comm
