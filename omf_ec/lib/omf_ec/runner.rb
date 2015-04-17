@@ -303,7 +303,7 @@ module OmfEc
           OmfCommon.comm.on_connected do |comm|
             el.every(5) do
               EM.next_tick do
-                OmfEc.experiment.process_events
+                OmfEc.experiment.process_events rescue nil
               end
             end
 
