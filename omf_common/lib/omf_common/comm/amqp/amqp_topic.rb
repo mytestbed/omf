@@ -49,6 +49,7 @@ module OmfCommon
           @lock = Monitor.new
           @subscribed = false
           @on_subscribed_handlers = []
+          @routing_key = opts[:routing_key]
 
           # @communicator.on_reconnect(self) do
             # info "Resubscribe '#{self}'"
@@ -66,10 +67,11 @@ module OmfCommon
           # end
           channel.queue("", :exclusive => true, :auto_delete => true) do |queue|
             #puts "QQ1(#{id}): #{queue}"
-            queue.bind(@exchange)
+            queue.bind(@exchange, routing_key: @routing_key)
+
             queue.subscribe do |headers, payload|
               #puts "===(#{id}) Incoming message '#{headers.content_type}'"
-              debug "Received message on #{@address}"
+              debug "Received message on #{@address} | #{@routing_key}"
               MPReceived.inject(Time.now.to_f, @address, payload.to_s[/mid\":\"(.{36})/, 1]) if OmfCommon::Measure.enabled?
               Message.parse(payload, headers.content_type) do |msg|
                 #puts "---(#{id}) Parsed message '#{msg}'"
@@ -88,12 +90,12 @@ module OmfCommon
           end
         end
 
-        def _send_message(msg, block = nil)
+        def _send_message(msg, opts = {}, block = nil)
           super
           content_type, content = msg.marshall(self)
-          debug "(#{id}) Send message (#{content_type}) #{msg.inspect}"
+          debug "(#{id}) Send message (#{content_type}) #{msg.inspect} TO #{opts[:routing_key]}"
           if @exchange
-            @exchange.publish(content, content_type: content_type, message_id: msg.mid)
+            @exchange.publish(content, content_type: content_type, message_id: msg.mid, routing_key: opts[:routing_key])
             MPPublished.inject(Time.now.to_f, @address, msg.mid) if OmfCommon::Measure.enabled?
           else
             warn "Unavailable AMQP channel. Dropping message '#{msg}'"

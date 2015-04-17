@@ -151,7 +151,7 @@ module OmfCommon
     def subscribe(topic_name, opts = {}, &block)
       tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
       ta = tna.collect do |tn|
-        t = create_topic(tn.to_s)
+        t = create_topic(tn.to_s, opts)
         if block
           t.on_subscribed do
             block.call(t)
@@ -160,20 +160,6 @@ module OmfCommon
         t
       end
       ta[0]
-    end
-
-    # Publish a message on a topic
-    #
-    # @param [String, Array] topic_name Pubsub topic name
-    # @param [OmfCoomon::Message] message
-    #
-    def publish(topic_name, message)
-      #puts "PUBLISH>>>>> #{topic_name}::#{message}"
-      tna = (topic_name.is_a? Array) ? topic_name : [topic_name]
-      ta = tna.collect do |tn|
-        t = create_topic(tn)
-        t.publish(message)
-      end
     end
 
     # Return the options used to initiate this

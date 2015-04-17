@@ -19,11 +19,11 @@ module OmfCommon
         name = name.to_s.to_sym
         @@lock.synchronize do
           unless @@name2inst[name]
-            debug "New topic: #{name}"
+            debug "New topic: #{name} | #{opts[:routing_key]}"
             #opts[:address] ||= address_for(name)
             @@name2inst[name] = self.new(name, opts, &block)
           else
-            debug "Existing topic: #{name}"
+            debug "Existing topic: #{name} | #{@@name2inst[name].routing_key}"
             block.call(@@name2inst[name]) if block
           end
           @@name2inst[name]
@@ -34,7 +34,7 @@ module OmfCommon
         @@name2inst[name]
       end
 
-      attr_reader :id
+      attr_reader :id, :routing_key
 
       # Request the creation of a new resource. Returns itself
       #
@@ -59,7 +59,7 @@ module OmfCommon
       def inform(type, props = {}, core_props = {}, &block)
         core_props[:src] ||= OmfCommon.comm.local_address
         msg = OmfCommon::Message.create(:inform, props, core_props.merge(itype: type))
-        publish(msg, &block)
+        publish(msg, { routing_key: "o.info" }, &block)
         self
       end
 
@@ -69,20 +69,23 @@ module OmfCommon
         end
         core_props[:src] ||= OmfCommon.comm.local_address
         msg = OmfCommon::Message.create(:release, {}, core_props.merge(res_id: resource.id))
-        publish(msg, &block)
+        publish(msg, { routing_key: "o.op" }, &block)
         self
       end
 
+      # Only used for create, configure and request
       def create_message_and_publish(type, props = {}, core_props = {}, block = nil)
         debug "(#{id}) create_message_and_publish '#{type}': #{props.inspect}: #{core_props.inspect}"
         core_props[:src] ||= OmfCommon.comm.local_address
         msg = OmfCommon::Message.create(type, props, core_props)
-        publish(msg, &block)
+        publish(msg, { routing_key: "o.op" }, &block)
       end
 
-      def publish(msg, &block)
+      def publish(msg, opts = {}, &block)
+        error "!!!" if opts[:routing_key].nil?
+
         raise "Expected message but got '#{msg.class}" unless msg.is_a?(OmfCommon::Message)
-        _send_message(msg, block)
+        _send_message(msg, opts, block)
       end
 
       # TODO we should fix this long list related to INFORM messages
@@ -154,7 +157,7 @@ module OmfCommon
 
       # _send_message will also register callbacks for reply messages by default
       #
-      def _send_message(msg, block = nil)
+      def _send_message(msg, opts = {}, block = nil)
         if (block)
           # register callback for responses to 'mid'
           debug "(#{id}) register callback for responses to 'mid: #{msg.mid}'"

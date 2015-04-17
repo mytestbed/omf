@@ -84,7 +84,7 @@ module OmfEc
     def subscribe_and_monitor(topic_id, context_obj = nil, &block)
       topic = OmfCommon::Comm::Topic[topic_id]
       if topic.nil?
-        OmfCommon.comm.subscribe(topic_id) do |topic|
+        OmfCommon.comm.subscribe(topic_id, routing_key: "o.info") do |topic|
           if topic.error?
             error "Failed to subscribe #{topic_id}"
           else

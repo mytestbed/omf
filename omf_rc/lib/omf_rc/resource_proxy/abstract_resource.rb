@@ -135,7 +135,7 @@ class OmfRc::ResourceProxy::AbstractResource
     @membership_topics = {}
     @property = Hashie::Mash.new
 
-    OmfCommon.comm.subscribe(@uid) do |t|
+    OmfCommon.comm.subscribe(@uid, routing_key: "o.op") do |t|
       @topics << t
 
       if t.error?
@@ -408,7 +408,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
     new_membership && new_membership.each do |new_m|
       unless @membership.include?(new_m)
-        OmfCommon.comm.subscribe(new_m) do |t|
+        OmfCommon.comm.subscribe(new_m, routing_key: "o.op") do |t|
           if t.error?
             warn "Group #{new_m} disappeared"
             self.synchronize do
@@ -684,7 +684,7 @@ class OmfRc::ResourceProxy::AbstractResource
 
     # Just send to all topics, including group membership
     (membership_topics.map { |mt| mt[1] } + @topics).each do |t|
-      t.publish(message)
+      t.publish(message, { routing_key: "o.info" })
       OmfRc::ResourceProxy::MPPublished.inject(Time.now.to_f,
         self.uid, t.id, message.mid) if OmfCommon::Measure.enabled?
     end
