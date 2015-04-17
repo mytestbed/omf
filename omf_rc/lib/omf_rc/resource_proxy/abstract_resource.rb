@@ -463,8 +463,6 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [OmfCommon::Message] message FRCP message
   # @param [OmfCommon::Comm::Topic] topic subscribed to
   def process_omf_message(message, topic)
-    return unless check_guard(message)
-
     unless message.is_a? OmfCommon::Message
       raise ArgumentError, "Expected OmfCommon::Message, but got '#{message.class}'"
     end
@@ -472,6 +470,10 @@ class OmfRc::ResourceProxy::AbstractResource
     unless message.valid?
       raise StandardError, "Invalid message received: #{pubsub_item_payload}. Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}."
     end
+
+    return unless check_guard(message)
+    # We really don't care about inform messages which created from here
+    return nil if message.operation == :inform
 
     objects_by_topic(topic.id.to_s).each do |obj|
       OmfRc::ResourceProxy::MPReceived.inject(Time.now.to_f, self.uid,
@@ -514,8 +516,18 @@ class OmfRc::ResourceProxy::AbstractResource
   # @param [OmfCommon::Message] message FRCP message
   # @param [OmfRc::ResourceProxy::AbstractResource] obj resource object
   def handle_message(message, obj)
+    # We really don't care about inform messages which created from here
+    return nil if message.operation == :inform
+
+    unless [:create, :request, :configure, :release].include?(message.operation)
+      raise StandardError, <<-ERROR
+        Invalid message received (Unknown OMF operation #{message.operation}): #{message}.
+        Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
+      ERROR
+    end
+
     response = message.create_inform_reply_message(nil, {}, src: resource_address)
-    response.replyto replyto_address(obj, message.replyto)
+    response.replyto = replyto_address(obj, message.replyto)
 
     case message.operation
     when :create
@@ -526,13 +538,6 @@ class OmfRc::ResourceProxy::AbstractResource
       handle_configure_message(message, obj, response)
     when :release
       handle_release_message(message, obj, response)
-    when :inform
-      nil # We really don't care about inform messages which created from here
-    else
-      raise StandardError, <<-ERROR
-            Invalid message received (Unknown OMF operation #{message.operation}): #{message}.
-            Please check protocol schema of version #{OmfCommon::PROTOCOL_VERSION}.
-      ERROR
     end
     response
   end
