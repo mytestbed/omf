@@ -301,12 +301,6 @@ module OmfEc
         OmfCommon.init(@config_opts.delete(:environment), @config_opts) do |el|
           setup_logging
           OmfCommon.comm.on_connected do |comm|
-            el.every(5) do
-              EM.next_tick do
-                OmfEc.experiment.process_events rescue nil
-              end
-            end
-
             info "OMF Experiment Controller #{OmfEc::VERSION} - Start"
             info "Connected using #{comm.conn_info}"
             info "Execute: #{@oedl_path}"

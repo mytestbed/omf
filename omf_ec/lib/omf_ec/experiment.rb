@@ -91,7 +91,7 @@ module OmfEc
             end
           end
         else
-          info "Newly discovered resource >> #{name}"
+          debug "Newly discovered resource >> #{name}"
           #res = Hashie::Mash.new({ address: name }).merge(opts)
           opts[:address] = name
           @state[name] = opts
@@ -311,14 +311,28 @@ module OmfEc
         OmfEc.experiment.log_metadata("state", "running")
 
         allGroups do |g|
+          info "CONFIGURE #{g.members.size} resources to join group #{g.name}"
+          debug "CONFIGURE #{g.members.keys} to join group #{g.name}"
           g.members.each do |key, value|
             OmfEc.subscribe_and_monitor(key) do |res|
-              info "Configure '#{key}' to join '#{g.name}'"
+              #info "Configure '#{key}' to join '#{g.name}'"
               g.synchronize do
                 g.members[key] = res.address
               end
               res.configure({ membership: g.address, res_index: OmfEc.experiment.nodes.index(key) }, { assert: OmfEc.experiment.assertion })
             end
+          end
+        end
+
+        # For every 100 nodes, increase check interval by 1 second
+        count = allGroups.inject(0) { |c, g| c += g.members.size }
+        interval = count / 100
+        interval = 1 if interval < 1
+        info "TOTAL resources: #{count}. Events check interval: #{interval}."
+
+        OmfCommon.el.every(interval) do
+          EM.next_tick do
+            OmfEc.experiment.process_events rescue nil
           end
         end
       end
