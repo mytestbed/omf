@@ -37,6 +37,11 @@ module OmfCommon
           end
         end
 
+        def unsubscribe(key)
+          super
+          @exchange.delete
+        end
+
 
         private
 
@@ -58,20 +63,13 @@ module OmfCommon
         def _init_amqp()
           channel = @communicator.channel
           @exchange = channel.topic(id, :auto_delete => true)
-          # @exchange.on_connection_interruption do |ex|
-            # warn "Exchange #{ex.name} detected connection interruption"
-            # @exchange = nil
-          # end
           channel.queue("", :exclusive => true, :auto_delete => true) do |queue|
-            #puts "QQ1(#{id}): #{queue}"
             queue.bind(@exchange, routing_key: @routing_key)
 
             queue.subscribe do |headers, payload|
-              #puts "===(#{id}) Incoming message '#{headers.content_type}'"
               debug "Received message on #{@address} | #{@routing_key}"
               MPReceived.inject(Time.now.to_f, @address, payload.to_s[/mid\":\"(.{36})/, 1]) if OmfCommon::Measure.enabled?
               Message.parse(payload, headers.content_type) do |msg|
-                #puts "---(#{id}) Parsed message '#{msg}'"
                 on_incoming_message(msg)
               end
             end
