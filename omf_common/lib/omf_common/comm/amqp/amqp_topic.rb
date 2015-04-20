@@ -49,12 +49,9 @@ module OmfCommon
           @lock = Monitor.new
           @subscribed = false
           @on_subscribed_handlers = []
-          @routing_key = opts[:routing_key]
+          # Monitor o.op & o.info by default
+          @routing_key = opts[:routing_key] || "o.*"
 
-          # @communicator.on_reconnect(self) do
-            # info "Resubscribe '#{self}'"
-            # _init_amqp
-          # end
           _init_amqp
         end
 
