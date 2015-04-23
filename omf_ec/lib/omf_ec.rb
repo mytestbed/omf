@@ -59,11 +59,11 @@ module OmfEc
           warn "RC reports warning: '#{msg[:reason]}'", msg.src
           debug msg, msg.src
         when 'CREATION.OK'
-          debug "Resource #{msg[:res_id]} #{msg.resource.address} created"
+          debug "Resource #{msg[:res_id]} created"
           debug "Received CREATION.OK via #{topic.id}"
           debug msg, msg.src
 
-          OmfEc.experiment.add_or_update_resource_state(msg.resource.address, msg.properties)
+          OmfEc.experiment.add_or_update_resource_state(msg.resource_address, msg.properties)
           OmfEc.experiment.process_events
         when 'STATUS'
           props = []
