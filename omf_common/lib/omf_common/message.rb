@@ -168,6 +168,10 @@ module OmfCommon
       OmfCommon.comm.create_topic(name)
     end
 
+    def resource_address
+      _get_property(:res_id)
+    end
+
     def success?
       ! error?
     end

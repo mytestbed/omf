@@ -146,8 +146,7 @@ module OmfCommon
                 end
                 _reconnect(conn)
               end
-              @channel  = ::AMQP::Channel.new(connection)
-              @channel.auto_recovery = true
+              @channel = ::AMQP::Channel.new(connection, auto_recovery: true, prefetch: 10)
 
               @on_connected_procs.each do |proc|
                 proc.arity == 1 ? proc.call(self) : proc.call

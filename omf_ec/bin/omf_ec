@@ -4,6 +4,9 @@ require 'omf_ec'
 require 'omf_ec/runner'
 $stdout.sync = true
 
+require 'eventmachine'
+EventMachine.threadpool_size = 60
+
 runner = OmfEc::Runner.new
 runner.init
 runner.run

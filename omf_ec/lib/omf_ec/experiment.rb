@@ -17,7 +17,7 @@ module OmfEc
     include MonitorMixin
 
     attr_accessor :name, :sliceID, :oml_uri, :js_url, :ss_url, :job_url, :job_mps, :app_definitions, :property, :cmdline_properties, :show_graph, :nodes, :assertion
-    attr_reader :groups, :sub_groups, :state
+    attr_reader :groups, :sub_groups
 
     # MP only used for injecting metadata
     class MetaData < OML4R::MPBase
@@ -33,7 +33,7 @@ module OmfEc
       super
       @id = Time.now.utc.iso8601(3)
       @sliceID = nil
-      @state ||= [] #TODO: we need to keep history of all the events and not ovewrite them
+      @state ||= Hashie::Mash.new #TODO: we need to keep history of all the events and not ovewrite them
       @groups ||= []
       @nodes ||= []
       @events ||= []
@@ -47,6 +47,10 @@ module OmfEc
       @ss_url = nil
     end
 
+    def state
+      @state.values
+    end
+
     def property
       return ExperimentProperty
     end
@@ -58,13 +62,13 @@ module OmfEc
     end
 
     def resource_state(address)
-      @state.find { |v| v[:address].to_s == address.to_s }
+      @state[address]
     end
 
     alias_method :resource, :resource_state
 
     def resource_by_hrn(hrn)
-      @state.find { |v| v[:hrn].to_s == hrn.to_s }
+      @state[hrn]
     end
 
     def add_or_update_resource_state(name, opts = {})
@@ -79,7 +83,7 @@ module OmfEc
               res[key].uniq!
             elsif value.kind_of? Hash
               # Merge hash values
-              res[key] ||= Hashie::Mash.new
+              res[key] ||= {}
               res[key].merge!(value)
             else
               # Overwrite otherwise
@@ -87,19 +91,20 @@ module OmfEc
             end
           end
         else
-          info "Newly discovered resource >> #{name}"
-          res = Hashie::Mash.new({ address: name }).merge(opts)
-          @state << res
+          debug "Newly discovered resource >> #{name}"
+          #res = Hashie::Mash.new({ address: name }).merge(opts)
+          opts[:address] = name
+          @state[name] = opts
 
           # Re send membership configure
-          planned_groups = groups_by_res(res[:address])
+          #planned_groups = groups_by_res(name)
 
-          unless planned_groups.empty?
-            OmfEc.subscribe_and_monitor(name) do |res|
-              info "Config #{name} to join #{planned_groups.map(&:name).join(', ')}"
-              res.configure({ membership: planned_groups.map(&:address) }, { assert: OmfEc.experiment.assertion } )
-            end
-          end
+          #unless planned_groups.empty?
+          #  OmfEc.subscribe_and_monitor(name) do |res|
+          #    info "Config #{name} to join #{planned_groups.map(&:name).join(', ')}"
+          #    res.configure({ membership: planned_groups.map(&:address) }, { assert: OmfEc.experiment.assertion } )
+          #  end
+          #end
         end
       end
     end
@@ -200,7 +205,7 @@ module OmfEc
     end
 
     def eval_trigger(event)
-      if event[:callbacks] && !event[:callbacks].empty? && event[:trigger].call(@state)
+      if event[:callbacks] && !event[:callbacks].empty? && event[:trigger].call(state)
         # Periodic check event
         event[:periodic_timer].cancel if event[:periodic_timer] && event[:consume_event]
 
@@ -306,14 +311,28 @@ module OmfEc
         OmfEc.experiment.log_metadata("state", "running")
 
         allGroups do |g|
+          info "CONFIGURE #{g.members.size} resources to join group #{g.name}"
+          debug "CONFIGURE #{g.members.keys} to join group #{g.name}"
           g.members.each do |key, value|
             OmfEc.subscribe_and_monitor(key) do |res|
-              info "Configure '#{key}' to join '#{g.name}'"
+              #info "Configure '#{key}' to join '#{g.name}'"
               g.synchronize do
                 g.members[key] = res.address
               end
               res.configure({ membership: g.address, res_index: OmfEc.experiment.nodes.index(key) }, { assert: OmfEc.experiment.assertion })
             end
+          end
+        end
+
+        # For every 100 nodes, increase check interval by 1 second
+        count = allGroups.inject(0) { |c, g| c += g.members.size }
+        interval = count / 100
+        interval = 1 if interval < 1
+        info "TOTAL resources: #{count}. Events check interval: #{interval}."
+
+        OmfCommon.el.every(interval) do
+          EM.next_tick do
+            OmfEc.experiment.process_events rescue nil
           end
         end
       end

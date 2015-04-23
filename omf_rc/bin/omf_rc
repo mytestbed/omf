@@ -22,4 +22,7 @@ require 'omf_rc/runner'
 
 $stdout.sync = true
 
+require 'eventmachine'
+EventMachine.threadpool_size = 60
+
 OmfRc::Runner.new.run
