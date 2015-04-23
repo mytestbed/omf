@@ -38,12 +38,6 @@ describe OmfCommon::Comm do
       @topic.expects(:on_subscribed)
       @abstract_comm.subscribe(:bob) { 'do nothing' }
     end
-
-    it "must be able to publish message" do
-      @abstract_comm.stubs(:create_topic).returns(@topic)
-      @topic.expects(:publish)
-      @abstract_comm.publish(:bob, 'message')
-    end
   end
 
   describe 'when initialised with a pubsub implementation' do

@@ -10,7 +10,7 @@ describe OmfRc::ResourceFactory do
   describe "when resource proxies loaded" do
     before do
       @xmpp = MiniTest::Mock.new
-      @xmpp.expect(:subscribe, true, [String])
+      @xmpp.expect(:subscribe, true, [String, Hash])
     end
 
     it "must have list of registered proxies and utilities" do
