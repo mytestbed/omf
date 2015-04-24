@@ -46,8 +46,12 @@ class ExecApp
   # @param [String] id of the application to return
   def self.[](id)
     app = @@all_apps[id]
-    logger.info "Unknown application '#{id}/#{id.class}'" if app.nil?
+    warn "Unknown application '#{id}/#{id.class}'" if app.nil?
     return app
+  end
+
+  def self.has?(id)
+    @@all_apps.has_key?(id)
   end
 
   def self.signal_all(signal = 'KILL')

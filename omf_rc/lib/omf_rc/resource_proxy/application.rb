@@ -283,7 +283,10 @@ module OmfRc::ResourceProxy::Application
       when :running then res.switch_to_running
       when :paused then res.switch_to_paused
       else
-        res.log_inform_warn "Cannot switch application to unknown state '#{value.to_s}'!"
+        # It is OK to create an APP with state :created
+        unless res.property.state == :created
+          res.log_inform_warn "Cannot switch application to unknown state '#{value.to_s}'!"
+        end
       end
     end
     res.property.state
@@ -330,23 +333,22 @@ module OmfRc::ResourceProxy::Application
   work('switch_to_stopped') do |res|
     if res.property.state == :running || res.property.state == :paused
       id = res.property.app_id
-      unless ExecApp[id].nil?
-        # stop this app
-        begin
-          # first, try sending 'exit' on the stdin of the app, and wait
-          # for 4s to see if the app acted on it...
-          ExecApp[id].stdin('exit')
-          sleep 4
-          unless ExecApp[id].nil?
-            # second, try sending TERM signal, wait another 4s to see
-            # if the app acted on it...
-            ExecApp[id].signal('TERM')
-            sleep 4
-            # finally, try sending KILL signal
-            ExecApp[id].signal('KILL') unless ExecApp[id].nil?
-          end
-          res.property.state = :stopped
-        rescue => err
+      # stop this app
+      # first, try sending 'exit' on the stdin of the app, and wait
+      # for 4s to see if the app acted on it...
+      warn "EXIT... #{res.name}" if ExecApp.has?(id)
+      ExecApp.has?(id) ? (ExecApp[id].stdin('exit') rescue nil) : res.property.state = :stopped
+
+      OmfCommon.el.after(4) do
+        # second, try sending TERM signal, wait another 4s to see
+        # if the app acted on it...
+        warn "TERM... #{res.name}" if ExecApp.has?(id)
+        ExecApp.has?(id) ? (ExecApp[id].signal('TERM') rescue nil) : res.property.state = :stopped
+
+        OmfCommon.el.after(4) do
+          error "KILL... #{res.name}" if ExecApp.has?(id)
+          # finally, try sending KILL signal
+          ExecApp.has?(id) ? (ExecApp[id].signal('KILL') rescue nil) : res.property.state = :stopped
         end
       end
     end

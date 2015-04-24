@@ -271,7 +271,6 @@ module OmfEc
       # Disconnect communicator, try to delete any XMPP affiliations
       def done
         info "Experiment: #{OmfEc.experiment.id} finished"
-        info "Release applications and network interfaces"
         info "Exit in 15 seconds..."
 
         # Make sure that all defined events are removed
@@ -279,10 +278,24 @@ module OmfEc
 
         OmfCommon.el.after(10) do
           allGroups do |g|
-            g.resources[type: 'application'].release unless g.app_contexts.empty?
-            g.resources[type: 'net'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'net' }.empty?
-            g.resources[type: 'wlan'].release unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
-            g.resources.membership = { leave: g.address }
+            # Clean up
+            unless g.app_contexts.empty?
+              info "Release applications in #{g.name}"
+              g.resources[type: 'application'].release
+            end
+            unless g.net_ifs.find_all { |v| v.conf[:type] == 'net' }.empty?
+              info "Release wired network interfaces in #{g.name}"
+              g.resources[type: 'net'].release
+            end
+            unless g.net_ifs.find_all { |v| v.conf[:type] == 'wlan' }.empty?
+              info "Release wireless network interfaces in #{g.name}"
+              g.resources[type: 'wlan'].release
+            end
+            # Let release messages go through first
+            OmfCommon.el.after(2) do
+              info "Configure resources to leave #{g.name}"
+              g.resources.membership = { leave: g.address }
+            end
           end
 
           OmfCommon.el.after(4) do
