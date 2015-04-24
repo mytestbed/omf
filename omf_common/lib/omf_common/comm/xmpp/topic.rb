@@ -87,7 +87,7 @@ class XMPP
       OmfCommon.comm.topic_event(default_guard, &event_block)
     end
 
-    def _send_message(msg, block)
+    def _send_message(msg, opts = {}, block)
       super
       OmfCommon.comm.publish(self.id, msg, pubsub_domain_addr)
     end
