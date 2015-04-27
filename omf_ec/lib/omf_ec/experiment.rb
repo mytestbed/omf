@@ -292,7 +292,7 @@ module OmfEc
               g.resources[type: 'wlan'].release
             end
             # Let release messages go through first
-            OmfCommon.el.after(2) do
+            OmfCommon.el.after(1) do
               info "Configure resources to leave #{g.name}"
               g.resources.membership = { leave: g.address }
             end

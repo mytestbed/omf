@@ -336,17 +336,14 @@ module OmfRc::ResourceProxy::Application
       # stop this app
       # first, try sending 'exit' on the stdin of the app, and wait
       # for 4s to see if the app acted on it...
-      warn "EXIT... #{res.name}" if ExecApp.has?(id)
       ExecApp.has?(id) ? (ExecApp[id].stdin('exit') rescue nil) : res.property.state = :stopped
 
       OmfCommon.el.after(4) do
         # second, try sending TERM signal, wait another 4s to see
         # if the app acted on it...
-        warn "TERM... #{res.name}" if ExecApp.has?(id)
         ExecApp.has?(id) ? (ExecApp[id].signal('TERM') rescue nil) : res.property.state = :stopped
 
         OmfCommon.el.after(4) do
-          error "KILL... #{res.name}" if ExecApp.has?(id)
           # finally, try sending KILL signal
           ExecApp.has?(id) ? (ExecApp[id].signal('KILL') rescue nil) : res.property.state = :stopped
         end
