@@ -37,7 +37,7 @@ describe OmfRc::Util::Ip do
 
     it "could request ip address of the device" do
       Cocaine::CommandLine.stub(:new, @command) do
-        @command.expect(:run, fixture("ip/addr_show"))
+        @command.expect(:run, fixture("ip/addr_show"), [Hash])
         @wlan00.request_ip_addr.must_equal "192.168.1.124/24"
         @command.verify
       end
@@ -45,7 +45,7 @@ describe OmfRc::Util::Ip do
 
     it "could request mac address of the device" do
       Cocaine::CommandLine.stub(:new, @command) do
-        @command.expect(:run, fixture("ip/addr_show"))
+        @command.expect(:run, fixture("ip/addr_show"), [Hash])
         @wlan00.request_mac_addr.must_equal "00:00:00:29:00:00"
         @command.verify
       end
@@ -56,9 +56,9 @@ describe OmfRc::Util::Ip do
       # lambda { @wlan00.configure_ip_addr("192.168.1.124/24") }.must_raise Cocaine::ExitStatusError
       Cocaine::CommandLine.stub(:new, @command) do
         3.times do
-          @command.expect(:run, "")
+          @command.expect(:run, "", [Hash])
         end
-        @command.expect(:run, fixture("ip/addr_show"))
+        @command.expect(:run, fixture("ip/addr_show"), [Hash])
         @wlan00.configure_ip_addr("192.168.1.124/24")
         @command.verify
       end

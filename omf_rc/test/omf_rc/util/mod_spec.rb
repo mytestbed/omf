@@ -38,7 +38,7 @@ describe OmfRc::Util::Mod do
 
     it "could load a module" do
       Cocaine::CommandLine.stub(:new, @command) do
-        @command.expect(:run, true)
+        @command.expect(:run, true, [Hash])
         @mod_test.configure_load_module(name: 'magic_module').must_equal "magic_module loaded"
         @command.verify
       end

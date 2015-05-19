@@ -42,7 +42,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "could request properties of the wifi interface" do
         Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, fixture("iw/link"))
+          @command.expect(:run, fixture("iw/link"), [Hash])
           @wlan00.request_link.keys.must_include "ssid"
           @command.verify
         end
@@ -50,7 +50,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "could request info of the wifi interface" do
         Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, fixture("iw/info"))
+          @command.expect(:run, fixture("iw/info"), [Hash])
           @wlan00.request_info.keys.must_equal ["ifindex", "type", "wiphy"]
           @command.verify
         end
@@ -59,7 +59,7 @@ Cocaine::CommandLine.stub(:new, @command) do
       it "could configure the device's property" do
         skip
         Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, true)
+          @command.expect(:run, true, [Hash])
           @wlan00.configure_power_save(true)
           @command.verify
         end
@@ -79,7 +79,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "could delete current interface" do
         Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, true)
+          @command.expect(:run, true, [Hash])
           @wlan00.delete_interface
           @command.verify
         end
@@ -87,7 +87,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "could add a new interface" do
         Cocaine::CommandLine.stub(:new, @command) do
-          @command.expect(:run, true)
+          @command.expect(:run, true, [Hash])
           @wlan00.add_interface(:managed)
           @command.verify
         end
@@ -102,21 +102,21 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must be able to configure as master mode" do
         Cocaine::CommandLine.stub(:new, @command) do
-          3.times { @command.expect(:run, true) }
+          3.times { @command.expect(:run, true, [Hash]) }
 
           @wlan00.configure_mode(mode: 'master', channel: 1, essid: 'bob', hw_mode: 'b')
           File.open(@wlan00.property.ap_conf) do |f|
             f.read.must_match "driver=nl80211\ninterface=wlan1\nssid=bob\nchannel=1\nhw_mode=b\n"
           end
 
-          3.times { @command.expect(:run, true) }
+          3.times { @command.expect(:run, true, [Hash]) }
 
           @wlan00.configure_mode(mode: 'master', channel: 1, essid: 'bob', hw_mode: 'n')
           File.open(@wlan00.property.ap_conf) do |f|
             f.read.must_match "driver=nl80211\ninterface=wlan1\nssid=bob\nchannel=1\nhw_mode=g\nwmm_enabled=1\nieee80211n=1\nht_capab=\[HT20\-\]\n"
           end
 
-          3.times { @command.expect(:run, true) }
+          3.times { @command.expect(:run, true, [Hash]) }
 
           @wlan00.configure_mode(mode: 'master', channel: 16, essid: 'bob', hw_mode: 'n')
           File.open(@wlan00.property.ap_conf) do |f|
@@ -129,7 +129,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must be able to configure as managed mode" do
         Cocaine::CommandLine.stub(:new, @command) do
-          3.times { @command.expect(:run, true) }
+          3.times { @command.expect(:run, true, [Hash]) }
 
           @wlan00.configure_mode(mode: 'managed', essid: 'bob')
           File.open(@wlan00.property.wpa_conf) do |f|
@@ -142,7 +142,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must be able to configure as adhoc/ibss mode" do
         Cocaine::CommandLine.stub(:new, @command) do
-          4.times { @command.expect(:run, true) }
+          4.times { @command.expect(:run, true, [Hash]) }
 
           @wlan00.configure_mode(mode: 'adhoc', essid: 'bob', frequency: 2412)
           @command.verify
@@ -151,7 +151,7 @@ Cocaine::CommandLine.stub(:new, @command) do
 
       it "must be able to configure as monitor mode" do
         Cocaine::CommandLine.stub(:new, @command) do
-          3.times { @command.expect(:run, true) }
+          3.times { @command.expect(:run, true, [Hash]) }
 
           @wlan00.configure_mode(mode: 'monitor')
           @command.verify
