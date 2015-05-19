@@ -18,7 +18,8 @@ module OmfRc::Util::Ip
   # @!macro request
   # @!method request_ip_addr
   request :ip_addr do |resource|
-    addr = CommandLine.new("ip", "addr show dev :device", :device => resource.property.if_name).run
+    c = CommandLine.new("ip", "addr show dev :device")
+    addr = c.run( { :device => resource.property.if_name })
     addr && addr.chomp.match(/inet ([[0-9]\:\/\.]+)/) && $1
   end
 
@@ -28,12 +29,14 @@ module OmfRc::Util::Ip
   # @!macro request
   # @!method request_mac_addr
   request :mac_addr do |resource|
-    addr = CommandLine.new("ip", "addr show dev :device", :device => resource.property.if_name).run
+    c = CommandLine.new("ip", "addr show dev :device")
+    addr = c.run( { :device => resource.property.if_name })
     addr && addr.chomp.match(/link\/ether ([\d[a-f][A-F]\:]+)/) && $1
   end
 
   request :state do |device|
-    link = CommandLine.new("ip", "link show :device", :device => device.property.if_name).run
+    c = CommandLine.new("ip", "link show :device")
+    link = c.run({ :device => device.property.if_name })
     link && link.chomp.match(/state (\w+) /) && $1
   end
 
@@ -55,10 +58,10 @@ module OmfRc::Util::Ip
     end
     # Remove all ip addrs associated with the device
     resource.flush_ip_addrs
-    CommandLine.new("ip",  "addr add :ip_address dev :device",
-                    :ip_address => value,
-                    :device => resource.property.if_name
-                   ).run
+    c=CommandLine.new("ip",  "addr add :ip_address dev :device")
+    c.run({ :ip_address => value,
+            :device => resource.property.if_name })
+
     resource.interface_up
     resource.request_ip_addr
   end
@@ -69,11 +72,13 @@ module OmfRc::Util::Ip
   # @!macro work
   # @!method interface_up
   work :interface_up do |resource|
-    CommandLine.new("ip", "link set :dev up", :dev => resource.property.if_name).run
+    c=CommandLine.new("ip", "link set :dev up")
+    c.run({ :dev => resource.property.if_name })
   end
 
   work :interface_down do |device|
-    CommandLine.new("ip", "link set :dev down", :dev => device.property.if_name).run
+    c=CommandLine.new("ip", "link set :dev down")
+    c.run({ :dev => device.property.if_name })
   end
 
   # Remove IP addresses associated with the interface
@@ -81,8 +86,8 @@ module OmfRc::Util::Ip
   # @!macro work
   # @!method flush_ip_addrs
   work :flush_ip_addrs do |resource|
-    CommandLine.new("ip",  "addr flush dev :device",
-                    :device => resource.property.if_name).run
+    c=CommandLine.new("ip",  "addr flush dev :device")
+    c.run({ :device => resource.property.if_name })
   end
   # @!endgroup
 end

@@ -29,10 +29,10 @@ module OmfRc::Util::Wpa
     File.open(device.property.wpa_conf, "w") do |f|
       f << "network={\n  ssid=\"#{device.property.essid}\"\n  scan_ssid=1\n  key_mgmt=NONE\n}"
     end
-    CommandLine.new("wpa_supplicant", "-B -P :wpa_pid -i:dev -c:wpa_conf",
-                    :dev => device.property.if_name,
+    c=CommandLine.new("wpa_supplicant", "-B -P :wpa_pid -i:dev -c:wpa_conf")
+    c.run({         :dev => device.property.if_name,
                     :wpa_conf => device.property.wpa_conf,
-                    :wpa_pid => device.property.wpa_pid).run
+                    :wpa_pid => device.property.wpa_pid  })
   end
 
   # @!method stop_wpa
@@ -40,12 +40,13 @@ module OmfRc::Util::Wpa
     begin
       File.open(device.property.wpa_pid,'r') do |f|
         info "Stopping wpa supplicant at PID: #{device.property.wpa_pid}"
-        CommandLine.new("kill", "-9 :pid", :pid => f.read.chomp).run
+        c1=CommandLine.new("kill", "-9 :pid")
+        c1.run({ :pid => f.read.chomp })
       end
 
-      CommandLine.new("rm", "-f :wpa_pid :wpa_conf",
-                      :wpa_pid => device.property.wpa_pid,
-                      :wpa_conf => device.property.wpa_conf).run
+	  c2=CommandLine.new("rm", "-f :wpa_pid :wpa_conf")
+      c2.run({         :wpa_pid => device.property.wpa_pid,
+                      :wpa_conf => device.property.wpa_conf  })
     rescue => e
       logger.warn "Failed to clean wpa supplicant and its related files '#{device.property.wpa_pid}' and '#{device.property.wpa_conf}'!"
       logger.warn e.message

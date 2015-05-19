@@ -28,10 +28,10 @@ module OmfRc::Util::Iw
     CommandLine.new("iw", "help").run.chomp.gsub(/^\t/, '').split("\n").map {|v| v.match(/[phy|dev] <.+> set (\w+) .*/) && $1 }.compact.uniq.each do |p|
       next if p == 'type'
       configure p do |device, value|
-        CommandLine.new("iw", "dev :dev set :property :value",
-                        :dev => device.property.if_name,
+        c=CommandLine.new("iw", "dev :dev set :property :value")
+        c.run ({        :dev => device.property.if_name,
                         :property => p,
-                        :value => value).run
+                        :value => value      })
       end
     end
   rescue Cocaine::CommandNotFoundError
@@ -53,9 +53,9 @@ module OmfRc::Util::Iw
   request :link do |device|
     known_properties = Mash.new
 
-    command = CommandLine.new("iw", "dev :dev link", :dev => device.property.if_name)
+    command = CommandLine.new("iw", "dev :dev link")
 
-    command.run.chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
+    command.run({ :dev => device.property.if_name }).chomp.gsub(/^\t/, '').split("\n").drop(1).each do |v|
       v.match(/^(.+):\W*(.+)$/).tap do |m|
         m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
       end
@@ -76,9 +76,9 @@ module OmfRc::Util::Iw
   request :info do |device|
     known_properties = Mash.new
 
-    command = CommandLine.new("iw", "dev :dev info", :dev => device.property.if_name)
+    command = CommandLine.new("iw", "dev :dev info")
 
-    command.run.chomp.split("\n").drop(1).each do |v|
+    command.run({ :dev => device.property.if_name }).chomp.split("\n").drop(1).each do |v|
       v.match(/^\W*(.+) (.+)$/).tap do |m|
         m && known_properties[m[1].downcase.gsub(/\W+/, '_')] = m[2].gsub(/^\W+/, '')
       end
@@ -167,7 +167,8 @@ module OmfRc::Util::Iw
   # @return [String] iw command output
   # @!macro work
   work :delete_interface do |device|
-    CommandLine.new("iw", "dev :dev del", :dev => device.property.if_name).run
+    c=CommandLine.new("iw", "dev :dev del")
+    c.run({  :dev => device.property.if_name })
   end
 
   # Add interface to device
@@ -175,10 +176,11 @@ module OmfRc::Util::Iw
   # @return [String] iw command output
   # @!macro work
   work :add_interface do |device, type|
-    CommandLine.new("iw", "phy :phy interface add :dev type :type",
+    c=CommandLine.new("iw", "phy :phy interface add :dev type :type")
+    c.run( {
                     :phy => device.property.phy,
                     :dev => device.property.if_name,
-                    :type => type.to_s).run
+                    :type => type.to_s })
   end
 
   # Set up or join a ibss network
@@ -186,10 +188,11 @@ module OmfRc::Util::Iw
   # @return [String] iw command output
   # @!macro work
   work :join_ibss do |device|
-    CommandLine.new("iw", "dev :device ibss join :essid :frequency",
+    c=CommandLine.new("iw", "dev :device ibss join :essid :frequency")
+    c.run( {
                       :device => device.property.if_name.to_s,
                       :essid => device.property.essid.to_s,
-                      :frequency => device.property.frequency.to_s).run
+                      :frequency => device.property.frequency.to_s  })
   end
 
   # Validate internal properties based on interface mode

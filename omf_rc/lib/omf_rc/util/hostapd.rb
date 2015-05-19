@@ -41,9 +41,9 @@ module OmfRc::Util::Hostapd
       end
     end
 
-    CommandLine.new("hostapd", "-B -P :ap_pid :ap_conf",
-                    :ap_pid => device.property.ap_pid,
-                    :ap_conf => device.property.ap_conf).run
+    c=CommandLine.new("hostapd", "-B -P :ap_pid :ap_conf")
+    c.run({ :ap_pid => device.property.ap_pid,
+            :ap_conf => device.property.ap_conf })
   end
 
   # @!method stop_hostapd
@@ -51,12 +51,13 @@ module OmfRc::Util::Hostapd
     begin
       File.open(device.property.ap_pid,'r') do |f|
         logger.debug "Stopping hostapd process at PID: #{device.property.ap_pid}"
-        CommandLine.new("kill", "-9 :pid", :pid => f.read.chomp).run
+        c1=CommandLine.new("kill", "-9 :pid")
+        c1.run({ :pid => f.read.chomp })
       end
 
-      CommandLine.new("rm", "-f :ap_pid :ap_conf",
-                      :ap_pid => device.property.ap_pid,
-                      :ap_conf => device.property.ap_conf).run
+      c2=CommandLine.new("rm", "-f :ap_pid :ap_conf")
+      c2.run({         :ap_pid => device.property.ap_pid,
+                      :ap_conf => device.property.ap_conf})
     rescue => e
       logger.warn "Failed to clean hostapd and its related files '#{device.property.ap_pid}' and '#{device.property.ap_conf}'!"
       logger.warn e.message

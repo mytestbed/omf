@@ -48,13 +48,15 @@ module OmfRc::Util::Mod
     end
 
     if value.unload
-      CommandLine.new("modprobe", "-r :mod_names", :mod_names => [value.unload].flatten.join(' ')).run
+      c=CommandLine.new("modprobe", "-r :mod_names")
+      c.run({ :mod_names => [value.unload].flatten.join(' ') })
     end
 
-    CommandLine.new("modprobe", ":flags :mod_name :module_parameters",
+    c=CommandLine.new("modprobe", ":flags :mod_name :module_parameters")
+    c.run({ 
                     :mod_name => value.name.to_s,
                     :flags => flags_string,
-                    :module_parameters => value.mod_params.to_s).run
+                    :module_parameters => value.mod_params.to_s  })
 
     "#{value.name} loaded"
   end

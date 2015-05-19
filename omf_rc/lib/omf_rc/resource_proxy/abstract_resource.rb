@@ -184,7 +184,7 @@ class OmfRc::ResourceProxy::AbstractResource
           creation_callback.call(self) if creation_callback
         rescue => e
           error "Encountered exception: #{e.message}, returning ERROR message"
-          debug e.backtrace.join("\n")
+          error  e.backtrace.join("\n")
           t.inform(:creation_failed,
                    { reason: e.message },
                    { src: self.resource_address })
