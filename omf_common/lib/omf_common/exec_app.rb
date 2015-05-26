@@ -68,7 +68,7 @@ class ExecApp
 
 
   def stdin(line)
-    logger.debug "Writing '#{line}' to app '#{@id}'"
+    logger.debug "Writing '#{line}' to app '#{@id}' with pid #{@pid}"
     @stdin.write("#{line}\n")
     @stdin.flush
   end

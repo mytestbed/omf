@@ -359,7 +359,7 @@ module OmfRc::ResourceProxy::Application
   work('switch_to_running') do |res|
     if res.property.state == :created || res.property.state == :stopped
       # start a new instance of this app
-      res.property.app_id = res.hrn.nil? ? res.uid : res.hrn
+      res.property.app_id = res.hrn.nil? ? res.uid : "#{res.hrn}-#{res.uid}"
       # we need at least a defined binary path to run an app...
       if res.property.binary_path.nil?
         res.log_inform_warn "Binary path not set! No Application to run!"
