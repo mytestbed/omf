@@ -39,7 +39,7 @@ module OmfCommon
 
         def unsubscribe(key)
           super
-          @exchange.delete
+          #@exchange.delete
         end
 
 
