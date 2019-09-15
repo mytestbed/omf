@@ -46,11 +46,8 @@ module OmfEc
       end
     end
 
-    warn_removed :version
-
     def path=(arg)
       @properties[:binary_path] = arg
-      warn_deprecation :path=, :binary_path=
     end
 
     def shortDescription=(arg)
